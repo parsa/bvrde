@@ -9,7 +9,7 @@ CComModule _Module;
 IDevEnv* _pDevEnv;
 CEventMonitor _Monitor;
 
-
+ 
 #define PLUGIN_NAME        "Start Page"
 #define PLUGIN_DESCRIPTION "Displays the start page."
 

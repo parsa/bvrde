@@ -6,7 +6,7 @@
 #endif // _MSC_VER > 1000
 
 #include "View.h"
-
+ 
 
 class CEventMonitor : public IAppListener
 {

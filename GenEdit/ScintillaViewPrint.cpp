@@ -6,7 +6,7 @@
 #include "SciLexer.h"
 
 #pragma code_seg( "EDITOR" )
-
+ 
 
 LRESULT CScintillaView::OnFilePrint(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {

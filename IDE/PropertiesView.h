@@ -7,7 +7,7 @@
 
 #include "PropertyList.h"
 #include "Solution.h"
-
+ 
 
 class CPropertiesView : 
    public CWindowImpl<CPropertiesView>,

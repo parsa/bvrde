@@ -15,7 +15,7 @@ CToolBarCtrl m_ctrlToolbar;
 
 BOOL APIENTRY DllMain(HINSTANCE hInstance, 
                       DWORD dwReason, 
-                      LPVOID /*lpReserved*/)
+                      LPVOID /*lpReserved*/) 
 {
    if( dwReason == DLL_PROCESS_ATTACH ) 
    {

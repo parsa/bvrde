@@ -10,7 +10,7 @@ CComModule _Module;
 
 
 /////////////////////////////////////////////////////////////////////////////
-// DLL Main
+// DLL Main 
 
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 {

@@ -11,12 +11,12 @@ class CPlugin
 private:
    typedef VOID (CALLBACK* LPFNSETMENU)(HMENU);
    typedef VOID (CALLBACK* LPFNSETPOPUPMENU)(IElement*, HMENU);
-   //
+
    CLoadLibrary m_Lib;
    CString m_sFilename;
    CString m_sName;
    LONG m_lType;
-   //
+
    LPFNSETMENU m_pSetMenu;
    LPFNSETPOPUPMENU m_pSetPopupMenu;
 
@@ -28,13 +28,13 @@ public:
    CString GetName() const;
    CString GetDescription() const;
    LONG GetType() const;
-   //
+
    UINT QueryAcceptFile(LPCTSTR pstrFilename) const;
    IView* CreateView(LPCTSTR pstrFilename, IProject* pProject, IElement* pParent) const;
-   //
+
    IProject* CreateProject();
    BOOL DestroyProject(IProject* pProject);
-   //
+
    void SetMenu(HMENU hMenu);
    void SetPopupMenu(IElement* pElement, HMENU hMenu);
 };

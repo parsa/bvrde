@@ -9,7 +9,7 @@
 class CPreviewView : 
    public CWindowImpl<CPreviewView, CAxWindow>
 {
-public:
+public: 
    DECLARE_WND_SUPERCLASS(_T("BVRDE_WebPreviewView"), CAxWindow::GetWndClassName())
 
    CComQIPtr<IWebBrowser> m_spBrowser;

@@ -64,7 +64,6 @@ typedef struct tagTABLEINFO : DATABASEOBJECT
 } TABLEINFO;
 
 
-
 class CDbOperations
 {
 public:

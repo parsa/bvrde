@@ -9,7 +9,7 @@
 #include "ChildFrm.h"
 
 
-// CChildFrame
+// CChildFrame 
 
 CChildFrame::CChildFrame(CMainFrame* pFrame, IDevEnv* pDevEnv, IProject* pProject, IView* pView) :
    m_pFrame(pFrame),

@@ -8,8 +8,8 @@ The solution compiles with Microsoft Developer Studio 6, but has been known
 to compile with the later Visual Studio.NET version. You must however import
 the DSW project files to do this.
 
-Installation of Microsoft Windows Template Library (WTL) and Microsoft Platform
-SDK is required. Links for these products are available below.
+Installation of Microsoft Windows Template Library (WTL), The HTML Help Workshop
+and Microsoft Platform SDK is required. Links for these products are available below.
 
 To compile the projects, you should use the "Batch Build" option in Developer Studio.
 This will build all the projects in the solution in the correct order.

@@ -3,6 +3,7 @@
 #include "resource.h"
 
 #include "Project.h"
+#include "WizardSheet.h"
 #include "ViewSerializer.h"
 
 
@@ -196,6 +197,7 @@ void CEmptyProject::DeactivateUI()
 
 LRESULT CEmptyProject::OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
+   // Process message in ATL-style message map
    LRESULT lResult = 0;
    bHandled = ProcessWindowMessage(hWnd, uMsg, wParam, lParam, lResult);
    return lResult;
@@ -235,6 +237,7 @@ void CEmptyProject::OnIdle(IUpdateUI* pUIBase)
 LRESULT CEmptyProject::OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled)
 {
    if( _GetSelectedTreeElement() == NULL ) return 0;
+   // Process message in ATL-style message map
    LRESULT lResult = 0;
    bHandled = ProcessWindowMessage(pnmh->hwndFrom, WM_NOTIFY, (WPARAM) pnmh->idFrom, (LPARAM) pnmh, lResult);
    return lResult;
@@ -245,6 +248,15 @@ LRESULT CEmptyProject::OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled)
 BOOL CEmptyProject::OnInitWizard(IWizardManager* pManager, IProject* pProject, LPCTSTR pstrName)
 {
    if( pProject != this ) return TRUE;
+
+   static CMessagePage s_pageMessage;
+   static CString sProviderTitle(MAKEINTRESOURCE(IDS_WIZARD_TITLE_MESSAGE));
+   static CString sProviderSubTitle(MAKEINTRESOURCE(IDS_WIZARD_SUBTITLE_MESSAGE));
+   s_pageMessage.SetHeaderTitle(sProviderTitle);
+   s_pageMessage.SetHeaderSubTitle(sProviderSubTitle);
+
+   pManager->AddWizardPage(s_pageMessage.IDD, s_pageMessage);
+
    SetName(pstrName);
    return TRUE;
 }

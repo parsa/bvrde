@@ -18,6 +18,7 @@
 #define _WTL_NEW_PAGE_NOTIFY_HANDLERS
 #define PROGID_XMLDOMDocument L"MSXML2.DOMDocument.3.0"
 
+
 #include <atlbase.h>
 #include <atlapp.h>
 

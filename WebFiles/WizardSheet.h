@@ -12,7 +12,7 @@
 //
 
 class CAdvancedEditOptionsPage : public CPropertyPageImpl<CAdvancedEditOptionsPage>
-{
+{ 
 public:
    enum { IDD = IDD_OPTIONS_ADVANCED };
 

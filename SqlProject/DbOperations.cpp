@@ -6,7 +6,7 @@
 
 
 CDbOperations::CDbOperations() :
-   m_Db(&_DbSystem)
+   m_Db(&_DbSystem) 
 {
 }
 

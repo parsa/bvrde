@@ -8,7 +8,7 @@
 
 
 ///////////////////////////////////////////////////////7
-// CViewImpl
+// CViewImpl 
 
 CViewImpl::CViewImpl(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename) : 
    m_pProject(pProject),

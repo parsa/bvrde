@@ -14,6 +14,7 @@
 
 #include "atlscintilla.h"
 
+
 enum
 {
    MARKER_BOOKMARK = 0,
@@ -21,6 +22,7 @@ enum
    MARKER_CURLINE,
    MARKER_RUNNING,
 };
+
 
 HWND GENEDIT_API Bvrde_CreateScintillaView(HWND hWndParent, IDevEnv* pDevEnv, LPCTSTR pstrFilename, LPCTSTR pstrLanguage);
 

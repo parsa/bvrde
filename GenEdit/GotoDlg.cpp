@@ -8,9 +8,9 @@
 
 
 CGotoDlg::CGotoDlg(HWND hWndScintilla) :
-   m_ctrlScintilla(hWndScintilla)
+   m_ctrlScintilla(hWndScintilla) 
 {
-}
+} 
 
 LRESULT CGotoDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {

@@ -1,7 +1,7 @@
 
 #include "StdAfx.h"
 #include "resource.h"
-
+ 
 
 void CPlugin::Init(LPCTSTR pstrFilename)
 {

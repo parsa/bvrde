@@ -17,7 +17,7 @@ CEventMonitor _Monitor;
 
 
 /////////////////////////////////////////////////////////////////////////////
-// DLL Main
+// DLL Main 
 
 BOOL APIENTRY DllMain(HINSTANCE hInstance, 
                       DWORD dwReason, 

@@ -60,7 +60,9 @@
 #define IDS_WAITCONNECTION              125
 #define IDS_CAPTION_QUESTION            126
 #define IDS_WIZARD_TITLE_TRANSFER       127
+#define IDS_WIZARD_TITLE_MESSAGE        127
 #define IDS_WIZARD_SUBTITLE_TRANSFER    128
+#define IDS_WIZARD_SUBTITLE_MESSAGE     128
 #define IDS_WIZARD_TITLE_STARTAPP       129
 #define IDS_WIZARD_SUBTITLE_STARTAPP    130
 #define IDS_WIZARD_TITLE_DEBUGGER       131
@@ -163,6 +165,7 @@
 #define IDS_RLOGIN                      217
 #define IDD_WIZARD_COMMANDS             218
 #define IDS_SSH                         218
+#define IDD_WIZARD_MESSAGE              218
 #define IDS_SCP                         219
 #define IDD_PASSWORD                    219
 #define IDS_RCP                         220

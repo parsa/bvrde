@@ -8,7 +8,7 @@
 #include "Plugin.h"
 
 
-class CMainFrame;
+class CMainFrame;    // Forward declare
 
 
 class CSolution : public ISolution

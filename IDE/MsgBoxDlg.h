@@ -5,7 +5,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// The MsgBox label
+// The MsgBox label 
 
 class CMsgBoxLabelCtrl : public CWindowImpl<CMsgBoxLabelCtrl>
 {

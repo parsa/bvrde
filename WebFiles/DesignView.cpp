@@ -9,7 +9,7 @@
 
 #pragma code_seg( "MISC" )
 
-
+ 
 // Operations
 
 HWND CDesignView::Create(HWND hWndParent, RECT& rcPos /*= CWindow::rcDefault*/)

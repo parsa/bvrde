@@ -18,6 +18,7 @@
 #define _WTL_NEW_PAGE_NOTIFY_HANDLERS
 #define _WTL_USE_MDI
 
+
 #include <atlbase.h>
 #include <atlapp.h>
 

@@ -11,7 +11,7 @@ class CRegSerializer : public ISerializable
 public:
    CRegKey m_reg;
    CString m_sPath;
-
+ 
    BOOL Create(LPCTSTR pstrTitle);
    BOOL Open(LPCTSTR pstrTitle);
    void Close();

@@ -215,6 +215,10 @@ SOURCE=.\StdAfx.h
 
 SOURCE=.\ViewSerializer.h
 # End Source File
+# Begin Source File
+
+SOURCE=.\WizardSheet.h
+# End Source File
 # End Group
 # Begin Group "Resource Files"
 
@@ -250,4 +254,3 @@ SOURCE=.\Res\up.ico
 # End Group
 # End Target
 # End Project
-

@@ -12,7 +12,7 @@
 
 
 CSqlProject::CSqlProject() :
-   m_bLoaded(false),
+   m_bLoaded(false), 
    m_bIsDirty(false)
 {
 }

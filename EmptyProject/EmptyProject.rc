@@ -229,6 +229,37 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Dialog
+//
+
+IDD_WIZARD_MESSAGE DIALOG DISCARDABLE  0, 0, 255, 179
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "The Empty Project is used as a container for files - rather than a project for compilation and debugging. The Empty Project does not offer the ability to issue compile commands.\n\nUse a Remote C++ Project to attach files from a remote server.",
+                    IDC_STATIC,12,12,220,90
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_WIZARD_MESSAGE, DIALOG
+    BEGIN
+        RIGHTMARGIN, 251
+        BOTTOMMARGIN, 177
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // String Table
 //
 
@@ -252,10 +283,13 @@ BEGIN
     IDS_STATUS_LOADING      " Loading project '%s'..."
     IDS_BUILD               "Build"
     IDS_CAPTION_QUESTION    "BVRDE"
+    IDS_WIZARD_TITLE_MESSAGE "The Empty Project"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDS_WIZARD_SUBTITLE_MESSAGE 
+                            "An important note about the Empty Project type."
     IDS_FTP                 "FTP"
     IDS_TELNET              "Telnet"
     IDS_GDB                 "GDB"

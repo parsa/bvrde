@@ -10,7 +10,7 @@
 CReplaceDlg::CReplaceDlg(IDevEnv* pDevEnv, HWND hWndScintilla, FINDREPLACEA& fr) :
    m_pDevEnv(pDevEnv), 
    m_ctrlScintilla(hWndScintilla),
-   m_fr(fr)
+   m_fr(fr) 
 {
 }
 

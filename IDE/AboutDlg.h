@@ -3,7 +3,7 @@
 
 #include "atldib.h"
 #include "MenuShadows.h"
-
+ 
 
 class CAboutDlg : 
    public CDialogImpl<CAboutDlg>,

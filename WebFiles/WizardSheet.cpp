@@ -8,7 +8,7 @@
 
 
 ////////////////////////////////////////////////////////////////////////
-//
+// 
 
 #define SET_CHECK(id, prop) \
    { TCHAR szBuf[32] = { 0 }; _pDevEnv->GetProperty(prop, szBuf, 31); \

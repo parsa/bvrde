@@ -16,7 +16,7 @@ COledbSystem _DbSystem;
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Wizard/Property sheet
+// Wizard/Property sheet 
 
 class CWizardListener : public IWizardListener
 {

@@ -6,7 +6,7 @@
 
 
 /////////////////////////////////////////////////////////////////
-// CRegSerializer
+// CRegSerializer 
 
 BOOL CRegSerializer::Create(LPCTSTR pstrTitle)
 {

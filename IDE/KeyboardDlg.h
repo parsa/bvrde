@@ -3,7 +3,7 @@
 
 #pragma once
 
-
+ 
 class CKeyboardDlg : 
    public CDialogImpl<CKeyboardDlg>,
    public COwnerDraw<CKeyboardDlg>

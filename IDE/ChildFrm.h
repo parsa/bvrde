@@ -7,7 +7,7 @@
 
 #pragma once
 
-class CMainFrame;  // Forward declare
+class CMainFrame;  // Forward declare 
 
 
 class CChildFrame : 

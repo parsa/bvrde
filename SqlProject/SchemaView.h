@@ -7,7 +7,7 @@
 
 #include "DbOperations.h"
 
-
+ 
 class CSchemaView : 
    public CWindowImpl<CSchemaView, CWindow>
 {

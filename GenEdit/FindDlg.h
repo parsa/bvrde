@@ -9,8 +9,8 @@
 
 
 class CFindDlg : 
-   public CDialogImpl<CFindDlg>
-{
+   public CDialogImpl<CFindDlg> 
+{ 
 public:
    enum { IDD = IDD_FIND };
 

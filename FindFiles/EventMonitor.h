@@ -11,7 +11,7 @@
 
 class CEventMonitor : public IAppListener, public IIdleListener
 {
-public:
+public: 
    CFindFilesView m_viewFind;
 
    LRESULT OnAppMessage(HWND /*hWnd*/, UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
