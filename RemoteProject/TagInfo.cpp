@@ -144,7 +144,7 @@ CString CTagInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NUL
    CString sResult;
    int iIndex = FindItem(0, sName);
    while( iIndex >= 0 ) {
-      TAGINFO& info = m_aTags[iIndex];
+      const TAGINFO& info = m_aTags[iIndex];
       bool bAccept = false;
       switch( info.Type ) {
       case TAGTYPE_CLASS:
@@ -307,13 +307,25 @@ CString CTagInfo::_GetTagParent(const TAGINFO& info) const
    // HACK: We simply scoop up the " class CFoo : public CBar" text from
    //       the CTAG line. Unfortunately CTAG doesn't really carry that
    //       much information to safely determine the inheritance tree!
-   static LPCTSTR pstrToken = _T(": public");
-   if( _tcsstr(info.pstrToken, pstrToken) == NULL ) return _T("");
-   LPCTSTR p = _tcsstr(info.pstrToken, pstrToken) + _tcslen(pstrToken);
-   while( _istspace(*p) ) p++;
-   CString sName;
-   while( _istalnum(*p) || *p == '_' ) sName += *p++;
-   return sName;      
+   static LPCTSTR pstrTokens[] = 
+   {
+      _T("public"),
+      _T("typedef"),
+      NULL
+   };
+   LPCTSTR* ppstrToken = pstrTokens;
+   while( *ppstrToken ) {
+      LPCTSTR p = _tcsstr(info.pstrToken, *ppstrToken);
+      if( p ) {
+         p += _tcslen(*ppstrToken);
+         while( _istspace(*p) ) p++;
+         CString sName;
+         while( _istalnum(*p) || *p == '_' ) sName += *p++;
+         return sName;      
+      }
+      ppstrToken++;
+   }
+   return _T("");
 }
 
 CTagInfo::TAGTYPE CTagInfo::_GetTagType(const TAGINFO& info) const
