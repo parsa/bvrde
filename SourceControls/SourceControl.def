@@ -1,9 +1,0 @@
-LIBRARY SourceControl
-
-EXPORTS
-  Plugin_Initialize
-  Plugin_GetName
-  Plugin_GetType
-  Plugin_GetDescription
-  Plugin_SetMenu
-  Plugin_SetPopupMenu
