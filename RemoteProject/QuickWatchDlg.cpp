@@ -226,9 +226,9 @@ LRESULT CQuickWatchDlg::OnSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
    int iPos = m_ctrlList.GetItemData(iIndex);
    CString sName = m_aItems[iPos].sName;
    CString sText = m_aItems[iPos].sKey;
-   // HACK: First we need to strip away the "quickwatch" pseudo-name, and
-   //       then hack our way through the GDB peculiarities, such as the
-   //       "public", "private" entries...
+   // FIX: First we need to strip away the "quickwatch" pseudo-name, and
+   //      then hack our way through the GDB peculiarities, such as the
+   //      "public", "private" entries...
    sText.Replace(_T("quickwatch"), m_aItems[0].sName);
    sText.Replace(_T("public."), _T(""));
    sText.Replace(_T("private."), _T(""));

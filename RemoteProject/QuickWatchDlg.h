@@ -18,7 +18,7 @@ public:
 
    enum { CX_INDENT = 18 };
 
-   typedef struct ITEM
+   typedef struct tagITEM
    {
       CString sKey;
       CString sName;
@@ -28,7 +28,7 @@ public:
       bool bHasValue;
       bool bHasChildren;
       bool bExpanded;
-   };
+   } ITEM;
 
    CComboBox m_ctrlLine;
    CContainedWindowT<CEdit> m_ctrlEdit;
