@@ -26,7 +26,9 @@ public:
 };
 
 
-class CFindThread : public CThreadImpl, public ILineCallback
+class CFindThread : 
+   public CThreadImpl<CFindThread>, 
+   public ILineCallback
 {
 public:
    CRichEditCtrl m_ctrlEdit;

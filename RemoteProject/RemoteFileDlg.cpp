@@ -184,7 +184,7 @@ LRESULT CRemoteFileDlg::OnFolderChanged(WORD /*wNotifyCode*/, WORD wID, HWND /*h
       cbi.mask = CBEIF_TEXT;
       cbi.iItem = i;
       cbi.pszText = szName;
-      cbi.cchTextMax = (sizeof(szName)/sizeof(TCHAR)) - 1;
+      cbi.cchTextMax = (sizeof(szName) / sizeof(TCHAR)) - 1;
       if( i > 0 ) m_ctrlFolder.GetItem(&cbi);
       sPath += szName;
       sPath += m_sSeparator;

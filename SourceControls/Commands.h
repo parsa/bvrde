@@ -6,7 +6,9 @@
 #endif // _MSC_VER > 1000
 
 
-class CCommandThread : public CThreadImpl, public ILineCallback
+class CCommandThread : 
+   public CThreadImpl<CCommandThread>, 
+   public ILineCallback
 {
 public:
    UINT m_nCmd;
