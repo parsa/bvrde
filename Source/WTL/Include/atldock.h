@@ -1356,9 +1356,12 @@ public:
 
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
-      for( int i = 0; i < m_map.GetSize(); i++ ) {
+      int i;
+      for( i = 0; i < m_map.GetSize(); i++ ) {
          if( ::IsWindow(m_map[i]->hwndDocked) ) ::DestroyWindow(m_map[i]->hwndDocked);
          if( ::IsWindow(m_map[i]->hwndFloated) ) ::DestroyWindow(m_map[i]->hwndFloated);
+      }
+      for( i = 0; i < m_map.GetSize(); i++ ) {
          delete m_map[i];
       }
       m_map.RemoveAll();

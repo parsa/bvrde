@@ -378,7 +378,6 @@ void CScintillaView::_AutoComplete(CHAR ch, int iLenEntered)
 
    // Display popup
    USES_CONVERSION;
-   ClearRegisteredImages();
    _RegisterListImages();
    AutoCSetIgnoreCase(TRUE);
    AutoCShow(iLenEntered, T2CA(sList));
@@ -731,6 +730,7 @@ static char* KeywordImage[] = {
 
 void CScintillaView::_RegisterListImages()
 {
+   ClearRegisteredImages();
    RegisterImage(0, (LPBYTE) OwnerImage);
    RegisterImage(1, (LPBYTE) TableImage);
    RegisterImage(2, (LPBYTE) AliasImage);

@@ -310,6 +310,7 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( DefineEnded ) ;
 					}
 <DefineEnd,DefineEnded>"\\\n"		{ yyLineNr++ ; }
+<DefineEnd,DefineEnded>"\\\r\n"		{ yyLineNr++ ; }
 <DefineEnd,DefineEnded>"\n"		{ 
 					  if( current->done == onlyDocs )
 					  {

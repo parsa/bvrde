@@ -217,6 +217,8 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    m_pDevEnv->GetProperty(sKey, sKeywords2.GetBuffer(2048), 2048);
    sKeywords2.ReleaseBuffer();
 
+   SetStyleBits(5);
+
    if( m_sLanguage == _T("cpp") ) 
    {
       // Make really sure it's the CPP language
@@ -449,6 +451,10 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       else if( sFilename.Find(_T(".aspx")) >= 0 ) SetLexer(SCLEX_ASP);
       else SetLexer(SCLEX_HTML);
 
+      // Turn off indicator style bits for languages with embedded scripts
+      // since the Scintilla lexer uses all possible styles
+      SetStyleBits(7);
+
       static int aHtmlStyles[] = 
       {
          STYLE_DEFAULT,          0,
@@ -501,7 +507,6 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    // Clear all styles
    ClearDocumentStyle();
-   SetStyleBits(5);
 
    // Define bookmark markers
    _DefineMarker(MARKER_BOOKMARK, SC_MARK_SMALLRECT, RGB(0, 0, 64), RGB(128, 128, 128));
@@ -645,6 +650,7 @@ LRESULT CScintillaView::OnUpdateUI(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHand
 LRESULT CScintillaView::OnDwellEnd(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
 {
    m_bSuggestionDisplayed = false;
+   m_bAutoTextDisplayed = false;
    bHandled = FALSE;
    return 0;
 }
@@ -754,8 +760,9 @@ void CScintillaView::_AutoText(CHAR ch)
    static int s_iSuggestWord = 0;
    static long s_lSuggestPos = 0;
    static CString s_sAutoText;
-   // Cancel auto-text tip if displayed already.
-   // Insert replacement-text if needed.
+
+   // Cancel auto-text tip if displayed already or insert replacement-text 
+   // if needed.
    if( m_bAutoTextDisplayed ) {
       if( ch == '\t' || ch == '\0xFF' ) {
          USES_CONVERSION;
@@ -766,10 +773,11 @@ void CScintillaView::_AutoText(CHAR ch)
          CString sText = s_sAutoText;
          int iCaretPos = sText.Find('$');
          int nLines = sText.Replace(_T("\\n"), _T("\n"));
-         sText.Replace(_T("\\t"), _T("   "));
+         sText.Remove('\r');
+         sText.Replace(_T("\\t"), CString(' ', GetIndent()));
          sText.Replace(_T("\\$"), _T("\01"));
-         sText.Replace(_T("$"), _T(""));
-         sText.Replace(_T("\01"), _T("$"));
+         sText.Remove('$');
+         sText.Replace('\01', '$');
          // Replace text
          BeginUndoAction();
          SetSel(s_lSuggestPos, lPos);
@@ -784,8 +792,9 @@ void CScintillaView::_AutoText(CHAR ch)
       }
       CallTipCancel();
       m_bAutoTextDisplayed = false;
+      return;
    }
-   
+
    // Display new tip at all?
    if( AutoCActive() ) return;
    if( CallTipActive() ) return;
@@ -802,31 +811,32 @@ void CScintillaView::_AutoText(CHAR ch)
    CString sName = _GetNearText(lPos - 1);
    if( sName.IsEmpty() ) return;
 
+   // Look for a match in auto-text list
    long i = 1;
    CString sKey;
-   const int cchMax = 400;
-   TCHAR szBuffer[cchMax] = { 0 };
+   TCHAR szBuffer[400] = { 0 };
    while( true ) {
       sKey.Format(_T("autotext.entry%ld.name"), i);
       szBuffer[0] = '\0';
-      m_pDevEnv->GetProperty(sKey, szBuffer, cchMax - 1);
+      m_pDevEnv->GetProperty(sKey, szBuffer, (sizeof(szBuffer) / sizeof(TCHAR)) - 1);
       if( szBuffer[0] == '\0' ) return;
-      if( _tcsncmp(sName, szBuffer, sName.GetLength() ) == 0 ) break;
+      if( _tcsncmp(sName, szBuffer, _tcslen(szBuffer) ) == 0 ) break;
       i++;
    }
 
+   // Get replacement text
    szBuffer[0] = '\0';
    sKey.Format(_T("autotext.entry%ld.text"), i);
-   m_pDevEnv->GetProperty(sKey, szBuffer, cchMax - 1);
+   m_pDevEnv->GetProperty(sKey, szBuffer, (sizeof(szBuffer) / sizeof(TCHAR)) - 1);
 
    // Display suggestion-tip
-   USES_CONVERSION;
    CallTipSetFore(::GetSysColor(COLOR_INFOTEXT));
    CallTipSetBack(::GetSysColor(COLOR_INFOBK));
    CString sTipText = szBuffer;
-   sTipText.Replace(_T("\r"), _T(""));
+   sTipText.Remove('\r');
    sTipText.Replace(_T("\\n"), _T("\n"));
-   sTipText.Replace(_T("\\t"), _T("   "));         // BUG: Expand tabs properly!
+   sTipText.Replace(_T("\\t"), CString(' ', GetIndent()));
+   USES_CONVERSION;
    CallTipShow(lPos, T2CA(sTipText));
    // Remember what triggered suggestion
    s_lSuggestPos = lPos - sName.GetLength();
@@ -910,6 +920,11 @@ void CScintillaView::_AutoSuggest(CHAR ch)
    s_lSuggestPos = lPos - sName.GetLength();
 }
 
+/**
+ * Handle auto-completion.
+ * Do auto-completion for general languages. We can handle auto-completion
+ * for XML, HTML, PERL and PHP languages out-of-the-box.
+ */
 void CScintillaView::_AutoComplete(CHAR ch)
 {
    if( !m_bAutoComplete ) return;
@@ -921,6 +936,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
    // Get auto-completion words from HTML text
    if( ch == '<' && m_sLanguage == _T("html") )
    {
+      // Get the list of known keywords from the general editor configuration
       CString sProperty;
       sProperty.Format(_T("editors.%s.keywords"), m_sLanguage);
       CString sKeywords;
@@ -966,9 +982,8 @@ void CScintillaView::_AutoComplete(CHAR ch)
          pstr++;
          CString sWord;
          while( *pstr ) {
-            sWord += (TCHAR) *pstr;
-            pstr++;
-            if( !_iseditchar(ch) ) break;
+            if( !_iseditchar(*pstr) ) break;
+            sWord += (TCHAR) *pstr++;
          }
          if( sWord.GetLength() > 2 ) _AddUnqiue(aList, sWord);
          pstr = strstr(pstr, szFind);
@@ -1004,6 +1019,11 @@ void CScintillaView::_AutoComplete(CHAR ch)
    AutoCShow(1, T2CA(sList));
 }
 
+/**
+ * Maintains indentation.
+ * The function maintains indentation for the general programming languages
+ * and for HTML and XML as well.
+ */
 void CScintillaView::_MaintainIndent(CHAR ch)
 {
    if( !m_bAutoIndent && !m_bSmartIndent ) return;
@@ -1101,6 +1121,10 @@ void CScintillaView::_MaintainIndent(CHAR ch)
    if( iIndentAmount >= 0 ) _SetLineIndentation(iCurLine, iIndentAmount);
 }
 
+/**
+ * Auto-close tags.
+ * This function automatically closes tags for the HTML and XML languages.
+ */
 void CScintillaView::_MaintainTags(CHAR ch)
 {
    if( !m_bAutoClose ) return;
@@ -1121,7 +1145,7 @@ void CScintillaView::_MaintainTags(CHAR ch)
 
       CString sFound = _FindOpenXmlTag(szText, nCaret - nMin);
       if( sFound.IsEmpty() ) return;
-      // Ignore some of the non-closed HTML tags
+      // Ignore some of the typical non-closed HTML tags
       if( sFound.CompareNoCase(_T("IMG")) == 0 ) return;
       if( sFound.CompareNoCase(_T("BR")) == 0 ) return;
       if( sFound.CompareNoCase(_T("P")) == 0 ) return;
@@ -1220,7 +1244,7 @@ void CScintillaView::_SetLineIndentation(int iLine, int iIndent)
 CString CScintillaView::_GetProperty(CString sKey) const
 {
    TCHAR szBuffer[64] = { 0 };
-   m_pDevEnv->GetProperty(sKey, szBuffer, 63);
+   m_pDevEnv->GetProperty(sKey, szBuffer, (sizeof(szBuffer) / sizeof(TCHAR)) - 1);
    return szBuffer;
 }
 
@@ -1373,7 +1397,7 @@ bool CScintillaView::_AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) 
 
 bool CScintillaView::_iseditchar(char ch) const
 {
-   return isalnum(ch) || ch == '_';
+   return isalnum(ch) || ch == '_' || ch == '$';
 }
 
 int CScintillaView::_FunkyStrCmp(LPCTSTR src, LPCTSTR dst)

@@ -28,6 +28,8 @@ CScintillaView::CScintillaView() :
 
 void CScintillaView::OnFinalMessage(HWND /*hWnd*/)
 {
+   // Don't want compile output any longer
+   if( m_pCppProject != NULL ) m_pCppProject->m_CompileManager.m_ShellManager.RemoveLineListener(this);
    // If it's a file that was dragged into the app, then
    // the view was probably created by CreateViewFromFilename()
    // and thus we own the memory.
@@ -507,48 +509,49 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 {
    SCNotification* pSCN = (SCNotification*) pnmh;
 
+   if( m_pCppProject == NULL ) return 0;
+   if( m_sLanguage != _T("cpp") ) return 0;
+
    // HACK: Bug in Scintilla which tries to start a hover tip
    //       while the window has no focus.
    if( ::GetFocus() != m_ctrlEdit ) return 0;
 
-   if( m_pCppProject ) {
-      TCHAR szBuffer[16] = { 0 };
-      _pDevEnv->GetProperty(_T("editors.cpp.noTips"), szBuffer, 15);
-      if( _tcscmp(szBuffer, _T("true") ) != 0 ) {
-         long lPos = pSCN->position;
-         CString sText = _GetNearText(lPos);
-         CharacterRange cr = m_ctrlEdit.GetSelection();
-         if( lPos >= cr.cpMin && lPos <= cr.cpMax ) sText = _GetSelectedText();
-         if( sText.IsEmpty() ) return 0;        
-         // Find raw declaration in TAG file or from debugger
-         CString sValue = m_pCppProject->GetTagInfo(sText);
-         if( sValue.IsEmpty() ) {
-            // Try to locate the function and variable name
-            // TODO: The following just picks a "random" position in the line
-            //       It should calculate where the variable name is likely to start
-            CString sMember = _GetNearText(lPos - sText.GetLength() - 2);
-            CString sType = _FindTagType(sMember, lPos);
-            if( !sType.IsEmpty() ) sValue = m_pCppProject->GetTagInfo(sText, sType);
-         }
-         if( sValue.IsEmpty() ) {
-            // Just see if we can match up a type directly for the name
-            CString sType = _FindTagType(sText, lPos);
-            if( !sType.IsEmpty() ) sValue.Format(_T("%s %s"), sType, sText);
-         }
-         // We always flag the MouseDwell start because the debugger
-         // might want to deliver delayed type information.
-         // The SCN_DWELLEND should reset this state.
-         m_lDwellPos = lPos;
-         m_bMouseDwell = true;
-         // The call may not return any tag information at all - or it
-         // may return delayed information. In any case, we might not need
-         // to show any information now!
-         if( !sValue.IsEmpty() ) {
-            USES_CONVERSION;
-            m_ctrlEdit.CallTipSetFore(RGB(0,0,0));
-            m_ctrlEdit.CallTipSetBack(RGB(255,255,255));
-            m_ctrlEdit.CallTipShow(lPos, T2CA(sValue));
-         }
+   TCHAR szBuffer[16] = { 0 };
+   _pDevEnv->GetProperty(_T("editors.cpp.noTips"), szBuffer, 15);
+   if( _tcscmp(szBuffer, _T("true") ) != 0 ) {
+      long lPos = pSCN->position;
+      CString sText = _GetNearText(lPos);
+      CharacterRange cr = m_ctrlEdit.GetSelection();
+      if( lPos >= cr.cpMin && lPos <= cr.cpMax ) sText = _GetSelectedText();
+      if( sText.IsEmpty() ) return 0;        
+      // Find raw declaration in TAG file or from debugger
+      CString sValue = m_pCppProject->GetTagInfo(sText);
+      if( sValue.IsEmpty() ) {
+         // Try to locate the function and variable name
+         // TODO: The following just picks a "random" position in the line
+         //       It should calculate where the variable name is likely to start
+         CString sMember = _GetNearText(lPos - sText.GetLength() - 2);
+         CString sType = _FindTagType(sMember, lPos);
+         if( !sType.IsEmpty() ) sValue = m_pCppProject->GetTagInfo(sText, sType);
+      }
+      if( sValue.IsEmpty() ) {
+         // Just see if we can match up a type directly for the name
+         CString sType = _FindTagType(sText, lPos);
+         if( !sType.IsEmpty() ) sValue.Format(_T("%s %s"), sType, sText);
+      }
+      // We always flag the MouseDwell start because the debugger
+      // might want to deliver delayed type information.
+      // The SCN_DWELLEND should reset this state.
+      m_lDwellPos = lPos;
+      m_bMouseDwell = true;
+      // The call may not return any tag information at all - or it
+      // may return delayed information. In any case, we might not need
+      // to show any information now!
+      if( !sValue.IsEmpty() ) {
+         USES_CONVERSION;
+         m_ctrlEdit.CallTipSetFore(RGB(0,0,0));
+         m_ctrlEdit.CallTipSetBack(RGB(255,255,255));
+         m_ctrlEdit.CallTipShow(lPos, T2CA(sValue));
       }
    }
    return 0;
@@ -566,16 +569,18 @@ LRESULT CScintillaView::OnDwellEnd(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHand
 
 void CScintillaView::OnIdle(IUpdateUI* pUIBase)
 {
-   if( m_sLanguage == _T("cpp") ) {
-      pUIBase->UIEnable(ID_EDIT_COMMENT, TRUE);
-      pUIBase->UIEnable(ID_EDIT_UNCOMMENT, TRUE);
-      pUIBase->UIEnable(ID_EDIT_AUTOCOMPLETE, TRUE);
-      pUIBase->UIEnable(ID_DEBUG_BREAKPOINT, TRUE); 
-      if( m_pCppProject && m_pCppProject->m_DebugManager.IsDebugging() ) {
-         pUIBase->UIEnable(ID_DEBUG_STEP_RUN, TRUE); 
-         pUIBase->UIEnable(ID_DEBUG_STEP_SET, TRUE); 
-         pUIBase->UIEnable(ID_DEBUG_QUICKWATCH, TRUE); 
-      }
+   if( m_sLanguage != _T("cpp") ) return;
+
+   pUIBase->UIEnable(ID_EDIT_COMMENT, TRUE);
+   pUIBase->UIEnable(ID_EDIT_UNCOMMENT, TRUE);
+   pUIBase->UIEnable(ID_EDIT_AUTOCOMPLETE, TRUE);
+   pUIBase->UIEnable(ID_DEBUG_BREAKPOINT, TRUE); 
+
+   if( m_pCppProject && m_pCppProject->m_DebugManager.IsDebugging() ) 
+   {
+      pUIBase->UIEnable(ID_DEBUG_STEP_RUN, TRUE); 
+      pUIBase->UIEnable(ID_DEBUG_STEP_SET, TRUE); 
+      pUIBase->UIEnable(ID_DEBUG_QUICKWATCH, TRUE); 
    }
 }
 
@@ -848,7 +853,6 @@ void CScintillaView::_AutoComplete(CHAR ch)
    sList.TrimRight();
 
    // Display auto-completion popup
-   m_ctrlEdit.ClearRegisteredImages();
    _RegisterListImages();
    m_ctrlEdit.AutoCSetIgnoreCase(FALSE);
    m_ctrlEdit.AutoCShow(iLenEntered, T2CA(sList));
@@ -1187,6 +1191,7 @@ static char* FunctionImage[] = {
 
 void CScintillaView::_RegisterListImages()
 {
+   m_ctrlEdit.ClearRegisteredImages();
    m_ctrlEdit.RegisterImage(0, (LPBYTE) MemberImage);
    m_ctrlEdit.RegisterImage(1, (LPBYTE) FunctionImage);
 }

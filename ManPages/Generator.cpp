@@ -36,7 +36,7 @@ UINT CManPageGenerator::Generate(HWND hWnd, LPCTSTR pstrKeyword, LPCTSTR pstrLan
    CComVariant aParams[3];
    aParams[2] = bstrCommand;
    aParams[1] = (IUnknown*) this;
-   aParams[0] = 2000;
+   aParams[0] = 2000L;
    if( FAILED( dd.InvokeN(OLESTR("ExecCommand"), aParams, 3) ) ) return IDS_ERR_INVOKE;
    if( m_sResult.Length() == 0 ) return IDS_ERR_BADANSWER;
    if( wcsstr(m_sResult, L"command not found") != NULL ) return IDS_ERR_NOTSUPPORTED;
@@ -58,7 +58,7 @@ UINT CManPageGenerator::Generate(HWND hWnd, LPCTSTR pstrKeyword, LPCTSTR pstrLan
 
    aParams[2] = bstrCommand;
    aParams[1] = (IUnknown*) this;
-   aParams[0] = 3000;
+   aParams[0] = 3000L;
    if( FAILED( dd.InvokeN(OLESTR("ExecCommand"), aParams, 3) ) ) return IDS_ERR_INVOKE;
    if( m_sResult.Length() == 0 ) return IDS_ERR_BADANSWER;
    if( wcsstr(m_sResult, L"command not found") != NULL ) return IDS_ERR_NOTSUPPORTED;
