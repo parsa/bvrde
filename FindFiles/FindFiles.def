@@ -1,0 +1,8 @@
+LIBRARY FindFiles
+
+EXPORTS
+  Plugin_Initialize
+  Plugin_GetName
+  Plugin_GetType
+  Plugin_GetDescription
+  Plugin_SetMenu

@@ -1,0 +1,9 @@
+LIBRARY WebFiles
+
+EXPORTS
+  Plugin_Initialize
+  Plugin_GetName
+  Plugin_GetType
+  Plugin_GetDescription
+  Plugin_QueryAcceptFile
+  Plugin_CreateView

@@ -1,0 +1,334 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "atlres.h"
+#include "../IDE/bvrde_sdk.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Danish resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)
+#ifdef _WIN32
+LANGUAGE LANG_DANISH, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""atlres.h""\r\n"
+    "#include ""../IDE/bvrde_sdk.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON    DISCARDABLE     "res\\icon1.ico"
+#endif    // Danish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_BACK                ICON    DISCARDABLE     "res\\back.ico"
+IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
+IDI_MINUS               ICON    DISCARDABLE     "res\\minus.ico"
+IDI_PLUS                ICON    DISCARDABLE     "res\\plus.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATOR ACCELERATORS DISCARDABLE 
+BEGIN
+    VK_F4,          ID_VIEW_PROPERTIES,     VIRTKEY, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_PROJECT MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Set as Default Project",      ID_PROJECT_SET_DEFAULT
+        POPUP "Add"
+        BEGIN
+            MENUITEM "Add Folder",                  ID_FILE_ADD_FOLDER
+            MENUITEM "Add File",                    ID_FILE_ADD_LOCAL
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Remove",                     ID_FILE_DELETE
+        MENUITEM "Rename",                      ID_FILE_RENAME
+        MENUITEM SEPARATOR
+        MENUITEM "&Save",                       ID_FILE_SAVE
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_FOLDER MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        POPUP "Add"
+        BEGIN
+            MENUITEM "Add Folder",                  ID_FILE_ADD_FOLDER
+            MENUITEM "Add File",                    ID_FILE_ADD_LOCAL
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Remove",                     ID_FILE_DELETE
+        MENUITEM "Rename",                      ID_FILE_RENAME
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_MAIN MENU DISCARDABLE 
+BEGIN
+    POPUP "Sub0"
+    BEGIN
+        POPUP "Advanced"
+        BEGIN
+            MENUITEM "Make &Uppercase\tCtrl+Shift+U", ID_EDIT_UPPERCASE
+            MENUITEM "Make &Lowercase\tCtrl+U",     ID_EDIT_LOWERCASE
+            MENUITEM "&Tabify Selection",           ID_EDIT_TABIFY
+            MENUITEM "U&ntabify Selection",         ID_EDIT_UNTABIFY
+            MENUITEM "Increase Line Indent\tTab",   ID_EDIT_INDENT
+            MENUITEM "Decrease Line Indent\tShift+Tab", ID_EDIT_UNINDENT
+            MENUITEM "Delete Line\tCtrl+L",         ID_EDIT_DELLINE
+            MENUITEM "Comment Selection",           ID_EDIT_COMMENT
+            MENUITEM "Uncomment Selection",         ID_EDIT_UNCOMMENT
+            MENUITEM SEPARATOR
+            MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
+            MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
+            MENUITEM "View &White Space",           ID_EDIT_VIEWWS
+        END
+        POPUP "Bookmarks"
+        BEGIN
+            MENUITEM "&Toggle Bookmark",            ID_BOOKMARK_TOGGLE
+            MENUITEM "&Previous Bookmark",          ID_BOOKMARK_PREVIOUS
+            MENUITEM "&Next Bookmark",              ID_BOOKMARK_NEXT
+            MENUITEM "&Clear Bookmarks",            ID_BOOKMARK_CLEAR
+        END
+    END
+    POPUP "Sub1"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "Add Folder",                  ID_FILE_ADD_FOLDER
+        MENUITEM "Add File",                    ID_FILE_ADD_LOCAL
+    END
+END
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040604b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "viksoe.dk\0"
+            VALUE "FileDescription", "BVRDE Add-In EmptyProject\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "EmptyProject\0"
+            VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksoe\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "EmptyProject.pkg\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "BVRDE EmptyProject\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x406, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_NEW_FOLDER          "Folder"
+    IDS_FILTER_FILES        "Source files|*.c*;*.h*;*.?c;*.inc|All Files|*.*|"
+    IDS_FINDFAILED          "Not found\nCould not find the string '%s'."
+    IDS_CAPTION_ERROR       "Error"
+    IDS_CAPTION_WARNING     "Warning"
+    IDS_CAPTION_MESSAGE     "Message"
+    IDS_CAPTION_COMMAND     "Command Window"
+    IDS_ERR_OPENVIEW        "Open File Error\nUnable to open the file in a new view."
+    IDS_ERR_LASTERROR       "\nSystem Error Message:\n"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_OUTPUT      "Output"
+    IDS_LOG_SENDERROR       "An error occoured while sending data."
+    IDS_STATUS_LOADING      " Loading project '%s'..."
+    IDS_BUILD               "Build"
+    IDS_CAPTION_QUESTION    "BVRDE"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_FTP                 "FTP"
+    IDS_TELNET              "Telnet"
+    IDS_GDB                 "GDB"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CONFIG_COMMANDS     "Commands"
+    IDS_STATUS_RUNNING      " Running..."
+    IDS_STATUS_OPENFILE     " Opening file.."
+    IDS_OPTIONS             "Options"
+    IDS_CONFIG_OPTIONS      "Options"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERR_DATAWRITE       "Data write error\nAn error occured while sending data to the remote host.\nThe remote host did not accept incoming data or closed the connection."
+    IDS_COMMAND_MAIN        "Entry function"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERR_FILESAVE        "Save Failed\nSave of file '%s' failed.\nIf the file is a remote file, it may have been a timeout error, so try again."
+    IDS_STOPPED             "Stopped"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_GOTO            "Goto..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERR_FILEINCLUDED    "Already exists\nThe file already exists in the Project."
+    IDS_SAVECHANGES         "Save Changes\nDo you wish to save changes to the Project files first?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_UNKNOWN             "Unknown"
+    IDS_TREE_CONFIGURATION  "Configuration"
+    IDS_CONFIG_CONFIGURATION "Configuration"
+    IDS_TREE_ADVANCED       "Advanced"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SAVEFILE            "Save File\nFile has been modified. Do you wish to save the file?"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

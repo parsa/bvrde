@@ -1,0 +1,7 @@
+LIBRARY StartPage
+
+EXPORTS
+  Plugin_Initialize
+  Plugin_GetName
+  Plugin_GetType
+  Plugin_GetDescription

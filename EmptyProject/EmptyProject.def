@@ -1,0 +1,11 @@
+LIBRARY EmptyProject
+
+EXPORTS
+  Plugin_Initialize
+  Plugin_GetName
+  Plugin_GetType
+  Plugin_GetDescription
+  Plugin_CreateProject
+  Plugin_DestroyProject
+  Plugin_QueryAcceptFile
+  Plugin_CreateView

@@ -1,0 +1,520 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "atlres.h"
+#include "../IDE/bvrde_sdk.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Danish resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)
+#ifdef _WIN32
+LANGUAGE LANG_DANISH, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040604b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "viksoe.dk\0"
+            VALUE "FileDescription", "BVRDE Add-In SqlProject\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "SqlProject\0"
+            VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksøe\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "SqlProject.pkg\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "BVRDE SqlProject\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x406, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""atlres.h""\r\n"
+    "#include ""../IDE/bvrde_sdk.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Danish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_WIZARD_PROVIDERS DIALOG DISCARDABLE  0, 0, 255, 179
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_LIST,10,15,204,162,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Available Providers:",IDC_STATIC,1,1,250,11
+END
+
+IDD_WIZARD_EMPTY DIALOGEX 0, 0, 255, 179
+STYLE WS_CHILD
+EXSTYLE WS_EX_CONTROLPARENT
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+END
+
+IDD_WIZARD_CONNECTION DIALOGEX 0, 0, 255, 179
+STYLE WS_CHILD
+EXSTYLE WS_EX_CONTROLPARENT
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "Specify the following to connect to the data:",
+                    IDC_STATIC,1,1,250,11
+    LTEXT           "   1. Specify the server and database name",IDC_STATIC,
+                    1,17,250,11
+    RTEXT           "Server: ",IDC_STATIC,33,33,37,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_SERVER,74,33,137,12,ES_AUTOHSCROLL
+    RTEXT           "Database: ",IDC_STATIC,33,49,37,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_DATABASE,74,49,137,12,ES_AUTOHSCROLL
+    LTEXT           "   2. Enter information to log on to the server",
+                    IDC_STATIC,1,74,250,11
+    RTEXT           "Username: ",IDC_STATIC,33,89,37,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_USERNAME,74,89,137,12,ES_AUTOHSCROLL
+    RTEXT           "Password: ",IDC_STATIC,33,105,37,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_PASSWORD,74,105,137,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "Save password",IDC_SAVEPASSWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,74,123,82,8
+    LTEXT           "   3. Enter the initial catalog to use",IDC_STATIC,1,
+                    140,250,11
+    RTEXT           "Catalog: ",IDC_STATIC,33,154,37,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_CATALOG,74,154,137,12,ES_AUTOHSCROLL
+END
+
+IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 170
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "Setup",IDC_STATIC,0,0,25,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,30,4,228,1
+    LTEXT           "Terminator:",IDC_STATIC,14,16,40,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_TERMINATOR,57,16,33,12,ES_UPPERCASE | ES_AUTOHSCROLL
+    CONTROL         "Enable Auto Commit",IDC_AUTOCOMMIT,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,33,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Parse comments locally",IDC_STRIPCOMMENTS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,46,91,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Match Braces",IDC_MATCHBRACES,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,14,59,120,10,WS_EX_TRANSPARENT
+    CONTROL         "Limit result to",IDC_LIMITRECORDS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,72,57,11
+    EDITTEXT        IDC_MAXROWS,76,72,33,12,ES_UPPERCASE | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    CONTROL         "Limit errors to",IDC_LIMITERRORS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,86,57,11
+    EDITTEXT        IDC_MAXERRORS,76,86,33,12,ES_UPPERCASE | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "Display",IDC_STATIC,0,106,33,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,33,110,224,1
+    CONTROL         "Use Auto Completion feature",IDC_AUTOCOMPLETE,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,122,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Don't list views in Auto Completion",IDC_IGNOREVIEWS,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,135,
+                    127,10,WS_EX_TRANSPARENT
+    CONTROL         "Load table information in background thread",
+                    IDC_BACKGROUNDLOAD,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,14,148,161,10,WS_EX_TRANSPARENT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_WIZARD_PROVIDERS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 251
+        BOTTOMMARGIN, 177
+    END
+
+    IDD_WIZARD_EMPTY, DIALOG
+    BEGIN
+        RIGHTMARGIN, 251
+        BOTTOMMARGIN, 177
+    END
+
+    IDD_WIZARD_CONNECTION, DIALOG
+    BEGIN
+        RIGHTMARGIN, 251
+        BOTTOMMARGIN, 177
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAIN MENU DISCARDABLE 
+BEGIN
+    POPUP "Sub0"
+    BEGIN
+        POPUP "Database"
+        BEGIN
+            MENUITEM "&Run Query\tCtrl+W",          ID_QUERY_RUN
+            MENUITEM "Run Selected Text\tCtrl+E",   ID_QUERY_RUNSELECTED
+            MENUITEM SEPARATOR
+            MENUITEM "Stop Query\tCtrl+Break",      ID_QUERY_STOP
+        END
+    END
+    POPUP "Sub1"
+    BEGIN
+        POPUP "Advanced"
+        BEGIN
+            MENUITEM "Make &Uppercase\tCtrl+Shift+U", ID_EDIT_UPPERCASE
+            MENUITEM "Make &Lowercase\tCtrl+U",     ID_EDIT_LOWERCASE
+            MENUITEM "&Tabify Selection",           ID_EDIT_TABIFY
+            MENUITEM "U&ntabify Selection",         ID_EDIT_UNTABIFY
+            MENUITEM "Increase Line Indent\tTab",   ID_EDIT_INDENT
+            MENUITEM "Decrease Line Indent\tShift+Tab", ID_EDIT_UNINDENT
+            MENUITEM "Delete Line\tCtrl+L",         ID_EDIT_DELLINE
+            MENUITEM "Comment Selection",           ID_EDIT_COMMENT
+            MENUITEM "Uncomment Selection",         ID_EDIT_UNCOMMENT
+            MENUITEM SEPARATOR
+            MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
+            MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
+            MENUITEM "View &White Space",           ID_EDIT_VIEWWS
+        END
+        POPUP "Zoom"
+        BEGIN
+            MENUITEM "Zoom In\tCtrl+Add",           ID_EDIT_ZOOM_IN
+            MENUITEM "Zoom Out\tCtrl+Sub",          ID_EDIT_ZOOM_OUT
+        END
+    END
+    POPUP "Sub2"
+    BEGIN
+        MENUITEM "SQL Text",                    ID_VIEW_TAB1
+        MENUITEM "Result View",                 ID_VIEW_TAB2
+        MENUITEM "SQL Result",                  ID_VIEW_TAB3
+    END
+    POPUP "Sub3"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "&Add New Data Link...",       ID_ADD_DATABASE
+    END
+END
+
+IDR_PROJECT MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Add New Data Link...",       ID_ADD_DATABASE
+        MENUITEM SEPARATOR
+        MENUITEM "Set as Default Project",      ID_PROJECT_SET_DEFAULT
+        MENUITEM SEPARATOR
+        MENUITEM "&Remove",                     ID_FILE_DELETE
+        MENUITEM "Rename",                      ID_FILE_RENAME
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_DATABASE MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Open",                       ID_VIEW_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "Rename",                      ID_FILE_RENAME
+        MENUITEM "&Remove",                     ID_FILE_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "Disconnect",                  ID_DATABASE_DISCONNECT
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_VIEW_PROPERTIES
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATOR ACCELERATORS DISCARDABLE 
+BEGIN
+    "1",            ID_VIEW_TAB1,           VIRTKEY, ALT, NOINVERT
+    "2",            ID_VIEW_TAB2,           VIRTKEY, ALT, NOINVERT
+    "3",            ID_VIEW_TAB3,           VIRTKEY, ALT, NOINVERT
+    "E",            ID_QUERY_RUNSELECTED,   VIRTKEY, CONTROL, NOINVERT
+    VK_CANCEL,      ID_QUERY_STOP,          VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_QUERY_RUN,           VIRTKEY, NOINVERT
+    "W",            ID_QUERY_RUN,           VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_TOOLIMAGES TOOLBAR DISCARDABLE  16, 16
+BEGIN
+    BUTTON      ID_QUERY_RUNSELECTED
+    BUTTON      ID_QUERY_STOP
+    BUTTON      ID_QUERY_INSPECT
+    BUTTON      ID_HISTORY_NEW
+    BUTTON      ID_HISTORY_DELETE
+    BUTTON      ID_HISTORIK_LEFT
+    BUTTON      ID_HISTORY_RIGHT
+    BUTTON      ID_FILE_DELETE
+    BUTTON      ID_FILE_SAVE
+    BUTTON      ID_FILE_PROPERTIES
+END
+
+IDR_TOOLBAR TOOLBAR DISCARDABLE  16, 15
+BEGIN
+    BUTTON      ID_QUERY_RUNSELECTED
+    BUTTON      ID_QUERY_STOP
+    SEPARATOR
+    BUTTON      ID_HISTORY_NEW
+    BUTTON      ID_HISTORY_DELETE
+    SEPARATOR
+    BUTTON      ID_HISTORIK_LEFT
+    BUTTON      ID_HISTORY_RIGHT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
+IDR_TOOLBAR             BITMAP  DISCARDABLE     "res\\toolbar.bmp"
+IDB_LISTLARGE           BITMAP  DISCARDABLE     "res\\listlarge.bmp"
+IDB_LISTSMALL           BITMAP  DISCARDABLE     "res\\listsmall.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// HTML
+//
+
+IDR_INFO                HTML    DISCARDABLE     "res\\info.htm"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// GIF
+//
+
+DB.GIF                  GIF     DISCARDABLE     "res\\db.gif"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDR_MAINFRAME           "SQL Project"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_ERROR       "Error"
+    IDS_CAPTION_WARNING     "Warning"
+    IDS_CAPTION_MESSAGE     "Message"
+    IDS_ERR_LASTERROR       "\nSystem Error Message:\n"
+    IDS_WIZARD_TITLE_PROVIDER "Choose Provider"
+    IDS_WIZARD_SUBTITLE_PROVIDER 
+                            "Choose the OLE DB Provider to use in the connection."
+    IDS_STATUS_LOADING      " Loading project '%s'..."
+    IDS_HELP                "  sql <SQL> - execute a SQL statement.\r\n"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_WIZARD_TITLE_CONNECTION "Enter Connect Properties"
+    IDS_WIZARD_SUBTITLE_CONNECTION 
+                            "Modify the connect properties for the data source."
+    IDS_UNKNOWN             "Database"
+    IDS_ERR_NOCONNECTION    "No Connection to Database\nFailed to connect to the selected Database.\nDatabase generated the following message:\n%s"
+    IDS_STDERROR            "Unspecified Database error."
+    IDS_STATUS_OPENDATABASE " Opening Data Link..."
+    IDS_ERR_OPENVIEW        "Open File Error\nUnable to open the file in a new view."
+    IDS_ERR_DBOPEN          "Connection failed.\nUnable to connect to the database."
+    IDS_SQL                 "  SQL"
+    IDS_RESULT              "  Result  "
+    IDS_SCHEMA              "Schema"
+    IDS_TREE_DATABASE       "Database"
+    IDS_TREE_TABLES         "Tables"
+    IDS_TREE_SYSTEMTABLES   "System Tables"
+    IDS_TREE_VIEWS          "Views"
+    IDS_SB_EXECUTING        " Executing SQL statement..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_TOOLBAR     "SQL"
+    IDS_TREE_SP             "Stored Procedures"
+    IDS_TREE_INFO           "Info"
+    IDS_DBNAME_LABEL        "Name"
+    IDS_DBTYPE_LABEL        "Type"
+    IDS_DBVERSION_LABEL     "Version"
+    IDS_DBLOCATION_LABEL    "Location"
+    IDS_DBCATALOG_LABEL     "Catalog"
+    IDS_TREE_COLUMNS        "Fields"
+    IDS_TREE_INDICES        "Indexes"
+    IDS_DBSERVER_LABEL      "Server"
+    IDS_DATABASE            "Database"
+    IDS_YES                 "Yes"
+    IDS_NO                  "No"
+    IDS_INFO_NAME           "Name"
+    IDS_INFO_SCHEMA         "Schema"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_INFO_CATALOG        "Catalog"
+    IDS_INFO_POSITION       "Position"
+    IDS_INFO_NULLABLE       "Nullable"
+    IDS_INFO_PRIMARY        "Primary"
+    IDS_INFO_UNIQUE         "Unique"
+    IDS_INFO_FLAGS          "Flags"
+    IDS_INFO_TYPE           "Type"
+    IDS_INFO_FIELDS         "Fields"
+    IDS_INFO_TABLE          "Table"
+    IDS_COL_NAME            "Name"
+    IDS_COL_VALUE           "Value"
+    IDS_INFO_LENGTH         "Length"
+    IDS_INFO_PRECISION      "Precision"
+    IDS_INFO_DIGITS         "Digits"
+    IDS_INFO_HASDEFAULT     "Has Default"
+    IDS_INFO_DEFAULT        "Default"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TYPE_INT            "Integer"
+    IDS_TYPE_STRING         "String"
+    IDS_TYPE_BOOL           "Boolean"
+    IDS_TYPE_GUID           "GUID"
+    IDS_TYPE_DATE           "Date"
+    IDS_TYPE_TIME           "Time"
+    IDS_TYPE_TIMESTAMP      "Timestamp"
+    IDS_TYPE_BLOB           "Blob"
+    IDS_TYPE_FLOAT          "Float"
+    IDS_TYPE_DOUBLE         "Decimal"
+    IDS_INFO_NULLS          "Allows Nulls"
+    IDS_INFO_CLUSTERED      "Clustered"
+    IDS_TAB_SUMMERY         " Summery "
+    IDS_TAB_RESULT          "Result #%ld"
+    IDS_SB_DONE             " Query complete."
+    IDS_DBERROR_FORMAT      "Query failed: %s\r\nError: %ld (0x%08X)\r\nSource: %s:\r\n%s"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TRUE                "True"
+    IDS_FALSE               "False"
+    IDS_STANDARD            "Standard"
+    IDS_TYPE_CURRENCY       "Currency"
+    IDS_ROW_AFFECTED        "%ld row affected."
+    IDS_ROWS_AFFECTED       "%ld rows affected."
+    IDS_ROW_SELECTED        "%ld row selected."
+    IDS_ROWS_SELECTED       "%ld rows selected."
+    IDS_SAVEFILE            "Save File\nFile has been modified. Do you wish to save the file?"
+    IDS_DBERROR_FAILED      "Query failed: "
+    IDS_TREE_ADVANCED       "Advanced"
+    IDS_TREE_SQL            "SQL"
+    IDS_FILTER_SQL          "SQL files|*.sql|All Files|*.*|"
+    IDS_CAPTION_QUESTION    "BVRDE"
+    IDS_NO_ROWS_AFFECTED    "This command did not return data, and it did not return any rows."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

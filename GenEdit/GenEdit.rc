@@ -1,0 +1,262 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Danish resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)
+#ifdef _WIN32
+LANGUAGE LANG_DANISH, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040604b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "viksoe.dk\0"
+            VALUE "FileDescription", "GenEdit - Scintilla Editor Wrapper\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "GenEdit\0"
+            VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksøe\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "GenEdit.dll\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "viksoe.dk GenEdit\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x406, 1200
+    END
+END
+
+#endif    // !_MAC
+
+#endif    // Danish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_REPLACE DIALOG DISCARDABLE  36, 44, 292, 109
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Replace"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Fi&nd what:",-1,11,12,55,8
+    COMBOBOX        IDC_FINDTEXT,66,10,125,86,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Re&place with:",-1,11,28,55,8
+    COMBOBOX        IDC_REPLACETEXT,66,26,125,80,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_TABSTOP
+    CONTROL         "Match &whole word only",IDC_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,48,95,10
+    CONTROL         "Match &case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,11,60,55,10
+    CONTROL         "Regular &expression",IDC_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,72,77,10
+    CONTROL         "Wrap aroun&d",IDC_WRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,11,84,65,10
+    GROUPBOX        " Replace in ",-1,118,44,71,37,WS_GROUP
+    CONTROL         "Selection",IDC_SELECTION,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,124,53,45,12
+    CONTROL         "Whole file",IDC_WHOLEFILE,"Button",BS_AUTORADIOBUTTON,
+                    124,66,45,12
+    DEFPUSHBUTTON   "&Find Next",IDOK,207,8,74,14,WS_DISABLED | WS_GROUP
+    PUSHBUTTON      "&Replace",IDC_REPLACE,207,25,74,14
+    PUSHBUTTON      "Replace &All",IDC_REPLACEALL,207,42,74,14
+    PUSHBUTTON      "Cancel",IDCANCEL,207,59,74,14
+END
+
+IDD_GOTO DIALOGEX 0, 0, 218, 79
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Goto Line"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "&Destination Line Number:",-1,9,11,85,8,0,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_GOLINE,100,9,36,12,ES_NUMBER
+    LTEXT           "Current line:",-1,9,27,53,8,NOT WS_GROUP,
+                    WS_EX_TRANSPARENT
+    LTEXT           "0123456789",IDC_CURRLINE,100,27,40,8,NOT WS_GROUP,
+                    WS_EX_TRANSPARENT
+    LTEXT           "Last line:",-1,9,42,56,8,NOT WS_GROUP,WS_EX_TRANSPARENT
+    LTEXT           "0123456789",IDC_LASTLINE,100,42,40,8,NOT WS_GROUP,
+                    WS_EX_TRANSPARENT
+    DEFPUSHBUTTON   "&Go To",IDOK,158,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,158,24,50,14
+END
+
+IDD_FIND DIALOG DISCARDABLE  30, 73, 288, 87
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Find"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Fi&nd what:",-1,9,11,45,8
+    COMBOBOX        IDC_FINDTEXT,54,9,145,72,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Match &whole word only",IDC_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,9,26,120,10
+    CONTROL         "Match &case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,9,38,130,10
+    CONTROL         "Regular &expression",IDC_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,9,50,120,10
+    CONTROL         "W&rap around",IDC_WRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,9,62,120,10
+    GROUPBOX        "Direction",-1,139,26,60,34,WS_GROUP
+    CONTROL         "&Up",IDC_DIRECTIONUP,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,144,34,45,12
+    CONTROL         "&Down",IDC_DIRECTIONDOWN,"Button",BS_AUTORADIOBUTTON,
+                    144,46,45,12
+    DEFPUSHBUTTON   "&Find Next",IDOK,212,7,65,14,WS_DISABLED | WS_GROUP
+    PUSHBUTTON      "&Mark All",IDC_MARKALL,212,24,65,14
+    PUSHBUTTON      "Cancel",IDCANCEL,212,41,65,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_POPUP MENU DISCARDABLE 
+BEGIN
+    POPUP "Sub"
+    BEGIN
+        POPUP "Advanced"
+        BEGIN
+            MENUITEM "Make &Uppercase\tCtrl+Shift+U", ID_EDIT_UPPERCASE
+            MENUITEM "Make &Lowercase\tCtrl+U",     ID_EDIT_LOWERCASE
+            MENUITEM "&Tabify Selection",           ID_EDIT_TABIFY
+            MENUITEM "U&ntabify Selection",         ID_EDIT_UNTABIFY
+            MENUITEM "Increase Line Indent\tTab",   ID_EDIT_INDENT
+            MENUITEM "Decrease Line Indent\tShift+Tab", ID_EDIT_UNINDENT
+            MENUITEM "Delete Line\tCtrl+L",         ID_EDIT_DELLINE
+            MENUITEM "Comment Selection",           ID_EDIT_COMMENT
+            MENUITEM "Uncomment Selection",         ID_EDIT_UNCOMMENT
+            MENUITEM SEPARATOR
+            MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
+            MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
+            MENUITEM "View &White Space",           ID_EDIT_VIEWWS
+        END
+        POPUP "Bookmarks"
+        BEGIN
+            MENUITEM "&Toggle Bookmark",            ID_BOOKMARK_TOGGLE
+            MENUITEM "&Next Bookmark",              ID_BOOKMARK_NEXT
+            MENUITEM "&Previous Bookmark",          ID_BOOKMARK_PREVIOUS
+            MENUITEM "&Clear Bookmarks",            ID_BOOKMARK_CLEAR
+        END
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SB_POSITION         "\t Ln: %ld Col: %ld "
+    IDS_ERR_DOCUMENT        "Print Error\nUnable to print document."
+    IDS_CAPTION_ERROR       "Error"
+    IDS_CAPTION_WARNING     "Warning"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_MESSAGE     "Message"
+    IDS_STATUS_PRINTING     " Printing page %ld..."
+    IDS_PRINT_TITLE         "BVRDE"
+    IDS_FINDFAILED          "Not found\nCould not find the string '%s'."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

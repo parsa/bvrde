@@ -1,0 +1,1032 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "atlres.h"
+#include "../IDE/bvrde_sdk.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Danish resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)
+#ifdef _WIN32
+LANGUAGE LANG_DANISH, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""atlres.h""\r\n"
+    "#include ""../IDE/bvrde_sdk.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_CLASSVIEW           BITMAP  DISCARDABLE     "res\\classview.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON    DISCARDABLE     "res\\icon1.ico"
+#endif    // Danish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
+IDR_BUILD               BITMAP  DISCARDABLE     "res\\build.bmp"
+IDR_DEBUG               BITMAP  DISCARDABLE     "res\\debug.bmp"
+IDR_BOOKMARKS           BITMAP  DISCARDABLE     "res\\bookmarks.bmp"
+IDR_SEARCH              BITMAP  DISCARDABLE     "res\\search.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_BACK                ICON    DISCARDABLE     "res\\back.ico"
+IDI_KEY                 ICON    DISCARDABLE     "Res\\key.ico"
+IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
+IDI_MINUS               ICON    DISCARDABLE     "res\\minus.ico"
+IDI_PLUS                ICON    DISCARDABLE     "res\\plus.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATOR ACCELERATORS DISCARDABLE 
+BEGIN
+    "1",            ID_BOOKMARKS_GOTO1,     VIRTKEY, CONTROL, NOINVERT
+    "2",            ID_BOOKMARKS_GOTO2,     VIRTKEY, CONTROL, NOINVERT
+    "3",            ID_BOOKMARKS_GOTO3,     VIRTKEY, CONTROL, NOINVERT
+    "4",            ID_BOOKMARKS_GOTO4,     VIRTKEY, CONTROL, NOINVERT
+    "5",            ID_BOOKMARKS_GOTO5,     VIRTKEY, CONTROL, NOINVERT
+    "6",            ID_BOOKMARKS_GOTO6,     VIRTKEY, CONTROL, NOINVERT
+    "7",            ID_BOOKMARKS_GOTO7,     VIRTKEY, CONTROL, NOINVERT
+    "8",            ID_BOOKMARKS_GOTO8,     VIRTKEY, CONTROL, NOINVERT
+    VK_CANCEL,      ID_EDIT_BREAK,          VIRTKEY, CONTROL, NOINVERT
+    VK_F10,         ID_DEBUG_STEP_OVER,     VIRTKEY, NOINVERT
+    VK_F11,         ID_DEBUG_STEP_INTO,     VIRTKEY, NOINVERT
+    VK_F5,          ID_DEBUG_START,         VIRTKEY, NOINVERT
+    VK_F5,          ID_DEBUG_DEBUG,         VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_DEBUG_STOP,          VIRTKEY, SHIFT, NOINVERT
+    VK_F7,          ID_BUILD_PROJECT,       VIRTKEY, NOINVERT
+    VK_F7,          ID_BUILD_COMPILE,       VIRTKEY, CONTROL, NOINVERT
+    VK_F8,          ID_DEBUG_BREAKPOINT,    VIRTKEY, NOINVERT
+    VK_SPACE,       ID_EDIT_AUTOCOMPLETE,   VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_EDIT_TEXT MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Undo",                       ID_EDIT_UNDO
+        MENUITEM "&Redo",                       ID_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t",                        ID_EDIT_CUT
+        MENUITEM "&Copy",                       ID_EDIT_COPY
+        MENUITEM "&Paste",                      ID_EDIT_PASTE
+        MENUITEM "&Delete",                     ID_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "&Go To...",                   ID_EDIT_GOTO
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_FILE_PROPERTIES
+    END
+END
+
+IDR_EDIT_CPP MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Undo",                       ID_EDIT_UNDO
+        MENUITEM "&Redo",                       ID_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t",                        ID_EDIT_CUT
+        MENUITEM "&Copy",                       ID_EDIT_COPY
+        MENUITEM "&Paste",                      ID_EDIT_PASTE
+        MENUITEM "&Delete",                     ID_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "&Go To...",                   ID_EDIT_GOTO
+        MENUITEM SEPARATOR
+        MENUITEM "Insert/Delete &Breakpoint",   ID_DEBUG_BREAKPOINT
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_FILE_PROPERTIES
+    END
+END
+
+IDR_EDIT_DEBUG MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Step &Into",                  ID_DEBUG_STEP_INTO
+        MENUITEM "Step &Over",                  ID_DEBUG_STEP_OVER
+        MENUITEM "Step Out",                    ID_DEBUG_STEP_OUT
+        MENUITEM "Run to cursor",               ID_DEBUG_STEP_RUN
+        MENUITEM SEPARATOR
+        MENUITEM "Set Next Statement",          ID_DEBUG_STEP_SET
+        MENUITEM SEPARATOR
+        MENUITEM "Quick Watch",                 ID_DEBUG_QUICKWATCH
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t",                        ID_EDIT_CUT
+        MENUITEM "&Copy",                       ID_EDIT_COPY
+        MENUITEM "&Paste",                      ID_EDIT_PASTE
+        MENUITEM SEPARATOR
+        MENUITEM "Insert/Delete &Breakpoint",   ID_DEBUG_BREAKPOINT
+    END
+END
+
+IDR_CPP MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Open",                       ID_VIEW_OPEN
+        MENUITEM "Open with...",                ID_VIEW_OPEN_WITH
+        MENUITEM SEPARATOR
+        MENUITEM "&Compile",                    ID_BUILD_COMPILE
+        MENUITEM SEPARATOR
+        MENUITEM "&Remove",                     ID_FILE_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_TEXT MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Open",                       ID_VIEW_OPEN
+        MENUITEM "Open with...",                ID_VIEW_OPEN_WITH
+        MENUITEM SEPARATOR
+        MENUITEM "&Remove",                     ID_FILE_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_PROJECT MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Build",                      ID_BUILD_PROJECT
+        MENUITEM "Rebuild",                     ID_BUILD_REBUILD
+        MENUITEM "&Clean",                      ID_BUILD_CLEAN
+        MENUITEM SEPARATOR
+        MENUITEM "Set as Default Project",      ID_PROJECT_SET_DEFAULT
+        POPUP "Add"
+        BEGIN
+            MENUITEM "Add Folder",                  ID_FILE_ADD_FOLDER
+            MENUITEM "Add Local File",              ID_FILE_ADD_LOCAL
+            MENUITEM "Add Remote File",             ID_FILE_ADD_REMOTE
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Remove",                     ID_FILE_DELETE
+        MENUITEM "Rename",                      ID_FILE_RENAME
+        MENUITEM SEPARATOR
+        MENUITEM "&Save",                       ID_FILE_SAVE
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_FOLDER MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        POPUP "Add"
+        BEGIN
+            MENUITEM "Add Folder",                  ID_FILE_ADD_FOLDER
+            MENUITEM "Add Local File",              ID_FILE_ADD_LOCAL
+            MENUITEM "Add Remote File",             ID_FILE_ADD_REMOTE
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Remove",                     ID_FILE_DELETE
+        MENUITEM "Rename",                      ID_FILE_RENAME
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_MAIN MENU DISCARDABLE 
+BEGIN
+    POPUP "Sub0"
+    BEGIN
+        POPUP "&Build"
+        BEGIN
+            MENUITEM "&Buld Project             \tF7", ID_BUILD_PROJECT
+            MENUITEM "&Rebuild Project",            ID_BUILD_REBUILD
+            MENUITEM "Cl&ean",                      ID_BUILD_CLEAN
+            MENUITEM SEPARATOR
+            MENUITEM "Rebuild Solution",            ID_BUILD_SOLUTION
+            MENUITEM SEPARATOR
+            MENUITEM "Co&mpile\tCtrl+F7",           ID_BUILD_COMPILE
+            MENUITEM SEPARATOR
+            MENUITEM "Stop Build\tCtrl+Break",      ID_BUILD_STOP
+        END
+    END
+    POPUP "Sub1"
+    BEGIN
+        POPUP "&Debug"
+        BEGIN
+            MENUITEM "&Start\tF5",                  ID_DEBUG_START
+            MENUITEM "Start with Debugger\tCtrl+F5", ID_DEBUG_DEBUG
+            MENUITEM "Stop Debugging\tShift+F5",    ID_DEBUG_STOP
+            MENUITEM "&Break\tCtrl+Break",          ID_DEBUG_BREAK
+            MENUITEM "&Processes",                  ID_DEBUG_PROCESSES
+            , GRAYED
+            MENUITEM SEPARATOR
+            MENUITEM "Step &Into\tF11",             ID_DEBUG_STEP_INTO
+            MENUITEM "Step &Over\tF10",             ID_DEBUG_STEP_OVER
+            MENUITEM "Step Out",                    ID_DEBUG_STEP_OUT
+            MENUITEM "Run to cursor",               ID_DEBUG_STEP_RUN
+            MENUITEM SEPARATOR
+            MENUITEM "New &Breakpoint\tF8",         ID_DEBUG_BREAKPOINT
+            MENUITEM "Clear All Breakpoints",       ID_DEBUG_CLEAR_BREAKPOINTS
+
+        END
+    END
+    POPUP "Sub2"
+    BEGIN
+        POPUP "Advanced"
+        BEGIN
+            MENUITEM "Auto Complete\tCtrl+Space",   ID_EDIT_AUTOCOMPLETE
+            MENUITEM SEPARATOR
+            MENUITEM "Make &Uppercase\tCtrl+Shift+U", ID_EDIT_UPPERCASE
+            MENUITEM "Make &Lowercase\tCtrl+U",     ID_EDIT_LOWERCASE
+            MENUITEM "&Tabify Selection",           ID_EDIT_TABIFY
+            MENUITEM "U&ntabify Selection",         ID_EDIT_UNTABIFY
+            MENUITEM "Increase Line Indent\tTab",   ID_EDIT_INDENT
+            MENUITEM "Decrease Line Indent\tShift+Tab", ID_EDIT_UNINDENT
+            MENUITEM "Delete Line\tCtrl+L",         ID_EDIT_DELLINE
+            MENUITEM "Comment Selection",           ID_EDIT_COMMENT
+            MENUITEM "Uncomment Selection",         ID_EDIT_UNCOMMENT
+            MENUITEM SEPARATOR
+            MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
+            MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
+            MENUITEM "View &White Space",           ID_EDIT_VIEWWS
+        END
+        POPUP "Bookmarks"
+        BEGIN
+            MENUITEM "&Toggle Bookmark",            ID_BOOKMARK_TOGGLE
+            MENUITEM "&Next Bookmark",              ID_BOOKMARK_NEXT
+            MENUITEM "&Previous Bookmark",          ID_BOOKMARK_PREVIOUS
+            MENUITEM "&Clear Bookmarks",            ID_BOOKMARK_CLEAR
+        END
+        POPUP "Zoom"
+        BEGIN
+            MENUITEM "Zoom In\tCtrl+Add",           ID_EDIT_ZOOM_IN
+            MENUITEM "Zoom Out\tCtrl+Sub",          ID_EDIT_ZOOM_OUT
+        END
+    END
+    POPUP "Sub3"
+    BEGIN
+        POPUP "Debug Windows"
+        BEGIN
+            MENUITEM "&Watch",                      ID_VIEW_WATCH
+            MENUITEM "&Call Stack",                 ID_VIEW_CALLSTACK
+            MENUITEM "&Variables",                  ID_VIEW_VARIABLES
+            MENUITEM "&Threads",                    ID_VIEW_THREADS
+            MENUITEM "&Registers",                  ID_VIEW_REGISTERS
+            MENUITEM SEPARATOR
+            MENUITEM "&Breakpoints",                ID_VIEW_BREAKPOINTS
+        END
+    END
+    POPUP "Sub4"
+    BEGIN
+        MENUITEM "Compile Log",                 ID_VIEW_COMPILE_LOG
+        MENUITEM "Debug Log",                   ID_VIEW_DEBUG_LOG
+    END
+    POPUP "Sub5"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "Add Folder",                  ID_FILE_ADD_FOLDER
+        MENUITEM "Add Local File",              ID_FILE_ADD_LOCAL
+        MENUITEM "Add Remote File",             ID_FILE_ADD_REMOTE
+    END
+END
+
+IDR_CLASSTREE MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Go to Definition",           ID_CLASSVIEW_GOTO
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_CLASSVIEW_PROPERTIES
+    END
+END
+
+IDM_BOOKMARKS MENU DISCARDABLE 
+BEGIN
+    POPUP "Goto"
+    BEGIN
+        MENUITEM "Goto Bookmark #1  \tCtrl+1",  ID_BOOKMARKS_GOTO1
+        MENUITEM "Goto Bookmark #2  \tCtrl+2",  ID_BOOKMARKS_GOTO2
+        MENUITEM "Goto Bookmark #3  \tCtrl+3",  ID_BOOKMARKS_GOTO3
+        MENUITEM "Goto Bookmark #4  \tCtrl+4",  ID_BOOKMARKS_GOTO4
+        MENUITEM "Goto Bookmark #5  \tCtrl+5",  ID_BOOKMARKS_GOTO5
+        MENUITEM "Goto Bookmark #6  \tCtrl+6",  ID_BOOKMARKS_GOTO6
+        MENUITEM "Goto Bookmark #7  \tCtrl+7",  ID_BOOKMARKS_GOTO7
+        MENUITEM "Goto Bookmark #8  \tCtrl+8",  ID_BOOKMARKS_GOTO8
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_FILEBROWSE DIALOG DISCARDABLE  0, 0, 280, 150
+STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | 
+    WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Open"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_LIST | 
+                    LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_AUTOARRANGE | 
+                    LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,4,22,268,82
+    LTEXT           "File &name:",IDC_FILENAME_LABEL,5,112,48,8,SS_NOTIFY
+    LTEXT           "Files of &type:",IDC_TYPES_LABEL,5,130,48,8,SS_NOTIFY
+    EDITTEXT        IDC_FILENAME,54,111,155,12,ES_AUTOHSCROLL
+    COMBOBOX        IDC_TYPES,54,128,155,87,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "&Open",IDOK,222,110,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,222,127,50,14
+    LTEXT           "Look &in:",1091,4,6,27,8,SS_NOTIFY
+    CONTROL         "",IDC_FOLDER,"ComboBoxEx32",CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP,37,4,142,98
+    PUSHBUTTON      "",IDC_BACK,183,3,15,15,BS_ICON | WS_DISABLED
+    PUSHBUTTON      "",IDC_UP,201,3,15,15,BS_ICON
+END
+
+IDD_WIZARD_FILETRANSFER DIALOGEX 0, 0, 329, 169
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    RTEXT           "Remote host: ",IDC_STATIC,7,26,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_HOST,57,26,94,12,ES_AUTOHSCROLL
+    RTEXT           "Port: ",IDC_STATIC,7,41,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PORT,57,41,46,12,ES_AUTOHSCROLL | ES_NUMBER
+    RTEXT           "Username: ",IDC_STATIC,7,56,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_USERNAME,57,56,94,12,ES_AUTOHSCROLL
+    RTEXT           "Password: ",IDC_STATIC,7,71,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PASSWORD,57,71,94,12,ES_PASSWORD | ES_AUTOHSCROLL
+    RTEXT           "Initial path: ",IDC_STATIC,7,86,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PATH,57,86,170,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Test Connection",IDC_TEST,58,104,79,14
+    RTEXT           "Link type: ",IDC_STATIC,7,7,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    COMBOBOX        IDC_TYPE,57,7,81,57,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
+IDD_WIZARD_COMPILER DIALOGEX 0, 0, 330, 169
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    RTEXT           "Remote host: ",IDC_STATIC,7,26,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_HOST,57,26,94,12,ES_AUTOHSCROLL
+    RTEXT           "Port: ",IDC_STATIC,7,41,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PORT,57,41,46,12,ES_AUTOHSCROLL | ES_NUMBER
+    RTEXT           "Username: ",IDC_STATIC,7,56,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_USERNAME,57,56,94,12,ES_AUTOHSCROLL
+    RTEXT           "Password: ",IDC_STATIC,7,71,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PASSWORD,57,71,94,12,ES_PASSWORD | ES_AUTOHSCROLL
+    RTEXT           "Initial path: ",IDC_STATIC,7,86,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PATH,57,86,170,12,ES_AUTOHSCROLL
+    RTEXT           "Custom: ",IDC_STATIC,7,102,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_EXTRA,57,102,170,29,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    PUSHBUTTON      "&Test Connection",IDC_TEST,58,137,79,14
+    RTEXT           "Link type: ",IDC_STATIC,7,7,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    COMBOBOX        IDC_TYPE,57,7,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
+IDD_WIZARD_DEBUGGER DIALOGEX 0, 0, 330, 184
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    RTEXT           "Debugger: ",IDC_STATIC,7,7,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    COMBOBOX        IDC_DEBUGGER,57,7,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "Link type: ",IDC_STATIC,7,22,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    COMBOBOX        IDC_TYPE,57,22,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "Remote host: ",IDC_STATIC,7,42,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_HOST,57,42,94,12,ES_AUTOHSCROLL
+    RTEXT           "Port: ",IDC_STATIC,7,57,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PORT,57,57,46,12,ES_AUTOHSCROLL | ES_NUMBER
+    RTEXT           "Username: ",IDC_STATIC,7,72,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_USERNAME,57,72,94,12,ES_AUTOHSCROLL
+    RTEXT           "Password: ",IDC_STATIC,7,87,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PASSWORD,57,87,94,12,ES_PASSWORD | ES_AUTOHSCROLL
+    RTEXT           "Initial path: ",IDC_STATIC,7,102,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PATH,57,102,170,12,ES_AUTOHSCROLL
+    RTEXT           "Custom: ",IDC_STATIC,7,118,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_EXTRA,57,118,170,29,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    PUSHBUTTON      "&Test Connection",IDC_TEST,58,153,79,14
+END
+
+IDD_WIZARD_COMMANDS DIALOG DISCARDABLE  0, 0, 255, 179
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_LIST,0,0,255,177,LBS_OWNERDRAWVARIABLE | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_QUICKWATCH DIALOGEX 0, 0, 279, 178
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Quick Watch"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "Expression:",IDC_STATIC,7,7,100,9,0,WS_EX_TRANSPARENT
+    COMBOBOX        IDC_LINE,7,19,199,63,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Current value:",IDC_STATIC,7,36,100,9,0,
+                    WS_EX_TRANSPARENT
+    LISTBOX         IDC_LIST,7,48,200,123,LBS_OWNERDRAWVARIABLE | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "&Recalculate",IDOK,216,7,56,14
+    PUSHBUTTON      "&Add Watch",IDC_ADD_WATCH,216,24,56,14,WS_DISABLED
+    PUSHBUTTON      "Close",IDCANCEL,216,42,56,14
+END
+
+IDD_CRYPTLIB DIALOGEX 0, 0, 218, 135
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "File Missing"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CTEXT           "CryptLib missing",IDC_TITLE,7,13,204,24,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    CONTROL         "",IDC_STATIC,"Static",SS_WHITERECT,7,7,204,39
+    DEFPUSHBUTTON   "OK",IDOK,161,114,50,14
+    CTEXT           "The CryptLib encryption library has not been installed.. This library manages the secure SSH connection. Download the library from the link below and copy the CL32.DLL file to the BVRDE program folder.",
+                    IDC_STATIC,7,54,204,34
+    CTEXT           "http://www.cs.auckland.ac.nz/~pgut001/cryptlib/",
+                    IDC_LINK,7,94,204,11,SS_CENTERIMAGE
+END
+
+IDD_PASSWORD DIALOGEX 0, 0, 218, 135
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Password"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_STATIC,"Static",SS_WHITERECT,7,7,204,39
+    ICON            IDI_KEY,IDC_STATIC,15,15,20,20
+    LTEXT           "Enter connect password",IDC_TITLE,52,13,159,24,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CTEXT           "Enter the password for connecting to the remote server.\nThis password will be used to connect on all connections which was configured with a blank password.",
+                    IDC_STATIC,10,54,198,34
+    EDITTEXT        IDC_PASSWORD,18,92,181,15,ES_PASSWORD | ES_AUTOHSCROLL,
+                    WS_EX_STATICEDGE
+    DEFPUSHBUTTON   "OK",IDOK,161,114,50,14,WS_DISABLED
+END
+
+IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "Integration",-1,0,0,38,9
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,46,4,212,1
+    CONTROL         "Don't show Data Tips",IDC_NOTIPS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,125,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Files are Read-Only while debugging",IDC_PROTECTFILES,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,26,
+                    135,10,WS_EX_TRANSPARENT
+    CONTROL         "Match Braces",IDC_MATCHBRACES,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,14,37,120,10,WS_EX_TRANSPARENT
+    CONTROL         "Use Auto Suggest",IDC_AUTOSUGGEST,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,48,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Automatically close braces",IDC_AUTOCLOSE,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,59,120,10,
+                    WS_EX_TRANSPARENT
+    LTEXT           "Tag Support",-1,0,81,43,9
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,85,208,1
+    CONTROL         "Use Auto Completion feature",IDC_AUTOCOMPLETE,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,98,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Populate Class Browser with tags",IDC_CLASSBROWSER,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,109,
+                    120,10,WS_EX_TRANSPARENT
+    CONTROL         "Use online class scanner",IDC_ONLINESCANNER,"Button",
+                    BS_AUTOCHECKBOX | WS_DISABLED | WS_GROUP | WS_TABSTOP,14,
+                    121,120,10,WS_EX_TRANSPARENT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_FILEBROWSE, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 272
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 141
+    END
+
+    IDD_WIZARD_FILETRANSFER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 322
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
+    END
+
+    IDD_WIZARD_COMPILER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 323
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
+    END
+
+    IDD_WIZARD_DEBUGGER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 323
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 177
+    END
+
+    IDD_WIZARD_COMMANDS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 251
+        BOTTOMMARGIN, 177
+    END
+
+    IDD_QUICKWATCH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 272
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 171
+    END
+
+    IDD_CRYPTLIB, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 211
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 128
+    END
+
+    IDD_PASSWORD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 211
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 128
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040604b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "viksoe.dk\0"
+            VALUE "FileDescription", "BVRDE Add-In RemoteProject\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "RemoteProject\0"
+            VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksoe\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "RemoteProject.pkg\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "BVRDE RemoteProject\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x406, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_TOOLIMAGES TOOLBAR DISCARDABLE  16, 16
+BEGIN
+    BUTTON      ID_BUILD_PROJECT
+    BUTTON      ID_BUILD_COMPILE
+    BUTTON      ID_BUILD_STOP
+    BUTTON      ID_DEBUG_START
+    BUTTON      ID_DEBUG_DEBUG
+    BUTTON      ID_DEBUG_PROCESSES
+    BUTTON      ID_DEBUG_STEP_INTO
+    BUTTON      ID_DEBUG_STEP_OVER
+    BUTTON      ID_DEBUG_BREAK
+    BUTTON      ID_DEBUG_STOP
+    BUTTON      ID_DEBUG_BREAKPOINT
+    BUTTON      ID_DEBUG_THREADS
+    BUTTON      ID_DEBUG_QUICKWATCH
+    BUTTON      ID_DEBUG_STEP_SET
+    BUTTON      ID_FILE_ADD_FOLDER
+    BUTTON      ID_FILE_ADD_LOCAL
+    BUTTON      ID_FILE_ADD_REMOTE
+    BUTTON      ID_FILE_DELETE
+    BUTTON      ID_FILE_SAVE
+    BUTTON      ID_FILE_PROPERTIES
+    BUTTON      ID_EDIT_COMMENT
+    BUTTON      ID_EDIT_UNCOMMENT
+    BUTTON      ID_EDIT_INDENT
+    BUTTON      ID_EDIT_UNINDENT
+    BUTTON      ID_BOOKMARK_TOGGLE
+    BUTTON      ID_BOOKMARK_PREVIOUS
+    BUTTON      ID_BOOKMARK_NEXT
+    BUTTON      ID_BOOKMARS_SET
+    BUTTON      ID_BOOKMARKS_GOTO
+END
+
+IDR_BUILD TOOLBAR DISCARDABLE  16, 15
+BEGIN
+    BUTTON      ID_BUILD_COMPILE
+    BUTTON      ID_BUILD_PROJECT
+    BUTTON      ID_BUILD_REBUILD
+    BUTTON      ID_BUILD_STOP
+    SEPARATOR
+    BUTTON      ID_DEBUG_START
+    BUTTON      ID_DEBUG_DEBUG
+    BUTTON      ID_DEBUG_STOP
+END
+
+IDR_DEBUG TOOLBAR DISCARDABLE  16, 15
+BEGIN
+    BUTTON      ID_DEBUG_STEP_INTO
+    BUTTON      ID_DEBUG_STEP_OVER
+    BUTTON      ID_DEBUG_STEP_OUT
+    BUTTON      ID_DEBUG_STEP_RUN
+    BUTTON      ID_DEBUG_STOP
+    SEPARATOR
+    BUTTON      ID_DEBUG_QUICKWATCH
+    SEPARATOR
+    BUTTON      ID_VIEW_WATCH
+    BUTTON      ID_VIEW_VARIABLES
+    BUTTON      ID_VIEW_REGISTERS
+    BUTTON      ID_VIEW_CALLSTACK
+END
+
+IDR_BOOKMARKS TOOLBAR DISCARDABLE  16, 15
+BEGIN
+    BUTTON      ID_BOOKMARKS_TOGGLE
+    BUTTON      ID_BOOKMARKS_GOTO
+END
+
+IDR_SEARCH TOOLBAR DISCARDABLE  16, 15
+BEGIN
+    BUTTON      ID_SEARCH_GO
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_NEW_FOLDER          "Folder"
+    IDS_FILTER_FILES        "Source files|*.c*;*.h*;*.?c;*.inc|All Files|*.*|"
+    IDS_FINDFAILED          "Not found\nCould not find the string '%s'."
+    IDS_CAPTION_ERROR       "Error"
+    IDS_CAPTION_WARNING     "Warning"
+    IDS_CAPTION_MESSAGE     "Message"
+    IDS_CAPTION_COMPILELOG  "Compile Log"
+    IDS_CAPTION_COMMAND     "Command Window"
+    IDS_LOG_TELNETHOST      "Unable to connect to Telnet server."
+    IDS_ERR_OPENVIEW        "Open File Error\nUnable to open the file in a new view."
+    IDS_ERR_LASTERROR       "\nSystem Error Message:\n"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_OUTPUT      "Output"
+    IDS_LOG_SENDERROR       "An error occoured while sending data."
+    IDS_STATUS_LOADING      " Loading project '%s'..."
+    IDS_STATUS_STARTED      " %s started..."
+    IDS_STATUS_FINISHED     " %s finished."
+    IDS_COMPILE_BUSY        "Compiler busy\nCannot compile right now. The compile process is busy.\nWait for the current compile session to finish to interrupt the process to compile now."
+    IDS_ERR_COMPILE         "Failed to start process\nAn error occured while starting the compile process."
+    IDS_CLEAN               "Clean process"
+    IDS_REBUILD             "Rebuild All"
+    IDS_COMPILE             "Compile"
+    IDS_BUILDSOLUTION       "Rebuild solution"
+    IDS_LOG_CONNECTERROR    "Failed to connect to remote host."
+    IDS_BUILD               "Build"
+    IDS_WAITCONNECTION      "Not connected\nThe remote host has not been connected. Do you wish to wait for it?\nThe application is in the process of reaching out to the remote server - but the connection has not yet been accepted."
+    IDS_CAPTION_QUESTION    "BVRDE"
+    IDS_WIZARD_TITLE_TRANSFER "Choose file transfer type"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_WIZARD_SUBTITLE_TRANSFER 
+                            "Choose the type of communication used for file transfers from the remote host."
+    IDS_WIZARD_TITLE_STARTAPP "Choose application controller"
+    IDS_WIZARD_SUBTITLE_STARTAPP 
+                            "Choose the type of communication used to start and control the remote application."
+    IDS_WIZARD_TITLE_DEBUGGER "Choose remote debugger"
+    IDS_WIZARD_SUBTITLE_DEBUGGER 
+                            "Choose the kind of debugger on the remote host to communicate with."
+    IDS_FTP                 "FTP"
+    IDS_TELNET              "Telnet"
+    IDS_GDB                 "GDB"
+    IDS_ERR_NOCONNECTION    "No connection\nCould not connect to the remote host using these parameters."
+    IDS_CONNECTION_OK       "Connection OK\nA connection was made to the remote host.\nThe connect parameters seems to be just right."
+    IDS_STATUS_CONNECT_WAIT " Waiting for connection..."
+    IDS_CONFIG_TRANSFER     "File Transfer"
+    IDS_CONFIG_COMPILER     "Compiler"
+    IDS_CONFIG_DEBUGGER     "Debugger"
+    IDS_CONFIG_SETTINGS     "Settings"
+    IDS_COMMANDS            "Commands"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_COMMAND_CD          "Change Directory"
+    IDS_COMMAND_BUILD       "Build"
+    IDS_COMMAND_REBUILD     "Rebuild"
+    IDS_COMMAND_COMPILE     "Compile"
+    IDS_COMMAND_CLEAN       "Clean"
+    IDS_CONFIG_COMMANDS     "Commands"
+    IDS_CAPTION_DEBUGLOG    "Debug View"
+    IDS_STATUS_RUNNING      " Running..."
+    IDS_STATUS_OPENFILE     " Opening file.."
+    IDS_NEEDS_RECOMPILE     "Project needs recompile\nChanges has been made to the project. Do you wish to recompile first?\nRecompile the project to include the latest changes."
+    IDS_COMMAND_PARAMS      "Parameters"
+    IDS_COMMAND_EXECUTE     "Executable"
+    IDS_COMMAND_PROXY       "Proxy"
+    IDS_COMMAND_PASSIVE     "Passive"
+    IDS_OPTIONS             "Options"
+    IDS_CONFIG_OPTIONS      "Options"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_DEBUGGER            "Debugger"
+    IDS_TYPEDEF             "Type Definition"
+    IDS_ERR_HOSTCONNECT     "Unable to connect\nUnable to connect to remote host\nCould not establish connection to remote host."
+    IDS_ERR_DATAWRITE       "Data write error\nAn error occured while sending data to the remote host.\nThe remote host did not accept incoming data or closed the connection."
+    IDS_ERR_DEBUGGERSTART   "Unable to start debugger\nCould not start a debugging session.\nUse the Debug Log window to determine the cause of error."
+    IDS_STATUS_DEBUGGING    " Debugging..."
+    IDS_STATUS_STARTDEBUGGER " Starting debugger..."
+    IDS_DEBUGGER_BUSY       "Stop debugging\nThis action requires you to stop debugging. Do you wish to do this now?\nYou must stop a debugging session before you can compile again."
+    IDS_STATUS_DEBUG_STOPPED " Process exited."
+    IDS_STATUS_DEBUG_BREAKPOINT " Stopped at breakpoint..."
+    IDS_ERR_DEBUG           "Debug Error\n%s"
+    IDS_COMMAND_MAIN        "Entry function"
+    IDS_ERR_DEBUG_NOTAVAIL  "Not available\nThe debugger is not available.\nPlease configure the debugger settings in the Project Properties page."
+    IDS_ERR_COMPILER_NOTAVAIL 
+                            "Not available\nThe compiler is not available.\nPlease configure the compiler settigngs in the Project Properties page."
+    IDS_STATUS_DEBUG_NOSOURCE " Stopped outside source scope..."
+    IDS_CAPTION_CALLSTACK   "Call Stack"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_REGISTERS   "Registers"
+    IDS_CAPTION_VARIABLES   "Variables"
+    IDS_CAPTION_WATCH       "Watch"
+    IDS_CAPTION_BREAKPOINTS "Breakpoints"
+    IDS_CAPTION_THREADS     "Threads"
+    IDS_THREAD              "%s - Thread %s"
+    IDS_REGISTER            "%s: %s"
+    IDS_LOCAL_VARS          "Locals"
+    IDS_CAPTION_BUILD       "Build"
+    IDS_CAPTION_DEBUG       "Debug"
+    IDS_STACKLINE           "%s,  file='%s', line=%ld"
+    IDS_ERR_FILESAVE        "Save Failed\nSave of file '%s' failed.\nIf the file is a remote file, it may have been a timeout error, so try again."
+    IDS_STOPPED             "Stopped"
+    IDS_SIGNAL              "%s\n%s\nAddress: %s\nFunction: %s"
+    IDS_DIRECTIVES          "Compiler Directives"
+    IDS_COMMAND_DEBUGEXPORT "Debug"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_GOTO            "Goto..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_COMMAND_RELEASEEXPORT "Release"
+    IDS_RELEASE             "Release"
+    IDS_DEBUG               "Debug"
+    IDS_ERR_FILEINCLUDED    "Already exists\nThe file already exists in the Project."
+    IDS_SAVECHANGES         "Save Changes\nDo you wish to save changes to the Project files first?"
+    IDS_STATUS_LOADTAG      " Loading tag files..."
+    IDS_ENUM                "Enumeration"
+    IDS_ERR_NODEBUGFILE     "No executable\nThe debugger was unable to locate the executable."
+    IDS_BRKCOL1             "Type"
+    IDS_LOCAL_ARGS          "Arguments"
+    IDS_COL_NAME            "Name"
+    IDS_COL_VALUE           "Value"
+    IDS_LASTVALUE           "<< Click here to add a new watch >>"
+    IDS_STATUS_NETWORKWRITE " Failed to send data to remote host..."
+    IDS_ERR_NODEBUGINFO     "No Debug Information\nNo debugging symbols was found.\nCompile the Project in ""Debug"" mode, and remember to add the DEBUG_OPTIONS environment variable (-g compiler directive) to your build process."
+    IDS_STATUS_STOPPED      " Build Process stopped."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_LOG_LOGIN_FAILED    "Failed to login on remote host."
+    IDS_LOG_ABORTED         "Connection aborted by remote host."
+    IDS_ERR_LOGIN_FAILED    "Login Failed\nLogin failed to remote host.\nUnable to log on to remote host using specified credentials."
+    IDS_ERR_COMPILERBUSY    "Cannot execute now. Compiler is currently busy.\r\n"
+    IDS_ERR_DEBUGGER_NOT_RUNNING 
+                            "Cannot execute. Debugger is currently not running.\r\n"
+    IDS_HELP                "  cc <command> - execute command in compiler session.\r\n  gdb <command> - execute GDB debugger command.\r\n"
+    IDS_ERR_COMPILER_NOT_RUNNING 
+                            "Cannot execute now. Compiler is currently not connected.\r\n"
+    IDS_EXECUTING           "Execute"
+    IDS_LOG_RLOGINHOST      "Unable to connect to remote host via Rlogin."
+    IDS_RLOGIN              "Rlogin"
+    IDS_SSH                 "SSH (secure)"
+    IDS_SCP                 "SCP (secure)"
+    IDS_RCP                 "RCP (remote copy)"
+    IDS_LOG_SSHHOST         "Unable to connect to SSH server."
+    IDS_CAPTION_CLASSVIEW   "ClassView"
+    IDS_GLOBALS             "Globals"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_UNKNOWN             "Unknown"
+    IDS_CLASS               "Class"
+    IDS_MEMBER              "Member"
+    IDS_FUNCTION            "Function"
+    IDS_STRUCT              "Struct"
+    IDS_DEFINE              "Define"
+    IDS_ERR_KEY_EXPIRED     "Key Expired\nYour secure Private Key has expired.\nCertificate-related operations may fail or result in error messages from the remote session."
+    IDS_ERR_KEY_EXPIRES_TODAY 
+                            "Key Expires!\nYour sure Private Key expires today.\nCertificate-related operations may fail or result in error messages from the remote session."
+    IDS_ERR_KEY_EXPIRES_SOON 
+                            "Key will expire!You secure Private Key will expire in %ld days.\nCertificate-related operations may fail or result in error messages from the remote session."
+    IDS_STACKLINE2          "%s  (%s)"
+    IDS_ERR_BREAKPOINTASYNC "Unsupported action\nThe GDB Debugger does currently not support async breakpoints.\nThe GDB debugger is not able to set new breakpoints while running the application. Wait for a breakpoint to occour before you attempt to add more breakpoints."
+    IDS_STATUS_DEBUG_NOFILE "  Stopped at breakpoint (file not in project)..."
+    IDS_SFTP                "SFTP (secure)"
+    IDS_TREE_CONFIGURATION  "Configuration"
+    IDS_CONFIG_CONFIGURATION "Configuration"
+    IDS_TREE_ADVANCED       "Advanced"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TREE_CPP            "C/C++"
+    IDS_BRKCOL2             "File"
+    IDS_BRKCOL3             "Function"
+    IDS_BRKCOL4             "Address"
+    IDS_TOGGLE              "Bookmarks"
+    IDS_GOTO                "Goto"
+    IDS_CAPTION_BOOKMARKS   "Bookmarks"
+    IDS_CAPTION_SEARCH      "Search"
+    IDS_SAVEFILE            "Save File\nFile has been modified. Do you wish to save the file?"
+    IDS_STACKLINE3          "%s,  file='%s'  (%s)"
+    IDS_ERR_RELPATH         "Use Full Path\nIt is better to use a complete start path.\nIt is not recommended to use a relative start path; use a full (complete) path instead.\n\nContinue?"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,236 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "atlres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Danish resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)
+#ifdef _WIN32
+LANGUAGE LANG_DANISH, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""atlres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Danish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040604b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "viksoe.dk\0"
+            VALUE "FileDescription", "BVRDE Add-In WebFiles\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "WebFiles\0"
+            VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksøe\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "WebFiles.pkg\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "BVRDE WebFiles\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x406, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// HTML
+//
+
+IDR_XML                 HTML    DISCARDABLE     "res\\xmltrans.htm"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "Tag Support",-1,0,0,43,9
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,4,207,1
+    CONTROL         "Use Auto Completion feature",IDC_AUTOCOMPLETE,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Automatically close tags",IDC_CLOSETAGS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,26,91,10,
+                    WS_EX_TRANSPARENT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAIN MENU DISCARDABLE 
+BEGIN
+    POPUP "Sub0"
+    BEGIN
+        POPUP "Advanced"
+        BEGIN
+            MENUITEM "Make &Uppercase",             ID_EDIT_UPPERCASE
+            MENUITEM "Make &Lowercase",             ID_EDIT_LOWERCASE
+            MENUITEM "&Tabify Selection",           ID_EDIT_TABIFY
+            MENUITEM "U&ntabify Selection",         ID_EDIT_UNTABIFY
+            MENUITEM "Increase Line Indent",        ID_EDIT_INDENT
+            MENUITEM "Decrease Line Indent",        ID_EDIT_UNINDENT
+            MENUITEM SEPARATOR
+            MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
+            MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
+            MENUITEM "View &White Space",           ID_EDIT_VIEWWS
+        END
+        POPUP "Bookmarks"
+        BEGIN
+            MENUITEM "&Toggle Bookmark",            ID_BOOKMARK_TOGGLE
+            MENUITEM "&Previous Bookmark",          ID_BOOKMARK_PREVIOUS
+            MENUITEM "&Next Bookmark",              ID_BOOKMARK_NEXT
+            MENUITEM "&Clear Bookmarks",            ID_BOOKMARK_CLEAR
+        END
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_HTML TOOLBAR DISCARDABLE  16, 16
+BEGIN
+    BUTTON      ID_EDIT_BOLD
+    BUTTON      ID_EDIT_ITALIC
+    BUTTON      ID_EDIT_UNDERLINE
+    SEPARATOR
+    BUTTON      ID_EDIT_ALIGN_LEFT
+    BUTTON      ID_EDIT_ALIGN_RIGHT
+    BUTTON      ID_EDIT_ALIGN_MIDDLE
+    SEPARATOR
+    BUTTON      ID_EDIT_INDENT
+    BUTTON      ID_EDIT_UNINDENT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_HTML                BITMAP  DISCARDABLE     "res\\html.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SOURCE              " Source "
+    IDS_DESIGN              " Design "
+    IDS_PREVIEW             " Preview "
+    IDS_XML_ERR             "XML Parse Error:\r\nReason: %s\r\nSource: %ls\r\nLine: %ld, Pos: %ld\r\n"
+    IDS_ERR_DOCUMENT        "Print Error\nUnable to print document."
+    IDS_CAPTION_ERROR       "Error"
+    IDS_CAPTION_WARNING     "Warning"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_MESSAGE     "Message"
+    IDS_CAPTION_TOOLBAR     "HTML"
+    IDS_TREE_ADVANCED       "Advanced"
+    IDS_TREE_HTML           "HTML"
+    IDS_TREE_XML            "XML"
+    IDS_SAVEFILE            "Save File\nFile has been modified. Do you wish to save the file?"
+    IDS_CAPTION_QUESTION    "BVRDE"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
