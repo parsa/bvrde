@@ -172,6 +172,7 @@ void CMainFrame::_LoadSettings()
             _AddProperty(&arc, _T("maxErrors"), sKey + _T("maxErrors"));
          }
 
+         // We'll allow 8 styles pr file-type
          for( long i = 1; i <= 8; i++ ) {
             ::wsprintf(szBuffer, _T("Style%ld"), i);
             if( arc.ReadItem(szBuffer) ) {
@@ -273,9 +274,9 @@ void CMainFrame::_LoadSettings()
       ACCEL accel[15];
       int nCount = 0;    
       while( arc.ReadGroupBegin(_T("Macro")) ) {
-         long lCmd;
-         long lKey;
-         long lFlags;
+         long lCmd = 0;
+         long lKey = 0;
+         long lFlags = 0;
          arc.Read(_T("cmd"), lCmd);
          arc.Read(_T("key"), lKey);
          arc.Read(_T("flags"), lFlags);
@@ -417,8 +418,7 @@ void CMainFrame::_SaveToolBarState()
    sFilename.Format(_T("%sBVRDE.XML"), CModulePath());
    CXmlSerializer arc;
    if( !arc.Open(_T("Settings"), sFilename) ) return;
-   if( arc.ReadGroupBegin(_T("ToolBars")) ) 
-   {
+   if( arc.ReadGroupBegin(_T("ToolBars")) ) {
       while( arc.Delete(_T("ToolBar")) ) /* */;
       for( int i = 0;  i < m_aToolBars.GetSize(); i++ ) {
          TOOLBAR& tb = m_aToolBars[i];

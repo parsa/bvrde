@@ -16,7 +16,7 @@ public:
    enum { IDD = IDD_MACROBIND };
 
    // We only reserve 15 resource-identifiers for this!
-   // TODO: Remove hard-coded limit in mainfrm.h
+   // TODO: Remove hard-coded limit in resource.h
    enum { MAX_ACCELS = 15 };
 
    typedef struct tagMACROACCEL : ACCEL
@@ -137,7 +137,7 @@ public:
       int iCurSel = m_ctrlList.GetCurSel();
       MACROACCEL macro = _FindItem(iCurSel);
       if( macro.cmd == 0 ) {
-         for( WORD wCmd = ID_MACROS_KEY1; wCmd < ID_MACROS_KEY15; wCmd++ ) {
+         for( WORD wCmd = ID_MACROS_KEY1; wCmd <= ID_MACROS_KEY15; wCmd++ ) {
             if( m_mapCurrent.FindKey(wCmd) < 0 ) {
                macro.cmd = wCmd;
                m_ctrlList.GetText(iCurSel, macro.szFunction);
@@ -266,7 +266,7 @@ public:
       ::EnableWindow(GetDlgItem(IDC_REMOVE), lParam != 0 && m_ctrlCurrent.GetHotKey() != 0);
    }
 
-   bool _LoadTable(ACCELMAP& map, CListBox& ctrlList) const
+   bool _LoadTable(ACCELMAP& map, CListBox& /*ctrlList*/) const
    {
       map.RemoveAll();
       CString sFilename;
