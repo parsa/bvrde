@@ -27,6 +27,7 @@ CFileProtocol::~CFileProtocol()
 void CFileProtocol::Clear()
 {
    m_sPath.Empty();
+   m_sSearchPath.Empty();
 }
 
 bool CFileProtocol::Load(ISerializable* pArc)
@@ -39,7 +40,6 @@ bool CFileProtocol::Load(ISerializable* pArc)
    pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(128), 128);
    m_sSearchPath.ReleaseBuffer();
 
-   if( m_sPath.IsEmpty() ) m_sPath = _T("\\");
    return true;
 }
 

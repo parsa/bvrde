@@ -425,6 +425,7 @@ BEGIN
     POPUP "Popup"
     BEGIN
         MENUITEM "&Edit Address Value",         ID_MEMORY_EDIT
+        MENUITEM "&Refresh",                    ID_MEMORY_REFRESH
         MENUITEM SEPARATOR
         MENUITEM "Display as &DWORD",           ID_MEMORY_SIZE_DWORD
         MENUITEM "Display as &WORD",            ID_MEMORY_SIZE_WORD
@@ -1113,6 +1114,7 @@ BEGIN
     ID_MEMORY_SIZE_DWORD    "Display memory layout as DWORD\nDWORD size"
     ID_MEMORY_SIZE_WORD     "Display memory layout as WORD\nWORD size"
     ID_MEMORY_SIZE_BYTE     "Display memory layout as BYTE\nBYTE size"
+    ID_MEMORY_REFRESH       "Refresh memory data\nRefresh"
 END
 
 #endif    // English (U.S.) resources

@@ -101,10 +101,10 @@ LRESULT COutputView::OnLButtonDblClk(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    LPTSTR pstr = (LPTSTR) _alloca(wSize  + sizeof(WORD));
    * (WORD*) pstr = iLen;
    GetLine(iLine, pstr);
-   pstr[iLen] = _T('\0');
+   pstr[iLen] = '\0';
 
    CString s = pstr;
-   for( int iPos = s.Find(_T('.')); iPos >= 0; iPos = s.Find(_T('.'), iPos + 1) ) {
+   for( int iPos = s.Find('.'); iPos >= 0; iPos = s.Find('.', iPos + 1) ) {
       // Extract filename
       int iStart = iPos - 1;
       if( iStart < 0 ) continue;
@@ -120,11 +120,11 @@ LRESULT COutputView::OnLButtonDblClk(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
       //    filename line x
       //    filename, line x
       long lLineNum = 0;
-      while( pstr[iEnd] == _T(',') ) iEnd++;
-      while( pstr[iEnd] == _T(' ') ) iEnd++;
-      if( pstr[iEnd] == _T(':') ) iEnd++; 
+      while( pstr[iEnd] == ',' ) iEnd++;
+      while( pstr[iEnd] == ' ' ) iEnd++;
+      if( pstr[iEnd] == ':' ) iEnd++; 
       if( _tcsncmp(pstr + iEnd, _T("line"), 4) == 0 ) iEnd += 4; 
-      while( pstr[iEnd] == _T(' ') ) iEnd++;
+      while( pstr[iEnd] == ' ' ) iEnd++;
       if( _istdigit(pstr[iEnd]) ) lLineNum = _ttol(pstr + iEnd);
 
       // Locate file in project

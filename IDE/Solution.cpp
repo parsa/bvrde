@@ -120,7 +120,7 @@ BOOL CSolution::SaveSolution(LPCTSTR pstrFilename)
       sPath.Format(_T("%s%s"), CModulePath(), _T(SOLUTIONDIR));
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_SAVESOLUTION));
       CString sFilter(MAKEINTRESOURCE(IDS_FILTER_SOLUTION));
-      for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == _T('|') ) sFilter.SetAt(i, _T('\0'));
+      for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
       DWORD dwStyle = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ENABLESIZING;
       CFileDialog dlg(FALSE, _T("sln"), NULL, dwStyle, sFilter, hWndMain);
       dlg.m_ofn.lpstrTitle = sCaption;
@@ -139,7 +139,7 @@ BOOL CSolution::SaveSolution(LPCTSTR pstrFilename)
          sPath.Format(_T("%s%s"), CModulePath(), _T(SOLUTIONDIR));
          CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_SAVEPROJECT));
          CString sFilter(MAKEINTRESOURCE(IDS_FILTER_PROJECT));
-         for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == _T('|') ) sFilter.SetAt(i, _T('\0'));
+         for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
          DWORD dwStyle = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ENABLESIZING;
          CFileDialog dlg(FALSE, _T("prj"), NULL, dwStyle, sFilter, hWndMain);
          dlg.m_ofn.lpstrTitle = sCaption;

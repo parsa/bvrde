@@ -367,13 +367,14 @@
 #define ID_MEMORY_SIZE_DWORD            40124
 #define ID_MEMORY_SIZE_WORD             40125
 #define ID_MEMORY_SIZE_BYTE             40126
+#define ID_MEMORY_REFRESH               40127
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        124
-#define _APS_NEXT_COMMAND_VALUE         40127
+#define _APS_NEXT_COMMAND_VALUE         40128
 #define _APS_NEXT_CONTROL_VALUE         1025
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

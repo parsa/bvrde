@@ -18,7 +18,7 @@ CDebugManager::CDebugManager() :
    m_bBreaked(false),
    m_bDebugging(false),
    m_bCommandMode(false),
-   m_bIgnoreError(false)
+   m_nIgnoreErrors(0)
 {
    Clear();
 }
@@ -126,9 +126,10 @@ bool CDebugManager::Stop()
    m_ShellManager.Stop();
 
    m_bCommandMode = false;
-   m_bIgnoreError = false;
    m_bDebugging = false;
    m_bBreaked = false;
+   m_nIgnoreErrors = 0;
+
    return true;
 }
 
@@ -153,7 +154,7 @@ bool CDebugManager::Break()
    //       similar (depends on underlying protocol). The effect is that GDB
    //       catches a SIGINT and stops with a break error/warning. We'll ignore
    //       the error and resume our deeds.
-   m_bIgnoreError = true;
+   m_nIgnoreErrors++;
    return DoSignal(TERMINAL_BREAK);
 }
 
@@ -380,7 +381,7 @@ bool CDebugManager::RunDebug()
 
    // Prepare session
    m_ShellManager.AddLineListener(this);
-   m_bIgnoreError = false;
+   m_nIgnoreErrors = 0;
    m_bDebugging = true;
    m_bBreaked = false;
    m_nDebugAck = 0;
@@ -577,8 +578,8 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
    // Do some manipulation depending on the debug command.
    // Some commands might spuriously fail and we don't want to see error
    // messages all the time, so we'll ignore these.
-   if( sCommand.Find(_T("-delete")) >= 0 ) m_bIgnoreError = true;
-   if( sCommand.Find(_T("-evaluate")) >= 0 ) m_bIgnoreError = true;
+   if( sCommand.Find(_T("-delete")) >= 0 ) m_nIgnoreErrors++;
+   if( sCommand.Find(_T("-evaluate")) >= 0 ) m_nIgnoreErrors++;
    if( sCommand.Find(_T("-var-evaluate-expression")) >= 0 ) m_sVarName = sCommand.Mid(25);
    if( sCommand.Find(_T("-data-evaluate-expression")) >= 0 ) m_sVarName = sCommand.Mid(26);
    return sCommand;
@@ -687,7 +688,7 @@ void CDebugManager::_ParseOutOfBand(LPCTSTR pstrText)
       // Handles reason:
       //   'signal'
       //   'signal-received'
-      if( sValue.Find(_T("signal")) == 0 && !m_bIgnoreError ) {
+      if( sValue.Find(_T("signal")) == 0 && m_nIgnoreErrors == 0 ) {
          CString sMessage;
          sMessage.Format(IDS_SIGNAL, 
             info.GetItem(_T("signal-name")), 
@@ -698,8 +699,6 @@ void CDebugManager::_ParseOutOfBand(LPCTSTR pstrText)
       }
       // Assume current position changed
       _ParseNewFrame(info);
-      // Don't ignore error anymore
-      m_bIgnoreError = false;
       return;
    }
 }
@@ -727,10 +726,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
    if( sCommand == _T("error") ) 
    {
       // Ignore errors might have been requested, so fulfill thy wish...
-      if( m_bIgnoreError ) {
-         m_bIgnoreError = false;
-         return;
-      }
+      if( m_nIgnoreErrors > 0 ) return;
       CMiInfo info = sLine;
       CString sMessage;
       sMessage.Format(IDS_ERR_DEBUG, info.GetItem(_T("msg")));
@@ -878,7 +874,7 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    // Count number of debug prompts (=acknoledgements)
    if( _tcsncmp(pstrText, _T("(gdb"), 4) == 0 ) {
       m_bCommandMode = false;
-      m_bIgnoreError = false;
+      if( m_nIgnoreErrors > 0 ) m_nIgnoreErrors--;
       m_nDebugAck++;
       return;
    }

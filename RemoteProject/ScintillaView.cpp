@@ -479,6 +479,7 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
 LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
    SCNotification* pSCN = (SCNotification*) pnmh;
+
    switch( pSCN->ch ) {
    case ')':
    case '(':

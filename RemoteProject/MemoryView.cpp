@@ -106,7 +106,7 @@ void CMemoryView::_UpdateDisplay()
    sCommand.Format(_T("-data-read-memory \"%s\" %s %ld %ld 1 ."), 
       sAddress, 
       sFormat,
-      max(1, m_iDisplaySize / 2),
+      m_iDisplaySize / 2,
       (lRows + 3) * (32 / m_iDisplaySize));
    m_pProject->DelayedDebugCommand(sCommand);
 }
@@ -177,11 +177,17 @@ LRESULT CMemoryView::OnMemoryEdit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    return 0;
 }
 
+LRESULT CMemoryView::OnMemoryRefresh(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   _UpdateDisplay();
+   return 0;
+}
+
 LRESULT CMemoryView::OnMemorySize(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    if( wID == ID_MEMORY_SIZE_DWORD ) m_iDisplaySize = 8;
    if( wID == ID_MEMORY_SIZE_WORD ) m_iDisplaySize = 4;
-   if( wID == ID_MEMORY_SIZE_BYTE ) m_iDisplaySize = 1;
+   if( wID == ID_MEMORY_SIZE_BYTE ) m_iDisplaySize = 2;
    _UpdateDisplay();
    return 0;
 }
@@ -191,11 +197,12 @@ LRESULT CMemoryView::OnMemorySize(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl
 void CMemoryView::OnIdle(IUpdateUI* pUIBase)
 {
    pUIBase->UIEnable(ID_MEMORY_EDIT, FALSE);
+   pUIBase->UIEnable(ID_MEMORY_REFRESH, TRUE);
    pUIBase->UIEnable(ID_MEMORY_SIZE_DWORD, TRUE);
    pUIBase->UIEnable(ID_MEMORY_SIZE_WORD, TRUE);
    pUIBase->UIEnable(ID_MEMORY_SIZE_BYTE, TRUE);
    pUIBase->UISetCheck(ID_MEMORY_SIZE_DWORD, m_iDisplaySize == 8);
    pUIBase->UISetCheck(ID_MEMORY_SIZE_WORD, m_iDisplaySize == 4);
-   pUIBase->UISetCheck(ID_MEMORY_SIZE_BYTE, m_iDisplaySize == 1);
+   pUIBase->UISetCheck(ID_MEMORY_SIZE_BYTE, m_iDisplaySize == 2);
 }
 

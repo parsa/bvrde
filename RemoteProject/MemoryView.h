@@ -51,6 +51,7 @@ public:
       MESSAGE_HANDLER(WM_SIZE, OnSize)
       MESSAGE_HANDLER(WM_CONTEXTMENU, OnContextMenu)
       COMMAND_ID_HANDLER(ID_MEMORY_EDIT, OnMemoryEdit)
+      COMMAND_ID_HANDLER(ID_MEMORY_REFRESH, OnMemoryRefresh)
       COMMAND_ID_HANDLER(ID_MEMORY_SIZE_DWORD, OnMemorySize)
       COMMAND_ID_HANDLER(ID_MEMORY_SIZE_WORD, OnMemorySize)
       COMMAND_ID_HANDLER(ID_MEMORY_SIZE_BYTE, OnMemorySize)
@@ -65,6 +66,7 @@ public:
    LRESULT OnEditChar(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnEditKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnMemoryEdit(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnMemoryRefresh(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMemorySize(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 };
 

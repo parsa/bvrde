@@ -137,7 +137,7 @@ CString CCommandView::_ParseLine() const
    LPTSTR pstr = (LPTSTR) _alloca(wSize  + sizeof(WORD));
    * (WORD*) pstr = iLen;
    iLen = GetLine(iLine, pstr);
-   pstr[iLen] = _T('\0');
+   pstr[iLen] = '\0';
    CString s = pstr;
    s.TrimLeft(_T(" \t>"));
    s.TrimRight(_T("\r\n \t"));
