@@ -438,7 +438,6 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
          _ClearSquigglyLines();
          if( m_pCppProject != NULL && m_bMarkErrors ) {
             m_iOutputLine = 0;
-            m_bClearSquigglyLines = false;
             m_sOutputToken.Format(_T("%s:"), ::PathFindFileName(m_sFilename));
             m_pCppProject->m_CompileManager.m_ShellManager.AddLineListener(this);
          }
@@ -592,12 +591,12 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    --iLineNo;
 
    // If several errors are reported on the same line we assume
-   // that the first entry reported the most useful error. Otherwise
+   // that the first entry contained the most useful error. Otherwise
    // we easily end up hightlighting the entire line always.
    if( iLineNo == m_iOutputLine ) return;
 
    // Get the line so we can analyze where the error occoured.
-   // The GNU compilers rarely output which row (position) the error
+   // The GNU compilers rarely output which column (position) the error
    // occured at so we'll have to try to match a substring or message
    // with the content of the line.
    CHAR szLine[256] = { 0 };
@@ -751,8 +750,18 @@ void CScintillaView::_AutoComplete(CHAR ch)
    static WORD s_nChars = 0;
    if( ch == '\n' || ch == ';' || ch == ' ' || ch == '\t' ) s_nChars = 0;
    if( _iscppchar(ch) && ++s_nChars == AUTOCOMPLETE_AFTER_TYPED_CHARS ) bShow = true;
-   // So?
+   // Don't popup too close to start
    if( lPos < 10 ) bShow = false;
+   // Don't auto-complete comments & strings
+   switch( m_ctrlEdit.GetStyleAt(lPos) ) {
+   case SCE_C_STRING:
+   case SCE_C_COMMENT:
+   case SCE_C_COMMENTDOC:
+   case SCE_C_COMMENTLINE:
+      bShow = false;
+      break;
+   }
+   // So?
    if( !bShow ) return;
 
    // Find the name of the variable right before
@@ -761,7 +770,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
    if( ch == '>' || ch == ':' ) lBack = 2;
    CString sName = _GetNearText(lPos - lBack);
    // We can only show auto-completion if we can determine
-   // the type of the variable
+   // the type of this variable
    int iLenEntered = 0;
    CString sType = _FindTagType(sName, lPos);
    if( sType.IsEmpty() ) {
@@ -775,11 +784,13 @@ void CScintillaView::_AutoComplete(CHAR ch)
          char ch = m_ctrlEdit.GetCharAt(--lPos);
          if( lPos <= 0 ) return;
          if( ch == '\n' ||  ch == '=' || ch == ';' ) {
+            // It was an empty line or block-start.
+            // Let's assume the scope is the current class/function.
             sType = _FindBlockType(lPos);
             break;
          }
          if( isspace(ch) ) continue;
-         // We have a type. It could be a member of the class function
+         // We have a new type. It could be a member of the class function
          // we're currently implementing...
          sType = _FindBlockType(lPos);
          if( sType.IsEmpty() ) return;

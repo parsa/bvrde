@@ -191,8 +191,8 @@ DWORD CSshThread::Run()
          case '\0x0':
          case '\0x1':
          case '\0x2':
-         case '\r':
          case '\0x7':
+         case '\r':
             // Ignore...
             break;
          case '\t':

@@ -123,17 +123,23 @@ BEGIN
     IDS_CAPTION_MESSAGE     "BVRDE Man Page"
     IDS_CAPTION_ERROR       "Error"
     IDS_CAPTION_QUESTION    "BVRDE Man Page"
-    IDS_ERR_NOTCONNECTED    "Failed to look up information.\r\nProject is currently not connected to the remote server."
-    IDS_ERR_WRONGPROJECT    "Failed to look up information.\r\nThis Project does not support Man pages."
-    IDS_ERR_BADANSWER       "Failed to look up information.\r\nBad answer from server."
+    IDS_ERR_NOTCONNECTED    "Failed to look up information\nProject is currently not connected to the remote server.\nWait for the connection to restart or check the connection properties."
+    IDS_ERR_WRONGPROJECT    "Failed to look up information\nThis Project does not support Man pages.\nOnly the Remote C++ Project supports MAN pages at this point."
+    IDS_ERR_BADANSWER       "Failed to look up information\nBad answer from server.\nThe server might be busy doing something else."
     IDS_ERR_INVOKE          "Failed to look up information.\r\nMethod failed or timed out."
     IDS_ERR_NOTFOUND        "Keyword was not found in help files."
-    IDS_ERR_MEMORY          "Failed to initialize module.\r\nOut of memory."
+    IDS_ERR_MEMORY          "Failed to initialize module\nOut of memory."
     IDS_CLOSE               "  Close  "
     IDS_NEXT                "    >>    "
     IDS_PREVIOUS            "    <<    "
     IDS_BACK                "  Back  "
     IDS_PRINT               "  Print  "
+    IDS_ERR_BADVERSION      "Failed to look up information\nMAN utility out of date.\nThe online help feature requires advanced support for MAN and MAN2HTML on the remote machine. Make sure these GNU utilities are available."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERR_NOTSUPPORTED    "Failed to look up information\nFunction not supported.\nThe online help feature requires advanced support for MAN and MAN2HTML on the remote machine. Make sure these GNU utilities are available."
 END
 
 #endif    // English (U.S.) resources

@@ -475,7 +475,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName,
    CString sCommand = TERM_MARKER;
    m_thread.m_aCommands.Add(sCommand);
    m_thread.m_cs.Unlock();
-   
+
    // Finally signal that we have new data
    s_bBusy = true;
    m_bCompiling = false;

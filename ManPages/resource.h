@@ -17,6 +17,8 @@
 #define IDS_PREVIOUS                    412
 #define IDS_BACK                        413
 #define IDS_PRINT                       414
+#define IDS_ERR_BADVERSION              415
+#define IDS_ERR_NOTSUPPORTED            416
 #define ID_VIEW_PREVIOUS                800
 #define ID_VIEW_NEXT                    801
 #define ID_VIEW_BACK                    802

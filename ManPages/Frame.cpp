@@ -40,7 +40,19 @@ BOOL CFrameWindow::SetPage(LPCTSTR pstrKeyword, LPCTSTR pstrLanguage, long lPos)
    UINT nRes = page.Generate(m_hWnd, pstrKeyword, pstrLanguage, lPos, lCount, bstr);
    if( nRes != 0 ) {
       ShowWindow(SW_HIDE);
-      AtlMessageBox(m_hWnd, nRes, IDS_CAPTION_ERROR, MB_ICONEXCLAMATION);
+      if( nRes == IDS_ERR_NOTFOUND ) {
+         // Show a regular message box here.
+         // (Don't know why; it just feels better?)
+         AtlMessageBox(m_hWnd, nRes, IDS_CAPTION_MESSAGE, MB_ICONINFORMATION);
+      }
+      else {
+         // Display error message
+         TCHAR szMessage[500] = { 0 };
+         TCHAR szCaption[100] = { 0 };
+         ::LoadString(_Module.GetResourceInstance(), nRes, szMessage, 499);
+         ::LoadString(_Module.GetResourceInstance(), IDS_CAPTION_ERROR, szCaption, 99);
+         _pDevEnv->ShowMessageBox(m_hWnd, szMessage, szCaption, MB_ICONEXCLAMATION);
+      }
       PostMessage(WM_CLOSE, 0, 0L);
       return FALSE;
    }

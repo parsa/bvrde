@@ -39,6 +39,8 @@ UINT CManPageGenerator::Generate(HWND hWnd, LPCTSTR pstrKeyword, LPCTSTR pstrLan
    aParams[0] = 2000;
    if( FAILED( dd.InvokeN(OLESTR("ExecCommand"), aParams, 3) ) ) return IDS_ERR_INVOKE;
    if( m_sResult.Length() == 0 ) return IDS_ERR_BADANSWER;
+   if( wcsstr(m_sResult, L"command not found") != NULL ) return IDS_ERR_NOTSUPPORTED;
+   if( wcsstr(m_sResult, L"unknown option") != NULL ) return IDS_ERR_BADVERSION;
 
    TCHAR szFilename[MAX_PATH] = { 0 };
    if( !_FindFilename(m_sResult, lPos, lCount, szFilename) ) return IDS_ERR_NOTFOUND;
@@ -59,6 +61,7 @@ UINT CManPageGenerator::Generate(HWND hWnd, LPCTSTR pstrKeyword, LPCTSTR pstrLan
    aParams[0] = 3000;
    if( FAILED( dd.InvokeN(OLESTR("ExecCommand"), aParams, 3) ) ) return IDS_ERR_INVOKE;
    if( m_sResult.Length() == 0 ) return IDS_ERR_BADANSWER;
+   if( wcsstr(m_sResult, L"command not found") != NULL ) return IDS_ERR_NOTSUPPORTED;
 
    if( wcsstr(m_sResult, L"<HTML>") == NULL ) return IDS_ERR_NOTFOUND;
    bstrResult = wcsstr(m_sResult, L"<HTML>");

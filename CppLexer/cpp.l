@@ -2,7 +2,7 @@
 
     CPP lexer
 
-    The file is derived from the DOC++ source by Roland Wunderling
+    This file is derived from the DOC++ source by Roland Wunderling
     and Malte Zoeckler.
 
     Better handling of typedefs, linenumbers, formatting, comments
@@ -151,6 +151,7 @@ static int yyread(char *buf,int max_size)
 
 <NextSemi>[;,]				{ BEGIN( FindMembers ) ; }
 <NextSemi>[ \t]*\"[^\n"]*\"		
+<NextSemi>"{"				{ BEGIN( SkipCurly ) ; }
 
 <FindMembers>[ \t]*"public:"[ \t\r\n]*	{ 
 					  current->protection = protection = PUBL ;
