@@ -41,6 +41,9 @@ public:
       DISP_PROPGET(Class, VT_BSTR)
       DISP_PROPGET(Files, VT_DISPATCH)
       DISP_PROPGET(CurDir, VT_BSTR)
+      DISP_PROPGET(Server, VT_BSTR)
+      DISP_PROPGET(Username, VT_BSTR)
+      DISP_PROPGET(Password, VT_BSTR)
       DISP_PROPGET(IsConnected, VT_BOOL)
       DISP_METHOD0(Clean, VT_EMPTY)
       DISP_METHOD0(Build, VT_EMPTY)
@@ -54,6 +57,9 @@ public:
    BSTR __stdcall get_Type();
    BSTR __stdcall get_Class();
    BSTR __stdcall get_CurDir();
+   BSTR __stdcall get_Server();
+   BSTR __stdcall get_Username();
+   BSTR __stdcall get_Password();
    VARIANT_BOOL get_IsConnected();
    IDispatch* __stdcall get_Files();
    VOID __stdcall Clean();

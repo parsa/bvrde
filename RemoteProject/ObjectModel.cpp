@@ -82,6 +82,24 @@ BSTR CProjectOM::get_CurDir()
    return ::SysAllocString(sPath);
 }
 
+BSTR CProjectOM::get_Server()
+{
+   CString sPath = m_pOwner->m_CompileManager.GetParam(_T("Host"));
+   return ::SysAllocString(sPath);
+}
+
+BSTR CProjectOM::get_Username()
+{
+   CString sPath = m_pOwner->m_CompileManager.GetParam(_T("Username"));
+   return ::SysAllocString(sPath);
+}
+
+BSTR CProjectOM::get_Password()
+{
+   CString sPath = m_pOwner->m_CompileManager.GetParam(_T("Password"));
+   return ::SysAllocString(sPath);
+}
+
 VARIANT_BOOL CProjectOM::get_IsConnected()
 {
    return m_pOwner->m_CompileManager.IsConnected() ? VARIANT_TRUE : VARIANT_FALSE;
