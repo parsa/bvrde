@@ -201,15 +201,16 @@ BOOL CXmlSerializer::Read(LPCTSTR pstrName, LPTSTR pstrValue, UINT cchMax)
    ATLASSERT(!::IsBadWritePtr(pstrValue,cchMax));
    ATLASSERT(cchMax>0);
    ATLASSERT(m_spAttribs);
+   USES_CONVERSION;
    *pstrValue = _T('\0');
    if( m_spAttribs == NULL ) return FALSE;
+   // Get the attribute
    CComPtr<IXMLDOMNode> spNode;
-   HRESULT Hr = m_spAttribs->getNamedItem(CComBSTR(pstrName), &spNode);
+   HRESULT Hr = m_spAttribs->getNamedItem(T2W(const_cast<LPTSTR>(pstrName)), &spNode);
    if( Hr != S_OK ) return FALSE;
    // Read the value
    CComBSTR bstr;
    if( FAILED( spNode->get_text(&bstr) ) ) return FALSE;
-   USES_CONVERSION;
    _tcsncpy(pstrValue, OLE2CT(bstr), cchMax);
    return TRUE;
 }
@@ -217,7 +218,7 @@ BOOL CXmlSerializer::Read(LPCTSTR pstrName, LPTSTR pstrValue, UINT cchMax)
 BOOL CXmlSerializer::Read(LPCTSTR pstrName, CString& sValue)
 {
    TCHAR szValue[2048] = { 0 };
-   if( !Read(pstrName, szValue, (sizeof(szValue)/sizeof(TCHAR))-1) ) {
+   if( !Read(pstrName, szValue, (sizeof(szValue) / sizeof(TCHAR)) - 1) ) {
       sValue = _T("");
       return FALSE;
    }
@@ -229,7 +230,7 @@ BOOL CXmlSerializer::Read(LPCTSTR pstrName, SYSTEMTIME& stValue)
 {
    ::ZeroMemory(&stValue, sizeof(stValue));
    TCHAR szValue[64] = { 0 };
-   if( !Read(pstrName, szValue, (sizeof(szValue)/sizeof(TCHAR))-1) ) return FALSE;
+   if( !Read(pstrName, szValue, (sizeof(szValue) / sizeof(TCHAR)) - 1) ) return FALSE;
    // TODO: Write it in actual XML date format!
    CComVariant v = szValue;
    if( FAILED( v.ChangeType(VT_DATE) ) ) return FALSE;
@@ -240,18 +241,18 @@ BOOL CXmlSerializer::Read(LPCTSTR pstrName, SYSTEMTIME& stValue)
 BOOL CXmlSerializer::Read(LPCTSTR pstrName, long& lValue)
 {
    TCHAR szValue[32] = { 0 };
-   if( !Read(pstrName, szValue, (sizeof(szValue)/sizeof(TCHAR))-1) ) {
+   if( !Read(pstrName, szValue, (sizeof(szValue) / sizeof(TCHAR)) - 1) ) {
       lValue = 0;
       return FALSE;
    }
-   lValue = ::StrToInt(szValue);
+   lValue = _ttol(szValue);
    return TRUE;
 }
 
 BOOL CXmlSerializer::Read(LPCTSTR pstrName, BOOL& bValue)
 {
    TCHAR szValue[16] = { 0 };
-   if( !Read(pstrName, szValue, (sizeof(szValue)/sizeof(TCHAR))-1) ) {
+   if( !Read(pstrName, szValue, (sizeof(szValue) / sizeof(TCHAR)) - 1) ) {
       bValue = FALSE;
       return FALSE;
    }
