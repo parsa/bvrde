@@ -391,10 +391,11 @@ bool CLexInfo::_ParseFile(CString& sName, LEXFILE& file) const
          if( p == NULL ) break;
          *p++ = '\0';
          //
+         LPTSTR pend = _tcschr(p, '|');
+         if (pend) *pend = '\0';
          info.iLineNo = _ttol(p);
-         p = _tcschr(p, '|');
-         if( p == NULL ) break;
-         *p++ = '\0';
+         if( pend == NULL ) break;
+         p = pend+1;
          //
          info.pstrFields[1] = p;
          p = _tcschr(p, '\n');
