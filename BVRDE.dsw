@@ -93,7 +93,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "SourceControl"=.\SourceControls\SourceControl.dsp - Package Owner=<4>
+Project: "SourceControl"=.\SourceControl\SourceControl.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

@@ -52,8 +52,8 @@ END
 // GIF
 //
 
-row2_backangle.gif      GIF     DISCARDABLE     "res\\row2_backangle.gif"
-btn.gif                 GIF     DISCARDABLE     "res\\btn.gif"
+ROW2_BACKANGLE.GIF      GIF     DISCARDABLE     "res\\row2_backangle.gif"
+BTN.GIF                 GIF     DISCARDABLE     "res\\btn.gif"
 #endif    // Danish resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -66,6 +66,31 @@ btn.gif                 GIF     DISCARDABLE     "res\\btn.gif"
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// GIF
+//
+
+BACKGROUND.GIF          GIF     DISCARDABLE     "res\\background.gif"
+BTM_BLACKBAR.GIF        GIF     DISCARDABLE     "res\\btm_blackbar.gif"
+BTM_BLACKBAR2.GIF       GIF     DISCARDABLE     "res\\btm_blackbar2.gif"
+HEADERS.GIF             GIF     DISCARDABLE     "res\\headers.gif"
+LINKANGLE.GIF           GIF     DISCARDABLE     "res\\linkangle.gif"
+LNK_ARROW.GIF           GIF     DISCARDABLE     "res\\lnk_arrow.gif"
+LNK_BULLET1.GIF         GIF     DISCARDABLE     "res\\lnk_bullet1.gif"
+LOGO.GIF                GIF     DISCARDABLE     "res\\logo.gif"
+MID-BACKANGLE.GIF       GIF     DISCARDABLE     "res\\mid-backangle.gif"
+ROW1.GIF                GIF     DISCARDABLE     "res\\row1.gif"
+ROW2_BG_NOSEARCH.GIF    GIF     DISCARDABLE     "res\\row2_bg_nosearch.gif"
+ROW3_BACKANGLE.GIF      GIF     DISCARDABLE     "res\\row3_backangle.gif"
+ROW3_FRONTANGLE.GIF     GIF     DISCARDABLE     "res\\row3_frontangle.gif"
+FOOTER-SEPARATOR.GIF    GIF     DISCARDABLE     "res\\footer-separator.gif"
+SPACER0.GIF             GIF     DISCARDABLE     "res\\spacer.gif"
+SPACER1.GIF             GIF     DISCARDABLE     "res\\spacer(1).gif"
+SIDEBAR-UPSLASH.GIF     GIF     DISCARDABLE     "res\\sidebar-upslash.gif"
+SIDEBAR-TOPDOWNSLASH.GIF GIF     DISCARDABLE     "res\\sidebar-topdownslash.gif"
+SIDEBAR-DOWNSLASH.GIF   GIF     DISCARDABLE     "res\\sidebar-downslash.gif"
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -118,33 +143,8 @@ END
 // HTML
 //
 
-index.html              HTML    DISCARDABLE     "res\\index.html"
-style.css               HTML    DISCARDABLE     "res\\CSS.css"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// GIF
-//
-
-background.gif          GIF     DISCARDABLE     "res\\background.gif"
-btm_blackbar.gif        GIF     DISCARDABLE     "res\\btm_blackbar.gif"
-btm_blackbar2.gif       GIF     DISCARDABLE     "res\\btm_blackbar2.gif"
-headers.gif             GIF     DISCARDABLE     "res\\headers.gif"
-linkangle.gif           GIF     DISCARDABLE     "res\\linkangle.gif"
-lnk_arrow.gif           GIF     DISCARDABLE     "res\\lnk_arrow.gif"
-lnk_bullet1.gif         GIF     DISCARDABLE     "res\\lnk_bullet1.gif"
-logo.gif                GIF     DISCARDABLE     "res\\logo.gif"
-mid-backangle.gif       GIF     DISCARDABLE     "res\\mid-backangle.gif"
-row1.gif                GIF     DISCARDABLE     "res\\row1.gif"
-row2_bg_nosearch.gif    GIF     DISCARDABLE     "res\\row2_bg_nosearch.gif"
-row3_backangle.gif      GIF     DISCARDABLE     "res\\row3_backangle.gif"
-row3_frontangle.gif     GIF     DISCARDABLE     "res\\row3_frontangle.gif"
-footer-separator.gif    GIF     DISCARDABLE     "res\\footer-separator.gif"
-spacer0.gif             GIF     DISCARDABLE     "res\\spacer.gif"
-spacer1.gif             GIF     DISCARDABLE     "res\\spacer(1).gif"
-sidebar-upslash.gif     GIF     DISCARDABLE     "res\\sidebar-upslash.gif"
-sidebar-topdownslash.gif GIF     DISCARDABLE     "res\\sidebar-topdownslash.gif"
-sidebar-downslash.gif   GIF     DISCARDABLE     "res\\sidebar-downslash.gif"
+INDEX.HTML              HTML    DISCARDABLE     "res\\index.html"
+STYLE.CSS               HTML    DISCARDABLE     "res\\CSS.css"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

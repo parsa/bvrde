@@ -97,6 +97,8 @@ bool CDebugManager::Save(ISerializable* pArc)
 
 void CDebugManager::SignalStop()
 {
+   // Ok, this is a hopeless semaphore, but we really
+   // don't like to be entering this as reentrant.
    static bool s_bStopping = false;
    if( s_bStopping ) return;
    s_bStopping = true;
@@ -405,7 +407,7 @@ bool CDebugManager::RunDebug()
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, TRUE);
 
    // Collect new breakpoint positions directly from open views.
-   // BUG: Possible thread-deadlock here!
+   // BUG: Possible thread-deadlock here!?
    LAZYDATA data;
    m_pProject->SendViewMessage(DEBUG_CMD_REQUEST_BREAKPOINTS, &data);
 
@@ -446,6 +448,8 @@ CString CDebugManager::GetTagInfo(LPCTSTR pstrValue)
    // We must be debugging to talk to the debugger
    if( !IsDebugging() ) return _T("");
    // Send query to GDB debugger about the data value.
+   // NOTE: Somewhere down in the _TranslateCommand() method
+   //       we'll make sure to ignore any errors returned.
    CString sCommand;
    sCommand.Format(_T("-data-evaluate-expression \"%s\""), pstrValue);
    DoDebugCommand(sCommand);
@@ -463,7 +467,12 @@ bool CDebugManager::DoDebugCommand(LPCTSTR pstrText)
    //       However, we quickly give up and rely on
    //       GDB being asyncroniously. This does have an
    //       inpact on UI responsiveness though.
-   for( int i = 0; i < 3; i++ ) {
+   //       The problem, is, however, that there's no 
+   //       flow-control in the GDB-MI std-out handler, 
+   //       so we'll risk to send the command in the middle 
+   //       of regular output. This is a big mess!
+   const int WAIT_COMMAND_COMPLETION_RETRIES = 3;
+   for( int i = 0; i < WAIT_COMMAND_COMPLETION_RETRIES; i++ ) {
       if( m_nLastAck != m_nDebugAck ) break;
       ::Sleep(50L);
    }
@@ -543,7 +552,7 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
 
    // Do some manipulation depending on the debug command.
    // Some commands might spuriously fail and we don't want to see error
-   // messages all the time, so ignore these.
+   // messages all the time, so we'll ignore these.
    if( sCommand.Find(_T("-delete")) >= 0 ) m_bIgnoreError = true;
    if( sCommand.Find(_T("-evaluate")) >= 0 ) m_bIgnoreError = true;
    if( sCommand.Find(_T("-var-evaluate-expression")) >= 0 ) m_sVarName = sCommand.Mid(25);
@@ -730,7 +739,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
          // internally book-keep this information and append
          // it to the output (see _TranslateCommand()).
          // The consequence is that we can only have one GDB command
-         // lingering at a time.
+         // lingering at any time.
          CString sTemp;
          m_sVarName.Remove('\"');
          sTemp.Format(_T(",name=\"%s\""), m_sVarName);
@@ -811,7 +820,7 @@ void CDebugManager::_ResumeDebugger()
 
 
 /////////////////////////////////////////////////////////////////////////
-// ITelnetLineListener
+// IOutputLineListener
 
 void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 {

@@ -105,7 +105,7 @@ void CCompileManager::Clear()
    m_sCommandCD = _T("cd $PATH$");
    m_sCommandBuild = _T("make all");
    m_sCommandRebuild = _T("make all");
-   m_sCommandCompile = _T("make $NAME$");
+   m_sCommandCompile = _T("make $FILENAME$");
    m_sCommandClean = _T("make clean");
    m_sCommandDebug = _T("export DEBUG_OPTIONS=\"-g -D_DEBUG\"");
    m_sCommandRelease = _T("export DEBUG_OPTIONS=");
@@ -194,6 +194,7 @@ void CCompileManager::SignalStop()
    m_ShellManager.SignalStop();
    m_thread.SignalStop();
    m_event.SetEvent();
+   m_bCommandMode = false;
    s_bBusy = false;
 }
 

@@ -81,7 +81,8 @@ BOOL CScintillaView::SetText(LPCSTR pstrText)
 
 LRESULT CScintillaView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {   
-   // Create Scintilla editor
+   // Create Scintilla editor. The editor is created as a child
+   // window of the view window.
    m_ctrlEdit.SubclassWindow( Bvrde_CreateScintillaView(m_hWnd, _pDevEnv, m_sFilename, m_sLanguage) );
    ATLASSERT(m_ctrlEdit.IsWindow());
    m_ctrlEdit.ShowWindow(SW_SHOW);
@@ -272,7 +273,7 @@ LRESULT CScintillaView::OnDebugSetNext(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
 
    if( m_pCppProject->m_DebugManager.SetNextStatement(sName, iLine + 1) ) {
       // HACK: GDB doesn't support a MI command like 'jump' and it
-      //       doesn't react normal on the breakpoint either <sign> so
+      //       doesn't react normal on the breakpoint either <sigh> so
       //       we simulate the action...
       m_ctrlEdit.MarkerDeleteAll(MARKER_CURLINE);
       m_ctrlEdit.MarkerAdd(iLine, MARKER_CURLINE);
@@ -654,8 +655,8 @@ void CScintillaView::_AutoSuggest(CHAR ch)
    CString sName = _GetNearText(lPos - 1);
    if( sName.IsEmpty() ) return;
 
-   // Grab the last 300 characters or so
-   CHAR szText[300] = { 0 };
+   // Grab the last 256 characters or so
+   CHAR szText[256] = { 0 };
    int nMin = lPos - (sizeof(szText) - 1);
    if( nMin < 0 ) nMin = 0;
    if( lPos - nMin < 3 ) return; // Smallest tag is 3 characters ex. <p>
@@ -670,15 +671,13 @@ void CScintillaView::_AutoSuggest(CHAR ch)
    CString sKeyword;
    CString sSuggest;
    while( szText[i] != '\0' ) {
-      // Skip whites
-      while( isspace(szText[i]) ) i++;
       // Gather next word
       sSuggest = _T("");
       while( _iscppchar(szText[i]) ) sSuggest += szText[i++];
       // This could be a match
       if( _tcsncmp(sName, sSuggest, sName.GetLength()) == 0 ) sKeyword = sSuggest;
       // Find start of next word
-      while( szText[i] != '\0' && !isspace(szText[i]) ) i++;
+      while( szText[i] != '\0' && !_iscppchar(szText[i]) ) i++;
    }
    if( sKeyword.IsEmpty() ) return;
 

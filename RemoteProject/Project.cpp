@@ -228,12 +228,17 @@ void CRemoteProject::ActivateProject()
 
    m_viewClassTree.Populate();
 
+   // Project filenames are relative to the solution, so
+   // we need to change current Windows path.
    ::SetCurrentDirectory(m_sPath);
 }
 
 void CRemoteProject::DeactivateProject()
 {
+   // Need to remove the classbrowser view because
+   // activating a new project should display new items
    m_viewClassTree.Clear();
+   
    _pDevEnv->RemoveIdleListener(this);
    _pDevEnv->RemoveCommandListener(this);
 }
@@ -496,6 +501,10 @@ void CRemoteProject::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
          DWORD dwStartTime = ::GetTickCount();
          while( m_DebugManager.GetParam(_T("InCommand")) == _T("true") ) {
             ::Sleep(100L);
+            // NOTE: We'll only wait 5 secs for completion. This is a
+            //       bit of a hack, but we have very little control over
+            //       what the debugger might be spitting out. At least, stopping
+            //       the tight loop will allow the user to abort the session!
             if( ::GetTickCount() - dwStartTime > 5000UL ) break;
          }
       }
@@ -526,7 +535,7 @@ LRESULT CRemoteProject::OnFileRemove(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
    }
    else {
       // BUG: Leaks all the child views.
-      // TODO: Recursivly remove all children
+      // TODO: Recursively remove all children
       IView* pView = static_cast<IView*>(pElement);
       pView->CloseView();
       m_aFiles.Remove(pView);
@@ -580,6 +589,7 @@ LRESULT CRemoteProject::OnFileAddLocal(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
    if( pElement == NULL )  { bHandled = FALSE; return 0; }
 
    // Make sure the project is saved to a file
+   // Need the project filename so we can make local filenames relative.
    if( m_aFiles.GetSize() == 0 ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE_ALL, 0));
 
    CTreeViewCtrl ctrlTree = _pDevEnv->GetHwnd(IDE_HWND_EXPLORER_TREE);
@@ -1023,7 +1033,7 @@ LRESULT CRemoteProject::OnDebugQuickWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HW
    if( !m_DebugManager.IsDebugging() ) return 0;
    if( m_pQuickWatchDlg ) delete m_pQuickWatchDlg;
 
-   // Let active editor window to retrieve the selected/caret text
+   // Ask active editor window to retrieve the selected/caret text
    LAZYDATA data;
    data.Action = LAZY_SEND_VIEW_MESSAGE;
    data.wParam = DEBUG_CMD_GET_CARET_TEXT;
@@ -1211,7 +1221,7 @@ LRESULT CRemoteProject::OnTreeRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHa
 LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    // All interactions during compiling/debugging that could stir up
-   // the user-interface needs to go through this method to avoid GUI/thread dead-lock.
+   // the user-interface needs to go through this method to avoid GUI/thread dead-locks.
    // This method is invoked solely through a PostMessage() to the main message-queue 
    // and executes a series of commands in a queue/list. This makes sure that all
    // GUI changes are called from the main thread only.
@@ -1356,7 +1366,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
             if( _tcscmp(data.szMessage, _T("value")) == 0 ) {
                // Pass information to editors, since it might be mouse hover information...
-               // NOTE: Needs to use SendMessage() rather than delayed message because
+               // NOTE: Must use SendMessage() rather than delayed message because
                //       of scope of 'data' structure.
                data.Action = LAZY_SEND_VIEW_MESSAGE;
                data.wParam = DEBUG_CMD_HOVERINFO;
@@ -1449,9 +1459,9 @@ IView* CRemoteProject::FindView(LPCTSTR pstrFilename, bool bLocally /*= false*/)
 CString CRemoteProject::GetTagInfo(LPCTSTR pstrValue, LPCTSTR pstrOwner /*= NULL*/)
 {
    ATLASSERT(!::IsBadStringPtr(pstrValue,-1));
-   // NOTE: GetTagInfo() is designed so that it *may* return an result
+   // NOTE: GetTagInfo() is designed so that it *may* return a result
    //       immediately - but it may also delay the retrieval of information
-   //       (which happens when it queries debug information from the debugger).
+   //       (which happens when it queries debug-information from the debugger).
    if( m_DebugManager.IsDebugging() ) return m_DebugManager.GetTagInfo(pstrValue);
    return m_TagInfo.GetItemDeclaration(pstrValue, pstrOwner);
 }
@@ -1646,6 +1656,7 @@ void CRemoteProject::_InitializeData()
 
    _AddCommandBarImages(IDR_TOOLIMAGES);
 
+   // We'll always display the C++ toolbars
    _pDevEnv->ShowToolBar(m_ctrlBuild, TRUE);
    _pDevEnv->ShowToolBar(m_ctrlDebug, TRUE);
 }

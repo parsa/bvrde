@@ -177,9 +177,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
    _Module.RemoveMessageLoop();
    
-   delete g_pSolution;
-
    g_aPlugins.RemoveAll();
+
+   delete g_pSolution;
 
    _Module.Term();
 

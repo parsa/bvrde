@@ -218,8 +218,8 @@ LRESULT CMainFrame::OnDropFiles(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
    UINT nCount = ::DragQueryFile(hDrop, (UINT) -1, szFilename, MAX_PATH);
    for( UINT i = 0; i < nCount; i++ ) {
       ::DragQueryFile(hDrop, i, szFilename, MAX_PATH);
-      IView* pView = CreateView(szFilename);
       if( _tcslen(szFilename) == 0 ) continue;
+      IView* pView = CreateView(szFilename);
       if( pView ) ATLTRY( pView->OpenView(0) );
    }
    return 0;

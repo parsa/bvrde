@@ -46,9 +46,9 @@ CApplicationOM::CApplicationOM(CMainFrame* pFrame) :
 BSTR CApplicationOM::get_Version()
 {
    DWORD dwVersion = m_pOwner->GetVersion();
-   TCHAR szVersion[32];
-   ::wsprintf(szVersion, _T("%ld.%ld"), LOWORD(dwVersion), HIWORD(dwVersion));
-   BSTR bstrVersion = ::SysAllocString(szVersion);
+   WCHAR wszVersion[32];
+   ::wsprintfW(wszVersion, _T("%ld.%ld"), (long)(LOWORD(dwVersion)), (long)(HIWORD(dwVersion)));
+   BSTR bstrVersion = ::SysAllocString(wszVersion);
    return bstrVersion;
 }
 

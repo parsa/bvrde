@@ -34,7 +34,7 @@
 // Stuff from Active Scripting SDK.
 // Is at least to be found on the latest PlatformSDK.
 // If you can get hold of a copy of the activdbg.h then 
-// that is preferred!
+// see notes below...
 #include <activscp.h>
 
 

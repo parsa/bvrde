@@ -76,7 +76,7 @@ public:
    CString GetParam(LPCTSTR pstrName) const;
    void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue);
 
-// ITelnetLineListener
+// IOutputLineListener
 public:
    void OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText);
 

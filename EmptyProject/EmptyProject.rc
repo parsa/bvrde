@@ -148,6 +148,8 @@ BEGIN
     BEGIN
         POPUP "Advanced"
         BEGIN
+            MENUITEM "Auto Complete\tCtrl+Space",   ID_EDIT_AUTOCOMPLETE
+            MENUITEM SEPARATOR
             MENUITEM "Make &Uppercase\tCtrl+Shift+U", ID_EDIT_UPPERCASE
             MENUITEM "Make &Lowercase\tCtrl+U",     ID_EDIT_LOWERCASE
             MENUITEM "&Tabify Selection",           ID_EDIT_TABIFY

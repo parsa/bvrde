@@ -26,6 +26,7 @@ public:
 
    CMainFrame* m_pMainFrame;
    HWND m_hWnd;
+   EXCEPINFO* m_pExcepInfo;
    CGlobalsOM m_Globals;
    CApplicationOM* m_pApp;
 

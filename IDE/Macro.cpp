@@ -64,6 +64,10 @@ bool CMacro::RunMacroFromScript(CComBSTR bstrData,
       return false; 
    }
 
+   // Remember exception information if we handle
+   // them locally.
+   m_pExcepInfo = pExcepInfo;
+
    CComQIPtr<IActiveScriptSite> spPass(this);
    if( spPass == NULL ) return false;
 
@@ -76,7 +80,7 @@ bool CMacro::RunMacroFromScript(CComBSTR bstrData,
    spParse->InitNew();
 
    // Add the custom methods...
-   // They are initialized in the GetItemInfo() method (see above).
+   // They are initialized in the GetItemInfo() method (see below).
    Hr = spScript->AddNamedItem(OLESTR("Globals"), SCRIPTITEM_ISVISIBLE | SCRIPTITEM_GLOBALMEMBERS);
    if( FAILED(Hr) ) return false;
    Hr = spScript->AddNamedItem(OLESTR("App"), SCRIPTITEM_ISVISIBLE);
@@ -147,19 +151,23 @@ STDMETHODIMP CMacro::OnScriptError(IActiveScriptError* pScriptError)
    ATLASSERT(pScriptError);
    ATLASSERT(m_pMainFrame);
    EXCEPINFO e = { 0 };
-   DWORD dwContext = 0;
-   ULONG ulLine = 0;
-   LONG lPos = 0;
    pScriptError->GetExceptionInfo(&e);
-   pScriptError->GetSourcePosition(&dwContext, &ulLine, &lPos);
-   CString sMsg;
-   sMsg.Format(IDS_ERR_SCRIPT, 
-      e.bstrSource,
-      e.scode,
-      e.bstrDescription,
-      ulLine + 1);
-   m_pMainFrame->ShowMessageBox(m_hWnd, sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION | MB_SYSTEMMODAL);
-   //
+   if( m_pExcepInfo) {
+      *m_pExcepInfo = e;
+   }
+   else {
+      DWORD dwContext = 0;
+      ULONG ulLine = 0;
+      LONG lPos = 0;
+      pScriptError->GetSourcePosition(&dwContext, &ulLine, &lPos);
+      CString sMsg;
+      sMsg.Format(IDS_ERR_SCRIPT, 
+         e.bstrSource,
+         e.scode,
+         e.bstrDescription,
+         ulLine + 1);
+      m_pMainFrame->ShowMessageBox(m_hWnd, sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION | MB_SYSTEMMODAL);
+   }
    if( m_spIActiveScript ) m_spIActiveScript->SetScriptState(SCRIPTSTATE_DISCONNECTED);
    m_bNoFailures = false;
    return S_OK;

@@ -106,7 +106,7 @@ LRESULT CFileTransferPage::OnTextChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
    BOOL bOK = TRUE;
    if( m_ctrlHost.GetWindowTextLength() == 0 ) bOK = FALSE;
    if( m_ctrlPort.GetWindowTextLength() == 0 ) bOK = FALSE;
-   if( m_ctrlUsername.GetWindowTextLength() == 0 ) bOK = FALSE;
+   if( m_ctrlUsername.GetWindowTextLength() == 0 && m_ctrlPassword.GetWindowTextLength() == 0 ) bOK = FALSE;
    if( m_ctrlPath.GetWindowTextLength() == 0 ) bOK = FALSE;
    SetWizardButtons(bOK ? PSWIZB_BACK | PSWIZB_NEXT : PSWIZB_BACK);
    CWindow(GetDlgItem(IDC_TEST)).EnableWindow(bOK);
@@ -344,7 +344,7 @@ LRESULT CCompilerPage::OnTextChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
    bool bOK = true;
    if( m_ctrlHost.GetWindowTextLength() == 0 ) bOK = false;
    if( m_ctrlPort.GetWindowTextLength() == 0 ) bOK = false;
-   if( m_ctrlUsername.GetWindowTextLength() == 0 ) bOK = false;
+   if( m_ctrlUsername.GetWindowTextLength() == 0 && m_ctrlPassword.GetWindowTextLength() == 0 ) bOK = false;
    if( m_ctrlPath.GetWindowTextLength() == 0 ) bOK = false;
    SetWizardButtons(bOK ? PSWIZB_BACK | PSWIZB_NEXT : PSWIZB_BACK);
    return 0;
@@ -551,6 +551,7 @@ LRESULT CDebuggerPage::OnTextChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
    bool bOK = true;
    if( m_ctrlHost.GetWindowTextLength() == 0 ) bOK = false;
    if( m_ctrlPort.GetWindowTextLength() == 0 ) bOK = false;
+   if( m_ctrlUsername.GetWindowTextLength() == 0 && m_ctrlPassword.GetWindowTextLength() == 0 ) bOK = false;
    if( m_ctrlPath.GetWindowTextLength() == 0 ) bOK = false;
    SetWizardButtons(bOK ? PSWIZB_BACK | PSWIZB_NEXT : PSWIZB_BACK);
    return 0;

@@ -991,9 +991,9 @@ void CScintillaView::_MaintainTags(CHAR ch)
    if( ch == '>'
        && (m_sLanguage == _T("html") || m_sLanguage == _T("xml")) )
    {
-      // Grab the last 512 characters or so
+      // Grab the last 256 characters or so
       int nCaret = GetCurrentPos();
-      CHAR szText[512] = { 0 };
+      CHAR szText[256] = { 0 };
       int nMin = nCaret - (sizeof(szText) - 1);
       if( nMin < 0 ) nMin = 0;
       if( nCaret - nMin < 3 ) return; // Smallest tag is 3 characters ex. <p>

@@ -211,6 +211,8 @@ void CMainFrame::_LoadSettings()
       _AddProperty(&arc, _T("message"), _T("sourcecontrol.opt.message"));
       _AddProperty(&arc, _T("recursive"), _T("sourcecontrol.opt.recursive"));
       _AddProperty(&arc, _T("sticky"), _T("sourcecontrol.opt.sticky"));
+      _AddProperty(&arc, _T("updatedirs"), _T("sourcecontrol.opt.updatedirs"));
+      _AddProperty(&arc, _T("branch"), _T("sourcecontrol.opt.branch"));
       arc.ReadGroupEnd();
    }
 

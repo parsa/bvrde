@@ -191,7 +191,7 @@ SOURCE=.\Globals.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\MIInfo.cpp
+SOURCE=.\MiInfo.cpp
 # End Source File
 # Begin Source File
 
