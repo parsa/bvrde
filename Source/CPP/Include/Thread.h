@@ -57,9 +57,9 @@ public:
       _ASSERTE(pThreadProc);
       DWORD dwThreadID;
 #if defined(_MT) || defined(_DLL)
-      m_hThread = (HANDLE) _beginthreadex(NULL, 0, (UINT (WINAPI*)(void*)) pThreadProc, pParam, 0, (UINT*) &dwThreadID);
+      m_hThread = (HANDLE) _beginthreadex(NULL, 0, (UINT (WINAPI*)(void*)) pThreadProc, pParam, CREATE_SUSPENDED, (UINT*) &dwThreadID);
 #else
-      m_hThread = ::CreateThread(NULL, 0, pThreadProc, pParam, 0, &dwThreadID);
+      m_hThread = ::CreateThread(NULL, 0, pThreadProc, pParam, CREATE_SUSPENDED, &dwThreadID);
 #endif
       if( m_hThread == NULL ) return FALSE;
       if( iPriority != THREAD_PRIORITY_NORMAL ) {
@@ -67,7 +67,7 @@ public:
             _ASSERTE(!"Couldn't set thread priority");
          }
       }
-      return TRUE;
+      return ::ResumeThread(m_hThread) != (DWORD) -1;
    }
    BOOL Release()
    {
