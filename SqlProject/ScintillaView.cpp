@@ -318,9 +318,9 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info)
    TCHAR szTerminator[8] = { 0 };
    _pDevEnv->GetProperty(_T("editors.sql.terminator"), szTerminator, 7);
 
-   // Grab the last 300 characters or so
+   // Grab the last 256 characters or so
    long lPos = GetCurrentPos();
-   CHAR szText[300] = { 0 };
+   CHAR szText[256] = { 0 };
    int nMin = lPos - (sizeof(szText) - 1);
    if( nMin < 0 ) nMin = 0;
    int nMax = lPos;

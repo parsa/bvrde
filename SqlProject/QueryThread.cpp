@@ -291,7 +291,7 @@ BOOL CQueryThread::_Execute(CDbCommand* pCmd, CDbRecordset* pRec)
    }
    __except(1)
    {
-      // Don't bother with gpf's
+      // Don't be bothered with gpf's
       return FALSE;
    }
 }
@@ -358,6 +358,10 @@ void CQueryThread::Cancel()
 
 BOOL CQueryThread::_SplitSQL(const CString& sSQL, int iLineNo, CSimpleArray<SQLPART>& aParts)
 {
+   // Many DBRMS do not support multiple SQL statements in one query, so we'll
+   // manually split up the statements and execute them one by one.
+   // TODO: This could break the logic in DBRMS that actually support mulitple
+   //       SQL statements (MS SQL Server?), so this should be an option.
    TCHAR szTerminator[8] = { 0 };
    _pDevEnv->GetProperty(_T("editors.sql.terminator"), szTerminator, 7);
    if( _tcslen(szTerminator) == 0 ) return FALSE;

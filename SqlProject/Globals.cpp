@@ -81,7 +81,7 @@ CString GetSystemErrorText(DWORD dwErr)
    if( lpMsgBuf == NULL ) {
       LPCTSTR pstrModules[] = 
       { 
-         _T("OLEDB32), 
+         _T("OLEDB32"), 
          _T("OLEDB32R"), 
          NULL 
       };
