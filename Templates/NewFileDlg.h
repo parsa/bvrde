@@ -88,7 +88,7 @@ public:
       ::GetPrivateProfileString(szName, _T("File"), _T(""), szFilename, MAX_PATH, m_szIniFile);
       if( ::lstrlen(szFilename) == 0 ) return 0;
       TCHAR szActualFile[MAX_PATH] = { 0 };
-      ::wsprintf(szActualFile, _T("%s\\Templates\\Files\\%s"), CModulePath(), szFilename);
+      ::wsprintf(szActualFile, _T("%sTemplates\\Files\\%s"), CModulePath(), szFilename);
       CFile f;      
       if( !f.Open(szActualFile) ) return 0;
       DWORD dwSize = f.GetSize();

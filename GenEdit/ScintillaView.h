@@ -156,6 +156,7 @@ public:
    CString _GetNearText(long lPosition);
    int _FunkyStrCmp(LPCTSTR src, LPCTSTR dst);
    void _GetSyntaxStyle(LPCTSTR pstrName, SYNTAXCOLOR& syntax);
+   bool _AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) const;
    void _DefineMarker(int nMarker, int nType, COLORREF clrFore, COLORREF clrBack);
 };
 

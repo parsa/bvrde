@@ -139,7 +139,7 @@ UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR pstrFilename)
    };
    LPCTSTR* ppstr = pstrExtensions;
    for( int i = 0; i < sizeof(pstrExtensions) / sizeof(LPCTSTR); i++ ) {
-      if( _tcsicmp(pstrExt, *ppstr) == 0 ) return 30;
+      if( _tcsicmp(pstrExt, *ppstr) == 0 ) return 40;
       ppstr++;
    }
    return 0;

@@ -76,9 +76,11 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv = pDevEnv;
    
    _pDevEnv->SetProperty(_T("file.extension.c"), _T("C Source"));
+   _pDevEnv->SetProperty(_T("file.extension.cc"), _T("C Source"));
    _pDevEnv->SetProperty(_T("file.extension.cpp"), _T("C++ Source"));
    _pDevEnv->SetProperty(_T("file.extension.cxx"), _T("C++ Source"));
    _pDevEnv->SetProperty(_T("file.extension.h"), _T("C/C++ Header"));
+   _pDevEnv->SetProperty(_T("file.extension.hh"), _T("C/C++ Header"));
    _pDevEnv->SetProperty(_T("file.extension.hxx"), _T("C/C++ Header"));
    _pDevEnv->SetProperty(_T("file.extension.hpp"), _T("C/C++ Header"));
    _pDevEnv->SetProperty(_T("file.extension.inl"), _T("C/C++ Source"));
@@ -86,6 +88,8 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv->SetProperty(_T("file.extension.vbs"), _T("VBScript Script File"));
    _pDevEnv->SetProperty(_T("file.extension.java"), _T("Java Source"));
    _pDevEnv->SetProperty(_T("file.extension.txt"), _T("Text Document"));
+   _pDevEnv->SetProperty(_T("file.extension.py"), _T("Python Script File"));
+   _pDevEnv->SetProperty(_T("file.extension.pl"), _T("Perl Script File"));
 
    _pDevEnv->ReserveUIRange(40000, 40000 + 200);
 

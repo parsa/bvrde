@@ -28,6 +28,7 @@ CScintillaView::CScintillaView() :
 void CScintillaView::Init(CSqlProject* pProject, CView* pView)
 {
    ATLASSERT(::IsWindow(m_hWnd));
+   m_bAutoCompleteNext = true;
    m_pProject = pProject;
    m_pView = pView;
    // Kick in timer
@@ -63,7 +64,7 @@ LRESULT CScintillaView::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
    bHandled = FALSE;
    if( wParam != TIMER_ID ) return 0;
    if( m_pView->m_thread.IsBusy() ) return 0;
-   // Request most recent table to update column-information now
+   // Request most recently touched table to update column-information now
    m_pView->m_thread.InfoRequest();
    if( m_bBackgroundLoad ) SetTimer(TIMER_ID, 4000L); else KillTimer(TIMER_ID);
    return 0;
@@ -152,14 +153,30 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    return 0;
 }
 
+LRESULT CScintillaView::OnEditAutoComplete(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   int iLenEntered = 0;
+   long lPos = GetCurrentPos();
+   while( _istalpha(GetCharAt(--lPos)) ) iLenEntered++;
+   _AutoComplete(GetCharAt(lPos), iLenEntered);
+   return 0;
+}
+
 LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
    SCNotification* pSCN = (SCNotification*) pnmh;
+   // Autocomplete now?
    switch( pSCN->ch ) {
    case ' ':
    case '.':
-      _AutoComplete(pSCN->ch);
+      _AutoComplete(pSCN->ch, 0);
       break;
+   case '\n':
+      m_bAutoCompleteNext = true;
+      break;
+   default:
+      if( m_bAutoCompleteNext ) _AutoComplete(pSCN->ch, 1);
+      m_bAutoCompleteNext = false;
    }
    bHandled = FALSE;
    return 0;
@@ -174,6 +191,7 @@ LRESULT CScintillaView::OnHistoryNew(WORD wNotifyCode, WORD wID, HWND hWndCtl, B
 
 LRESULT CScintillaView::OnHistoryDelete(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
+   ATLASSERT(m_pView);
    int iPos = m_pView->GetHistoryPos();
    SendMessage(WM_COMMAND, MAKEWPARAM(ID_HISTORY_LEFT, 0));
    m_pView->DeleteHistory(iPos);
@@ -182,6 +200,7 @@ LRESULT CScintillaView::OnHistoryDelete(WORD wNotifyCode, WORD wID, HWND hWndCtl
 
 LRESULT CScintillaView::OnHistoryLeft(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
+   ATLASSERT(m_pView);
    int iPos = m_pView->GetHistoryPos();
    if( iPos == 0 ) return 0;
    CString sText = m_pView->SetHistoryPos(iPos - 1);
@@ -196,6 +215,7 @@ LRESULT CScintillaView::OnHistoryLeft(WORD wNotifyCode, WORD wID, HWND hWndCtl, 
 
 LRESULT CScintillaView::OnHistoryRight(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
+   ATLASSERT(m_pView);
    int iPos = m_pView->GetHistoryPos();
    if( iPos >= m_pView->GetHistoryCount() ) return 0;
    CString sText = m_pView->SetHistoryPos(iPos + 1);
@@ -215,6 +235,7 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_FILE_SAVE, GetModify());
    pUIBase->UIEnable(ID_EDIT_COMMENT, TRUE);
    pUIBase->UIEnable(ID_EDIT_UNCOMMENT, TRUE);
+   pUIBase->UIEnable(ID_EDIT_AUTOCOMPLETE, TRUE);   
 }
 
 int CScintillaView::_FindItem(CSimpleArray<CString>& aList, LPCTSTR pstrName) const
@@ -223,14 +244,14 @@ int CScintillaView::_FindItem(CSimpleArray<CString>& aList, LPCTSTR pstrName) co
    return -1;
 }
 
-void CScintillaView::_AutoComplete(CHAR ch)
+void CScintillaView::_AutoComplete(CHAR ch, int iLenEntered)
 {
    // Allow popups?
    if( !m_bAutoComplete ) return;
 
    // Analyze the SQL
    SQLANALYZE Info;
-   _AnalyseText(Info);
+   _AnalyseText(Info, iLenEntered);
 
    // Mark all known tables so background thread can update
    // with column information
@@ -239,7 +260,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
 
    // Did scanner determine that next item is a database object?
    if( !Info.bIsObjectNext ) {
-      // No, but let's background load some more table information
+      // No, but let background load some more table information
       if( Info.aTables.GetSize() > 0 ) SetTimer(TIMER_ID, 2000L);
       return;
    }
@@ -256,17 +277,21 @@ void CScintillaView::_AutoComplete(CHAR ch)
 
    enum
    {
-      LIST_NONE    = 0x00,
-      LIST_TABLES  = 0x01,
-      LIST_ALIAS   = 0x02,
-      LIST_OWNERS  = 0x04,
-      LIST_FIELDS  = 0x08,
+      LIST_NONE      = 0x00,
+      LIST_TABLES    = 0x01,
+      LIST_ALIAS     = 0x02,
+      LIST_OWNERS    = 0x04,
+      LIST_FIELDS    = 0x08,
+      LIST_KEYWORDS  = 0x10,
    };
 
    CString sTable;
    int Display = LIST_NONE;
 
    switch( Info.PrevKeyword ) {
+   case SQL_CONTEXT_START:
+      Display = LIST_KEYWORDS;
+      break;
    case SQL_CONTEXT_FIELD:
    case SQL_CONTEXT_OPERATOR:
    case SQL_CONTEXT_EXPRESSION:
@@ -324,6 +349,12 @@ void CScintillaView::_AutoComplete(CHAR ch)
       m_pView->GetColumnList(sTable, aList);
       for( i = iStartIndex; i < aList.GetSize(); i++ ) aList[i] = aList[i] + _T("?3");
    }
+   if( Display & LIST_KEYWORDS ) {
+      aList.Add(CString(_T("SELECT?4")));
+      aList.Add(CString(_T("INSERT?4")));
+      aList.Add(CString(_T("DELETE?4")));
+      aList.Add(CString(_T("UPDATE?4")));
+   }
 
    // Sort list items
    for( int a = 0; a < aList.GetSize(); a++ ) {
@@ -350,10 +381,10 @@ void CScintillaView::_AutoComplete(CHAR ch)
    ClearRegisteredImages();
    _RegisterListImages();
    AutoCSetIgnoreCase(TRUE);
-   AutoCShow(0, T2CA(sList));
+   AutoCShow(iLenEntered, T2CA(sList));
 }
 
-void CScintillaView::_AnalyseText(SQLANALYZE& Info)
+void CScintillaView::_AnalyseText(SQLANALYZE& Info, int iLenEntered)
 {
    Info.bIsObjectNext = false;
    Info.PrevKeyword = SQL_CONTEXT_UNKNOWN;
@@ -364,10 +395,17 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info)
    // Grab the last 256 characters or so
    long lPos = GetCurrentPos();
    CHAR szText[256] = { 0 };
-   int nMin = lPos - (sizeof(szText) - 1);
+   int nMin = lPos - iLenEntered - (sizeof(szText) - 1);
+   int nMax = lPos - iLenEntered;
    if( nMin < 0 ) nMin = 0;
-   int nMax = lPos;
+   if( nMax < 0 ) nMax = 0;
    GetTextRange(nMin, nMax, szText);
+
+   if( lPos == 1 ) {
+      Info.bIsObjectNext = true;
+      Info.PrevKeyword = SQL_CONTEXT_START;
+      return;
+   }
 
    // Do an optimistic scan of the SQL text to determine the
    // tables and alias definitions. Not a very exhaustive search.
@@ -381,6 +419,7 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info)
       if( *p == '-' && *(p + 1) == '-' ) while( *p && *p != '\n' ) p++;
       if( *p == '/' && *(p + 1) == '*' ) while( *p && !(*p == '*' && *(p + 1) == '/') ) p++;
 
+      // Collect data for keyword
       if( isalpha(*p) || *p == '_' ) {
          sKeyword += *p; 
       }
@@ -399,39 +438,44 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info)
             Info.aTables.RemoveAll();
             Info.aAlias.RemoveAll();
             Info.sPrevTable = "";
-         }
-         SQLKEYWORD kw = _GetKeyword(sKeyword);
-         if( Info.PrevKeyword == SQL_CONTEXT_TABLE 
-             && kw == SQL_CONTEXT_UNKNOWN 
-             && *p != '.' ) 
-         {
-            if( Info.bIsObjectNext ) {
-               Info.aTables.Add(sKeyword); 
-               Info.sPrevTable = sKeyword;
-               Info.bIsObjectNext = false;
-            }
-            else {
-               if( Info.aTables.GetSize() > 0 ) {
-                  Info.aAlias.Add(sKeyword);
-                  Info.aAlias.Add(Info.aTables[ Info.aTables.GetSize() - 1 ]);
-               }
-            }
+            Info.bIsObjectNext = true;
+            Info.PrevKeyword = SQL_CONTEXT_START;
          }
          else {
-            if( *p == '.' ) Info.sPrevTable = sKeyword;
-            Info.bIsObjectNext = false;
-         }
-         if( kw != SQL_CONTEXT_UNKNOWN ) {
-            Info.PrevKeyword = kw;
-            Info.bIsObjectNext = true;
+            SQLKEYWORD kw = _GetKeyword(sKeyword);
+            if( Info.PrevKeyword == SQL_CONTEXT_TABLE 
+                && kw == SQL_CONTEXT_UNKNOWN 
+                && *p != '.' ) 
+            {
+               if( Info.bIsObjectNext ) {
+                  Info.aTables.Add(sKeyword); 
+                  Info.sPrevTable = sKeyword;
+                  Info.bIsObjectNext = false;
+               }
+               else {
+                  if( Info.aTables.GetSize() > 0 ) {
+                     Info.aAlias.Add(sKeyword);
+                     Info.aAlias.Add(Info.aTables[ Info.aTables.GetSize() - 1 ]);
+                  }
+               }
+            }
+            else {
+               if( *p == '.' ) Info.sPrevTable = sKeyword;
+               Info.bIsObjectNext = false;
+            }
+            if( kw != SQL_CONTEXT_UNKNOWN ) {
+               Info.PrevKeyword = kw;
+               Info.bIsObjectNext = true;
+            }
          }
       }
    }
 
    // Parse the next few bytes of text as well to
    // see if we can recognize more table names.
-   nMin = lPos;
-   nMax = lPos + 100;
+   nMin = lPos+ iLenEntered;
+   nMax = lPos + iLenEntered + 100;
+   if( nMin > GetTextLength() ) nMin = GetTextLength();
    if( nMax > GetTextLength() ) nMax = GetTextLength();
    
    ::ZeroMemory(szText, sizeof(szText));
@@ -443,6 +487,12 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info)
    bool bCurIsObjectNext = false;
    p = szText;
    while( *p ) {
+
+      // Skip comment
+      if( *p == '-' && *(p + 1) == '-' ) while( *p && *p != '\n' ) p++;
+      if( *p == '/' && *(p + 1) == '*' ) while( *p && !(*p == '*' && *(p + 1) == '/') ) p++;
+
+      // Collect data for keyword
       if( isalpha(*p) || *p == '_' ) {
          sKeyword += *p; 
       }
@@ -652,6 +702,32 @@ static char *FieldImage[] = {
 "aaaaccccccccccca",
 "aaaaaaaaaaaaaaaa"
 };
+static char* KeywordImage[] = {
+/* width height num_colors chars_per_pixel */
+"16 16 4 1",
+/* colors */
+"a c None",
+"b c #808080",
+"c c #008080",
+"d c #000a00",
+/* pixels */
+"aaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaa",
+"aaaaaaabaaaaaaaa",
+"aaaaaabcbaaaaaaa",
+"aaaaabcccbaaaaaa",
+"aaaadcccccbaaaaa",
+"aaaaddcccccbaaaa",
+"aaaadbdcccbbaaaa",
+"aaaadbbdcbcbaaaa",
+"aaaaadbbdccbaaaa",
+"aaaaaadbdcbaaaaa",
+"aaaaaaaddbaaaaaa",
+"aaaaaaaadaaaaaaa",
+"aaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaa",
+};
 
 void CScintillaView::_RegisterListImages()
 {
@@ -659,4 +735,5 @@ void CScintillaView::_RegisterListImages()
    RegisterImage(1, (LPBYTE) TableImage);
    RegisterImage(2, (LPBYTE) AliasImage);
    RegisterImage(3, (LPBYTE) FieldImage);
+   RegisterImage(4, (LPBYTE) KeywordImage);
 }

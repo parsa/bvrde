@@ -47,6 +47,7 @@ public:
 
 protected:
    CString _GetRealFilename() const;
+   bool _IsValidFile(LPBYTE pData, DWORD dwSize) const;
 };
 
 

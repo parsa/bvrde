@@ -10,10 +10,10 @@
 #pragma comment(lib, "../GenEdit/Lib/GenEdit.lib")
 
 
-void CContainerWindow::Init(IView* pView, IProject* pProject)
+void CContainerWindow::Init(IProject* pProject, IView* pView)
 {
-   m_pView = pView;
    m_pProject = pProject;
+   m_pView = pView;
 }
 
 BOOL CContainerWindow::PreTranslateMessage(MSG* pMsg)

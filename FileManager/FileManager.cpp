@@ -33,7 +33,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
    {
      _Module.Term();
    }
-    return TRUE;
+   return TRUE;
 }
 
 

@@ -137,7 +137,6 @@
 #define ID_PROJECT_SET_DEFAULT          40012
 #define ID_EDIT_UPPERCASE               40029
 #define ID_EDIT_LOWERCASE               40030
-#define ID_EDIT_AUTOCOMPLETE            40039
 #define ID_EDIT_VIEWWS                  40052
 #define ID_EDIT_VIEWEOL                 40060
 #define ID_EDIT_TABIFY                  40061
@@ -168,6 +167,7 @@
 #define ID_VIEW_TAB3                    40419
 #define ID_VIEW_SETLINE                 40420
 #define ID_HISTORY_LEFT                 40421
+#define ID_EDIT_AUTOCOMPLETE            40422
 
 // Next default values for new objects
 // 

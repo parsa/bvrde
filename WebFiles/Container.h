@@ -28,7 +28,7 @@ public:
    IView* m_pView;
    IProject* m_pProject;
 
-   void Init(IView* pView, IProject* pProject);
+   void Init(IProject* pProject, IView* pView);
    void SetFilename(CString& sFilename);
    void SetLanguage(CString& sLanguage);
    CString GetViewText();

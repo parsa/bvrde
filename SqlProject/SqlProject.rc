@@ -243,6 +243,8 @@ BEGIN
     BEGIN
         POPUP "Advanced"
         BEGIN
+            MENUITEM "Auto Complete\tCtrl+Space",   ID_EDIT_AUTOCOMPLETE
+            MENUITEM SEPARATOR
             MENUITEM "Make &Uppercase\tCtrl+Shift+U", ID_EDIT_UPPERCASE
             MENUITEM "Make &Lowercase\tCtrl+U",     ID_EDIT_LOWERCASE
             MENUITEM "&Tabify Selection",           ID_EDIT_TABIFY
@@ -329,6 +331,7 @@ BEGIN
     "E",            ID_QUERY_RUNSELECTED,   VIRTKEY, CONTROL, NOINVERT
     VK_CANCEL,      ID_QUERY_STOP,          VIRTKEY, CONTROL, NOINVERT
     VK_F5,          ID_QUERY_RUN,           VIRTKEY, NOINVERT
+    VK_SPACE,       ID_EDIT_AUTOCOMPLETE,   VIRTKEY, CONTROL, NOINVERT
     "W",            ID_QUERY_RUN,           VIRTKEY, CONTROL, NOINVERT
 END
 

@@ -1110,17 +1110,7 @@ public:
 
 inline bool AtlIsEditControl(HWND hWnd)
 {
-   if( !::IsWindow(hWnd) ) return false;
-   TCHAR szClassName[64] = { 0 };
-   ::GetClassName(hWnd, szClassName, (sizeof(szClassName)/sizeof(TCHAR))-1);
-#if defined(__ATLSTR_H__) || defined(_WTL_USE_CSTRING)
-   CString s = szClassName;
-   s.MakeUpper();
-   return s.Find(_T("EDIT")) >= 0;
-#else
-   ::CharUpperBuff(szClassName, ::lstrlen(szClassName));
-   return _tcsstr(szClassName, _T("EDIT")) != NULL;
-#endif
+   return (::SendMessage(hWnd, WM_GETDLGCODE, 0, 0L) & DLGC_HASSETSEL) != 0;
 }
 
 #if defined(__ATLSTR_H__) || defined(_WTL_USE_CSTRING)

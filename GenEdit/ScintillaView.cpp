@@ -373,7 +373,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    }
    else if( m_sLanguage == _T("basic") ) 
    {
-      // Make really sure it's the MAKEFILE lexer
+      // Make really sure it's the BASIC lexer
       SetLexer(SCLEX_VB);
 
       static int aBasicStyles[] = 
@@ -827,12 +827,13 @@ void CScintillaView::_AutoComplete(CHAR ch)
    USES_CONVERSION;
    CString sList;
    long lPos = GetCurrentPos();
+   // Get auto-completion words from HTML text
    if( ch == '<' && m_sLanguage == _T("html") )
    {
       CString sProperty;
       sProperty.Format(_T("editors.%s.keywords"), m_sLanguage);
       CString sKeywords;
-      m_pDevEnv->GetProperty(sProperty, sKeywords.GetBuffer(2048), 2048);
+      m_pDevEnv->GetProperty(sProperty, sKeywords.GetBufferSetLength(2048), 2048);
       sKeywords.ReleaseBuffer();
       //
       TCHAR cLetter = (TCHAR) GetCharAt(lPos - 1);
@@ -851,8 +852,10 @@ void CScintillaView::_AutoComplete(CHAR ch)
       }
       if( m_bAutoCase ) sList.MakeLower();
    }
-   if( (ch == '$' && GetLexer() == SCLEX_PHP) ||
-       (ch == '<' && m_sLanguage == _T("xml")) )
+   // Get auto-completion words from PHP or XML text
+   if( (ch == '$' && GetLexer() == SCLEX_PHP) 
+       || (ch == '$' && GetLexer() == SCLEX_PERL) 
+       || (ch == '<' && m_sLanguage == _T("xml")) )
    {
       // Grab the last 512 characters or so
       CHAR szText[512] = { 0 };
@@ -876,13 +879,18 @@ void CScintillaView::_AutoComplete(CHAR ch)
             pstr++;
             if( !isalnum(*pstr) && *pstr != '_' ) break;
          }
-         if( sWord.GetLength() > 2 ) {
-            // Only add uniques...
-            bool bFound = false;
-            for( int i = 0; !bFound && i < aList.GetSize(); i++ ) bFound = aList[i] == sWord;
-            if( !bFound ) aList.Add(sWord);
-         }
+         if( sWord.GetLength() > 2 ) _AddUnqiue(aList, sWord);
          pstr = strstr(pstr, szFind);
+      }
+      // Add globals for PHP...
+      if( GetLexer() == SCLEX_PHP ) {
+         _AddUnqiue(aList, _T("_GET"));
+         _AddUnqiue(aList, _T("_POST"));
+         _AddUnqiue(aList, _T("_REQUEST"));
+         _AddUnqiue(aList, _T("_SESSION"));
+         _AddUnqiue(aList, _T("_SERVER"));
+         _AddUnqiue(aList, _T("_ENV"));
+         _AddUnqiue(aList, _T("_COOKIE"));
       }
       // Sort them
       for( int a = 0; a < aList.GetSize(); a++ ) {
@@ -894,6 +902,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
             }
          }
       }
+      // Build Scrintilla string
       for( int i = 0; i < aList.GetSize(); i++ ) sList += aList[i] + ' ';
    }
    // Display popup list
@@ -1253,6 +1262,16 @@ void CScintillaView::_GetSyntaxStyle(LPCTSTR pstrName, SYNTAXCOLOR& syntax)
    }
    if( _GetProperty(sKey + _T("bold")) == _T("true") ) syntax.bBold = true;
    if( _GetProperty(sKey + _T("italic")) == _T("true") ) syntax.bItalic = true;
+}
+
+bool CScintillaView::_AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) const
+{
+   bool bFound = false;
+   for( int i = 0; !bFound && i < aList.GetSize(); i++ ) bFound = aList[i] == pstrText;
+   if( bFound ) return false;
+   CString sText = pstrText;
+   aList.Add(sText);
+   return true;
 }
 
 int CScintillaView::_FunkyStrCmp(LPCTSTR src, LPCTSTR dst)

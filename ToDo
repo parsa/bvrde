@@ -32,7 +32,7 @@ C++ IDE:
 * Auto Brackets
 * Replace Tabs
 * Online scanner/lexer
-- New File template/dialog
+* New File template/dialog
 
 Debugger:
 * Remote GNU GDB integration
@@ -62,11 +62,11 @@ Source Control:
 SQL:
 * Wizard to create a new SQL project
 * Support ODBC query execution
-- History
+* History
 - Result as table & text format
 * View schema information
 - Edit result-set contents directly in output
-- Persist query history
+* Persist query history
 - Exports to HTML and XML
 * Parse comments locally
 * Multiple sql commands
@@ -77,7 +77,7 @@ SQL:
 - Right align numeric values option
 * Link from error to source
 - Inline result pane
-- Icons in tab (bold text as well)
+* Icons in tab (bold text as well)
 - Query execution time
 - Parameter support
 - Autocommit transaction option

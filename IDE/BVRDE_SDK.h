@@ -9,6 +9,8 @@
 /////////////////////////////////////////////////////////
 // Defines
 
+#define BVRDE_SDK  100
+
 #define REG_BVRDE _T("SOFTWARE\\Viksoe.dk\\BVRDE")
 
 // Plugin types

@@ -391,8 +391,7 @@ LRESULT CClassView::OnGetDisplayInfo(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 {
    LPNMTVDISPINFO lpNMTVDI = (LPNMTVDISPINFO) pnmh;
    if( (lpNMTVDI->item.mask & TVIF_TEXT) == 0 ) return 0;
-   if( m_bLocked ) 
-      return 0;
+   if( m_bLocked ) return 0;
    TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(lpNMTVDI->item.hItem);
    lpNMTVDI->item.pszText = (LPTSTR) pTag->pstrName;
    return 0;

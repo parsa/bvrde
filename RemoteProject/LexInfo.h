@@ -50,7 +50,7 @@ public:
 private:
    void _LoadTags();
    CString _GetTagParent(const TAGINFO& info) const;
-   bool _ParseFile(CString& sName, LEXFILE& file) const;
+   bool _ParseFile(LPCTSTR pstrFilename, CString& sName, LEXFILE& file) const;
 
 // Data Members
 private:

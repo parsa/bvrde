@@ -150,8 +150,7 @@ static int yyread(char *buf,int max_size)
 					}
 
 <NextSemi>[;,]				{ BEGIN( FindMembers ) ; }
-
-<NextSemi>[ \t]*\"[^\n"]*\"		{ BEGIN( FindMembers ) ; }
+<NextSemi>[ \t]*\"[^\n"]*\"		
 
 <FindMembers>[ \t]*"public:"[ \t\r\n]*	{ 
 					  current->protection = protection = PUBL ;
@@ -218,6 +217,15 @@ static int yyread(char *buf,int max_size)
 				  	  BEGIN( ClassName ) ;
 					}
 
+<FindMembers>[ \t]*"interface"[ \t\r\n]+ { 
+					  current->section = CLASS_SEC ;
+					  addType( current ) ;
+					  current->lineNo = yyLineNr;
+					  if( !current->type.empty() ) current->type += " ";
+					  current->type += "interface" ;
+					  lineCount() ;
+					  BEGIN( ClassName ) ;
+					}
 <FindMembers>[ \t]*"class"[ \t\r\n]+	{ 
 					  current->section = CLASS_SEC ;
 					  addType( current ) ;
@@ -282,6 +290,10 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( FindMembers ) ;
 					}
 
+<FindMembers>^[ \t]*"use"[ \t]+		{ 
+					  current->type = "use " ;
+					  BEGIN( Define ) ;
+					}
 <FindMembers>^[ \t]*"#"[ \t]*define[ \t]+	{ 
 					  current->type = "#define" ;
 					  BEGIN( Define ) ;
@@ -351,7 +363,7 @@ static int yyread(char *buf,int max_size)
 					}
 <Array>"]"				{ 
 					  current->args += *yytext ;
-					  if (--sharpCount<=0)
+					  if( --sharpCount<=0 )
 						BEGIN( FindMembers ) ;
 					}
 <Array>"["				{ 

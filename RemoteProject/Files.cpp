@@ -122,6 +122,14 @@ CString CViewImpl::_GetRealFilename() const
    return sPath + m_sFilename;
 }
 
+bool CViewImpl::_IsValidFile(LPBYTE pData, DWORD dwSize) const
+{
+   if( dwSize <= 2 ) return true;
+   if( pData[0] == 0xFF && pData[1] == 0xFE ) return false;   // UNICODE BOM
+   if( pData[0] == 0xEF && pData[1] == 0xBB ) return false;   // UTF-8 BOM
+   return true;
+}
+
 
 ///////////////////////////////////////////////////////7
 //
@@ -279,6 +287,13 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
             if( pData ) free(pData);
             return FALSE;
          }
+
+         if( !_IsValidFile(pData, dwSize) ) {
+            free(pData);
+            _pDevEnv->ShowMessageBox(_pDevEnv->GetHwnd(IDE_HWND_MAIN), CString(MAKEINTRESOURCE(IDS_ERR_FILEENCODING)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
+            return FALSE;
+         }
+
          CComBSTR bstr( (int) dwSize );
          // BUG: Using 'dwSize' without the additional sz-terminator is
          //      problematic since the AtlW2AHelper conversion actually
@@ -307,6 +322,13 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
          }
          pstrData[dwSize] = '\0';
          f.Close();
+
+         if( !_IsValidFile( (LPBYTE) pstrData, dwSize ) ) {
+            _pDevEnv->ShowMessageBox(_pDevEnv->GetHwnd(IDE_HWND_MAIN), CString(MAKEINTRESOURCE(IDS_ERR_FILEENCODING)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
+            free(pstrData);
+            return FALSE;
+         }
+
          CComBSTR bstr = pstrData;
          *pbstrText = bstr.Detach();
          free(pstrData);

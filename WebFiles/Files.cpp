@@ -164,7 +164,7 @@ BOOL CViewImpl::OpenView(long lLineNum)
       }
       m_wndFrame = pFrame->GetHwnd();
       
-      m_wndClient.Init(this, m_pProject);
+      m_wndClient.Init(m_pProject, this);
       m_wndClient.Create(m_wndFrame, CWindow::rcDefault, NULL, WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
       ATLASSERT(m_wndClient.IsWindow());
       pFrame->SetClient(m_wndClient);

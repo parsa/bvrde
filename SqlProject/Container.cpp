@@ -151,6 +151,7 @@ LRESULT CContainerWindow::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    //       will block here!! We really need it to shut down though...
    CWaitCursor cursor;
    if( m_pView->IsQueryRunning() ) m_pView->Abort();
+   if( !m_Images.IsNull() ) m_Images.Destroy();
    bHandled = FALSE;
    return 0;
 }

@@ -45,6 +45,8 @@ public:
       DISP_PROPGET(Username, VT_BSTR)
       DISP_PROPGET(Password, VT_BSTR)
       DISP_PROPGET(IsConnected, VT_BOOL)
+      DISP_PROP(CompileFlags, VT_BSTR)
+      DISP_PROP(LinkFlags, VT_BSTR)
       DISP_METHOD0(Clean, VT_EMPTY)
       DISP_METHOD0(Build, VT_EMPTY)
       DISP_METHOD0(Rebuild, VT_EMPTY)
@@ -60,6 +62,10 @@ public:
    BSTR __stdcall get_Server();
    BSTR __stdcall get_Username();
    BSTR __stdcall get_Password();
+   BSTR __stdcall get_CompileFlags();
+   VOID __stdcall put_CompileFlags(BSTR bstr);
+   BSTR __stdcall get_LinkFlags();
+   VOID __stdcall put_LinkFlags(BSTR bstr);
    VARIANT_BOOL get_IsConnected();
    IDispatch* __stdcall get_Files();
    VOID __stdcall Clean();

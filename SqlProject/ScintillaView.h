@@ -23,6 +23,7 @@ public:
    typedef enum SQLKEYWORD
    {
       SQL_CONTEXT_UNKNOWN,
+      SQL_CONTEXT_START,
       SQL_CONTEXT_IGNORE,
       SQL_CONTEXT_FIELD,
       SQL_CONTEXT_TABLE,
@@ -42,6 +43,7 @@ public:
 
    CScintillaView();
 
+   bool m_bAutoCompleteNext;
    CSqlProject* m_pProject;
    CString m_sFilename;
    CView* m_pView;
@@ -62,7 +64,8 @@ public:
       MESSAGE_HANDLER(WM_QUERYENDSESSION, OnQueryEndSession)
       MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSettingChange)
       COMMAND_ID_HANDLER(ID_FILE_OPEN, OnFileOpen)
-      COMMAND_ID_HANDLER(ID_FILE_SAVE, OnFileSave)      
+      COMMAND_ID_HANDLER(ID_FILE_SAVE, OnFileSave)
+      COMMAND_ID_HANDLER(ID_EDIT_AUTOCOMPLETE, OnEditAutoComplete)      
       COMMAND_ID_HANDLER(ID_HISTORY_NEW, OnHistoryNew)
       COMMAND_ID_HANDLER(ID_HISTORY_DELETE, OnHistoryDelete)
       COMMAND_ID_HANDLER(ID_HISTORY_LEFT, OnHistoryLeft)
@@ -77,6 +80,7 @@ public:
    LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
    LRESULT OnFileOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
    LRESULT OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+   LRESULT OnEditAutoComplete(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
    LRESULT OnCharAdded(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
    LRESULT OnHistoryNew(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnHistoryDelete(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
@@ -90,11 +94,11 @@ public:
    // Implementation
 
    void _RegisterListImages();
-   void _AutoComplete(CHAR ch);
+   void _AutoComplete(CHAR ch, int iLenEntered);
    SQLKEYWORD _GetKeyword(CString& sKeyword) const;
    int _FunkyStrCmp(LPCTSTR pstr1, LPCTSTR pstr2) const;
+   void _AnalyseText(SQLANALYZE& Info, int iLenEntered);
    int _FindItem(CSimpleArray<CString>& aList, LPCTSTR pstrName) const;
-   void _AnalyseText(SQLANALYZE& Info);
 };
 
 

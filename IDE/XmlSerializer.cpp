@@ -337,6 +337,10 @@ BOOL CXmlSerializer::Write(LPCTSTR pstrName, BOOL bValue)
 
 BOOL CXmlSerializer::WriteExternal(LPCTSTR /*pstrName*/)
 {
+   // Clients use this to persist the contents of the object,
+   // such as the text of a text editor. Usually the provider
+   // just ignores this (like this one does), but it could be
+   // usefull for advanced clipboard operations, etc.
    return TRUE;
 }
 

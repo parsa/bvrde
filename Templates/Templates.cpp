@@ -59,9 +59,9 @@ BOOL APIENTRY Templates_RunWizard(HWND hWndParent, LPCTSTR pstrName, IDevEnv* pD
    ::GetPrivateProfileString(pstrName, _T("Dialog"), _T(""), szDialog, MAX_PATH, szIniFilename);
    if( ::lstrlen(szFilename) == 0 ) return FALSE;
    TCHAR szActualFile[MAX_PATH] = { 0 };
-   ::wsprintf(szActualFile, _T("%s\\Templates\\Wizard\\%s"), CModulePath(), szFilename);
+   ::wsprintf(szActualFile, _T("%sTemplates\\Wizards\\%s"), CModulePath(), szFilename);
    TCHAR szActualDialog[MAX_PATH] = { 0 };
-   ::wsprintf(szActualDialog, _T("%s\\Templates\\Wizard\\%s"), CModulePath(), szDialog);
+   ::wsprintf(szActualDialog, _T("%sTemplates\\Wizards\\%s"), CModulePath(), szDialog);
    CFile f;      
    if( !f.Open(szActualFile) ) return FALSE;
    DWORD dwSize = f.GetSize();

@@ -469,6 +469,12 @@ LRESULT CCompilerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    sName.LoadString(IDS_COMMAND_BUILDCTAGS);
    sValue = m_pProject->m_CompileManager.GetParam(_T("BuildTags"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 20));
+   sName.LoadString(IDS_COMMAND_COMPILEFLAGS);
+   sValue = m_pProject->m_CompileManager.GetParam(_T("CompileFlags"));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 21));
+   sName.LoadString(IDS_COMMAND_LINKFLAGS);
+   sValue = m_pProject->m_CompileManager.GetParam(_T("LinkFlags"));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 22));
 
    return 0;
 }
@@ -512,6 +518,12 @@ int CCompilerCommandsPage::OnApply()
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(20), &v);
    m_pProject->m_CompileManager.SetParam(_T("BuildTags"), CString(v.bstrVal));
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(21), &v);
+   m_pProject->m_CompileManager.SetParam(_T("CompileFlags"), CString(v.bstrVal));
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(22), &v);
+   m_pProject->m_CompileManager.SetParam(_T("LinkFlags"), CString(v.bstrVal));
 
    return PSNRET_NOERROR;
 }

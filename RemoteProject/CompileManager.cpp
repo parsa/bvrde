@@ -112,6 +112,8 @@ void CCompileManager::Clear()
    m_sCommandDebug = _T("export DEBUG_OPTIONS=\"-g -D_DEBUG\"");
    m_sCommandRelease = _T("export DEBUG_OPTIONS=");
    m_sPromptPrefix = _T("$~[/");
+   m_sCompileFlags = _T("");
+   m_sLinkFlags = _T("");
    m_bReleaseMode = false;
    m_bCommandMode = false;
    m_bIgnoreOutput = false;
@@ -127,6 +129,10 @@ bool CCompileManager::Load(ISerializable* pArc)
    if( !pArc->ReadItem(_T("Prompt")) ) return false;
    pArc->Read(_T("prefixes"), m_sPromptPrefix.GetBufferSetLength(32), 32);
    m_sPromptPrefix.ReleaseBuffer();
+   pArc->Read(_T("compileFlags"), m_sCompileFlags.GetBufferSetLength(100), 100);
+   m_sCompileFlags.ReleaseBuffer();
+   pArc->Read(_T("linkFlags"), m_sLinkFlags.GetBufferSetLength(100), 100);
+   m_sLinkFlags.ReleaseBuffer();
 
    if( !pArc->ReadItem(_T("Commands")) ) return false;
    pArc->Read(_T("changeDir"), m_sCommandCD.GetBufferSetLength(200), 200);
@@ -160,6 +166,8 @@ bool CCompileManager::Save(ISerializable* pArc)
 
    if( !pArc->WriteItem(_T("Prompt")) ) return false;
    pArc->Write(_T("prefixes"), m_sPromptPrefix);
+   pArc->Write(_T("compileFlags"), m_sCompileFlags);
+   pArc->Write(_T("linkFlags"), m_sLinkFlags);
 
    if( !pArc->WriteItem(_T("Commands")) ) return false;
    pArc->Write(_T("changeDir"), m_sCommandCD);
@@ -304,6 +312,8 @@ CString CCompileManager::GetParam(LPCTSTR pstrName) const
    if( sName == "BuildTags" ) return m_sCommandBuildTags;
    if( sName == "DebugExport" ) return m_sCommandDebug;
    if( sName == "ReleaseExport" ) return m_sCommandRelease;
+   if( sName == "CompileFlags" ) return m_sCompileFlags;
+   if( sName == "LinkFlags" ) return m_sLinkFlags;
    if( sName == "Mode" ) return m_bReleaseMode ? _T("Release") : _T("Debug");
    if( sName == "InCommand" ) return m_bCommandMode ? _T("true") : _T("false");
    return m_ShellManager.GetParam(pstrName);
@@ -321,6 +331,8 @@ void CCompileManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == "BuildTags" ) m_sCommandBuildTags = pstrValue;
    if( sName == "DebugExport" ) m_sCommandDebug = pstrValue;
    if( sName == "ReleaseExport" ) m_sCommandRelease = pstrValue;
+   if( sName == "CompileFlags" ) m_sCompileFlags = pstrValue;
+   if( sName == "LinkFlags" ) m_sLinkFlags = pstrValue;
    if( sName == "Mode" ) m_bReleaseMode = _tcscmp(pstrValue, _T("Release")) == 0;
    if( sName == "InCommand" ) m_bCommandMode = _tcscmp(pstrValue, _T("true")) == 0;
    m_ShellManager.SetParam(pstrName, pstrValue);

@@ -568,7 +568,7 @@ IDD_PASSWORD DIALOGEX 0, 0, 218, 135
 STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Password"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     EDITTEXT        IDC_PASSWORD,18,92,181,15,ES_PASSWORD | ES_AUTOHSCROLL,
                     WS_EX_STATICEDGE
@@ -1056,6 +1056,9 @@ BEGIN
     IDS_CREATEFILE          "File Not Found\nDo you want to create a new file?\nThe project file was not found on the remote server. You can create a new file instead."
     IDS_CREATEMAKEFILE      "Create Makefile\nNo Makefile was found. Do you wish to create one?\nNo Makefile was found in the current project. You can create one now."
     IDS_ERR_NOFILEWIZARD    "No File Wizard\nNo File Wizard defined for this type of file.\nThere are no File Wizards available for this particular file extension."
+    IDS_ERR_FILEENCODING    "Unsupported File Type\nThe file type is not supported.\nUnicode and UTF-8 files are not supported by this application."
+    IDS_COMMAND_COMPILEFLAGS "Compile Flags"
+    IDS_COMMAND_LINKFLAGS   "Link Flags"
 END
 
 #endif    // English (U.S.) resources

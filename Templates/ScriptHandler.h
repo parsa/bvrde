@@ -31,9 +31,18 @@ class CGlobals : public IDispDynImpl<CGlobals>
 public:
    CSimpleMap<CComBSTR, CComBSTR> m_map;
 
+   CGlobals()
+   {
+      CComBSTR bstrKey;
+      CComBSTR bstrValue;
+      bstrKey = L"Path";
+      bstrValue = CModulePath();
+      m_map.Add(bstrKey, bstrValue);
+   }
+
    BEGIN_DISPATCH_MAP(CGlobals)
       DISP_PROPGET(Count, VT_I4)
-      //DISP_PROP_ID(Item, DISPID_VALUE, VT_BSTR, VT_VARIANT)
+      //DISP_PROP_ID(Item, DISPID_VALUE, VT_BSTR, VT_BSTR)
       { OLESTR("Item"), DISPID_VALUE, DISPATCH_PROPERTYGET, VT_BSTR, 1, { VT_BSTR }, (void (__stdcall _atl_disp_classtype::*)())get_Item },
       { OLESTR("Item"), DISPID_PROPERTYPUT, DISPATCH_PROPERTYPUT, VT_EMPTY, 2, { VT_BSTR, VT_BSTR }, (void (__stdcall _atl_disp_classtype::*)())put_Item },
    END_DISPATCH_MAP()
@@ -118,7 +127,7 @@ public:
 
       if( ::lstrlen(pstrName) == 0 ) return true;
 
-      // Dynamically load MSHTML for getting ShowHTMLDialog function
+      // Dynamically load MSHTML for getting ShowHTMLDialog() function
       HINSTANCE hInst = ::LoadLibrary(_T("MSHTML.DLL"));
       if( hInst == NULL ) return FALSE;
       // The SHOWHTMLDIALOGFN declare is from the IE SDK.
@@ -128,7 +137,7 @@ public:
       CComBSTR bstrFilename = L"file:///";
       bstrFilename += T2CW(pstrHtmlFilename);
 
-      CComVariant vIn = (IDispatch*) &m_Container;
+      CComVariant vIn = static_cast<IDispatch*>(&m_Container);
       CComVariant vOut;
       CComBSTR bstrOptions = L"";
 
@@ -139,6 +148,10 @@ public:
          spMoniker.Release();
       }
       ::FreeLibrary(hInst);
+
+      // User cancelled dialog?
+      if( CComBSTR(m_Container.m_Globals.get_Item(CComBSTR(L"Cancel"))).Length() > 0 ) return FALSE;
+
       return Hr == S_OK;
    }
 
@@ -150,7 +163,7 @@ public:
       HRESULT Hr = spScript.CoCreateInstance(L"VBScript");
       if( FAILED(Hr) ) {
          // No VB Script?
-         ::MessageBox(m_hWnd, _T("Missing VB Script Interpreter?"), _T("Script Parse Error"), MB_ICONERROR);
+         AtlMessageBox(m_hWnd, _T("Missing VB Script Interpreter?"), _T("Script Parse Error"), MB_ICONERROR);
          return false; 
       }
 
@@ -193,6 +206,10 @@ public:
    CComBSTR GetResult() const
    {
       return m_Container.m_Response.m_bstrResult;
+   }
+   CGlobals* GetGlobals()
+   {
+      return &m_Container.m_Globals;
    }
   
    BEGIN_COM_MAP(CScriptHandler)
@@ -237,7 +254,7 @@ public:
          e.scode,
          e.bstrDescription,
          ulLine + 1);
-      ::MessageBox(m_hWnd, szMsg, _T("Script Error"), MB_ICONEXCLAMATION | MB_SYSTEMMODAL);
+      AtlMessageBox(m_hWnd, szMsg, _T("Script Error"), MB_ICONEXCLAMATION | MB_SYSTEMMODAL);
       if( m_spIActiveScript ) m_spIActiveScript->SetScriptState(SCRIPTSTATE_DISCONNECTED);
       return S_OK;
    }

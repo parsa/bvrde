@@ -107,6 +107,30 @@ BSTR CProjectOM::get_Password()
    return ::SysAllocString(sPath);
 }
 
+BSTR CProjectOM::get_CompileFlags()
+{
+   CString sValue = m_pOwner->m_CompileManager.GetParam(_T("CompileFlags"));
+   return ::SysAllocString(sValue);
+}
+
+VOID CProjectOM::put_CompileFlags(BSTR bstr)
+{
+   CString sValue = bstr;
+   m_pOwner->m_CompileManager.SetParam(_T("CompileFlags"), sValue);
+}
+
+BSTR CProjectOM::get_LinkFlags()
+{
+   CString sValue = m_pOwner->m_CompileManager.GetParam(_T("LinkFlags"));
+   return ::SysAllocString(sValue);
+}
+
+VOID CProjectOM::put_LinkFlags(BSTR bstr)
+{
+   CString sValue = bstr;
+   m_pOwner->m_CompileManager.SetParam(_T("LinkFlags"), sValue);
+}
+
 VARIANT_BOOL CProjectOM::get_IsConnected()
 {
    return m_pOwner->m_CompileManager.IsConnected() ? VARIANT_TRUE : VARIANT_FALSE;

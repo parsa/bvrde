@@ -261,6 +261,8 @@ BOOL CView::Run(BOOL bSelectedTextOnly)
       iLineNo = 1;
       // Save the whole text in history.
       // The function will determine if we're re-issuing an old item...
+      // TODO: Move this so history is only updated when query has been
+      //       successfully run. Don't want bad SQL syntax in the list!
       SaveHistory(sText);
    }
 

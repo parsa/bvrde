@@ -190,22 +190,23 @@ public:
 
    void _CreateShadows()
    {
-      T* pT = static_cast<T*>(this);
+      if( !m_wndRight.IsWindow() && !m_wndBottom.IsWindow() ) 
+      {
+         T* pT = static_cast<T*>(this);
 
-      // Test if it already has shadows enabled
+         // Test if it already has shadows enabled
 #ifndef CS_DROPSHADOW
-      const DWORD CS_DROPSHADOW = 0x00020000;  // From Platform SDK (Win2000 and above only)
+         const DWORD CS_DROPSHADOW = 0x00020000;  // From Platform SDK (Win2000 and above only)
 #endif // CS_DROPSHADOW
-      DWORD dwStyle = ::GetClassLong(pT->m_hWnd, GCL_STYLE);
-      if( (dwStyle & CS_DROPSHADOW) != 0 ) return;
+         DWORD dwStyle = ::GetClassLong(pT->m_hWnd, GCL_STYLE);
+         if( (dwStyle & CS_DROPSHADOW) != 0 ) return;
 
-      RECT rc = { 0 };
-      pT->GetWindowRect(&rc);
+         RECT rc = { 0 };
+         pT->GetWindowRect(&rc);
 
-      if( !m_wndRight.IsWindow() && !m_wndBottom.IsWindow() ) {
          // Create the shadow bitmaps
          CWindowDC dcDesktop = HWND_DESKTOP;
-         UpdateWindow(HWND_DESKTOP);
+         ::UpdateWindow(HWND_DESKTOP);
          // Create the 2 shadow windows (they are created as seperate windows).
          // We don't create them visible since this forces them to take focus...
          RECT rcWin = _GetShadowRect(true);

@@ -6,6 +6,9 @@
 #include "CppLexer.h"
 #include "CppTypes.h"
 
+#include <SHLWAPI.H>
+#pragma comment(lib, "shlwapi.lib")
+
 int verb = 0;
 
 
@@ -47,10 +50,6 @@ BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
    char szFilename[MAX_PATH] = { 0 };
    W2AHelper(szFilename, pstrFilename, ::lstrlenW(pstrFilename));
    
-   char* pstrNamePart = pstrNamePart = strrchr(szFilename, '\\');
-   if( pstrNamePart == NULL ) pstrNamePart = strrchr(szFilename, '/');
-   if( pstrNamePart != NULL ) pstrNamePart++; else pstrNamePart = szFilename;
-
    std::vector<std::string> aList;
 
    Entry* cl = NULL;
@@ -117,13 +116,13 @@ BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
    ::GetModuleFileName(NULL, szTargetFilename, MAX_PATH);
    char* p = strrchr(szTargetFilename, '\\');
    if( p ) strcpy(p, "\\Lex\\");
-   strcat(szTargetFilename, szFilename);
+   strcat(szTargetFilename, ::PathFindFileName(szFilename));
    p = strrchr(szTargetFilename, '.');
    if( p ) *p = '_';
    strcat(szTargetFilename, ".lex");
 
    char szFirstLine[MAX_PATH];
-   ::wsprintf(szFirstLine, "#%s\n", pstrNamePart);
+   ::wsprintf(szFirstLine, "#%s\n", szFilename);
 
    HANDLE hFile = ::CreateFile(szTargetFilename, 
       GENERIC_WRITE, 

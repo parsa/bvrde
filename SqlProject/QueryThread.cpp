@@ -390,9 +390,12 @@ BOOL CQueryThread::_SplitSQL(const CString& sSQL, int iLineNo, CSimpleArray<SQLP
          if( _tcsncmp(p, _T("--"), 2) == 0 ) {
             while( *p && *p != '\n' ) p++;
          }
-         if( _tcsncmp(p, _T("\n/*"), 3) == 0 ) {
+         if( _tcsncmp(p, _T("/*"), 2) == 0 ) {
             while( *p ) {
-               if( *p == '*' && *(p + 1) == '/' ) break;
+               if( *p == '*' && *(p + 1) == '/' ) {
+                  p += 2;
+                  break;
+               }
                if( *p == '\n' ) iLineNo++;
                p++;
             }

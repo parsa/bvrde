@@ -65,7 +65,7 @@ LRESULT CProviderPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 
 int CProviderPage::OnSetActive()
 {
-   SetWizardButtons(GetPropertySheet().GetActiveIndex() == 0 ? PSWIZB_NEXT : PSWIZB_BACK|PSWIZB_NEXT);
+   SetWizardButtons(GetPropertySheet().GetActiveIndex() == 0 ? PSWIZB_NEXT : PSWIZB_BACK | PSWIZB_NEXT);
    return 0;
 }
 

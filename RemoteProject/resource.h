@@ -216,6 +216,9 @@
 #define IDS_CREATEFILE                  262
 #define IDS_CREATEMAKEFILE              263
 #define IDS_ERR_NOFILEWIZARD            264
+#define IDS_ERR_FILEENCODING            265
+#define IDS_COMMAND_COMPILEFLAGS        266
+#define IDS_COMMAND_LINKFLAGS           267
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003

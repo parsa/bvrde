@@ -65,7 +65,7 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
 
    // Get the new file into structured form
    LEXFILE* pFile = new LEXFILE;
-   if( !_ParseFile(sName, *pFile) ) {
+   if( !_ParseFile(pstrFilename, sName, *pFile) ) {
       delete pFile;
       return false;
    }
@@ -318,19 +318,22 @@ void CLexInfo::_LoadTags()
       CString sName;
       pView->GetName(sName.GetBufferSetLength(128), 128);
       sName.ReleaseBuffer();
+      CString sFileName;
+      pView->GetFileName(sFileName.GetBufferSetLength(MAX_PATH), MAX_PATH);
+      sFileName.ReleaseBuffer();
       LEXFILE* pFile = new LEXFILE;
-      if( _ParseFile(sName, *pFile) ) m_aFiles.Add(pFile); else delete pFile;
+      if( _ParseFile(sFileName, sName, *pFile) ) m_aFiles.Add(pFile); else delete pFile;
    }
 
    // Look for the global lex file (contains standard/system functions)
    if( m_aFiles.GetSize() > 0 ) {
       LEXFILE* pFile = new LEXFILE;
       CString sName = _T("common.lex");
-      if( _ParseFile(sName, *pFile) ) m_aFiles.Add(pFile); else delete pFile;
+      if( _ParseFile(sName, sName, *pFile) ) m_aFiles.Add(pFile); else delete pFile;
    }
 }
 
-bool CLexInfo::_ParseFile(CString& sName, LEXFILE& file) const
+bool CLexInfo::_ParseFile(LPCTSTR pstrFilename, CString& sName, LEXFILE& file) const
 {
    CString sFilename = ::PathFindFileName(sName);
    CString sLexName = sFilename;
@@ -353,15 +356,18 @@ bool CLexInfo::_ParseFile(CString& sName, LEXFILE& file) const
    file.pData = p;
    file.sFilename = sName;
 
-   LPCTSTR pstrFilename = NULL;
+   LPCTSTR pstrFile = NULL;
+   LPCTSTR pstrNamePart = NULL;
 
    while( *p ) {
       TAGINFO info = { TAGTYPE_UNKNOWN, 0 };
       if( *p == '#' ) {
-         pstrFilename = p + 1;
+         pstrFile = p + 1;
          p = _tcschr(p, '\n');
          if( p == NULL ) break;
          *p = '\0';
+         if( _tcsicmp(pstrFilename, pstrFile) != 0 ) break;
+         pstrNamePart = ::PathFindFileName(pstrFile);
          p++;
       }
       else {
@@ -405,13 +411,13 @@ bool CLexInfo::_ParseFile(CString& sName, LEXFILE& file) const
          if( p == NULL ) break;
          *p++ = '\0';
          //
-         info.pstrFile = pstrFilename;
+         info.pstrFile = pstrNamePart;
          info.nFields = 2;
          file.aTags.Add(info);
       }
    }
 
-   if( file.aTags.GetSize() == 0 ) {
+   if( pstrFile == NULL || file.aTags.GetSize() == 0 ) {
       free(file.pData);
       return false;
    }

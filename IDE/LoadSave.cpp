@@ -166,6 +166,7 @@ void CMainFrame::_LoadSettings()
             _AddProperty(&arc, _T("indentMode"), sKey + _T("indentMode"));
             _AddProperty(&arc, _T("tabWidth"), sKey + _T("tabWidth"));
             _AddProperty(&arc, _T("indentWidth"), sKey + _T("indentWidth"));           
+            _AddProperty(&arc, _T("readOnly"), sKey + _T("readOnly"));
          }
 
          if( arc.ReadItem(_T("Advanced")) ) {

@@ -721,8 +721,12 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
    LPCTSTR ppstrPath = dlg.m_ofn.lpstrFile + _tcslen(dlg.m_ofn.lpstrFile) + 1;
    while( *ppstrPath ) {
       CString sFilename = sPath + ppstrPath;
+
+      // NOTE: Before we can use PathRelativePathTo() we need to
+      //       convert back to Windows filename-slashes because it doesn't
+      //       work with unix-type slashes (/ vs \).
       if( sSeparator != _T("\\") ) sFilename.Replace(sSeparator, _T("\\"));
-      TCHAR szName[MAX_PATH];
+      TCHAR szName[MAX_PATH] = { 0 };
       _tcscpy(szName, sFilename);
       ::PathStripPath(szName);
       TCHAR szRelativeFilename[MAX_PATH] = { 0 };
@@ -736,7 +740,7 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
          sRelativeFilename.Replace(_T("\\"), sSeparator);
       }
 
-      if( !_CheckProjectFile(szRelativeFilename, szName, true) ) return 0;
+      if( !_CheckProjectFile(sRelativeFilename, szName, true) ) return 0;
 
       // Create new object
       IView* pView = Plugin_CreateView(sFilename, this, pElement);
@@ -1231,10 +1235,18 @@ LRESULT CRemoteProject::OnBuildMakefile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
    HWND hWnd = ::GetActiveWindow();
-   HTREEITEM hItem = NULL;
-   IElement* pElement = _GetSelectedTreeElement(&hItem);
-   if( pElement == NULL )  return 0;
 
+   // Find project in tree
+   CTreeViewCtrl ctrlTree = _pDevEnv->GetHwnd(IDE_HWND_EXPLORER_TREE);
+   HTREEITEM hItem = ctrlTree.GetRootItem();
+   if( hItem ) hItem = ctrlTree.GetChildItem(hItem);
+   while( hItem != NULL ) {
+      if( ctrlTree.GetItemData(hItem) == (DWORD_PTR) this ) break;
+      hItem = ctrlTree.GetNextSiblingItem(hItem);
+   }
+   if( hItem == NULL ) return 0;
+
+   // Check if a Makefile already exists
    IView* pView = NULL;
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       IView* pFile = m_aFiles[i];
@@ -1243,6 +1255,7 @@ LRESULT CRemoteProject::OnBuildMakefile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
       sType.ReleaseBuffer();
       if( sType == _T("Makefile") ) pView = pFile;
    }
+   // It does not? Let's create a new file in the project list...
    if( pView == NULL ) {
       if( IDNO == _pDevEnv->ShowMessageBox(hWnd, CString(MAKEINTRESOURCE(IDS_CREATEMAKEFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), MB_YESNO | MB_ICONQUESTION) ) return 0;
       // Create new file
@@ -1267,6 +1280,7 @@ LRESULT CRemoteProject::OnBuildMakefile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
             TVI_LAST);
       m_bIsDirty = true;
    }
+   // Finally create makefile contents!
    _RunFileWizard(hWnd, _T("Makefile Wizard"), pView);
    return 0;
 }
@@ -1939,6 +1953,8 @@ bool CRemoteProject::_LoadFiles(ISerializable* pArc, IElement* pParent)
       pArc->Read(_T("filename"), sFilename.GetBufferSetLength(MAX_PATH), MAX_PATH);
       sFilename.ReleaseBuffer();
       // Create file object
+      // NOTE: We prefer to create files marked as "remote" internally since the
+      //       other plugins will not be able to load them from the remote server.
       IView* pView = NULL;
       if( sType == _T("Folder") ) pView = new CFolderFile(this, this, pParent);
       else if( sLocation == _T("remote") ) pView = Plugin_CreateView(sFilename, this, pParent);

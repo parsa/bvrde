@@ -141,8 +141,8 @@ public:
     * We are allowed to use the following syntax:
     *   : If a = 1 Then : b = 2 : Else b = 3
     * (Note the excessive use of colons). We can avoid a lot of parsing/checking
-    * by relying on this syntax.
-    * JScript allows all kinds of wierd use of the ";" block scope.
+    * by relying on this syntax. JScript allows all kinds of wierd use of 
+    * the ";" block scope as well.
     *
     * It is the resposibility of the caller to release
     * the returned memory.
