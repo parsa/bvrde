@@ -142,7 +142,7 @@ void CClassView::_GoToDefinition(LPCTSTR pstrFilename, LPCTSTR pstrPattern)
    ATLASSERT(!::IsBadStringPtr(pstrFilename,-1));
    ATLASSERT(!::IsBadStringPtr(pstrPattern,-1));
    if( m_pProject->OpenView(pstrFilename, 0) ) {
-      // HACK: CTAGS doesn't actually produce REGEX
+      // HACK: CTAGS doesn't actually produce sensible REGEX
       //       so we need to strip tokens and prepare a standard search.
       CString sToken = pstrPattern;
       sToken.TrimLeft(_T("/^"));
