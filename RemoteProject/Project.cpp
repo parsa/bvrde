@@ -45,7 +45,7 @@ BOOL CRemoteProject::Initialize(IDevEnv* pEnv, LPCTSTR pstrPath)
 
    m_CompileManager.Init(this);
    m_DebugManager.Init(this);
-   m_TagInfo.Init(this);
+   m_TagManager.Init(this);
 
    return TRUE;
 }
@@ -321,10 +321,12 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_VIEW_PROPERTIES, pElement != NULL);
 
    pUIBase->UIEnable(ID_BUILD_COMPILE, sFileType == "CPP" && !bCompiling);
+   pUIBase->UIEnable(ID_BUILD_CHECKSYNTAX, sFileType == "CPP" && !bCompiling);
    pUIBase->UIEnable(ID_BUILD_PROJECT, !bCompiling);
    pUIBase->UIEnable(ID_BUILD_REBUILD, !bCompiling);
    pUIBase->UIEnable(ID_BUILD_SOLUTION, !bCompiling);   
    pUIBase->UIEnable(ID_BUILD_CLEAN, !bCompiling);
+   pUIBase->UIEnable(ID_BUILD_BUILDTAGS, !bCompiling);
    pUIBase->UIEnable(ID_BUILD_STOP, bCompiling);
 
    pUIBase->UIEnable(ID_DEBUG_START, (!bCompiling && !bProcessStarted) || bDebugBreak);
@@ -762,9 +764,7 @@ LRESULT CRemoteProject::OnViewOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
    CWaitCursor cursor;
 
-   CString sStatus;
-   sStatus.Format(IDS_STATUS_OPENFILE);
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_OPENFILE)));
 
    IView* pView = static_cast<IView*>(pElement);
    if( !pView->OpenView(0) ) {
@@ -1104,6 +1104,46 @@ LRESULT CRemoteProject::OnBuildCompile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
    return 0;
 }
 
+LRESULT CRemoteProject::OnBuildCheckSyntax(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   bHandled = FALSE;
+   IElement* pElement = _GetSelectedTreeElement();
+   if( pElement == NULL ) return 0;
+
+   CString sType;
+   pElement->GetType(sType.GetBufferSetLength(64), 64);
+   sType.ReleaseBuffer();
+   if( sType != _T("CPP") ) return 0;
+
+   IView* pFile = NULL;
+   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
+      if( m_aFiles[i] == pElement ) {
+         pFile = m_aFiles[i];
+         break;
+      }
+   }
+   if( pFile == NULL ) return 0;
+
+   CString sFilename;
+   pFile->GetFileName(sFilename.GetBufferSetLength(MAX_PATH), MAX_PATH);
+   sFilename.ReleaseBuffer();
+   m_CompileManager.DoAction(_T("CheckSyntax"), sFilename);
+
+   bHandled = TRUE;
+   return 0;
+}
+
+LRESULT CRemoteProject::OnBuildTags(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+   return m_CompileManager.DoAction(_T("BuildTags"));
+}
+
+LRESULT CRemoteProject::OnBuildMakefile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   return 0;
+}
+
 LRESULT CRemoteProject::OnBuildStop(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
@@ -1404,6 +1444,11 @@ CTelnetView* CRemoteProject::GetDebugView() const
    return &m_viewDebugLog;
 }
 
+CClassView* CRemoteProject::GetClassView() const
+{
+   return &m_viewClassTree;
+}
+
 CString CRemoteProject::GetBuildMode() const
 {
    return m_ctrlMode.GetCurSel() == 0 ? _T("Release") : _T("Debug");
@@ -1463,7 +1508,7 @@ CString CRemoteProject::GetTagInfo(LPCTSTR pstrValue, LPCTSTR pstrOwner /*= NULL
    //       immediately - but it may also delay the retrieval of information
    //       (which happens when it queries debug-information from the debugger).
    if( m_DebugManager.IsDebugging() ) return m_DebugManager.GetTagInfo(pstrValue);
-   return m_TagInfo.GetItemDeclaration(pstrValue, pstrOwner);
+   return m_TagManager.GetItemDeclaration(pstrValue, pstrOwner);
 }
 
 void CRemoteProject::DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UINT iFlags)
@@ -1969,10 +2014,8 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrName)
    CString sUpperName = pstrName;
    sUpperName.MakeUpper();
    if( sUpperName.Find(_T("TAGS")) >= 0 ) {
-      m_viewClassTree.Init(this);
-      m_viewClassTree.Clear();
-      m_TagInfo.Clear();
-      m_viewClassTree.Populate();
+      m_TagManager.m_TagInfo.MergeFile(pstrName);
+      m_viewClassTree.Rebuild();
    }
 
    return true;

@@ -217,13 +217,22 @@ BOOL CTextFile::Save()
 
    if( m_pCppProject != NULL && m_sLocation == _T("remote") ) 
    {
+      // File is remote so we must use a file transfer protocol
       if( !m_pCppProject->m_FileManager.SaveFile(m_sFilename, true, (LPBYTE) pstrText, strlen(pstrText)) ) {
          free(pstrText);
          return FALSE;
       }
+      if( m_sLanguage == "cpp" ) {
+         // Using the C++ online scanner? We should parse the new file,
+         // merge the tags if possible and rebuild the ClassView.
+         if( m_pCppProject->m_TagManager.m_LexInfo.IsAvailable() ) {
+            m_pCppProject->m_TagManager.m_LexInfo.MergeFile(m_sFilename, pstrText);
+         }
+      }
    }
    else 
    {
+      // File is a local file; we can save it using standard Win32 calls...
       CFile f;
       if( !f.Create(_GetRealFilename()) ) {
          DWORD dwErr = ::GetLastError();

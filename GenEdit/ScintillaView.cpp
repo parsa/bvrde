@@ -601,6 +601,8 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    if( m_pDevEnv->GetProperty(sKey + _T("autoComplete"), szBuffer, 63) ) m_bAutoComplete = _tcscmp(szBuffer, _T("true")) == 0;
    m_bAutoClose = false;
    if( m_pDevEnv->GetProperty(sKey + _T("autoClose"), szBuffer, 63) ) m_bAutoClose = _tcscmp(szBuffer, _T("true")) == 0;
+   m_bAutoCase = false;
+   if( m_pDevEnv->GetProperty(sKey + _T("autoCase"), szBuffer, 63) ) m_bAutoCase = _tcscmp(szBuffer, _T("true")) == 0;
 
    sKey = _T("editors.general.");
 
@@ -844,6 +846,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
          sList += ' ';
          iPos = sKeywords.Find(szFind, iPos - 1);
       }
+      if( m_bAutoCase ) sList.MakeLower();
    }
    if( (ch == '$' && GetLexer() == SCLEX_PHP) ||
        (ch == '<' && m_sLanguage == _T("xml")) )
@@ -901,6 +904,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
 void CScintillaView::_MaintainIndent(CHAR ch)
 {
    if( !m_bAutoIndent && !m_bSmartIndent ) return;
+   int iCurPos = GetCurrentPos();
    int iCurLine = GetCurrentLine();
    int iLastLine = iCurLine - 1;
    int iIndentAmount = 0;
@@ -940,6 +944,11 @@ void CScintillaView::_MaintainIndent(CHAR ch)
                if( GetLineLength(iLastLine) >= sizeof(szText) ) return;
                GetLine(iLastLine, szText);
                if( strchr(szText, '>') != NULL && strchr(szText, '/') == NULL ) {
+                  if( m_bAutoClose ) {
+                     ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n" : "\n");
+                     _SetLineIndentation(iCurLine + 1, iIndentAmount);
+                     SetSel(iCurPos, iCurPos);
+                  }
                   iIndentAmount += iIndentWidth;
                }
             }
@@ -952,6 +961,7 @@ void CScintillaView::_MaintainIndent(CHAR ch)
                GetLine(iLastLine, szText);
                if( strchr(szText, '>') != NULL && strchr(szText, '/') == NULL ) {
                   CString sLine = szText;
+                  sLine.TrimLeft();
                   sLine.MakeUpper();
                   static LPCTSTR ppstrBlocks[] = 
                   {
@@ -971,6 +981,11 @@ void CScintillaView::_MaintainIndent(CHAR ch)
                   };
                   for( LPCTSTR* ppstr = ppstrBlocks; *ppstr; ppstr++ ) {
                      if( sLine.Find(*ppstr) >= 0 ) {
+                        if( m_bAutoClose ) {
+                           ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n" : "\n");
+                           _SetLineIndentation(iCurLine + 1, iIndentAmount);
+                           SetSel(iCurPos, iCurPos);
+                        }
                         iIndentAmount += iIndentWidth;
                         break;
                      }

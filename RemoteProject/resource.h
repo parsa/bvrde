@@ -202,6 +202,12 @@
 #define IDS_STACKLINE3                  249
 #define IDS_ERR_RELPATH                 250
 #define IDS_ERR_DEBUGVERSION            251
+#define IDS_CHECKSYNTAX                 252
+#define IDS_MISC                        253
+#define IDS_COMMAND_BUILDCTAGS          254
+#define IDS_COMMAND_CHECKSYNTAX         255
+#define IDS_STATUS_SAVEFILE             256
+#define IDS_STATUS_LOADFILE             257
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -223,6 +229,7 @@
 #define IDC_DEBUGGER                    1018
 #define IDC_TITLE                       1019
 #define IDC_LINK                        1020
+#define IDC_NOCONNECTION                1023
 #define IDC_NOAUTOCOMPLETE              1039
 #define IDC_AUTOCOMPLETE                1039
 #define IDC_NOCLASSBROWSER              1040
@@ -252,6 +259,7 @@
 #define IDC_FILENAME                    1152
 #define ID_CLASSVIEW_GOTO               1200
 #define ID_CLASSVIEW_PROPERTIES         1201
+#define ID_CLASSVIEW_COPY               1202
 #define IDD_OPTIONS_ADVANCED            32009
 #define ID_FILE_OPEN_WITH               40001
 #define ID_FILE_COMPILE                 40002
@@ -326,14 +334,17 @@
 #define ID_BOOKMARKS_GOTO7              40107
 #define ID_BOOKMARKS_GOTO8              40108
 #define ID_BOOKMARS_SET                 40109
+#define ID_BUILD_CHECKSYNTAX            40110
+#define ID_BUILD_BUILDTAGS              40111
+#define ID_BUILD_BUILDMAKEFILE          40112
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        124
-#define _APS_NEXT_COMMAND_VALUE         40110
-#define _APS_NEXT_CONTROL_VALUE         1023
+#define _APS_NEXT_COMMAND_VALUE         40114
+#define _APS_NEXT_CONTROL_VALUE         1024
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -383,9 +383,9 @@ int CConnectionPage::OnApply()
 STDMETHODIMP CConnectionPage::QueryInterface(REFIID iid, void** ppvObject)
 {
    *ppvObject = NULL;
-   if( iid == IID_IPropertyPageSite ) *ppvObject = this;
-   else if( iid == IID_IPropertyBag ) *ppvObject = this;
-   else if( iid == IID_IUnknown ) *ppvObject = this;
+   if( iid == IID_IPropertyPageSite ) *ppvObject = (IPropertyPageSite*) this;
+   else if( iid == IID_IPropertyBag ) *ppvObject = (IPropertyBag*) this;
+   else if( iid == IID_IUnknown ) *ppvObject = (IPropertyBag*) this;
    else return E_NOINTERFACE;
    return S_OK;
 }

@@ -36,6 +36,7 @@ public:
    CImageListCtrl m_FolderImages;
    CImageListCtrl m_FileImages;
    CEdit m_ctrlFilename;
+   CStatic m_ctrlNoConnection;
    CListViewCtrl m_ctrlList;
    CComboBoxEx m_ctrlFolder;
    CComboBox m_ctrlTypes;
@@ -63,6 +64,7 @@ public:
 
    BEGIN_MSG_MAP(CRemoteFileDlg)
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+      MESSAGE_HANDLER(WM_CTLCOLORSTATIC, OnCtlColorStatic)
       COMMAND_ID_HANDLER(IDC_UP, OnUp)
       COMMAND_ID_HANDLER(IDOK, OnOK)
       COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
@@ -74,15 +76,16 @@ public:
       CHAIN_MSG_MAP( CDialogResize<CRemoteFileDlg> )
    END_MSG_MAP()
 
-   LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-   LRESULT OnUp(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-   LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-   LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-   LRESULT OnFolderChanged(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-   LRESULT OnFilenameChanged(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-   LRESULT OnTypeChanged(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-   LRESULT OnItemOpen(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
-   LRESULT OnItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
+   LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnUp(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnOK(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnCancel(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnFolderChanged(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnFilenameChanged(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnTypeChanged(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnItemOpen(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnItemChanged(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 
    // Implementation
 
@@ -91,6 +94,7 @@ public:
    bool _GetSelectedFilters(int iIndex, CSimpleArray<CString>& aFilters) const;
    bool _GetSelectedFiles(CSimpleArray<CString>& aFiles) const;
    void _UpdateButtons();
+
    static int CALLBACK _ListSortProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 };
 

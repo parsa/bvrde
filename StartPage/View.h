@@ -12,8 +12,10 @@ class IWebBrowserEvents2Base
 {
 public:
    static _ATL_FUNC_INFO BeforeNavigate2Info;
+   static _ATL_FUNC_INFO DocumentCompleteInfo;
 };
 __declspec(selectany) _ATL_FUNC_INFO IWebBrowserEvents2Base::BeforeNavigate2Info = { CC_STDCALL, VT_EMPTY, 7, {VT_DISPATCH,VT_BYREF|VT_VARIANT,VT_BYREF|VT_VARIANT,VT_BYREF|VT_VARIANT,VT_BYREF|VT_VARIANT,VT_BYREF|VT_VARIANT,VT_BYREF|VT_BOOL} };
+__declspec(selectany) _ATL_FUNC_INFO IWebBrowserEvents2Base::DocumentCompleteInfo = {CC_STDCALL, VT_EMPTY, 2, {VT_DISPATCH,VT_BSTR}};
 
 
 class CStartPageView : 
@@ -67,6 +69,7 @@ public:
 
    BEGIN_SINK_MAP(CStartPageView)
       SINK_ENTRY_INFO(1, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, __BeforeNavigate2, &BeforeNavigate2Info)
+      SINK_ENTRY_INFO(1, DIID_DWebBrowserEvents2, DISPID_DOCUMENTCOMPLETE, __DocumentComplete, &DocumentCompleteInfo)
    END_SINK_MAP()
 
    void __stdcall __BeforeNavigate2(/*[in]*/ IDispatch* pDisp, 
@@ -76,6 +79,8 @@ public:
       /*[in]*/ VARIANT* PostData, 
       /*[in]*/ VARIANT* Headers, 
       /*[out]*/ VARIANT_BOOL* Cancel);
+   void __stdcall __DocumentComplete(/*[in]*/ IDispatch* pDisp, 
+      /*[in]*/ BSTR bstrText);
 
    // Implementation
 

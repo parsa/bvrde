@@ -106,7 +106,9 @@ void CCompileManager::Clear()
    m_sCommandBuild = _T("make all");
    m_sCommandRebuild = _T("make all");
    m_sCommandCompile = _T("make $FILENAME$");
+   m_sCommandCheckSyntax = _T("g++ -gnatc $FILENAME$");
    m_sCommandClean = _T("make clean");
+   m_sCommandBuildTags = _T("ctags *");
    m_sCommandDebug = _T("export DEBUG_OPTIONS=\"-g -D_DEBUG\"");
    m_sCommandRelease = _T("export DEBUG_OPTIONS=");
    m_sPromptPrefix = _T("$~[/");
@@ -137,6 +139,10 @@ bool CCompileManager::Load(ISerializable* pArc)
    m_sCommandCompile.ReleaseBuffer();
    pArc->Read(_T("clean"), m_sCommandClean.GetBufferSetLength(200), 200);
    m_sCommandClean.ReleaseBuffer();
+   pArc->Read(_T("checkSyntax"), m_sCommandCheckSyntax.GetBufferSetLength(200), 200);
+   m_sCommandCheckSyntax.ReleaseBuffer();
+   pArc->Read(_T("buildTags"), m_sCommandBuildTags.GetBufferSetLength(200), 200);
+   m_sCommandBuildTags.ReleaseBuffer();
    pArc->Read(_T("debugExport"), m_sCommandDebug.GetBufferSetLength(200), 200);
    m_sCommandDebug.ReleaseBuffer();
    pArc->Read(_T("releaseExport"), m_sCommandRelease.GetBufferSetLength(200), 200);
@@ -161,6 +167,8 @@ bool CCompileManager::Save(ISerializable* pArc)
    pArc->Write(_T("rebuild"), m_sCommandRebuild);
    pArc->Write(_T("compile"), m_sCommandCompile);
    pArc->Write(_T("clean"), m_sCommandClean);
+   pArc->Write(_T("checkSyntax"), m_sCommandCheckSyntax);
+   pArc->Write(_T("buildTags"), m_sCommandBuildTags);
    pArc->Write(_T("debugExport"), m_sCommandDebug);
    pArc->Write(_T("releaseExport"), m_sCommandRelease);
 
@@ -260,6 +268,27 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       aCommands.Add(sCommand);
       return _StartProcess(CString(MAKEINTRESOURCE(IDS_COMPILE)), aCommands);
    }
+   if( sName == "CheckSyntax" ) {
+      if( !_PrepareProcess(pstrName) ) return false;
+      sCommand = _TranslateCommand(m_sCommandCD);
+      aCommands.Add(sCommand);
+      sCommand = _TranslateCommand(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
+      aCommands.Add(sCommand);
+      sCommand = _TranslateCommand(m_sCommandCheckSyntax, pstrParams);
+      aCommands.Add(sCommand);
+      return _StartProcess(CString(MAKEINTRESOURCE(IDS_CHECKSYNTAX)), aCommands);
+   }
+   if( sName == "BuildTags" ) {
+      if( !_PrepareProcess(pstrName) ) return false;
+      CString sTitle(MAKEINTRESOURCE(IDS_BUILD));
+      sCommand = _TranslateCommand(m_sCommandCD);
+      aCommands.Add(sCommand);
+      sCommand = _TranslateCommand(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
+      aCommands.Add(sCommand);
+      sCommand = _TranslateCommand(m_sCommandBuildTags);
+      aCommands.Add(sCommand);
+      return _StartProcess(sTitle, aCommands);
+   }
    if( sName == "Stop" ) {
       SignalStop();
       // Update statusbar now
@@ -288,6 +317,8 @@ CString CCompileManager::GetParam(LPCTSTR pstrName) const
    if( sName == "Rebuild" ) return m_sCommandRebuild;
    if( sName == "Compile" ) return m_sCommandCompile;
    if( sName == "Clean" ) return m_sCommandClean;
+   if( sName == "CheckSyntax" ) return m_sCommandCheckSyntax;
+   if( sName == "BuildTags" ) return m_sCommandBuildTags;
    if( sName == "DebugExport" ) return m_sCommandDebug;
    if( sName == "ReleaseExport" ) return m_sCommandRelease;
    if( sName == "Mode" ) return m_bReleaseMode ? _T("Release") : _T("Debug");
@@ -303,6 +334,8 @@ void CCompileManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == "Rebuild" ) m_sCommandRebuild = pstrValue;
    if( sName == "Compile" ) m_sCommandCompile = pstrValue;
    if( sName == "Clean" ) m_sCommandClean = pstrValue;
+   if( sName == "CheckSyntax" ) m_sCommandCheckSyntax = pstrValue;
+   if( sName == "BuildTags" ) m_sCommandBuildTags = pstrValue;
    if( sName == "DebugExport" ) m_sCommandDebug = pstrValue;
    if( sName == "ReleaseExport" ) m_sCommandRelease = pstrValue;
    if( sName == "Mode" ) m_bReleaseMode = _tcscmp(pstrValue, _T("Release")) == 0;

@@ -33,6 +33,7 @@ LRESULT CAdvancedEditOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/,
    sKey.Format(_T("editors.%s."), m_sLanguage);
    SET_CHECK(IDC_AUTOCOMPLETE, sKey + _T("autoComplete"));
    SET_CHECK(IDC_CLOSETAGS, sKey + _T("autoClose"));
+   SET_CHECK(IDC_AUTOCASE, sKey + _T("autoCase"));
 
    return 0;
 }
@@ -43,6 +44,7 @@ int CAdvancedEditOptionsPage::OnApply()
    sKey.Format(_T("editors.%s."), m_sLanguage);
    GET_CHECK(IDC_AUTOCOMPLETE, sKey + _T("autoComplete"));
    GET_CHECK(IDC_CLOSETAGS, sKey + _T("autoClose"));
+   GET_CHECK(IDC_AUTOCASE, sKey + _T("autoCase"));   
 
    if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
    {
@@ -54,6 +56,7 @@ int CAdvancedEditOptionsPage::OnApply()
             m_pArc->WriteItem(_T("Advanced"));
             TRANSFER_PROP(_T("autoComplete"), sKey + _T("autoComplete"));
             TRANSFER_PROP(_T("autoClose"), sKey + _T("autoClose"));
+            TRANSFER_PROP(_T("autoCase"), sKey + _T("autoCase"));
          }
          m_pArc->ReadGroupEnd();
       }

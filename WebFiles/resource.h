@@ -24,6 +24,7 @@
 #define IDS_CAPTION_QUESTION            1015
 #define IDC_AUTOCOMPLETE                1039
 #define IDC_CLOSETAGS                   1040
+#define IDC_AUTOCASE                    1041
 #define IDD_OPTIONS_ADVANCED            32010
 #define ID_EDIT_UPPERCASE               40029
 #define ID_EDIT_LOWERCASE               40030

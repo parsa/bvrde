@@ -19,6 +19,7 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask /*= 0*
 {
    ATLASSERT(ctrlEdit.IsWindow());
    ATLASSERT(!::IsBadStringPtr(pstrText,-1));
+   ctrlEdit.HideSelection(TRUE);
    // Remove top lines if we've filled out the buffer
    GETTEXTLENGTHEX gtlx = { GTL_DEFAULT | GTL_CLOSE, 1200 };
    while( ctrlEdit.GetTextLengthEx(&gtlx) > ctrlEdit.GetLimitText() - 3000 ) {     
@@ -36,7 +37,6 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask /*= 0*
    cf.dwMask = dwMask;;
    cf.dwEffects = dwEffects;
    cf.crTextColor = clrText;
-   ctrlEdit.HideSelection(TRUE);
    ctrlEdit.SetSel(-1, -1);
    ctrlEdit.GetSel(iStartPos, iDummy);
    ctrlEdit.ReplaceSel(pstrText);

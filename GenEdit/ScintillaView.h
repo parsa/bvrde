@@ -41,6 +41,7 @@ public:
    bool m_bProtectDebugged;         // Read-Only file when debugging?
    bool m_bAutoComplete;            // Use auto-complete?
    bool m_bAutoClose;               // Automatically close HTML/XML tags?
+   bool m_bAutoCase;                // Automatically determine case?
    //
    static FINDREPLACEA s_frFind;    // The Find dialog information
    bool m_bAutoCompleteNext;        // AutoComplete displayed at next char added?

@@ -104,19 +104,19 @@ public:
 
    // IUnknown
 
-   virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject)
+   HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject)
    {
-      if( riid == __uuidof(ILineCallback) ) {
+      if( riid == __uuidof(ILineCallback) || || riid == IID_IUnknown ) {
          *ppvObject = (ILineCallback*) this;
          return S_OK;
       }
       return E_NOINTERFACE;
    }
-   virtual ULONG STDMETHODCALLTYPE AddRef(void)
+   ULONG STDMETHODCALLTYPE AddRef(void)
    {
       return 1;
    }
-   virtual ULONG STDMETHODCALLTYPE Release(void)
+   ULONG STDMETHODCALLTYPE Release(void)
    {
       return 1;
    }
@@ -127,6 +127,7 @@ public:
    {
       ATLASSERT(m_ctrlEdit.IsWindow());
       ATLASSERT(!::IsBadStringPtr(pstrText,-1));
+      m_ctrlEdit.HideSelection(TRUE);
       // Remove top lines if we've filled out the buffer
       GETTEXTLENGTHEX gtlx = { GTL_DEFAULT | GTL_CLOSE, 1200 };
       while( m_ctrlEdit.GetTextLengthEx(&gtlx) > m_ctrlEdit.GetLimitText() - 3000 ) {     
@@ -144,7 +145,6 @@ public:
       cf.dwMask = dwMask;;
       cf.dwEffects = dwEffects;
       cf.crTextColor = clrText;
-      m_ctrlEdit.HideSelection(TRUE);
       m_ctrlEdit.SetSel(-1, -1);
       m_ctrlEdit.GetSel(iStartPos, iDummy);
       m_ctrlEdit.ReplaceSel(pstrText);

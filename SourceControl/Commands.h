@@ -13,9 +13,10 @@ class CCommandThread :
 public:
    CString m_sCommand;
    CString m_sResult;
+   long m_lTImeout;
 
    CString GetResult() const;
-   void SetCommand(UINT nCmd, LPCTSTR pstrCommand);
+   void SetCommand(UINT nCmd, LPCTSTR pstrCommand, LONG lTimeout = 4000L);
 
    DWORD Run();
 
@@ -23,13 +24,13 @@ public:
 
    // ILineCallback
 
-   virtual HRESULT STDMETHODCALLTYPE OnIncomingLine(BSTR bstr);
+   HRESULT STDMETHODCALLTYPE OnIncomingLine(BSTR bstr);
 
    // IUnknown
 
-   virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject);
-   virtual ULONG STDMETHODCALLTYPE AddRef(void);
-   virtual ULONG STDMETHODCALLTYPE Release(void);
+   HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject);
+   ULONG STDMETHODCALLTYPE AddRef(void);
+   ULONG STDMETHODCALLTYPE Release(void);
 };
 
 

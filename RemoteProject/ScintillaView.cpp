@@ -199,6 +199,12 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    ATLASSERT(m_pView);
    if( m_pView == NULL ) return 0;
    if( !m_ctrlEdit.GetModify() ) return 0;
+
+   CWaitCursor cursor;
+
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_SAVEFILE)));
+   
+   // Just save the file...
    if( !m_pView->Save() ) {
       TCHAR szName[128] = { 0 };
       m_pView->GetName(szName, 127);
@@ -207,11 +213,14 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
       _pDevEnv->ShowMessageBox(m_hWnd, sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONEXCLAMATION);
       return 1; // Return ERROR indication
    }
+
    return 0;
 }
 
 LRESULT CScintillaView::OnEditAutoComplete(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
+   // The use of \b (BELL) character here is a hack, and is used to
+   // force the auto-complete/suggest dropdown to open...
    _AutoComplete('\b');
    if( !m_ctrlEdit.AutoCActive() ) _AutoSuggest('\b');
    return 0;
@@ -448,8 +457,8 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
          CString sValue = m_pCppProject->GetTagInfo(sText);
          if( sValue.IsEmpty() ) {
             // Try to locate the function and variable name
-            // BUG: The following just picks a "random" position in the line
-            //      It should calculate where the variable name is likely to start
+            // TODO: The following just picks a "random" position in the line
+            //       It should calculate where the variable name is likely to start
             CString sMember = _GetNearText(lPos - sText.GetLength() - 2);
             CString sType = _FindTagType(sMember, lPos);
             if( !sType.IsEmpty() ) sValue = m_pCppProject->GetTagInfo(sText, sType);
@@ -590,16 +599,16 @@ void CScintillaView::_AutoComplete(CHAR ch)
    if( sType.IsEmpty() ) return;
 
    // Yippie, we found one!!!
-   CSimpleValArray<CTagInfo::TAGINFO*> aList;
-   m_pCppProject->m_TagInfo.GetMemberList(sType, aList, true);
+   CSimpleValArray<TAGINFO*> aList;
+   m_pCppProject->m_TagManager.GetMemberList(sType, aList, true);
    int nCount = aList.GetSize();
    if( nCount == 0 ) return;
    // Need to sort the items Scintilla-style
    for( int a = 0; a < nCount; a++ ) {
       for( int b = a + 1; b < nCount; b++ ) {
          if( _FunkyStrCmp(aList[a]->pstrName, aList[b]->pstrName) > 0 ) {
-            CTagInfo::TAGINFO* pTemp1 = aList[a];
-            CTagInfo::TAGINFO* pTemp2 = aList[b];
+            TAGINFO* pTemp1 = aList[a];
+            TAGINFO* pTemp2 = aList[b];
             aList.SetAtIndex(a, pTemp2);
             aList.SetAtIndex(b, pTemp1);
          }
@@ -611,7 +620,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
    for( int i = 0; i < nCount; i++ ) {
       if( _iscppchar(aList[i]->pstrName[0]) ) {
          sList += aList[i]->pstrName;
-         sList += aList[i]->Type == CTagInfo::TAGTYPE_MEMBER ? _T("?0") : _T("?1");
+         sList += aList[i]->Type == TAGTYPE_MEMBER ? _T("?0") : _T("?1");
          sList += _T(" ");
       }
    }
@@ -785,21 +794,21 @@ CString CScintillaView::_FindTagType(CString& sName, long lPosition)
          }
 
          // Now, let's find the type in the TAG file
-         int iIndex = m_pCppProject->m_TagInfo.FindItem(0, sType);
+         int iIndex = m_pCppProject->m_TagManager.FindItem(0, sType);
          while( iIndex >= 0 ) {
-            switch( m_pCppProject->m_TagInfo.GetItemType(iIndex) ) {
-            case CTagInfo::TAGTYPE_ENUM:
-            case CTagInfo::TAGTYPE_DEFINE:
-            case CTagInfo::TAGTYPE_MEMBER:
-            case CTagInfo::TAGTYPE_UNKNOWN:
-            case CTagInfo::TAGTYPE_FUNCTION:
+            switch( m_pCppProject->m_TagManager.GetItemType(iIndex) ) {
+            case TAGTYPE_ENUM:
+            case TAGTYPE_DEFINE:
+            case TAGTYPE_MEMBER:
+            case TAGTYPE_UNKNOWN:
+            case TAGTYPE_FUNCTION:
                // These are not types; but rather members of one
                // so we ignore them...
                break;
             default:
                return sType;
             }
-            iIndex = m_pCppProject->m_TagInfo.FindItem(iIndex + 1, sType);
+            iIndex = m_pCppProject->m_TagManager.FindItem(iIndex + 1, sType);
          }
 
          iColPos = sLine.Find(sName, iColPos + 1);

@@ -11,7 +11,7 @@
 #include "FileProxy.h"
 #include "CompileManager.h"
 #include "DebugManager.h"
-#include "TagInfo.h"
+#include "TagProxy.h"
 
 #include "ObjectModel.h"
 
@@ -47,7 +47,7 @@ public:
    CFileManager m_FileManager;
    CCompileManager m_CompileManager;
    CDebugManager m_DebugManager;
-   CTagInfo m_TagInfo;
+   CTagManager m_TagManager;
    CProjectOM m_Dispatch;
 
 private:
@@ -125,6 +125,7 @@ public:
    bool OpenView(LPCTSTR pstrFilename, long lLineNum);
    IView* FindView(LPCTSTR pstrFilename, bool bLocally = false) const;
    void SendViewMessage(UINT nCmd, LAZYDATA* pData);
+   CClassView* GetClassView() const;
    CTelnetView* GetDebugView() const;
    CString GetBuildMode() const;
    BOOL SetName(LPCTSTR pstrName);
@@ -176,6 +177,9 @@ public:
       COMMAND_ID_HANDLER(ID_BUILD_REBUILD, OnBuildRebuild)
       COMMAND_ID_HANDLER(ID_BUILD_SOLUTION, OnBuildSolution)
       COMMAND_ID_HANDLER(ID_BUILD_COMPILE, OnBuildCompile)
+      COMMAND_ID_HANDLER(ID_BUILD_CHECKSYNTAX, OnBuildCheckSyntax)
+      COMMAND_ID_HANDLER(ID_BUILD_BUILDMAKEFILE, OnBuildMakefile)
+      COMMAND_ID_HANDLER(ID_BUILD_BUILDTAGS, OnBuildTags)
       COMMAND_ID_HANDLER(ID_BUILD_STOP, OnBuildStop)
       COMMAND_ID_HANDLER(ID_PROCESS, OnProcess)
       NOTIFY_CODE_HANDLER(TBN_DROPDOWN, OnToolBarDropDown)
@@ -217,6 +221,9 @@ public:
    LRESULT OnBuildRebuild(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
    LRESULT OnBuildSolution(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
    LRESULT OnBuildCompile(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
+   LRESULT OnBuildCheckSyntax(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
+   LRESULT OnBuildTags(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
+   LRESULT OnBuildMakefile(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
    LRESULT OnBuildStop(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
    LRESULT OnToolBarDropDown(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeLabelBegin(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);

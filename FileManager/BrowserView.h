@@ -28,7 +28,7 @@ public:
 };
 
 
-class CDragDrop : public IDropSource
+class CDragDrop : public CRawDropSource
 {
 public:
    void DragDrop(HWND hWnd, CPidl& pidl)
@@ -42,38 +42,6 @@ public:
       if( spDataObj == NULL ) return;
       DWORD dwEffect = 0;
       ::DoDragDrop(spDataObj, this, DROPEFFECT_COPY, &dwEffect);
-   }
-
-   // IUnknown
-
-   STDMETHOD(QueryInterface)(REFIID riid, LPVOID *ppvObject)
-   {
-      if( riid == __uuidof(IDropSource) ) {
-         *ppvObject = (IDropSource*) this;
-         return S_OK;
-      }
-      return E_NOINTERFACE;
-   }
-   virtual ULONG STDMETHODCALLTYPE AddRef()
-   {
-      return 1;
-   }
-   virtual ULONG STDMETHODCALLTYPE Release()
-   {
-      return 1;
-   }
-
-   // IDropSource
-
-   STDMETHOD(QueryContinueDrag)(BOOL bEsc, DWORD dwKeyState)
-   {
-      if( bEsc ) return ResultFromScode(DRAGDROP_S_CANCEL);
-      if( (dwKeyState & MK_LBUTTON) == 0 ) return ResultFromScode(DRAGDROP_S_DROP);
-      return S_OK;
-   }
-   STDMETHOD(GiveFeedback)(DWORD)
-   {
-      return ResultFromScode(DRAGDROP_S_USEDEFAULTCURSORS);
    }
 };
 

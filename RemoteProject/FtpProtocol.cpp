@@ -409,7 +409,7 @@ bool CFtpProtocol::_WaitForConnection()
       ::Sleep(200L);
       while( m_thread.IsRunning() ) {
          ::Sleep(200L);
-         if( ::GetTickCount() - dwTickStart > TIMEOUT * 1000L ) {
+         if( m_bCancel || ::GetTickCount() - dwTickStart > TIMEOUT * 1000L ) {
             ::SetLastError(ERROR_TIMEOUT);
             return false;
          }

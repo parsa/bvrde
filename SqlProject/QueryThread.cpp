@@ -146,6 +146,7 @@ DWORD CQueryThread::Run()
                   DATAPACKET* pRowInfo = new DATAPACKET(PACKET_ROWINFO, iColumns, 0, new CString[ m_nChunkSize * iColumns ]);
                
                   int iPos = 0;
+                  int nTotal = 0;
                   CString sValue;
                   CComVariant vValue;
                   TCHAR szValue[64] = { 0 };
@@ -239,10 +240,11 @@ DWORD CQueryThread::Run()
                         // Post column info
                         ::PostMessage(m_hWndNotify, WM_USER_DATA_AVAILABLE, 0, (LPARAM) pRowInfo);
                         // Throttle
-                        ::Sleep(0L);
+                        ::Sleep(nTotal > 4000 ? 150L : 0L);
                         ::WaitForInputIdle(m_hWndNotify, 200L);
                         // Ready with new packet
                         pRowInfo = new DATAPACKET(PACKET_ROWINFO, iColumns, 0, new CString[ m_nChunkSize * iColumns ]);
+                        nTotal += iPos;
                         iPos = 0;
                      }
                      if( m_state == STATE_DISCONNECT ) break;
@@ -375,7 +377,7 @@ BOOL CQueryThread::_SplitSQL(const CString& sSQL, int iLineNo, CSimpleArray<SQLP
    if( sTerminator.GetLength() > 1 ) sTerminator.Format(_T("\n%s"), szTerminator);
    int iTermLen = sTerminator.GetLength();
 
-   // Break the SQL statments apart.
+   // Break the SQL statements apart.
    // Keep track of source line-no since we might want to link back to
    // the original SQL text.
    CString sPart;

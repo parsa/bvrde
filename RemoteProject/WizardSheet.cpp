@@ -439,18 +439,27 @@ LRESULT CCompilerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    sName.LoadString(IDS_COMMAND_COMPILE);
    sValue = m_pProject->m_CompileManager.GetParam(_T("Compile"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 4));
+   sName.LoadString(IDS_COMMAND_CHECKSYNTAX);
+   sValue = m_pProject->m_CompileManager.GetParam(_T("CheckSyntax"));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 5));
    sName.LoadString(IDS_COMMAND_CLEAN);
    sValue = m_pProject->m_CompileManager.GetParam(_T("Clean"));
-   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 5));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 6));
 
    sName.LoadString(IDS_DIRECTIVES);
    m_ctrlList.AddItem(PropCreateCategory(sName));
    sName.LoadString(IDS_COMMAND_DEBUGEXPORT);
    sValue = m_pProject->m_CompileManager.GetParam(_T("DebugExport"));
-   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 6));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 10));
    sName.LoadString(IDS_COMMAND_RELEASEEXPORT);
    sValue = m_pProject->m_CompileManager.GetParam(_T("ReleaseExport"));
-   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 7));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 11));
+
+   sName.LoadString(IDS_MISC);
+   m_ctrlList.AddItem(PropCreateCategory(sName));
+   sName.LoadString(IDS_COMMAND_BUILDCTAGS);
+   sValue = m_pProject->m_CompileManager.GetParam(_T("BuildTags"));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 20));
 
    return 0;
 }
@@ -479,14 +488,21 @@ int CCompilerCommandsPage::OnApply()
    m_pProject->m_CompileManager.SetParam(_T("Compile"), CString(v.bstrVal));
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(5), &v);
+   m_pProject->m_CompileManager.SetParam(_T("CheckSyntax"), CString(v.bstrVal));
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(6), &v);
    m_pProject->m_CompileManager.SetParam(_T("Clean"), CString(v.bstrVal));
 
    v.Clear();
-   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(6), &v);
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(10), &v);
    m_pProject->m_CompileManager.SetParam(_T("DebugExport"), CString(v.bstrVal));
    v.Clear();
-   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(7), &v);
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(11), &v);
    m_pProject->m_CompileManager.SetParam(_T("ReleaseExport"), CString(v.bstrVal));
+
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(20), &v);
+   m_pProject->m_CompileManager.SetParam(_T("BuildTags"), CString(v.bstrVal));
 
    return PSNRET_NOERROR;
 }

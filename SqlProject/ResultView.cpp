@@ -84,12 +84,19 @@ LRESULT CResultView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
    return 0;
 }
 
+LRESULT CResultView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{   
+   _ResetLists();
+   bHandled = FALSE;
+   return 0;
+}
+
 LRESULT CResultView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    RECT rc;
    GetClientRect(&rc);
    m_ctrlTab.MoveWindow(&rc);
-   if( m_wndClient == NULL ) return 0;
+   if( !m_wndClient.IsWindow() ) return 0;
    m_ctrlTab.AdjustRect(FALSE, &rc);
    m_wndClient.MoveWindow(&rc);
    return 0;
@@ -117,16 +124,7 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
          _pDevEnv->ShowStatusText(0, CString(MAKEINTRESOURCE(IDS_SB_EXECUTING)), TRUE);
 
          _RememberColumnSizes();
-
-         // Reset list and result text
-         while( m_ctrlTab.GetItemCount() > 1 ) m_ctrlTab.DeleteItem(0);
-         for( int i = 0; i < m_aLists.GetSize(); i++ ) m_aLists[i]->DestroyWindow();
-         
-         m_nErrors = 0;
-         m_aLists.RemoveAll();
-         m_aLinks.RemoveAll();
-         m_ctrlTab.SetCurFocus(0);
-         m_ctrlEdit.SetWindowText(_T("\r\n"));
+         _ResetLists();
       }
       break;
    case PACKET_COLUMNINFO:
@@ -199,7 +197,7 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
          m_pCurProcessingList->SetRedraw(FALSE);
          int nCount = m_pCurProcessingList->GetItemCount();
          int iPos = 0;
-         int iIndex = m_pCurProcessingList->GetItemCount();
+         int iIndex = nCount;
          for( int i = 0; i < pPacket->iRows; i++ ) {
             int iItem = m_pCurProcessingList->InsertItem(iIndex++, pPacket->pstrData[iPos++]);
             for( int j = 1; j < pPacket->iCols; j++ ) {
@@ -309,8 +307,8 @@ void CResultView::_RememberColumnSizes()
 {
    // Remember width of current columns
    for( int i = 0; i < m_aLists.GetSize(); i++ ) {
+      if( !m_aLists[i]->IsWindow() ) break;
       CHeaderCtrl ctrlHeader = m_aLists[i]->GetHeader();
-      if( !ctrlHeader.IsWindow() ) return;
       for( int j = 0; j < ctrlHeader.GetItemCount(); j++ ) {
          TCHAR szName[128] = { 0 };
          HDITEM hdi = { 0 };
@@ -322,4 +320,19 @@ void CResultView::_RememberColumnSizes()
          if( !m_aColumnInfo.SetAt(sTitle, hdi.cxy) ) m_aColumnInfo.Add(sTitle, hdi.cxy);
       }
    }
+}
+
+void CResultView::_ResetLists()
+{
+   m_pCurProcessingList = NULL;
+
+   // Remove lists and reset result text
+   while( m_ctrlTab.GetItemCount() > 1 ) m_ctrlTab.DeleteItem(0);
+   for( int i = 0; i < m_aLists.GetSize(); i++ ) m_aLists[i]->DestroyWindow();
+   m_aLists.RemoveAll();
+
+   m_nErrors = 0;
+   m_aLinks.RemoveAll();
+   m_ctrlTab.SetCurFocus(0);
+   m_ctrlEdit.SetWindowText(_T("\r\n"));
 }

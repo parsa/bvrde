@@ -396,7 +396,7 @@ VARIANT_BOOL CTextFileOM::FindText(BSTR Text)
    return iPos >= 0 ? VARIANT_TRUE : VARIANT_FALSE;
 }
 
-VOID __stdcall CTextFileOM::SendRawMessage(long uMsg, long wParam, BSTR lParam)
+VOID CTextFileOM::SendRawMessage(long uMsg, long wParam, BSTR lParam)
 {
    if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
    USES_CONVERSION;

@@ -42,6 +42,7 @@ extern CComModule _Module;
 #include "atlwinmisc.h"
 #include "atlgdix.h"
 #include "atlctrlsext.h"
+#include "atldataobj.h"
 
 #include "atlscintilla.h"
 

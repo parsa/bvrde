@@ -76,6 +76,30 @@ typedef struct
 } LAZYDATA;
 
 
+typedef enum TAGTYPE
+{
+   TAGTYPE_UNKNOWN = 0,
+   TAGTYPE_CLASS,
+   TAGTYPE_STRUCT,
+   TAGTYPE_TYPEDEF,
+   TAGTYPE_DEFINE,
+   TAGTYPE_FUNCTION,
+   TAGTYPE_MEMBER,
+   TAGTYPE_ENUM,
+};
+
+typedef struct tagTAGINFO
+{
+   TAGTYPE Type;
+   LPCTSTR pstrName;
+   LPCTSTR pstrFile;
+   LPCTSTR pstrToken;
+   LPCTSTR pstrFields[10];
+   short nFields;
+   long iLineNo;
+} TAGINFO;
+
+
 //////////////////////////////////////////////////////////////
 //
 
@@ -149,6 +173,21 @@ public:
    //
    virtual CString GetParam(LPCTSTR pstrName) const = 0;
    virtual void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue) = 0;
+};
+
+class ITagHandler
+{
+public:
+   virtual void Init(CRemoteProject* pProject) = 0;
+   virtual void Clear() = 0;
+   virtual bool IsLoaded() const = 0;
+   virtual bool IsAvailable() const = 0;
+   virtual TAGTYPE GetItemType(int iIndex) = 0;
+   virtual int FindItem(int iStart, LPCTSTR pstrName) = 0;
+   virtual bool GetOuterList(CSimpleValArray<TAGINFO*>& aList) = 0;
+   virtual bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList) = 0;
+   virtual CString GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner = NULL) = 0;
+   virtual bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance) = 0;
 };
 
 

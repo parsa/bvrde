@@ -256,3 +256,11 @@ void __stdcall CStartPageView::__BeforeNavigate2(/*[in]*/ IDispatch* pDisp,
 
    *Cancel = bCancel ? VARIANT_TRUE : VARIANT_FALSE;
 }
+
+void __stdcall CStartPageView::__DocumentComplete(/*[in]*/ IDispatch* pDisp, 
+   /*[in]*/ BSTR bstrText)
+{
+   enum { WM_APP_IDLETIME = WM_APP + 1001 };
+   CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
+   wndMain.PostMessage(WM_APP_IDLETIME);
+}

@@ -46,7 +46,9 @@ void PreloadConfig()
 
    // Load from file
    // NOTE: We quite boldly try to load the XML asynchroniously
-   //       to increase start performance.
+   //       to increase start performance. Don't think this has
+   //       any effect as long as we're not using a stream/URLMON
+   //       but Microsoft doesn't document otherwise.
    g_spConfigDoc->put_async(VARIANT_TRUE);
    VARIANT_BOOL vbSuccess = VARIANT_FALSE;
    if( FAILED( g_spConfigDoc->load(CComVariant(sFilename), &vbSuccess) ) || vbSuccess == VARIANT_FALSE ) {
@@ -159,6 +161,7 @@ void CMainFrame::_LoadSettings()
             _AddProperty(&arc, _T("protectDebugged"), sKey + _T("protectDebugged"));
             _AddProperty(&arc, _T("matchBraces"), sKey + _T("matchBraces"));
             _AddProperty(&arc, _T("autoClose"), sKey + _T("autoClose"));
+            _AddProperty(&arc, _T("autoCase"), sKey + _T("autoCase"));
             _AddProperty(&arc, _T("autoComplete"), sKey + _T("autoComplete"));
             _AddProperty(&arc, _T("autoSuggest"), sKey + _T("autoSuggest"));
             _AddProperty(&arc, _T("classBrowser"), sKey + _T("classBrowser"));

@@ -15,6 +15,21 @@ Package=<4>
 
 ###############################################################################
 
+Project: "CppLexer"=.\CppLexer\CppLexer.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name RemoteProject
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "EmptyProject"=.\EmptyProject\EmptyProject.dsp - Package Owner=<4>
 
 Package=<5>

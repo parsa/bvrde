@@ -260,11 +260,11 @@ BOOL CView::Run(BOOL bSelectedTextOnly)
       iLineNo = 1;
    }
 
-   m_thread.ExecuteSql(sText, iLineNo);
-
    BOOL bDummy;
    m_view.SetCurSel(1);
    m_view.OnTabChange(0, NULL, bDummy);
+
+   m_thread.ExecuteSql(sText, iLineNo);
 
    return TRUE;
 }

@@ -43,7 +43,10 @@ public:
 
    CMainFrame();
 
-   enum { ANIMATE_TIMERID = 22 };
+   enum { 
+      ANIMATE_TIMERID = 22,
+      DELAY_TIMERID = 23,
+   };
 
    typedef struct TOOLBAR
    {
@@ -209,6 +212,7 @@ public:
       NOTIFY_CODE_HANDLER(NM_RCLICK, OnRebarRClick)
       // Internal messaging
       MESSAGE_HANDLER(WM_APP_INIT, OnUserInit)
+      MESSAGE_HANDLER(WM_APP_IDLETIME, OnUserIdle)
       MESSAGE_HANDLER(WM_APP_LOADSOLUTION, OnUserLoadSolution)
       MESSAGE_HANDLER(WM_APP_BUILDSOLUTIONUI, OnUserBuildSolutionUI)
       MESSAGE_HANDLER(WM_APP_TREEMESSAGE, OnUserTreeMessage)
@@ -279,6 +283,7 @@ public:
    LRESULT OnRebarLayoutChanged(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnRebarRClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnUserInit(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnUserIdle(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnUserLoadSolution(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnUserBuildSolutionUI(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnUserTreeMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

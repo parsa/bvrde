@@ -15,9 +15,10 @@
 //
 //
 
-void CCommandThread::SetCommand(UINT /*nCmd*/, LPCTSTR pstrCommand)
+void CCommandThread::SetCommand(UINT /*nCmd*/, LPCTSTR pstrCommand, LONG lTimeout/* = 4000L*/)
 {
    m_sCommand = pstrCommand;
+   m_lTImeout = lTimeout;
 }
 
 CString CCommandThread::GetResult() const
@@ -41,7 +42,7 @@ DWORD CCommandThread::Run()
    CComVariant aParams[3];
    aParams[2] = bstrCommand;
    aParams[1] = (IUnknown*) this;
-   aParams[0] = 4000L;
+   aParams[0] = m_lTImeout;
    dd.InvokeN(OLESTR("ExecCommand"), aParams, 3);
 
    // Let's look at the result
@@ -96,7 +97,7 @@ HRESULT CCommandThread::OnIncomingLine(BSTR bstr)
 
 HRESULT CCommandThread::QueryInterface(REFIID riid, void** ppvObject)
 {
-   if( riid == __uuidof(ILineCallback) ) {
+   if( riid == __uuidof(ILineCallback) || riid == IID_IUnknown ) {
       *ppvObject = (ILineCallback*) this;
       return S_OK;
    }
@@ -316,19 +317,30 @@ bool CScCommands::RemoveFile(CSimpleArray<CString>& aFiles)
 
 bool CScCommands::LogIn(CSimpleArray<CString>& aFiles)
 {
+   CLoginCvsDlg dlg;
    CString sCmd;
    sCmd.Format(_T("%s %s"), sProgram, sCmdLogIn);
    if( sType == _T("cvs") ) {
-      CLoginCvsDlg dlg;
       if( dlg.DoModal() != IDOK ) return false;
       sCmd += dlg.m_sOptions;
-      sCmd += _T("\n");
-      sCmd += dlg.m_sPassword;
+      // Hmm, the cvs server blocks the input through
+      // the Telnet shell. We'll not send the password right
+      // away to do it in two steps.
+      // BUG: This is very non-portable! What if there's no
+      //      telnet; or a different cvs impl????
+      // BUG: FIX THIS!!!
    }
    sCmd += _T("\n");
    m_thread.Stop();
-   m_thread.SetCommand(ID_SC_LOGIN, sCmd);
+   m_thread.SetCommand(ID_SC_LOGIN, sCmd, 1000);
    m_thread.Start();
+   if( sType == _T("cvs") ) {
+      m_thread.Stop();
+      sCmd = dlg.m_sPassword;
+      sCmd += _T("\n");
+      m_thread.SetCommand(ID_SC_LOGIN, sCmd, 1000);
+      m_thread.Start();
+   }
    return true;
 }
 

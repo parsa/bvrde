@@ -169,6 +169,18 @@ SOURCE=.\SshProtocol.cpp
 SOURCE=.\TelnetProtocol.cpp
 # End Source File
 # End Group
+# Begin Group "Tag Source"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\LexInfo.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\TagInfo.cpp
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\CompileManager.cpp
@@ -225,7 +237,7 @@ SOURCE=.\StdAfx.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\TagInfo.cpp
+SOURCE=.\TagProxy.cpp
 # End Source File
 # Begin Source File
 
@@ -245,6 +257,10 @@ SOURCE=.\WizardSheet.cpp
 # Begin Source File
 
 SOURCE=..\Source\WTL\Include\atlctrlsext.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\ATL\Include\atldataobj.h
 # End Source File
 # Begin Source File
 
@@ -403,6 +419,18 @@ SOURCE=.\SshProtocol.h
 SOURCE=.\TelnetProtocol.h
 # End Source File
 # End Group
+# Begin Group "Tags"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\LexInfo.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TagInfo.h
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=..\IDE\BVRDE_SDK.h
@@ -457,7 +485,7 @@ SOURCE=.\StdAfx.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\TagInfo.h
+SOURCE=.\TagProxy.h
 # End Source File
 # Begin Source File
 

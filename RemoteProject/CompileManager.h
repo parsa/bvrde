@@ -90,6 +90,8 @@ public:
    CString m_sCommandRebuild;
    CString m_sCommandCompile;
    CString m_sCommandClean;
+   CString m_sCommandCheckSyntax;
+   CString m_sCommandBuildTags;
    CString m_sCommandDebug;
    CString m_sCommandRelease;
    CString m_sPromptPrefix;

@@ -20,35 +20,30 @@ class CRemoteProject;
  * With a reference to the CRemoteProject object, the class will scan the files
  * and extract TAG information from any relevant project file.
  */
-class CTagInfo
+class CTagInfo : public ITagHandler
 {
 public:
    CTagInfo();
    virtual ~CTagInfo();
 
-// Attributtes
+// ITagInfoHandler
 public:
-   typedef enum TAGTYPE
-   {
-      TAGTYPE_UNKNOWN = 0,
-      TAGTYPE_CLASS,
-      TAGTYPE_STRUCT,
-      TAGTYPE_TYPEDEF,
-      TAGTYPE_DEFINE,
-      TAGTYPE_FUNCTION,
-      TAGTYPE_MEMBER,
-      TAGTYPE_ENUM,
-   };
-   typedef struct
-   {
-      LPCTSTR pstrName;
-      LPCTSTR pstrFile;
-      LPCTSTR pstrToken;
-      LPCTSTR pstrFields[10];
-      short nFields;
-      TAGTYPE Type;
-   } TAGINFO;
+   void Init(CRemoteProject* pProject);
+   void Clear();
+   bool IsLoaded() const;
+   bool IsAvailable() const;
+   int FindItem(int iStart, LPCTSTR pstrName);
+   CTagInfo::TAGTYPE GetItemType(int iIndex);
+   bool GetOuterList(CSimpleValArray<TAGINFO*>& aList);
+   bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList);
+   CString GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner = NULL);
+   bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance);
 
+// Operations
+public:
+   bool MergeFile(LPCTSTR pstrFilename);
+
+// Attributtes
 private:
    CRemoteProject* m_pProject;
    CSimpleArray<TAGINFO> m_aTags;
@@ -57,25 +52,12 @@ private:
    bool m_bSorted;
    bool m_bClassBrowserDone;
 
-// Operations
-public:
-   void Init(CRemoteProject* pProject);
-   bool IsLoaded() const;
-   bool IsTagsAvailable() const;
-   void Clear();
-   int GetItemCount();
-   int FindItem(int iStart, LPCTSTR pstrName);
-   CString GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner = NULL);
-   CTagInfo::TAGTYPE GetItemType(int iIndex);
-   bool GetOuterList(CSimpleValArray<TAGINFO*>& aList);
-   bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance);
-
 // Implementation
 private:
-   void _LoadTags();
+   bool _LoadTags();
    bool _ParseTagFile(LPTSTR pstrText);
-   TAGTYPE _GetTagType(const TAGINFO& info) const;
-   CString _GetTagParent(const TAGINFO& info) const;
+   TAGTYPE _GetTagType(const TAGINFO& tag) const;
+   CString _GetTagParent(const TAGINFO& tag) const;
 };
 
 

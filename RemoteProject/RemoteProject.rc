@@ -277,6 +277,14 @@ BEGIN
             MENUITEM "Rebuild Solution",            ID_BUILD_SOLUTION
             MENUITEM SEPARATOR
             MENUITEM "Co&mpile\tCtrl+F7",           ID_BUILD_COMPILE
+            MENUITEM "Check &Syntax",               ID_BUILD_CHECKSYNTAX
+            MENUITEM SEPARATOR
+            POPUP "Additional"
+            BEGIN
+                MENUITEM "Build &CTAGS",                ID_BUILD_BUILDTAGS
+                MENUITEM "Build &Makefile",             ID_BUILD_BUILDMAKEFILE
+
+            END
             MENUITEM SEPARATOR
             MENUITEM "Stop Build\tCtrl+Break",      ID_BUILD_STOP
         END
@@ -368,6 +376,8 @@ BEGIN
     BEGIN
         MENUITEM "&Go to Definition",           ID_CLASSVIEW_GOTO
         MENUITEM SEPARATOR
+        MENUITEM "&Copy",                       ID_CLASSVIEW_COPY
+        MENUITEM SEPARATOR
         MENUITEM "&Properties",                 ID_CLASSVIEW_PROPERTIES
     END
 END
@@ -393,11 +403,11 @@ END
 // Dialog
 //
 
-IDD_FILEBROWSE DIALOG DISCARDABLE  0, 0, 310, 177
+IDD_FILEBROWSE DIALOGEX 0, 0, 310, 177
 STYLE DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | WS_CAPTION | 
     WS_SYSMENU | WS_THICKFRAME
 CAPTION "Open"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_LIST,"SysListView32",LVS_LIST | 
                     LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_AUTOARRANGE | 
@@ -415,6 +425,8 @@ BEGIN
                     WS_VSCROLL | WS_TABSTOP,37,4,142,98
     PUSHBUTTON      "",IDC_BACK,183,3,15,15,BS_ICON | WS_DISABLED
     PUSHBUTTON      "",IDC_UP,201,3,15,15,BS_ICON
+    LTEXT           "No Connection to Remote Machine",IDC_NOCONNECTION,23,36,
+                    146,14,NOT WS_VISIBLE,WS_EX_TRANSPARENT
 END
 
 IDD_WIZARD_FILETRANSFER DIALOGEX 0, 0, 329, 169
@@ -565,7 +577,7 @@ END
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
 STYLE WS_CHILD
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "Integration",-1,0,0,38,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,46,4,212,1
@@ -592,8 +604,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,109,
                     120,10,WS_EX_TRANSPARENT
     CONTROL         "Use online class scanner",IDC_ONLINESCANNER,"Button",
-                    BS_AUTOCHECKBOX | WS_DISABLED | WS_GROUP | WS_TABSTOP,14,
-                    121,120,10,WS_EX_TRANSPARENT
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,120,120,10,
+                    WS_EX_TRANSPARENT
 END
 
 
@@ -1014,6 +1026,20 @@ BEGIN
     IDS_STACKLINE3          "%s,  file='%s'  (%s)"
     IDS_ERR_RELPATH         "Use Full Path\nIt is better to use a complete start path.\nIt is not recommended to use a relative start path; use a full (complete) path instead.\n\nContinue?"
     IDS_ERR_DEBUGVERSION    "Not supported\nThis version of GDB is not supported.\nThe GDB debugger needs to be at least version 5.3 to work with this IDE."
+    IDS_CHECKSYNTAX         "Check Syntax"
+    IDS_MISC                "Misc"
+    IDS_COMMAND_BUILDCTAGS  "Build CTAGS"
+    IDS_COMMAND_CHECKSYNTAX "Check Syntax"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_CLASSVIEW_COPY       "Copy selected item text\nCopy"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_STATUS_SAVEFILE     " Saving file..."
 END
 
 #endif    // English (U.S.) resources

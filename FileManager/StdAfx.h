@@ -22,10 +22,12 @@
 extern CShellModule _Module;
 
 #include "atlshellext.h"
+
 #include <atlwin.h>
 #include <atlctrls.h>
 
 #include "atlwinmisc.h"
+#include "atldataobj.h"
 
 #include "../IDE/BVRDE_SDK.h"
 extern IDevEnv* _pDevEnv;

@@ -219,9 +219,9 @@ LRESULT CMainFrame::OnDropFiles(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
    CWaitCursor cursor;
    HDROP hDrop = (HDROP) wParam;
    TCHAR szFilename[MAX_PATH + 1] = { 0 };
-   UINT nCount = ::DragQueryFile(hDrop, (UINT) -1, szFilename, MAX_PATH);
-   for( UINT i = 0; i < nCount; i++ ) {
-      ::DragQueryFile(hDrop, i, szFilename, MAX_PATH);
+   int nCount = (int) ::DragQueryFile(hDrop, (UINT) -1, szFilename, MAX_PATH);
+   for( int i = 0; i < nCount; i++ ) {
+      ::DragQueryFile(hDrop, (int) i, szFilename, MAX_PATH);
       if( _tcslen(szFilename) == 0 ) continue;
       IView* pView = CreateView(szFilename);
       if( pView ) ATLTRY( pView->OpenView(0) );
@@ -271,14 +271,24 @@ LRESULT CMainFrame::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 LRESULT CMainFrame::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
    bHandled = FALSE;
-   if( wParam != ANIMATE_TIMERID ) return 0;
-   if( m_iAnimatePos < 0 ) return 0;
-   // Draw the little statusbar animation
-   // TODO: How to prevent that nasty animation flickering?
-   m_iAnimatePos = (m_iAnimatePos + 1) % m_AnimateImages.GetImageCount();
-   RECT rcItem = { 0 };
-   m_StatusBar.GetRect(1, &rcItem);
-   m_StatusBar.InvalidateRect(&rcItem, FALSE);
+   if( wParam == ANIMATE_TIMERID ) 
+   {
+      if( m_iAnimatePos < 0 ) return 0;
+      // Draw the little statusbar animation
+      // TODO: How to prevent that nasty animation flickering?
+      m_iAnimatePos = (m_iAnimatePos + 1) % m_AnimateImages.GetImageCount();
+      RECT rcItem = { 0 };
+      m_StatusBar.GetRect(1, &rcItem);
+      m_StatusBar.InvalidateRect(&rcItem, FALSE);
+   }
+   else if( wParam == DELAY_TIMERID ) 
+   {
+      KillTimer(DELAY_TIMERID);
+      // Delay load some of the external libraries...
+      ::LoadLibrary(_T("GenEdit.dll"));
+      ::LoadLibrary(_T("SciLexer.dll"));
+      ::LoadLibrary(_T("CppLexer.dll"));
+   }
    return 0;
 }
 
@@ -811,6 +821,13 @@ LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
    if( !LoadWindowPos() ) ShowWindow(SW_SHOW);
 
    ::SetForegroundWindow(m_hWnd);
+   return 0;
+}
+
+LRESULT CMainFrame::OnUserIdle(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+{  
+   static long s_once = 0;
+   if( s_once++ == 0 ) SetTimer(DELAY_TIMERID, 500L);
    return 0;
 }
 

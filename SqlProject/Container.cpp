@@ -136,6 +136,16 @@ LRESULT CContainerWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
    return lRes;
 }
 
+LRESULT CContainerWindow::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
+   // NOTE: An OLEDB provider that doesn't support asynchronious cancel
+   //       will block here!! We really need it to shut down though...
+   CWaitCursor cursor;
+   if( m_pView->IsQueryRunning() ) m_pView->Abort();
+   bHandled = FALSE;
+   return 0;
+}
+
 LRESULT CContainerWindow::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    if( !m_hWndClient.IsWindow() ) return 0;

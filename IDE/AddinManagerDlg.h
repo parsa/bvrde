@@ -23,6 +23,7 @@ public:
 
    BEGIN_MSG_MAP(CChooseSolutionDlg)
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+      MESSAGE_HANDLER(WM_CTLCOLORSTATIC, OnCtlColorStatic)
       COMMAND_ID_HANDLER(IDOK, OnOK)
       COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
       NOTIFY_CODE_HANDLER(LVN_ITEMCHANGED, OnItemChanged)
@@ -89,6 +90,17 @@ public:
 
       CenterWindow();
       return 0;
+   }
+   LRESULT OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+   {
+      if( lParam != (LPARAM) (HWND) m_ctrlDescription ) {
+         bHandled = FALSE;
+         return 0;
+      }
+      CDCHandle dc = (HDC) wParam;
+      dc.SetTextColor(::GetSysColor(COLOR_3DDKSHADOW));
+      dc.SetBkMode(TRANSPARENT);
+      return (LRESULT) ::GetSysColorBrush(COLOR_BTNFACE);
    }
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {

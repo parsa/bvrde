@@ -813,7 +813,7 @@ bool CDebugManager::_PauseDebugger()
    // Yes, let's give it a break.
    Break();
    // Wait for break sequence to complete
-   const int TIMEOUT = 5;  // in 100ms
+   const int TIMEOUT = 10;  // in 100ms
    for( int i = 0; !IsBreaked() && i < TIMEOUT; i++ ) ::Sleep(100L);
    // Did we succeed?
    return IsBreaked();

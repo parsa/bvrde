@@ -125,8 +125,8 @@ inline int SshGetPrivateKey(CCryptLib& clib,
    if( cryptStatusError( status ) ) return status;
 
    // If the key has a cert attached, make sure it's still valid before we 
-   //   hand it back to the self-test functions which will report the problem 
-   //   as being with the self-test rather than with the cert */
+   // hand it back to the self-test functions which will report the problem 
+   // as being with the self-test rather than with the cert
    time_t validFrom, validTo;
    status = clib.cryptGetAttributeString( *cryptContext, CRYPT_CERTINFO_VALIDFROM, &validFrom, &dummy );
    if( cryptStatusError( status ) ) return CRYPT_OK;

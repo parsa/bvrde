@@ -34,9 +34,12 @@ LRESULT CRemoteFileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    m_ctrlFilename = GetDlgItem(IDC_FILENAME);
    m_ctrlTypes = GetDlgItem(IDC_TYPES);
    m_ctrlList = GetDlgItem(IDC_LIST);
-   if( m_dwFlags & OFN_ALLOWMULTISELECT ) m_ctrlList.ModifyStyle(LVS_SINGLESEL, 0);
+   m_ctrlNoConnection = GetDlgItem(IDC_NOCONNECTION);
    m_ctrlFolder = GetDlgItem(IDC_FOLDER);
    m_ctrlOK = GetDlgItem(IDOK);
+
+   // We support multiple selections
+   if( m_dwFlags & OFN_ALLOWMULTISELECT ) m_ctrlList.ModifyStyle(LVS_SINGLESEL, 0);
 
    // Prepare images
    int nSmallCx = ::GetSystemMetrics(SM_CXSMICON);
@@ -84,13 +87,20 @@ LRESULT CRemoteFileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    _PopulateView(m_sOrigPath);
    _UpdateButtons();
 
-   // Position window about where the standard FileOpen dialog appears
-   RECT rcParent;
-   ::GetWindowRect(GetParent(), &rcParent);
-   SetWindowPos(GetParent(), rcParent.left + 10, rcParent.top + 50, 0, 0, SWP_NOSIZE);
-
    DlgResize_Init(true, true);
    return TRUE;
+}
+
+LRESULT CRemoteFileDlg::OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+   if( lParam != (LPARAM) (HWND) m_ctrlNoConnection ) {
+      bHandled = FALSE;
+      return 0;
+   }
+   CDCHandle dc = (HDC) wParam;
+   dc.SetTextColor(RGB(200,0,0));
+   dc.SetBkMode(TRANSPARENT);
+   return (LRESULT) ::GetSysColorBrush(COLOR_WINDOW);
 }
 
 LRESULT CRemoteFileDlg::OnUp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -289,7 +299,7 @@ bool CRemoteFileDlg::_PopulateView(LPCTSTR pstrPath)
 
    CSimpleArray<WIN32_FIND_DATA> aFiles;
    if( !m_pFileManager->EnumFiles(aFiles) ) {
-      ::MessageBeep((UINT)-1);
+      m_ctrlNoConnection.ShowWindow(SW_SHOW);
       return false;
    }
 

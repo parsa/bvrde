@@ -437,11 +437,13 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info)
 
 CScintillaView::SQLKEYWORD CScintillaView::_GetKeyword(CString& sKeyword) const
 {
-   struct 
+   typedef struct 
    {
       LPCTSTR pstrName;
       SQLKEYWORD kw;
-   } aList[] = {
+   } LEXSQL;
+   static LEXSQL aList[] = 
+   {
       { _T("SELECT"), SQL_CONTEXT_FIELD },
       { _T("VALUES"), SQL_CONTEXT_FIELD },
       { _T("BY"), SQL_CONTEXT_FIELD },
