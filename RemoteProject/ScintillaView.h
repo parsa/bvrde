@@ -111,8 +111,9 @@ public:
    void _ClearSquigglyLines();
    void _MatchBraces(long lPosition);
    void _SetLineIndentation(int line, int indent);
-   bool _HasSelection() const;
    void _RegisterListImages();
+   bool _HasSelection() const;
+   bool _IsRealCppEditPos(long lPos) const;
    int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings);
    CString _FindBlockType(long lPosition);
    CString _FindTagType(const CString& sName, long lPosition);

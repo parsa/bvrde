@@ -67,6 +67,10 @@ Microsoft include paths to make use of the Microsoft STL version.
 Compiling under Visual Studio.NET will generate a number of warnings. You
 may ignore these warnings.
 
+Compile errors mentioning "___securecookie" may be related to the /GS
+switch in the latest VisualStudio.NET compiler family. To sucessfully 
+compile you should disable the "Buffer Security Check" setting.
+
 The realtime C++ lexer, "cpp.l", needs a lex/yacc utility to compile. It 
 is currently compiled with "flex" but other lex-tools may work.
 

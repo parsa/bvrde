@@ -40,8 +40,8 @@ CString CMiInfo::GetItem(LPCTSTR pstrKey,
    for( int i = 0; i < m_aItems.GetSize(); i++ ) {
       const MIINFO& info = m_aItems[i];
       if( _tcscmp(info.szKey, pstrKey) != 0 ) continue;
-      if( pstrFrame && _tcscmp(info.szFrame, pstrFrame) != 0 ) continue;
-      if( pstrGroup && _tcscmp(info.szGroup, pstrGroup) != 0 ) continue;
+      if( pstrFrame != NULL && _tcscmp(info.szFrame, pstrFrame) != 0 ) continue;
+      if( pstrGroup != NULL && _tcscmp(info.szGroup, pstrGroup) != 0 ) continue;
       if( lCurPos++ != lPosition ) continue;
       // Found it; remember position in list so we can continue
       // at this point using FindNext().
@@ -73,8 +73,8 @@ CString CMiInfo::FindNext(LPCTSTR pstrKey,
    for( int i = m_iSearchIndex + 1; i < m_aItems.GetSize(); i++ ) {
       const MIINFO& info = m_aItems[i];
       if( _tcscmp(info.szKey, pstrKey) != 0 ) continue;
-      if( pstrFrame && _tcscmp(info.szFrame, pstrFrame) != 0 ) continue;
-      if( pstrGroup && _tcscmp(info.szGroup, pstrGroup) != 0 ) continue;
+      if( pstrFrame != NULL && _tcscmp(info.szFrame, pstrFrame) != 0 ) continue;
+      if( pstrGroup != NULL && _tcscmp(info.szGroup, pstrGroup) != 0 ) continue;
       m_iSearchIndex = i;
       return info.szValue;
    }
@@ -185,7 +185,7 @@ void CMiInfo::_GetPlainText(LPTSTR pstrDest, LPCTSTR pstrSrc, int iStart, int nL
       if( *pstrSrc == '\\' ) {
          pstrSrc++;
          nLen--;
-         // TODO: Handle \t escaped chars...
+         // TODO: Handle escaped (\t) chars...
       }
       *pstrDest++ = *pstrSrc++;
    }
@@ -221,3 +221,4 @@ bool CMiInfo::_FindBlockEnd(LPCTSTR pstrText, int& iPos) const
    }
    return true;
 }
+

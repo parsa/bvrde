@@ -60,7 +60,10 @@ public:
 // Constructor/destructor
 
 CClassView::CClassView() :
-   m_pProject(NULL), m_bPopulated(false), m_bLocked(false)
+   m_pProject(NULL), 
+   m_pCurrentTag(NULL),
+   m_bPopulated(false), 
+   m_bLocked(false)
 {
 }
 
@@ -144,7 +147,7 @@ void CClassView::Populate()
    ATLASSERT(IsWindow());
    // TAGS files already scanned and nothing was found!
    if( m_bPopulated ) return;
-   // Show status text
+   // Change status text
    CWaitCursor cursor;
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_LOADTAG)));
    // Fill up tree...
@@ -180,7 +183,7 @@ void CClassView::_PopulateTree()
       // Clear tree
       m_ctrlTree.DeleteAllItems();  
 
-      // Not locked anymore; tree is safe!
+      // Not locked anymore; tree is safe to access!
       m_bLocked = false;
 
       // Insert classes and expand previously expanded branches...
@@ -195,7 +198,9 @@ void CClassView::_PopulateTree()
       tvis.item.pszText = LPSTR_TEXTCALLBACK;
       for( int i = 0; i < aList.GetSize(); i++ ) {
          TAGINFO* pTag = aList[i];
-         if( pTag->Type == TAGTYPE_CLASS || pTag->Type == TAGTYPE_STRUCT ) {
+         if( pTag->Type == TAGTYPE_CLASS 
+             || pTag->Type == TAGTYPE_STRUCT ) 
+         {
             tvis.item.lParam = (LPARAM) pTag;
             HTREEITEM hItem = m_ctrlTree.InsertItem(&tvis);
             for( int j = 0; j < m_aExpandedNames.GetSize(); j++ ) {
@@ -206,6 +211,11 @@ void CClassView::_PopulateTree()
             }
          }
       }
+
+      // Sort classes
+      TCHAR szValue[32] = { 0 };
+      _pDevEnv->GetProperty(_T("window.classview.sort"), szValue, 31);
+      if( _tcscmp(szValue, _T("no")) != 0 ) m_ctrlTree.SortChildren(TVI_ROOT);
 
       // Insert "Globals" item
       CString s(MAKEINTRESOURCE(IDS_GLOBALS));
@@ -296,26 +306,32 @@ LRESULT CClassView::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
 
 LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
-   USES_CONVERSION;
    HTREEITEM hItem = m_ctrlTree.GetDropHilightItem();
-   if( hItem == NULL ) hItem = m_ctrlTree.GetSelectedItem();
-   if( hItem == NULL ) return 0;
-   TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(hItem);
-   // Load menu and enable/disable a few items...
+   m_pCurrentTag = hItem == NULL ? NULL : (TAGINFO*) m_ctrlTree.GetItemData(hItem);
+   // Load and show menu
    CMenu menu;
-   menu.LoadMenu(IDR_CLASSTREE);
+   menu.LoadMenu(hItem != NULL ? IDR_CLASSTREE_ITEM : IDR_CLASSTREE);
    CMenuHandle submenu = menu.GetSubMenu(0);
-   submenu.EnableMenuItem(ID_CLASSVIEW_GOTO, pTag != NULL && m_pProject->FindView(pTag->pstrFile) != NULL ? MF_ENABLED : MF_GRAYED);
-   submenu.EnableMenuItem(ID_CLASSVIEW_COPY, pTag != NULL ? MF_ENABLED : MF_GRAYED);
-   // Ok show it
    DWORD dwPos = ::GetMessagePos();
    POINT pt = { GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos) };
-   UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, pt, FALSE);
+   UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, pt, FALSE, this);
    // Handle result locally
    switch( nCmd ) {
+   case ID_CLASSVIEW_SORT:
+      {
+         _pDevEnv->SetProperty(_T("window.classview.sort"), _T("alpha"));
+         Rebuild();
+      }
+      break;
+   case ID_CLASSVIEW_NOSORT:
+      {
+         _pDevEnv->SetProperty(_T("window.classview.sort"), _T("no"));
+         Rebuild();
+      }
+      break;
    case ID_CLASSVIEW_GOTO:
       {
-         _GoToDefinition(pTag);
+         _GoToDefinition(m_pCurrentTag);
       }
       break;
    case ID_CLASSVIEW_COPY:
@@ -327,7 +343,7 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
       break;
    case ID_CLASSVIEW_PROPERTIES:
       {
-         CTagElement prop(pTag);
+         CTagElement prop = m_pCurrentTag;
          _pDevEnv->ShowProperties(&prop, TRUE);
       }
       break;
@@ -374,11 +390,13 @@ LRESULT CClassView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
             tvi.hItem, TVI_LAST);
       }
       if( aList.GetSize() == 0 ) {
+         // There were no children of this item
          tvi.mask = TVIF_CHILDREN;
          tvi.cChildren = 0;
          m_ctrlTree.SetItem(&tvi);
       }
       else {
+         // Sort the children
          m_ctrlTree.SortChildren(tvi.hItem);
       }
    }
@@ -411,3 +429,19 @@ LRESULT CClassView::OnGetDisplayInfo(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    lpNMTVDI->item.pszText = (LPTSTR) pTag->pstrName;
    return 0;
 }
+
+// IIdleListener
+
+void CClassView::OnIdle(IUpdateUI* pUIBase)
+{   
+   pUIBase->UIEnable(ID_CLASSVIEW_GOTO, m_pCurrentTag != NULL && m_pProject->FindView(m_pCurrentTag->pstrFile) != NULL);
+   pUIBase->UIEnable(ID_CLASSVIEW_COPY, m_pCurrentTag != NULL);
+   pUIBase->UIEnable(ID_CLASSVIEW_PROPERTIES, m_pCurrentTag != NULL);
+   TCHAR szValue[32] = { 0 };
+   _pDevEnv->GetProperty(_T("window.classview.sort"), szValue, 31);
+   pUIBase->UIEnable(ID_CLASSVIEW_SORT, TRUE);
+   pUIBase->UIEnable(ID_CLASSVIEW_NOSORT, TRUE);
+   pUIBase->UISetCheck(ID_CLASSVIEW_SORT, _tcscmp(szValue, _T("alpha")) == 0);
+   pUIBase->UISetCheck(ID_CLASSVIEW_NOSORT, _tcscmp(szValue, _T("no")) == 0);
+}
+

@@ -21,8 +21,8 @@ public:
    CRemoteProject* m_pProject;
    DWORD m_dwCurThread;
    
-   CComboBox m_ctrlThreads;
    CListBox m_ctrlStack;
+   CComboBox m_ctrlThreads;
 
    // Operations
 

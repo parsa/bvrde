@@ -83,6 +83,7 @@ public:
    CMapFile m_File;                        // Memory mapped file image
    DWORD m_dwPos;                          // File Position of top of view
    CFont m_fontEditor;                     // Font used in Editor
+   CAccelerator m_accel;                   // Keyboard shortcuts
    TEXTMETRIC m_tmEditor;                  // Font text metrics
    bool  m_bShowAddress;                   // Show address dump?
    bool  m_bShowData;                      // Show Hex dump?

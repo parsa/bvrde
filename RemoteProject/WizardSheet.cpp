@@ -68,11 +68,13 @@ LRESULT CFileTransferPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_FTP)));
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_SFTP)));
+   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_NETWORKDRIVE)));
 
    CString sType = m_pProject->m_FileManager.GetParam(_T("Type"));
-   long lType = 0; // ftp
-   if( sType == _T("sftp") ) lType = 1;
-   m_ctrlType.SetCurSel(lType);
+   int iTypeIndex = 0; // ftp
+   if( sType == _T("sftp") ) iTypeIndex = 1;
+   if( sType == _T("network") ) iTypeIndex = 2;
+   m_ctrlType.SetCurSel(iTypeIndex);
 
    g_data.sHost.Empty();
    g_data.sUsername.Empty();
@@ -88,25 +90,36 @@ LRESULT CFileTransferPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    if( _ttol(CWindowText(m_ctrlPort)) == 0 ) m_ctrlPort.SetWindowText(_T("21"));
 
+   BOOL bDummy;
+   OnTypeChange(0, 0, NULL, bDummy);
+   OnTextChange(0, 0, NULL, bDummy);
+
    return 0;
 }
 
 LRESULT CFileTransferPage::OnTypeChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
+   int iTypeIndex = m_ctrlType.GetCurSel();
    long lPort = 21;
-   switch( m_ctrlType.GetCurSel() ) {
+   switch( iTypeIndex ) {
    case 1: lPort = 22; break; // sftp
    }
    m_ctrlPort.SetWindowText(ToString(lPort));
+   m_ctrlHost.EnableWindow(iTypeIndex != 2);
+   m_ctrlPort.EnableWindow(iTypeIndex != 2);
+   m_ctrlUsername.EnableWindow(iTypeIndex != 2);
+   m_ctrlPassword.EnableWindow(iTypeIndex != 2);
    return 0;
 }
 
 LRESULT CFileTransferPage::OnTextChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    BOOL bOK = TRUE;
+   int iTypeIndex = m_ctrlType.GetCurSel();
    if( m_ctrlHost.GetWindowTextLength() == 0 ) bOK = FALSE;
    if( m_ctrlPort.GetWindowTextLength() == 0 ) bOK = FALSE;
    if( m_ctrlUsername.GetWindowTextLength() == 0 && m_ctrlPassword.GetWindowTextLength() == 0 ) bOK = FALSE;
+   if( iTypeIndex == 2 ) bOK = TRUE;  // Network drive don't need host/username/password
    if( m_ctrlPath.GetWindowTextLength() == 0 ) bOK = FALSE;
    SetWizardButtons(bOK ? PSWIZB_BACK | PSWIZB_NEXT : PSWIZB_BACK);
    CWindow(GetDlgItem(IDC_TEST)).EnableWindow(bOK);
@@ -120,6 +133,7 @@ LRESULT CFileTransferPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
    SecClearPassword();
 
+   int iTypeIndex = m_ctrlType.GetCurSel();
    CString sHost = CWindowText(m_ctrlHost);
    CString sUsername = CWindowText(m_ctrlUsername);
    CString sPassword = CWindowText(m_ctrlPassword);
@@ -127,8 +141,9 @@ LRESULT CFileTransferPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    long lPort = _ttol(CWindowText(m_ctrlPort));
 
    CString sType = _T("ftp");
-   switch( m_ctrlType.GetCurSel() ) {
+   switch( iTypeIndex ) {
    case 1: sType = _T("sftp"); break;
+   case 2: sType = _T("network"); break;
    }
 
    CFileManager fm;
@@ -139,9 +154,12 @@ LRESULT CFileTransferPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    fm.SetParam(_T("Port"), ToString(lPort));
    fm.SetParam(_T("Path"), sPath);
    fm.Start();
-   if( !fm.SetCurPath(CWindowText(m_ctrlPath)) ) {
+   // The actual test of how we got connected, is to try to set the current path.
+   // The file protocol should set a meaningful error code.
+   if( !fm.SetCurPath(sPath) ) {
+      DWORD dwErr = ::GetLastError();
       fm.SignalStop();
-      GenerateError(_pDevEnv, IDS_ERR_NOCONNECTION);
+      GenerateError(_pDevEnv, IDS_ERR_NOCONNECTION, dwErr);
    }
    else {
       fm.SignalStop();
@@ -177,7 +195,10 @@ int CFileTransferPage::OnApply()
 {
    ATLASSERT(m_pProject);
 
-   CString sType = m_ctrlType.GetCurSel() == 0 ? _T("ftp") : _T("sftp");
+   int iTypeIndex = m_ctrlType.GetCurSel();
+   CString sType = _T("ftp");
+   if( iTypeIndex == 1 ) sType = _T("sftp");
+   if( iTypeIndex == 2 ) sType = _T("network");
    CString sHost = CWindowText(m_ctrlHost);
    CString sUsername = CWindowText(m_ctrlUsername);
    CString sPassword = CWindowText(m_ctrlPassword);
@@ -326,8 +347,9 @@ LRESULT CCompilerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    sm.SetParam(_T("Extra"), sExtra);
    sm.Start();
    if( !sm.WaitForConnection() ) {
+      DWORD dwErr = ::GetLastError();
       sm.SignalStop();
-      GenerateError(_pDevEnv, IDS_ERR_NOCONNECTION);
+      GenerateError(_pDevEnv, IDS_ERR_NOCONNECTION, dwErr);
    }
    else {
       sm.SignalStop();
@@ -631,8 +653,9 @@ LRESULT CDebuggerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    sm.SetParam(_T("Extra"), sExtra);
    sm.Start();
    if( !sm.WaitForConnection() ) {
+      DWORD dwErr = ::GetLastError();
       sm.SignalStop();
-      GenerateError(_pDevEnv, IDS_ERR_NOCONNECTION);
+      GenerateError(_pDevEnv, IDS_ERR_NOCONNECTION, dwErr);
    }
    else {
       sm.SignalStop();

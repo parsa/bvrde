@@ -272,7 +272,7 @@ LRESULT CCommandView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
    SetFont(AtlGetDefaultGuiFont());
    SetBackgroundColor(::GetSysColor(COLOR_WINDOW));
    LimitText(60000);
-   SetUndoLimit(0);
+   SetUndoLimit(1);
    SetSel(-1, -1);
 
    m_pMainFrame->AddCommandListener(this);
@@ -282,7 +282,8 @@ LRESULT CCommandView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
 LRESULT CCommandView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
-   if( wParam == VK_RETURN ) {
+   if( wParam == VK_RETURN ) 
+   {
       // Send command/line to command window. We do this
       // in another thread so we do not block the user interface
       // while waiting for the command to complete.
@@ -293,6 +294,7 @@ LRESULT CCommandView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
       }
       else {
          // Parse prompt now (in the GUI thread)
+         SetModify(FALSE);
          CString sPrompt = _ParseLine();
          AppendRtfText(m_hWnd, _T("\r\n"));
          // Ignite thread to broadcast the event...
@@ -304,7 +306,8 @@ LRESULT CCommandView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
       }
       return 0;
    }
-   if( wParam == VK_BACK ) {
+   if( wParam == VK_BACK ) 
+   {
       // Cannot delete prompt itself
       LONG iStart, iEnd;
       GetSel(iStart, iEnd);
@@ -314,11 +317,28 @@ LRESULT CCommandView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
       tr.chrg.cpMax = max(0, iStart);
       tr.lpstrText = szBuffer;
       GetTextRange(&tr);
-      if( _tcsncmp(szBuffer, _T("> "), 3) == 0 ) return 0;
-      if( _tcsncmp(szBuffer, _T("\r> "), 3) == 0 ) return 0;
-      if( _tcsncmp(szBuffer, _T("\n> "), 3) == 0 ) return 0;
+      if( _tcsncmp(szBuffer, _T("> "), 3) == 0
+          || _tcsncmp(szBuffer, _T("\r> "), 3) == 0 
+          || _tcsncmp(szBuffer, _T("\n> "), 3) == 0 ) 
+      {
+         ::MessageBeep((UINT)-1);
+         return 0;
+      }
    }
    bHandled = FALSE;
+   return 0;
+}
+
+LRESULT CCommandView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{   
+   POINT pt;
+   ::GetCursorPos(&pt);
+   CMenu menu;
+   menu.LoadMenu(IDR_COMMANDVIEW);
+   ATLASSERT(menu.IsMenu());
+   CMenuHandle submenu = menu.GetSubMenu(0);
+   UINT nCmd = g_pDevEnv->ShowPopupMenu(NULL, submenu, pt, TRUE, this);
+   PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0), (LPARAM) m_hWnd);
    return 0;
 }
 
@@ -365,6 +385,19 @@ LRESULT CCommandView::OnPrintClient(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lPara
    // Cleanup cache in richedit
    FormatRange(NULL, FALSE);
    return 0;
+}
+
+LRESULT CCommandView::OnEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   Copy();
+   return 0;
+}
+
+// IIdleListener
+
+void CCommandView::OnIdle(IUpdateUI* pUIBase)
+{
+   pUIBase->UIEnable(ID_EDIT_COPY, TRUE);
 }
 
 // ICommandListener

@@ -158,6 +158,7 @@ LRESULT CScintillaView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*
 {
    if( wParam == VK_TAB && m_bAutoTextDisplayed ) return 0;
    if( wParam == VK_TAB && m_bSuggestionDisplayed ) return 0;
+   if( wParam == VK_BACK ) m_bSuggestionDisplayed = false;
    if( wParam == VK_ESCAPE && AutoCActive() ) AutoCCancel();
    bHandled = FALSE;
    return 0;
@@ -634,7 +635,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
 LRESULT CScintillaView::OnUpdateUI(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
 {
-   // Update statusbar cursor text
+   // Update statusbar with cursor text
    long lPos = GetCurrentPos();
    long lCol = (long) GetColumn(lPos) + 1;
    long lRow = (long) LineFromPosition(lPos) + 1;

@@ -377,11 +377,8 @@ IDR_CLASSTREE MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "&Go to Definition",           ID_CLASSVIEW_GOTO
-        MENUITEM SEPARATOR
-        MENUITEM "&Copy",                       ID_CLASSVIEW_COPY
-        MENUITEM SEPARATOR
-        MENUITEM "&Properties",                 ID_CLASSVIEW_PROPERTIES
+        MENUITEM "&Sort alphabetically",        ID_CLASSVIEW_SORT
+        MENUITEM "&Don't Sort",                 ID_CLASSVIEW_NOSORT
     END
 END
 
@@ -408,6 +405,30 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Show as Intel Style",        ID_DISASM_INTELSTYLE
         MENUITEM "&Show Source",                ID_DISASM_SHOWSOURCE
+    END
+END
+
+IDR_CLASSTREE_ITEM MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Go to Definition",           ID_CLASSVIEW_GOTO
+        MENUITEM SEPARATOR
+        MENUITEM "&Copy",                       ID_CLASSVIEW_COPY
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_CLASSVIEW_PROPERTIES
+    END
+END
+
+IDR_MEMORY MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Edit Address Value",         ID_MEMORY_EDIT
+        MENUITEM SEPARATOR
+        MENUITEM "Display as &DWORD",           ID_MEMORY_SIZE_DWORD
+        MENUITEM "Display as &WORD",            ID_MEMORY_SIZE_WORD
+        MENUITEM "Display as &BYTE",            ID_MEMORY_SIZE_BYTE
     END
 END
 
@@ -614,19 +635,19 @@ BEGIN
     CONTROL         "Automatically close braces",IDC_AUTOCLOSE,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,59,120,10,
                     WS_EX_TRANSPARENT
-    LTEXT           "Tag Support",-1,0,81,43,9
-    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,85,208,1
+    CONTROL         "Mark error with squiggly lines",IDC_MARKERRORS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,71,120,10,
+                    WS_EX_TRANSPARENT
+    LTEXT           "Tag Support",-1,0,89,43,9
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,93,208,1
     CONTROL         "Use Auto Completion feature",IDC_AUTOCOMPLETE,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,98,120,10,
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,106,120,10,
                     WS_EX_TRANSPARENT
     CONTROL         "Populate Class Browser with tags",IDC_CLASSBROWSER,
-                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,109,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,117,
                     120,10,WS_EX_TRANSPARENT
     CONTROL         "Use online class scanner",IDC_ONLINESCANNER,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,120,120,10,
-                    WS_EX_TRANSPARENT
-    CONTROL         "Mark error with squiggly lines",IDC_MARKERRORS,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,131,120,10,
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,128,120,10,
                     WS_EX_TRANSPARENT
 END
 
@@ -1076,6 +1097,7 @@ BEGIN
     IDS_COMMAND_LINKFLAGS   "Link Flags"
     IDS_ERR_DEBUGUNSTABLE   "Debugging unstable\nThe GDB Debugger is in an unstable state.\nThe Debugger reported an internal error and further debugging may be unreliable. Debug session is shutting down."
     IDS_STACKSUBSTR         ",  file"
+    IDS_NETWORKDRIVE        "Network Drive"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1087,6 +1109,10 @@ STRINGTABLE DISCARDABLE
 BEGIN
     ID_DISASM_INTELSTYLE    "Display Disassembly as Intel style\nIntel Style"
     ID_DISASM_SHOWSOURCE    "Show Dissasembly mixed with Source Code\nShow Source"
+    ID_MEMORY_EDIT          "Edit value under cursor\nEdit Value"
+    ID_MEMORY_SIZE_DWORD    "Display memory layout as DWORD\nDWORD size"
+    ID_MEMORY_SIZE_WORD     "Display memory layout as WORD\nWORD size"
+    ID_MEMORY_SIZE_BYTE     "Display memory layout as BYTE\nBYTE size"
 END
 
 #endif    // English (U.S.) resources

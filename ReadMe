@@ -1,6 +1,6 @@
                               BVRDE Version 1 Release
 
-                       Copyright (C) 2003-2004 Bjarke Viksøe
+                       Copyright (C) 2003-2005 Bjarke Viksøe
 Introduction:
 -------------
 
@@ -18,7 +18,7 @@ various remote systems. This includes FTP and secure & encrypted protocols
 such as SSH and SFTP.
 
 
-Copyright (C) 2002-2004 Bjarke Viksøe (bjarke@viksoe.dk)
+Copyright (C) 2002-2005 Bjarke Viksøe (bjarke@viksoe.dk)
 --------------------------------------------------------
 
 To start BVRDE, simply activate the application from the program-icon

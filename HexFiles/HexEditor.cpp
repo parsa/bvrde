@@ -30,6 +30,7 @@ CHexEditorCtrl::CHexEditorCtrl() :
    ::ZeroMemory(&m_rcAscii, sizeof(m_rcAscii));
    m_szMargin.cx = 3;
    m_szMargin.cy = 2;
+   m_accel.LoadAccelerators(IDR_ACCELERATOR);
 }
 
 CHexEditorCtrl::~CHexEditorCtrl()
@@ -46,9 +47,9 @@ void CHexEditorCtrl::Init(IProject* pProject, IView* pView)
    m_pView = pView;
 }
 
-BOOL CHexEditorCtrl::PreTranslateMessage(MSG* /*pMsg*/)
+BOOL CHexEditorCtrl::PreTranslateMessage(MSG* pMsg)
 {
-   return FALSE;
+   return m_accel.TranslateAccelerator(m_hWnd, pMsg);
 }
 
 void CHexEditorCtrl::OnIdle(IUpdateUI* pUIBase)
@@ -300,6 +301,7 @@ LRESULT CHexEditorCtrl::OnChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, 
       ::MessageBeep((UINT)-1);
       return 0;
    }
+   if( wParam < VK_SPACE ) return 0;
    if( m_dwSelStart != m_dwSelEnd ) SetSel(m_dwSelStart, m_dwSelStart);
    if( m_bDataActive ) {
       if( isdigit(wParam) || (toupper(wParam) >= 'A' && toupper(wParam) <= 'F') ) {
@@ -530,6 +532,8 @@ LRESULT CHexEditorCtrl::OnEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    if( !::OpenClipboard(m_hWnd) ) return 0;
    LPBYTE pData = m_File.GetData();
    CString sText;
+   sText.GetBuffer((dwEnd - dwStart) * 4);
+   sText.ReleaseBuffer(0);
    if( m_bDataActive ) {
       TCHAR szBuffer[32];
       DWORD nCount = 0;
@@ -714,6 +718,9 @@ void CHexEditorCtrl::DoPaint(CDCHandle dc)
    COLORREF clrBackN = ::GetSysColor(COLOR_WINDOW);
    bool bHighlighted = false;
 
+   COLORREF clrAddress = ::GetSysColor(COLOR_WINDOWTEXT);
+   if( clrAddress == RGB(255,255,255) ) clrAddress = RGB(0,130,130);
+
    dc.SetBkMode(OPAQUE);
 
    DWORD dwSelStart = 0;
@@ -727,7 +734,7 @@ void CHexEditorCtrl::DoPaint(CDCHandle dc)
       // Draw address text
       if( m_bShowAddress && dwPos < dwSize ) 
       {
-         dc.SetTextColor(::GetSysColor(COLOR_WINDOWTEXT));
+         dc.SetTextColor(clrAddress);
          dc.SetBkColor(clrBackN);
          ::wsprintf(szBuffer, _T("%08X  "), dwPos);
          RECT rcAddress = { xpos, ypos, xpos + 200, ypos + iHeight };

@@ -282,7 +282,7 @@ static int yyread(char *buf,int max_size)
 					  current->name  = yytext ;
 					}
 
-<FindMembers>^[ \t]*"#"			{ BEGIN( SkipCPP ) ; }
+<FindMembers>^[ \t]*"#"			{ lineCount() ; BEGIN( SkipCPP ) ; }
 <SkipCPP>.
 <SkipCPP>"//"
 <SkipCPP>\\\n				{ yyLineNr++ ; }
@@ -621,6 +621,7 @@ static int yyread(char *buf,int max_size)
 <FindMembers>[ \t\r\n]*"/""/"+\n	{ lineCount() ; }
 <FindMembers>[ \t\r\n]*"/*""*"+"/"	{ lineCount() ; }
 <FindMembers>[ \t\r\n]*"/***"		{ 
+					  lineCount() ;
 					  lastCContext = YY_START ;
 					  BEGIN( SkipComment ) ;
 					}
@@ -738,22 +739,28 @@ static int yyread(char *buf,int max_size)
 <CppDoc>"/"("*"|"/")			{ current->doc  += yytext ; }
 
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@see"[ \t\r\n]*	{
+					  lineCount() ;
 					  current->see.append( new McString ) ;
 					  BEGIN( See ) ;
 					}
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@author"[ \t\r\n]*	{
+					  lineCount() ;
 					  BEGIN( Author ) ; }
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@version"[ \t\r\n]*	{
+					  lineCount() ;
 					  BEGIN( Version ) ; }
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@param"[ \t\r\n]*	{
+					  lineCount() ;
 					  current->param.append( new McString  ) ;
 					  BEGIN( Param ) ;
 					}
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@exception"[ \t\r\n]*	{
+					  lineCount() ;
 					  current->exception.append( new McString ) ;
 					  BEGIN( Exception ) ;
 					}
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@return"[ \t\r\n]*	{
+					  lineCount() ;
 					  BEGIN( Return ) ; }
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@name"[ \t]*	{
 					  current->name.clear() ;
@@ -761,27 +768,30 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( Name ) ;
 					}
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@memo"[ \t\r\n]*	{
+					  lineCount() ;
 					  current->memo.clear() ;
 					  BEGIN( Memo ) ;
 					}
 
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@type"[ \t\r\n]*	{
+					  lineCount() ;
 					  current->type.clear() ;
 					  BEGIN( Type ) ;
 					}
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@args"[ \t\r\n]*	{
+					  lineCount() ;
 					  current->args.clear() ;
 					  BEGIN( Args ) ;
 					}
 
 <Name>.*				{ current->name = yytext ; }
-<Name>\n				{ BEGIN( CppDoc ) ; }
+<Name>\n				{ ++yyLineNr ; BEGIN( CppDoc ) ; }
 
 <Type>.*				{ current->type = yytext ; }
-<Type>\n				{ BEGIN( CppDoc ) ; }
+<Type>\n				{ ++yyLineNr ; BEGIN( CppDoc ) ; }
 
 <Args>.*				{ current->args = yytext ; }
-<Args>\n				{ BEGIN( CppDoc ) ; }
+<Args>\n				{ ++yyLineNr ; BEGIN( CppDoc ) ; }
 
 <Author>.				{ current->author += *yytext ; }
 <Version>.				{ current->version += *yytext ; }

@@ -13,6 +13,7 @@ public:
    {
       IDE_DOCK_TYPE DockType;
       RECT rcWindow;
+      RECT rcDocked;
    } TDockInfo;
 
    CSimpleMap<HWND, TDockInfo> m_panels;
@@ -28,9 +29,11 @@ public:
       ::wsprintf(szProperty, _T("gui.debugViews.%s"), pstrProperty);
       _pDevEnv->SetProperty(szProperty, bAutoShow ? _T("true") : _T("false"));
       // Record the internal settings
-      _pDevEnv->GetDockState(hWnd, (int&) info.DockType, info.rcWindow);
+      RECT rcWin = { 0 };
+      _pDevEnv->GetDockState(hWnd, (int&) info.DockType, rcWin);
       if( info.DockType == IDE_DOCK_HIDE ) return true;
-      if( ::IsRectEmpty(&info.rcWindow) ) return true;
+      if( ::IsRectEmpty(&rcWin) ) return true;
+      if( info.DockType == IDE_DOCK_FLOAT ) info.rcWindow = rcWin; else info.rcDocked = rcWin;
       if( !m_panels.SetAt(hWnd, info) ) return false;
       return true;
    }
@@ -40,6 +43,7 @@ public:
       TDockInfo info;
       info.DockType = DockType;
       info.rcWindow = rcWindow;
+      ::ZeroMemory(&info.rcDocked, sizeof(info.rcDocked));
       return m_panels.Add(hWnd, info) == TRUE;
    }
    bool GetInfo(HWND hWnd, IDE_DOCK_TYPE& DockType, RECT& rcWindow)
@@ -48,7 +52,7 @@ public:
       if( iIndex < 0 ) return false;
       TDockInfo info = m_panels.GetValueAt(iIndex);
       DockType = info.DockType;
-      rcWindow = info.rcWindow;
+      if( DockType == IDE_DOCK_FLOAT ) rcWindow = info.rcWindow; else rcWindow = info.rcDocked;
       return true;
    }
    bool IsAutoShown(HWND hWnd, LPCTSTR pstrProperty) const

@@ -89,12 +89,12 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask /*= 0*
 }
 
 
-void GenerateError(IDevEnv* pDevEnv, UINT nErr)
+void GenerateError(IDevEnv* pDevEnv, UINT nErr, DWORD dwErr /*= (DWORD)-1*/)
 {
    // Create error message from system error code
    ATLASSERT(pDevEnv);
    ATLASSERT(nErr);
-   DWORD dwErr = ::GetLastError();
+   if( dwErr == (DWORD)-1 ) dwErr = ::GetLastError();
    CString sMsg(MAKEINTRESOURCE(nErr));
    ATLASSERT(!sMsg.IsEmpty());
    if( dwErr != 0 ) {

@@ -139,9 +139,15 @@ DWORD CSftpThread::Run()
       if( status == CRYPT_ERROR_PARAM3 ) m_pManager->m_dwErrorCode = ERROR_MEDIA_NOT_AVAILABLE;
       return 0;
    }
-
-   status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_SERVER_NAME, pstrHost, sHost.GetLength());
-   status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_USERNAME, pstrUsername, sUsername.GetLength());
+   if( cryptStatusOK(status) ) {
+      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_SERVER_NAME, pstrHost, sHost.GetLength());
+   }
+   if( cryptStatusOK(status) ) {
+      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_USERNAME, pstrUsername, sUsername.GetLength());
+   }
+   if( cryptStatusOK(status) ) {
+      status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_SERVER_PORT, lPort);
+   }  
    if( cryptStatusOK(status) ) {
       if( !sCertificate.IsEmpty() ) {
          CRYPT_CONTEXT privateKey;

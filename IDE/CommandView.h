@@ -9,7 +9,8 @@
 class CCommandView : 
    public CWindowImpl<CCommandView, CRichEditCtrl>,
    public CRichEditCommands<CCommandView>,
-   public ICommandListener
+   public ICommandListener,
+   public IIdleListener
 {
 public:
    DECLARE_WND_SUPERCLASS(_T("BVRDE_OutputEditView"), CRichEditCtrl::GetWndClassName())
@@ -36,12 +37,20 @@ public:
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
       MESSAGE_HANDLER(WM_KEYDOWN, OnKeyDown)
       MESSAGE_HANDLER(WM_PRINTCLIENT, OnPrintClient)
+      MESSAGE_HANDLER(WM_CONTEXTMENU, OnContextMenu)
+      COMMAND_ID_HANDLER(ID_EDIT_COPY, OnEditCopy)
       CHAIN_MSG_MAP_ALT( CRichEditCommands<CCommandView>, 1 )
    END_MSG_MAP()
 
-   LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-   LRESULT OnKeyDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-   LRESULT OnPrintClient(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+   LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnPrintClient(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnContextMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnEditCopy(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+
+   // IIdleListener
+
+   void OnIdle(IUpdateUI* pUIBase);
 
    // ICommandListener
 

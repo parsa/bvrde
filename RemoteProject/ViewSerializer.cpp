@@ -9,6 +9,8 @@
 
 void CViewSerializer::Add(LPCTSTR pstrKey, LPCTSTR pstrValue)
 {
+   ATLASSERT(pstrKey);
+   ATLASSERT(pstrValue);
    CString sKey = pstrKey;
    CString sValue = pstrValue;
    m_aItems.Add(sKey, sValue);

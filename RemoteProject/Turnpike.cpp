@@ -23,15 +23,14 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    CString sCaption;
    UINT iFlags;
 
-   // Try to obtain the semaphore 
+   // Try to obtain the semaphore
    // NOTE: WinNT specific API
    if( !::TryEnterCriticalSection(&_Module.m_csStaticDataInit) ) {
       // No need to block the thread; let's just re-post the request...
       m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
       return 0;
    }
-   int i;
-   for( i = 0; i < m_aLazyData.GetSize(); i++ ) {
+   for( int i = 0; i < m_aLazyData.GetSize(); i++ ) {
       LAZYDATA& data = m_aLazyData[i];
       switch( data.Action ) {
       case LAZY_OPEN_VIEW:
@@ -197,11 +196,13 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          break;
       }
    }
+   // Empty queue
    m_aLazyData.RemoveAll();
+   // Release semaphore
    ::LeaveCriticalSection(&_Module.m_csStaticDataInit);
 
    // Now that we're not blocking, send debug commands
-   for( i = 0; i < aDbgCmd.GetSize(); i++ ) m_DebugManager.DoDebugCommand(aDbgCmd[i]);
+   for( int a = 0; a < aDbgCmd.GetSize(); a++ ) m_DebugManager.DoDebugCommand(aDbgCmd[a]);
 
    // Display message to user if available
    if( !sMessage.IsEmpty() ) {

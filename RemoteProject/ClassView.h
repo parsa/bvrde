@@ -8,6 +8,7 @@
 
 class CClassView : 
    public CWindowImpl<CClassView>,
+   public IIdleListener,
    public CRawDropSource
 {
 public:
@@ -18,6 +19,7 @@ public:
    bool m_bLocked;                               // Is data structures locked?
    bool m_bPopulated;                            // Has tree been populated?
    CRemoteProject* m_pProject;                   // Reference to project
+   TAGINFO* m_pCurrentTag;                       // Reference to selected tag item
    CSimpleArray<CString> m_aExpandedNames;       // List of exanded tree-names
 
    CImageListCtrl m_Images;
@@ -37,6 +39,10 @@ public:
 
    void _PopulateTree();
    void _GoToDefinition(TAGINFO* pTag);
+
+   // IIdleListener
+
+   void OnIdle(IUpdateUI* pUIBase);
 
    // Message map and handlers
 

@@ -223,3 +223,4 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
 
    return TRUE;
 }
+

@@ -201,7 +201,7 @@ void SecClearPassword();
 CString SecGetPassword();
 
 void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, DWORD dwEffects = 0, COLORREF clrText = 0);
-void GenerateError(IDevEnv* pDevEnv, UINT nErr);
+void GenerateError(IDevEnv* pDevEnv, UINT nErr, DWORD dwErr = (DWORD)-1);
 CString GetSystemErrorText(DWORD dwErr);
 BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition);
 CString ToString(long lValue);

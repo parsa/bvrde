@@ -67,6 +67,7 @@
 // Docking position helpers
 inline bool IsDockedVertically(short Side) { return (Side == DOCK_LEFT) || (Side == DOCK_RIGHT); };
 inline bool IsDocked(short Side) { return (Side == DOCK_TOP) || (Side == DOCK_BOTTOM) || (Side == DOCK_LEFT) || (Side == DOCK_RIGHT); };
+inline bool IsFloating(short Side) { return Side == DOCK_FLOAT; };
 
 
 #define DOCK_INFO_CHILD 0x1000
@@ -360,7 +361,7 @@ public:
          UINT nID = 0, LPVOID lpCreateParam = NULL)
    {
       ATLASSERT(m_pCtx);
-      if( m_pCtx->dwFlags & DCK_NOHIDE ) dwStyle = T::GetWndStyle(dwStyle) & ~WS_SYSMENU;
+      if( (m_pCtx->dwFlags & DCK_NOHIDE) != 0 ) dwStyle = T::GetWndStyle(dwStyle) & ~WS_SYSMENU;
       return CWindowImpl< T, TBase, TWinTraits >::Create(hWndParent, rcPos, szWindowName, dwStyle, dwExStyle, nID, lpCreateParam);
    }
 
@@ -398,20 +399,18 @@ public:
          GetWindowRect(&m_rcTracker);
          // Enter tracking loop
          bool res = Track(true);
-         if( res ) {
-            // Determine if we landed over a docking pane or just moved around...
-            TRACKINFO ti = { m_hWnd, m_pCtx, m_ptEndDragPoint.x, m_ptEndDragPoint.y, m_ptStartDragPoint.x, m_ptStartDragPoint.y };
-            ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_QUERYTRACK, 0, (LPARAM) &ti);
-            if( ti.Side == DOCK_FLOAT ) {
-               MoveWindow(&ti.rc, TRUE);
-            }
-            else {
-               ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_UNFLOAT, 0, (LPARAM) m_pCtx);
-               ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_DOCK, ti.Side, (LPARAM) m_pCtx);
-            }
-            return 0;
+         if( !res ) return 1;
+         // Determine if we landed over a docking pane or just moved around...
+         TRACKINFO ti = { m_hWnd, m_pCtx, m_ptEndDragPoint.x, m_ptEndDragPoint.y, m_ptStartDragPoint.x, m_ptStartDragPoint.y };
+         ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_QUERYTRACK, 0, (LPARAM) &ti);
+         if( IsFloating(ti.Side) ) {
+            MoveWindow(&ti.rc, TRUE);
          }
-         return 1;
+         else {
+            ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_UNFLOAT, 0, (LPARAM) m_pCtx);
+            ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_DOCK, ti.Side, (LPARAM) m_pCtx);
+         }
+         return 0;
       }
       bHandled = FALSE;
       return 0;
@@ -458,7 +457,7 @@ public:
    {
       switch( wParam & 0xFFF0 ) {
       case SC_CLOSE:
-         if( m_pCtx->dwFlags & DCK_NOHIDE ) return 0;
+         if( (m_pCtx->dwFlags & DCK_NOHIDE) != 0 ) return 0;
          // Use post message so it comes async
          ::PostMessage(m_pCtx->hwndRoot, WM_DOCK_CLIENT_CLOSE, WM_DOCK_UNFLOAT, (LPARAM) m_pCtx);
          return 0;
@@ -556,11 +555,8 @@ public:
       ::SetRectEmpty(&m_rcGripper);
       ::SetRectEmpty(&m_rcSplitter);
       ::SetRectEmpty(&m_rcCloseButton);
-      //m_cxyGripper = ::GetSystemMetrics(SM_CYCAPTION)*4/5;
-      //m_cxyCloseButton = m_cxyGripper-2;
       m_cxyGripper = ::GetSystemMetrics(SM_CYSMCAPTION);
-      m_cxyCloseButton = ::GetSystemMetrics(SM_CYSMSIZE)-4;
-
+      m_cxyCloseButton = ::GetSystemMetrics(SM_CYSMSIZE) - 4;
    }
 
    virtual void OnFinalMessage(HWND /*hWnd*/)
@@ -583,14 +579,14 @@ public:
    LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       T* pT = static_cast<T*>(this);
-      CPaintDC dc(m_hWnd);
+      CPaintDC dc = m_hWnd;
       dc.ExcludeClipRect(&m_rcChild);
       RECT rc;
       GetClientRect(&rc);
       dc.FillRect(&rc, ::GetSysColorBrush(COLOR_3DFACE));
       short Side = m_pCtx->Side;
       bool bVertical = IsDockedVertically(Side);
-      if( m_cxySplitter>0 ) pT->DrawSplitterBar((HDC) dc, bVertical, m_rcSplitter);
+      if( m_cxySplitter > 0 ) pT->DrawSplitterBar((HDC) dc, bVertical, m_rcSplitter);
       pT->DrawGripperBar((HDC) dc, Side, m_rcGripper, m_rcCloseButton, m_fCloseDown);
       pT->DrawPaneFrame((HDC) dc, Side, rc);
       return 0;
@@ -647,7 +643,7 @@ public:
                m_pCtx->rcWindow.right += m_ptEndDragPoint.x - m_ptStartDragPoint.x;
             }
             m_pCtx->bKeepSize = true;
-            ::SendMessage(GetParent(), WM_DOCK_UPDATELAYOUT, 0,0);
+            ::SendMessage(GetParent(), WM_DOCK_UPDATELAYOUT, 0, 0L);
          }
       }
       else if( ::PtInRect(&m_rcGripper, ptPos) ) {
@@ -660,7 +656,7 @@ public:
          if( res ) {
             // Done dragging! Let's determine where the window went...
             TRACKINFO ti = { m_hWnd, m_pCtx, m_ptEndDragPoint.x, m_ptEndDragPoint.y, m_ptStartDragPoint.x, m_ptStartDragPoint.y };
-            ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_QUERYTRACK, 0, (LPARAM)&ti);
+            ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_QUERYTRACK, 0, (LPARAM) &ti);
             if( ti.Side == m_pCtx->Side ) {
                // Dragged window to same side. Move the window to top position...
                RECT rc;
@@ -670,8 +666,8 @@ public:
             else {
                // Move the window out in the open or to another pane...
                ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_UNDOCK, 0, (LPARAM) m_pCtx);
-               if( ti.Side == DOCK_FLOAT ) m_pCtx->rcWindow = ti.rc;
-               ::SendMessage(m_pCtx->hwndRoot, ti.Side == DOCK_FLOAT ? WM_DOCK_FLOAT : WM_DOCK_DOCK, ti.Side, (LPARAM) m_pCtx);
+               if( IsFloating(ti.Side) ) m_pCtx->rcWindow = ti.rc;
+               ::SendMessage(m_pCtx->hwndRoot, IsFloating(ti.Side) ? WM_DOCK_FLOAT : WM_DOCK_DOCK, ti.Side, (LPARAM) m_pCtx);
             }
          }
       }
@@ -699,7 +695,7 @@ public:
    void OnMove(POINT& pt)
    {
       TRACKINFO ti = { m_hWnd, m_pCtx, pt.x, pt.y, m_ptStartDragPoint.x, m_ptStartDragPoint.y };
-      ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_QUERYTRACK, 0, (LPARAM)&ti);
+      ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_QUERYTRACK, 0, (LPARAM) &ti);
       if( !::EqualRect(&m_rcTracker, &ti.rc) ) {
          DrawDragBar();
          m_rcTracker = ti.rc;
@@ -786,7 +782,7 @@ public:
       ::InflateRect(&rect, -CHILD_GAP, -CHILD_GAP);
       m_rcChild = rect;
 
-      ::SetWindowPos(m_pCtx->hwndChild, NULL, m_rcChild.left, m_rcChild.top, m_rcChild.right - m_rcChild.left, m_rcChild.bottom - m_rcChild.top, SWP_NOZORDER | SWP_NOACTIVATE);
+      ::SetWindowPos(m_pCtx->hwndChild, NULL, m_rcChild.left, m_rcChild.top, m_rcChild.right - m_rcChild.left, m_rcChild.bottom - m_rcChild.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOZORDER);
    }
 
    void DrawPaneFrame(CDCHandle /*dc*/, short /*Side*/, const RECT& /*rc*/)
@@ -895,9 +891,7 @@ public:
          }
       }
       if( m_map.GetSize() == 0 ) {
-         if( m_dwExtStyle & DCK_EX_REMEMBERSIZE ) {
-            m_cyOld = m_cy; // remember pane size to until next time
-         }
+         if( (m_dwExtStyle & DCK_EX_REMEMBERSIZE) != 0 ) m_cyOld = m_cy; // remember pane size to until next time
          m_cy = 0;
          ShowWindow(SW_HIDE);
       }
@@ -918,24 +912,23 @@ public:
          }
       }
       SendMessage(WM_DOCK_UPDATELAYOUT);
-      Invalidate();
    }
 
    // Message handlers
 
-   LRESULT OnRecalcSpace(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+   LRESULT OnRecalcSpace(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( m_map.GetSize() == 0 ) return 0;
       for( int i = 0; i < m_map.GetSize(); i++ ) {
-         ::SendMessage(m_map[i]->hwndDocked, WM_DOCK_UPDATELAYOUT, 0,0);
+         ::SendMessage(m_map[i]->hwndDocked, WM_DOCK_UPDATELAYOUT, 0, 0L);
       }
-      OnSize(0,0,0,bHandled);
+      SendMessage(WM_SIZE);
       return 0;
    }
 
    LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
-      CPaintDC dc(m_hWnd);
+      CPaintDC dc = m_hWnd;
       // Draw splitter along the pane side
       T* pT = static_cast<T*>(this);
       pT->DrawSplitterBar((HDC) dc, !IsDockedVertically(m_Side), m_rcSplitter);
@@ -955,8 +948,8 @@ public:
       pT->UpdateLayout();
       HDWP hdwp = BeginDeferWindowPos(m_map.GetSize());
       for( int i = 0; i < m_map.GetSize(); i++ ) {
-         RECT& rc = m_map[i]->rcWindow;
-         ::DeferWindowPos(hdwp, m_map[i]->hwndDocked, NULL, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER | SWP_NOACTIVATE);
+         const RECT& rc = m_map[i]->rcWindow;
+         ::DeferWindowPos(hdwp, m_map[i]->hwndDocked, NULL, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOZORDER);
       }
       EndDeferWindowPos(hdwp);
       return 1;
@@ -989,7 +982,7 @@ public:
          //
          ::GetWindowRect(GetParent(),& m_rcTrackerBounds);
          RECT rcLimit;
-         ::SendMessage(GetParent(), WM_DOCK_QUERYRECT, DOCK_INFO_CHILD, (LPARAM)&rcLimit);
+         ::SendMessage(GetParent(), WM_DOCK_QUERYRECT, DOCK_INFO_CHILD, (LPARAM) &rcLimit);
          switch( m_Side ) {
          case DOCK_LEFT:   m_rcTrackerBounds.right = rcLimit.right; break;
          case DOCK_RIGHT:  m_rcTrackerBounds.left = rcLimit.left; break;
@@ -1004,7 +997,7 @@ public:
             int nOffset = ( !IsDockedVertically(m_Side) ? (m_ptEndDragPoint.y - m_ptStartDragPoint.y) : (m_ptEndDragPoint.x - m_ptStartDragPoint.x) );
             if( m_Side == DOCK_RIGHT || m_Side == DOCK_BOTTOM ) nOffset = -nOffset;
             m_cy += nOffset;
-            ::SendMessage(GetParent(), WM_DOCK_UPDATELAYOUT, 0,0);
+            ::SendMessage(GetParent(), WM_DOCK_UPDATELAYOUT, 0, 0L);
          }
       }
       return 0;
@@ -1181,7 +1174,7 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       m_dwExtStyle = dwStyle;
       // Duplicate style settings to panels
-      for( short i = 0; i < 4; i++ ) m_panes[i].m_dwExtStyle = dwStyle;
+      for( int i = 0; i < 4; i++ ) m_panes[i].m_dwExtStyle = dwStyle;
    }
 
    BOOL IsDockPane(HWND hWnd) const
@@ -1191,14 +1184,14 @@ public:
       return FALSE;
    }
 
-   void AddWindow(HWND hWnd, DWORD dwFlags = 0)
+   BOOL AddWindow(HWND hWnd, DWORD dwFlags = 0)
    {
       ATLASSERT(::IsWindow(hWnd));
 
       // Create docking context
-      DOCKCONTEXT* ctx;
+      DOCKCONTEXT* ctx = NULL;
       ATLTRY(ctx = new DOCKCONTEXT);
-      if( ctx == NULL ) return;
+      if( ctx == NULL ) return FALSE;
       ctx->Side = DOCK_HIDDEN;
       ctx->LastSide = DOCK_LEFT;
       ctx->hwndChild = hWnd;
@@ -1210,19 +1203,19 @@ public:
       ctx->hwndOrigPrnt = ::GetParent(hWnd);
 
       // Create docking child
-      TDockWindow* wndDock;
+      TDockWindow* wndDock = NULL;
       ATLTRY(wndDock = new TDockWindow(ctx));
-      if( wndDock == NULL ) return;
+      if( wndDock == NULL ) return FALSE;
       wndDock->Create(m_hWnd, rcDefault, NULL);
       ATLASSERT(::IsWindow(wndDock->m_hWnd));
       ctx->hwndDocked = *wndDock;
 
       // Create floating child
-      TFloatWindow* wndFloat;
-      TCHAR szCaption[128];    // max text length is 127 for floating caption
-      ::GetWindowText(hWnd, szCaption, sizeof(szCaption)/sizeof(TCHAR));
+      TFloatWindow* wndFloat = NULL;
+      TCHAR szCaption[128] = { 0 };    // max text length is 127 for floating caption
+      ::GetWindowText(hWnd, szCaption, (sizeof(szCaption) / sizeof(TCHAR)) - 1);
       ATLTRY(wndFloat = new TFloatWindow(ctx));
-      if( wndFloat == NULL ) return;
+      if( wndFloat == NULL ) return FALSE;
       wndFloat->Create(m_hWnd, rcDefault, szCaption);
       ATLASSERT(::IsWindow(wndFloat->m_hWnd));
       ctx->hwndFloated = *wndFloat;
@@ -1230,7 +1223,7 @@ public:
       ::SetParent(ctx->hwndChild, ctx->hwndDocked);
 
       // Add Context to master list
-      m_map.Add(ctx);
+      return m_map.Add(ctx);
    }
 
    BOOL RemoveWindow(HWND hWnd)
@@ -1288,18 +1281,18 @@ public:
       ATLASSERT(pCtx);
       if( pCtx == NULL ) return FALSE;
       ::ShowWindow(pCtx->hwndChild, SW_HIDE);
-      if( pCtx->Side == DOCK_FLOAT ) return pT->_UnFloatWindow(pCtx);
+      if( IsFloating(pCtx->Side) ) return pT->_UnFloatWindow(pCtx);
       else if( IsDocked(pCtx->Side) ) return pT->_UnDockWindow(pCtx);
       return TRUE;
    }
 
-   void GetWindowState(HWND hWnd, int& DockState, RECT& rect) const
+   void GetWindowState(HWND hWnd, int& DockState, RECT& rcWindow) const
    {
       const DOCKCONTEXT* pCtx = _GetContext(hWnd);
       ATLASSERT(pCtx);
       if( pCtx == NULL ) return;
       DockState = pCtx->Side;
-      ::GetWindowRect(::GetParent(hWnd), &rect);
+      ::GetWindowRect(::GetParent(hWnd), &rcWindow);
    }
 
    int GetPaneSize(short Side) const
@@ -1353,8 +1346,8 @@ public:
 
    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
-      for( short i = 0; i < 4; i++ ) {
-         m_panes[i].m_Side = i;
+      for( int i = 0; i < 4; i++ ) {
+         m_panes[i].m_Side = (short) i;
          m_panes[i].Create(m_hWnd, rcDefault, NULL, WS_CHILD|WS_VISIBLE);
       }
       m_sizeBorder.cx = ::GetSystemMetrics(SM_CXEDGE);
@@ -1420,7 +1413,7 @@ public:
       POINT& pt = pTI->ptPos;
       RECT rc;
 
-      if( pTI->pCtx->dwFlags & DCK_NOFLOAT ) {
+      if( (pTI->pCtx->dwFlags & DCK_NOFLOAT) != 0 ) {
          // If we're not allowed to float, we're still docked to where we came from
          ::GetWindowRect(pTI->hWnd, &rc);
          pTI->rc = rc;
@@ -1445,7 +1438,7 @@ public:
          return 0;
       }
       // Or is the point inside one of the other docking areas?
-      for( short i = 0; i < 4; i++ ) {
+      for( int i = 0; i < 4; i++ ) {
          if( pTI->pCtx->dwFlags & (1<<i) ) continue; // DCK_NOxxx flag?
          if( m_panes[i].m_cy == 0 ) {
             // Simulate docking areas that are currently invisible
@@ -1461,7 +1454,7 @@ public:
             ::GetWindowRect(m_panes[i], &rc);
          }
          if( ::PtInRect(&rc, pt) ) {
-            pTI->Side = i;
+            pTI->Side = (short) i;
             pTI->rc = rc;
             return 0;
          }
@@ -1504,7 +1497,7 @@ public:
       ::SetForegroundWindow(m_hWnd);
       SetFocus();
       // Hide or destroy view
-      if( m_dwExtStyle & DCK_EX_DESTROYONCLOSE ) {
+      if( (m_dwExtStyle & DCK_EX_DESTROYONCLOSE) != 0 ) {
          HWND hWnd = pCtx->hwndChild;
          // Commit suicide
          RemoveWindow(hWnd);
@@ -1565,7 +1558,7 @@ public:
          }
          // Map client rectangle to windows's coord system
          ::MapWindowPoints(m_hWnd, ::GetParent(m_hwndClient), (LPPOINT)&rcClient, sizeof(rcClient)/sizeof(POINT));
-         ::SetWindowPos(m_hwndClient, NULL, rcClient.left, rcClient.top, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top, SWP_NOZORDER);
+         ::SetWindowPos(m_hwndClient, NULL, rcClient.left, rcClient.top, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top, SWP_NOZORDER | SWP_NOACTIVATE);
       }
    }
 
@@ -1606,7 +1599,7 @@ public:
       ctx->Side = DOCK_FLOAT;
       ::SetParent(ctx->hwndChild, ctx->hwndFloated);
       ::SetWindowPos(ctx->hwndFloated, NULL, ctx->rcWindow.left, ctx->rcWindow.top, ctx->rcWindow.right - ctx->rcWindow.left, ctx->rcWindow.bottom - ctx->rcWindow.top, SWP_NOZORDER);
-      ::SendMessage(ctx->hwndFloated, WM_DOCK_UPDATELAYOUT, 0,0);
+      ::SendMessage(ctx->hwndFloated, WM_DOCK_UPDATELAYOUT, 0, 0L);
       ::ShowWindow(ctx->hwndFloated, SW_SHOWNORMAL);
       return TRUE;
    }
@@ -1625,8 +1618,8 @@ public:
    BOOL _UnFloatWindow(DOCKCONTEXT* ctx)
    {
       ATLASSERT(ctx);
-      ATLASSERT(ctx->Side==DOCK_FLOAT);
-      if( ctx->Side != DOCK_FLOAT ) return FALSE;
+      ATLASSERT(IsFloating(ctx->Side));
+      if( !IsFloating(ctx->Side) ) return FALSE;
       ::ShowWindow(ctx->hwndFloated, SW_HIDE);
       ctx->Side = DOCK_HIDDEN;
       return TRUE;

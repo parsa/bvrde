@@ -415,6 +415,10 @@ BOOL CTextFile::OpenView(long lLineNum)
    m_view.m_ctrlEdit.GotoLine(lLineNum);
    m_view.m_ctrlEdit.EnsureVisible(lLineNum);
 
+   // Someone steals focus on the Project Explorer double-click.
+   // We'll take focus right back again.
+   m_view.PostMessage(WM_SETFOCUS);
+
    return TRUE;
 }
 

@@ -6,6 +6,7 @@
 
 #include "FtpProtocol.h"
 #include "SftpProtocol.h"
+#include "FileProtocol.h"
 
 #pragma code_seg( "MISC" )
 
@@ -44,6 +45,7 @@ bool CFileManager::Load(ISerializable* pArc)
    m_pProtocol = NULL;
    if( m_sType == _T("ftp") ) m_pProtocol = new CFtpProtocol();
    else if( m_sType == _T("sftp") ) m_pProtocol = new CSftpProtocol();
+   else if( m_sType == _T("network") ) m_pProtocol = new CFileProtocol();
    else return false;
 
    if( !m_pProtocol->Load(pArc) ) return false;
@@ -114,6 +116,7 @@ void CFileManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
       m_sType = pstrValue;
       if( m_sType == _T("ftp") ) m_pProtocol = new CFtpProtocol();
       else if( m_sType == _T("sftp") ) m_pProtocol = new CSftpProtocol();
+      else if( m_sType == _T("network") ) m_pProtocol = new CFileProtocol();
    }
    // Just pass the parameter on to the actual protocol
    ATLASSERT(m_pProtocol);

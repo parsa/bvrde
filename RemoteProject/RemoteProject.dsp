@@ -158,6 +158,10 @@ SOURCE=.\RemoteFileDlg.cpp
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=.\FileProtocol.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\FtpProtocol.cpp
 # End Source File
 # Begin Source File
@@ -422,6 +426,10 @@ SOURCE=.\WatchView.h
 # Begin Group "Protocols"
 
 # PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\FileProtocol.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\FtpProtocol.h

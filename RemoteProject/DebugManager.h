@@ -31,10 +31,10 @@ private:
    CSimpleMap<CString, long> m_aBreakpoints;   // Breakpoints; key=<filename:lineno> value=<break-nr>
    volatile int m_nDebugAck;                   // No of debug acknoledge
    volatile int m_nLastAck;                    // Last known acknoledge
-   bool m_bBreaked;                            // Is debugging, but currently breaked
-   bool m_bDebugging;                          // Is debugging
-   bool m_bIgnoreError;                        // Ignore possible error!
-   bool m_bCommandMode;                        // Command mode
+   bool m_bBreaked;                            // Is debugging, but currently breaked?
+   bool m_bDebugging;                          // Is debugging?
+   bool m_bIgnoreError;                        // Ignore possible error?
+   bool m_bCommandMode;                        // In Command mode?
    CString m_sVarName;                         // Data-evaluation variable name
    //
    CString m_sCommandCD;

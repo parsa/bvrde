@@ -597,6 +597,9 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
 
 void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 {
+   // Ignore some sterotypic messages
+   if( _tcsstr(pstrText, _T("warning")) != NULL ) return;
+
    // This part assumes that the compiler output is formatted as
    //   <filename>:<line>
    if( _tcsncmp(pstrText, m_sOutputToken, m_sOutputToken.GetLength() ) != 0 ) return;
@@ -607,7 +610,7 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    // If several errors are reported on the same line we assume
    // that the first entry contained the most useful error. Otherwise
    // we easily end up hightlighting the entire line always.
-   if( iLineNo == m_iOutputLine ) return;
+   if( iLineNo <= m_iOutputLine ) return;
 
    // Get the line so we can analyze where the error occoured.
    // The GNU compilers rarely output which column (position) the error
@@ -624,6 +627,9 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    int iMatchPos = 0;
    int iMatchLength = 0;
 
+   // Find text embraced in quotes.
+   // GCC/G++ output has strange quote characters, so we'll match any
+   // combination of quotes.
    static LPCTSTR pstrQuotes = _T("\'\"\x60");
    LPCTSTR pstrStart = _tcspbrk(pstrText, pstrQuotes);
    if( pstrStart != NULL ) {
@@ -643,11 +649,14 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       iMatchLength = m_ctrlEdit.GetLineLength(iLineNo);
       // Let's trim the string if it contains leading spaces (look strupid)
       LPCTSTR p = sLine;
-      while( *p && _istspace(*p++) ) {
+      while( *p && _istspace(*p++) && iMatchLength > 0 ) {
          iMatchPos++;
          iMatchLength--;
       }
    }
+
+   // Invalid selection?
+   if( iMatchLength <= 0 ) return;
 
    // Apply the squiggly lines
    m_ctrlEdit.IndicSetStyle(0, INDIC_SQUIGGLE);
@@ -767,14 +776,8 @@ void CScintillaView::_AutoComplete(CHAR ch)
    // Don't popup too close to start
    if( lPos < 10 ) bShow = false;
    // Don't auto-complete comments & strings
-   switch( m_ctrlEdit.GetStyleAt(lPos) ) {
-   case SCE_C_STRING:
-   case SCE_C_COMMENT:
-   case SCE_C_COMMENTDOC:
-   case SCE_C_COMMENTLINE:
-      bShow = false;
-      break;
-   }
+   if( !_IsRealCppEditPos(lPos - 1) ) bShow = false;
+   if( !_IsRealCppEditPos(lPos - 2) ) bShow = false;
    // So?
    if( !bShow ) return;
 
@@ -804,7 +807,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
             break;
          }
          if( isspace(ch) ) continue;
-         // We have a new type. It could be a member of the class function
+         // We have a new type. It could be a member of the class/struct function
          // we're currently implementing...
          sType = _FindBlockType(lPos);
          if( sType.IsEmpty() ) return;
@@ -815,13 +818,18 @@ void CScintillaView::_AutoComplete(CHAR ch)
             sType = _T("");
             for( int i = 0; i < aList.GetSize(); i++ ) {
                if( sName == aList[i]->pstrName ) {
-                  // What good fortune we have! Here's the member.
+                  // What good fortune we have! Here's a member match.
                   // HACK: We don't really have the type, but we might be able
                   //       to extract it from the TAG search pattern!!
+                  //       So we break up the function signature:
+                  //          const TYPE Foo();
                   sType = aList[i]->pstrToken;
                   int iPos = sType.FindOneOf(_T(" \t<("));
                   if( iPos < 0 ) return;
                   sType = sType.Left(iPos);
+                  if( _tcsncmp(sType, _T("const "), 6) == 0 ) sType = sType.Mid(6);
+                  if( _tcsncmp(sType, _T("inline "), 7) == 0 ) sType = sType.Mid(7);
+                  if( _tcsncmp(sType, _T("virtual "), 8) == 0 ) sType = sType.Mid(8);
                   break;
                }
             }
@@ -870,7 +878,8 @@ void CScintillaView::_AutoComplete(CHAR ch)
 /**
  * Show function tip.
  * Attempts to determine the function syntax of the currently entered
- * function call (if any).
+ * function call (if any). The algorithm to resolve the types/signatures
+ * is somewhat less complete than the auto-completion code.
  */
 void CScintillaView::_FunctionTip(CHAR ch)
 {
@@ -908,6 +917,10 @@ void CScintillaView::_FunctionTip(CHAR ch)
    _AdjustToolTip();
 }
 
+/**
+ * Remove squiggly lines.
+ * Removes all of the squiggly lines from the text editor.
+ */
 void CScintillaView::_ClearSquigglyLines()
 {
    if( !m_bClearSquigglyLines ) return;  
@@ -947,11 +960,16 @@ CString CScintillaView::_FindBlockType(long lPosition)
    //    class xxx
    //    class xxx : public CFoo
    //    void xxx::Foo()
+   //    struct xxx
    LPSTR p = strchr(szBuffer, ':');
    long lOffset = -2;
    if( p == NULL ) {
       p = strstr(szBuffer, "class");
       lOffset = 6;
+   }
+   if( p == NULL ) {
+      p = strstr(szBuffer, "struct");
+      lOffset = 7;
    }
    if( p == NULL ) return _T("");
 
@@ -962,7 +980,9 @@ CString CScintillaView::_FindBlockType(long lPosition)
    // Now, let's find the type in the TAG file
    int iIndex = m_pCppProject->m_TagManager.FindItem(0, sType);
    while( iIndex >= 0 ) {
-      if( m_pCppProject->m_TagManager.GetItemType(iIndex) == TAGTYPE_CLASS ) {
+      switch( m_pCppProject->m_TagManager.GetItemType(iIndex) ) {
+      case TAGTYPE_CLASS:
+      case TAGTYPE_STRUCT:
          return sType;
       }
       iIndex = m_pCppProject->m_TagManager.FindItem(iIndex + 1, sType);
@@ -979,19 +999,23 @@ CString CScintillaView::_FindBlockType(long lPosition)
  */
 CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
 {
+   // Don't waste time of silly strings
+   if( sName.IsEmpty() ) return _T("");
+   
    // Locate the line where this function begins.
-   // HACK: We look for the line where the text
-   //       starts at column 1.
+   // The function signature is important to get parsed, because
+   // it will contain definitions of local members as well.
+   // HACK: We look for the line where the text starts at column 1.
    int iStartLine = m_ctrlEdit.LineFromPosition(lPosition);
    int iEndLine = iStartLine;
-   while( iStartLine >= 0 ) {
+   bool bFoundScope = false;
+   while( iStartLine > 0 ) {
       long lPos = m_ctrlEdit.PositionFromLine(iStartLine);
       iStartLine--;
       int ch = m_ctrlEdit.GetCharAt(lPos);
-      if( ch == '{' ) break;
-      if( isalpha(ch) ) break;
+      if( ch == '{' || ch == '}' ) bFoundScope = true;
+      if( !isspace(ch) && bFoundScope ) break;
    }
-   if( iStartLine < 0 ) iStartLine = 0;
 
    // See if we can find a matching type from the tag information.
    for( ; iStartLine <= iEndLine; iStartLine++ ) {
@@ -999,14 +1023,27 @@ CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
       if( m_ctrlEdit.GetLineLength(iStartLine) >= sizeof(szBuffer) ) continue;
       m_ctrlEdit.GetLine(iStartLine, szBuffer);
       CString sLine = szBuffer;
-      int iColPos = sLine.Find(sName);
-      while( iColPos > 0 ) {
-         if( _iscppchar(sLine[iColPos + sName.GetLength()]) ) break;
-         if( _iscppchar(sLine[iColPos - 1]) ) break;
 
+      for( int iColPos = sLine.Find(sName); iColPos >= 0; iColPos = sLine.Find(sName, iColPos + 1) ) 
+      {
+         if( iColPos == 0 ) continue;
+         if( iColPos >= sLine.GetLength() - sName.GetLength() ) continue;
+
+         if( _iscppchar(sLine[iColPos - 1]) ) continue;
+         if( _iscppchar(sLine[iColPos + sName.GetLength()]) ) continue;
+
+         // Need to guess the ending position of the type keyword.
          int iLinePos = m_ctrlEdit.PositionFromLine(iStartLine);
          int iEndPos = iColPos - 1;
          while( iEndPos > 0 && _tcschr(_T(" \t-*&)"), sLine[iEndPos - 1]) != NULL ) iEndPos--;
+         // Special case of:
+         //    MYTYPE a, b;
+         if( iEndPos > 0 && sLine[iEndPos - 1] == ',' ) {
+            iEndPos = 0;
+            while( isspace(sLine[iEndPos]) ) iEndPos++;
+         }
+         // Extract the type string
+         // We'll return the text directly from the editor as the matched type.
          CString sType = _GetNearText(iLinePos + iEndPos);
          
          // First look up among ordinary C++ types.
@@ -1050,13 +1087,16 @@ CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
             }
             iIndex = m_pCppProject->m_TagManager.FindItem(iIndex + 1, sType);
          }
-
-         iColPos = sLine.Find(sName, iColPos + 1);
       }
    }
    return _T("");
 }
 
+/**
+ * Adjust the Scintilla tooltip control.
+ * This helper function adjusts the position of the Scintilla tool, most
+ * notably because it tends to be placed too close to the cursor.
+ */
 void CScintillaView::_AdjustToolTip()
 {
    CToolTipCtrl ctrlTip = ::FindWindow(NULL, _T("ACallTip"));
@@ -1097,6 +1137,9 @@ void CScintillaView::_SetLineIndentation(int iLine, int iIndent)
    m_ctrlEdit.SetSel(cr.cpMin, cr.cpMax);
 }
 
+/**
+ * Return the currently selected text.
+ */
 CString CScintillaView::_GetSelectedText()
 {
    // Get the selected text if any
@@ -1113,22 +1156,62 @@ CString CScintillaView::_GetSelectedText()
    return szText;
 }
 
+/**
+ * Return the text near the position.
+ * This function extract the text that is currently located at the position requested.
+ * Only text that resembles C++ keywords/identifiers is returned, and the function
+ * will "search" in the near-by editor content for a valid text string.
+ * If no "valid" text is found, an empty string is returned.
+ */
 CString CScintillaView::_GetNearText(long lPosition)
 {
    // Get the "word" text under the caret
    if( lPosition < 0 ) return _T("");
+   // First get the line of text
    int iLine = m_ctrlEdit.LineFromPosition(lPosition);
    CHAR szText[256] = { 0 };
    if( m_ctrlEdit.GetLineLength(iLine) >= sizeof(szText) ) return _T("");
    m_ctrlEdit.GetLine(iLine, szText);
+   // We need to get a C++ identifier only, so let's find the
+   // end position of the string
    int iStart = lPosition - m_ctrlEdit.PositionFromLine(iLine);
    while( iStart > 0 && _iscppchar(szText[iStart - 1]) ) iStart--;
+   // Might be a special case of:
+   //     Foo[32].iMemberVar = 0
+   //     Foo().iMemberVar = 0
+   if( szText[iStart - 1] == ']' ) while( iStart > 0 && szText[iStart] != '[' ) iStart--;
+   if( szText[iStart - 1] == ')' ) while( iStart > 0 && szText[iStart] != '(' ) iStart--;
+   while( iStart > 0 && _iscppchar(szText[iStart - 1]) ) iStart--;
+   // Is it really a keyword?
    if( !_iscppchar(szText[iStart]) ) return _T("");
    if( isdigit(szText[iStart]) ) return _T("");
+   // Let's find the start then
    int iEnd = iStart;
-   while( szText[iEnd] && _iscppchar(szText[iEnd + 1]) ) iEnd++;
+   while( szText[iEnd] != '\0' && _iscppchar(szText[iEnd + 1]) ) iEnd++;
    szText[iEnd + 1] = '\0';
+   // Cool, got it...
    return szText + iStart;
+}
+
+/**
+ * Determines if the current position allows auto-completion.
+ * The editor does not allow auto-completion inside comments
+ * or strings (literals).
+ */
+bool CScintillaView::_IsRealCppEditPos(long lPos) const
+{
+   if( lPos <= 0 ) return false;
+   int iStyle = m_ctrlEdit.GetStyleAt(lPos); iStyle;
+   switch( m_ctrlEdit.GetStyleAt(lPos) ) {
+   case SCE_C_STRING:
+   case SCE_C_STRINGEOL:
+   case SCE_C_COMMENT:
+   case SCE_C_COMMENTDOC:
+   case SCE_C_COMMENTLINE:
+      return false;
+   default:
+      return true;
+   }
 }
 
 bool CScintillaView::_HasSelection() const

@@ -14,6 +14,30 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// Danish resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)
+#ifdef _WIN32
+LANGUAGE LANG_DANISH, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_CLEAR           "Clear the view\nClear"
+    ID_EDIT_COPY            "Copy the selected text\nCopy"
+END
+
+#endif    // Danish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
@@ -788,6 +812,24 @@ BEGIN
     END
 END
 
+IDR_OUTPUTVIEW MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Cl&ear",                      ID_EDIT_CLEARVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "&Copy",                       ID_EDIT_COPY
+    END
+END
+
+IDR_COMMANDVIEW MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Copy",                       ID_EDIT_COPY
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -797,7 +839,6 @@ END
 IDR_MAINFRAME ACCELERATORS PRELOAD MOVEABLE PURE 
 BEGIN
     "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
-    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
     "G",            ID_EDIT_GOTO,           VIRTKEY, CONTROL, NOINVERT
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
@@ -805,7 +846,6 @@ BEGIN
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
     "R",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
-    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
     VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
     VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT, NOINVERT
     VK_F12,         ID_VIEW_FULLSCREEN,     VIRTKEY, NOINVERT
@@ -814,7 +854,6 @@ BEGIN
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
     VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
-    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
     "Y",            ID_EDIT_REDO,           VIRTKEY, CONTROL, NOINVERT
     "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
 END
@@ -1190,6 +1229,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_TAB_CLOSEALLEXCEPT   "Close all tabs, except this one\nClose all except this"
+    ID_EDIT_CLEARVIEW       "Clear all text in the view\nClear"
 END
 
 #endif    // English (U.S.) resources

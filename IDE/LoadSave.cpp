@@ -65,12 +65,15 @@ void CMainFrame::_LoadSettings()
 
    if( g_spConfigDoc == NULL ) return;
 
+   // We'll have a resonable bucket-size for out hash table
    m_aProperties.Resize(513);
 
+   // Default printer settings
    m_hDevMode = NULL;
    m_hDevNames = NULL;
    ::SetRectEmpty(&m_rcPageMargins);
 
+   // Read mutable properties
    CRegSerializer reg;
    if( reg.Open(REG_BVRDE) ) {
       // Load Window positions
@@ -84,10 +87,11 @@ void CMainFrame::_LoadSettings()
          _AddProperty(&reg, _T("pane-bottom"), _T("window.pane.bottom"));
          _AddProperty(&reg, _T("properties-cy"), _T("window.properties.cy"));
          _AddProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
+         _AddProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
          reg.ReadGroupEnd();
       }
       // Load debugview settings
-      if (reg.ReadGroupBegin(_T("DebugViews")))
+      if( reg.ReadGroupBegin(_T("DebugViews")) )
       {
           _AddProperty(&reg, _T("showWatch"), _T("gui.debugViews.showWatch"));
           _AddProperty(&reg, _T("showStack"), _T("gui.debugViews.showStack"));
@@ -108,8 +112,10 @@ void CMainFrame::_LoadSettings()
       long lValue = 0;
       g_spConfigDoc->get_readyState(&lValue);
       if( lValue == 4 ) break;  // XML in complete state!
-      ::Sleep(0L);
-      if( ::GetTickCount() - dwStartTick > 5000 ) return;
+      MSG msg;
+      while( ::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ) ::DispatchMessage(&msg);
+      ::Sleep(0UL);
+      if( ::GetTickCount() - dwStartTick > 5000UL ) return;
    }
 
    // Open archive...
@@ -122,7 +128,7 @@ void CMainFrame::_LoadSettings()
    TCHAR szBuffer[MAX_PATH] = { 0 };
    CString sKey;
    CString sValue;
-   
+
    // Load Editor settings
    if( arc.ReadGroupBegin(_T("Editors")) ) 
    {
@@ -360,6 +366,7 @@ void CMainFrame::_SaveSettings()
       _StoreProperty(&reg, _T("pane-bottom"), _T("window.pane.bottom"));
       _StoreProperty(&reg, _T("properties-cy"), _T("window.properties.cy"));
       _StoreProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
+      _StoreProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
       reg.WriteGroupEnd();
       reg.WriteGroupBegin(_T("DebugViews"));
       _StoreProperty(&reg, _T("showWatch"), _T("gui.debugViews.showWatch"));

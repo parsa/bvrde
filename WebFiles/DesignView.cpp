@@ -26,12 +26,14 @@ BOOL CDesignView::PreTranslateMessage(MSG* pMsg)
       return FALSE;
    }
 
-   if( (pMsg->message == WM_KEYDOWN || pMsg->message == WM_KEYUP ) && pMsg->wParam == VK_DELETE ) 
-      return (BOOL) SendMessage(WM_FORWARDMSG, 0, (LPARAM) pMsg);
+   // HACK: Avoid strange dobbler-effect
+   if( (pMsg->message == WM_KEYDOWN || pMsg->message == WM_KEYUP) && pMsg->wParam <= VK_HELP ) 
+   {
+      return FALSE;
+   }
 
    // Give OCX a chance to translate this message
-   //return (BOOL) SendMessage(WM_FORWARDMSG, 0, (LPARAM) pMsg);
-   return FALSE;
+   return (BOOL) SendMessage(WM_FORWARDMSG, 0, (LPARAM) pMsg);
 }
 
 void CDesignView::SetLanguage(CString& sLanguage)
@@ -74,10 +76,10 @@ void CDesignView::SetViewText(LPCTSTR pstrText)
    CComPtr<IDispatch> spDoc;
    m_spBrowser->get_Document(&spDoc);
    if( spDoc == NULL ) return;
-   int nLen = _tcslen(pstrText);
+   size_t nLen = _tcslen(pstrText);
    LPSTR pstrData = (LPSTR) malloc(nLen + 1);
    if( pstrData == NULL ) return;
-   AtlW2AHelper(pstrData, pstrText, nLen);
+   AtlW2AHelper(pstrData, pstrText, nLen + 1);
    pstrData[nLen] = '\0';
    AtlLoadHTML(spDoc, pstrData);
    free(pstrData);

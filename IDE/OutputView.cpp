@@ -76,7 +76,20 @@ LRESULT COutputView::OnPrintClient(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam
    return 0;
 }
 
-LRESULT COutputView::OnLButtonDblClk(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+LRESULT COutputView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{   
+   POINT pt;
+   ::GetCursorPos(&pt);
+   CMenu menu;
+   menu.LoadMenu(IDR_OUTPUTVIEW);
+   ATLASSERT(menu.IsMenu());
+   CMenuHandle submenu = menu.GetSubMenu(0);
+   UINT nCmd = g_pDevEnv->ShowPopupMenu(NULL, submenu, pt, TRUE, this);
+   PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0), (LPARAM) m_hWnd);
+   return 0;
+}
+
+LRESULT COutputView::OnLButtonDblClk(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    LONG iStart, iEnd;
    GetSel(iStart, iEnd);
@@ -124,6 +137,26 @@ LRESULT COutputView::OnLButtonDblClk(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lPar
    return 0;
 }
 
+LRESULT COutputView::OnEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   Copy();
+   return 0;
+}
+
+LRESULT COutputView::OnEditClearView(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   SetWindowText(_T(""));
+   return 0;
+}
+
+// IIdleListener
+
+void COutputView::OnIdle(IUpdateUI* pUIBase)
+{
+   pUIBase->UIEnable(ID_EDIT_COPY, TRUE);
+   pUIBase->UIEnable(ID_EDIT_CLEAR, TRUE);
+}
+
 // Implementation
 
 bool COutputView::_OpenView(IProject* pProject, LPCTSTR pstrFilename, long lLineNum)
@@ -148,3 +181,4 @@ bool COutputView::_OpenView(IProject* pProject, LPCTSTR pstrFilename, long lLine
    //       exist in one of the projects.
    return false;
 }
+

@@ -5,6 +5,7 @@
 #define IDR_XML                         101
 #define IDR_HTML                        102
 #define IDR_MAIN                        108
+#define IDR_ACCELERATOR                 109
 #define IDS_SOURCE                      1000
 #define IDS_DESIGN                      1001
 #define IDS_PREVIEW                     1002

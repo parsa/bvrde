@@ -11,7 +11,7 @@
 
 CDisasmView::CDisasmView() :
    m_pProject(NULL),
-   m_bIntelStyle(false),
+   m_bIntelStyle(true),
    m_bShowSource(false)
 {
 }

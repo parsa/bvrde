@@ -91,4 +91,3 @@ public:
 
 
 #endif // !defined(AFX_UPDATEUI_H__20030329_21E9_E8B0_7BF5_0080AD509054__INCLUDED_)
-

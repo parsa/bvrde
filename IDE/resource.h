@@ -148,6 +148,8 @@
 #define IDS_MACROBIND                   235
 #define IDI_PROJECT                     236
 #define IDS_KEYDUPLICATE                236
+#define IDR_OUTPUTVIEW                  237
+#define IDR_COMMANDVIEW                 238
 #define IDD_MSGBOX                      263
 #define IDI_MSG_INFORMATION             264
 #define IDI_MSG_WARNING                 265
@@ -275,6 +277,7 @@
 #define ID_TAB_ACTIVATE                 32865
 #define ID_VIEW_FULLSCREEN              32866
 #define ID_MACROS_KEY1                  32867
+#define ID_EDIT_CLEARVIEW               32867
 #define ID_MACROS_KEY2                  32868
 #define ID_MACROS_KEY3                  32869
 #define ID_MACROS_KEY4                  32870
@@ -294,8 +297,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        237
-#define _APS_NEXT_COMMAND_VALUE         32867
+#define _APS_NEXT_RESOURCE_VALUE        239
+#define _APS_NEXT_COMMAND_VALUE         32868
 #define _APS_NEXT_CONTROL_VALUE         1085
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

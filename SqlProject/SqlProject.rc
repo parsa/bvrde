@@ -328,6 +328,7 @@ BEGIN
     "1",            ID_VIEW_TAB1,           VIRTKEY, ALT, NOINVERT
     "2",            ID_VIEW_TAB2,           VIRTKEY, ALT, NOINVERT
     "3",            ID_VIEW_TAB3,           VIRTKEY, ALT, NOINVERT
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     "E",            ID_QUERY_RUNSELECTED,   VIRTKEY, CONTROL, NOINVERT
     VK_CANCEL,      ID_QUERY_STOP,          VIRTKEY, CONTROL, NOINVERT
     VK_F5,          ID_QUERY_RUN,           VIRTKEY, NOINVERT

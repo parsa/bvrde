@@ -866,7 +866,7 @@ LRESULT CRemoteProject::OnViewBreakpoints(WORD /*wNotifyCode*/, WORD wID, HWND /
    return 0;
 }
 
-LRESULT CRemoteProject::OnViewRegisters(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CRemoteProject::OnViewRegisters(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
@@ -897,7 +897,7 @@ LRESULT CRemoteProject::OnViewRegisters(WORD /*wNotifyCode*/, WORD wID, HWND /*h
    return 0;
 }
 
-LRESULT CRemoteProject::OnViewMemory(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CRemoteProject::OnViewMemory(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
@@ -908,7 +908,7 @@ LRESULT CRemoteProject::OnViewMemory(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
       m_viewMemory.Init(this);
       m_viewMemory.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_HIDE, CWindow::rcDefault);
-      RECT rcDefault = { 120, 140, 760, 400 };
+      RECT rcDefault = { 120, 140, 780, 400 };
       m_DockManager.SetInfo(m_viewMemory, IDE_DOCK_FLOAT, rcDefault);
    }
 
@@ -928,7 +928,7 @@ LRESULT CRemoteProject::OnViewMemory(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
    return 0;
 }
 
-LRESULT CRemoteProject::OnViewDisassembly(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CRemoteProject::OnViewDisassembly(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
@@ -959,7 +959,7 @@ LRESULT CRemoteProject::OnViewDisassembly(WORD /*wNotifyCode*/, WORD wID, HWND /
    return 0;
 }
 
-LRESULT CRemoteProject::OnViewThreads(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CRemoteProject::OnViewThreads(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
@@ -970,7 +970,7 @@ LRESULT CRemoteProject::OnViewThreads(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
       m_viewThread.Init(this);
       m_viewThread.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewThread, IDE_DOCK_HIDE, CWindow::rcDefault);
-      RECT rcDefault = { 420, 220, 700, 350 };
+      RECT rcDefault = { 420, 220, 600, 450 };
       m_DockManager.SetInfo(m_viewThread, IDE_DOCK_BOTTOM, rcDefault);
    }
 
@@ -990,7 +990,7 @@ LRESULT CRemoteProject::OnViewThreads(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
    return 0;
 }
 
-LRESULT CRemoteProject::OnViewStack(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CRemoteProject::OnViewStack(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
@@ -1021,7 +1021,7 @@ LRESULT CRemoteProject::OnViewStack(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
    return 0;
 }
 
-LRESULT CRemoteProject::OnViewVariables(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CRemoteProject::OnViewVariables(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
@@ -1052,7 +1052,7 @@ LRESULT CRemoteProject::OnViewVariables(WORD /*wNotifyCode*/, WORD wID, HWND /*h
    return 0;
 }
 
-LRESULT CRemoteProject::OnViewWatch(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CRemoteProject::OnViewWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
@@ -1084,7 +1084,7 @@ LRESULT CRemoteProject::OnViewWatch(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
    return 0;
 }
 
-LRESULT CRemoteProject::OnViewProperties(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CRemoteProject::OnViewProperties(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    // Find the tree-item, which will be our new parent
    IElement* pElement = _GetSelectedTreeElement();
@@ -1952,8 +1952,7 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
       m_aFiles[i]->GetName(sName.GetBufferSetLength(128), 128);
       sName.ReleaseBuffer();
       if( sName.CompareNoCase(pstrName) == 0 ) {
-         ::SetLastError(0L);
-         GenerateError(_pDevEnv, IDS_ERR_FILEINCLUDED);
+         GenerateError(_pDevEnv, IDS_ERR_FILEINCLUDED, 0);
          return false;
       }       
    }
@@ -1988,6 +1987,8 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
 IView* CRemoteProject::_CreateDependencyFile(LPCTSTR pstrFilename, LPCTSTR pstrName)
 {
    // See if we can find the file...
+   // The file may not be located in the project path, so we'll allow to
+   // the system to search for the file.
    CString sFilename = m_FileManager.FindFile(pstrFilename);
    if( sFilename.IsEmpty() ) return NULL;
    

@@ -93,15 +93,16 @@ void CMainFrame::_ArrangeToolBars()
          }
       }
    }
-   // Add toolbars to the ReBar control now
+   // Add toolbars to the ReBar control now...
    for( int i = 0; i < nCount; i++ ) {
       TOOLBAR& tb = m_aToolBars[i];
       if( i == 0 ) tb.bNewRow = TRUE;
       if( !AddSimpleReBarBand(tb.hWnd, NULL, tb.bNewRow, 0, TRUE) ) continue;
       if( !m_CmdBar.AddToolbar(tb.hWnd) ) continue;
       // We might need to hide it
-      m_Rebar.ShowBand(m_Rebar.GetBandCount() - 1, tb.bShowDefault);
-      if( tb.bShowDefault ) m_Rebar.MaximizeBand(m_Rebar.GetBandCount() - 1);
+      int nBand = m_Rebar.GetBandCount() - 1;
+      m_Rebar.ShowBand(nBand, tb.bShowDefault);
+      if( tb.bShowDefault ) m_Rebar.MaximizeBand(nBand);
    }
    m_CmdBar.Prepare();
 }
@@ -201,7 +202,7 @@ BOOL CMainFrame::OnIdle()
    UIEnable(ID_WINDOW_PREVIOUS, hWnd != NULL);
    UIEnable(ID_WINDOW_NEXT, hWnd != NULL);
 
-   for( int i = 0; i < m_aIdleListeners.GetSize(); i++ ) m_aIdleListeners[i]->OnIdle(this);
+   for( int i = 0; i < m_aIdleListeners.GetSize(); i++ ) ATLTRY( m_aIdleListeners[i]->OnIdle(this) );
 
    // HACK: To allow the Copy menuitem to become active when
    //       focus is on a regular EDIT control.
@@ -214,6 +215,7 @@ BOOL CMainFrame::OnIdle()
       UIEnable(ID_EDIT_COPY, iEnd > iStart);
       UIEnable(ID_EDIT_CUT, iEnd > iStart);
       UIEnable(ID_EDIT_PASTE, ::IsClipboardFormatAvailable(CF_TEXT));
+      UIEnable(ID_EDIT_UNDO, ctrlEdit.CanUndo());
    }
 
    UIUpdateToolBar();

@@ -92,7 +92,7 @@ BOOL CMainFrame::AddToolBar(HWND hWnd, LPCTSTR pstrTitle)
    int iPosition = _ttoi(szBuffer);
    GetProperty(sKey + _T("newRow"), szBuffer, (sizeof(szBuffer)/sizeof(TCHAR))-1);
    BOOL bNewRow = _tcscmp(szBuffer, _T("true")) == 0;
-   // If not in initialization phase, we should add it now
+   // If not in initialization phase, we should add it now...
    if( m_bInitialized ) {
       BOOL bNewRow = (m_Rebar.GetBandCount() & 1) == 0;
       if( !AddSimpleReBarBand(hWnd, NULL, bNewRow, 0, TRUE) ) return FALSE;
@@ -195,8 +195,17 @@ BOOL CMainFrame::AddDockView(HWND hWnd, IDE_DOCK_TYPE Direction, RECT rcWin)
    case IDE_DOCK_FLOAT:
       bRes = m_Dock.FloatWindow(hWnd, rcWin);
       break;
+   case IDE_DOCK_LEFT:
+   case IDE_DOCK_RIGHT:
+      bRes = m_Dock.DockWindow(hWnd, Direction, rcWin.bottom - rcWin.top);
+      break;
+   case IDE_DOCK_TOP:
+   case IDE_DOCK_BOTTOM:
+      bRes = m_Dock.DockWindow(hWnd, Direction, rcWin.right - rcWin.left);
+      break;
    default:
       bRes = m_Dock.DockWindow(hWnd, Direction);
+      break;
    }
    return bRes;
 }

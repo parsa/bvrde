@@ -22,3 +22,4 @@
    // Setting this linker switch causes segment size to be set to 512 bytes
    #pragma comment(linker, "/OPT:NOWIN98")
 #endif
+
