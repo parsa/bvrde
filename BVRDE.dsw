@@ -1,0 +1,173 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "BVRDE"=.\IDE\BVRDE.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "EmptyProject"=.\EmptyProject\EmptyProject.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name BVRDE
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name GenEdit
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "FileManager"=.\FileManager\FileManager.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name BVRDE
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "FindFiles"=.\FindFiles\FindFiles.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name RemoteProject
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "GenEdit"=.\GenEdit\GenEdit.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "RemoteProject"=.\RemoteProject\RemoteProject.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name BVRDE
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name GenEdit
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "SourceControl"=.\SourceControls\SourceControl.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name RemoteProject
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "SqlProject"=.\SqlProject\SqlProject.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name BVRDE
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name GenEdit
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "StartPage"=.\StartPage\StartPage.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name BVRDE
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "WebFiles"=.\WebFiles\WebFiles.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name BVRDE
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name GenEdit
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+

@@ -1,0 +1,46 @@
+Basic Installation
+==================
+
+   These are generic installation instructions.
+
+The solution compiles with Microsoft Developer Studio 6, but has been known
+to compile with the later Visual Studio.NET version. You must however import
+the DSW project files to do this.
+
+Installation of Microsoft Windows Template Library (WTL) and Microsoft Platform
+SDK is required. Links for these products are available on the website.
+
+To compile the projects, you should use the "Batch Build" option in Developer Studio.
+This will build all the projects in the solution in the correct order.
+
+The source distribution does not contain all the required binary files to
+successfully run the application. You can copy the remaining files 
+(such as CL32.DLL, SciLexer.DLL and BVRDE.XML) from the binary distribution 
+to the \Bin folder to allow the application to run.
+
+    Resolving Errors
+
+If you get errors about a missing atlres.h file you have not installed WTL
+properly.
+
+If you get errors concerning the WinInet "FtpCommand" method, you have not 
+updated your MS Platform SDK files or configured it properly.
+Alternatively remove the offending line from the FtpProtocol.cpp file.
+
+Compile errors regarding an unknown ATL namespace prefix can be
+corrected directly in the atldispa.h source by removing the prefix
+as described in the comments.
+
+Compile errors complaining about ambiguous symbols in ATL can be resolved by
+following the instructions in the WTL 7.1 ReadMe file.
+
+The code depends on the Microsoft version of the STL library. If you
+have installed a different STL library, temporarily revert to the
+Microsoft include paths to make use of the Microsoft STL version.
+
+Compiling under Visual Studio.NET will generate a number of warnings. You
+may ignore these warnings.
+
+
+Bjarke Viksøe (bjarke@viksoe.dk)
+http://www.viksoe.dk/bvrde

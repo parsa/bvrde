@@ -1,0 +1,28 @@
+                              BVRDE Version 1 Release
+
+                       Copyright (C) 2002-2004 Bjarke Viksøe
+Introduction:
+-------------
+
+BVRDE is an Integrated Development Environment (IDE) for C and C++. 
+It is designed to make cross-platform development easy. Its features 
+include project management, application wizards, an integrated 
+interactive debugger, and a powerful source editor
+with source browsing and syntax highlighting.
+
+The goal of this tool is to allow a developer to compile and debug
+applications entirely on a remote computer, while editing and issuing
+compile and debug commands through a local interface.
+BVRDE supports a variety of network protocols to allow connection with
+various remote systems. This includes FTP and secure & encrypted protocols
+such as SSH and SFTP.
+
+
+Copyright (C) 2002-2004 Bjarke Viksøe (bjarke@viksoe.dk)
+--------------------------------------------------------
+
+To start BVRDE, simply activate the application from the program-icon
+in the Start Menu, or double-click on the BVRDE executable.
+
+
+** Good Luck **
