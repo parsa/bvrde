@@ -176,8 +176,6 @@ bool CScCommands::CollectFiles(CSimpleArray<CString>& aFiles)
    TCHAR szType[100] = { 0 };
    pElement->GetType(szType, 99);
 
-   bool bIsFolder = _tcscmp(szType, _T("Folder")) == 0;
-
    CComDispatchDriver dd = pElement->GetDispatch();
    if( dd == NULL ) return false;
 
@@ -186,10 +184,6 @@ bool CScCommands::CollectFiles(CSimpleArray<CString>& aFiles)
    dd.GetPropertyByName(OLESTR("Files"), &vFiles);
    if( vFiles.vt == VT_DISPATCH ) {
       dd = vFiles.pdispVal;
-      bIsFolder = true;
-   }
-
-   if( bIsFolder ) {
       // It's a folder with a files collection
       CComVariant vCount;
       dd.GetPropertyByName(OLESTR("Count"), &vCount);
@@ -230,13 +224,11 @@ bool CScCommands::CheckIn(CSimpleArray<CString>& aFiles)
    if( dlg.DoModal() != IDOK ) return false;
 
    CString sCmd;
-   sCmd.Format(_T("%s %s"), sProgram, sCmdCheckIn);
+   sCmd.Format(_T("%s %s %s"), sProgram, sCmdCheckIn, dlg.m_sOptions);
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
       sCmd += _T(" ");
       sCmd += aFiles[i];
    }
-   sCmd += _T(" ");
-   sCmd += dlg.m_sOptions;
    sCmd += _T("\n");
    m_thread.Stop();
    m_thread.SetCommand(ID_SC_CHECKIN, sCmd);
@@ -287,8 +279,7 @@ bool CScCommands::AddFile(CSimpleArray<CString>& aFiles)
    if( dlg.DoModal() != IDOK ) return false;
    
    CString sCmd;
-   sCmd.Format(_T("%s %s"), sProgram, sCmdAddFile);
-   sCmd += dlg.m_sOptions;
+   sCmd.Format(_T("%s %s %s"), sProgram, sCmdAddFile, dlg.m_sOptions);
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
       sCmd += _T(" ");
       sCmd += aFiles[i];
@@ -325,9 +316,8 @@ bool CScCommands::LogIn(CSimpleArray<CString>& aFiles)
       sCmd += dlg.m_sOptions;
       // Hmm, the cvs server blocks the input through
       // the Telnet shell. We'll not send the password right
-      // away to do it in two steps.
-      // BUG: This is very non-portable! What if there's no
-      //      telnet; or a different cvs impl????
+      // away and do it in two steps.
+      // BUG: This is very non-portable! What if there's no telnet; or a different cvs impl????
       // BUG: FIX THIS!!!
    }
    sCmd += _T("\n");

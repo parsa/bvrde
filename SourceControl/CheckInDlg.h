@@ -64,13 +64,16 @@ public:
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CString sComment = CWindowText(m_ctrlComment);
-      sComment.Replace(_T("\""), _T("'"));
+      sComment.Replace('\"', '\'');
+      // NOTE: Newlines aren't exactly supported by CVS command line but left to
+      //       the shell (whatever kind that may be installed) to handle!
 
       CString sTemp;
       m_sOptions.Empty();
       sTemp.Format(_T(" %s \"%s\""), m_pOwner->sOptMessage, sComment);
       m_sOptions += sTemp;
 
+      ::ZeroMemory(m_szComment, sizeof(m_szComment));
       _tcsncpy(m_szComment, sComment, (sizeof(m_szComment) / sizeof(TCHAR)) - 1);
 
       EndDialog(wID);

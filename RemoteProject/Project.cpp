@@ -2259,8 +2259,10 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
    // Remove current tag information if it looks like a new
    // tag file has been added...
    if( sUpperName.Find(_T("TAGS")) >= 0 ) {
+      m_viewClassTree.Lock();
       m_TagManager.m_TagInfo.MergeFile(pstrName);
       m_viewClassTree.Rebuild();
+      m_viewClassTree.Unlock();
    }
 
    // New C++ files are added to class-view immediately if online-scanner

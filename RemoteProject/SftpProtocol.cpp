@@ -132,6 +132,7 @@ DWORD CSftpThread::Run()
    LPCSTR pstrCertificate = T2CA(sCertificate);
 
    // Create the session
+   cryptSession = 0;
    int status = clib.cryptCreateSession(&cryptSession, CRYPT_UNUSED, CRYPT_SESSION_SSH);
    if( cryptStatusError(status) ) {
       m_pManager->m_dwErrorCode = NTE_BAD_VER;

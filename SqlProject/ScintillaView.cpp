@@ -157,7 +157,7 @@ LRESULT CScintillaView::OnEditAutoComplete(WORD /*wNotifyCode*/, WORD /*wID*/, H
 {
    int iLenEntered = 0;
    long lPos = GetCurrentPos();
-   while( _istalpha(GetCharAt(--lPos)) ) iLenEntered++;
+   while( lPos > 1 && _istalpha(GetCharAt(--lPos)) ) iLenEntered++;
    _AutoComplete(GetCharAt(lPos), iLenEntered);
    return 0;
 }

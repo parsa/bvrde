@@ -24,7 +24,7 @@ public:
    }
    BOOL Save(ISerializable* pArc)
    {
-      ATLASSERT(!::IsBadReadPtr(m_pTag,sizeof(*m_pTag)));
+      ATLASSERT(!::IsBadReadPtr(m_pTag,sizeof(TAGINFO)));
       CString sKind(MAKEINTRESOURCE(IDS_UNKNOWN));
       if( m_pTag->Type == TAGTYPE_CLASS ) sKind.LoadString(IDS_CLASS);
       else if( m_pTag->Type == TAGTYPE_FUNCTION ) sKind.LoadString(IDS_FUNCTION);
@@ -143,20 +143,22 @@ void CClassView::Populate()
    // Show status text
    CWaitCursor cursor;
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_LOADTAG)));
-   // Fill in tree...
+   // Fill up tree...
    _PopulateTree();
 }
 
 void CClassView::Rebuild()
 {
+   // Don't want classes hanging around
+   Clear();
+   // View not showing right? No need to populate now.
+   if( !IsWindowVisible() ) return;
+   // Ok, do it then...
    _PopulateTree();
 }
 
 void CClassView::_PopulateTree()
 {
-   // View not showing at all!
-   if( !IsWindowVisible() ) return;
-
    CSimpleValArray<TAGINFO*> aList;
    m_pProject->m_TagManager.GetOuterList(aList);
    if( aList.GetSize() > 0 ) 
@@ -211,7 +213,6 @@ void CClassView::_PopulateTree()
    }
 
    m_bLoaded = true;
-   m_bLocked = false;
    m_aExpandedNames.RemoveAll();
 }
 
@@ -392,7 +393,12 @@ LRESULT CClassView::OnGetDisplayInfo(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    LPNMTVDISPINFO lpNMTVDI = (LPNMTVDISPINFO) pnmh;
    if( (lpNMTVDI->item.mask & TVIF_TEXT) == 0 ) return 0;
    if( m_bLocked ) return 0;
+   // NOTE: We use a callback for populating the tree text. This saves
+   //       memory when keeping a large parse tree, but certainly makes it
+   //       more difficult to maintain the tree. Since we modify classes
+   //       on the fly, we need to repopulate/clear the tree often.
    TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(lpNMTVDI->item.hItem);
+   ATLASSERT(!::IsBadReadPtr(pTag, sizeof(TAGINFO)));
    lpNMTVDI->item.pszText = (LPTSTR) pTag->pstrName;
    return 0;
 }

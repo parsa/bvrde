@@ -91,6 +91,7 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
    // This is important since we've removed some of the TAGINFO pointers
    // from the list and we need to unlock the data
    m_pProject->GetClassView()->Rebuild();
+   m_pProject->GetClassView()->Unlock();
 
    return true;
 }

@@ -290,8 +290,8 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( FindMembers ) ;
 					}
 
-<FindMembers>^[ \t]*"use"[ \t]+		{ 
-					  current->type = "use " ;
+<FindMembers>^[ \t]*"using"[ \t]+	{ 
+					  current->type = "using " ;
 					  BEGIN( Define ) ;
 					}
 <FindMembers>^[ \t]*"#"[ \t]*define[ \t]+	{ 

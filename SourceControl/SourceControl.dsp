@@ -143,17 +143,29 @@ SOURCE=..\Source\CPP\Include\Thread.h
 SOURCE=..\Source\WTL\Controls\MruCombo.h
 # End Source File
 # End Group
+# Begin Group "Dialogs"
+
+# PROP Default_Filter ""
 # Begin Source File
 
 SOURCE=.\AddFileDlg.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\IDE\BVRDE_SDK.h
+SOURCE=.\CheckInDlg.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\CheckInDlg.h
+SOURCE=.\LoginCvsDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\UpdateDlg.h
+# End Source File
+# End Group
+# Begin Source File
+
+SOURCE=..\IDE\BVRDE_SDK.h
 # End Source File
 # Begin Source File
 
@@ -169,10 +181,6 @@ SOURCE=.\Globals.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\LoginCvsDlg.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\RepositoryView.h
 # End Source File
 # Begin Source File
@@ -182,10 +190,6 @@ SOURCE=.\resource.h
 # Begin Source File
 
 SOURCE=.\StdAfx.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\UpdateDlg.h
 # End Source File
 # Begin Source File
 
