@@ -74,6 +74,7 @@ BOOL CViewImpl::Save(ISerializable* pArc)
 
 BOOL CViewImpl::Save()
 {
+   m_bIsDirty = false;
    return TRUE;
 }
 

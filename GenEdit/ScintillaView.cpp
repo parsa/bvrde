@@ -1022,6 +1022,7 @@ void CScintillaView::_MaintainTags(CHAR ch)
       CString sFound = _FindOpenXmlTag(szText, nCaret - nMin);
       if( sFound.IsEmpty() ) return;
       // Ignore some of the non-closed HTML tags
+      if( sFound.CompareNoCase(_T("IMG")) == 0 ) return;
       if( sFound.CompareNoCase(_T("BR")) == 0 ) return;
       if( sFound.CompareNoCase(_T("P")) == 0 ) return;
       // Insert end-tag into text

@@ -18,7 +18,7 @@ DWORD CTelnetThread::Run()
    ATLASSERT(m_pCallback);
 
    CSocket& socket = m_pManager->m_socket;
-   
+
    // Get connect parameters
    // TODO: Protect these guys with thread-lock
    CString sHost = m_pManager->GetParam(_T("Host"));
@@ -163,7 +163,7 @@ DWORD CTelnetThread::Run()
                }
                ppstr++;
             }
-            // Send our own requirements
+            // Send our own login commands
             if( !sExtraCommands.IsEmpty() ) {
                CLockStaticDataInit lock;
                CHAR szBuffer[1024];

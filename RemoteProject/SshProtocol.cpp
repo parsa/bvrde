@@ -174,7 +174,12 @@ DWORD CSshThread::Run()
             }
             ppstr++;
          }
+         // Ok, signal that we're connected
          m_pManager->m_bConnected = *ppstr == NULL;
+         // Send our own login commands
+         if( m_pManager->m_bConnected && !sExtraCommands.IsEmpty() ) {
+            m_pManager->WriteData(sExtraCommands);
+         }
       }
 
       int iPos = 0;
@@ -335,7 +340,7 @@ bool CSshProtocol::Load(ISerializable* pArc)
    m_sPath.ReleaseBuffer();
    pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(200), 200);
    m_sExtraCommands.ReleaseBuffer();
-   m_sExtraCommands.Replace(_T("\\n"), _T("\r\n"));
+   m_sExtraCommands.Replace(_T("\\n"), _T("\n"));
    
    return true;
 }
@@ -437,8 +442,10 @@ bool CSshProtocol::WriteData(LPCTSTR pstrData)
    int nLen = _tcslen(pstrData);
    LPSTR pstr = (LPSTR) _alloca(nLen + 2);
    ATLASSERT(pstr);
+   if( pstr == NULL ) return false;
    pstr = AtlW2AHelper(pstr, pstrData, nLen);
    strcpy(pstr + nLen, "\n");
+   CLockStaticDataInit lock;
    int iWritten = 0;
    int iTimeout = 10;
    int status = CRYPT_ERROR_TIMEOUT;

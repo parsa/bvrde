@@ -14,7 +14,7 @@ class CView;
 
 
 class CContainerWindow : 
-   public CWindowImpl< CContainerWindow, CTabCtrl >
+   public CWindowImpl< CContainerWindow, CTabCtrl, CWinTraitsOR< TCS_SINGLELINE | TCS_FOCUSNEVER | TCS_FORCEICONLEFT | TCS_FORCELABELLEFT > >
 {
 public:
    DECLARE_WND_SUPERCLASS(_T("BVRDE_SqlTab"), CTabCtrl::GetWndClassName())
@@ -25,6 +25,7 @@ public:
    CScintillaView m_wndSource;
    CResultView m_wndResult;
    CSchemaView m_wndSchema;
+   CImageListCtrl m_Images;
    CWindow m_hWndClient;
    //
    CSqlProject* m_pProject;
@@ -32,7 +33,9 @@ public:
 
    void Init(CSqlProject* pProject, CView* pView);
    void SetLanguage(CString& sLanguage);
+
    void OnIdle(IUpdateUI* pUIBase);
+
    BOOL PreTranslateMessage(MSG* pMsg);
    void OnFinalMessage(HWND hWnd);
 

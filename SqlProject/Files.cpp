@@ -122,7 +122,7 @@ BOOL CView::OpenView(long /*lPosition*/)
       }
       m_wndFrame = pFrame->GetHwnd();
       m_view.Init(m_pProject, this);
-      m_view.Create(m_wndFrame, CWindow::rcDefault, NULL, WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TCS_SINGLELINE | TCS_FOCUSNEVER, 0);
+      m_view.Create(m_wndFrame, CWindow::rcDefault, NULL, WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
       ATLASSERT(m_view.IsWindow());
       if( !m_view.IsWindow() ) return FALSE;
       pFrame->SetClient(m_view);

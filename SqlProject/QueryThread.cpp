@@ -381,9 +381,9 @@ BOOL CQueryThread::_SplitSQL(const CString& sSQL, int iLineNo, CSimpleArray<SQLP
    // Keep track of source line-no since we might want to link back to
    // the original SQL text.
    CString sPart;
+   LPCTSTR p = sSQL;
    int iStartLineNo = 0;
    bool bInsideQuote = false;
-   LPTSTR p = (LPTSTR) (LPCTSTR) sSQL;
    while( *p ) {
       // Strip comments?
       if( !bInsideQuote && bStripComments ) {
@@ -415,28 +415,29 @@ BOOL CQueryThread::_SplitSQL(const CString& sSQL, int iLineNo, CSimpleArray<SQLP
       }
       // Update state
       switch( *p ) {
-      case '\n':
-         iLineNo++;
-         bInsideQuote = false;
-         // FALL THROUGH
+      case '\0':
+         break;
       case '\r':
       case '\t':
-         *p = ' ';
+         p++;
          break;
       case '\'':
          bInsideQuote = !bInsideQuote;
+         sPart += *p++;
+         break;
+      case '\n':
+         iLineNo++;
+         bInsideQuote = false;
+         sPart += *p++;
          break;
       default:
          if( iStartLineNo == 0 ) iStartLineNo = iLineNo;
+         sPart += *p++;
       }
-      // Append character...
-      sPart += *p++;
    }
    sPart.TrimLeft();
    sPart.TrimRight();
-   // FIX: WTL 7 bug: TrimRight doesn't update internal counters
-   //if( !sPart.IsEmpty() ) {
-   if( _tcslen(sPart) > 0 ) {
+   if( !sPart.IsEmpty() ) {
       SQLPART part;
       part.sSQL = sPart;
       part.iLineNo = iStartLineNo;

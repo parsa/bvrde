@@ -803,7 +803,7 @@ CString CScintillaView::_FindBlockType(long lPosition)
    if( m_ctrlEdit.GetLineLength(iStartLine) >= sizeof(szBuffer) ) return _T("");
    m_ctrlEdit.GetLine(iStartLine, szBuffer);
 
-   // Now if need to determine the scope type. We'll look for name 'xxx' in the
+   // Now we need to determine the scope type. We'll look for name 'xxx' in the
    // following cases:
    //    class xxx
    //    class xxx : public CFoo

@@ -74,7 +74,7 @@ public:
       m_spSolution = pSolution;
       m_spProject = pProject;
       m_spView = pView;
-      m_Response = L"";
+      m_Response.Clear();
    }
 
    BEGIN_DISPATCH_MAP(CContainer)

@@ -294,6 +294,10 @@ SOURCE=.\res\listsmall.bmp
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\tabs.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\toolbar.bmp
 # End Source File
 # Begin Source File

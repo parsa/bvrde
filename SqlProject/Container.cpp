@@ -99,9 +99,6 @@ LRESULT CContainerWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 
    m_wndParent.SubclassWindow(GetParent());
 
-   SIZE szPadding = { 6, 6 };
-   SetPadding(szPadding);
-
    TCHAR szFilename[MAX_PATH] = { 0 };
    m_pView->GetFileName(szFilename, MAX_PATH);
 
@@ -110,21 +107,32 @@ LRESULT CContainerWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
    m_wndSource.ModifyStyle(0, WS_BORDER);
    m_wndSource.ModifyStyleEx(0, WS_EX_CLIENTEDGE);
    m_wndSource.SendMessage(WM_SETTINGCHANGE);
+
    m_wndResult.Create(m_hWnd, rcDefault);
+
    m_wndSchema.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
+
+   m_Images.Create(IDB_TABS, 16, 0, RGB(255,0,255));
+   SetImageList(m_Images);
+
+   SIZE szPadding = { 6, 6 };
+   SetPadding(szPadding);
 
    CString s;
    TCITEM item = { 0 };
-   item.mask = TCIF_TEXT;
+   item.mask = TCIF_TEXT | TCIF_IMAGE;
    //
+   item.iImage = 0;
    s.LoadString(IDS_SQL);
    item.pszText = (LPTSTR) (LPCTSTR) s;
    InsertItem(0, &item);
    //
+   item.iImage = 1;
    s.LoadString(IDS_RESULT);
    item.pszText = (LPTSTR) (LPCTSTR) s;
    InsertItem(1, &item);
    //
+   item.iImage = 2;
    s.LoadString(IDS_SCHEMA);
    item.pszText = (LPTSTR) (LPCTSTR) s;
    InsertItem(2, &item);

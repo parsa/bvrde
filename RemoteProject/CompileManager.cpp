@@ -222,72 +222,52 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
    // We usually start off by changing to the project folder
    // to make sure everything run from the correct path.
    // Then we submit the actual command (user configurable).
+   CString sTitle;
    CString sName = pstrName;
+   bool bCommandMode = false;
+   bool bIgnoreOutput = false;
    CSimpleArray<CString> aCommands;
-   CString sCommand;
    if( sName == "Clean" ) {
       if( !_PrepareProcess(pstrName) ) return false;
-      CString sTitle(MAKEINTRESOURCE(IDS_CLEAN));
-      sCommand = _TranslateCommand(m_sCommandCD);
-      aCommands.Add(sCommand);
-      sCommand = _TranslateCommand(m_sCommandClean);
-      aCommands.Add(sCommand);
-      return _StartProcess(sTitle, aCommands);
+      sTitle.LoadString(IDS_CLEAN);
+      aCommands.Add(m_sCommandCD);
+      aCommands.Add(m_sCommandClean);
    }
    if( sName == "Build" ) {
       if( !_PrepareProcess(pstrName) ) return false;
-      CString sTitle(MAKEINTRESOURCE(IDS_BUILD));
-      sCommand = _TranslateCommand(m_sCommandCD);
-      aCommands.Add(sCommand);
-      sCommand = _TranslateCommand(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
-      aCommands.Add(sCommand);
-      sCommand = _TranslateCommand(m_sCommandBuild);
-      aCommands.Add(sCommand);
-      return _StartProcess(sTitle, aCommands);
+      sTitle.LoadString(IDS_BUILD);
+      aCommands.Add(m_sCommandCD);
+      aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
+      aCommands.Add(m_sCommandBuild);
    }
    if( sName == "Rebuild" ) {
       if( !_PrepareProcess(pstrName) ) return false;
-      CString sTitle(MAKEINTRESOURCE(IDS_REBUILD));
-      sCommand = _TranslateCommand(m_sCommandCD);
-      aCommands.Add(sCommand);
-      sCommand = _TranslateCommand(m_sCommandClean);
-      aCommands.Add(sCommand);
-      sCommand = _TranslateCommand(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
-      aCommands.Add(sCommand);
-      sCommand = _TranslateCommand(m_sCommandRebuild);
-      aCommands.Add(sCommand);
-      return _StartProcess(sTitle, aCommands);
+      sTitle.LoadString(IDS_REBUILD);
+      aCommands.Add(m_sCommandCD);
+      aCommands.Add(m_sCommandClean);
+      aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
+      aCommands.Add(m_sCommandRebuild);
    }
    if( sName == "Compile" ) {
       if( !_PrepareProcess(pstrName) ) return false;
-      sCommand = _TranslateCommand(m_sCommandCD);
-      aCommands.Add(sCommand);
-      sCommand = _TranslateCommand(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
-      aCommands.Add(sCommand);
-      sCommand = _TranslateCommand(m_sCommandCompile, pstrParams);
-      aCommands.Add(sCommand);
-      return _StartProcess(CString(MAKEINTRESOURCE(IDS_COMPILE)), aCommands);
+      sTitle.LoadString(IDS_COMPILE);
+      aCommands.Add(m_sCommandCD);
+      aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
+      aCommands.Add(m_sCommandCompile);
    }
    if( sName == "CheckSyntax" ) {
       if( !_PrepareProcess(pstrName) ) return false;
-      sCommand = _TranslateCommand(m_sCommandCD);
-      aCommands.Add(sCommand);
-      sCommand = _TranslateCommand(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
-      aCommands.Add(sCommand);
-      sCommand = _TranslateCommand(m_sCommandCheckSyntax, pstrParams);
-      aCommands.Add(sCommand);
-      return _StartProcess(CString(MAKEINTRESOURCE(IDS_CHECKSYNTAX)), aCommands);
+      sTitle.LoadString(IDS_CHECKSYNTAX);
+      aCommands.Add(m_sCommandCD);
+      aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
+      aCommands.Add(m_sCommandCheckSyntax);
    }
    if( sName == "BuildTags" ) {
       if( !_PrepareProcess(pstrName) ) return false;
-      CString sTitle(MAKEINTRESOURCE(IDS_BUILD));
-      sCommand = _TranslateCommand(m_sCommandCD);
-      aCommands.Add(sCommand);
-      sCommand = _TranslateCommand(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
-      aCommands.Add(sCommand);
-      sCommand = _TranslateCommand(m_sCommandBuildTags);
-      aCommands.Add(sCommand);
-      return _StartProcess(sTitle, aCommands);
+      sTitle.LoadString(IDS_BUILD);
+      aCommands.Add(m_sCommandCD);
+      aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
+      aCommands.Add(m_sCommandBuildTags);
    }
    if( sName == "Stop" ) {
       SignalStop();
@@ -296,17 +276,20 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       return true;
    }
    if( sName.Find(_T("cc ")) == 0 ) {
-      CString sCommand = sName.Mid(3);
-      aCommands.Add(sCommand);
-      return _StartProcess(CString(MAKEINTRESOURCE(IDS_EXECUTING)), aCommands, true, false);
+      sTitle.LoadString(IDS_EXECUTING);
+      aCommands.Add(sName.Mid(3));
+      bCommandMode = true;
    }
    if( sName.Find(_T("cz ")) == 0 ) {
-      CString sCommand = _TranslateCommand(sName.Mid(3));
-      aCommands.Add(sCommand);
-      return _StartProcess(CString(MAKEINTRESOURCE(IDS_EXECUTING)), aCommands, true, true);
+      sTitle.LoadString(IDS_EXECUTING);
+      aCommands.Add(sName.Mid(3));
+      bCommandMode = true;
+      bIgnoreOutput = true;
    }
-   ATLASSERT(false);
-   return false;
+   for( int i = 0; i < aCommands.GetSize(); i++ ) {
+      aCommands[i] = _TranslateCommand(aCommands[i], pstrParams);
+   }
+   return _StartProcess(sTitle, aCommands, bCommandMode, bIgnoreOutput);
 }
 
 CString CCompileManager::GetParam(LPCTSTR pstrName) const
@@ -354,7 +337,7 @@ CString CCompileManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrPara
    sName.Replace(_T("$PROJECTNAME$"), szProjectName);
    sName.Replace(_T("$PATH$"), m_ShellManager.GetParam(_T("Path")));
    sName.Replace(_T("\\n"), _T("\r\n"));
-   if( pstrParam ) {
+   if( pstrParam != NULL ) {
       TCHAR szName[MAX_PATH] = { 0 };
       _tcscpy(szName, pstrParam);
       sName.Replace(_T("$FILEPATH$"), szName);
