@@ -391,6 +391,7 @@ COledbRecordset::COledbRecordset(COledbDatabase* pDb) :
 
 COledbRecordset::COledbRecordset(IRowset* pRS) : 
    m_pDb(NULL), 
+   m_pData(NULL),
    m_rgBindings(NULL), 
    m_hAccessor(DB_NULL_HACCESSOR), 
    m_pwstrNameBuffer(NULL),

@@ -32,6 +32,7 @@ C++ IDE:
 * Auto Brackets
 * Replace Tabs
 * Online scanner/lexer
+- New File template/dialog
 
 Debugger:
 * Remote GNU GDB integration
@@ -39,8 +40,8 @@ Debugger:
 * Infotip on variable
 * Expression Watch dialog
 * Handle breakpoints async and add/remove correctly
-- Disassembly view
-- Memory inspector view
+* Disassembly view
+* Memory inspector view
 
 HTML / XML:
 * Preview mode for HTML
@@ -86,6 +87,7 @@ SQL:
    "This command did not return data, and it did not return any rows"
 * View menu: Query / Result / Schema i meny itself (shortcuts)
 - Comment block
+* Clipboard support
 
 Resource Manager:
 - Load and save .RC files

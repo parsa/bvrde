@@ -27,9 +27,9 @@ public:
 
    void Init(CRemoteProject* pProject);
    bool WantsData();
-   void SetInfo(LPCTSTR pstrType, CMiInfo& info);
+   void EvaluateValues(CSimpleArray<CString>& aDbgCmd);
    void ActivateWatches();
-   void EvaluateValues();
+   void SetInfo(LPCTSTR pstrType, CMiInfo& info);
 
    // Implementation
 

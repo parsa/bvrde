@@ -466,31 +466,31 @@ TAGTYPE CTagInfo::_GetTagType(const TAGINFO& info) const
    for( short i = 0; i < info.nFields; i++ ) {
       const LPCTSTR& pstrField = info.pstrFields[i];
       if( pstrField[0] != '\0' &&  pstrField[1] == '\0' ) {
+         if( _tcscmp(pstrField, _T("e")) == 0 ) return TAGTYPE_ENUM;
          if( _tcscmp(pstrField, _T("c")) == 0 ) return TAGTYPE_CLASS;
+         if( _tcscmp(pstrField, _T("m")) == 0 ) return TAGTYPE_MEMBER;
+         if( _tcscmp(pstrField, _T("d")) == 0 ) return TAGTYPE_DEFINE;
          if( _tcscmp(pstrField, _T("s")) == 0 ) return TAGTYPE_STRUCT;
          if( _tcscmp(pstrField, _T("t")) == 0 ) return TAGTYPE_TYPEDEF;
          if( _tcscmp(pstrField, _T("f")) == 0 ) return TAGTYPE_FUNCTION;
-         if( _tcscmp(pstrField, _T("m")) == 0 ) return TAGTYPE_MEMBER;
-         if( _tcscmp(pstrField, _T("d")) == 0 ) return TAGTYPE_DEFINE;
-         if( _tcscmp(pstrField, _T("e")) == 0 ) return TAGTYPE_ENUM;
       }
       //
       if( _tcscmp(pstrField, _T("class")) == 0 ) return TAGTYPE_CLASS;
+      if( _tcscmp(pstrField, _T("macro")) == 0 ) return TAGTYPE_DEFINE;
+      if( _tcscmp(pstrField, _T("member")) == 0 ) return TAGTYPE_MEMBER;
       if( _tcscmp(pstrField, _T("struct")) == 0 ) return TAGTYPE_STRUCT;
       if( _tcscmp(pstrField, _T("typedef")) == 0 ) return TAGTYPE_TYPEDEF;
-      if( _tcscmp(pstrField, _T("function")) == 0 ) return TAGTYPE_FUNCTION;
-      if( _tcscmp(pstrField, _T("member")) == 0 ) return TAGTYPE_MEMBER;
-      if( _tcscmp(pstrField, _T("macro")) == 0 ) return TAGTYPE_DEFINE;
       if( _tcscmp(pstrField, _T("enumerator")) == 0 ) return TAGTYPE_ENUM;
+      if( _tcscmp(pstrField, _T("function")) == 0 ) return TAGTYPE_FUNCTION;
       //
       if( _tcsncmp(pstrField, _T("kind:"), 5) == 0 ) {
          if( _tcscmp(pstrField, _T("kind:class")) == 0 ) return TAGTYPE_CLASS;
+         if( _tcscmp(pstrField, _T("kind:macro")) == 0 ) return TAGTYPE_DEFINE;
+         if( _tcscmp(pstrField, _T("kind:member")) == 0 ) return TAGTYPE_MEMBER;
          if( _tcscmp(pstrField, _T("kind:struct")) == 0 ) return TAGTYPE_STRUCT;
          if( _tcscmp(pstrField, _T("kind:typedef")) == 0 ) return TAGTYPE_TYPEDEF;
-         if( _tcscmp(pstrField, _T("kind:function")) == 0 ) return TAGTYPE_FUNCTION;
-         if( _tcscmp(pstrField, _T("kind:member")) == 0 ) return TAGTYPE_MEMBER;
-         if( _tcscmp(pstrField, _T("kind:macro")) == 0 ) return TAGTYPE_DEFINE;
          if( _tcscmp(pstrField, _T("kind:enumerator")) == 0 ) return TAGTYPE_ENUM;
+         if( _tcscmp(pstrField, _T("kind:function")) == 0 ) return TAGTYPE_FUNCTION;
       }
    }
    return TAGTYPE_UNKNOWN;

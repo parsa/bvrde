@@ -57,7 +57,7 @@ BOOL CDbOperations::EnumTables(COledbDatabase* pDb /*=NULL*/)
    CComPtr<IRowset> spRS;
    HRESULT Hr = spSchema->GetRowset(NULL, DBSCHEMA_TABLES, 0, NULL, IID_IRowset, 0, NULL, (LPUNKNOWN*) &spRS);
    if( FAILED(Hr) ) return FALSE;
-   COledbRecordset rec(spRS);  
+   COledbRecordset rec = spRS;  
    while( !rec.IsEOF() ) {
       TABLEINFO ti;
       rec.GetField(0, ti.sSchema);
@@ -106,7 +106,7 @@ BOOL CDbOperations::LoadTableInfo(TABLEINFO* pTable, COledbDatabase* pDb /*=NULL
    CComPtr<IRowset> spRS;
    HRESULT Hr = spSchema->GetRowset(NULL, DBSCHEMA_COLUMNS, 3, (VARIANT*) &vColumnRestrictions, IID_IRowset, 0, NULL, (LPUNKNOWN*) &spRS);
    if( FAILED(Hr) ) return FALSE;
-   COledbRecordset rec(spRS);
+   COledbRecordset rec = spRS;
    while( !rec.IsEOF() ) {
       FIELDINFO fi;
       fi.ItemType = DBTYPE_FIELD;
@@ -131,7 +131,7 @@ BOOL CDbOperations::LoadTableInfo(TABLEINFO* pTable, COledbDatabase* pDb /*=NULL
    vIndexRestrictions[4] = pTable->sName;
    Hr = spSchema->GetRowset(NULL, DBSCHEMA_INDEXES , 5, (VARIANT*) &vIndexRestrictions, IID_IRowset, 0, NULL, (LPUNKNOWN*) &spRS);
    if( SUCCEEDED(Hr) ) {
-      COledbRecordset rec(spRS);
+      COledbRecordset rec = spRS;
       while( !rec.IsEOF() ) {
          INDEXINFO ii;
          ii.ItemType = DBTYPE_INDEX;

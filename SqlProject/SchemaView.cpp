@@ -214,8 +214,7 @@ LRESULT CSchemaView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
       }
    }
    if( tvi.iImage == 0 || tvi.iImage == 1 ) {
-      if( lpNMTV->action == TVE_EXPAND ) tvi.iImage = 0; else tvi.iImage = 1;
-      tvi.iSelectedImage = tvi.iImage;
+      tvi.iSelectedImage = tvi.iImage = lpNMTV->action == TVE_EXPAND ? 0 : 1;
       m_ctrlTree.SetItem(&tvi);
    }
    bHandled = FALSE;

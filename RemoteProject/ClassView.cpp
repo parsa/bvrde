@@ -189,11 +189,14 @@ void CClassView::_GoToDefinition(TAGINFO* pTag)
    ATLASSERT(m_pProject);
    ATLASSERT(pTag);
    if( pTag->iLineNo >= 0 ) {
+      // Line-numbers have first priority. We don't parse lineno. from
+      // CTAGS files because they are too unreliable, but we will get
+      // them from our own realtime C++ lexer.
       m_pProject->OpenView(pTag->pstrFile, pTag->iLineNo);
    }
    else if( m_pProject->OpenView(pTag->pstrFile, 0) ) {
-      // HACK: CTAGS doesn't actually produce sensible REGEX
-      //       so we need to strip tokens and prepare a standard search.
+      // FIX: CTAGS doesn't actually produce sensible REGEX
+      //      so we need to strip tokens and prepare a standard search.
       CString sToken = pTag->pstrToken;
       sToken.Replace(_T("\\/"), _T("/"));
       sToken.TrimLeft(_T("/^"));

@@ -32,15 +32,11 @@ bool CDisasmView::WantsData()
    return true;
 }
 
-long CDisasmView::EstimateInstructionCount() const
+void CDisasmView::PopulateView(CSimpleArray<CString>& aDbgCmd)
 {
-   // Guess of code size based on average instruction size in bytes!!
-   // We'll try to only disassemble as many instructions as will
-   // fit on one page since GDB doesn't allow us to say "start address -> num"
-   // instructions" even if it's documented to do so.
-   const long AVG_INST_SIZE = 5;
-   CClientRect rcClient = m_ctrlView;
-   return (rcClient.bottom - rcClient.top) / m_tm.tmHeight * AVG_INST_SIZE;
+   CString sCommand;
+   sCommand.Format(_T("-data-disassemble -s $pc -e \"$pc + %ld\" -- 0"), _EstimateInstructionCount());
+   aDbgCmd.Add(sCommand);
 }
 
 void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
@@ -72,6 +68,7 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
                sTitle.TrimLeft();
                m_ctrlAddress.SetWindowText(sTitle);
             }
+            sFunction = sLocation;
          }
          // Build up disassembly line in RTF text.
          // We mark resolved address names with grey text.
@@ -88,7 +85,6 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          sTemp.Format(_T("\t %s\\par "), sDisasm);
          sText += sTemp;
          // Next instruction please...
-         sFunction = sLocation;
          sValue = info.FindNext(_T("address"));         
       }
       sText +=  _T("\\par}");
@@ -98,6 +94,20 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       stream.pfnCallback = _EditStreamCallback;
       m_ctrlView.StreamIn(SF_RTF, stream);
    }
+}
+
+// Implementation
+
+long CDisasmView::_EstimateInstructionCount() const
+{
+   ATLASSERT(::IsWindow(m_hWnd));
+   // Guess of code size based on average instruction size in bytes!!
+   // We'll try to only disassemble as many instructions as will
+   // fit on one page since GDB doesn't allow us to say "start address -> num"
+   // instructions" even if it's documented to do so.
+   const long AVG_INST_SIZE = 5;
+   CClientRect rcClient = m_hWnd;
+   return (rcClient.bottom - rcClient.top) / m_tm.tmHeight * AVG_INST_SIZE;
 }
 
 DWORD CALLBACK CDisasmView::_EditStreamCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)

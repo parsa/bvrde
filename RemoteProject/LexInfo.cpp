@@ -63,7 +63,7 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
    ATLTRY( bRes = pParse(pstrFilename, pstrText) );
    if( !bRes ) return false;
 
-   // Get the next file into structured form
+   // Get the new file into structured form
    LEXFILE* pFile = new LEXFILE;
    if( !_ParseFile(sName, *pFile) ) {
       delete pFile;
@@ -266,8 +266,8 @@ bool CLexInfo::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList,
 CString CLexInfo::_GetTagParent(const TAGINFO& info) const
 {
    // Extract inheritance type.
-   // HACK: We simply scoop up the " class CFoo : public CBar" text from
-   //       the CTAG line. Unfortunately CTAG doesn't really carry that
+   // HACK: We simply scoop up the "class CFoo : public CBar" text from
+   //       the decl. line. Unfortunately CTAG doesn't really carry that
    //       much information to safely determine the inheritance tree!
    static LPCTSTR pstrTokens[] = 
    {

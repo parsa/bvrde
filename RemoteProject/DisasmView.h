@@ -31,11 +31,12 @@ public:
 
    void Init(CRemoteProject* pProject);
    bool WantsData();
-   long EstimateInstructionCount() const;
+   void PopulateView(CSimpleArray<CString>& aDbgCmd);
    void SetInfo(LPCTSTR pstrType, CMiInfo& info);
 
    // Implementation
 
+   long _EstimateInstructionCount() const;
    static DWORD CALLBACK _EditStreamCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
 
    // Message map and handlers

@@ -28,13 +28,13 @@
  *	statics
  */
 static const char*	inputString ;
-static int			inputPosition ;
-static int			lastContext ;
-static int			lastCContext ;
-static int          lastTContext;
-static int			protection   = GLOB ;
-static int			bracketCount = 0 ;
-static int			sharpCount   = 0 ;
+static int		inputPosition ;
+static int		lastContext ;
+static int		lastCContext ;
+static int		lastTContext;
+static int		protection   = GLOB ;
+static int		bracketCount = 0 ;
+static int		sharpCount   = 0 ;
 static Entry*		current_root = 0 ;
 static Entry*		global_root  = 0 ;
 static Entry*		current      = 0 ;
@@ -313,12 +313,12 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( FindMembers ) ;
 					}
 
-<FindMembers>[*&]+		{ 
-				      current->name += yytext ; 
-				      current->lineNo = yyLineNr;
+<FindMembers>[*&]+			{ 
+					  current->name += yytext ; 
+					  current->lineNo = yyLineNr;
 					}
 
-<FindMembers>[;=,]		{ 
+<FindMembers>[;=,]			{ 
 					  BEGIN( FindMembers ) ;
 					  if( current->lineNo == 0 ) current->lineNo = yyLineNr + 1;
 					  msg( "found variable ", current->name ) ;
@@ -460,14 +460,14 @@ static int yyread(char *buf,int max_size)
 					  lineCount() ;
 				  	  BEGIN( Round ) ;
 					}
-<Function>"("			{ 
+<Function>"("				{ 
 					  current->type += current->name ;
 					  current->name  = current->args ;
 					  current->args  = yytext ;
 					  current->lineNo = yyLineNr;
 					  BEGIN( Round ) ;
 					}
-<Function>[:;{]			{ 
+<Function>[:;{]				{ 
 					  msg( "found method   ", current->name ) ;
 					  if( current->done == onlyDocs )
 					  {
@@ -499,7 +499,7 @@ static int yyread(char *buf,int max_size)
 					    BEGIN( FindMembers ) ;
 					}
 
-<Bases,ClassName>";"		{ 
+<Bases,ClassName>";"			{ 
 					  if( current->done == onlyDocs )
 					  {
 					    current->section = VARIABLE_SEC ;
@@ -516,24 +516,24 @@ static int yyread(char *buf,int max_size)
 					  }
 					  BEGIN( FindMembers ) ;
 					}
-<ClassName>[a-z_A-Z0-9\[\]*&]+	{ 
+<ClassName>[a-z_A-Z0-9\[\]*&]+		{ 
 						  if( !current->type.empty() ) current->type += " " ;
 						  current->type += current->name ;
 					  	  current->name = yytext ;
 						  current->lineNo = yyLineNr;
 						}
-<ClassName>[ \t]*":"[ \t]*	{ 
-					  current->args = ":" ;
+<ClassName>[ \t]*":"[ \t]*		{ 
+					  current->args = " :" ;
 					  BEGIN( Bases ) ;
 					}
 <Bases,ClassName>[ \t]*"{"[ \t]*	{ 
-						  current->file = yyFileName ;
-					  	  if( current->lineNo == 0 ) current->lineNo = yyLineNr;
-						  current->startLine = yyLineNr ;
-					  	  msg( "found class    ", current->name ) ;
-					  	  BEGIN( Curly ) ;
-						}
-<Bases>[a-z_A-Z*.<>0-9]+	{ 
+					  current->file = yyFileName ;
+				  	  if( current->lineNo == 0 ) current->lineNo = yyLineNr;
+					  current->startLine = yyLineNr ;
+				  	  msg( "found class    ", current->name ) ;
+				  	  BEGIN( Curly ) ;
+					}
+<Bases>[a-z_A-Z*.<>0-9]+		{ 
 					  current->extends.append( new McString(yytext) ) ;
 					  if( !current->args.empty() ) current->args += " " ;
 					  current->args += yytext ;
@@ -545,7 +545,7 @@ static int yyread(char *buf,int max_size)
 					  yyLineNr++ ;
 					}
 <Comment>.				{ current->program += yytext ; }
-<Comment>.*"*/"			{ 
+<Comment>.*"*/"				{ 
 					  current->program += yytext ;
 					  BEGIN( Curly ) ;
 					}
@@ -568,43 +568,44 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( NextSemi ) ;
 					}
 
-<TypedefName>[;,]+	{ 	
-					      lastTContext = 0;
-						  msg( "found typedef  ", current->name ) ;
+<TypedefName>[;,]+			{
+				          lastTContext = 0;
+					   msg( "found typedef  ", current->name ) ;
 
-					      int section = current->section;
-					      current_root->addSubEntry( current ) ;
-					      current = new Entry ;
-					      current->protection = protection ;
-					      if( section == CLASS_SEC ) current->protection = GLOB ;
+					   int section = current->section;
+					   current_root->addSubEntry( current ) ;
+					   current = new Entry ;
+					   current->protection = protection ;
+					   if( section == CLASS_SEC ) current->protection = GLOB ;
 
-						  if( *yytext == ',' )
-							BEGIN( NextSemi ) ;
-						  else
-							BEGIN( FindMembers ) ;
-						}
+				           if( *yytext == ',' )
+					     BEGIN( NextSemi ) ;
+					   else
+					     BEGIN( FindMembers ) ;
+					}
 
 
 <FindMembers>[ \t\r\n]*"///"/[^/][ \t]*	{ 
-						  lineCount() ;
-						  if( current->doc.length() > 0
-							  ||  current->memo.length() > 0 )
-						  {
-							msg( "found explicit entry" ) ;
-							current->lineNo = yyLineNr;
-							current_root->addSubEntry( current ) ;
-							current = new Entry ;
-						  }
-						  current->done = onlyDocs ;
-						  BEGIN( Cxx_Memo ) ;
-						}
-<Cxx_Memo>.*			{ current->memo += yytext ; }
-<Cxx_Memo>\n			{ yyLineNr++ ;
+					  lineCount() ;
+					  if( current->doc.length() > 0
+						  ||  current->memo.length() > 0 )
+					  {
+						msg( "found explicit entry" ) ;
+						current->lineNo = yyLineNr;
+						current_root->addSubEntry( current ) ;
+						current = new Entry ;
+					  }
+					  current->done = onlyDocs ;
+					  BEGIN( Cxx_Memo ) ;
+					}
+<Cxx_Memo>.*				{ current->memo += yytext ; }
+<Cxx_Memo>\n				{ 
+					  yyLineNr++ ;
 					  BEGIN( FindMembers ) ;
 					}
 
 <FindMembers>[ \t\r\n]*"/*""*"+"/"
-<FindMembers>[ \t\r\n]*"/***"	{ 
+<FindMembers>[ \t\r\n]*"/***"		{ 
 					  lastCContext = YY_START ;
 					  BEGIN( SkipComment ) ;
 					}
@@ -662,27 +663,27 @@ static int yyread(char *buf,int max_size)
 					  yyLineNr++ ;
 					}
 <SubDoc>("//@{".*\n)|("/*@{"[^*]*\*+"/")	{ 
-							  lineCount() ;
-							  current->program += yytext ;
-							  ++bracketCount ;
-							}
-<SubDoc>("//@}".*\n)|("/*@}"[^*]*\*+"/") { 
-							  lineCount() ;
-							  if( bracketCount )
-							  {
-							    current->program += yytext ;
-							    --bracketCount ;
-							  }
-							  else
-							  {
-							    msg( "found explicit subentry" ) ;
-					                current->lineNo = yyLineNr;
-							    current_root->addSubEntry( current ) ;
-							    current = new Entry ;
-							    current->protection = protection ;
-							    BEGIN( FindMembers ) ;
-							  }
-							}
+						  lineCount() ;
+						  current->program += yytext ;
+						  ++bracketCount ;
+						}
+<SubDoc>("//@}".*\n)|("/*@}"[^*]*\*+"/") 	{ 
+						  lineCount() ;
+						  if( bracketCount )
+						  {
+						    current->program += yytext ;
+						    --bracketCount ;
+						  }
+						  else
+						  {
+						    msg( "found explicit subentry" ) ;
+					               current->lineNo = yyLineNr;
+						    current_root->addSubEntry( current ) ;
+						    current = new Entry ;
+						    current->protection = protection ;
+						    BEGIN( FindMembers ) ;
+						  }
+						}
 
 <SubDocComment,SubDocCppComment>"/*"	{ current->program += yytext ; }
 <SubDocComment,SubDocCppComment>"//"	{ current->program += yytext ; }
@@ -694,22 +695,22 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( SubDoc ) ;
 					}
 
-<SubDocCppComment>.		{ current->program += yytext ; }
-<SubDocCppComment>\n		{ current->program += yytext ;
+<SubDocCppComment>.			{ current->program += yytext ; }
+<SubDocCppComment>\n			{ current->program += yytext ;
 					  ++yyLineNr ;
 					  BEGIN( SubDoc ) ;
 					}
 
-<CppMemo>[^.]			{ current->memo += yytext ;
+<CppMemo>[^.]				{ current->memo += yytext ;
 					  current->doc  += yytext ; }
-<CppMemo>"."[ \t\r\n]*		{ BEGIN( CppDoc ) ;
-                      yyLineNr++;
+<CppMemo>"."[ \t\r\n]*			{ BEGIN( CppDoc ) ;
+                      			  yyLineNr++;
 					  current->doc  += yytext ; }
-<CppDoc>(\n|.)			{ current->doc  += *yytext ; 
-	                  yyLineNr++;
-						}
-<CppMemo>"/"("*"|"/")		{ current->memo += yytext ; }
-<CppDoc>"/"("*"|"/")		{ current->doc  += yytext ; }
+<CppDoc>(\n|.)				{ current->doc  += *yytext ; 
+	                  		  yyLineNr++;
+					}
+<CppMemo>"/"("*"|"/")			{ current->memo += yytext ; }
+<CppDoc>"/"("*"|"/")			{ current->doc  += yytext ; }
 
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@see"[ \t\r\n]*	{
 					  current->see.append( new McString ) ;
@@ -759,19 +760,19 @@ static int yyread(char *buf,int max_size)
 
 <Author>.				{ current->author  += *yytext ; }
 <Version>.				{ current->version += *yytext ; }
-<See>.				{ *(current->see.last())       += *yytext ; }
+<See>.					{ *(current->see.last())       += *yytext ; }
 <Param>.				{ *(current->param.last())     += *yytext ; }
-<Exception>.			{ *(current->exception.last()) += *yytext ; }
-<Memo>.				{ current->memo    += *yytext ; }
+<Exception>.				{ *(current->exception.last()) += *yytext ; }
+<Memo>.					{ current->memo    += *yytext ; }
 <Return>.				{ current->retrn   += *yytext ; }
 
-<Author>\n[ \t\r\n]*		{ current->author  += '\n' ; }
-<Version>\n[ \t\r\n]*		{ current->version += '\n' ; }
+<Author>\n[ \t\r\n]*			{ current->author  += '\n' ; }
+<Version>\n[ \t\r\n]*			{ current->version += '\n' ; }
 <See>\n[ \t\r\n]*			{ *(current->see.last())       += '\n' ; }
 <Param>\n[ \t\r\n]*			{ *(current->param.last())     += '\n' ; }
-<Exception>\n[ \t\r\n]*		{ *(current->exception.last()) += '\n' ; }
+<Exception>\n[ \t\r\n]*			{ *(current->exception.last()) += '\n' ; }
 <Memo>\n[ \t\r\n]*			{ current->memo    += *yytext ; }
-<Return>\n[ \t\r\n]*		{ current->retrn   += *yytext ; }
+<Return>\n[ \t\r\n]*			{ current->retrn   += *yytext ; }
 
 <*>.
 <*>\n					{ yyLineNr++ ; }
@@ -780,12 +781,12 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( SkipComment ) ;
 					}
 <SkipComment>"//"
-<SkipComment>[ \t]*"*/"		{ BEGIN( lastCContext ) ; }
-<*>"//"				{ 
+<SkipComment>[ \t]*"*/"			{ BEGIN( lastCContext ) ; }
+<*>"//"					{ 
 					  lastCContext = YY_START ;
 					  BEGIN( SkipCxxComment ) ;
 					}
-<SkipCxxComment>.*\n		{ 
+<SkipCxxComment>.*\n			{ 
 					  yyLineNr++ ;
 					  BEGIN( lastCContext ) ;
 					}

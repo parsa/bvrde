@@ -836,6 +836,7 @@ LRESULT CRemoteProject::OnViewBreakpoints(WORD /*wNotifyCode*/, WORD wID, HWND /
    else {
       _pDevEnv->AddDockView(m_viewBreakpoint, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
+
    return 0;
 }
 
@@ -861,6 +862,7 @@ LRESULT CRemoteProject::OnViewRegisters(WORD /*wNotifyCode*/, WORD wID, HWND /*h
    else {
       _pDevEnv->AddDockView(m_viewRegister, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
+
    return 0;
 }
 
@@ -886,6 +888,7 @@ LRESULT CRemoteProject::OnViewMemory(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
    else {
       _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
+
    return 0;
 }
 
@@ -911,6 +914,7 @@ LRESULT CRemoteProject::OnViewDisassembly(WORD /*wNotifyCode*/, WORD wID, HWND /
    else {
       _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
+
    return 0;
 }
 
@@ -936,6 +940,7 @@ LRESULT CRemoteProject::OnViewThreads(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
    else {
       _pDevEnv->AddDockView(m_viewThread, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
+
    return 0;
 }
 
@@ -961,6 +966,7 @@ LRESULT CRemoteProject::OnViewStack(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
    else {
       _pDevEnv->AddDockView(m_viewStack, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
+
    return 0;
 }
 
@@ -986,6 +992,7 @@ LRESULT CRemoteProject::OnViewVariables(WORD /*wNotifyCode*/, WORD wID, HWND /*h
    else {
       _pDevEnv->AddDockView(m_viewVariable, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
+
    return 0;
 }
 
@@ -1007,10 +1014,12 @@ LRESULT CRemoteProject::OnViewWatch(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
       RECT rcWin = { 320, 180, 750, 450 };
       _pDevEnv->AddDockView(m_viewWatch, IDE_DOCK_FLOAT, rcWin);
       DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      m_viewWatch.ActivateWatches();
    }
    else {
       _pDevEnv->AddDockView(m_viewWatch, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
+
    return 0;
 }
 
@@ -1402,7 +1411,6 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          {
             // Notify all views
             DelayedViewMessage(DEBUG_CMD_DEBUG_START);
-            m_viewWatch.ActivateWatches();
          }
          break;
       case LAZY_DEBUG_KILL_EVENT:
@@ -1429,7 +1437,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
                aDbgCmd.Add(CString(_T("-break-list")));
             }
             if( m_viewWatch.WantsData() ) {
-               m_viewWatch.EvaluateValues();
+               m_viewWatch.EvaluateValues(aDbgCmd);
             }
             if( m_viewThread.WantsData() || m_viewStack.WantsData() ) {
                aDbgCmd.Add(CString(_T("-thread-list-ids")));
@@ -1438,9 +1446,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
                aDbgCmd.Add(CString(_T("-stack-list-frames")));
             }
             if( m_viewDisassembly.WantsData() ) {
-               CString sCommand;
-               sCommand.Format(_T("-data-disassemble -s $pc -e \"$pc + %ld\" -- 0"), m_viewDisassembly.EstimateInstructionCount());
-               aDbgCmd.Add(sCommand);
+               m_viewDisassembly.PopulateView(aDbgCmd);
             }
             if( m_viewVariable.WantsData() ) {
                switch( m_viewVariable.GetCurSel() ) {

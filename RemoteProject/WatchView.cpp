@@ -38,6 +38,25 @@ bool CWatchView::WantsData()
    return true;
 }
 
+void CWatchView::ActivateWatches()
+{
+   if( !IsWindow() ) return;
+
+   int nCount = m_ctrlGrid.GetItemCount();
+   for( int i = 0; i < nCount; i++ ) {
+      CComVariant vName;
+      vName.Clear();
+      HPROPERTY hProp = m_ctrlGrid.GetProperty(i, 0);
+      m_ctrlGrid.GetItemValue(hProp, &vName);
+      ATLASSERT(vName.vt==VT_BSTR);
+      CString sName = vName.bstrVal;
+      DWORD iIndex = m_ctrlGrid.GetItemData(hProp);
+      CString sCommand;
+      sCommand.Format(_T("-var-create watch%ld * \"%s\""), iIndex, sName);
+      m_pProject->DelayedDebugCommand(sCommand);
+   }
+}
+
 void CWatchView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
    if( _tcscmp(pstrType, _T("value")) == 0 )
@@ -61,40 +80,20 @@ void CWatchView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    }
 }
 
-void CWatchView::ActivateWatches()
-{
-   if( !IsWindow() ) return;
-
-   int nCount = m_ctrlGrid.GetItemCount();
-   for( int i = 0; i < nCount; i++ ) {
-      CComVariant vName;
-      vName.Clear();
-      HPROPERTY hProp = m_ctrlGrid.GetProperty(i, 0);
-      m_ctrlGrid.GetItemValue(hProp, &vName);
-      CString sName = vName.bstrVal;
-      DWORD iIndex = m_ctrlGrid.GetItemData(hProp);
-      CString sCommand;
-      sCommand.Format(_T("-var-create watch%ld * \"%s\""), iIndex, sName);
-      m_pProject->DelayedDebugCommand(sCommand);
-   }
-}
-
-void CWatchView::EvaluateValues()
+void CWatchView::EvaluateValues(CSimpleArray<CString>& aDbgCmd)
 {
    if( !IsWindow() ) return;
    if( !IsWindowVisible() ) return;
 
    CString sCommand = _T("-var-update *");
-   m_pProject->DelayedDebugCommand(sCommand);
+   aDbgCmd.Add(sCommand);
 
    int nCount = m_ctrlGrid.GetItemCount();
    for( int i = 0; i < nCount; i++ ) {
       HPROPERTY hProp = m_ctrlGrid.GetProperty(i, 0);
-      int iIndex = m_ctrlGrid.GetItemData(hProp);
-
-      CString sCommand;
+      DWORD iIndex = m_ctrlGrid.GetItemData(hProp);
       sCommand.Format(_T("-var-evaluate-expression watch%ld"), iIndex);
-      m_pProject->DelayedDebugCommand(sCommand);
+      aDbgCmd.Add(sCommand);
    }
 }
 
@@ -166,7 +165,7 @@ LRESULT CWatchView::OnDropFiles(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
 {
    // Ok, get text from clipboard
    // TODO: Should register as DropTarget and retrieve correct
-   //       DataObject instead of clipboard.
+   //       IDataObject instead of clipboard.
    if( !::IsClipboardFormatAvailable(CF_TEXT) ) return 0; 
    if( !::OpenClipboard(m_hWnd) ) return 0; 
    CString sText;
@@ -238,7 +237,9 @@ LRESULT CWatchView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
       m_pProject->DelayedDebugCommand(sCommand);
    }
 
-   EvaluateValues();
+   CSimpleArray<CString> aDbgCmd;
+   EvaluateValues(aDbgCmd);
+   for( int i = 0; i < aDbgCmd.GetSize(); i++ ) m_pProject->DelayedDebugCommand(aDbgCmd[i]);
 
    return 0;
 }
