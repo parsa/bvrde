@@ -830,14 +830,19 @@ CString CSftpProtocol::_ResolvePath(LPCTSTR pstrPath)
 
 int CSftpProtocol::_ReadData(CRYPT_SESSION cryptSession, LPVOID pData, int iMaxSize)
 {
+   const DWORD READTIMEOUT = 6UL;
    int iCopied = 0;
-   int status = clib.cryptPopData(cryptSession, pData, iMaxSize, &iCopied);
+   int status = CRYPT_OK;
+   DWORD dwTick = ::GetTickCount();
+   while( iCopied == 0 && ::GetTickCount() - dwTick < READTIMEOUT * 1000UL ) {
+      status = clib.cryptPopData(cryptSession, pData, iMaxSize, &iCopied);
+   }
    if( cryptStatusError(status) ) {
       ::SetLastError(ERROR_READ_FAULT);
       return 0;
    }
    if( iCopied == 0 ) {
-      ::SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+      ::SetLastError(WAIT_TIMEOUT);
       return 0;
    }
    return iCopied;

@@ -96,7 +96,7 @@ DWORD CSshThread::Run()
 
    // Set timeout values
    clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_CONNECTTIMEOUT, 10 - 1);
-   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_TIMEOUT, 10);
+   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_TIMEOUT, 5);
 
    // Start connection
    status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_ACTIVE, TRUE);
@@ -134,6 +134,11 @@ DWORD CSshThread::Run()
       if( status == CRYPT_ERROR_TIMEOUT ) continue;
       if( cryptSession == 0 ) break;
       if( cryptStatusError(status) ) break;
+
+#ifdef _DEBUG
+      bReadBuffer[iRead] = '\0';
+      ATLTRACE(_T("TELNET: '%hs' len=%ld\n"), bReadBuffer, iRead);
+#endif
 
       // We might need to grow the data buffer
       if( dwPos + iRead > dwBufferSize ) {
@@ -434,8 +439,9 @@ bool CSshProtocol::WriteData(LPCTSTR pstrData)
    pstr = AtlW2AHelper(pstr, pstrData, nLen);
    strcpy(pstr + nLen, "\n");
    int iWritten = 0;
+   int iTimeout = 10;
    int status = CRYPT_ERROR_TIMEOUT;
-   while( status == CRYPT_ERROR_TIMEOUT ) {
+   while( status == CRYPT_ERROR_TIMEOUT && --iTimeout > 0 ) {
       status = clib.cryptPushData(m_cryptSession, pstr, nLen + 1, &iWritten);
    }
    if( cryptStatusOK(status) ) status = clib.cryptFlushData(m_cryptSession);

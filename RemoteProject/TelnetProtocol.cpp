@@ -310,7 +310,7 @@ DWORD CTelnetThread::Run()
                            aSend.Add( 0 );
                            // NOTE: We could send "VT100" here because even the most
                            //       crappy TELNET server will understand this. Actually
-                           //       the DUMB termial is mentioned in the original RFC
+                           //       the DUMB terminal is mentioned in the original RFC
                            //       docs and should be good enough for all servers!
                            // RANT: No, not for LINUX - it still sends its stupid
                            //       ANSI escape codes....
