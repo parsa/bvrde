@@ -15,9 +15,8 @@
 //
 //
 
-void CCommandThread::SetCommand(UINT nCmd, LPCTSTR pstrCommand)
+void CCommandThread::SetCommand(UINT /*nCmd*/, LPCTSTR pstrCommand)
 {
-   m_nCmd = nCmd;
    m_sCommand = pstrCommand;
 }
 
@@ -39,10 +38,11 @@ DWORD CCommandThread::Run()
    CComDispatchDriver dd = pDisp;
    CComBSTR bstrCommand = L"cd $PATH$\n";
    bstrCommand += CComBSTR(m_sCommand);
-   CComVariant vCommand = bstrCommand;
-   CComVariant vCallback = (IUnknown*) this;
-   CComVariant vTimeout = 4000L;
-   dd.Invoke3(OLESTR("ExecCommand"), &vCommand, &vCallback, &vTimeout);
+   CComVariant aParams[3];
+   aParams[2] = bstrCommand;
+   aParams[1] = (IUnknown*) this;
+   aParams[0] = 4000L;
+   dd.InvokeN(OLESTR("ExecCommand"), aParams, 3);
 
    // Let's look at the result
    CSimpleArray<CString> aLines;
@@ -52,13 +52,16 @@ DWORD CCommandThread::Run()
       sMessage += aLines[i];
       sMessage += _T("\r\n");
    }
+
    // Output it to the Command View
    CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
    ctrlEdit.SetReadOnly(TRUE);
    AppendRtfText(ctrlEdit, sMessage, CFM_BOLD, 0);
    AppendRtfText(ctrlEdit, _T("\r\n> "), CFM_BOLD, CFE_BOLD);
    ctrlEdit.SetReadOnly(FALSE);
+   // Bring up the Command View so we can see it all...
    _pDevEnv->ActivateAutoHideView(ctrlEdit);
+
    return 0;
 }
 
@@ -319,8 +322,7 @@ bool CScCommands::LogIn(CSimpleArray<CString>& aFiles)
       CLoginCvsDlg dlg;
       if( dlg.DoModal() != IDOK ) return false;
       sCmd += dlg.m_sOptions;
-      // Send password as raw input through connection
-      sCmd += "\n";      
+      sCmd += _T("\n");
       sCmd += dlg.m_sPassword;
    }
    sCmd += _T("\n");

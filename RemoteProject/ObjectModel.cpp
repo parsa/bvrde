@@ -27,16 +27,19 @@ public:
       m_pCallback = pCallback;
       pManager->m_ShellManager.AddLineListener(this);
       // Build command to execute in shell
+      // The "cz" is an internal prefix for submitting "unparsed"
+      // commands to the compiler shell.
       CString sCommand;
       sCommand.Format(_T("cz %s"), pstrCommand);
       pManager->DoAction(sCommand);
       DWORD dwStartTick = ::GetTickCount();
-      ::Sleep(200L); // HACK: Wait for thread to start!
+      ::Sleep(200L); // HACK: Wait for thread to start and put
+                     //       us in "InCommand"-mode!
       // Idle wait for command completion
       DWORD dwStart = ::GetTickCount();
       while( pManager->GetParam(_T("InCommand")) == _T("true") ) {
          ::Sleep(200L);
-         if( lTimeout > 0 && ::GetTickCount() > dwStart + (DWORD) lTimeout ) break;
+         if( lTimeout > 0 && ::GetTickCount() - dwStart > (DWORD) lTimeout ) break;
       }
       pManager->m_ShellManager.RemoveLineListener(this);
    }

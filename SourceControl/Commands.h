@@ -11,7 +11,6 @@ class CCommandThread :
    public ILineCallback
 {
 public:
-   UINT m_nCmd;
    CString m_sCommand;
    CString m_sResult;
 

@@ -11,13 +11,10 @@
 class CWaitCursor
 {
 public:
-   HCURSOR m_hWaitCursor;
    HCURSOR m_hOldCursor;
-   CWaitCursor() : m_hOldCursor(NULL)
+   CWaitCursor()
    {
-      m_hWaitCursor = ::LoadCursor(NULL, IDC_WAIT);
-      ATLASSERT(m_hWaitCursor!=NULL);
-      m_hOldCursor = ::SetCursor(m_hWaitCursor);
+      m_hOldCursor = ::SetCursor( ::LoadCursor(NULL, IDC_WAIT) );
    }
    ~CWaitCursor()
    {
@@ -65,10 +62,11 @@ public:
          (m_iFlags & FR_WHOLEWORD) != 0  ? _T("w") : _T(""),
          m_szPattern,
          m_szFolder);
-      CComVariant vCommand = szCommand;
-      CComVariant vCallback = (IUnknown*) this;
-      CComVariant vTimeout = 0L;
-      dd.Invoke3(OLESTR("ExecCommand"), &vCommand, &vCallback, &vTimeout);
+      CComVariant aParams[3];
+      aParams[2] = szCommand;
+      aParams[1] = (IUnknown*) this;
+      aParams[0] = 0L;
+      dd.InvokeN(OLESTR("ExecCommand"), aParams, 3);
       return 0;
    }
 
