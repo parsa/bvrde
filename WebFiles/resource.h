@@ -30,6 +30,7 @@
 #define ID_BOOKMARK_NEXT                40031
 #define ID_BOOKMARK_PREVIOUS            40032
 #define ID_BOOKMARK_CLEAR               40033
+#define ID_EDIT_AUTOCOMPLETE            40039
 #define ID_BOOKMARK_TOGGLE              40043
 #define ID_EDIT_VIEWWS                  40052
 #define ID_EDIT_VIEWEOL                 40060
@@ -38,6 +39,9 @@
 #define ID_EDIT_INDENT                  40063
 #define ID_EDIT_UNINDENT                40064
 #define ID_EDIT_VIEWWORDWRAP            40082
+#define ID_EDIT_ZOOM_IN                 40086
+#define ID_EDIT_ZOOM_OUT                40087
+#define ID_EDIT_DELLINE                 40088
 #define ID_EDIT_BOLD                    43501
 #define ID_EDIT_ITALIC                  43502
 #define ID_EDIT_ALIGN_LEFT              43503

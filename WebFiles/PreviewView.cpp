@@ -45,6 +45,15 @@ void CPreviewView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_EDIT_CLEAR, FALSE);
    pUIBase->UIEnable(ID_EDIT_CLEAR_ALL, FALSE);
    pUIBase->UIEnable(ID_EDIT_SELECT_ALL, FALSE);      
+
+   pUIBase->UIEnable(ID_EDIT_BOLD, FALSE);  
+   pUIBase->UIEnable(ID_EDIT_ITALIC, FALSE);  
+   pUIBase->UIEnable(ID_EDIT_UNDERLINE, FALSE);  
+   pUIBase->UIEnable(ID_EDIT_ALIGN_LEFT, FALSE);  
+   pUIBase->UIEnable(ID_EDIT_ALIGN_MIDDLE, FALSE);  
+   pUIBase->UIEnable(ID_EDIT_ALIGN_RIGHT, FALSE);  
+   pUIBase->UIEnable(ID_EDIT_INDENT, FALSE);  
+   pUIBase->UIEnable(ID_EDIT_UNINDENT, FALSE);  
 }
 
 CString CPreviewView::GetViewText()

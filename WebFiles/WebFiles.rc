@@ -143,12 +143,15 @@ BEGIN
     BEGIN
         POPUP "Advanced"
         BEGIN
-            MENUITEM "Make &Uppercase",             ID_EDIT_UPPERCASE
-            MENUITEM "Make &Lowercase",             ID_EDIT_LOWERCASE
+            MENUITEM "Auto Complete\tCtrl+Space",   ID_EDIT_AUTOCOMPLETE
+            MENUITEM SEPARATOR
+            MENUITEM "Make &Uppercase\tCtrl+Shift+U", ID_EDIT_UPPERCASE
+            MENUITEM "Make &Lowercase\tCtrl+U",     ID_EDIT_LOWERCASE
             MENUITEM "&Tabify Selection",           ID_EDIT_TABIFY
             MENUITEM "U&ntabify Selection",         ID_EDIT_UNTABIFY
-            MENUITEM "Increase Line Indent",        ID_EDIT_INDENT
-            MENUITEM "Decrease Line Indent",        ID_EDIT_UNINDENT
+            MENUITEM "Increase Line Indent\tTab",   ID_EDIT_INDENT
+            MENUITEM "Decrease Line Indent  \tShift+Tab", ID_EDIT_UNINDENT
+            MENUITEM "Delete Line\tCtrl+L",         ID_EDIT_DELLINE
             MENUITEM SEPARATOR
             MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
             MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
@@ -160,6 +163,11 @@ BEGIN
             MENUITEM "&Previous Bookmark",          ID_BOOKMARK_PREVIOUS
             MENUITEM "&Next Bookmark",              ID_BOOKMARK_NEXT
             MENUITEM "&Clear Bookmarks",            ID_BOOKMARK_CLEAR
+        END
+        POPUP "Zoom"
+        BEGIN
+            MENUITEM "Zoom In\tCtrl+Add",           ID_EDIT_ZOOM_IN
+            MENUITEM "Zoom Out\tCtrl+Sub",          ID_EDIT_ZOOM_OUT
         END
     END
 END
