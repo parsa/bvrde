@@ -1,6 +1,7 @@
 Basic Installation
 ==================
 
+
    These are generic installation instructions.
 
 The solution compiles with Microsoft Developer Studio 6, but has been known
@@ -18,6 +19,7 @@ successfully run the application. You can copy the remaining files
 (such as CL32.DLL, SciLexer.DLL and BVRDE.XML) from the binary distribution 
 to the \Bin folder to allow the application to run.
 
+
     Links
 
 The folllowing links are needed or useful for compiling the projects:
@@ -34,6 +36,7 @@ The folllowing links are needed or useful for compiling the projects:
  Cryptlib library
  http://www.cs.auckland.ac.nz/~pgut001/cryptlib/
 
+
     Resolving Errors
 
 If you get errors about a missing atlres.h file you have not installed WTL
@@ -47,8 +50,8 @@ Compile errors regarding an unknown ATL namespace prefix can be
 corrected directly in the atldispa.h source by removing the prefix
 as described in the comments.
 
-Compile errors complaining about ambiguous symbols in ATL can be resolved by
-following the instructions in the WTL 7.1 ReadMe file.
+Compile errors complaining about ambiguous symbols in ATL can be resolved 
+by following the instructions in the WTL ReadMe file.
 
 The code depends on the Microsoft version of the STL library. If you
 have installed a different STL library, temporarily revert to the

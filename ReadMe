@@ -1,13 +1,13 @@
                               BVRDE Version 1 Release
 
-                       Copyright (C) 2002-2004 Bjarke Viksøe
+                       Copyright (C) 2003-2004 Bjarke Viksøe
 Introduction:
 -------------
 
 BVRDE is an Integrated Development Environment (IDE) for C and C++. 
-It is designed to make cross-platform development easy. Its features 
-include project management, application wizards, an integrated 
-interactive debugger, and a powerful source editor
+It is designed to make remote/cross-platform development easy. Its 
+features include project management, application wizards, an 
+integrated interactive debugger, and a powerful source editor
 with source browsing and syntax highlighting.
 
 The goal of this tool is to allow a developer to compile and debug
