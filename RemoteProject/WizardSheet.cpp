@@ -731,6 +731,7 @@ LRESULT CDebuggerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    sName.LoadString(IDS_COMMAND_PARAMS);
    sValue = m_pProject->m_DebugManager.GetParam(_T("AppArgs"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 3));
+   
    sName.LoadString(IDS_DEBUGGER);
    m_ctrlList.AddItem(PropCreateCategory(sName));
    sName.LoadString(IDS_COMMAND_EXECUTE);
@@ -742,6 +743,12 @@ LRESULT CDebuggerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    sName.LoadString(IDS_COMMAND_MAIN);
    sValue = m_pProject->m_DebugManager.GetParam(_T("DebugMain"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 6));
+
+   sName.LoadString(IDS_MISC);
+   m_ctrlList.AddItem(PropCreateCategory(sName));
+   sName.LoadString(IDS_COMMAND_STARTTIMEOUT);
+   sValue = m_pProject->m_DebugManager.GetParam(_T("StartTimeout"));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 7));
 
    return 0;
 }
@@ -774,6 +781,9 @@ int CDebuggerCommandsPage::OnApply()
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(6), &v);
    m_pProject->m_DebugManager.SetParam(_T("DebugMain"), CString(v.bstrVal));
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(7), &v);
+   m_pProject->m_DebugManager.SetParam(_T("StartTimeout"), CString(v.bstrVal));
 
    return PSNRET_NOERROR;
 }

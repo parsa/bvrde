@@ -225,6 +225,7 @@
 #define IDS_ERR_DEBUGUNSTABLE           268
 #define IDS_STACKSUBSTR                 269
 #define IDS_NETWORKDRIVE                270
+#define IDS_COMMAND_STARTTIMEOUT        271
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003

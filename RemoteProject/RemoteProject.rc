@@ -1099,6 +1099,7 @@ BEGIN
     IDS_ERR_DEBUGUNSTABLE   "Debugging unstable\nThe GDB Debugger is in an unstable state.\nThe Debugger reported an internal error and further debugging may be unreliable. Debug session is shutting down."
     IDS_STACKSUBSTR         ",  file"
     IDS_NETWORKDRIVE        "Network Drive"
+    IDS_COMMAND_STARTTIMEOUT "Start Timeout"
 END
 
 STRINGTABLE DISCARDABLE 

@@ -46,6 +46,7 @@ void CDebugManager::Clear()
    m_sDebuggerExecutable = _T("gdb");
    m_sDebuggerArgs = _T("-i=mi ./$PROJECTNAME$");
    m_sDebugMain = _T("main");
+   m_lStartTimeout = 4;
 }
 
 bool CDebugManager::Load(ISerializable* pArc)
@@ -70,6 +71,9 @@ bool CDebugManager::Load(ISerializable* pArc)
    m_sDebuggerArgs.ReleaseBuffer();
    pArc->Read(_T("main"), m_sDebugMain.GetBufferSetLength(64), 64);
    m_sDebugMain.ReleaseBuffer();
+   pArc->Read(_T("startTimeout"), m_lStartTimeout);
+
+   if( m_lStartTimeout <= 0 ) m_lStartTimeout = 4;
 
    if( !pArc->ReadGroupEnd() ) return false;
    return true;
@@ -90,6 +94,7 @@ bool CDebugManager::Save(ISerializable* pArc)
    pArc->Write(_T("app"), m_sDebuggerExecutable);
    pArc->Write(_T("args"), m_sDebuggerArgs);
    pArc->Write(_T("main"), m_sDebugMain);
+   pArc->Write(_T("startTimeout"), m_lStartTimeout);
 
    if( !pArc->WriteGroupEnd() ) return false;
    return true;
@@ -521,6 +526,7 @@ CString CDebugManager::GetParam(LPCTSTR pstrName) const
    if( sName == "Debugger" ) return m_sDebuggerExecutable;
    if( sName == "DebuggerArgs" ) return m_sDebuggerArgs;
    if( sName == "DebugMain" ) return m_sDebugMain;
+   if( sName == "StartTimeout" ) return ToString(m_lStartTimeout);
    if( sName == "InCommand" ) return m_bCommandMode ? _T("true") : _T("false");
    return m_ShellManager.GetParam(pstrName);
 }
@@ -534,6 +540,7 @@ void CDebugManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == "Debugger" ) m_sDebuggerExecutable = pstrValue;
    if( sName == "DebuggerArgs" ) m_sDebuggerArgs = pstrValue;
    if( sName == "DebugMain" ) m_sDebugMain = pstrValue;
+   if( sName == "StartTimeout" ) m_lStartTimeout = _ttol(pstrValue);
    if( sName == "InCommand" ) m_bCommandMode = _tcscmp(pstrValue, _T("true")) == 0;
    m_ShellManager.SetParam(pstrName, pstrValue);
 }
@@ -543,10 +550,10 @@ void CDebugManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
 bool CDebugManager::_WaitForDebuggerStart()
 {
    // Wait for for the first debugger acknowledgement (GDB prompt)
-   const DWORD TIMEOUT = 4UL;
    DWORD dwStartTick = ::GetTickCount();
-   while( ::GetTickCount() - dwStartTick < TIMEOUT * 1000UL ) {
+   while( ::GetTickCount() - dwStartTick < m_lStartTimeout * 1000UL ) {
       ::Sleep(200L);
+      PumpIdleMessages();
       if( m_nDebugAck > 0 ) return true;
    }
    return false;

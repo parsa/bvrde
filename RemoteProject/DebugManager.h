@@ -43,6 +43,7 @@ private:
    CString m_sDebuggerExecutable;
    CString m_sDebuggerArgs;
    CString m_sDebugMain;
+   long m_lStartTimeout;
 
 // Operations
 public:

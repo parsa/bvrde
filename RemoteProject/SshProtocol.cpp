@@ -151,7 +151,7 @@ DWORD CSshThread::Run()
 
 #ifdef _DEBUG
       bReadBuffer[iRead] = '\0';
-      ATLTRACE(_T("TELNET: '%hs' len=%ld\n"), bReadBuffer, iRead);
+      ATLTRACE(_T("SSH: '%hs' len=%ld\n"), bReadBuffer, iRead);
 #endif
 
       // We might need to grow the data buffer
