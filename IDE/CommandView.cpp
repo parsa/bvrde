@@ -396,8 +396,8 @@ void CCommandView::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
       EXCEPINFO e = { 0 };
       pScript->RunMacroFromScript(CComBSTR(pstrCommand + 2), NULL, SCRIPTTEXT_ISEXPRESSION, &vRes, &e);
       pScript->Release();
-      vRes.ChangeType(VT_BSTR);
-      if( e.bstrDescription == NULL ) {
+      Hr = ::VariantChangeTypeEx(&vRes, &vRes, LOCALE_USER_DEFAULT, VARIANT_ALPHABOOL | VARIANT_LOCALBOOL, VT_BSTR);
+      if( Hr == S_OK && e.bstrDescription == NULL ) {
          AppendRtfText(m_hWnd, CString(vRes.bstrVal) + _T("\r\n"), CFM_COLOR, 0, COLOR_BLUE);
       }
       else {
