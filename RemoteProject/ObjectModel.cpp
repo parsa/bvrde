@@ -14,6 +14,7 @@ class CCommandExecute : public IOutputLineListener
 public:
    CCompileManager* m_pManager;
    ILineCallback* m_pCallback;
+   volatile DWORD m_dwLastTime;
 
    void Run(CCompileManager* pManager, LPCTSTR pstrCommand, ILineCallback* pCallback, LONG lTimeout)
    {
@@ -32,14 +33,12 @@ public:
       CString sCommand;
       sCommand.Format(_T("cz %s"), pstrCommand);
       pManager->DoAction(sCommand);
-      DWORD dwStartTick = ::GetTickCount();
-      ::Sleep(200L); // HACK: Wait for thread to start and put
-                     //       us in "InCommand"-mode!
-      // Idle wait for command completion
-      DWORD dwStart = ::GetTickCount();
+      // Wait for it to start and complete
+      m_dwLastTime = ::GetTickCount();
       while( pManager->GetParam(_T("InCommand")) == _T("true") ) {
          ::Sleep(200L);
-         if( lTimeout > 0 && ::GetTickCount() - dwStart > (DWORD) lTimeout ) break;
+         PumpIdleMessages();
+         if( lTimeout > 0 && ::GetTickCount() - m_dwLastTime > (DWORD) lTimeout ) break;
       }
       pManager->m_ShellManager.RemoveLineListener(this);
    }
@@ -48,6 +47,7 @@ public:
    {
       if( *pstrText == '[' ) return;                        // Is prompt?
       if( _tcsstr(pstrText, TERM_MARKER) != NULL ) return;  // Is termination marker?
+      m_dwLastTime = ::GetTickCount();
       m_pCallback->OnIncomingLine(CComBSTR(pstrText));
    }
 };

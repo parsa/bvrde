@@ -64,7 +64,7 @@ IDispatch* CApplicationOM::get_ActiveWindow()
    if( hWnd == NULL ) return NULL;
    CWinProp prop = hWnd;
    IView* pView = NULL;
-   prop.GetProperty(_T("View"), (LPCVOID&) pView);
+   prop.GetProperty(_T("View"), pView);
    if( pView == NULL ) return NULL;
    IDispatch* pDisp = pView->GetDispatch();
    if( pDisp == NULL ) return new CFileOM(pView);

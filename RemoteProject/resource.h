@@ -250,6 +250,7 @@
 #define IDC_MATCHBRACES                 1042
 #define IDC_AUTOSUGGEST                 1043
 #define IDC_AUTOCLOSE                   1044
+#define IDC_MARKERRORS                  1045
 #define IDC_NOTIPS                      1048
 #define IDC_PROTECTFILES                1049
 #define IDC_TYPES_LABEL                 1089

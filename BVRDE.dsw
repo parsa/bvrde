@@ -105,6 +105,21 @@ Package=<4>
 
 ###############################################################################
 
+Project: "ManPages"=.\ManPages\ManPages.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name RemoteProject
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "RemoteProject"=.\RemoteProject\RemoteProject.dsp - Package Owner=<4>
 
 Package=<5>

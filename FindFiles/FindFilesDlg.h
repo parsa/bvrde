@@ -51,6 +51,8 @@ public:
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      USES_CONVERSION;
+
       m_ctrlFindText.SubclassWindow(GetDlgItem(IDC_FINDTEXT));
       m_ctrlFindText.LimitText(100);
       m_ctrlFindText.ReadFromRegistry(REG_BVRDE _T("\\Mru"), _T("Find"));
@@ -68,6 +70,9 @@ public:
       if( (m_iFlags & FR_SUBFOLDERS) != 0 ) m_ctrlSubFolders.SetCheck(BST_CHECKED);
       if( (m_iFlags & FR_WHOLEWORD) != 0 ) m_ctrlMatchWholeWord.SetCheck(BST_CHECKED);
 
+      // Start with previous "Find" item selected
+      m_ctrlFindText.SetCurSel(0);
+
       // Extract start path from project settings
       // It's an optional attribute on the project's scripting (IDispatch)
       // implementation.
@@ -76,15 +81,15 @@ public:
          IProject* pProject = pSolution->GetActiveProject();
          if( pProject ) {
             IDispatch* pDisp = pProject->GetDispatch();
-            CComDispatchDriver dd = pDisp;
-            CComVariant v;
-            dd.GetPropertyByName(OLESTR("CurDir"), &v);
-            if( v.vt == VT_BSTR ) m_ctrlFolderText.SetWindowText(v.bstrVal);
+            if( pDisp ) {
+               CComDispatchDriver dd = pDisp;
+               CComVariant vDir;
+               dd.GetPropertyByName(OLESTR("CurDir"), &vDir);
+               if( vDir.vt == VT_BSTR ) m_ctrlFolderText.SetWindowText(W2CT(vDir.bstrVal));
+            }
          }
       }
 
-      // Start with previous "Find" item selected
-      m_ctrlFindText.SetCurSel(0);
       _UpdateButtons();
 
       return (LRESULT) TRUE;
@@ -102,10 +107,10 @@ public:
       _tcscpy(m_szFolder, CWindowText(m_ctrlFolderText));
 
       m_iFlags = FR_FINDNEXT | FR_DOWN;
-      if( m_ctrlMatchWholeWord.GetCheck() == BST_CHECKED ) m_iFlags |= FR_WHOLEWORD;
-      if( m_ctrlMatchCase.GetCheck() == BST_CHECKED ) m_iFlags |= FR_MATCHCASE;
       if( m_ctrlRegExp.GetCheck() == BST_CHECKED ) m_iFlags |= FR_REGEXP;
+      if( m_ctrlMatchCase.GetCheck() == BST_CHECKED ) m_iFlags |= FR_MATCHCASE;
       if( m_ctrlSubFolders.GetCheck() == BST_CHECKED ) m_iFlags |= FR_SUBFOLDERS;
+      if( m_ctrlMatchWholeWord.GetCheck() == BST_CHECKED ) m_iFlags |= FR_WHOLEWORD;
 
       m_ctrlFindText.AddToList();
       m_ctrlFolderText.AddToList();

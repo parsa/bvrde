@@ -13,6 +13,7 @@ class CRemoteProject;
 
 class CScintillaView : 
    public CWindowImpl<CScintillaView>,
+   public IOutputLineListener,
    public IIdleListener
 {
 public:
@@ -20,21 +21,23 @@ public:
 
    CScintillaView();
 
-   IProject* m_pProject;
-   CRemoteProject* m_pCppProject;
-   IView* m_pView;
+   IProject* m_pProject;            // Reference to the project
+   CRemoteProject* m_pCppProject;   // Reference to the Remote CPP project (if attached)
+   IView* m_pView;                  // Reference to the view
    CContainedWindowT<CScintillaCtrl> m_ctrlEdit;
-   CString m_sFilename;
-   CString m_sLanguage;
+   CString m_sFilename;             // Name of file
+   CString m_sLanguage;             // Language
+   CString m_sOutputToken;          // Match substring for compile view
+   int m_iOutputLine;               // Last matched compile view line
+   bool m_bClearSquigglyLines;      // Remove squiggly lines?
 
    bool m_bAutoIndent;              // Do we need to auto-indent text?
    bool m_bSmartIndent;             // Do we need to smart-indent text?
    bool m_bProtectDebugged;         // Read-Only file when debugging?
    bool m_bAutoComplete;            // Use auto-complete?
-   bool m_bAutoSuggest;             // Use auto-suggestion?
-   bool m_bMouseDwell;              // Awaiting mouse-hover information
+   bool m_bMarkErrors;              // Mark errors with squiggly lines?
+   bool m_bMouseDwell;              // Awaiting mouse-hover information?
    long m_lDwellPos;                // Position where mouse-hover occoured
-   bool m_bSuggestionDisplayed;     // Suggestion word curently displayed
 
    // Operations
 
@@ -52,6 +55,7 @@ public:
       MESSAGE_HANDLER(WM_SIZE, OnSize)
       MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus)
       MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSettingChange)
+      MESSAGE_HANDLER(WM_HELP, OnHelp)
       COMMAND_ID_HANDLER(ID_FILE_SAVE, OnFileSave)
       COMMAND_ID_HANDLER(ID_EDIT_AUTOCOMPLETE, OnEditAutoComplete)
       COMMAND_ID_HANDLER(ID_DEBUG_BREAKPOINT, OnDebugBreakpoint)
@@ -67,12 +71,12 @@ public:
       MESSAGE_HANDLER(WM_SETFOCUS, OnSetEditFocus)
       MESSAGE_HANDLER(WM_KILLFOCUS, OnKillEditFocus)
       MESSAGE_HANDLER(WM_CONTEXTMENU, OnContextMenu)
-      MESSAGE_HANDLER(WM_KEYDOWN, OnKeyDown)
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
    LRESULT OnQueryEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
    LRESULT OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+   LRESULT OnHelp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
    LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
    LRESULT OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
@@ -93,20 +97,24 @@ public:
 
    // IIdleListener
 
-   void OnIdle(IUpdateUI* /*pUIBase*/);
+   void OnIdle(IUpdateUI* pUIBase);
+
+   // IOutputLineListener
+   
+   void OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText);
 
    // Implementation
 
-   void _AutoSuggest(CHAR ch);
    void _AutoComplete(CHAR ch);
    void _FunctionTip(CHAR ch);
+   void _ClearSquigglyLines();
    void _MatchBraces(long lPosition);
    void _SetLineIndentation(int line, int indent);
    bool _HasSelection() const;
    void _RegisterListImages();
    int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings);
    CString _FindBlockType(long lPosition);
-   CString _FindTagType(CString& sName, long lPosition);
+   CString _FindTagType(const CString& sName, long lPosition);
    CString _GetSelectedText();
    CString _GetNearText(long iPosition);
    inline bool _iscppchar(CHAR ch) const;

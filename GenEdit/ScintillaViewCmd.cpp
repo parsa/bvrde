@@ -29,13 +29,13 @@ LRESULT CScintillaView::OnFind(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
       {
          int iCurrent = GetCurrentPos();
          int posFirstFound = _FindNext(s_frFind.Flags | FR_DOWN, s_frFind.lpstrFindWhat, false);
-         if( posFirstFound == -1 ) return 0;
          int posFound = posFirstFound;
-         do {
+         while( posFound != -1 ) {
             int iLineNum = LineFromPosition(posFound);
             MarkerAdd(iLineNum, MARKER_BOOKMARK);
             posFound = _FindNext(s_frFind.Flags | FR_DOWN | FR_WRAP, s_frFind.lpstrFindWhat, false);
-         } while( posFound != posFirstFound );
+            if( posFound == posFirstFound ) break;
+         }
          SetCurrentPos(iCurrent);
       }
       // FALL THROUGH
@@ -55,26 +55,33 @@ LRESULT CScintillaView::OnReplace(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
       _FindNext(s_frFind.Flags | FR_DOWN, s_frFind.lpstrFindWhat, true);
       break;
    case IDC_REPLACE:
-      if( _FindNext(s_frFind.Flags | FR_DOWN | FR_INSEL, s_frFind.lpstrFindWhat, false) == -1 ) {
-         _FindNext(s_frFind.Flags | FR_DOWN, s_frFind.lpstrFindWhat, true);
-      }
-      else {
+      {
+         // First try to find string inside current selection (if we already selected the
+         // text to do replacement on), then try to find next matching entry...
+         if( _FindNext(s_frFind.Flags | FR_DOWN | FR_INSEL, s_frFind.lpstrFindWhat, false) == -1 ) {
+            _FindNext(s_frFind.Flags | FR_DOWN, s_frFind.lpstrFindWhat, true);
+         }
          _ReplaceOnce();
-         _FindNext(s_frFind.Flags | FR_DOWN, s_frFind.lpstrFindWhat, false);
       }
       break;
    case IDC_REPLACEALL:
-      BeginUndoAction();
-      CharacterRange crBegin;
-      int iNum = 0; // HACK: Avoid endless loop when replacing oneself
-      while( _FindNext(s_frFind.Flags | FR_WRAP | FR_DOWN, s_frFind.lpstrFindWhat, false) >= 0 ) {
-         CharacterRange crFound = GetSelection();
-         if( iNum == 0 ) crBegin = crFound;
-         if( iNum > 0 && crBegin.cpMin == crFound.cpMin ) break;
-         if( ++iNum > 500 ) break;
-         _ReplaceOnce();
+      {
+         BeginUndoAction();
+         int iStartPos = 0;
+         int nReplaced = 0;
+         int cchSearched = (int) strlen(s_frFind.lpstrFindWhat);
+         int cchReplaced = (int) strlen(s_frFind.lpstrReplaceWith);
+         while( _FindNext(s_frFind.Flags | FR_WRAP | FR_DOWN, s_frFind.lpstrFindWhat, false) >= 0 ) {
+            // Avoid endless loop
+            CharacterRange crFound = GetSelection();
+            if( nReplaced++ == 0 ) iStartPos = crFound.cpMin;
+            else if( iStartPos >= crFound.cpMin && iStartPos <= crFound.cpMin + cchReplaced ) break;
+            else if( crFound.cpMin < iStartPos ) iStartPos += cchReplaced - cchSearched;
+            // Do replacement
+            _ReplaceOnce();
+         }
+         EndUndoAction();
       }
-      EndUndoAction();
       break;
    }
    return 0;

@@ -18,7 +18,7 @@
 void CCommandThread::SetCommand(UINT /*nCmd*/, LPCTSTR pstrCommand, LONG lTimeout/* = 4000L*/)
 {
    m_sCommand = pstrCommand;
-   m_lTImeout = lTimeout;
+   m_lTimeout = lTimeout;
 }
 
 CString CCommandThread::GetResult() const
@@ -28,6 +28,8 @@ CString CCommandThread::GetResult() const
 
 DWORD CCommandThread::Run()
 {
+   ::CoInitialize(NULL);
+
    // Build prompt and execute commands through
    // project's scripting mode.
    m_sResult.Empty();
@@ -42,7 +44,7 @@ DWORD CCommandThread::Run()
    CComVariant aParams[3];
    aParams[2] = bstrCommand;
    aParams[1] = (IUnknown*) this;
-   aParams[0] = m_lTImeout;
+   aParams[0] = m_lTimeout;
    dd.InvokeN(OLESTR("ExecCommand"), aParams, 3);
 
    // Let's look at the result
@@ -63,6 +65,7 @@ DWORD CCommandThread::Run()
    // Bring up the Command View so we can see it all...
    _pDevEnv->ActivateAutoHideView(ctrlEdit);
 
+   ::CoUninitialize();
    return 0;
 }
 

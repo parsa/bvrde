@@ -66,7 +66,7 @@ public:
    VOID __stdcall put_CompileFlags(BSTR bstr);
    BSTR __stdcall get_LinkFlags();
    VOID __stdcall put_LinkFlags(BSTR bstr);
-   VARIANT_BOOL get_IsConnected();
+   VARIANT_BOOL __stdcall get_IsConnected();
    IDispatch* __stdcall get_Files();
    VOID __stdcall Clean();
    VOID __stdcall Build();

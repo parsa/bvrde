@@ -585,7 +585,7 @@ END
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Integration",-1,0,0,38,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,46,4,212,1
@@ -613,6 +613,9 @@ BEGIN
                     120,10,WS_EX_TRANSPARENT
     CONTROL         "Use online class scanner",IDC_ONLINESCANNER,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,120,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Mark error with squiggly lines",IDC_MARKERRORS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,131,120,10,
                     WS_EX_TRANSPARENT
 END
 

@@ -93,7 +93,7 @@ void CMainFrame::_ArrangeToolBars()
          }
       }
    }
-   // Add ToolBars to the ReBar control now
+   // Add toolbars to the ReBar control now
    for( int i = 0; i < nCount; i++ ) {
       TOOLBAR& tb = m_aToolBars[i];
       if( i == 0 ) tb.bNewRow = TRUE;
@@ -163,8 +163,8 @@ BOOL CMainFrame::OnIdle()
    m_Dock.OnIdle();
    m_MDIContainer.OnIdle();
 
-   // Here we determine if the view-focus has changed and
-   // update the Properties pane with the view's properties.
+   // Here we determine if the view/tree-focus has changed and
+   // update the Properties pane with the active view's properties.
    static IElement* s_pOldElement = NULL;
    CTreeViewCtrl& ctrlTree = m_viewExplorer.m_viewFile.m_ctrlTree;
    HTREEITEM hItem = ctrlTree.GetSelectedItem();

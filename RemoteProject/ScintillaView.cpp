@@ -20,8 +20,7 @@ CScintillaView::CScintillaView() :
    m_pCppProject(NULL),
    m_pView(NULL),
    m_lDwellPos(0),
-   m_bMouseDwell(false),
-   m_bSuggestionDisplayed(false)
+   m_bMouseDwell(false)
 {
 }
 
@@ -47,6 +46,8 @@ BOOL CScintillaView::Init(CRemoteProject* pCppProject, IProject* pProject, IView
 
 BOOL CScintillaView::GetText(LPSTR& pstrText)
 {
+   ATLASSERT(pstrText==NULL);
+
    TCHAR szBuffer[32] = { 0 };
    _pDevEnv->GetProperty(_T("editors.general.eolMode"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("cr")) == 0 ) m_ctrlEdit.ConvertEOLs(SC_EOL_CR);
@@ -60,6 +61,7 @@ BOOL CScintillaView::GetText(LPSTR& pstrText)
       return FALSE;
    }
    m_ctrlEdit.GetText(nLength, pstrText);
+
    return TRUE;
 }
 
@@ -104,22 +106,64 @@ LRESULT CScintillaView::OnQueryEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
 
 LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {   
-   TCHAR szBuffer[64] = { 0 };
    CString sKey;
    sKey.Format(_T("editors.%s."), m_sLanguage);
 
+   TCHAR szBuffer[64] = { 0 };
+
+   // Get settings for local view
    m_bAutoIndent = false;
-   if( _pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, 63) ) m_bAutoIndent = _tcscmp(szBuffer, _T("auto")) == 0;
    m_bSmartIndent = false;
+   if( _pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, 63) ) m_bAutoIndent = _tcscmp(szBuffer, _T("auto")) == 0;
    if( _pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, 63) ) m_bSmartIndent = _tcscmp(szBuffer, _T("smart")) == 0;
    m_bProtectDebugged = false;
    if( _pDevEnv->GetProperty(sKey + _T("protectDebugged"), szBuffer, 63) ) m_bProtectDebugged = _tcscmp(szBuffer, _T("true")) == 0;
    m_bAutoComplete = false;
    if( _pDevEnv->GetProperty(sKey + _T("autoComplete"), szBuffer, 63) ) m_bAutoComplete = _tcscmp(szBuffer, _T("true")) == 0;
-   m_bAutoSuggest = false;
-   if( _pDevEnv->GetProperty(sKey + _T("autoSuggest"), szBuffer, 63) ) m_bAutoSuggest = _tcscmp(szBuffer, _T("true")) == 0;
+   m_bMarkErrors = false;
+   if( _pDevEnv->GetProperty(sKey + _T("markErrors"), szBuffer, 63) ) m_bMarkErrors = _tcscmp(szBuffer, _T("true")) == 0;
+
+   // Get active breakpoints for this file
+   if( m_pCppProject ) {
+      CString sName;
+      m_pView->GetName(sName.GetBufferSetLength(128), 128);
+      sName.ReleaseBuffer();
+      CSimpleArray<long> aLines;
+      m_pCppProject->m_DebugManager.GetBreakpoints(sName, aLines);
+      m_ctrlEdit.MarkerDeleteAll(MARKER_BREAKPOINT);
+      for( int i = 0; i < aLines.GetSize(); i++ ) {
+         m_ctrlEdit.MarkerAdd(aLines[i] - 1, MARKER_BREAKPOINT);
+      }
+   }
 
    SendMessageToDescendants(WM_SETTINGCHANGE);
+   return 0;
+}
+
+LRESULT CScintillaView::OnHelp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{   
+   // If we don't succeed, we'll just pass the message on to the parent...
+   bHandled = FALSE;
+   // Load the ManPage module
+   CString sModule;
+   sModule.Format(_T("%sManPages.dll"), CModulePath());
+   static HINSTANCE s_hInst = NULL;
+   if( s_hInst == NULL ) s_hInst = ::LoadLibrary(sModule);
+   if( s_hInst == NULL ) return false;
+   // Display the page if possible
+   typedef BOOL (APIENTRY* LPFNSHOWPAGE)(IDevEnv*, LPCWSTR, LPCWSTR);
+   LPFNSHOWPAGE fnShowHelp = (LPFNSHOWPAGE) ::GetProcAddress(s_hInst, "ManPages_ShowHelp");
+   ATLASSERT(fnShowHelp);
+   if( fnShowHelp == NULL ) return 0;
+   // Locate the text near the cursor
+   long lPos = m_ctrlEdit.GetCurrentPos();
+   CString sText = _GetNearText(lPos);
+   if( sText.IsEmpty() ) return 0;
+   // Open man-page
+   BOOL bRes = FALSE;
+   ATLTRY( bRes = fnShowHelp(_pDevEnv, sText, m_sLanguage) );
+   if( !bRes ) return 0;
+   bHandled = TRUE;
    return 0;
 }
 
@@ -133,14 +177,6 @@ LRESULT CScintillaView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 LRESULT CScintillaView::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {   
    ::SetFocus(m_ctrlEdit);
-   return 0;
-}
-
-LRESULT CScintillaView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
-{
-   // Eat TAB key for auto-suggestion
-   if( wParam == VK_TAB && m_bSuggestionDisplayed ) return 0;
-   bHandled = FALSE;
    return 0;
 }
 
@@ -170,7 +206,7 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    // Place cursor at mouse if not clicked inside a selection
    lPos = m_ctrlEdit.PositionFromPoint(ptLocal.x, ptLocal.y);
    CharacterRange cr = m_ctrlEdit.GetSelection();
-   if( lPos < cr.cpMin || lPos > cr.cpMax ) m_ctrlEdit.SetSel(lPos, lPos);
+   if( lPos < cr.cpMin || lPos > cr.cpMax ) m_ctrlEdit.GotoPos(lPos);
 
    CMenu menu;
    menu.LoadMenu(nRes);
@@ -216,8 +252,8 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
       return 1; // Return ERROR indication
    }
 
-   if( m_sLanguage == "cpp" ) {
-      // Using the C++ online scanner? We should parse the new file,
+   if( m_sLanguage == "cpp" && m_pCppProject != NULL ) {
+      // Using the C++ realtime scanner? We should parse the new file,
       // merge the tags if possible and rebuild the ClassView.
       if( m_pCppProject->m_TagManager.m_LexInfo.IsAvailable() ) {
          LPSTR pstrText = NULL;
@@ -229,6 +265,8 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
    _pDevEnv->PlayAnimation(FALSE, 0);
 
+   _ClearSquigglyLines();
+
    return 0;
 }
 
@@ -237,11 +275,10 @@ LRESULT CScintillaView::OnEditAutoComplete(WORD /*wNotifyCode*/, WORD /*wID*/, H
    // The use of \b (BELL) character here is a hack, and is used to
    // force the auto-complete/suggest dropdown to open...
    _AutoComplete('\b');
-   if( !m_ctrlEdit.AutoCActive() ) _AutoSuggest('\b');
    return 0;
 }
 
-LRESULT CScintillaView::OnDebugBreakpoint(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT CScintillaView::OnDebugBreakpoint(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    if( m_pCppProject == NULL ) return 0;
    if( m_sLanguage != _T("cpp") ) return 0;
@@ -270,7 +307,7 @@ LRESULT CScintillaView::OnDebugBreakpoint(WORD /*wNotifyCode*/, WORD wID, HWND /
    return 0;
 }
 
-LRESULT CScintillaView::OnDebugRunTo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT CScintillaView::OnDebugRunTo(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    if( m_pCppProject == NULL ) return 0;
    if( m_sLanguage != _T("cpp") ) return 0;
@@ -281,10 +318,11 @@ LRESULT CScintillaView::OnDebugRunTo(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
    sName.ReleaseBuffer();
    long iLine = m_ctrlEdit.GetCurrentLine();
    m_pCppProject->m_DebugManager.RunTo(sName, iLine + 1);
+
    return 0;
 }
 
-LRESULT CScintillaView::OnDebugSetNext(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT CScintillaView::OnDebugSetNext(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    if( m_pCppProject == NULL ) return 0;
    if( m_sLanguage != _T("cpp") ) return 0;
@@ -382,17 +420,33 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
          m_ctrlEdit.CallTipSetBack(RGB(255,255,255));
          m_ctrlEdit.CallTipShow(m_lDwellPos, T2CA(sValue));
          m_bMouseDwell = false;
-         m_bSuggestionDisplayed = false;
       }
       break;
    case DEBUG_CMD_DEBUG_START:
       {
+         _ClearSquigglyLines();
          if( m_bProtectDebugged ) m_ctrlEdit.SetReadOnly(TRUE);
       }
       break;
    case DEBUG_CMD_DEBUG_STOP:
       {
          if( m_bProtectDebugged ) m_ctrlEdit.SetReadOnly(FALSE);
+      }
+      break;
+   case DEBUG_CMD_COMPILE_START:
+      {
+         _ClearSquigglyLines();
+         if( m_pCppProject != NULL && m_bMarkErrors ) {
+            m_iOutputLine = 0;
+            m_bClearSquigglyLines = false;
+            m_sOutputToken.Format(_T("%s:"), ::PathFindFileName(m_sFilename));
+            m_pCppProject->m_CompileManager.m_ShellManager.AddLineListener(this);
+         }
+      }
+      break;
+   case DEBUG_CMD_COMPILE_STOP:
+      {
+         if( m_pCppProject != NULL ) m_pCppProject->m_CompileManager.m_ShellManager.RemoveLineListener(this);
       }
       break;
    case DEBUG_CMD_FINDTEXT:
@@ -409,7 +463,7 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
          int iLineNo = pData->lLineNum;
          if( iLineNo == -1 ) iLineNo = m_ctrlEdit.GetCurrentLine();
          long lPos = m_ctrlEdit.PositionFromLine(iLineNo);
-         m_ctrlEdit.SetSel(lPos, lPos);
+         m_ctrlEdit.GotoPos(lPos);
          m_ctrlEdit.EnsureVisible(iLineNo);
       }
       break;
@@ -426,8 +480,10 @@ LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
       _FunctionTip(pSCN->ch);
       break;
    }
+   
    _AutoComplete(pSCN->ch);
-   _AutoSuggest(pSCN->ch);
+
+   _ClearSquigglyLines();
 
    bHandled = FALSE;
    return 0;
@@ -440,7 +496,7 @@ LRESULT CScintillaView::OnMarginClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
        && m_pCppProject != NULL 
        && m_sLanguage == _T("cpp")) 
    {
-      m_ctrlEdit.SetSel(pSCN->position, pSCN->position);
+      m_ctrlEdit.GotoPos(pSCN->position);
       PostMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_BREAKPOINT, 0));
       return 0;
    }
@@ -499,11 +555,11 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    return 0;
 }
 
-LRESULT CScintillaView::OnDwellEnd(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+LRESULT CScintillaView::OnDwellEnd(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
 {
    if( m_ctrlEdit.CallTipActive() ) m_ctrlEdit.CallTipCancel();
    m_bMouseDwell = false;
-   m_bSuggestionDisplayed = false;
+   bHandled = FALSE;
    return 0;
 }
 
@@ -524,8 +580,79 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
    }
 }
 
+// IOutputLineListener
+
+void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
+{
+   // This part assumes that the compiler output is formatted as
+   //   <filename>:<line>
+   if( _tcsncmp(pstrText, m_sOutputToken, m_sOutputToken.GetLength() ) != 0 ) return;
+   int iLineNo = _ttol(pstrText + m_sOutputToken.GetLength());
+   if( iLineNo == 0 ) return;
+   --iLineNo;
+
+   // If several errors are reported on the same line we assume
+   // that the first entry reported the most useful error. Otherwise
+   // we easily end up hightlighting the entire line always.
+   if( iLineNo == m_iOutputLine ) return;
+
+   // Get the line so we can analyze where the error occoured.
+   // The GNU compilers rarely output which row (position) the error
+   // occured at so we'll have to try to match a substring or message
+   // with the content of the line.
+   CHAR szLine[256] = { 0 };
+   if( m_ctrlEdit.GetLineLength(iLineNo) >= sizeof(szLine) ) return;
+   m_ctrlEdit.GetLine(iLineNo, szLine);
+
+   CString sLine = szLine;
+   long lLinePos = m_ctrlEdit.PositionFromLine(iLineNo);
+
+   // Determine the position on the line the error was reported
+   int iMatchPos = 0;
+   int iMatchLength = 0;
+
+   static LPCTSTR pstrQuotes = _T("\'\"\x60");
+   LPCTSTR pstrStart = _tcspbrk(pstrText, pstrQuotes);
+   if( pstrStart != NULL ) {
+      CString sKeyword;
+      LPCTSTR p = pstrStart + 1;
+      while( _iscppchar(*p) ) sKeyword += *p++;
+      while( *p && _tcschr(pstrQuotes, *p) == NULL ) p++;
+      if( !sKeyword.IsEmpty() && sLine.Find(sKeyword) >= 0 ) {
+         iMatchPos = lLinePos + sLine.Find(sKeyword);
+         iMatchLength = p - pstrStart;
+      }
+   }
+
+   // If no match was found, hightlight the entire line
+   if( iMatchPos == 0 ) {
+      iMatchPos = lLinePos;
+      iMatchLength = m_ctrlEdit.GetLineLength(iLineNo);
+      // Let's trim the string if it contains leading spaces (look strupid)
+      LPCTSTR p = sLine;
+      while( *p && _istspace(*p++) ) {
+         iMatchPos++;
+         iMatchLength--;
+      }
+   }
+
+   // Apply the squiggly lines
+   m_ctrlEdit.IndicSetStyle(0, INDIC_SQUIGGLE);
+   m_ctrlEdit.IndicSetFore(0, RGB(200,0,0));
+   m_ctrlEdit.StartStyling(iMatchPos, INDIC0_MASK);
+   m_ctrlEdit.SetStyling(iMatchLength, INDIC0_MASK);
+
+   m_iOutputLine = iLineNo;
+   m_bClearSquigglyLines = true;
+}
+
 // Implementation
 
+/**
+ * Find the next text snippet.
+ * This method is usually called during a Find or Find/Replace operation,
+ * and locates a substring in the text.
+ */
 int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings)
 {
    int iLength = strlen(pstrText);
@@ -593,6 +720,16 @@ int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings)
    return iFindPos;
 }
 
+/**
+ * Handle auto-completion.
+ * Here we handle auto-completion of the C++ language. Support for other languages is
+ * located in the default handler of the GenEdit component.
+ * Getting auto-completion to work for C++ is a very labour intensive job, and we need
+ * to manually scan and verify parts of the surrounding source-code.
+ * The auto-completion here is very basic since we don't do an exchaustive parse of
+ * the C++ file. We are in fact 'guessing' the scope, and not trying to determine the
+ * exact parse-tree for the file.
+ */
 void CScintillaView::_AutoComplete(CHAR ch)
 {
    USES_CONVERSION;
@@ -636,8 +773,8 @@ void CScintillaView::_AutoComplete(CHAR ch)
       lPos -= sName.GetLength();
       while( true ) {
          char ch = m_ctrlEdit.GetCharAt(--lPos);
-         if( lPos < 0 ) return;
-         if( ch == '\n' ||  ch == '=' ) {
+         if( lPos <= 0 ) return;
+         if( ch == '\n' ||  ch == '=' || ch == ';' ) {
             sType = _FindBlockType(lPos);
             break;
          }
@@ -699,82 +836,18 @@ void CScintillaView::_AutoComplete(CHAR ch)
    }
    sList.TrimRight();
 
-   // Display popup
+   // Display auto-completion popup
    m_ctrlEdit.ClearRegisteredImages();
    _RegisterListImages();
-   m_ctrlEdit.AutoCSetIgnoreCase(TRUE);
+   m_ctrlEdit.AutoCSetIgnoreCase(FALSE);
    m_ctrlEdit.AutoCShow(iLenEntered, T2CA(sList));
 }
 
-void CScintillaView::_AutoSuggest(CHAR ch)
-{
-   static int s_iSuggestWord = 0;
-   static long s_lSuggestPos = 0;
-   static CString s_sSuggestWord;
-   // Cancel suggestion tip if displayed already.
-   // Do actual text-replacement if needed.
-   if( m_bSuggestionDisplayed ) {
-      if( ch == '\t' ) {
-         USES_CONVERSION;
-         long lPos = m_ctrlEdit.GetCurrentPos();
-         m_ctrlEdit.SetSel(s_lSuggestPos, lPos);
-         m_ctrlEdit.ReplaceSel(T2CA(s_sSuggestWord));
-      }
-      m_ctrlEdit.CallTipCancel();
-      m_bSuggestionDisplayed = false;
-   }
-
-   // Display tip at all?
-   if( !m_bAutoSuggest && ch != '\b' ) return;
-   if( m_ctrlEdit.CallTipActive() ) return;
-   if( m_ctrlEdit.AutoCActive() ) return;
-
-   // Display tip only after 3 valid characters has been entered.
-   if( _iscppchar(ch) ) s_iSuggestWord++; else s_iSuggestWord = 0;
-   if( s_iSuggestWord <= 3 && ch != '\b' ) return;
-
-   // Get the typed identifier
-   long lPos = m_ctrlEdit.GetCurrentPos();
-   CString sName = _GetNearText(lPos - 1);
-   if( sName.IsEmpty() ) return;
-
-   // Grab the last 256 characters or so
-   CHAR szText[256] = { 0 };
-   int nMin = lPos - (sizeof(szText) - 1);
-   if( nMin < 0 ) nMin = 0;
-   if( lPos - nMin < 3 ) return; // Smallest tag is 3 characters ex. <p>
-   int nMax = lPos - sName.GetLength();
-   if( nMax < 0 ) return;
-   m_ctrlEdit.GetTextRange(nMin, nMax, szText);
-
-   int i = 0;
-   // Skip first word (may be incomplete)
-   while( szText[i] != '\0' && !isspace(szText[i]) ) i++;
-   // Find best keyword (assumed to be the latest match)
-   CString sKeyword;
-   CString sSuggest;
-   while( szText[i] != '\0' ) {
-      // Gather next word
-      sSuggest = _T("");
-      while( _iscppchar(szText[i]) ) sSuggest += szText[i++];
-      // This could be a match
-      if( _tcsncmp(sName, sSuggest, sName.GetLength()) == 0 ) sKeyword = sSuggest;
-      // Find start of next word
-      while( szText[i] != '\0' && !_iscppchar(szText[i]) ) i++;
-   }
-   if( sKeyword.IsEmpty() ) return;
-
-   // Display suggestion tip
-   USES_CONVERSION;
-   m_ctrlEdit.CallTipSetFore(RGB(255,255,255));
-   m_ctrlEdit.CallTipSetBack(RGB(0,0,0));
-   m_ctrlEdit.CallTipShow(lPos, T2CA(sKeyword));
-   // Remember what triggered suggestion
-   s_lSuggestPos = lPos - sName.GetLength();
-   s_sSuggestWord = sKeyword;
-   m_bSuggestionDisplayed = true;
-}
-
+/**
+ * Show function tip.
+ * Attempts to determine the function syntax of the currently entered
+ * function call (if any).
+ */
 void CScintillaView::_FunctionTip(CHAR ch)
 {
    if( m_pCppProject == NULL ) return;
@@ -802,7 +875,7 @@ void CScintillaView::_FunctionTip(CHAR ch)
    // Finally get the function text
    CString sValue = m_pCppProject->GetTagInfo(sName, sType);
    if( sValue.IsEmpty() ) return;
-   sValue.Replace(_T("\r"), _T(""));
+   sValue.Remove('\r');
    // Display tip
    USES_CONVERSION;
    m_ctrlEdit.CallTipSetFore(RGB(0,0,0));
@@ -810,6 +883,22 @@ void CScintillaView::_FunctionTip(CHAR ch)
    m_ctrlEdit.CallTipShow(lPos, T2CA(sValue));
 }
 
+void CScintillaView::_ClearSquigglyLines()
+{
+   if( !m_bClearSquigglyLines ) return;  
+   m_bClearSquigglyLines = false;
+   m_ctrlEdit.StartStyling(0, INDIC0_MASK);
+   m_ctrlEdit.SetStyling(m_ctrlEdit.GetLength(), 0);
+   // FIX: Need this because next char will not get
+   //      coloured properly in Scintilla.
+   m_ctrlEdit.Colourise(0, -1);
+}
+
+/**
+ * Determine scope name.
+ * This function located the class/struct-type relative to
+ * the 'lPosition' location.
+ */
 CString CScintillaView::_FindBlockType(long lPosition)
 {
    // Locate the line where this block begins.
@@ -819,7 +908,7 @@ CString CScintillaView::_FindBlockType(long lPosition)
       long lPos = m_ctrlEdit.PositionFromLine(iStartLine);
       int ch = m_ctrlEdit.GetCharAt(lPos);
       if( ch == '}' ) return _T("");
-      if( isalpha(ch) && ch != 'p' ) break;
+      if( isalpha(ch) && ch != 'p' ) break;        // as in 'public', 'private', 'protected'...
       iStartLine--;
    }
    if( iStartLine < 0 ) iStartLine = 0;
@@ -857,7 +946,13 @@ CString CScintillaView::_FindBlockType(long lPosition)
    return _T("");
 }
 
-CString CScintillaView::_FindTagType(CString& sName, long lPosition)
+/**
+ * Determine type from name and text-position.
+ * Looks up the member type. To do so, this function must determine
+ * in which scope the text is located and try to deduce what members/function
+ * the text is placed in.
+ */
+CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
 {
    // Locate the line where this function begins.
    // HACK: We look for the line where the text
@@ -913,7 +1008,7 @@ CString CScintillaView::_FindTagType(CString& sName, long lPosition)
             ppTypes++;
          }
 
-         // Now, let's find the type in the TAG file
+         // Now, let's find the type in the lex files
          int iIndex = m_pCppProject->m_TagManager.FindItem(0, sType);
          while( iIndex >= 0 ) {
             switch( m_pCppProject->m_TagManager.GetItemType(iIndex) ) {

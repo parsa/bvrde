@@ -13,7 +13,7 @@ class CCommandThread :
 public:
    CString m_sCommand;
    CString m_sResult;
-   long m_lTImeout;
+   long m_lTimeout;
 
    CString GetResult() const;
    void SetCommand(UINT nCmd, LPCTSTR pstrCommand, LONG lTimeout = 4000L);

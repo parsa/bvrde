@@ -28,14 +28,14 @@ public:
 
 private:
    CRemoteProject* m_pProject;
-   CSimpleMap<CString, long> m_aBreakpoints;
-   volatile int m_nDebugAck;
-   volatile int m_nLastAck;
-   bool m_bBreaked;                        // Is debugging, but currently breaked
-   bool m_bDebugging;                      // Is debugging
-   bool m_bIgnoreError;                    // Ignore possible error!
-   bool m_bCommandMode;                    // Command mode
-   CString m_sVarName;                     // Data-evaluation variable name
+   CSimpleMap<CString, long> m_aBreakpoints;   // Breakpoints; key=<filename:lineno> value=<break-nr>
+   volatile int m_nDebugAck;                   // No of debug acknoledge
+   volatile int m_nLastAck;                    // Last known acknoledge
+   bool m_bBreaked;                            // Is debugging, but currently breaked
+   bool m_bDebugging;                          // Is debugging
+   bool m_bIgnoreError;                        // Ignore possible error!
+   bool m_bCommandMode;                        // Command mode
+   CString m_sVarName;                         // Data-evaluation variable name
    //
    CString m_sCommandCD;
    CString m_sAppExecutable;
@@ -66,6 +66,7 @@ public:
    bool ClearBreakpoints();
    bool AddBreakpoint(LPCTSTR pstrText);
    bool RemoveBreakpoint(LPCTSTR pstrText);
+   bool GetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<long>& aLines) const;
    bool SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<CString>& aBreakpoints);
 
    bool RunTo(LPCTSTR pstrFilename, long lLineNum);
@@ -89,7 +90,6 @@ private:
    CString _TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam = NULL);
    void _ParseNewFrame(CMiInfo& info);
    void _UpdateBreakpoint(CMiInfo& info);
-   bool _ParseToken(CString& sText, CString& sToken, CString& sValue) const;
    void _ParseOutOfBand(LPCTSTR pstrText);
    void _ParseResultRecord(LPCTSTR pstrText);
    void _ParseConsoleOutput(LPCTSTR pstrText);

@@ -1,0 +1,60 @@
+BODY {
+	FONT-SIZE: 12px; MARGIN: 8px; FONT-FAMILY: Verdana,Geneva,Helvetica,Arial,sans-serif; BACKGROUND-COLOR: #FFFFE7
+}
+P {
+	FONT-SIZE: 12px; FONT-FAMILY: Verdana,Geneva,Helvetica,Arial,sans-serif
+}
+TH {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; FONT-FAMILY: Verdana,Geneva,Helvetica,Arial,sans-serif
+}
+TD {
+	FONT-SIZE: 12px; FONT-FAMILY: Verdana,Geneva,Helvetica,Arial,sans-serif
+}
+H1 {
+	FONT-WEIGHT: bold; FONT-SIZE: 24px; COLOR: #30549f; FONT-FAMILY: Arial,Helvetica,Verdana
+}
+H2 {
+	FONT-WEIGHT: normal; FONT-SIZE: 20px; COLOR: #3054af; FONT-FAMILY: Helvetica,Verdana,Geneva,Arial,sans-serif
+}
+H3 {
+	FONT-WEIGHT: bold; FONT-SIZE: 16px; COLOR: #333333; FONT-FAMILY: Helvetica,Verdana,Geneva,Arial,sans-serif
+}
+H4 {
+	FONT-WEIGHT: bold; FONT-SIZE: 14px; COLOR: #000000; FONT-FAMILY: Helvetica,Verdana,Geneva,Arial,sans-serif
+}
+LI {
+	FONT-SIZE: 12px; FONT-FAMILY: Verdana,Geneva,Helvetica,Arial,sans-serif
+}
+A {
+	COLOR: #1a41a7; TEXT-DECORATION: none
+}
+A:link {
+	COLOR: #1a41a7; TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: #5f7db9; TEXT-DECORATION: none
+}
+A:active {
+	COLOR: #cc6600; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: #cc6600; TEXT-DECORATION: none
+}
+BLOCKQUOTE {
+	FONT-SIZE: 12px; FONT-FAMILY: Arial
+}
+INPUT {
+	FONT-WEIGHT: normal; FONT-SIZE: 11px; FONT-FAMILY: Courier
+}
+TT {
+	FONT-WEIGHT: normal; FONT-SIZE: 11px; FONT-FAMILY: Courier
+}
+CODE {
+	FONT-WEIGHT: normal; FONT-SIZE: 11px; FONT-FAMILY: Courier; BACKGROUND-COLOR: #FDF6D5; PADDING: 14px 14px 14px 14px
+}
+PRE {
+	FONT-WEIGHT: normal; FONT-SIZE: 11px; FONT-FAMILY: Courier; BACKGROUND-COLOR: #FDF6D5; PADDING: 14px 14px 14px 14px
+}
+HR {
+	COLOR: #bbbbbb; HEIGHT: 1px
+}

@@ -311,7 +311,7 @@ IProject* CSolution::GetFocusProject() const
    if( ::IsWindow(hWnd) ) {
       CWinProp prop = hWnd;
       IProject* pProject = NULL;
-      prop.GetProperty(_T("Project"), (LPCVOID&) pProject);
+      prop.GetProperty(_T("Project"), pProject);
       if( pProject ) return pProject;
    }
    return m_pCurProject;

@@ -71,11 +71,12 @@ CClassView::CClassView() :
 void CClassView::Init(CRemoteProject* pProject)
 {
    Close();
-   
+
    m_bLoaded = false;
    m_bLocked = false;
    m_pProject = pProject;
-  
+   m_aExpandedNames.RemoveAll();
+
    if( IsWindow() 
        && m_pProject != NULL
        && m_pProject->m_TagManager.IsAvailable() ) 
@@ -94,6 +95,7 @@ void CClassView::Init(CRemoteProject* pProject)
 void CClassView::Close()
 {
    if( m_ctrlTree.IsWindow() ) m_ctrlTree.DeleteAllItems();
+   m_aExpandedNames.RemoveAll();
    m_pProject = NULL;
    m_bLoaded = false;
    m_bLocked = false;
@@ -103,24 +105,28 @@ void CClassView::Lock()
 {
    // Remember which branches was expanded, so we can
    // expand them when we recreate the tree later...
-   m_aExpandedNames.RemoveAll();
-   HTREEITEM hItem = m_ctrlTree.GetRootItem();
-   while( hItem != NULL ) {
-      UINT uState = m_ctrlTree.GetItemState(hItem, TVIS_EXPANDED);
-      if( (uState & TVIS_EXPANDED) != 0 ) {
-         CString sName;
-         m_ctrlTree.GetItemText(hItem, sName);
-         m_aExpandedNames.Add(sName);
+   // NOTE: The caller is about the restructure the TAG pointers, so
+   //       we must do this process here while the names are still valid.
+   if( m_aExpandedNames.GetSize() == 0 ) 
+   {
+      HTREEITEM hItem = m_ctrlTree.GetRootItem();
+      while( hItem != NULL ) {
+         UINT uState = m_ctrlTree.GetItemState(hItem, TVIS_EXPANDED);
+         if( (uState & TVIS_EXPANDED) != 0 ) {
+            CString sName;
+            m_ctrlTree.GetItemText(hItem, sName);
+            m_aExpandedNames.Add(sName);
+         }
+         hItem = m_ctrlTree.GetNextSiblingItem(hItem);
       }
-      hItem = m_ctrlTree.GetNextSiblingItem(hItem);
    }
-
+   // It's locked!
    m_bLocked = true;
 }
 
 void CClassView::Unlock()
 {
-   m_bLocked = false;
+   // Unlocking is done in the _PopulateTree() method only
 }
 
 void CClassView::Clear()
@@ -142,14 +148,16 @@ void CClassView::Populate()
    CWaitCursor cursor;
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_LOADTAG)));
    // Fill up tree...
-   _PopulateTree();
+   Lock();
+   Rebuild();
+   Unlock();
 }
 
 void CClassView::Rebuild()
 {
    // Signal that we should rebuild the tree
    m_bLoaded = false;
-   // View not showing right now? No need to populate then.
+   // View is not showing right now? Delay populating the tree then.
    if( !IsWindowVisible() ) return;
    // Ok, do it then...
    _PopulateTree();
@@ -174,7 +182,7 @@ void CClassView::_PopulateTree()
 
       // Not locked anymore; tree is safe!
       m_bLocked = false;
-   
+
       // Insert classes and expand previously expanded branches...
       HTREEITEM hFirstVisible = NULL;
       TV_INSERTSTRUCT tvis = { 0 };
@@ -329,10 +337,10 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
 
 LRESULT CClassView::OnTreeBeginDrag(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
-   USES_CONVERSION;
    LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
    CString sText;
    m_ctrlTree.GetItemText(lpNMTV->itemNew.hItem, sText);
+   USES_CONVERSION;
    CComObject<CSimpleDataObj>* pObj = NULL;
    if( FAILED( CComObject<CSimpleDataObj>::CreateInstance(&pObj) ) ) return 0;
    if( FAILED( pObj->SetTextData(T2CA(sText)) ) ) return 0;
@@ -356,8 +364,7 @@ LRESULT CClassView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
       }
       for( int i = 0; i < aList.GetSize(); i++ ) {
          const TAGINFO* pTag = aList[i];
-         int iImage = 3;
-         if( pTag->Type == TAGTYPE_MEMBER ) iImage = 4;
+         int iImage = pTag->Type == TAGTYPE_MEMBER ? 4 : 3;
          m_ctrlTree.InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM,
             LPSTR_TEXTCALLBACK, 
             iImage, iImage, 

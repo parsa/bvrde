@@ -773,6 +773,7 @@ LRESULT CAdvancedEditOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/,
    SET_CHECK(IDC_ONLINESCANNER, sKey + _T("onlineScanner"));
    SET_CHECK(IDC_AUTOSUGGEST, sKey + _T("autoSuggest"));
    SET_CHECK(IDC_AUTOCLOSE, sKey + _T("autoClose"));
+   SET_CHECK(IDC_MARKERRORS, sKey + _T("markErrors"));
 
    return 0;
 }
@@ -789,6 +790,7 @@ int CAdvancedEditOptionsPage::OnApply()
    GET_CHECK(IDC_ONLINESCANNER, sKey + _T("onlineScanner"));
    GET_CHECK(IDC_AUTOSUGGEST, sKey + _T("autoSuggest"));
    GET_CHECK(IDC_AUTOCLOSE, sKey + _T("autoClose"));
+   GET_CHECK(IDC_MARKERRORS, sKey + _T("markErrors"));
 
    if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
    {
@@ -806,6 +808,7 @@ int CAdvancedEditOptionsPage::OnApply()
             TRANSFER_PROP(_T("onlineScanner"), sKey + _T("onlineScanner"));
             TRANSFER_PROP(_T("autoSuggest"), sKey + _T("autoSuggest"));
             TRANSFER_PROP(_T("autoClose"), sKey + _T("autoClose"));
+            TRANSFER_PROP(_T("markErrors"), sKey + _T("markErrors"));
          }
          m_pArc->ReadGroupEnd();
       }

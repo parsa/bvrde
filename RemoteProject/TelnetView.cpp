@@ -127,11 +127,19 @@ LRESULT CTelnetView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 {
    if( m_pShell ) {
       m_pShell->RemoveLineListener(this);
-      if( m_dwFlags & TNV_TERMINATEONCLOSE ) {
+      if( (m_dwFlags & TNV_TERMINATEONCLOSE) != 0 ) {
          m_pShell->Stop();
          m_pShell = NULL;
       }
    }   
+   bHandled = FALSE;
+   return 0;
+}
+
+LRESULT CTelnetView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+{
+   if( wParam == 'C' && (::GetKeyState(VK_CONTROL) & 0x8000) != 0 ) m_pShell->WriteSignal(TERMINAL_BREAK);
+   if( wParam == 'D' && (::GetKeyState(VK_CONTROL) & 0x8000) != 0 ) m_pShell->WriteSignal(TERMINAL_QUIT);
    bHandled = FALSE;
    return 0;
 }
@@ -142,7 +150,7 @@ LRESULT CTelnetView::OnCompacting(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    // the docking framework. The view runs in the background (still gets input)
    // and is ready to display itself if the user activates it from the memu.
    if( m_pShell ) {
-      if( m_dwFlags & TNV_TERMINATEONCLOSE ) {
+      if( (m_dwFlags & TNV_TERMINATEONCLOSE) != 0 ) {
          _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, _T(""), FALSE);
          m_pShell->Stop();
       }

@@ -23,7 +23,8 @@ CScintillaView::CScintillaView(IDevEnv* pDevEnv) :
    m_wndParent(this, 1),   
    m_pDevEnv(pDevEnv),
    m_bAutoCompleteNext(false),
-   m_bAutoTextDisplayed(false)
+   m_bAutoTextDisplayed(false),
+   m_bSuggestionDisplayed(false)
 {
    if( s_frFind.lStructSize == 0 ) {
       static CHAR s_szFindText[128] = { 0 };
@@ -156,6 +157,7 @@ LRESULT CScintillaView::OnKillFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 LRESULT CScintillaView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
    if( wParam == VK_TAB && m_bAutoTextDisplayed ) return 0;
+   if( wParam == VK_TAB && m_bSuggestionDisplayed ) return 0;
    if( wParam == VK_ESCAPE && AutoCActive() ) AutoCCancel();
    bHandled = FALSE;
    return 0;
@@ -499,7 +501,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    // Clear all styles
    ClearDocumentStyle();
-   SetStyleBits(7);
+   SetStyleBits(5);
 
    // Define bookmark markers
    _DefineMarker(MARKER_BOOKMARK, SC_MARK_SMALLRECT, RGB(0, 0, 64), RGB(128, 128, 128));
@@ -519,10 +521,6 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    USES_CONVERSION;
    SetKeyWords(0, T2A(sKeywords1));
    if( !sKeywords2.IsEmpty() ) SetKeyWords(1, T2A(sKeywords2));
-
-   IndicSetStyle(0, 5); // INDIC_HIDDEN
-   IndicSetStyle(1, 5);
-   IndicSetStyle(2, 5);
 
    // Apply our color-styles according to the
    // style-definition lists declared above
@@ -591,6 +589,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    SetIndent(iValue);
    m_bAutoIndent = false;
    m_bSmartIndent = false;
+   m_bAutoSuggest = false;
    if( m_pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, 63) ) m_bAutoIndent = _tcscmp(szBuffer, _T("auto")) == 0;
    if( m_pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, 63) ) m_bSmartIndent = _tcscmp(szBuffer, _T("smart")) == 0;
    m_bMatchBraces = false;
@@ -603,6 +602,8 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    if( m_pDevEnv->GetProperty(sKey + _T("autoClose"), szBuffer, 63) ) m_bAutoClose = _tcscmp(szBuffer, _T("true")) == 0;
    m_bAutoCase = false;
    if( m_pDevEnv->GetProperty(sKey + _T("autoCase"), szBuffer, 63) ) m_bAutoCase = _tcscmp(szBuffer, _T("true")) == 0;
+   m_bAutoSuggest = false;
+   if( m_pDevEnv->GetProperty(sKey + _T("autoSuggest"), szBuffer, 63) ) m_bAutoSuggest = _tcscmp(szBuffer, _T("true")) == 0;
 
    sKey = _T("editors.general.");
 
@@ -641,33 +642,39 @@ LRESULT CScintillaView::OnUpdateUI(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHand
    return 0;
 }
 
+LRESULT CScintillaView::OnDwellEnd(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
+{
+   m_bSuggestionDisplayed = false;
+   bHandled = FALSE;
+   return 0;
+}
+
 LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
    SCNotification* pSCN = (SCNotification*) pnmh;
-   if( m_bAutoCompleteNext 
-       && (isalpha(pSCN->ch) || pSCN->ch == '_') ) 
-   {
-      _AutoComplete(m_cPrevChar);
-   }
+
+   if( _iseditchar(pSCN->ch) ) _AutoComplete(m_cPrevChar);
    m_bAutoCompleteNext = false;
 
    switch( pSCN->ch ) {
    case '\n':
    case '}':
-      _MaintainIndent((CHAR)pSCN->ch);
+      _MaintainIndent(pSCN->ch);
       break;
    }
 
    switch( pSCN->ch ) {
    case '>':
    case '{':
-   case '}':
-      _MaintainTags((CHAR) pSCN->ch);
+   case '[':
+   case '\n':
+      _MaintainTags(pSCN->ch);
       break;
    }
 
-   _AutoText((CHAR) pSCN->ch);
-   
+   _AutoText(pSCN->ch);
+   _AutoSuggest(pSCN->ch);
+  
    m_cPrevChar = (CHAR) pSCN->ch;
    if( m_cPrevChar == '$' && GetLexer() == SCLEX_PHP ) m_bAutoCompleteNext = true;
    if( m_cPrevChar == '<' && m_sLanguage == _T("html") ) m_bAutoCompleteNext = true;
@@ -734,8 +741,16 @@ void CScintillaView::_MatchBraces(long lPos)
    }
 }
 
+/**
+ * Show auto-text.
+ * Auto-text is a user-configurable list of shortcuts that can be typed and
+ * typically inserts a whole section of text (e.g. user types 'while' and presses
+ * TAB key to insert a complete 'while(true) { ...'-block).
+ */
 void CScintillaView::_AutoText(CHAR ch)
 {
+   const WORD AUTOTEXT_AFTER_TYPED_CHARS = 3;
+
    static int s_iSuggestWord = 0;
    static long s_lSuggestPos = 0;
    static CString s_sAutoText;
@@ -777,10 +792,10 @@ void CScintillaView::_AutoText(CHAR ch)
 
    // Display tip only after 3 characters has been entered
    // and avoid displaying unnessecarily...
-   if( isalpha(ch) ) s_iSuggestWord++; 
+   if( _iseditchar(ch) || ch == '(' ) s_iSuggestWord = max(1, s_iSuggestWord + 1); 
    else if( isspace(ch) ) s_iSuggestWord = 0;
    else s_iSuggestWord = -999;
-   if( s_iSuggestWord < 3 ) return;
+   if( s_iSuggestWord < AUTOTEXT_AFTER_TYPED_CHARS ) return;
 
    // Get the typed identifier
    long lPos = GetCurrentPos();
@@ -817,6 +832,82 @@ void CScintillaView::_AutoText(CHAR ch)
    s_lSuggestPos = lPos - sName.GetLength();
    s_sAutoText = szBuffer;
    m_bAutoTextDisplayed = true;
+}
+
+/**
+ * Display auto-suggestion.
+ * Auto-suggest pops up a simple auto-completion tip based
+ * on similar words located in the surrounding text.
+ */
+void CScintillaView::_AutoSuggest(CHAR ch)
+{
+   if( !m_bAutoSuggest ) return;
+
+   static int s_iSuggestWord = 0;
+   static long s_lSuggestPos = 0;
+   static CString s_sSuggestWord;
+   // Cancel suggestion tip if displayed already.
+   // Do actual text-replacement if needed.
+   if( m_bSuggestionDisplayed ) {
+      if( ch == '\t' ) {
+         USES_CONVERSION;
+         long lPos = GetCurrentPos();
+         SetSel(s_lSuggestPos, lPos);
+         ReplaceSel(T2CA(s_sSuggestWord));
+      }
+      CallTipCancel();
+      m_bSuggestionDisplayed = false;
+   }
+
+   // Display tip at all?
+   if( !m_bAutoSuggest && ch != '\b' ) return;
+   if( CallTipActive() ) return;
+   if( AutoCActive() ) return;
+
+   // Display tip only after 3 valid characters has been entered.
+   if( _iseditchar(ch) ) s_iSuggestWord++; else s_iSuggestWord = 0;
+   if( s_iSuggestWord <= 3 && ch != '\b' ) return;
+
+   // Get the typed identifier
+   long lPos = GetCurrentPos();
+   CString sName = _GetNearText(lPos - 1);
+   if( sName.IsEmpty() ) return;
+
+   // Grab the last 256 characters or so
+   CHAR szText[256] = { 0 };
+   int nMin = lPos - (sizeof(szText) - 1);
+   if( nMin < 0 ) nMin = 0;
+   if( lPos - nMin < 3 ) return; // Smallest tag is 3 characters ex. <p>
+   int nMax = lPos - sName.GetLength();
+   if( nMax < 0 ) return;
+   GetTextRange(nMin, nMax, szText);
+
+   int i = 0;
+   // Skip first word (may be incomplete)
+   while( szText[i] != '\0' && !isspace(szText[i]) ) i++;
+   // Find best keyword (assumed to be the latest match)
+   CString sKeyword;
+   CString sSuggest;
+   while( szText[i] != '\0' ) {
+      // Gather next word
+      sSuggest = _T("");
+      while( _iseditchar(szText[i]) ) sSuggest += szText[i++];
+      // This could be a match
+      if( _tcsncmp(sName, sSuggest, sName.GetLength()) == 0 ) sKeyword = sSuggest;
+      // Find start of next word
+      while( szText[i] != '\0' && !_iseditchar(szText[i]) ) i++;
+   }
+   if( sKeyword.IsEmpty() ) return;
+
+   // Display suggestion tip
+   USES_CONVERSION;
+   CallTipSetFore(RGB(255,255,255));
+   CallTipSetBack(RGB(0,0,0));
+   CallTipShow(lPos, T2CA(sKeyword));
+   // Remember what triggered suggestion
+   s_sSuggestWord = sKeyword;
+   m_bSuggestionDisplayed = true;
+   s_lSuggestPos = lPos - sName.GetLength();
 }
 
 void CScintillaView::_AutoComplete(CHAR ch)
@@ -877,7 +968,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
          while( *pstr ) {
             sWord += (TCHAR) *pstr;
             pstr++;
-            if( !isalnum(*pstr) && *pstr != '_' ) break;
+            if( !_iseditchar(ch) ) break;
          }
          if( sWord.GetLength() > 2 ) _AddUnqiue(aList, sWord);
          pstr = strstr(pstr, szFind);
@@ -1042,8 +1133,7 @@ void CScintillaView::_MaintainTags(CHAR ch)
       SetSel(nCaret, nCaret);
       EndUndoAction();
    }
-   else if( (ch == '{' || ch == '}') 
-            && m_sLanguage == _T("cpp") )
+   else if( ch == '{' && m_sLanguage == _T("cpp") )
    {
       // Grab current line for inspection
       int nCaret = GetCurrentPos();
@@ -1055,20 +1145,28 @@ void CScintillaView::_MaintainTags(CHAR ch)
       sText.TrimLeft();
       sText.TrimRight();
       // Add insertion text
-      CString sInsert;
-      bool bIndentLine = false;
       if( sText == _T("{") ) {
-         sInsert = _T("\r\n}");
-         bIndentLine = true;
+         BeginUndoAction();
+         ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n\r\n}" : "\n\n}");
+         SetSel(nCaret, nCaret);
+         _SetLineIndentation(iLine + 1, GetLineIndentation(iLine) + GetIndent());
+         _SetLineIndentation(iLine + 2, GetLineIndentation(iLine));
+         LineDown();
+         LineEnd();
+         EndUndoAction();
       }
       else if( sText.Right(1) == _T("{") ) {
-         sInsert = _T("}");
+         BeginUndoAction();
+         ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n}" : "\n}");
+         SetSel(nCaret, nCaret);
+         _SetLineIndentation(iLine + 1, GetLineIndentation(iLine));
+         EndUndoAction();
       }
-      BeginUndoAction();
-      ReplaceSel(T2CA(sInsert));
+   }
+   else if( ch == '[' && m_sLanguage == _T("cpp") ) {
+      int nCaret = GetCurrentPos();
+      ReplaceSel("]");
       SetSel(nCaret, nCaret);
-      if( bIndentLine ) _SetLineIndentation(iLine + 1, GetLineIndentation(iLine));
-      EndUndoAction();
    }
 }
 
@@ -1144,7 +1242,6 @@ int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings)
       endPosition = 0;
    }
    if( bInSelection ) {
-      ATLASSERT(cr.cpMin!=cr.cpMax);
       if( cr.cpMin == cr.cpMax ) return -1;
       startPosition = cr.cpMin;
       endPosition = cr.cpMax;
@@ -1198,7 +1295,7 @@ bool CScintillaView::_ReplaceOnce()
    CharacterRange cr = GetSelection();
    SetTargetStart(cr.cpMin);
    SetTargetEnd(cr.cpMax);
-   int nReplaced = strlen(s_frFind.lpstrReplaceWith);
+   int nReplaced = (int) strlen(s_frFind.lpstrReplaceWith);
    if( (s_frFind.Flags & SCFIND_REGEXP) != 0 ) {
       nReplaced = ReplaceTargetRE(nReplaced, s_frFind.lpstrReplaceWith);
    }
@@ -1272,6 +1369,11 @@ bool CScintillaView::_AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) 
    CString sText = pstrText;
    aList.Add(sText);
    return true;
+}
+
+bool CScintillaView::_iseditchar(char ch) const
+{
+   return isalnum(ch) || ch == '_';
 }
 
 int CScintillaView::_FunkyStrCmp(LPCTSTR src, LPCTSTR dst)

@@ -178,8 +178,6 @@ void CShellManager::BroadcastLine(VT100COLOR Color, LPCTSTR pstrText)
    // NOTE: To avoid too many dead-locks we make
    //       a copy of the listeners instead of locking the data array
    //       for a considerable time.
-   // BUG: What happens if a listener is removed and destroyed in the
-   //      middle of the loop?
    CSimpleValArray<IOutputLineListener*> LineListeners;
    // DATA LOCK
    {
@@ -188,6 +186,7 @@ void CShellManager::BroadcastLine(VT100COLOR Color, LPCTSTR pstrText)
    }
    for( int i = LineListeners.GetSize() - 1; i >= 0 ; --i ) {
       LineListeners[i]->OnIncomingLine(Color, pstrText);
+      if( m_LineListeners.GetSize() != LineListeners.GetSize() ) break;
    }
 }
 

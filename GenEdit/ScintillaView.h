@@ -42,10 +42,12 @@ public:
    bool m_bAutoComplete;            // Use auto-complete?
    bool m_bAutoClose;               // Automatically close HTML/XML tags?
    bool m_bAutoCase;                // Automatically determine case?
+   bool m_bAutoSuggest;             // Use auto-suggestion?
    //
    static FINDREPLACEA s_frFind;    // The Find dialog information
    bool m_bAutoCompleteNext;        // AutoComplete displayed at next char added?
    bool m_bAutoTextDisplayed;       // AutoText currently displayed?
+   bool m_bSuggestionDisplayed;     // Suggestion word curently displayed
    long lAutoTextPos;               // Text Position for start of AutoText
    int iAutoTextEntry;              // AutoText to activate
    CHAR m_cPrevChar;
@@ -99,6 +101,7 @@ public:
       COMMAND_RANGE_HANDLER(ID_BOOKMARKS_GOTO1, ID_BOOKMARKS_GOTO8, OnMarkerGoto)
       CHAIN_MSG_MAP_ALT( CScintillaCommands<CScintillaView>, 1 )
    ALT_MSG_MAP(1)
+      NOTIFY_CODE_HANDLER(SCN_DWELLEND, OnDwellEnd)
       NOTIFY_CODE_HANDLER(SCN_CHARADDED, OnCharAdded)
       NOTIFY_CODE_HANDLER(SCN_UPDATEUI, OnUpdateUI)
       NOTIFY_CODE_HANDLER(SCN_MARGINCLICK, OnMarginClick)
@@ -135,6 +138,7 @@ public:
    LRESULT OnMarkerGoto(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnFilePrint(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnUpdateUI(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnDwellEnd(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnCharAdded(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnMarginClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnMacroRecord(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
@@ -144,6 +148,7 @@ public:
    // Implementation
 
    void _AutoText(CHAR ch);
+   void _AutoSuggest(CHAR ch);
    void _AutoComplete(CHAR ch);
    void _MaintainTags(CHAR ch);
    void _MaintainIndent(CHAR ch);
@@ -155,6 +160,7 @@ public:
    int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings);
    CString _GetNearText(long lPosition);
    int _FunkyStrCmp(LPCTSTR src, LPCTSTR dst);
+   bool _iseditchar(char ch) const;
    void _GetSyntaxStyle(LPCTSTR pstrName, SYNTAXCOLOR& syntax);
    bool _AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) const;
    void _DefineMarker(int nMarker, int nType, COLORREF clrFore, COLORREF clrBack);

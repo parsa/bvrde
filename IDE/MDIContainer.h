@@ -252,7 +252,7 @@ public:
    {
       CWinProp prop = hWnd;
       IElement* pElement = NULL;
-      prop.GetProperty(_T("View"), (LPVOID&) pElement);
+      prop.GetProperty(_T("View"), pElement);
       if( pElement == NULL ) return;      
       pElement->GetName(sName.GetBufferSetLength(128), 128);
       sName.ReleaseBuffer();

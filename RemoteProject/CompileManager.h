@@ -18,6 +18,8 @@ class CCompileManager;
 class CCompileThread : public CThreadImpl<CCompileThread>
 {
 public:
+   CCompileThread();
+
    DWORD Run();
 
    CRemoteProject* m_pProject;
@@ -57,6 +59,7 @@ public:
    bool Stop();
    void SignalStop();
    bool IsBusy() const;
+   bool IsCompiling() const;
    bool IsConnected() const;
 
    bool DoAction(LPCTSTR pstrName, LPCTSTR pstrParams = NULL);
@@ -83,7 +86,8 @@ public:
    static volatile bool s_bBusy;           // Flag signals thread busy state
    bool m_bReleaseMode;                    // Project is in Release (combobox on toolbar)
    bool m_bCommandMode;                    // An external command (prompt) is executing
-   bool m_bIgnoreOutput;
+   bool m_bIgnoreOutput;                   // Don't print output in Compile view
+   bool m_bCompiling;                      // Are we currently compiling?
    //
    CString m_sCommandCD;
    CString m_sCommandBuild;

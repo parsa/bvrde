@@ -21,6 +21,9 @@ IElement* g_pCurElement;      // TODO: Get rid of this nasty un-ref'ed API objec
 #define PLUGIN_DESCRIPTION "Adds integration with Source Control (CVS)."
 
 
+/////////////////////////////////////////////////////////////////////////////
+// DLL Main
+
 BOOL APIENTRY DllMain(HINSTANCE hInstance, 
                       DWORD dwReason, 
                       LPVOID /*lpReserved*/)
@@ -34,7 +37,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
    {
      _Module.Term();
    }
-    return TRUE;
+   return TRUE;
 }
 
 
@@ -72,6 +75,7 @@ EXTERN_C
 BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
 {
    _pDevEnv = pDevEnv;
+
    _pDevEnv->AddAppListener(&_Monitor);
    _pDevEnv->AddIdleListener(&_Monitor);
    _pDevEnv->ReserveUIRange(42000, 42099);

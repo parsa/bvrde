@@ -59,6 +59,7 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
    typedef BOOL (APIENTRY* LPFNPARSE)(LPCWSTR, LPCSTR);
    LPFNPARSE fnParse = (LPFNPARSE) ::GetProcAddress(s_hInst, "CppLexer_Parse");
    ATLASSERT(fnParse);
+   if( fnParse == NULL ) return false;
    BOOL bRes = FALSE;
    ATLTRY( bRes = fnParse(pstrFilename, pstrText) );
    if( !bRes ) return false;
@@ -276,7 +277,7 @@ CString CLexInfo::_GetTagParent(const TAGINFO& info) const
 {
    // Extract inheritance type.
    // HACK: We simply scoop up the "class CFoo : public CBar" text from
-   //       the decl. line. Unfortunately CTAG doesn't really carry that
+   //       the decl. line. Unfortunately the lex file doesn't really carry that
    //       much information to safely determine the inheritance tree!
    static LPCTSTR pstrTokens[] = 
    {

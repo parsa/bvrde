@@ -935,25 +935,17 @@ public:
       m_hWnd = hWnd;
       return *this;
    }
-   BOOL SetProperty(LPCTSTR pstrName, long lValue)
+   template< typename T >
+   BOOL SetProperty(LPCTSTR pstrName, T pValue)
    {
       ATLASSERT(::IsWindow(m_hWnd));
-      return ::SetProp(m_hWnd, pstrName, (HANDLE) lValue);
+      return ::SetProp(m_hWnd, pstrName, reinterpret_cast<HANDLE>(pValue));
    }
-   BOOL SetProperty(LPCTSTR pstrName, LPCVOID pValue)
+   template< typename T >
+   void GetProperty(LPCTSTR pstrName, T& pValue) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
-      return ::SetProp(m_hWnd, pstrName, (HANDLE) pValue);
-   }
-   void GetProperty(LPCTSTR pstrName, long& lValue) const
-   {
-      ATLASSERT(::IsWindow(m_hWnd));
-      lValue = (long) ::GetProp(m_hWnd, pstrName);
-   }
-   void GetProperty(LPCTSTR pstrName, LPCVOID& pValue) const
-   {
-      ATLASSERT(::IsWindow(m_hWnd));
-      pValue = (LPCVOID) ::GetProp(m_hWnd, pstrName);
+      pValue = (T) ::GetProp(m_hWnd, pstrName);
    }
    BOOL Enumerate(PROPENUMPROCEX Proc, LPARAM lParam) const
    {
@@ -1032,7 +1024,7 @@ public:
       return bRes;
    }
 #endif // __ATLSTR_H__ _WTL_USE_CSTRING
-   BOOL GetInt(LPCTSTR pstrSection, LPCTSTR pstrKey, int& iValue, int iDefault=0) const
+   BOOL GetInt(LPCTSTR pstrSection, LPCTSTR pstrKey, int& iValue, int iDefault = 0) const
    {
       ATLASSERT(m_szFilename[0]);
       ATLASSERT(!::IsBadStringPtr(pstrSection,-1));
@@ -1040,7 +1032,7 @@ public:
       iValue = ::GetPrivateProfileInt(pstrSection, pstrKey, iDefault, m_szFilename);
       return TRUE;
    }
-   BOOL GetBool(LPCTSTR pstrSection, LPCTSTR pstrKey, bool& bValue, bool bDefault=true) const
+   BOOL GetBool(LPCTSTR pstrSection, LPCTSTR pstrKey, bool& bValue, bool bDefault = true) const
    {
       TCHAR szValue[2] = { 0 };
       GetString(pstrSection, pstrKey, szValue, sizeof(szValue)/sizeof(TCHAR), bDefault ? _T("Y") : _T("N"));

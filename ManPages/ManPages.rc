@@ -7,7 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "atlres.h"
+#include "afxres.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -34,7 +34,7 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
-    "#include ""atlres.h""\r\n"
+    "#include ""afxres.h""\r\n"
     "\0"
 END
 
@@ -46,14 +46,6 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// GIF
-//
-
-ROW2_BACKANGLE.GIF      GIF     DISCARDABLE     "res\\row2_backangle.gif"
-BTN.GIF                 GIF     DISCARDABLE     "res\\btn.gif"
 #endif    // Danish resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -66,31 +58,6 @@ BTN.GIF                 GIF     DISCARDABLE     "res\\btn.gif"
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// GIF
-//
-
-BACKGROUND.GIF          GIF     DISCARDABLE     "res\\background.gif"
-BTM_BLACKBAR.GIF        GIF     DISCARDABLE     "res\\btm_blackbar.gif"
-BTM_BLACKBAR2.GIF       GIF     DISCARDABLE     "res\\btm_blackbar2.gif"
-HEADERS.GIF             GIF     DISCARDABLE     "res\\headers.gif"
-LINKANGLE.GIF           GIF     DISCARDABLE     "res\\linkangle.gif"
-LNK_ARROW.GIF           GIF     DISCARDABLE     "res\\lnk_arrow.gif"
-LNK_BULLET1.GIF         GIF     DISCARDABLE     "res\\lnk_bullet1.gif"
-LOGO.GIF                GIF     DISCARDABLE     "res\\logo.gif"
-MID-BACKANGLE.GIF       GIF     DISCARDABLE     "res\\mid-backangle.gif"
-ROW1.GIF                GIF     DISCARDABLE     "res\\row1.gif"
-ROW2_BG_NOSEARCH.GIF    GIF     DISCARDABLE     "res\\row2_bg_nosearch.gif"
-ROW3_BACKANGLE.GIF      GIF     DISCARDABLE     "res\\row3_backangle.gif"
-ROW3_FRONTANGLE.GIF     GIF     DISCARDABLE     "res\\row3_frontangle.gif"
-FOOTER-SEPARATOR.GIF    GIF     DISCARDABLE     "res\\footer-separator.gif"
-SPACER0.GIF             GIF     DISCARDABLE     "res\\spacer.gif"
-SPACER1.GIF             GIF     DISCARDABLE     "res\\spacer(1).gif"
-SIDEBAR-UPSLASH.GIF     GIF     DISCARDABLE     "res\\sidebar-upslash.gif"
-SIDEBAR-TOPDOWNSLASH.GIF GIF     DISCARDABLE     "res\\sidebar-topdownslash.gif"
-SIDEBAR-DOWNSLASH.GIF   GIF     DISCARDABLE     "res\\sidebar-downslash.gif"
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -117,14 +84,14 @@ BEGIN
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "viksoe.dk\0"
-            VALUE "FileDescription", "BVRDE Add-In StartPage\0"
+            VALUE "FileDescription", "BVRDE ManPages module\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
-            VALUE "InternalName", "StartPage\0"
+            VALUE "InternalName", "WebFiles\0"
             VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksøe\0"
             VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "StartPage.pkg\0"
+            VALUE "OriginalFilename", "ManPages.dll\0"
             VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "BVRDE StartPage\0"
+            VALUE "ProductName", "BVRDE ManPages\0"
             VALUE "ProductVersion", "1, 0, 0, 1\0"
             VALUE "SpecialBuild", "\0"
         END
@@ -143,8 +110,32 @@ END
 // HTML
 //
 
-INDEX.HTML              HTML    DISCARDABLE     "res\\index.html"
 STYLE.CSS               HTML    DISCARDABLE     "res\\style.css"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION             "man page - "
+    IDS_CAPTION_MESSAGE     "BVRDE Man Page"
+    IDS_CAPTION_ERROR       "Error"
+    IDS_CAPTION_QUESTION    "BVRDE Man Page"
+    IDS_ERR_NOTCONNECTED    "Failed to look up information.\r\nProject is currently not connected to the remote server."
+    IDS_ERR_WRONGPROJECT    "Failed to look up information.\r\nThis Project does not support Man pages."
+    IDS_ERR_BADANSWER       "Failed to look up information.\r\nBad answer from server."
+    IDS_ERR_INVOKE          "Failed to look up information.\r\nMethod failed or timed out."
+    IDS_ERR_NOTFOUND        "Keyword was not found in help files."
+    IDS_ERR_MEMORY          "Failed to initialize module.\r\nOut of memory."
+    IDS_CLOSE               "  Close  "
+    IDS_NEXT                "    >>    "
+    IDS_PREVIOUS            "    <<    "
+    IDS_BACK                "  Back  "
+    IDS_PRINT               "  Print  "
+END
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

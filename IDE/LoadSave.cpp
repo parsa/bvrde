@@ -175,6 +175,7 @@ void CMainFrame::_LoadSettings()
             _AddProperty(&arc, _T("protectDebugged"), sKey + _T("protectDebugged"));
             _AddProperty(&arc, _T("matchBraces"), sKey + _T("matchBraces"));
             _AddProperty(&arc, _T("autoClose"), sKey + _T("autoClose"));
+            _AddProperty(&arc, _T("markErrors"), sKey + _T("markErrors"));
             _AddProperty(&arc, _T("autoCase"), sKey + _T("autoCase"));
             _AddProperty(&arc, _T("autoComplete"), sKey + _T("autoComplete"));
             _AddProperty(&arc, _T("autoSuggest"), sKey + _T("autoSuggest"));

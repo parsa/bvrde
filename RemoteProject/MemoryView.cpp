@@ -85,7 +85,7 @@ LRESULT CMemoryView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 LRESULT CMemoryView::OnEditChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
-   if( wParam == '\n' ) return 0;  // We hate the BEEP sound
+   if( wParam == '\r' ) return 0;  // We hate the BEEP sound
    bHandled = FALSE;
    return 0;
 }

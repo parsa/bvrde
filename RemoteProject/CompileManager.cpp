@@ -13,6 +13,12 @@
 ////////////////////////////////////////////////////////
 //
 
+CCompileThread::CCompileThread()
+{
+   m_szWindow.cx = 0;
+   m_szWindow.cy = 0;
+}
+
 DWORD CCompileThread::Run()
 {
    ATLASSERT(m_pProject);
@@ -61,9 +67,8 @@ DWORD CCompileThread::Run()
          if( ShouldStop() ) break;
       }
 
-      // Idle wait for completion before accepting
-      // new prompt commands...
-      while( m_pManager->IsBusy() ) ::Sleep(200L);
+      // Idle wait for completion before accepting new prompt commands...
+      while( m_pManager->IsBusy() && m_aCommands.GetSize() == 0 ) ::Sleep(200L);
    }
 
    return 0;
@@ -80,6 +85,7 @@ bool volatile CCompileManager::s_bBusy = false;
 
 CCompileManager::CCompileManager() :
    m_pProject(NULL),
+   m_bCompiling(false),
    m_bReleaseMode(true),
    m_bCommandMode(false),
    m_bIgnoreOutput(false)
@@ -115,8 +121,8 @@ void CCompileManager::Clear()
    m_sCompileFlags = _T("");
    m_sLinkFlags = _T("");
    m_bReleaseMode = false;
-   m_bCommandMode = false;
-   m_bIgnoreOutput = false;
+   m_thread.m_bCommandMode = m_bCommandMode = false;
+   m_thread.m_bIgnoreOutput = m_bIgnoreOutput = false;  
 }
 
 bool CCompileManager::Load(ISerializable* pArc)
@@ -198,6 +204,8 @@ bool CCompileManager::Stop()
    m_ShellManager.RemoveLineListener(this);
    m_ShellManager.Stop();
    m_thread.Stop();
+   // Reset variables
+   m_bCompiling = false;
    m_bCommandMode = false;
    m_bIgnoreOutput = false;
    s_bBusy = false;
@@ -207,6 +215,7 @@ bool CCompileManager::Stop()
 void CCompileManager::SignalStop()
 {
    m_pProject->DelayedGuiAction(GUI_ACTION_STOP_ANIMATION);
+   m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_STOP);
    m_ShellManager.SignalStop();
    m_thread.SignalStop();
    m_event.SetEvent();
@@ -222,6 +231,11 @@ bool CCompileManager::IsBusy() const
 bool CCompileManager::IsConnected() const
 {
    return m_thread.IsRunning() && m_ShellManager.IsConnected();
+}
+
+bool CCompileManager::IsCompiling() const
+{
+   return IsBusy() && m_bCompiling;
 }
 
 bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
@@ -462,18 +476,33 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName,
    m_thread.m_aCommands.Add(sCommand);
    m_thread.m_cs.Unlock();
    
-   // Finally, signal that we have new data
+   // Finally signal that we have new data
    s_bBusy = true;
+   m_bCompiling = false;
    m_event.SetEvent();
 
    // If this is a regular compile command (not user-entered or scripting prompt)
    // let's pop up the compile window...
    if( !bCommandMode && !bIgnoreOutput ) {
+      // Clear the compile window now (before output begins)
       ctrlEdit.SetWindowText(_T(""));
+      // Send delayed message to view so it opens
       m_pProject->DelayedGuiAction(GUI_ACTION_ACTIVATEVIEW, ctrlEdit);
+      m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_START);
+      m_bCompiling = true;
    }
 
-   return false;
+   // If this is in command mode, we'll be polite and wait for the command to
+   // actually be submitted to the remote server before we continue...
+   if( bCommandMode ) {
+      DWORD dwStartTick = ::GetTickCount();
+      while( m_thread.m_aCommands.GetSize() > 0 ) {
+         ::Sleep(50L);
+         if( ::GetTickCount() - dwStartTick > 800UL ) break;
+      }
+   }
+
+   return true;
 }
 
 SIZE CCompileManager::_GetViewWindowSize() const
@@ -517,6 +546,8 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       sStatus.Format(IDS_STATUS_FINISHED, m_sProcessName);
       m_pProject->DelayedStatusBar(sStatus);
       m_pProject->DelayedGuiAction(GUI_ACTION_STOP_ANIMATION);
+      m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_STOP);
+      m_bCompiling = false;
       m_bCommandMode = false;
       m_bIgnoreOutput = false;
       s_bBusy = false;

@@ -163,6 +163,7 @@ bool CDebugManager::ClearBreakpoints()
    if( IsDebugging() ) {
       if( m_aBreakpoints.GetSize() > 0 ) {
          bool bRestartApp = _PauseDebugger();
+         // We're going to delete the breakpoints in GDB itself first
          CString sCommand = _T("-break-delete");
          for( long i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
             sCommand += _T(" ");
@@ -172,6 +173,8 @@ bool CDebugManager::ClearBreakpoints()
          if( bRestartApp ) _ResumeDebugger();
       }
    }
+   // We can now safely remove our internal breakpoint list
+   // and signal to the view to do the same...
    m_aBreakpoints.RemoveAll();
    m_pProject->DelayedViewMessage(DEBUG_CMD_CLEAR_BREAKPOINTS);
    return true;
@@ -183,8 +186,10 @@ bool CDebugManager::AddBreakpoint(LPCTSTR pstrText)
    CLockStaticDataInit lock;
    CString sText = pstrText;
    if( sText.IsEmpty() ) return false;
+   // We add a dummy entry now. We don't know the internal GDB breakpoint-nr
+   // for this breakpoint, but we'll soon learn when GDB answers our request.
    m_aBreakpoints.Add(sText, 0);
-   // If we're debugging, we need to update internal lists as well
+   // If we're debugging, we need to update GDB as well...
    if( IsDebugging() ) 
    {     
       // Attempt to halt app if currently running
@@ -210,12 +215,12 @@ bool CDebugManager::RemoveBreakpoint(LPCTSTR pstrText)
 {
    CLockStaticDataInit lock;
    if( IsDebugging() ) {
-      // TODO: Find closest match, since we may have edited the
-      //       source-file and the linenumbers are off.
+      // Find the internal GDB breakpoint-nr for this breakpoint
       CString sText = pstrText;
       long lNumber = m_aBreakpoints.Lookup(sText);
       if( lNumber > 0 ) {
          bool bRestartApp = _PauseDebugger();
+         // We have it; let's ask GDB to delete the breakpoint
          CString sCommand;
          sCommand.Format(_T("-break-delete %ld"), lNumber);
          if( !DoDebugCommand(sCommand) ) return false;
@@ -223,9 +228,25 @@ bool CDebugManager::RemoveBreakpoint(LPCTSTR pstrText)
          if( bRestartApp ) _ResumeDebugger();
       }
    }
-   // Remove it from internal list
+   // Remove it from our own internal list too 
    CString sText = pstrText;
    return m_aBreakpoints.Remove(sText) == TRUE;
+}
+
+bool CDebugManager::GetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<long>& aLines) const
+{
+   CLockStaticDataInit lock;
+   size_t cchName = _tcslen(pstrFilename);
+   for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
+      if( _tcsncmp(m_aBreakpoints.GetKeyAt(i), pstrFilename, cchName) == 0 ) {
+         LPCTSTR pstr = _tcschr(m_aBreakpoints.GetKeyAt(i), ':');
+         if( pstr ) {
+            long lLineNo = _ttol(pstr + 1);
+            aLines.Add(lLineNo);
+         }
+      }
+   }
+   return true;
 }
 
 bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<CString>& aBreakpoints)
@@ -236,7 +257,7 @@ bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<CString>& 
    // clear our internal breakpoint-list for that file and add the active items.
    // First, let's remove all existing breakpoints from this file.
    CLockStaticDataInit lock;
-   int cchName = _tcslen(pstrFilename);
+   size_t cchName = _tcslen(pstrFilename);
    for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
       if( _tcsncmp(m_aBreakpoints.GetKeyAt(i), pstrFilename, cchName) == 0 ) {
          m_aBreakpoints.Remove(m_aBreakpoints.GetKeyAt(i));
@@ -408,7 +429,6 @@ bool CDebugManager::RunDebug()
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, TRUE);
 
    // Collect new breakpoint positions directly from open views.
-   // BUG: Possible thread-deadlock here!?
    LAZYDATA data;
    m_pProject->SendViewMessage(DEBUG_CMD_REQUEST_BREAKPOINTS, &data);
 
@@ -561,6 +581,11 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
    return sCommand;
 }
 
+/**
+ * Check debug status before start.
+ * We can only start debugging if we're not already debugging another app/module.
+ * As a courtesy we also ask to save files before starting a debug session.
+ */
 bool CDebugManager::_CheckStatus()
 {
    CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
@@ -608,12 +633,20 @@ void CDebugManager::_ParseNewFrame(CMiInfo& info)
       m_pProject->DelayedViewMessage(DEBUG_CMD_SET_CURLINE);
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUG_NOSOURCE)));
    }
+   // Cause the debug views to refresh
    m_pProject->DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+   // Make sure the new state is known to our engine
    m_pProject->DelayedDebugInfo(_T("stopped"), info);
 }
 
+/**
+ * Update internal breakpoint structures.
+ * This method gets called when the GDB debugger deliver an updated
+ * debug list and tells us which internal breakpoint-nr it assigned
+ * out new breakpoint.
+ */
 void CDebugManager::_UpdateBreakpoint(CMiInfo& info)
-{
+{   
    CString sFile = info.GetItem(_T("file"));
    CString sLine = info.GetItem(_T("line"));
    if( sFile.IsEmpty() || sLine.IsEmpty() ) return;
@@ -623,20 +656,6 @@ void CDebugManager::_UpdateBreakpoint(CMiInfo& info)
    if( !m_aBreakpoints.SetAt(sLocation, lNumber) ) {
       m_aBreakpoints.Add(sLocation, lNumber);
    }
-}
-
-bool CDebugManager::_ParseToken(CString& sText, CString& sToken, CString& sValue) const
-{
-   sText.TrimLeft(_T(", "));
-   sToken = sText.SpanExcluding(_T("="));
-   if( sToken.IsEmpty() ) return false;
-   int iStart = sToken.GetLength() + 2;
-   if( sText[iStart - 1] != '\"' ) return false;
-   int iEnd = sText.Find('\"', sToken.GetLength() + 3);
-   if( iEnd < 0 ) return false;
-   sValue = sText.Mid(iStart, iEnd - iStart);
-   sText = sText.Mid(iEnd + 2);
-   return true;
 }
 
 void CDebugManager::_ParseOutOfBand(LPCTSTR pstrText)
@@ -757,6 +776,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
       if( sCommand == _T("bkpt") ) {
          _UpdateBreakpoint(info);
       }
+      // Let all the debug views get a shot at this information.
       for( LPCTSTR* ppList = pstrList; *ppList; ppList++ ) {
          if( sCommand == *ppList ) {
             m_pProject->DelayedDebugInfo(sCommand, info);
@@ -810,6 +830,12 @@ void CDebugManager::_ParseLogOutput(LPCTSTR pstrText)
    if( sLine.IsEmpty() ) return;
 }
 
+/**
+ * Halts the debugger so we can send more GDB commands.
+ * GDB is not async and doesn't allow debug commands to be sent while it is debugging the app.
+ * We need to suspend it temporarily and send our commands, then we can resume debugging.
+ * @return true If we halted the debugger and should restart it later.
+ */
 bool CDebugManager::_PauseDebugger()
 {
    // Do we need to stop the debugger?
@@ -823,6 +849,10 @@ bool CDebugManager::_PauseDebugger()
    return IsBreaked();
 }
 
+/**
+ * Resumes debugging.
+ * @see _PauseDebugger
+ */
 void CDebugManager::_ResumeDebugger()
 {
    RunContinue();

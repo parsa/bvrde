@@ -889,8 +889,8 @@ LRESULT CMainFrame::OnUserViewChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    // Update the Explorer with latest view selection
    if( ::IsWindow(hWnd) ) {
       CWinProp prop = hWnd;
-      prop.GetProperty(_T("Project"), (LPCVOID&) pProject);
-      prop.GetProperty(_T("View"), (LPCVOID&) pView);
+      prop.GetProperty(_T("Project"), pProject);
+      prop.GetProperty(_T("View"), pView);
       m_viewExplorer.m_viewFile.SetActiveView(pView);
    }
 

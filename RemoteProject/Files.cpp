@@ -451,7 +451,10 @@ LRESULT CTextFile::PostMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 LRESULT CTextFile::SendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-   if( m_view.IsWindow() ) return m_view.SendMessage(uMsg, wParam, lParam);
+   if( m_view.IsWindow() ) {
+      DWORD dwRes = 0;
+      return ::SendMessageTimeout(m_view, uMsg, wParam, lParam, SMTO_ABORTIFHUNG, 1000UL, &dwRes);
+   }
    return 0;
 }
 
