@@ -128,7 +128,7 @@ public:
    virtual BOOL GetColumnName(short iIndex, LPTSTR pstrName, UINT cchMax) = 0;
    virtual short GetColumnType(short iIndex) = 0;
    virtual short GetColumnIndex(LPCTSTR pstrName) const = 0;
-   virtual DWORD GetColumnCount() const = 0;
+   virtual short GetColumnCount() const = 0;
    virtual BOOL IsEOF() const = 0;
    virtual BOOL MoveNext() = 0;
    virtual BOOL MovePrev() = 0;

@@ -33,7 +33,7 @@ public:
    McString(const char* p) { append(p); };
    inline void clear() { empty(); };
    inline operator const char*() const { return c_str(); }
-   inline void operator +=(char ch) { char x[2] = { ch, '\0' }; append(x); };
+   inline void operator +=(char ch) { char x[] = { ch, '\0' }; append(x); };
    inline void operator +=(const char* p) { append(p); };
 };
 
@@ -53,7 +53,7 @@ public:
 class Entry
 {
 public:
-   Entry() : protection(0), section(0), done(0), startLine(0), sub(NULL), next(NULL)
+   Entry() : protection(0), section(0), done(0), startLine(0), lineNo(0), sub(NULL), next(NULL)
    {
    }
    ~Entry()

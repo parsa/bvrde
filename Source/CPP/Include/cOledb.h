@@ -191,7 +191,7 @@ public:
    short GetColumnType(short iIndex);
    short GetColumnIndex(LPCTSTR pstrName) const;
    DWORD GetColumnSize(short iIndex);
-   DWORD GetColumnCount() const;
+   short GetColumnCount() const;
    BOOL IsEOF() const;
    BOOL MoveNext();
    BOOL MovePrev();

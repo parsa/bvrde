@@ -1,5 +1,5 @@
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "resource.h"
 
 #include "LexInfo.h"
@@ -7,11 +7,13 @@
 #include "Project.h"
 #include "ClassView.h"
 
+#pragma code_seg( "MISC" )
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CLexInfo
 
-CLexInfo::CLexInfo() : m_bLoaded(false)
+CLexInfo::CLexInfo() : m_bLoaded(false), m_iFile(-1)
 {
 }
 
@@ -81,10 +83,7 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
       }
    }
    // ...but this is a new file
-   if( !bFound ) {
-      m_aFiles.Add(pFile);
-      m_bLoaded = true;     // We're back in business!
-   }
+   if( !bFound ) m_aFiles.Add(pFile);
 
    // Signal the tree to rebuild itself!
    // This important since we're removed some of the TAGINFO pointers
@@ -195,7 +194,7 @@ bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aList)
       for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
          TAGINFO& info = file.aTags[iIndex];
          if( info.pstrFile == NULL ) continue;
-         if( info.Type != TAGTYPE_CLASS ) continue;
+         if( info.Type != TAGTYPE_CLASS && info.Type != TAGTYPE_TYPEDEF ) continue;
          TAGINFO* pTag = &m_aFiles[i]->aTags.m_aT[iIndex];
          aList.Add(pTag);
       }
@@ -264,7 +263,7 @@ bool CLexInfo::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList,
 
 // Implementation
 
-CString CLexInfo::_GetTagParent(const TAGINFO& tag) const
+CString CLexInfo::_GetTagParent(const TAGINFO& info) const
 {
    // Extract inheritance type.
    // HACK: We simply scoop up the " class CFoo : public CBar" text from
@@ -278,7 +277,7 @@ CString CLexInfo::_GetTagParent(const TAGINFO& tag) const
    };
    LPCTSTR* ppstrToken = pstrTokens;
    while( *ppstrToken ) {
-      LPCTSTR p = _tcsstr(tag.pstrToken, *ppstrToken);
+      LPCTSTR p = _tcsstr(info.pstrToken, *ppstrToken);
       if( p ) {
          p += _tcslen(*ppstrToken);
          while( _istspace(*p) ) p++;
@@ -293,10 +292,9 @@ CString CLexInfo::_GetTagParent(const TAGINFO& tag) const
 
 void CLexInfo::_LoadTags()
 {
-   ATLASSERT(m_aFiles.GetSize()==0);
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_LOADTAG)));
 
-   CString sStatus(MAKEINTRESOURCE(IDS_STATUS_LOADTAG));
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus);
+   Clear();
 
    // Mark as "loaded" even if we don't actually find any
    // lex files to load. This prevent repeated attempts to
@@ -347,7 +345,7 @@ bool CLexInfo::_ParseFile(CString& sName, LEXFILE& file) const
    LPCTSTR pstrFilename = NULL;
 
    while( *p ) {
-      TAGINFO tag = { TAGTYPE_UNKNOWN, 0 };
+      TAGINFO info = { TAGTYPE_UNKNOWN, 0 };
       if( *p == '#' ) {
          pstrFilename = p + 1;
          p = _tcschr(p, '\n');
@@ -356,46 +354,47 @@ bool CLexInfo::_ParseFile(CString& sName, LEXFILE& file) const
          p++;
       }
       else {
-         tag.pstrName = p;
+         info.pstrName = p;
          p = _tcschr(p, '|');
          if( p == NULL ) break;
          *p++ = '\0';
          //
          if( *p == '\0' ) break;
          switch( *p++ ) {
-         case 'c': tag.Type = TAGTYPE_CLASS; break;
-         case 'm': tag.Type = TAGTYPE_FUNCTION; break;
-         case 'v': tag.Type = TAGTYPE_MEMBER; break;
-         case 'd': tag.Type = TAGTYPE_DEFINE; break;
-         case 't': tag.Type = TAGTYPE_TYPEDEF; break;
-         case 's': tag.Type = TAGTYPE_STRUCT; break;
-         default: tag.Type = TAGTYPE_UNKNOWN;
+         case 'c': info.Type = TAGTYPE_CLASS; break;
+         case 'm': info.Type = TAGTYPE_FUNCTION; break;
+         case 'v': info.Type = TAGTYPE_MEMBER; break;
+         case 'd': info.Type = TAGTYPE_DEFINE; break;
+         case 't': info.Type = TAGTYPE_TYPEDEF; break;
+         case 's': info.Type = TAGTYPE_STRUCT; break;
+         default: info.Type = TAGTYPE_UNKNOWN;
          }
+         p++;  // Skip protection
          p++;
          //
-         tag.pstrToken = p;
+         info.pstrToken = p;
          p = _tcschr(p, '|');
          if( p == NULL ) break;
          *p++ = '\0';
          //
-         tag.pstrFields[0] = p;
+         info.pstrFields[0] = p;
          p = _tcschr(p, '|');
          if( p == NULL ) break;
          *p++ = '\0';
          //
-         tag.iLineNo = _ttol(p);
+         info.iLineNo = _ttol(p);
          p = _tcschr(p, '|');
          if( p == NULL ) break;
          *p++ = '\0';
          //
-         tag.pstrFields[1] = p;
+         info.pstrFields[1] = p;
          p = _tcschr(p, '\n');
          if( p == NULL ) break;
          *p++ = '\0';
          //
-         tag.pstrFile = pstrFilename;
-         tag.nFields = 2;
-         file.aTags.Add(tag);
+         info.pstrFile = pstrFilename;
+         info.nFields = 2;
+         file.aTags.Add(info);
       }
    }
 

@@ -262,11 +262,11 @@ protected:
    bool _LoadFiles(ISerializable* pArc, IElement* pParent);
    bool _SaveFiles(ISerializable* pArc, IElement* pParent);
    void _PopulateTree(CTreeViewCtrl& ctrlTree, IElement* pParent, HTREEITEM hParent) const;
+   bool _CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, bool bRemote);
    IElement* _GetSelectedTreeElement(HTREEITEM* phItem = NULL) const;
    IElement* _GetDropTreeElement(HTREEITEM* phItem = NULL) const;
    int _GetElementImage(IElement* pElement) const;
    UINT _GetMenuPosFromID(HMENU hMenu, UINT ID) const;
-   bool _CheckProjectFile(LPCTSTR pstrName);
    bool _AddCommandBarImages(UINT nRes) const;
    static void _AddDropDownButton(CToolBarCtrl tb, UINT nID);
    static void _AddButtonText(CToolBarCtrl tb, UINT nID, UINT nRes);

@@ -45,6 +45,7 @@ BOOL CEmptyProject::Initialize(IDevEnv* pEnv, LPCTSTR pstrPath)
 BOOL CEmptyProject::Close()
 {
    if( !m_bLoaded ) return TRUE;
+   m_bLoaded = false;
 
    _pDevEnv->RemoveAppListener(this);
    _pDevEnv->RemoveTreeListener(this);
@@ -84,6 +85,7 @@ BOOL CEmptyProject::GetClass(LPTSTR pstrType, UINT cchMax) const
 
 BOOL CEmptyProject::IsDirty() const
 {
+   if( !m_bLoaded ) return FALSE;
    if( m_bIsDirty ) return TRUE;
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       if( m_aFiles[i]->IsDirty() ) return TRUE;
@@ -110,7 +112,7 @@ IView* CEmptyProject::GetItem(INT iIndex)
 BOOL CEmptyProject::Reset()
 {
    m_sName.Empty();
-   // Close the view's nicely before killing them
+   // Close the view's nicely before killing them off
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) m_aFiles[i]->CloseView();
    m_aFiles.RemoveAll();
    m_bIsDirty = false;

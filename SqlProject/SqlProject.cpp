@@ -60,10 +60,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
       ::DisableThreadLibraryCalls(hInstance);
       //
       AtlAxWinInit();
+      ::LoadLibrary(CRichEditCtrl::GetLibraryName());
       AtlInitCommonControls(ICC_TAB_CLASSES | ICC_BAR_CLASSES | ICC_USEREX_CLASSES);
-      //
-      HMODULE hRichEdit = ::LoadLibrary(CRichEditCtrl::GetLibraryName());
-      ATLASSERT(hRichEdit);
    }
    else if( dwReason == DLL_PROCESS_DETACH ) 
    {

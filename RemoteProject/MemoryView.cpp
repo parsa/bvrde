@@ -5,8 +5,6 @@
 #include "MemoryView.h"
 #include "Project.h"
 
-#pragma code_seg( "VIEW" )
-
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor/destructor
@@ -19,6 +17,8 @@ CMemoryView::CMemoryView() :
 
 /////////////////////////////////////////////////////////////////////////
 // Operations
+
+#pragma code_seg( "VIEW" )
 
 void CMemoryView::Init(CRemoteProject* pProject)
 {
@@ -88,7 +88,7 @@ LRESULT CMemoryView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 LRESULT CMemoryView::OnEditChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
-   if( wParam == VK_RETURN ) {
+   if( wParam == '\n' ) {
       CString sAddress = CWindowText(m_ctrlAddress);
       CString sFormat = _T("x");
       int iPos = sAddress.Find(',');

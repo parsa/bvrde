@@ -201,7 +201,7 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    if( !m_ctrlEdit.GetModify() ) return 0;
 
    CWaitCursor cursor;
-
+   _pDevEnv->PlayAnimation(TRUE, ANIM_SAVE);
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_SAVEFILE)));
    
    // Just save the file...
@@ -211,6 +211,7 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
       CString sMsg;
       sMsg.Format(IDS_ERR_FILESAVE, szName);
       _pDevEnv->ShowMessageBox(m_hWnd, sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONEXCLAMATION);
+      _pDevEnv->PlayAnimation(FALSE, 0);
       return 1; // Return ERROR indication
    }
 
@@ -224,6 +225,8 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
          free(pstrText);
       }
    }
+
+   _pDevEnv->PlayAnimation(FALSE, 0);
 
    return 0;
 }

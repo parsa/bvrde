@@ -24,6 +24,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
      _Module.Init(NULL, hInstance);
      ::DisableThreadLibraryCalls(hInstance);
      //
+     ::LoadLibrary(CRichEditCtrl::GetLibraryName());
      AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_USEREX_CLASSES);
    }
    else if( dwReason == DLL_PROCESS_DETACH ) 

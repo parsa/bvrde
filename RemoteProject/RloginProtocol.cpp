@@ -34,6 +34,7 @@ DWORD CRloginThread::Run()
    if( sPassword.IsEmpty() ) sPassword = SecGetPassword();
 
    m_pManager->m_dwErrorCode = 0;
+   m_pManager->m_bConnected = false;
 
    // Open socket - but we need to bind to a port below 1024, since this
    // is what UNIX will require from a rlogin session...

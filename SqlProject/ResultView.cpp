@@ -8,6 +8,8 @@
 
 #include "../GenEdit/GenEdit.h"
 
+#include "atldataobj.h"
+
 
 ///////////////////////////////////////////////////////7
 //
@@ -22,6 +24,7 @@ void CResultListCtrl::OnFinalMessage(HWND hWnd)
 //
 
 CResultView::CResultView() :
+   m_pCurProcessingList(NULL),
    m_wndParent(this, 1)
 {
 }
@@ -35,11 +38,13 @@ BOOL CResultView::PreTranslateMessage(MSG* pMsg)
 
 void CResultView::OnIdle(IUpdateUI* pUIBase)
 {
+   int nCount = 0;
+   if( m_pCurProcessingList != NULL ) nCount = m_pCurProcessingList->GetSelectedCount();
    pUIBase->UIEnable(ID_FILE_SAVE, TRUE);
    pUIBase->UIEnable(ID_FILE_PRINT, FALSE);
    pUIBase->UIEnable(ID_EDIT_UNDO, FALSE);
    pUIBase->UIEnable(ID_EDIT_REDO, FALSE);
-   //pUIBase->UIEnable(ID_EDIT_COPY, nCount > 0);
+   pUIBase->UIEnable(ID_EDIT_COPY, nCount > 0);
    pUIBase->UIEnable(ID_EDIT_CUT, FALSE);
    pUIBase->UIEnable(ID_EDIT_PASTE, FALSE);
    pUIBase->UIEnable(ID_EDIT_DELETE, FALSE);
@@ -106,6 +111,34 @@ LRESULT CResultView::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BO
 {
    bHandled = FALSE;
    if( wParam != BACKGROUND_TIMERID ) return 0;
+   return 0;
+}
+
+LRESULT CResultView::OnContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+   if( m_pCurProcessingList == NULL ) return 0;
+   if( m_pCurProcessingList->GetSelectedCount() == 0 ) return 0;
+   
+   CMenu menu;
+   menu.LoadMenu(IDR_EDIT_LIST);
+   CMenuHandle submenu = menu.GetSubMenu(0);
+   POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+   UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, pt, FALSE);
+   if( nCmd == 0 ) return 0;
+
+   CHeaderCtrl ctrlHeader = m_pCurProcessingList->GetHeader();
+   int nColumns = ctrlHeader.GetItemCount();
+   CString sText, sItem;
+   int iIndex = m_pCurProcessingList->GetNextItem(-1, LVNI_SELECTED);
+   while( iIndex != -1 ) {
+      for( int i = 0; i < nColumns; i++ ) {
+         sItem = _T("");
+         m_pCurProcessingList->GetItemText(iIndex, i, sItem);
+         sText += sItem + (i != nColumns - 1 ? _T("\t") : _T("\r\n"));
+      }      
+      iIndex = m_pCurProcessingList->GetNextItem(iIndex, LVNI_SELECTED);
+   }
+   AtlSetClipboardText(m_pCurProcessingList->m_hWnd, sText);
    return 0;
 }
 

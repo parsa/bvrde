@@ -9,6 +9,7 @@
 #define IDB_LISTLARGE                   104
 #define IDB_LISTSMALL                   105
 #define IDR_ACCELERATOR                 109
+#define IDR_EDIT_LIST                   110
 #define IDR_TOOLBAR                     112
 #define IDR_MAINFRAME                   200
 #define IDR_TOOLIMAGES                  216

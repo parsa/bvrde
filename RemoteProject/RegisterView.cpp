@@ -4,8 +4,6 @@
 
 #include "RegisterView.h"
 
-#pragma code_seg( "VIEW" )
-
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor/destructor
@@ -18,6 +16,8 @@ CRegisterView::CRegisterView() :
 
 /////////////////////////////////////////////////////////////////////////
 // Operations
+
+#pragma code_seg( "VIEW" )
 
 void CRegisterView::Init(CRemoteProject* pProject)
 {

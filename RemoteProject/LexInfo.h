@@ -8,6 +8,13 @@
 class CRemoteProject;
 
 
+/**
+ * @class CLexInfo
+ * Parses a Lex file.
+ * With a reference to the CRemoteProject object, the class will scan the files
+ * and extract TAG information from any relevant project file. Lex files are
+ * produced by our own CppLexer module.
+ */
 class CLexInfo : public ITagHandler
 {
 public:
@@ -42,7 +49,7 @@ public:
 
 private:
    void _LoadTags();
-   CString _GetTagParent(const TAGINFO& tag) const;
+   CString _GetTagParent(const TAGINFO& info) const;
    bool _ParseFile(CString& sName, LEXFILE& file) const;
 
 // Data Members

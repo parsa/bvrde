@@ -118,11 +118,11 @@ CString CTagInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NUL
       bool bFound = false;
       while( !bFound ) {
          if( iIndex < 0 ) return _T("");
-         const TAGINFO& tag = m_aTags[iIndex];
-         switch( tag.Type ) {
+         const TAGINFO& info = m_aTags[iIndex];
+         switch( info.Type ) {
          case TAGTYPE_CLASS:
             sTypeTag.Format(_T("class:%s"), pstrOwner);
-            sTypeParent.Format(_T("class:%s"), _GetTagParent(tag));
+            sTypeParent.Format(_T("class:%s"), _GetTagParent(info));
             bFound = true;
             break;
          case TAGTYPE_STRUCT:
@@ -140,9 +140,9 @@ CString CTagInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NUL
    CString sResult;
    int iIndex = FindItem(0, pstrName);
    while( iIndex >= 0 ) {
-      const TAGINFO& tag = m_aTags[iIndex];
+      const TAGINFO& info = m_aTags[iIndex];
       bool bAccept = false;
-      switch( tag.Type ) {
+      switch( info.Type ) {
       case TAGTYPE_ENUM:
       case TAGTYPE_CLASS:
       case TAGTYPE_STRUCT:
@@ -150,19 +150,19 @@ CString CTagInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NUL
       case TAGTYPE_FUNCTION:
          bAccept = true;
          // Could be a linenumber
-         if( _ttoi(tag.pstrToken) > 0 ) bAccept = false;
+         if( _ttoi(info.pstrToken) > 0 ) bAccept = false;
          // Don't want to see items with comments and stuff
-         if( bAccept && _tcsstr(tag.pstrToken, _T("/*")) != NULL ) bAccept = false;
-         if( bAccept && _tcsstr(tag.pstrToken, _T("//")) != NULL ) bAccept = false;
+         if( bAccept && _tcsstr(info.pstrToken, _T("/*")) != NULL ) bAccept = false;
+         if( bAccept && _tcsstr(info.pstrToken, _T("//")) != NULL ) bAccept = false;
          // Look at the owner?
          if( bAccept && !sTypeTag.IsEmpty() ) {
             bool bFound = false;
-            for( short i = 0; i < tag.nFields; i++ ) {
-               if( sTypeTag == tag.pstrFields[i] ) {
+            for( short i = 0; i < info.nFields; i++ ) {
+               if( sTypeTag == info.pstrFields[i] ) {
                   bFound = true;
                   break;
                }
-               if( sTypeParent == tag.pstrFields[i] ) {
+               if( sTypeParent == info.pstrFields[i] ) {
                   bFound = true;
                   break;
                }
@@ -175,15 +175,15 @@ CString CTagInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NUL
          if( !sResult.IsEmpty() ) return _T("");
          // Create information.
          // Default is the stripped version of the search-expression
-         CString sValue = tag.pstrToken;
+         CString sValue = info.pstrToken;
          sValue.TrimLeft(_T("/$~^* \t.,;"));
          sValue.TrimRight(_T("/$~^* \t.,;"));
          sValue.Replace(_T("\\/"), _T("/"));
          // We might also have a complete tag signature.
          // NOTE: Crappy CTAG doesn't include return value type!
-         for( short i = 0; i < tag.nFields; i++ ) {
-            if( _tcsncmp(tag.pstrFields[i], _T("signature:"), 10) == 0 ) {
-               sValue = CString(pstrName) + CString(tag.pstrFields[i]).Mid(10);
+         for( short i = 0; i < info.nFields; i++ ) {
+            if( _tcsncmp(info.pstrFields[i], _T("signature:"), 10) == 0 ) {
+               sValue = CString(pstrName) + CString(info.pstrFields[i]).Mid(10);
                break;
             }
          }
@@ -209,13 +209,10 @@ bool CTagInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aList)
    // List all classes/structs available in TAG file...
    int nCount = m_aTags.GetSize();
    for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
-      TAGINFO& tag = m_aTags[iIndex];
-      switch( tag.Type ) {
-      case TAGTYPE_CLASS:
-      case TAGTYPE_STRUCT:
-         TAGINFO* pTag = &m_aTags[iIndex];
-         aList.Add(pTag);
-      }
+      TAGINFO& info = m_aTags[iIndex];
+      if( info.Type != TAGTYPE_CLASS && info.Type != TAGTYPE_TYPEDEF ) continue;
+      TAGINFO* pTag = &m_aTags[iIndex];
+      aList.Add(pTag);
    }
 
    return aList.GetSize() > 0;
@@ -229,8 +226,8 @@ bool CTagInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aList)
    // List all classes/structs available in TAG file...
    int nCount = m_aTags.GetSize();
    for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
-      TAGINFO& tag = m_aTags[iIndex];
-      switch( tag.Type ) {
+      TAGINFO& info = m_aTags[iIndex];
+      switch( info.Type ) {
       case TAGTYPE_DEFINE:
       case TAGTYPE_FUNCTION:
          TAGINFO* pTag = &m_aTags[iIndex];
@@ -256,8 +253,8 @@ bool CTagInfo::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList,
       if( iTypeIndex < 0 ) return false;  
 
       // Construct our search string for the extension fields
-      const TAGINFO& tag = m_aTags[iTypeIndex];
-      switch( tag.Type ) {
+      const TAGINFO& info = m_aTags[iTypeIndex];
+      switch( info.Type ) {
       case TAGTYPE_CLASS:
          sTypeTag.Format(_T("class:%s"), pstrType);
          bFound = true;
@@ -282,10 +279,10 @@ bool CTagInfo::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList,
    for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
       // Not a lot of information in the CTAG entries, but      
       // we might be able to extract something...
-      const TAGINFO& tag = m_aTags[iIndex];
-      for( short i = 0; i < tag.nFields; i++ ) {
-         if( sTypeTag == tag.pstrFields[i] ) {
-            CString sName = tag.pstrName;
+      const TAGINFO& info = m_aTags[iIndex];
+      for( short i = 0; i < info.nFields; i++ ) {
+         if( sTypeTag == info.pstrFields[i] ) {
+            CString sName = info.pstrName;
             // Filter names (excludes "operator +=" etc etc)
             if( sName.IsEmpty() ) continue;
             if( !_istalpha(sName[0]) && sName[0] != '_' ) continue;
@@ -316,7 +313,7 @@ bool CTagInfo::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList,
 
 // Implementation
 
-CString CTagInfo::_GetTagParent(const TAGINFO& tag) const
+CString CTagInfo::_GetTagParent(const TAGINFO& info) const
 {
    // Extract inheritance type.
    // HACK: We simply scoop up the " class CFoo : public CBar" text from
@@ -330,7 +327,7 @@ CString CTagInfo::_GetTagParent(const TAGINFO& tag) const
    };
    LPCTSTR* ppstrToken = pstrTokens;
    while( *ppstrToken ) {
-      LPCTSTR p = _tcsstr(tag.pstrToken, *ppstrToken);
+      LPCTSTR p = _tcsstr(info.pstrToken, *ppstrToken);
       if( p ) {
          p += _tcslen(*ppstrToken);
          while( _istspace(*p) ) p++;
@@ -418,20 +415,20 @@ bool CTagInfo::_ParseTagFile(LPTSTR pstrText)
       if( *pstrText == '!' ) continue;
 
       // Parse tag structure
-      TAGINFO tag = { TAGTYPE_UNKNOWN, 0 };
+      TAGINFO info = { TAGTYPE_UNKNOWN, 0 };
 
       LPTSTR p = _tcschr(pstrText, '\t');
       ATLASSERT(p);
       if( p == NULL ) continue;
       *p = '\0';
-      tag.pstrName = pstrText;
+      info.pstrName = pstrText;
 
       pstrText = p + 1;
       p = _tcschr(pstrText, '\t');
       ATLASSERT(p);
       if( p == NULL ) continue;
       *p = '\0';
-      tag.pstrFile = pstrText;
+      info.pstrFile = pstrText;
 
       pstrText = p + 1;
       p = _tcschr(pstrText, '\t');
@@ -439,7 +436,7 @@ bool CTagInfo::_ParseTagFile(LPTSTR pstrText)
       if( p == NULL ) continue;
       *p = '\0';
       if( *(p - 2) == ';' ) *(p - 2) = '\0';
-      tag.pstrToken = pstrText;
+      info.pstrToken = pstrText;
 
       // Parse the optional properties
       pstrText = p + 1;
@@ -447,27 +444,27 @@ bool CTagInfo::_ParseTagFile(LPTSTR pstrText)
          p = _tcschr(pstrText, '\t');
          if( p ) *p = '\0';
 
-         tag.pstrFields[tag.nFields] = pstrText;
-         tag.nFields++;
+         info.pstrFields[info.nFields] = pstrText;
+         info.nFields++;
 
          if( p == NULL ) break;
-         if( tag.nFields >= sizeof(tag.pstrFields) / sizeof(LPCTSTR) ) break;
+         if( info.nFields >= sizeof(info.pstrFields) / sizeof(LPCTSTR) ) break;
          pstrText = p + 1;
       }
 
       // Look up type information at once
-      tag.Type = _GetTagType(tag);
-      tag.iLineNo = -1;
+      info.Type = _GetTagType(info);
+      info.iLineNo = -1;
 
-      m_aTags.Add(tag);
+      m_aTags.Add(info);
    }
    return true;
 }
 
-TAGTYPE CTagInfo::_GetTagType(const TAGINFO& tag) const
+TAGTYPE CTagInfo::_GetTagType(const TAGINFO& info) const
 {
-   for( short i = 0; i < tag.nFields; i++ ) {
-      const LPCTSTR& pstrField = tag.pstrFields[i];
+   for( short i = 0; i < info.nFields; i++ ) {
+      const LPCTSTR& pstrField = info.pstrFields[i];
       if( pstrField[0] != '\0' &&  pstrField[1] == '\0' ) {
          if( _tcscmp(pstrField, _T("c")) == 0 ) return TAGTYPE_CLASS;
          if( _tcscmp(pstrField, _T("s")) == 0 ) return TAGTYPE_STRUCT;

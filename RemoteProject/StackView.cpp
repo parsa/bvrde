@@ -5,8 +5,6 @@
 #include "StackView.h"
 #include "Project.h"
 
-#pragma code_seg( "VIEW" )
-
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor/destructor
@@ -19,6 +17,8 @@ CStackView::CStackView() :
 
 /////////////////////////////////////////////////////////////////////////
 // Operations
+
+#pragma code_seg( "VIEW" )
 
 void CStackView::Init(CRemoteProject* pProject)
 {

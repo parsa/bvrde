@@ -11,12 +11,13 @@
 #endif // _MSC_VER > 1000
 
 #define WIN32_LEAN_AND_MEAN
+#define _FILE_DEFINED
+typedef int FILE;
 
 #include <windows.h>
 #include <tchar.h>
 
 #pragma warning(disable : 4786)
-
 
 #include <string>
 #include <vector>

@@ -5,8 +5,6 @@
 #include "ThreadView.h"
 #include "Project.h"
 
-#pragma code_seg( "VIEW" )
-
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor/destructor
@@ -19,6 +17,8 @@ CThreadView::CThreadView() :
 
 /////////////////////////////////////////////////////////////////////////
 // Operations
+
+#pragma code_seg( "VIEW" )
 
 void CThreadView::Init(CRemoteProject* pProject)
 {

@@ -182,7 +182,7 @@ bool CDebugManager::AddBreakpoint(LPCTSTR pstrText)
    // Add it to internal list
    CLockStaticDataInit lock;
    CString sText = pstrText;
-   if( sText.IsEmpty() ) return true;
+   if( sText.IsEmpty() ) return false;
    m_aBreakpoints.Add(sText, 0);
    // If we're debugging, we need to update internal lists as well
    if( IsDebugging() ) 
@@ -616,7 +616,7 @@ void CDebugManager::_UpdateBreakpoint(CMiInfo& info)
 {
    CString sFile = info.GetItem(_T("file"));
    CString sLine = info.GetItem(_T("line"));
-   if( sLine.IsEmpty() || sLine.IsEmpty() ) return;
+   if( sFile.IsEmpty() || sLine.IsEmpty() ) return;
    long lNumber = _ttol(info.GetItem(_T("number")));
    CString sLocation;
    sLocation.Format(_T("%s:%s"), ::PathFindFileName(sFile), sLine);

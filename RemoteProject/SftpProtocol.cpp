@@ -96,6 +96,7 @@ DWORD CSftpThread::Run()
    ATLASSERT(cryptSession==0);
 
    m_pManager->m_dwErrorCode = 0;
+   m_pManager->m_bConnected = false;
 
    // Make sure CryptLib is available
    if( !clib.Init() ) {
@@ -686,7 +687,7 @@ bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
       // Got all files?
       if( id == SSH_FXP_STATUS && dwCount == SSH_FX_EOF ) {
          // Read remaining of status record...
-         _ReadData(m_cryptSession, buffer, sizeof(buffer));
+         if( cbSize > 13 ) _ReadData(m_cryptSession, buffer, sizeof(buffer));
          break;
       }
 
@@ -762,6 +763,7 @@ bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
          WIN32_FIND_DATA fd = { 0 };
          _tcscpy(fd.cFileName, A2CT(szFilename));
          fd.nFileSizeLow = dwFileSize;
+         // TODO: Translate more file-attributes
          if( (dwPermissions & 0x4000) != 0 ) fd.dwFileAttributes |= FILE_ATTRIBUTE_DIRECTORY;
          aFiles.Add(fd);
       }

@@ -57,6 +57,7 @@ DWORD CFtpThread::Run()
    if( sPassword.IsEmpty() ) sPassword = SecGetPassword();
 
    m_pManager->m_dwErrorCode = 0;
+   m_pManager->m_bConnected = false;
 
    m_pManager->m_hInternet = ::InternetOpen(_T("Mozilla/4.0 (compatible; MSIE 5.5; BVRDE)"),
       sProxy.IsEmpty() ? INTERNET_OPEN_TYPE_DIRECT : INTERNET_OPEN_TYPE_PROXY,

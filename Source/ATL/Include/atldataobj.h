@@ -21,6 +21,26 @@
 // Beware of bugs.
 //
 
+/////////////////////////////////////////////////////////////////////////
+// Misc clipboard functions
+
+#ifdef __ATLCONV_H__
+
+inline BOOL AtlSetClipboardText(HWND hWnd, LPCTSTR pstrText)
+{
+   USES_CONVERSION;
+   HGLOBAL hGlobal = GlobalAlloc(GMEM_FIXED, ::lstrlen(pstrText) + 1);
+   if( hGlobal == NULL ) return FALSE;
+   CopyMemory(hGlobal, T2CA(pstrText), ::lstrlen(pstrText) + 1);
+   if( !::OpenClipboard(hWnd) ) return FALSE;
+   ::EmptyClipboard();
+   ::SetClipboardData(CF_TEXT, hGlobal);
+   ::CloseClipboard();
+   return TRUE;
+}
+
+#endif // __ATLCONV_H__
+
 
 /////////////////////////////////////////////////////////////////////////
 // CRawDropSource

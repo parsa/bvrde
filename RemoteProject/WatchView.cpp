@@ -5,8 +5,6 @@
 #include "WatchView.h"
 #include "Project.h"
 
-#pragma code_seg( "VIEW" )
-
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor/destructor
@@ -21,6 +19,8 @@ CWatchView::CWatchView() :
 
 /////////////////////////////////////////////////////////////////////////
 // Operations
+
+#pragma code_seg( "VIEW" )
 
 void CWatchView::Init(CRemoteProject* pProject)
 {

@@ -17,7 +17,7 @@ public:
    typedef struct STREAMCOOKIE
    {
       LPCTSTR pstr;
-      DWORD pos;
+      LONG pos;
    };
 
    CDisasmView();

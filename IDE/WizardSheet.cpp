@@ -175,7 +175,7 @@ void CSolutionTypePage::OnReset()
 {
    // Destroy previously created project in case user is
    // travelling back and forward between pages...
-   // HACK: The 3 lines below took quite some time to get right, because
+   // NOTE: The 3 lines below took quite some time to get right, because
    //       the Tab control internally does *very* strange things and deleteing
    //       a page tends to screw up its internal page-array.
    while( GetPropertySheet().GetPageCount() > 1 ) {

@@ -63,6 +63,7 @@ public:
       MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
       MESSAGE_HANDLER(WM_SIZE, OnSize)
       MESSAGE_HANDLER(WM_TIMER, OnTimer)
+      MESSAGE_HANDLER(WM_CONTEXTMENU, OnContextMenu)
       MESSAGE_HANDLER(WM_USER_DATA_AVAILABLE, OnDataArrived)
       NOTIFY_CODE_HANDLER(TCN_SELCHANGE, OnTabChange)
    ALT_MSG_MAP(1) // Tab control
@@ -73,6 +74,7 @@ public:
    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnContextMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnDataArrived(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnTabChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnLink(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);

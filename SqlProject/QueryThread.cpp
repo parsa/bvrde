@@ -79,8 +79,8 @@ DWORD CQueryThread::Run()
             if( pDbRec ) delete pDbRec;
             m_pDbCmd = NULL;
 
-            int iColumns = 0;
             int iAffected = 0;
+            short iColumns = 0;
 
             // Create new command / recordset
             pDbCmd = new COledbCommand(&Db);
@@ -133,7 +133,7 @@ DWORD CQueryThread::Run()
 
                   // Post information about columns
                   DATAPACKET* pColInfo = new DATAPACKET(PACKET_COLUMNINFO, iColumns, 0, new CString[ iColumns ], new LONG[ iColumns ]);
-                  for( int i = 0; i < iColumns; i++ ) {
+                  for( short i = 0; i < iColumns; i++ ) {
                      TCHAR szName[100] = { 0 };
                      pDbRec->GetColumnName(i, szName, sizeof(szName)/sizeof(TCHAR)-1);
                      pColInfo->pstrData[i] = szName;
@@ -237,7 +237,7 @@ DWORD CQueryThread::Run()
                      pRowInfo->iRows++;
                      if( pRowInfo->iRows >= m_nChunkSize )
                      {
-                        // Post column info
+                        // Post row data
                         ::PostMessage(m_hWndNotify, WM_USER_DATA_AVAILABLE, 0, (LPARAM) pRowInfo);
                         // Throttle
                         ::Sleep(nTotal > 4000 ? 150L : 0L);

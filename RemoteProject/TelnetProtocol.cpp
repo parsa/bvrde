@@ -32,6 +32,7 @@ DWORD CTelnetThread::Run()
    if( sPassword.IsEmpty() ) sPassword = SecGetPassword();
 
    m_pManager->m_dwErrorCode = 0;
+   m_pManager->m_bConnected = false;
 
    BOOL bRes = socket.Open(iPort, sHost);
    if( !bRes ) {

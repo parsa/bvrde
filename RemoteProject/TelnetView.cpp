@@ -4,9 +4,6 @@
 
 #include "TelnetView.h"
 
-#pragma code_seg( "VIEW" )
-
-
 
 ////////////////////////////////////////////////////////
 //
@@ -40,6 +37,8 @@ CTelnetView::~CTelnetView()
 
 /////////////////////////////////////////////////////////////////////////
 // Operations
+
+#pragma code_seg( "VIEW" )
 
 void CTelnetView::Init(CShellManager* pShell, DWORD dwFlags /*= 0*/)
 {
@@ -168,7 +167,7 @@ LRESULT CTelnetView::OnGetMinMaxInfo(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lP
 
 
 /////////////////////////////////////////////////////////////////////////
-// ITelnetListener
+// IOutputLineListener 
 
 void CTelnetView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 {

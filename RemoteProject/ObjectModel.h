@@ -166,7 +166,7 @@ public:
    INT __stdcall PosFromLine(INT iLine);
    INT __stdcall LineLength(INT iLine);
    VARIANT_BOOL __stdcall FindText(BSTR Text);
-   VOID __stdcall SendRawMessage(long uMsg, long wParam, BSTR lParam);
+   VOID __stdcall SendRawMessage(INT uMsg, INT wParam, BSTR lParam);
 };
 
 

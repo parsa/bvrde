@@ -159,7 +159,7 @@ IView* CRemoteProject::GetItem(INT iIndex)
 BOOL CRemoteProject::Reset()
 {
    m_sName.Empty();
-   // Close the view's nicely before killing them
+   // Close the view's nicely before killing them off
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) m_aFiles[i]->CloseView();
    m_aFiles.RemoveAll();
    m_aLazyData.RemoveAll();
@@ -646,7 +646,7 @@ LRESULT CRemoteProject::OnFileAddLocal(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
       ::PathRelativePathTo(szRelativeFilename, szPath, FILE_ATTRIBUTE_DIRECTORY, szFilename, FILE_ATTRIBUTE_NORMAL);
       if( _tcslen(szRelativeFilename) == 0 ) _tcscpy(szRelativeFilename, szFilename);
 
-      if( !_CheckProjectFile(szName) ) return 0;
+      if( !_CheckProjectFile(szRelativeFilename, szName, false) ) return 0;
 
       // Create new object
       IView* pView = _pDevEnv->CreateView(szFilename, this, pElement);
@@ -724,7 +724,7 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
          sRelativeFilename.Replace(_T("\\"), sSeparator);
       }
 
-      if( !_CheckProjectFile(szName) ) return 0;
+      if( !_CheckProjectFile(szRelativeFilename, szName, true) ) return 0;
 
       // Create new object
       IView* pView = Plugin_CreateView(sFilename, this, pElement);
@@ -1863,8 +1863,7 @@ void CRemoteProject::_PopulateTree(CTreeViewCtrl& ctrlTree,
                                    IElement* pParent, 
                                    HTREEITEM hParent) const
 {
-   for( int i = 0; i < m_aFiles.GetSize(); i++ ) 
-   {
+   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       IView* pFile = m_aFiles[i];
       if( pFile->GetParent() == pParent ) {
          int iImage = _GetElementImage(pFile);
@@ -2065,8 +2064,11 @@ bool CRemoteProject::_AddCommandBarImages(UINT nRes) const
    return true;
 }
 
-bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrName) 
+bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, bool bRemote) 
 {
+   CString sUpperName = pstrName;
+   sUpperName.MakeUpper();
+
    // Check that the file doesn't already exist in the
    // project filelist.
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
@@ -2082,11 +2084,24 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrName)
 
    // Remove current tag information if it looks like a new
    // tag file has been added...
-   CString sUpperName = pstrName;
-   sUpperName.MakeUpper();
    if( sUpperName.Find(_T("TAGS")) >= 0 ) {
       m_TagManager.m_TagInfo.MergeFile(pstrName);
       m_viewClassTree.Rebuild();
+   }
+
+   // New C++ files are added to class-view immediately if online-scanner
+   // is running...
+   if( bRemote 
+       && (sUpperName.Find(_T(".H")) > 0 || sUpperName.Find(_T(".C")) > 0) ) 
+   {
+      if( m_TagManager.m_LexInfo.IsAvailable() ) {
+         LPSTR pstrText = NULL;
+         DWORD dwSize = 0;
+         if( m_FileManager.LoadFile(pstrFilename, true, (LPBYTE*) &pstrText, &dwSize) ) {
+            m_TagManager.m_LexInfo.MergeFile(pstrFilename, pstrText);
+            free(pstrText);
+         }
+      }
    }
 
    return true;

@@ -156,15 +156,13 @@ void CClassView::_PopulateTree()
       tvis.item.cChildren = 1;
       for( int i = 0; i < aList.GetSize(); i++ ) {
          TAGINFO* pTag = aList[i];
-         if( pTag->Type == TAGTYPE_CLASS ) {
-            tvis.item.pszText = LPSTR_TEXTCALLBACK;
-            tvis.item.lParam = (LPARAM) pTag;
-            HTREEITEM hItem = m_ctrlTree.InsertItem(&tvis);
-            for( int j = 0; j < m_aExpandedNames.GetSize(); j++ ) {
-               if( m_aExpandedNames[j] == pTag->pstrName ) {
-                  m_ctrlTree.Expand(hItem);
-                  break;
-               }
+         tvis.item.pszText = LPSTR_TEXTCALLBACK;
+         tvis.item.lParam = (LPARAM) pTag;
+         HTREEITEM hItem = m_ctrlTree.InsertItem(&tvis);
+         for( int j = 0; j < m_aExpandedNames.GetSize(); j++ ) {
+            if( m_aExpandedNames[j] == pTag->pstrName ) {
+               m_ctrlTree.Expand(hItem);
+               break;
             }
          }
       }
@@ -280,13 +278,7 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
       {
          CString sText;
          m_ctrlTree.GetItemText(hItem, sText);
-         HGLOBAL hGlobal = GlobalAlloc(GMEM_FIXED, sText.GetLength() + 1);
-         if( hGlobal == NULL ) return 0;
-         memcpy(hGlobal, T2CA(sText), sText.GetLength() + 1);
-         if( !::OpenClipboard(m_hWnd) ) return 0;
-         ::EmptyClipboard();
-         ::SetClipboardData(CF_TEXT, hGlobal);
-         ::CloseClipboard();
+         AtlSetClipboardText(m_hWnd, sText);
       }
       break;
    case ID_CLASSVIEW_PROPERTIES:

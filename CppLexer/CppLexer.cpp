@@ -15,14 +15,14 @@ BOOL APIENTRY DllMain( HANDLE hInstance, DWORD /*dwReason*/, LPVOID /*lpReserved
    return TRUE;
 }
 
-LPSTR WINAPI W2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars)
+LPSTR W2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars)
 {
    lpa[0] = '\0';
    ::WideCharToMultiByte(CP_ACP, 0, lpw, -1, lpa, nChars, NULL, NULL);
    return lpa;
 }
 
-bool UDgreater( std::string elem1, std::string elem2 )
+bool UDgreater(std::string elem1, std::string elem2)
 {
    return elem1 < elem2;
 }
@@ -50,15 +50,12 @@ BOOL CALLBACK CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
    char szBuffer[1000] = { 0 };
    for( Entry* cr = root->sub; cr; cr = cr->sub )
    {
-      if( cr->name.length() == 0 ) continue;
-      if( strstr(cr->name, "::") != NULL ) continue;
+      if( cr->name.empty() ) continue;
+      if( cr->name.at(0) == '#' ) continue;
+      if( cr->name.at(0) == '*' ) continue;
+      if( cr->name.find("::") != std::string::npos ) continue;
 
       char type = 'm';
-      if( strncmp(cr->type, "class", 5) == 0 ) type = 'c';
-      else if( strncmp(cr->type, "union", 5) == 0 ) type = 's';
-      else if( strncmp(cr->type, "struct", 6) == 0 ) type = 's';
-      else if( strncmp(cr->type, "#define", 7) == 0 ) type = 'd';
-      else if( strncmp(cr->type, "typedef", 7) == 0 ) type = 't';
       if( cr->section == FUNCTION_SEC ) type = 'm';
       else if( cr->section == TYPEDEF_SEC ) type = 't';
       else if( cr->section == CLASS_SEC ) type = 'c';
@@ -67,30 +64,32 @@ BOOL CALLBACK CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
       else if( cr->section == VARIABLE_SEC ) type = 'v';
       else if( cr->section == MACRO_SEC ) type = 'd';
 
-      char szMemo[100] = { 0 };
-      strncpy(szMemo, cr->memo.c_str(), 99);
-      for( int i = 0; szMemo[i]; i++ ) {
-         switch( szMemo[i] ) {
-         case '|':
-         case '\r':
-         case '\n':
-         case '\t':
-            szMemo[i] = ' ';
-            break;
-         }
-      }
+      char prot = 'g';
+      if( cr->protection == PUBL ) prot = 'p';
+      if( cr->protection == PROT ) prot = 'r';
+      if( cr->protection == PRIV ) prot = 'i';
+
+      std::replace(cr->memo.begin(), cr->memo.end(), '\r', ' ');
+      std::replace(cr->memo.begin(), cr->memo.end(), '\n', ' ');
+      std::replace(cr->memo.begin(), cr->memo.end(), '\t', ' ');
+      std::replace(cr->memo.begin(), cr->memo.end(), '|', '¦');
+      std::replace(cr->type.begin(), cr->type.end(), '|', '¦');
+      std::replace(cr->name.begin(), cr->name.end(), '|', '¦');
+      std::replace(cr->args.begin(), cr->args.end(), '|', '¦');
 
       if( cr->protection == GLOB ) cl = NULL;
 
-      ::wsprintf(szBuffer, "%s|%c|%s%s %s|%s|%ld|%s\n", 
+      ::wsprintf(szBuffer, "%s|%c%c|%s%s%s%s|%s|%ld|%s\n", 
          cr->name.c_str(),  
          type,
-         cr->type.c_str(),  
-         cr->name.c_str(),  
-         cr->args.c_str(),  
+         prot,
+         cr->type.c_str(),
+         cr->type.empty() ? "" : " ",
+         cr->name.c_str(),
+         cr->args.c_str(),
          cl == NULL ? "" : cl->name.c_str(),
-         (long) cr->lineNo, 
-         szMemo);   
+         (long) cr->lineNo,
+         cr->memo.c_str());
 
       if( type == 'c' ) cl = cr;
       else if( type == 's' ) cl = cr;

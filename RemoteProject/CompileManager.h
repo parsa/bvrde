@@ -5,7 +5,6 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-
 #include "ShellProxy.h"
 
 
@@ -14,6 +13,7 @@
 
 // Forward declare
 class CCompileManager;
+
 
 class CCompileThread : public CThreadImpl<CCompileThread>
 {

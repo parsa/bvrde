@@ -275,8 +275,9 @@ public:
    {
       LPNMLISTVIEW pnmlv = (LPNMLISTVIEW) pnmh;
       CPidl pidl;
-      SetFocus();
+      m_ctrlFiles.SetFocus();
       m_ctrlFiles.SelectItem(pnmlv->iItem);
+      m_ctrlFiles.UpdateWindow();
       m_ctrlFiles.GetItemPidl(pnmlv->iItem, &pidl);
       CDragDrop dd;
       dd.DragDrop(m_hWnd, pidl);

@@ -5,8 +5,6 @@
 #include "DisasmView.h"
 #include "Project.h"
 
-#pragma code_seg( "VIEW" )
-
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor/destructor
@@ -19,6 +17,8 @@ CDisasmView::CDisasmView() :
 
 /////////////////////////////////////////////////////////////////////////
 // Operations
+
+#pragma code_seg( "VIEW" )
 
 void CDisasmView::Init(CRemoteProject* pProject)
 {

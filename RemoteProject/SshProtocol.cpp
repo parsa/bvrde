@@ -27,6 +27,7 @@ DWORD CSshThread::Run()
    ATLASSERT(cryptSession==0);
 
    m_pManager->m_dwErrorCode = 0;
+   m_pManager->m_bConnected = false;
 
    // Make sure CryptLib is available
    if( !clib.Init() ) {

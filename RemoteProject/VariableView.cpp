@@ -5,8 +5,6 @@
 #include "VariableView.h"
 #include "Project.h"
 
-#pragma code_seg( "VIEW" )
-
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor/destructor
@@ -19,6 +17,8 @@ CVariableView::CVariableView() :
 
 /////////////////////////////////////////////////////////////////////////
 // Operations
+
+#pragma code_seg( "VIEW" )
 
 void CVariableView::Init(CRemoteProject* pProject)
 {

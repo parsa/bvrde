@@ -1,5 +1,5 @@
 
-#include "Stdafx.h"
+#include "StdAfx.h"
 #include "resource.h"
 
 #include "PasswordDlg.h"
@@ -8,6 +8,9 @@
 #include "Files.h"
 
 
+// Here we store the user's password after being prompted
+// so we needn't prompt again. This implies that the same
+// password should be used for both FTP and Telnet connection!
 TCHAR g_szPassword[100];
 
 
@@ -37,10 +40,9 @@ CString SecGetPassword()
       return sPassword;
    }
    // Prompt user for password
-   HCURSOR hCursor = ::GetCursor();
+   CWaitCursor cursor;
    CPasswordDlg dlg;
    dlg.DoModal();
-   ::SetCursor(hCursor);
    sPassword = dlg.GetPassword();
    _tcscpy(g_szPassword, sPassword);
    s_cs.Unlock();
@@ -54,6 +56,7 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask /*= 0*
    ATLASSERT(!::IsBadStringPtr(pstrText,-1));
    // Yield control?
    if( ::InSendMessage() ) ::ReplyMessage(TRUE);
+   // Get ready to append more text...
    ctrlEdit.HideSelection(TRUE);
    // Remove top lines if we've filled out the buffer
    GETTEXTLENGTHEX gtlx = { GTL_DEFAULT | GTL_CLOSE, 1200 };
@@ -274,7 +277,7 @@ CTextFile* CreateViewFromFilename(IDevEnv* pDevEnv,
 void PumpIdleMessages()
 {
    HCURSOR hCursor = ::GetCursor();
-   MSG msg;
+   MSG msg = { 0 };
    while( ::PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE) ) { 
       switch( msg.message ) {
       case WM_PAINT:

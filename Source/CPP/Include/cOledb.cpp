@@ -665,7 +665,7 @@ BOOL COledbRecordset::GetField(short iIndex, std::string& pData)
 
 #endif // __ATLSTR_H__
 
-DWORD COledbRecordset::GetColumnCount() const
+short COledbRecordset::GetColumnCount() const
 {
    if( !IsOpen() ) return 0;
    return m_nCols - m_iAdjustIndex;

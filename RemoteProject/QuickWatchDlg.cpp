@@ -9,7 +9,7 @@
 #pragma code_seg( "DIALOGS" )
 
 
-// Constructor /destructor
+// Constructor
 
 CQuickWatchDlg::CQuickWatchDlg(IDevEnv* pDevEnv, CRemoteProject* pProject, LPCTSTR pstrDefault) :
    m_pDevEnv(pDevEnv),

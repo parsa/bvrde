@@ -183,9 +183,9 @@ void CMiInfo::_GetPlainText(LPTSTR pstrDest, LPCTSTR pstrSrc, int iStart, int nL
    pstrSrc += iStart;
    while( *pstrSrc && --nLen >= 0 && --cchMax >= 0 ) {
       if( *pstrSrc == '\\' ) {
-         if( *pstrSrc == 't' ) *pstrDest++ = '\t';
          pstrSrc++;
          nLen--;
+         // TODO: Handle \t escaped chars...
       }
       *pstrDest++ = *pstrSrc++;
    }

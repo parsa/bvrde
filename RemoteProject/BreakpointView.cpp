@@ -5,8 +5,6 @@
 #include "Project.h"
 #include "BreakpointView.h"
 
-#pragma code_seg( "VIEW" )
-
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor/destructor
@@ -20,6 +18,8 @@ CBreakpointView::CBreakpointView() :
 
 /////////////////////////////////////////////////////////////////////////
 // Operations
+
+#pragma code_seg( "VIEW" )
 
 void CBreakpointView::Init(CRemoteProject* pProject)
 {
