@@ -175,7 +175,7 @@ next:
 
 void CMiInfo::_GetPlainText(LPTSTR pstrDest, LPCTSTR pstrSrc, int iStart, int nLen, int cchMax) const
 {
-   ATLASSERT(!::IsBadWritePtr(pstrDest,nLen));
+   ATLASSERT(!::IsBadWritePtr(pstrDest,cchMax));
    ATLASSERT(!::IsBadStringPtr(pstrSrc+iStart,-1));
    // Convert from C-style (escaped) to ASCII text.
    // Notice that only 'nLen' chars are converted - not the entire

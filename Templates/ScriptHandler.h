@@ -34,7 +34,7 @@ public:
    BEGIN_DISPATCH_MAP(CGlobals)
       DISP_PROPGET(Count, VT_I4)
       //DISP_PROP_ID(Item, DISPID_VALUE, VT_BSTR, VT_VARIANT)
-      { OLESTR("Item"), DISPID_VALUE, DISPATCH_PROPERTYGET, VT_BSTR, 1, { VT_BSTR }, (void (__stdcall _atl_disp_classtype::*)())get_Item }, \
+      { OLESTR("Item"), DISPID_VALUE, DISPATCH_PROPERTYGET, VT_BSTR, 1, { VT_BSTR }, (void (__stdcall _atl_disp_classtype::*)())get_Item },
       { OLESTR("Item"), DISPID_PROPERTYPUT, DISPATCH_PROPERTYPUT, VT_EMPTY, 2, { VT_BSTR, VT_BSTR }, (void (__stdcall _atl_disp_classtype::*)())put_Item },
    END_DISPATCH_MAP()
 
