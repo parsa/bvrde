@@ -697,6 +697,9 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
    dlg.m_ofn.lpstrInitialDir = sRemotePath;
    if( dlg.DoModal(m_wndMain) != IDOK ) return 0;
 
+   CWaitCursor cursor;
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_ADDFILE)));
+
    // Convert paths to Windows type so we can manipulate
    // them using the Shell API
    CString sSeparator = m_FileManager.GetParam(_T("Separator"));
@@ -773,10 +776,6 @@ LRESULT CRemoteProject::OnViewOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    IElement* pElement = _GetSelectedTreeElement();
    if( pElement == NULL ) { bHandled = FALSE; return 0; }
    if( pElement == this ) return 0;
-
-   CWaitCursor cursor;
-
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_OPENFILE)));
 
    IView* pView = static_cast<IView*>(pElement);
    if( !pView->OpenView(0) ) {

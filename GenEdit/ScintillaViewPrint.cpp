@@ -20,9 +20,9 @@ LRESULT CScintillaView::OnFilePrint(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 
    bool showDialog = true;
 
+   RECT rcMargins = { 0 };
    HGLOBAL hDevMode = NULL;
    HGLOBAL hDevNames = NULL;
-   RECT rcMargins = { 0 };
    m_pDevEnv->GetPrinterInfo(hDevMode, hDevNames, rcMargins);
 
    //
@@ -152,6 +152,7 @@ LRESULT CScintillaView::OnFilePrint(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
    // Convert page size to logical units and we're done!
    ::DPtoLP(hdc, (LPPOINT) &ptPage, 1);
 
+   // TODO: Populate these; add token-replacement algorithm.
    CString headerFormat = _T("");
    CString footerFormat = _T("");
 
@@ -232,12 +233,11 @@ LRESULT CScintillaView::OnFilePrint(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
    }
    // Print each page
    int pageNum = 1;
-   bool printPage;
    
    while( lengthPrinted < lengthDoc ) 
    {
-      printPage = (!(pdlg.Flags & PD_PAGENUMS) ||
-                   (pageNum >= pdlg.nFromPage) && (pageNum <= pdlg.nToPage));
+      bool printPage = (!(pdlg.Flags & PD_PAGENUMS) ||
+                        (pageNum >= pdlg.nFromPage) && (pageNum <= pdlg.nToPage));
 
       CString sStatus;
       sStatus.Format(IDS_STATUS_PRINTING, (long) pageNum);
@@ -247,7 +247,7 @@ LRESULT CScintillaView::OnFilePrint(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
          ::StartPage(hdc);
 
          if( headerFormat.GetLength() > 0 ) {
-            CString sHeader = _T("");
+            CString sHeader = headerFormat;
             ::SetTextColor(hdc, RGB(0,0,0));
             ::SetBkColor(hdc, RGB(255,255,255));
             ::SelectObject(hdc, fontHeader);
@@ -275,7 +275,7 @@ LRESULT CScintillaView::OnFilePrint(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 
       if( printPage ) {
          if( footerFormat.GetLength() > 0 ) {
-            CString sFooter = _T("");
+            CString sFooter = footerFormat;
             ::SetTextColor(hdc, RGB(80,80,80));
             ::SetBkColor(hdc, RGB(255,255,255));
             ::SelectObject(hdc, fontFooter);

@@ -255,6 +255,7 @@ BOOL CTextFile::IsDirty() const
 BOOL CTextFile::GetText(BSTR* pbstrText)
 {
    ATLASSERT(*pbstrText==NULL);
+
    // View is open, so grab the text from the editor...
    if( m_wndFrame.IsWindow() ) 
    {
@@ -329,6 +330,9 @@ BOOL CTextFile::OpenView(long lLineNum)
    }
    else 
    {
+      CWaitCursor cursor;
+      _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_OPENFILE)));
+
       // Load the file (local file or from remote server)
       CComBSTR bstrText;
       if( !GetText(&bstrText) ) return FALSE;

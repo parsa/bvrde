@@ -104,7 +104,7 @@ public:
       NOTIFY_CODE_HANDLER(SCN_MARGINCLICK, OnMarginClick)
       NOTIFY_CODE_HANDLER(SCN_MACRORECORD, OnMacroRecord)
    END_MSG_MAP()
-   
+
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnContextMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

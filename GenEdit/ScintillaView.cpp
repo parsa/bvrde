@@ -704,10 +704,13 @@ LRESULT CScintillaView::OnMacroRecord(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
    //      an optimistic checking on the LPARAM parameter.
    if( pSCN->lParam != 0 && ::IsBadStringPtrA((LPCSTR) pSCN->lParam, -1) ) return 0;
    CString sMacro;
-   sMacro.Format(_T("Call ActiveWindow.SendRawMessage(%ld,%ld,\"%ls\")"), 
+   sMacro.Format(_T("Call ActiveWindow.SendRawMessage(%ld,%ld,\"%hs\")"), 
       (long) pSCN->message,
       (long) pSCN->wParam,
       pSCN->lParam == 0 ? "" : (LPCSTR) pSCN->lParam);
+   sMacro.Replace(_T("\r"), _T(""));
+   sMacro.Replace(_T("\t"), _T("\" + Chr(9) + \""));
+   sMacro.Replace(_T("\n"), _T("\" + vbCrLf + \""));
    m_pDevEnv->RecordMacro(sMacro);
    return 0;
 }
@@ -808,7 +811,7 @@ void CScintillaView::_AutoText(CHAR ch)
    CString sTipText = szBuffer;
    sTipText.Replace(_T("\r"), _T(""));
    sTipText.Replace(_T("\\n"), _T("\n"));
-   sTipText.Replace(_T("\\t"), _T("   "));
+   sTipText.Replace(_T("\\t"), _T("   "));         // BUG: Expand tabs properly!
    CallTipShow(lPos, T2CA(sTipText));
    // Remember what triggered suggestion
    s_lSuggestPos = lPos - sName.GetLength();

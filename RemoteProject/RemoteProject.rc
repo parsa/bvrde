@@ -881,7 +881,7 @@ BEGIN
     IDS_CONFIG_COMMANDS     "Commands"
     IDS_CAPTION_DEBUGLOG    "Debug View"
     IDS_STATUS_RUNNING      " Running..."
-    IDS_STATUS_OPENFILE     " Opening file.."
+    IDS_STATUS_OPENFILE     " Opening file..."
     IDS_NEEDS_RECOMPILE     "Project needs recompile\nChanges has been made to the project. Do you wish to recompile first?\nRecompile the project to include the latest changes."
     IDS_COMMAND_PARAMS      "Parameters"
     IDS_COMMAND_EXECUTE     "Executable"
@@ -1044,6 +1044,7 @@ BEGIN
     IDS_STATUS_SAVEFILE     " Saving file..."
     IDS_CAPTION_DISASSEMBLY "Disassembly"
     IDS_CAPTION_MEMORY      "Memory"
+    IDS_STATUS_ADDFILE      " Adding file(s)..."
 END
 
 #endif    // English (U.S.) resources
