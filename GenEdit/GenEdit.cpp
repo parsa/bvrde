@@ -9,6 +9,9 @@
 CComModule _Module;
 
 
+/////////////////////////////////////////////////////////////////////////////
+// DLL Main
+
 BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 {
    switch( dwReason ) {
@@ -27,6 +30,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/
    return TRUE;
 }
 
+
+/////////////////////////////////////////////////////////////////////////////
+// Exported function
 
 HWND GENEDIT_API Bvrde_CreateScintillaView(HWND hWndParent, 
                                            IDevEnv* pDevEnv, 

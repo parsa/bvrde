@@ -420,16 +420,12 @@ LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
 {
    SCNotification* pSCN = (SCNotification*) pnmh;
    switch( pSCN->ch ) {
-   case '.':
-   case '>':
-   case ':':
-      _AutoComplete(pSCN->ch);
-      break;
    case ')':
    case '(':
       _FunctionTip(pSCN->ch);
       break;
    }
+   _AutoComplete(pSCN->ch);
    _AutoSuggest(pSCN->ch);
 
    bHandled = FALSE;
@@ -601,15 +597,50 @@ void CScintillaView::_AutoComplete(CHAR ch)
    if( m_pCppProject == NULL ) return;
    if( !m_bAutoComplete && ch != '\b' ) return;
 
+   const WORD AUTOCOMPLETE_AFTER_TYPED_CHARS = 3;
+   long lPos = m_ctrlEdit.GetCurrentPos();
+
+   // Show auto-completion or not? The \b char forces to show!
+   bool bShow = ch == '\b';
+   // Attempt auto-completion in the following cases:
+   //    foo.
+   //    foo->
+   //    CFoo::
+   if( ch == '.' || ch == '>' || ch == ':' ) bShow = true;
+   // Attempt auto-completion after 3 characters have been typed on a new line.
+   // We'll later check if this really could be time to auto-complete!
+   static WORD s_nChars = 0;
+   if( ch == '\n' ) s_nChars = 0;
+   if( _iscppchar(ch) && ++s_nChars == AUTOCOMPLETE_AFTER_TYPED_CHARS ) bShow = true;
+   // So?
+   if( lPos < 10 ) bShow = false;
+   if( !bShow ) return;
+
    // Find the name of the variable right before
    // the character was pressed...
-   long lPos = m_ctrlEdit.GetCurrentPos();
-   if( lPos < 10 ) return;
    long lBack = 1;
    if( ch == '>' || ch == ':' ) lBack = 2;
    CString sName = _GetNearText(lPos - lBack);
-   if( sName.IsEmpty() ) return;
+   // We can only show auto-completion if we can determine
+   // the type of the variable
+   int iLenEntered = 0;
    CString sType = _FindTagType(sName, lPos);
+   if( sType.IsEmpty() ) {
+      // No class/struct variable before? Only chance is if
+      // we're on an empty line or after equal-sign, then we'll
+      // show current class scope members.
+      iLenEntered = sName.GetLength();
+      lPos -= sName.GetLength();
+      while( true ) {
+         char ch = m_ctrlEdit.GetCharAt(--lPos);
+         if( lPos < 0 ) return;
+         if( ch == '\n' ) break;
+         if( ch == '=' ) break;
+         if( isspace(ch) ) continue;
+         return;
+      }
+      sType = _FindBlockType(lPos);
+   }
    if( sType.IsEmpty() ) return;
 
    // Yippie, we found one!!!
@@ -617,6 +648,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
    m_pCppProject->m_TagManager.GetMemberList(sType, aList, true);
    int nCount = aList.GetSize();
    if( nCount == 0 ) return;
+
    // Need to sort the items Scintilla-style
    for( int a = 0; a < nCount; a++ ) {
       for( int b = a + 1; b < nCount; b++ ) {
@@ -628,6 +660,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
          }
       }
    }   
+   
    // Right, Scintilla requires a list of space-separated tokens
    // so let's build one...
    CString sList;
@@ -639,11 +672,12 @@ void CScintillaView::_AutoComplete(CHAR ch)
       }
    }
    sList.TrimRight();
+
    // Display popup
    m_ctrlEdit.ClearRegisteredImages();
    _RegisterListImages();
    m_ctrlEdit.AutoCSetIgnoreCase(TRUE);
-   m_ctrlEdit.AutoCShow(0, T2CA(sList));
+   m_ctrlEdit.AutoCShow(iLenEntered, T2CA(sList));
 }
 
 void CScintillaView::_AutoSuggest(CHAR ch)
@@ -665,7 +699,7 @@ void CScintillaView::_AutoSuggest(CHAR ch)
    }
 
    // Display tip at all?
-   if( !m_bAutoSuggest ) return;
+   if( !m_bAutoSuggest && ch != '\b' ) return;
    if( m_ctrlEdit.CallTipActive() ) return;
    if( m_ctrlEdit.AutoCActive() ) return;
 
@@ -749,6 +783,53 @@ void CScintillaView::_FunctionTip(CHAR ch)
    m_ctrlEdit.CallTipSetFore(RGB(0,0,0));
    m_ctrlEdit.CallTipSetBack(RGB(255,255,255));
    m_ctrlEdit.CallTipShow(lPos, T2CA(sValue));
+}
+
+CString CScintillaView::_FindBlockType(long lPosition)
+{
+   // Locate the line where this block begins.
+   int iStartLine = m_ctrlEdit.LineFromPosition(lPosition);
+   int iEndLine = iStartLine;
+   while( iStartLine >= 0 ) {
+      long lPos = m_ctrlEdit.PositionFromLine(iStartLine);
+      int ch = m_ctrlEdit.GetCharAt(lPos);
+      if( ch == '}' ) return _T("");
+      if( isalpha(ch) && ch != 'p' ) break;
+      iStartLine--;
+   }
+   if( iStartLine < 0 ) iStartLine = 0;
+
+   CHAR szBuffer[256] = { 0 };
+   if( m_ctrlEdit.GetLineLength(iStartLine) >= sizeof(szBuffer) ) return _T("");
+   m_ctrlEdit.GetLine(iStartLine, szBuffer);
+
+   // Now if need to determine the scope type. We'll look for name 'xxx' in the
+   // following cases:
+   //    class xxx
+   //    class xxx : public CFoo
+   //    void xxx::Foo()
+   LPSTR p = strchr(szBuffer, ':');
+   long lOffset = -2;
+   if( p == NULL ) {
+      p = strstr(szBuffer, "class");
+      lOffset = 6;
+   }
+   if( p == NULL ) return _T("");
+
+   long lLineStart = m_ctrlEdit.PositionFromLine(iStartLine);
+   CString sType = _GetNearText(lLineStart + (p - szBuffer) + lOffset);
+   if( sType.IsEmpty() ) return _T("");
+
+   // Now, let's find the type in the TAG file
+   int iIndex = m_pCppProject->m_TagManager.FindItem(0, sType);
+   while( iIndex >= 0 ) {
+      if( m_pCppProject->m_TagManager.GetItemType(iIndex) == TAGTYPE_CLASS ) {
+         return sType;
+      }
+      iIndex = m_pCppProject->m_TagManager.FindItem(iIndex + 1, sType);
+   }
+
+   return _T("");
 }
 
 CString CScintillaView::_FindTagType(CString& sName, long lPosition)

@@ -389,16 +389,12 @@ void CCommandView::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
    else if( _tcsnicmp(pstrCommand, _T("? "), 2) == 0 ) 
    {
       ::CoInitialize(NULL);
-      CComObject<CMacro>* pScript;
-      HRESULT Hr = CComObject<CMacro>::CreateInstance(&pScript);
-      if( FAILED(Hr) ) return;
-      pScript->AddRef();
-      pScript->Init(m_pMainFrame, &m_pMainFrame->m_Dispatch);
+      CComObjectGlobal<CMacro> macro;
+      macro.Init(m_pMainFrame, &m_pMainFrame->m_Dispatch);
       CComVariant vRes;
       EXCEPINFO e = { 0 };
-      pScript->RunMacroFromScript(CComBSTR(pstrCommand + 2), NULL, SCRIPTTEXT_ISEXPRESSION, &vRes, &e);
-      pScript->Release();
-      Hr = ::VariantChangeTypeEx(&vRes, &vRes, LOCALE_USER_DEFAULT, VARIANT_ALPHABOOL | VARIANT_LOCALBOOL, VT_BSTR);
+      macro.RunMacroFromScript(CComBSTR(pstrCommand + 2), NULL, SCRIPTTEXT_ISEXPRESSION, &vRes, &e);
+      HRESULT Hr = ::VariantChangeTypeEx(&vRes, &vRes, LOCALE_USER_DEFAULT, VARIANT_ALPHABOOL | VARIANT_LOCALBOOL, VT_BSTR);
       if( Hr == S_OK && e.bstrDescription == NULL ) {
          AppendRtfText(m_hWnd, CString(vRes.bstrVal) + _T("\r\n"), CFM_COLOR, 0, COLOR_BLUE);
       }

@@ -1,0 +1,7 @@
+NAME Templates.dll
+
+EXPORTS
+    Templates_NewFile
+    Templates_NewProject
+    Templates_RunWizard
+

@@ -9,11 +9,18 @@
 int verb = 0;
 
 
+/////////////////////////////////////////////////////////////////////////////
+// DLL Main
+
 BOOL APIENTRY DllMain( HANDLE hInstance, DWORD /*dwReason*/, LPVOID /*lpReserved*/)
 {
    ::DisableThreadLibraryCalls((HINSTANCE)hInstance);
    return TRUE;
 }
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Parse method
 
 LPSTR W2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars)
 {
@@ -28,7 +35,7 @@ bool UDgreater(std::string elem1, std::string elem2)
 }
 
 
-BOOL CALLBACK CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
+BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
 {   
    extern void parseCpp(Entry* rt);
 

@@ -56,11 +56,11 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
    // It's not unlikely that the parse fails since it should stop at
    // normals syntax errors and less obvious LALR failures! In
    // this case we just ignore the contents...
-   typedef BOOL (CALLBACK* LPFNPARSE)(LPCWSTR, LPCSTR);
-   LPFNPARSE pParse = (LPFNPARSE) ::GetProcAddress(s_hInst, "CppLexer_Parse");
-   ATLASSERT(pParse);
+   typedef BOOL (APIENTRY* LPFNPARSE)(LPCWSTR, LPCSTR);
+   LPFNPARSE fnParse = (LPFNPARSE) ::GetProcAddress(s_hInst, "CppLexer_Parse");
+   ATLASSERT(fnParse);
    BOOL bRes = FALSE;
-   ATLTRY( bRes = pParse(pstrFilename, pstrText) );
+   ATLTRY( bRes = fnParse(pstrFilename, pstrText) );
    if( !bRes ) return false;
 
    // Get the new file into structured form

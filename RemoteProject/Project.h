@@ -186,6 +186,7 @@ public:
       COMMAND_ID_HANDLER(ID_BUILD_COMPILE, OnBuildCompile)
       COMMAND_ID_HANDLER(ID_BUILD_CHECKSYNTAX, OnBuildCheckSyntax)
       COMMAND_ID_HANDLER(ID_BUILD_BUILDMAKEFILE, OnBuildMakefile)
+      COMMAND_ID_HANDLER(ID_BUILD_FILEWIZARD, OnBuildFileWizard)
       COMMAND_ID_HANDLER(ID_BUILD_BUILDTAGS, OnBuildTags)
       COMMAND_ID_HANDLER(ID_BUILD_STOP, OnBuildStop)
       COMMAND_ID_HANDLER(ID_PROCESS, OnProcess)
@@ -233,6 +234,7 @@ public:
    LRESULT OnBuildCheckSyntax(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
    LRESULT OnBuildTags(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
    LRESULT OnBuildMakefile(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
+   LRESULT OnBuildFileWizard(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
    LRESULT OnBuildStop(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
    LRESULT OnToolBarDropDown(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeLabelBegin(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
@@ -263,12 +265,14 @@ protected:
    bool _LoadFiles(ISerializable* pArc, IElement* pParent);
    bool _SaveFiles(ISerializable* pArc, IElement* pParent);
    void _PopulateTree(CTreeViewCtrl& ctrlTree, IElement* pParent, HTREEITEM hParent) const;
+   bool _RunFileWizard(HWND hWnd, LPCTSTR pstrName, IView* pView);
    bool _CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, bool bRemote);
    IView* _CreateDependencyFile(LPCTSTR pstrFilename, LPCTSTR pstrName);
    IElement* _GetSelectedTreeElement(HTREEITEM* phItem = NULL) const;
    IElement* _GetDropTreeElement(HTREEITEM* phItem = NULL) const;
-   int _GetElementImage(IElement* pElement) const;
    UINT _GetMenuPosFromID(HMENU hMenu, UINT ID) const;
+   int _GetElementImage(IElement* pElement) const;
+   bool _CreateNewRemoteFile(HWND hWnd, IView* pElement);
    bool _AddCommandBarImages(UINT nRes) const;
    static void _AddDropDownButton(CToolBarCtrl tb, UINT nID);
    static void _AddButtonText(CToolBarCtrl tb, UINT nID, UINT nRes);

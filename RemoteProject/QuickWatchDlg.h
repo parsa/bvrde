@@ -5,13 +5,13 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-class IDevEnv;
 class CRemoteProject;
 
 
 class CQuickWatchDlg : 
    public CDialogImpl<CQuickWatchDlg>,
-   public COwnerDraw<CQuickWatchDlg>
+   public COwnerDraw<CQuickWatchDlg>,
+   public CDialogResize<CQuickWatchDlg>
 {
 public:
    enum { IDD = IDD_QUICKWATCH };
@@ -36,8 +36,8 @@ public:
    CIcon m_PlusIcon;
    CIcon m_MinusIcon;
 
-   CRemoteProject* m_pProject;
    IDevEnv* m_pDevEnv;
+   CRemoteProject* m_pProject;
 
    CString m_sDefault;
    CString m_sVariableName;
@@ -50,6 +50,14 @@ public:
 
    void SetInfo(LPCTSTR pstrType, CMiInfo& info);
 
+   BEGIN_DLGRESIZE_MAP(CQuickWatchDlg)
+      DLGRESIZE_CONTROL(IDC_LINE, DLSZ_SIZE_X)
+      DLGRESIZE_CONTROL(IDC_LIST, DLSZ_SIZE_X | DLSZ_SIZE_Y)      
+      DLGRESIZE_CONTROL(IDOK, DLSZ_MOVE_X)
+      DLGRESIZE_CONTROL(IDCANCEL, DLSZ_MOVE_X)
+      DLGRESIZE_CONTROL(IDC_ADD_WATCH, DLSZ_MOVE_X)
+   END_DLGRESIZE_MAP()
+
    BEGIN_MSG_MAP(CQuickWatchDlg)
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
       MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
@@ -58,7 +66,8 @@ public:
       COMMAND_ID_HANDLER(IDOK, OnOK)
       COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
       CHAIN_MSG_MAP( COwnerDraw<CQuickWatchDlg> )
-   ALT_MSG_MAP(1)
+      CHAIN_MSG_MAP( CDialogResize<CQuickWatchDlg> )
+  ALT_MSG_MAP(1)
       MESSAGE_HANDLER(WM_CHAR, OnEditChar)
    ALT_MSG_MAP(2)
       MESSAGE_HANDLER(WM_LBUTTONDOWN, OnListClick)

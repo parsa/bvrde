@@ -1106,10 +1106,6 @@ void CScintillaView::_SetLineIndentation(int iLine, int iIndent)
          if( cr.cpMax >= posBefore ) cr.cpMax += posDifference; else cr.cpMax = posAfter;
       }
    }
-   else if( posAfter == posBefore ) {
-      // Move to indent position
-      cr.cpMin = cr.cpMax = posAfter;
-   }
    SetSel(cr.cpMin, cr.cpMax);
 }
 

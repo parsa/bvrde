@@ -259,7 +259,7 @@ BSTR CFileOM::get_Text()
 
 VARIANT_BOOL CFileOM::Open()
 {
-   return m_pOwner->OpenView(0) ? VARIANT_TRUE : VARIANT_FALSE;
+   return m_pOwner->OpenView(0L) ? VARIANT_TRUE : VARIANT_FALSE;
 }
 
 VOID CFileOM::Close()
@@ -311,7 +311,7 @@ BSTR CTextFileOM::get_Text()
 
 VARIANT_BOOL CTextFileOM::Open()
 {
-   return m_pOwner->OpenView(0) ? VARIANT_TRUE : VARIANT_FALSE;
+   return m_pOwner->OpenView(-2L) ? VARIANT_TRUE : VARIANT_FALSE;
 }
 
 VOID CTextFileOM::Close()
@@ -326,37 +326,37 @@ VARIANT_BOOL CTextFileOM::Save()
 
 INT CTextFileOM::get_TextLength()
 {
-   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
+   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    return (INT) m_pOwner->m_view.m_ctrlEdit.GetTextLength();
 }
 
 INT CTextFileOM::get_Lines()
 {
-   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
+   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    return (INT) m_pOwner->m_view.m_ctrlEdit.GetLineCount();
 }
 
 INT CTextFileOM::get_CurPos()
 {
-   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
+   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    return (INT) m_pOwner->m_view.m_ctrlEdit.GetCurrentPos();
 }
 
 INT CTextFileOM::get_CurLine()
 {
-   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
+   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    return (INT) m_pOwner->m_view.m_ctrlEdit.GetCurrentLine() + 1;
 }
 
 VOID CTextFileOM::SetSelection(INT iStart, INT iEnd)
 {
-   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
+   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    m_pOwner->m_view.m_ctrlEdit.SetSel(iStart, iEnd);
 }
 
 BSTR CTextFileOM::GetSelection()
 {
-   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
+   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    CharacterRange cr = m_pOwner->m_view.m_ctrlEdit.GetSelection();
    LPSTR pstrBuffer = (LPSTR) malloc(cr.cpMax - cr.cpMin + 1);
    if( pstrBuffer == NULL ) return NULL;
@@ -368,27 +368,28 @@ BSTR CTextFileOM::GetSelection()
 
 VOID CTextFileOM::ReplaceSelection(BSTR Text)
 {
-   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
+   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    USES_CONVERSION;
    if( Text == NULL ) Text = L"";
    m_pOwner->m_view.m_ctrlEdit.ReplaceSel(OLE2CA(Text));
+   m_pOwner->m_bIsDirty = TRUE;
 }
 
 INT CTextFileOM::PosFromLine(INT iLine)
 {
-   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
+   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    return (INT) m_pOwner->m_view.m_ctrlEdit.PositionFromLine(iLine - 1);
 }
 
 INT CTextFileOM::LineLength(INT iLine)
 {
-   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
+   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    return (INT) m_pOwner->m_view.m_ctrlEdit.LineLength(iLine - 1);
 }
 
 VARIANT_BOOL CTextFileOM::FindText(BSTR Text)
 {
-   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
+   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    USES_CONVERSION;
    if( Text == NULL ) Text = L"";
    int iPos = m_pOwner->m_view._FindNext(FR_DOWN | FR_WRAP, OLE2CA(Text), false);
@@ -398,7 +399,7 @@ VARIANT_BOOL CTextFileOM::FindText(BSTR Text)
 
 VOID CTextFileOM::SendRawMessage(INT uMsg, INT wParam, BSTR lParam)
 {
-   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
+   if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    USES_CONVERSION;
    m_pOwner->m_view.m_ctrlEdit.SetFocus(TRUE);
    m_pOwner->m_view.m_ctrlEdit.SendMessage((UINT) uMsg, (WPARAM) wParam, (LPARAM) OLE2CT(lParam));

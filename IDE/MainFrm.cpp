@@ -701,13 +701,9 @@ LRESULT CMainFrame::OnMacroPlay(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
    }
    // TODO: Add some kind of message/notification to clients to allow
    //       editors to wrap this sequence in an Undo/Redo transaction.
-   CComObject<CMacro>* pScript;
-   HRESULT Hr = CComObject<CMacro>::CreateInstance(&pScript);
-   if( FAILED(Hr) ) return 0;
-   pScript->AddRef();
-   pScript->Init(this, &m_Dispatch);
-   pScript->RunMacroFromScript(CComBSTR(m_sMacro), L"Macro");
-   pScript->Release();
+   CComObjectGlobal<CMacro> macro;
+   macro.Init(this, &m_Dispatch);
+   macro.RunMacroFromScript(CComBSTR(m_sMacro), L"Macro");
    return 0;
 }
 

@@ -87,6 +87,7 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
             //       The cause is the lack of information in the GDB "value" response
             //       which forces us to use a global 'm_sQueryVariable' variable to
             //       hold the currently queried name information.
+            //       See several other complaints about this in DebugManager.cpp.
             break;
          }
       }
@@ -156,6 +157,7 @@ LRESULT CQuickWatchDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    // Start with viewing right away
    PostMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0));
 
+   DlgResize_Init(true, true);
    return TRUE;
 }
 
@@ -396,4 +398,5 @@ void CQuickWatchDlg::_CalcColumnWidth()
 void CQuickWatchDlg::_UpdateButtons()
 {
    CWindow(GetDlgItem(IDOK)).EnableWindow(m_ctrlLine.GetWindowTextLength() > 0);
+   CButton(GetDlgItem(IDOK)).SetButtonStyle(m_ctrlLine.GetWindowTextLength() > 0 ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
 }

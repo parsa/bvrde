@@ -105,6 +105,7 @@ public:
    bool _HasSelection() const;
    void _RegisterListImages();
    int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings);
+   CString _FindBlockType(long lPosition);
    CString _FindTagType(CString& sName, long lPosition);
    CString _GetSelectedText();
    CString _GetNearText(long iPosition);

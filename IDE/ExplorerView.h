@@ -74,7 +74,7 @@ public:
    {
       m_ctrlViews.Create(m_hWnd, rcDefault);
 
-      m_Images.Create(IDB_EXPLORER, 16, 1, RGB(255,0,255));
+      m_Images.Create(IDB_EXPLORER, 16, 0, RGB(255,0,255));
       m_ctrlTab.Create(m_hWnd, rcDefault, NULL, WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TCS_BOTTOM | TCS_TOOLTIPS);
       m_ctrlTab.SetExtendedStyle(0, TCS_EX_FLATSEPARATORS | TCS_EX_COMPRESSLINE);
       m_ctrlTab.SetImageList(m_Images);

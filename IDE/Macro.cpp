@@ -9,17 +9,12 @@
 
 #define SCRIPT_PROGID  L"VBScript"
 
-// GUIDs for scripting code
-const IID IID_IScripter = {0x175C8D33,0x01C4,0x4B7B,{0x87,0x66,0x7E,0x71,0x30,0x07,0x77,0xB3}};
-const CLSID CLSID_Scripter = {0xDF58AA46,0xC53A,0x4E21,{0x85,0xE7,0xAC,0x7C,0xC6,0xB5,0xFF,0xA0}};
-
 
 // Operations
 
 void CMacro::Init(CMainFrame* pFrame, CApplicationOM* pApp)
 {
    m_pMainFrame = pFrame;
-   m_pApp = pApp;
    m_Globals.Init(pApp);
    m_hWnd = m_pMainFrame->m_hWnd;
 }
@@ -68,13 +63,13 @@ bool CMacro::RunMacroFromScript(CComBSTR bstrData,
    // them locally.
    m_pExcepInfo = pExcepInfo;
 
-   CComQIPtr<IActiveScriptSite> spPass(this);
+   CComQIPtr<IActiveScriptSite> spPass = this;
    if( spPass == NULL ) return false;
 
    Hr = spScript->SetScriptSite(spPass);
    if( FAILED(Hr) ) return false;
 
-   CComQIPtr<IActiveScriptParse> spParse(spScript);
+   CComQIPtr<IActiveScriptParse> spParse = spScript;
    if( spParse == NULL ) return false;
 
    spParse->InitNew();
@@ -132,8 +127,8 @@ STDMETHODIMP CMacro::GetItemInfo(LPCOLESTR pstrName,
    if( (dwReturnMask & SCRIPTINFO_IUNKNOWN) == 0 ) return E_FAIL;
    if( ppUnk == NULL ) return E_POINTER;
    *ppUnk = NULL;
-   if( wcscmp( pstrName, L"Globals" ) == 0 ) *ppUnk = &m_Globals;
-   if( wcscmp( pstrName, L"App" ) == 0 ) *ppUnk = g_pDevEnv->GetDispatch();
+   if( wcsicmp( pstrName, L"Globals" ) == 0 ) *ppUnk = &m_Globals;
+   if( wcsicmp( pstrName, L"App" ) == 0 ) *ppUnk = g_pDevEnv->GetDispatch();
    return *ppUnk == NULL ? E_FAIL : S_OK;
 }
 

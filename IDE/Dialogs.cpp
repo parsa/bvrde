@@ -107,13 +107,9 @@ LRESULT CMainFrame::OnMacroManager(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    CString sFilename;
    CString sFunction;
    dlg.GetSelection(sFilename, sFunction);
-   CComObject<CMacro>* pScript;
-   HRESULT Hr = CComObject<CMacro>::CreateInstance(&pScript);
-   if( FAILED(Hr) ) return 0;
-   pScript->AddRef();
-   pScript->Init(this, &m_Dispatch);
-   pScript->RunMacroFromFile(sFilename, sFunction);
-   pScript->Release();
+   CComObjectGlobal<CMacro> macro;
+   macro.Init(this, &m_Dispatch);
+   macro.RunMacroFromFile(sFilename, sFunction);
    return 0;
 }
 

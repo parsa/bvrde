@@ -16,6 +16,9 @@ CEventMonitor _Monitor;
 #define PLUGIN_DESCRIPTION "Searches for a string in multiple files."
 
 
+/////////////////////////////////////////////////////////////////////////////
+// DLL Main
+
 BOOL APIENTRY DllMain(HINSTANCE hInstance, 
                       DWORD dwReason, 
                       LPVOID /*lpReserved*/)
@@ -32,7 +35,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
    {
      _Module.Term();
    }
-    return TRUE;
+   return TRUE;
 }
 
 

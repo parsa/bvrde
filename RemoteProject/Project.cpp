@@ -332,7 +332,7 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
 
    pUIBase->UIEnable(ID_EDIT_BREAK, bCompiling | bDebugging);
 
-   pUIBase->UIEnable(ID_VIEW_OPEN, pElement != NULL);
+   pUIBase->UIEnable(ID_VIEW_OPEN, pElement != NULL && !bIsFolder);
    pUIBase->UIEnable(ID_VIEW_PROPERTIES, pElement != NULL);
 
    pUIBase->UIEnable(ID_BUILD_COMPILE, sFileType == "CPP" && !bCompiling);
@@ -342,6 +342,8 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_BUILD_SOLUTION, !bCompiling);   
    pUIBase->UIEnable(ID_BUILD_CLEAN, !bCompiling);
    pUIBase->UIEnable(ID_BUILD_BUILDTAGS, !bCompiling);
+   pUIBase->UIEnable(ID_BUILD_BUILDMAKEFILE, !bBusy);
+   pUIBase->UIEnable(ID_BUILD_FILEWIZARD, pElement != NULL && !bBusy && !bIsFolder);   
    pUIBase->UIEnable(ID_BUILD_STOP, bCompiling);
 
    pUIBase->UIEnable(ID_DEBUG_START, (!bCompiling && !bProcessStarted) || bDebugBreak);
@@ -786,9 +788,17 @@ LRESULT CRemoteProject::OnViewOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
    IView* pView = static_cast<IView*>(pElement);
    if( !pView->OpenView(0) ) {
-      GenerateError(_pDevEnv, IDS_ERR_OPENVIEW);
-      m_FileManager.Stop();
-      m_FileManager.Start();
+      if( ::GetLastError() == ERROR_FILE_NOT_FOUND ) {
+         HWND hWnd = ::GetActiveWindow();
+         if( IDYES == _pDevEnv->ShowMessageBox(hWnd, CString(MAKEINTRESOURCE(IDS_CREATEFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), MB_YESNO | MB_ICONQUESTION) ) {
+            _CreateNewRemoteFile(hWnd, pView);
+         }
+      }
+      else {
+         GenerateError(_pDevEnv, IDS_ERR_OPENVIEW);
+         m_FileManager.Stop();
+         m_FileManager.Start();
+      }
    }
    return 0;
 }
@@ -1218,6 +1228,60 @@ LRESULT CRemoteProject::OnBuildTags(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 
 LRESULT CRemoteProject::OnBuildMakefile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+
+   HWND hWnd = ::GetActiveWindow();
+   HTREEITEM hItem = NULL;
+   IElement* pElement = _GetSelectedTreeElement(&hItem);
+   if( pElement == NULL )  return 0;
+
+   IView* pView = NULL;
+   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
+      IView* pFile = m_aFiles[i];
+      CString sType;
+      pFile->GetType(sType.GetBufferSetLength(64), 64);
+      sType.ReleaseBuffer();
+      if( sType == _T("Makefile") ) pView = pFile;
+   }
+   if( pView == NULL ) {
+      if( IDNO == _pDevEnv->ShowMessageBox(hWnd, CString(MAKEINTRESOURCE(IDS_CREATEMAKEFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), MB_YESNO | MB_ICONQUESTION) ) return 0;
+      // Create new file
+      pView = _pDevEnv->CreateView(_T("Makefile"), this, this);
+      if( pView == NULL ) return false;
+      // Load some default properties
+      CViewSerializer arc;
+      arc.Add(_T("name"), _T("Makefile"));
+      arc.Add(_T("filename"), _T("./Makefile"));
+      arc.Add(_T("location"), _T("remote"));
+      pView->Load(&arc);
+      m_aFiles.Add(pView);
+      // Add to tree
+      CTreeViewCtrl ctrlTree = _pDevEnv->GetHwnd(IDE_HWND_EXPLORER_TREE);
+      int iImage = _GetElementImage(pView);
+      ctrlTree.InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM, 
+            _T("Makefile"), 
+            iImage, iImage, 
+            0, 0,
+            (LPARAM) pView,
+            hItem, 
+            TVI_LAST);
+      m_bIsDirty = true;
+   }
+   _RunFileWizard(hWnd, _T("Makefile Wizard"), pView);
+   return 0;
+}
+
+LRESULT CRemoteProject::OnBuildFileWizard(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+   IElement* pElement = _GetSelectedTreeElement();
+   if( pElement == NULL ) return 0;
+   CString sName;
+   pElement->GetName(sName.GetBufferSetLength(100), 100);
+   sName.ReleaseBuffer();
+   if( !_RunFileWizard(::GetActiveWindow(), sName, (IView*) pElement) ) {
+      GenerateError(_pDevEnv, IDS_ERR_NOFILEWIZARD);
+   }
    return 0;
 }
 
@@ -2122,6 +2186,36 @@ bool CRemoteProject::_AddCommandBarImages(UINT nRes) const
       _pDevEnv->AddCommandBarImage(pItems[i], icon);
    }
    return true;
+}
+
+bool CRemoteProject::_CreateNewRemoteFile(HWND hWnd, IView* pView)
+{
+   CString sModule;
+   sModule.Format(_T("%sTemplates.dll"), CModulePath());
+   HINSTANCE hInst = ::LoadLibrary(sModule);
+   if( hInst == NULL ) return false;
+
+   typedef BOOL (APIENTRY* LPFNNEWFILE)(HWND, IDevEnv*, ISolution*, IProject*, IView*);
+   LPFNNEWFILE fnCreate = (LPFNNEWFILE) ::GetProcAddress(hInst, "Templates_NewFile");
+   if( fnCreate == NULL ) return false;
+   if( !fnCreate(hWnd, _pDevEnv, _pDevEnv->GetSolution(), this, pView) ) return false;
+
+   return TRUE;
+}
+
+bool CRemoteProject::_RunFileWizard(HWND hWnd, LPCTSTR pstrName, IView* pView)
+{
+   CString sModule;
+   sModule.Format(_T("%sTemplates.dll"), CModulePath());
+   HINSTANCE hInst = ::LoadLibrary(sModule);
+   if( hInst == NULL ) return false;
+
+   typedef BOOL (APIENTRY* LPFNRUNWIZARD)(HWND, LPCTSTR, IDevEnv*, ISolution*, IProject*, IView*);
+   LPFNRUNWIZARD fnRunWizard = (LPFNRUNWIZARD) ::GetProcAddress(hInst, "Templates_RunWizard");
+   if( fnRunWizard == NULL ) return false;
+   if( !fnRunWizard(hWnd, pstrName, _pDevEnv, _pDevEnv->GetSolution(), this, pView) ) return false;
+
+   return TRUE;
 }
 
 bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, bool bRemote) 

@@ -128,8 +128,9 @@ LRESULT CStackView::OnListDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    m_ctrlStack.GetText(iIndex, sLine);
    int iFilePos = sLine.Find(_T("file='"));
    int iLinePos = sLine.Find(_T("line="));
-   if( iFilePos < 0 || iLinePos < 0 ) return 0;
+   //if( iFilePos < 0 || iLinePos < 0 ) return 0;
    CString sFile = sLine.Mid(iFilePos + 6).SpanExcluding(_T("'"));
+   sFile.Replace(_T("sygwin1.dll"), _T("zless"));
    long lLineNo = _ttol(sLine.Mid(iLinePos + 5));
    m_pProject->OpenView(sFile, lLineNo);
    return 0;

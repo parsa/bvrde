@@ -16,6 +16,9 @@ CEventMonitor _Monitor;
 #define PLUGIN_DESCRIPTION "Adds a File Explorer browser for local files."
 
 
+/////////////////////////////////////////////////////////////////////////////
+// DLL Main
+
 BOOL APIENTRY DllMain(HINSTANCE hInstance, 
                       DWORD dwReason, 
                       LPVOID /*lpReserved*/)

@@ -270,16 +270,14 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
       // View is a remote file; Load it through protocol manager
       if( m_pCppProject != NULL && m_sLocation == _T("remote") ) 
       {
-         LPBYTE pData = NULL;
          DWORD dwSize = 0;
+         LPBYTE pData = NULL;
          if( !m_pCppProject->m_FileManager.LoadFile(m_sFilename, true, &pData, &dwSize) ) {
             if( pData ) free(pData);
             return FALSE;
          }
-         CString s;
-         AtlA2WHelper(s.GetBufferSetLength(dwSize), (LPCSTR) pData, dwSize);
-         s.ReleaseBuffer();
-         CComBSTR bstr = s;
+         CComBSTR bstr( (int) dwSize );
+         AtlA2WHelper(bstr, (LPCSTR) pData, dwSize);
          *pbstrText = bstr.Detach();
          free(pData);
       }
@@ -334,19 +332,11 @@ BOOL CTextFile::OpenView(long lLineNum)
       _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_OPENFILE)));
 
       // Load the file (local file or from remote server)
+      // As a little hack we allow the file to be opened if we request a line-number
+      // less than -1! This allows empty pages to be opened and later saved.
       CComBSTR bstrText;
-      if( !GetText(&bstrText) ) return FALSE;
+      if( !GetText(&bstrText) && lLineNum >= -1 ) return FALSE;
       CString sText = bstrText;
-
-      if( m_sLocation != _T("remote") )
-      {
-         DWORD dwAttribs = ::GetFileAttributes(_GetRealFilename());
-         if( dwAttribs & FILE_ATTRIBUTE_READONLY ) {
-            TCHAR szBuffer[32] = { 0 };
-            _pDevEnv->GetProperty(_T("gui.document.protectReadOnly"), szBuffer, 31);
-            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_view.m_ctrlEdit.SetReadOnly(TRUE);
-         }
-      }
 
       CString sName;
       GetName(sName.GetBufferSetLength(128), 128);
@@ -375,6 +365,17 @@ BOOL CTextFile::OpenView(long lLineNum)
       pstrData[nLen] = '\0';
       m_view.SetText(pstrData);
       free(pstrData);
+
+      // Uphold the read-only rule
+      if( m_sLocation != _T("remote") )
+      {
+         DWORD dwAttribs = ::GetFileAttributes(_GetRealFilename());
+         if( dwAttribs != (DWORD) -1 && (dwAttribs & FILE_ATTRIBUTE_READONLY) != 0 ) {
+            TCHAR szBuffer[32] = { 0 };
+            _pDevEnv->GetProperty(_T("gui.document.protectReadOnly"), szBuffer, 31);
+            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_view.m_ctrlEdit.SetReadOnly(TRUE);
+         }
+      }
 
       m_view.ShowWindow(SW_NORMAL);
    }

@@ -276,7 +276,19 @@ bool CFtpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, D
    DWORD dwFlags = INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_RELOAD;
    dwFlags |= bBinary ? FTP_TRANSFER_TYPE_BINARY : FTP_TRANSFER_TYPE_ASCII;
    HINTERNET hFile = ::FtpOpenFile(m_hFTP, pstrFilename, GENERIC_READ, dwFlags, 0);
-   if( hFile == NULL ) return false;
+   if( hFile == NULL ) {
+      if( ::GetLastError() == ERROR_INTERNET_EXTENDED_ERROR ) {
+         // Rats! MS Wininet usually just claims the server returned extended
+         // error information, not trying to properly translate the error.
+         // We'll convert basic FTP error codes ourselves...
+         DWORD dwErr = 0;
+         TCHAR szMessage[200] = { 0 };
+         DWORD cchMax = 199;
+         ::InternetGetLastResponseInfo(&dwErr, szMessage, &cchMax);
+         if( _tcsstr(szMessage, _T("550 ")) != NULL ) ::SetLastError(ERROR_FILE_NOT_FOUND);
+      }
+      return false;
+   }
 
    const DWORD BUFFER_SIZE = 4096;
    LPBYTE pBuffer = (LPBYTE) malloc(BUFFER_SIZE);
@@ -372,7 +384,7 @@ CString CFtpProtocol::GetCurPath()
 bool CFtpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
 {
    if( !_WaitForConnection() ) return false;
-   WIN32_FIND_DATA fd;
+   WIN32_FIND_DATA fd = { 0 };
    DWORD dwFlags = INTERNET_FLAG_DONT_CACHE;
    HINTERNET hFind = ::FtpFindFirstFile(m_hFTP, NULL, &fd, dwFlags, 0);
    if( hFind == NULL && ::GetLastError() == ERROR_NO_MORE_FILES ) return true;
@@ -388,11 +400,17 @@ bool CFtpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
 
 CString CFtpProtocol::FindFile(LPCTSTR pstrFilename)
 {
+   // Connected?
+   if( !_WaitForConnection() ) return _T("");
+   // Get file information
+   WIN32_FIND_DATA fd = { 0 };
+   DWORD dwFlags = INTERNET_FLAG_DONT_CACHE;
    if( pstrFilename[0] == '/' ) {
-      LPBYTE pData = NULL;
-      bool bFound = LoadFile(pstrFilename, true, &pData);
-      free(pData);
-      return bFound ? pstrFilename : NULL;
+      HINTERNET hFind = ::FtpFindFirstFile(m_hFTP, pstrFilename, &fd, dwFlags, 0);
+      if( hFind != NULL ) {
+         ::InternetCloseHandle(hFind);
+         return pstrFilename;
+      }
    }
    else {
       CString sPath = m_sSearchPath;
@@ -401,14 +419,15 @@ CString CFtpProtocol::FindFile(LPCTSTR pstrFilename)
          CString sFilename = sSubPath;
          if( sFilename.Right(1) != _T("/") ) sFilename += _T("/");
          sFilename += pstrFilename;
-         LPBYTE pData = NULL;
-         bool bFound = LoadFile(sFilename, true, &pData);
-         free(pData);
-         if( bFound ) return sFilename;
+         HINTERNET hFind = ::FtpFindFirstFile(m_hFTP, sFilename, &fd, dwFlags, 0);
+         if( hFind != NULL ) {
+            ::InternetCloseHandle(hFind);
+            return sFilename;
+         }
          sPath = sPath.Mid(sSubPath.GetLength() + 1);
       }
-      return _T("");
    }
+   return _T("");
 }
 
 bool CFtpProtocol::_WaitForConnection()
