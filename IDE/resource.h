@@ -84,6 +84,7 @@
 #define IDS_TYPE                        202
 #define IDR_PROJECT                     203
 #define IDS_TREE_BASIC                  203
+#define IDR_SOLUTION                    203
 #define IDS_TREE_ADVANCED               204
 #define IDS_CREDITS                     204
 #define IDB_EXPLORER                    205

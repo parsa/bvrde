@@ -219,6 +219,12 @@ LRESULT CFileOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
    sValue = m_pProject->m_FileManager.GetParam(_T("Proxy"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 2));
 
+   sName.LoadString(IDS_MORE);
+   m_ctrlList.AddItem(PropCreateCategory(sName));
+   sName.LoadString(IDS_COMMAND_SEARCHPATH);
+   sValue = m_pProject->m_FileManager.GetParam(_T("SearchPath"));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 3));
+
    return 0;
 }
 
@@ -238,6 +244,9 @@ int CFileOptionsPage::OnApply()
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(2), &v);
    m_pProject->m_FileManager.SetParam(_T("Proxy"), CString(v.bstrVal));
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(3), &v);
+   m_pProject->m_FileManager.SetParam(_T("SearchPath"), CString(v.bstrVal));
 
    return PSNRET_NOERROR;
 }

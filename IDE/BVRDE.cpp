@@ -111,8 +111,6 @@ static void PreloadLibraries()
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
-   DWORD dwStartTick = ::GetTickCount();
-   
    // Need single-threaded COM because of Active Scripting
    // and OLE drag'n'drop below...
    HRESULT hRes = ::CoInitialize(NULL);

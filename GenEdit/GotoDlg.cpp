@@ -18,7 +18,7 @@ LRESULT CGotoDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
    SetDlgItemInt(IDC_CURRLINE, m_ctrlScintilla.GetCurrentLine() + 1);
    SetDlgItemInt(IDC_LASTLINE, m_ctrlScintilla.GetLineCount());
    _UpdateButtons();
-   return 0;
+   return TRUE;
 }
 
 LRESULT CGotoDlg::OnChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

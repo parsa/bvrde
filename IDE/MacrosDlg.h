@@ -67,7 +67,7 @@ public:
       BOOL bDummy;
       OnFileChange(0, 0, NULL, bDummy);
 
-      return 0;
+      return TRUE;
    }
    LRESULT OnColorListBox(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {

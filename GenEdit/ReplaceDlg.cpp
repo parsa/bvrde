@@ -71,7 +71,7 @@ LRESULT CReplaceDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    }
 
    _UpdateButtons();
-   return 0;
+   return TRUE;
 }
 
 LRESULT CReplaceDlg::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

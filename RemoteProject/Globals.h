@@ -169,7 +169,8 @@ public:
    virtual bool SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE ppOut, DWORD dwSize) = 0;  
    virtual bool SetCurPath(LPCTSTR pstrPath) = 0;
    virtual CString GetCurPath() = 0;
-   virtual bool EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles) = 0;   
+   virtual bool EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles) = 0;
+   virtual CString FindFile(LPCTSTR pstrFilename) = 0;
    //
    virtual CString GetParam(LPCTSTR pstrName) const = 0;
    virtual void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue) = 0;

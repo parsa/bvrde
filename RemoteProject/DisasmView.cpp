@@ -78,8 +78,8 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
             sDisasm.Replace(_T("<"), _T("\\cf2  <"));
             sDisasm += _T("\\cf0 ");
          }
-         if( sDisasm.Find('\t') > 0 ) {
-            sDisasm.Replace(_T("<"), _T("\\cf2  \t"));
+         else if( sDisasm.Find('\t') > 0 ) {
+            sDisasm.Replace(_T("\t"), _T("\\cf2  \t"));
             sDisasm += _T("\\cf0 ");
          }
          sTemp.Format(_T("\t %s\\par "), sDisasm);

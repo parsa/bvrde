@@ -23,6 +23,8 @@ extern int verb;
 #define VARIABLE_SEC  0x00000020
 #define EMPTY_SEC     0x00000040
 #define MACRO_SEC     0x00000080
+#define ENUM_SEC      0x00000100
+#define STRUCT_SEC    0x00000200
 
 #define onlyDocs 0
 

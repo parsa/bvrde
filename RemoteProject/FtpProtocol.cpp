@@ -172,6 +172,8 @@ bool CFtpProtocol::Load(ISerializable* pArc)
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
    if( m_sPath.IsEmpty() ) m_sPath = _T("/");
+   pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(128), 128);
+   m_sSearchPath.ReleaseBuffer();
    pArc->Read(_T("proxy"), m_sProxy.GetBufferSetLength(128), 128);
    m_sProxy.ReleaseBuffer();
    pArc->Read(_T("passive"), m_bPassive);
@@ -187,6 +189,7 @@ bool CFtpProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("user"), m_sUsername);
    pArc->Write(_T("password"), m_sPassword);
    pArc->Write(_T("path"), m_sPath);
+   pArc->Write(_T("searchPath"), m_sSearchPath);
    pArc->Write(_T("proxy"), m_sProxy);
    pArc->Write(_T("passive"), m_bPassive);
    return true;
@@ -233,6 +236,7 @@ CString CFtpProtocol::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
    if( sName == _T("Path") ) return m_sPath;
+   if( sName == _T("SearchPath") ) return m_sSearchPath;
    if( sName == _T("Host") ) return m_sHost;
    if( sName == _T("Username") ) return m_sUsername;
    if( sName == _T("Password") ) return m_sPassword;
@@ -248,6 +252,7 @@ void CFtpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
 {
    CString sName = pstrName;
    if( sName == _T("Path") ) m_sPath = pstrValue;
+   if( sName == _T("SearchPath") ) m_sSearchPath = pstrValue;
    if( sName == _T("Host") ) m_sHost = pstrValue;
    if( sName == _T("Username") ) m_sUsername = pstrValue;
    if( sName == _T("Password") ) m_sPassword = pstrValue;
@@ -379,6 +384,31 @@ bool CFtpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
    }   
    ::InternetCloseHandle(hFind);
    return true;
+}
+
+CString CFtpProtocol::FindFile(LPCTSTR pstrFilename)
+{
+   if( pstrFilename[0] == '/' ) {
+      LPBYTE pData = NULL;
+      bool bFound = LoadFile(pstrFilename, true, &pData);
+      free(pData);
+      return bFound ? pstrFilename : NULL;
+   }
+   else {
+      CString sPath = m_sSearchPath;
+      while( !sPath.IsEmpty() ) {
+         CString sSubPath = sPath.SpanExcluding(_T(";"));
+         CString sFilename = sSubPath;
+         if( sFilename.Right(1) != _T("/") ) sFilename += _T("/");
+         sFilename += pstrFilename;
+         LPBYTE pData = NULL;
+         bool bFound = LoadFile(sFilename, true, &pData);
+         free(pData);
+         if( bFound ) return sFilename;
+         sPath = sPath.Mid(sSubPath.GetLength() + 1);
+      }
+      return _T("");
+   }
 }
 
 bool CFtpProtocol::_WaitForConnection()

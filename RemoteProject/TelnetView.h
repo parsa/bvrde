@@ -45,6 +45,7 @@ public:
    // Operations
 
    void Init(CShellManager* pTelnet, DWORD dwFlags = 0);
+   void Close();
    void Clear();
    void SetFlags(DWORD dwFlags);
    void SetColors(COLORREF clrText, COLORREF clrBack);

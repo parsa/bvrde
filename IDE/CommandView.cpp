@@ -206,7 +206,6 @@ void CCommandView::_ExecAndCapture(LPCTSTR pstrCommandLine)
    while( bRunning ) {
       DWORD dwBytesRead = 0;
       DWORD dwBytesAvail = 0;
-
       BYTE bBuffer[1024 + 1];
       if( !::PeekNamedPipe(hPipeRead, bBuffer, sizeof(bBuffer) - 1, &dwBytesRead, &dwBytesAvail, NULL) ) {
          dwBytesAvail = 0;
@@ -215,7 +214,10 @@ void CCommandView::_ExecAndCapture(LPCTSTR pstrCommandLine)
          BOOL bTest = ::ReadFile(hPipeRead, bBuffer, sizeof(bBuffer) - 1, &dwBytesRead, NULL);
          if( !bTest ) break;
          bBuffer[dwBytesRead] = '\0';
-         AppendRtfText(m_hWnd, A2CT((LPSTR)bBuffer));
+         CString sText = (LPSTR) bBuffer;
+         sText.Remove('\r');
+         sText.Replace(_T("\n"), _T("\r\n"));
+         AppendRtfText(m_hWnd, sText);
          UpdateWindow();
       }
       if( dwTimeDetectedDeath > 0 && ::GetTickCount()  - dwTimeDetectedDeath > 500 ) bRunning = false;

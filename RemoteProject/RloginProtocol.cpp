@@ -538,6 +538,7 @@ bool CRloginProtocol::WriteScreenSize(int w, int h)
    if( m_socket.IsNull() ) return false;
    if( m_thread.ShouldStop() ) return false;
    if( !WaitForConnection() ) return false;
+   // Send "Window Size Marker" down the data-stream.
    BYTE b[12] = { 0xFF, 0xFF, 0x73, 0x73, 0, 0, 0, 0, 0, 0, 0, 0 };
    b[4] = (BYTE) ((w >> 8) & 0xFF);
    b[5] = (BYTE) (w & 0xFF);

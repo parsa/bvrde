@@ -118,6 +118,8 @@ LRESULT CResultView::OnContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
 {
    if( m_pCurProcessingList == NULL ) return 0;
    if( m_pCurProcessingList->GetSelectedCount() == 0 ) return 0;
+
+   CResultListCtrl& ctrlList = *m_pCurProcessingList;
    
    CMenu menu;
    menu.LoadMenu(IDR_EDIT_LIST);
@@ -126,19 +128,19 @@ LRESULT CResultView::OnContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
    UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, pt, FALSE);
    if( nCmd == 0 ) return 0;
 
-   CHeaderCtrl ctrlHeader = m_pCurProcessingList->GetHeader();
+   CHeaderCtrl ctrlHeader = ctrlList.GetHeader();
    int nColumns = ctrlHeader.GetItemCount();
    CString sText, sItem;
-   int iIndex = m_pCurProcessingList->GetNextItem(-1, LVNI_SELECTED);
+   int iIndex = ctrlList.GetNextItem(-1, LVNI_SELECTED);
    while( iIndex != -1 ) {
       for( int i = 0; i < nColumns; i++ ) {
          sItem = _T("");
-         m_pCurProcessingList->GetItemText(iIndex, i, sItem);
+         ctrlList.GetItemText(iIndex, i, sItem);
          sText += sItem + (i != nColumns - 1 ? _T("\t") : _T("\r\n"));
       }      
-      iIndex = m_pCurProcessingList->GetNextItem(iIndex, LVNI_SELECTED);
+      iIndex = ctrlList.GetNextItem(iIndex, LVNI_SELECTED);
    }
-   AtlSetClipboardText(m_pCurProcessingList->m_hWnd, sText);
+   AtlSetClipboardText(ctrlList, sText);
    return 0;
 }
 

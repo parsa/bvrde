@@ -89,7 +89,8 @@ public:
       OnItemChanged(0, NULL, bDummy);
 
       CenterWindow();
-      return 0;
+
+      return TRUE;
    }
    LRESULT OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {

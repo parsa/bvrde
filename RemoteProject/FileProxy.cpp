@@ -156,3 +156,9 @@ bool CFileManager::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
    return m_pProtocol->EnumFiles(aFiles);
 }
 
+CString CFileManager::FindFile(LPCTSTR pstrFilename)
+{
+   ATLASSERT(m_pProtocol);
+   if( m_pProtocol == NULL ) return _T("");
+   return m_pProtocol->FindFile(pstrFilename);
+}

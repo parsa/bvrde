@@ -268,6 +268,7 @@ BEGIN
         MENUITEM "SQL Text",                    ID_VIEW_TAB1
         MENUITEM "Result View",                 ID_VIEW_TAB2
         MENUITEM "SQL Result",                  ID_VIEW_TAB3
+        MENUITEM SEPARATOR
     END
     POPUP "Sub3"
     BEGIN

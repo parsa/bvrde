@@ -130,5 +130,13 @@ SOURCE=.\StdAfx.h
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
+# Begin Group "Other Files"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\cpp.l
+# End Source File
+# End Group
 # End Target
 # End Project

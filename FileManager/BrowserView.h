@@ -261,11 +261,12 @@ public:
       CWindowRedraw redraw = m_ctrlFolders;
       CPidl pidl;
       TCHAR szPath[MAX_PATH] = { 0 };
-      if( !m_ctrlFiles.GetItemPath(pnmlv->iItem, szPath) ) return 0;
+      m_ctrlFiles.GetItemPath(pnmlv->iItem, szPath);
       m_ctrlFiles.GetItemPidl(pnmlv->iItem, &pidl);
       m_ctrlFolders.SelectPidl(pidl);
       DWORD dwFlags = ::GetFileAttributes(szPath);
-      if( (dwFlags & FILE_ATTRIBUTE_DIRECTORY) == 0 ) {
+      if( (dwFlags & FILE_ATTRIBUTE_DIRECTORY) == 0 && _tcslen(szPath) > 0 ) 
+      {
          IView* pView = _pDevEnv->CreateView(szPath, NULL, NULL);
          if( pView ) pView->OpenView(0);
       }

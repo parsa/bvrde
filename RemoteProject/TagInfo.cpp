@@ -114,8 +114,8 @@ CString CTagInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NUL
    CString sTypeTag;
    CString sTypeParent;
    if( pstrOwner != NULL ) {
-      int iIndex = FindItem(0, pstrOwner);
       bool bFound = false;
+      int iIndex = FindItem(0, pstrOwner);
       while( !bFound ) {
          if( iIndex < 0 ) return _T("");
          const TAGINFO& info = m_aTags[iIndex];
@@ -210,9 +210,14 @@ bool CTagInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aList)
    int nCount = m_aTags.GetSize();
    for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
       TAGINFO& info = m_aTags[iIndex];
-      if( info.Type != TAGTYPE_CLASS && info.Type != TAGTYPE_TYPEDEF ) continue;
-      TAGINFO* pTag = &m_aTags[iIndex];
-      aList.Add(pTag);
+      switch( info.Type ) {
+      case TAGTYPE_CLASS:
+      case TAGTYPE_TYPEDEF:
+      case TAGTYPE_STRUCT:
+         TAGINFO* pTag = &m_aTags[iIndex];
+         aList.Add(pTag);
+         break;
+      }
    }
 
    return aList.GetSize() > 0;

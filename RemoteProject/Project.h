@@ -57,6 +57,7 @@ private:
    CString m_sPath;
    CSimpleArray<LAZYDATA> m_aLazyData;
    CSimpleValArray<IView*> m_aFiles;
+   CSimpleValArray<IView*> m_aDependencies;
    CQuickWatchDlg* m_pQuickWatchDlg;
    bool m_bIsDirty;
    //
@@ -263,6 +264,7 @@ protected:
    bool _SaveFiles(ISerializable* pArc, IElement* pParent);
    void _PopulateTree(CTreeViewCtrl& ctrlTree, IElement* pParent, HTREEITEM hParent) const;
    bool _CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, bool bRemote);
+   IView* _CreateDependencyFile(LPCTSTR pstrFilename, LPCTSTR pstrName);
    IElement* _GetSelectedTreeElement(HTREEITEM* phItem = NULL) const;
    IElement* _GetDropTreeElement(HTREEITEM* phItem = NULL) const;
    int _GetElementImage(IElement* pElement) const;

@@ -24,9 +24,14 @@ public:
    bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance);
 
 public:
+   enum
+   {
+      LEXTYPE_UNKNOWN,
+      LEXTYPE_CTAGS,
+      LEXTYPE_LEX,
+   } m_LexType;
    CTagInfo m_TagInfo;
    CLexInfo m_LexInfo;
-   int m_iWhatType;
 };
 
 

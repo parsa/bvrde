@@ -24,13 +24,13 @@ public:
    }
 
    BEGIN_MSG_MAP(CLayoutDlg)
-      MESSAGE_HANDLER(WM_INITDIALOG, OnCreate)
+      MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
       COMMAND_CODE_HANDLER(BN_CLICKED, OnChanged)
       NOTIFY_CODE_HANDLER(TVN_ITEMCHECKED, OnItemChanged)
       REFLECT_NOTIFICATIONS()
    END_MSG_MAP()
 
-   LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+   LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       m_ctrlTree.SubclassWindow(GetDlgItem(IDC_LIST));
       for( int i = 0; i < m_pMainFrame->m_aToolBars.GetSize(); i++ ) {
@@ -39,7 +39,7 @@ public:
          m_ctrlTree.SetCheckState(hItem, ::IsWindowVisible(tb.hWnd));
       }
       m_ctrlLarge = GetDlgItem(IDC_LARGE_ICONS);
-      return 0;
+      return TRUE;
    }
    LRESULT OnApply(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {

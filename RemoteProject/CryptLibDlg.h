@@ -32,7 +32,7 @@ public:
       m_ctrlTitle = GetDlgItem(IDC_TITLE);
       m_ctrlTitle.SetFont(m_font);
       m_ctrlLink.SubclassWindow(GetDlgItem(IDC_LINK));
-      return 0;
+      return TRUE;
    }
    LRESULT OnCtlColorStatic(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {
@@ -42,7 +42,7 @@ public:
       }
       CDCHandle dc( (HDC) wParam );
       dc.SetBkMode(TRANSPARENT);
-      return (LRESULT) (HBRUSH) ( AtlGetStockBrush(WHITE_BRUSH) );
+      return (LRESULT) (HBRUSH) AtlGetStockBrush(WHITE_BRUSH);
    }
    LRESULT OnClose(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {

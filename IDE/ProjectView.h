@@ -22,6 +22,7 @@ public:
       MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkgnd)
       MESSAGE_HANDLER(WM_SIZE, OnSize)
       NOTIFY_HANDLER(IDC_TREE, TVN_ITEMEXPANDED, OnItemExpanded)      
+      NOTIFY_HANDLER(IDC_TREE, NM_RCLICK, OnRClick)
       NOTIFY_ID_HANDLER(IDC_TREE, OnTreeMessage)
       // Not entirely sure why this filter is needed...
       if( uMsg == WM_NOTIFY && ((LPNMHDR)lParam)->hwndFrom == m_ctrlToolbar ) REFLECT_NOTIFICATIONS()
@@ -62,6 +63,8 @@ public:
    LRESULT OnItemExpanded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
    {
       bHandled = FALSE;
+      // Toggle the icon of the folder items.
+      // They have both an open/closed state.
       LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
       TVITEM item = lpNMTV->itemNew;
       item.mask |= TVIF_IMAGE;
@@ -73,12 +76,36 @@ public:
       }
       return 0;
    }
+   LRESULT OnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
+   {
+      bHandled = FALSE;
+      // Show popup menu for Solution if this item was clicked...
+      LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
+      HTREEITEM hItem = m_ctrlTree.GetDropHilightItem();
+      if( hItem == NULL ) hItem = m_ctrlTree.GetSelectedItem();
+      if( hItem == NULL ) return 0;
+      IElement* pElement = (IElement*) m_ctrlTree.GetItemData(hItem);
+      CString sType;
+      pElement->GetType(sType.GetBufferSetLength(64), 64);
+      sType.ReleaseBuffer();
+      if( sType != _T("Solution") ) return 0;
+      UINT nRes = IDR_SOLUTION;
+      CMenu menu;
+      menu.LoadMenu(nRes);
+      CMenuHandle submenu = menu.GetSubMenu(0);
+      DWORD dwPos = ::GetMessagePos();
+      POINT pt = { GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos) };
+      g_pDevEnv->ShowPopupMenu(pElement, submenu, pt);
+      bHandled = TRUE;
+      return 0;
+   }
 
    // Operations
 
    void Clear()
    {
       ATLASSERT(m_ctrlTree.IsWindow());
+      // Remove all items and insert the default "Solution" item...
       m_ctrlTree.DeleteAllItems();
       HTREEITEM hRoot;
       CString sSolution(MAKEINTRESOURCE(IDS_SOLUTION));

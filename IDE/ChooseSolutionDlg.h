@@ -52,6 +52,7 @@ public:
       }
 
       CenterWindow(GetParent());
+
       return TRUE;
    }
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

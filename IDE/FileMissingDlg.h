@@ -34,7 +34,7 @@ public:
       m_ctrlLink.SubclassWindow(GetDlgItem(IDC_LINK));
       // Float on top of splash screen
       SetWindowPos(HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-      return 0;
+      return TRUE;
    }
    LRESULT OnCtlColorStatic(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {

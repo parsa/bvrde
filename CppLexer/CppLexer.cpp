@@ -53,6 +53,7 @@ BOOL CALLBACK CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
       if( cr->name.empty() ) continue;
       if( cr->name.at(0) == '#' ) continue;
       if( cr->name.at(0) == '*' ) continue;
+      if( cr->name.at(0) == '(' ) continue;
       if( cr->name.find("::") != std::string::npos ) continue;
 
       char type = 'm';
@@ -60,9 +61,11 @@ BOOL CALLBACK CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
       else if( cr->section == TYPEDEF_SEC ) type = 't';
       else if( cr->section == CLASS_SEC ) type = 'c';
       else if( cr->section == UNION_SEC ) type = 's';
+      else if( cr->section == STRUCT_SEC ) type = 's';
       else if( cr->section == MANUAL_SEC ) type = 'm';
       else if( cr->section == VARIABLE_SEC ) type = 'v';
       else if( cr->section == MACRO_SEC ) type = 'd';
+      else if( cr->section == ENUM_SEC ) type = 'e';
 
       char prot = 'g';
       if( cr->protection == PUBL ) prot = 'p';
@@ -124,7 +127,7 @@ BOOL CALLBACK CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
       NULL);
    if( hFile == INVALID_HANDLE_VALUE ) return FALSE;
    DWORD dwWritten = 0;
-   ::WriteFile(hFile, szFirstLine, ::lstrlenA(szFirstLine), &dwWritten, NULL);
+   ::WriteFile(hFile, szFirstLine, strlen(szFirstLine), &dwWritten, NULL);
    for( int i = 0; i < aList.size(); i++ ) {
       ::WriteFile(hFile, aList[i].c_str(), aList[i].length(), &dwWritten, NULL);
    }

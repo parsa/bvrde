@@ -175,7 +175,7 @@ static int yyread(char *buf,int max_size)
 
 <FindMembers>[ \t]*"typedef"[ \t\r\n]+"struct"[ \t\r\n]+	{
 					  msg( "found struct   ", current->name ) ;
-					  current->section = TYPEDEF_SEC ;
+					  current->section = STRUCT_SEC ;
 					  current->lineNo = yyLineNr;
 					  current->type = "typedef struct" ;
 					  current->name.clear() ;
@@ -183,8 +183,9 @@ static int yyread(char *buf,int max_size)
 					  lineCount() ;
 				  	  BEGIN( ClassName ) ;
 					}
-<FindMembers>[ \t]*"typedef"[ \t\r\n]+"struct"[ \t\r\n]+"{"[ \t\r\n]*	{
-					  current->section = TYPEDEF_SEC ;
+<FindMembers>[ \t]*"typedef"[ \t\r\n]+"struct"[ \t\r\n]*"{"[ \t\r\n]*	{
+					  msg( "found struct   ", current->name ) ;
+					  current->section = STRUCT_SEC ;
 					  current->lineNo = yyLineNr;
 					  current->type = "typedef struct" ;
 					  current->name.clear() ;
@@ -197,7 +198,7 @@ static int yyread(char *buf,int max_size)
 
 <FindMembers>[ \t]*"typedef"[ \t\r\n]+"enum"[ \t\r\n]+	{
 					  msg( "found enum     ", current->name ) ;
-					  current->section = TYPEDEF_SEC ;
+					  current->section = ENUM_SEC ;
 					  current->lineNo = yyLineNr;
 					  current->type = "typedef enum" ;
 					  current->name.clear() ;
@@ -207,7 +208,7 @@ static int yyread(char *buf,int max_size)
 
 <FindMembers>[ \t]*"typedef"[ \t\r\n]+"union"[ \t\r\n]+	{
 					  msg( "found union    ", current->name ) ;
-					  current->section = TYPEDEF_SEC ;
+					  current->section = UNION_SEC ;
 					  current->lineNo = yyLineNr;
 					  current->type = "typedef union" ;
 					  current->name.clear() ;
@@ -225,7 +226,7 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( ClassName ) ;
 					}
 <FindMembers>[ \t]*"struct"[ \t\r\n]+	{ 
-					  current->section = UNION_SEC ;
+					  current->section = STRUCT_SEC ;
 					  addType( current ) ;
 					  current->lineNo = yyLineNr;
 					  if( !current->type.empty() ) current->type += " ";
@@ -234,7 +235,7 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( ClassName ) ;
 					}
 <FindMembers>[ \t]*"enum"[ \t\r\n]+	{ 
-					  current->section = UNION_SEC ;
+					  current->section = ENUM_SEC ;
 					  addType( current ) ;
 					  current->lineNo = yyLineNr;
 					  if( !current->type.empty() ) current->type += " ";
@@ -393,7 +394,7 @@ static int yyread(char *buf,int max_size)
 					  ++bracketCount ;
 					}
 <Curly>"}"				{ 
-					  if( bracketCount )
+					  if( bracketCount > 0 )
 					  {
 						current->program += yytext ;
 						--bracketCount ;
@@ -441,19 +442,16 @@ static int yyread(char *buf,int max_size)
 					}
 <Round>")"				{ 
 					  current->args += *yytext ;
-					  if( bracketCount )
+					  if( bracketCount > 0 )
 					    --bracketCount ;
 					  else
 					    BEGIN( Function ) ;
 					}
-<Round>[ \t\r\n]*","[ \t\r\n]*	{ lineCount() ; current->args += ", " ; }
+<Round>[ \t\r\n]*","[ \t\r\n]*		{ lineCount() ; current->args += ", " ; }
 <Round>[ \t\r\n]+			{ lineCount() ; current->args += " " ; }
 <Round>.				{ current->args += *yytext ; }
 
-<Function>[ \t]*"const"[ \t\r\n]*	{ 
-					  current->args += " const " ;
-					  lineCount() ;
-					}
+<Function>[ \t]*"const"[ \t\r\n]*	{ lineCount() ; current->args += " const " ; }
 
 <Function>[ \t]*"throw"[ \t\r\n]*"("	{ 
 					  current->args += " throw(" ;
@@ -493,7 +491,7 @@ static int yyread(char *buf,int max_size)
 <SkipInits>"{"				{ BEGIN( SkipCurly ) ; }
 <SkipCurly>"{"				{ ++bracketCount ; }
 <SkipCurly>"}"				{ 
-					  if( bracketCount )
+					  if( bracketCount > 0 )
 					    --bracketCount ;
 					  else
 					    BEGIN( FindMembers ) ;
@@ -517,11 +515,11 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( FindMembers ) ;
 					}
 <ClassName>[a-z_A-Z0-9\[\]*&]+		{ 
-						  if( !current->type.empty() ) current->type += " " ;
-						  current->type += current->name ;
-					  	  current->name = yytext ;
-						  current->lineNo = yyLineNr;
-						}
+					  if( !current->type.empty() && !current->name.empty() ) current->type += " " ;
+					  current->type += current->name ;
+				  	  current->name = yytext ;
+					  current->lineNo = yyLineNr;
+					}
 <ClassName>[ \t]*":"[ \t]*		{ 
 					  current->args = " :" ;
 					  BEGIN( Bases ) ;
@@ -551,7 +549,7 @@ static int yyread(char *buf,int max_size)
 					}
 
 <TypedefName>[a-z_A-Z0-9\[\]*&]+	{ 
-					  if( !current->type.empty() ) current->type += " " ;
+					  if( !current->type.empty() && !current->name.empty() ) current->type += " " ;
 					  current->type += current->name ;
 				  	  current->name = yytext ;
 					  current->lineNo = yyLineNr;
@@ -570,18 +568,18 @@ static int yyread(char *buf,int max_size)
 
 <TypedefName>[;,]+			{
 				          lastTContext = 0;
-					   msg( "found typedef  ", current->name ) ;
+					  msg( "found typedef  ", current->name ) ;
 
-					   int section = current->section;
-					   current_root->addSubEntry( current ) ;
-					   current = new Entry ;
-					   current->protection = protection ;
-					   if( section == CLASS_SEC ) current->protection = GLOB ;
+					  int section = current->section;
+					  current_root->addSubEntry( current ) ;
+					  current = new Entry ;
+					  current->protection = protection ;
+					  if( section == CLASS_SEC ) current->protection = GLOB ;
 
-				           if( *yytext == ',' )
-					     BEGIN( NextSemi ) ;
-					   else
-					     BEGIN( FindMembers ) ;
+				          if( *yytext == ',' )
+					    BEGIN( NextSemi ) ;
+					  else
+					    BEGIN( FindMembers ) ;
 					}
 
 
@@ -604,26 +602,27 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( FindMembers ) ;
 					}
 
-<FindMembers>[ \t\r\n]*"/*""*"+"/"
+<FindMembers>[ \t\r\n]*"/""/"+\n	{ lineCount() ; }
+<FindMembers>[ \t\r\n]*"/*""*"+"/"	{ lineCount() ; }
 <FindMembers>[ \t\r\n]*"/***"		{ 
 					  lastCContext = YY_START ;
 					  BEGIN( SkipComment ) ;
 					}
 <FindMembers>[ \t\r\n]*"/**"[ \t]*	{ 
-						  lineCount() ;
-						  if( current->doc.length() > 0
-							  ||  current->memo.length() > 0 )
-						  {
-							msg( "found explicit entry" ) ;
-							current->lineNo = yyLineNr;
-							current_root->addSubEntry( current ) ;
-							current = new Entry ;
-						  }
-						  current->done = onlyDocs ;
-						  BEGIN( Doc ) ;
-						}
-<VerbDoc,Doc>\n[ \t]*"*"+"/"	{ yyLineNr++; BEGIN( FindMembers ) ; }
-<Doc>"\\begin{verbatim}"	{ 
+					  lineCount() ;
+					  if( current->doc.length() > 0
+					      ||  current->memo.length() > 0 )
+					  {
+					     msg( "found explicit entry" ) ;
+					     current->lineNo = yyLineNr;
+					     current_root->addSubEntry( current ) ;
+					     current = new Entry ;
+					  }
+					  current->done = onlyDocs ;
+					  BEGIN( Doc ) ;
+					}
+<VerbDoc,Doc>\n[ \t]*"*"+"/"		{ yyLineNr++; BEGIN( FindMembers ) ; }
+<Doc>"\\begin{verbatim}"		{ 
 					  current->doc += yytext ;
 					  BEGIN( VerbDoc ) ;
 					}
@@ -631,83 +630,93 @@ static int yyread(char *buf,int max_size)
 					  current->doc += '\n' ;
 					  yyLineNr++ ;
 					}
-<VerbDoc>"\\end{verbatim}"	{ 
+<VerbDoc>"\\end{verbatim}"		{ 
 					  current->doc += yytext ;
 					  BEGIN( Doc ) ;
 					}
-<Doc>\n[ \t]*"*"*[ \t]*		{ current->doc += '\n' ;
+<Doc>\n[ \t]*"*"*[ \t]*			{ 
+					  current->doc += '\n' ;
 					  yyLineNr++ ;
 					}
-<VerbDoc,Doc>.			{ current->doc += *yytext ; }
+<VerbDoc,Doc>.				{ current->doc += *yytext ; }
 <VerbDoc,Doc>"//"			{ current->doc += yytext ; }
 <VerbDoc,Doc>"/*"			{ current->doc += yytext ; }
 <VerbDoc,Doc>"*/"			{ BEGIN( FindMembers ) ; }
 
 <FindMembers>("//@{".*\n)|("/*@{"[^*]*\*+"/")	{ 
-						  lineCount() ;
-						  current->file = yyFileName ;
-					  	  if( current->lineNo == 0 ) current->lineNo = yyLineNr;
-						  current->startLine = yyLineNr ;
-						  BEGIN( SubDoc ) ;
-						}
-<SubDoc>"/*"			{ 
+					  lineCount() ;
+					  current->file = yyFileName ;
+					  if( current->lineNo == 0 ) current->lineNo = yyLineNr;
+					  current->startLine = yyLineNr ;
+					  BEGIN( SubDoc ) ;
+					}
+<SubDoc>"/*"				{ 
 					  current->program += yytext ;
 					  BEGIN( SubDocComment ) ;
 					}
-<SubDoc>"//"			{ 
+<SubDoc>"//"				{ 
 					  current->program += yytext ;
 					  BEGIN( SubDocCppComment ) ;
 					}
 <SubDoc>.				{ current->program += *yytext ; }
-<SubDoc>\n				{ current->program += *yytext ;
+<SubDoc>\n				{ 
+					  current->program += *yytext ;
 					  yyLineNr++ ;
 					}
 <SubDoc>("//@{".*\n)|("/*@{"[^*]*\*+"/")	{ 
-						  lineCount() ;
-						  current->program += yytext ;
-						  ++bracketCount ;
-						}
+					  lineCount() ;
+					  current->program += yytext ;
+					  ++bracketCount ;
+					}
 <SubDoc>("//@}".*\n)|("/*@}"[^*]*\*+"/") 	{ 
-						  lineCount() ;
-						  if( bracketCount )
-						  {
-						    current->program += yytext ;
-						    --bracketCount ;
-						  }
-						  else
-						  {
-						    msg( "found explicit subentry" ) ;
-					               current->lineNo = yyLineNr;
-						    current_root->addSubEntry( current ) ;
-						    current = new Entry ;
-						    current->protection = protection ;
-						    BEGIN( FindMembers ) ;
-						  }
-						}
+					  lineCount() ;
+					  if( bracketCount > 0 )
+					  {
+					    current->program += yytext ;
+					    --bracketCount ;
+					  }
+					  else
+					  {
+					    msg( "found explicit subentry" ) ;
+					              current->lineNo = yyLineNr;
+					    current_root->addSubEntry( current ) ;
+					    current = new Entry ;
+					    current->protection = protection ;
+					    BEGIN( FindMembers ) ;
+					  }
+					}
 
 <SubDocComment,SubDocCppComment>"/*"	{ current->program += yytext ; }
 <SubDocComment,SubDocCppComment>"//"	{ current->program += yytext ; }
 <SubDocComment>.			{ current->program += yytext ; }
-<SubDocComment>\n			{ current->program += yytext ;
+<SubDocComment>\n			{ 
+					  current->program += yytext ;
 					  ++yyLineNr ;
 					}
-<SubDocComment>"*/"			{ current->program += yytext ;
+<SubDocComment>"*/"			{ 
+					  current->program += yytext ;
 					  BEGIN( SubDoc ) ;
 					}
 
 <SubDocCppComment>.			{ current->program += yytext ; }
-<SubDocCppComment>\n			{ current->program += yytext ;
+<SubDocCppComment>\n			{ 
+					  current->program += yytext ;
 					  ++yyLineNr ;
 					  BEGIN( SubDoc ) ;
 					}
 
-<CppMemo>[^.]				{ current->memo += yytext ;
-					  current->doc  += yytext ; }
-<CppMemo>"."[ \t\r\n]*			{ BEGIN( CppDoc ) ;
-                      			  yyLineNr++;
-					  current->doc  += yytext ; }
-<CppDoc>(\n|.)				{ current->doc  += *yytext ; 
-	                  		  yyLineNr++;
+<CppMemo>[^.]				{ 
+					  current->memo += yytext ;
+					  current->doc  += yytext ; 
+					}
+<CppMemo>"."[ \t\r\n]*			{ 
+					  BEGIN( CppDoc ) ;
+                      			  lineCount();
+					  current->doc  += yytext ; 
+					}
+<CppDoc>(\n|.)				{ 
+					  current->doc  += *yytext ; 
+	                  		  lineCount();
 					}
 <CppMemo>"/"("*"|"/")			{ current->memo += yytext ; }
 <CppDoc>"/"("*"|"/")			{ current->doc  += yytext ; }
@@ -758,21 +767,21 @@ static int yyread(char *buf,int max_size)
 <Args>.*				{ current->args = yytext ; }
 <Args>\n				{ BEGIN( CppDoc ) ; }
 
-<Author>.				{ current->author  += *yytext ; }
+<Author>.				{ current->author += *yytext ; }
 <Version>.				{ current->version += *yytext ; }
-<See>.					{ *(current->see.last())       += *yytext ; }
-<Param>.				{ *(current->param.last())     += *yytext ; }
+<See>.					{ *(current->see.last()) += *yytext ; }
+<Param>.				{ *(current->param.last()) += *yytext ; }
 <Exception>.				{ *(current->exception.last()) += *yytext ; }
-<Memo>.					{ current->memo    += *yytext ; }
-<Return>.				{ current->retrn   += *yytext ; }
+<Memo>.					{ current->memo += *yytext ; }
+<Return>.				{ current->retrn += *yytext ; }
 
 <Author>\n[ \t\r\n]*			{ current->author  += '\n' ; }
 <Version>\n[ \t\r\n]*			{ current->version += '\n' ; }
-<See>\n[ \t\r\n]*			{ *(current->see.last())       += '\n' ; }
-<Param>\n[ \t\r\n]*			{ *(current->param.last())     += '\n' ; }
+<See>\n[ \t\r\n]*			{ *(current->see.last()) += '\n' ; }
+<Param>\n[ \t\r\n]*			{ *(current->param.last()) += '\n' ; }
 <Exception>\n[ \t\r\n]*			{ *(current->exception.last()) += '\n' ; }
-<Memo>\n[ \t\r\n]*			{ current->memo    += *yytext ; }
-<Return>\n[ \t\r\n]*			{ current->retrn   += *yytext ; }
+<Memo>\n[ \t\r\n]*			{ current->memo += *yytext ; }
+<Return>\n[ \t\r\n]*			{ current->retrn += *yytext ; }
 
 <*>.
 <*>\n					{ yyLineNr++ ; }
@@ -806,7 +815,7 @@ void parseDoc(Entry* rt)
 		inputPosition = 0 ;
 		current = rt ;
 		cpprestart( cppin ) ;
-		if( rt->memo.length() )
+		if( rt->memo.length() > 0 )
 			BEGIN( CppDoc ) ;
 		else
 			BEGIN( CppMemo ) ;
@@ -859,7 +868,9 @@ void parseCppClasses(Entry* rt)
 			current->section = EMPTY_SEC ;
 			if( cr->section == CLASS_SEC )
 				current->protection = protection = PRIV ;
-			else if( cr->section == TYPEDEF_SEC )
+			else if( cr->section == STRUCT_SEC )
+				current->protection = protection = PUBL ;
+			else if( cr->section == UNION_SEC )
 				current->protection = protection = PUBL ;
 			else
 				current->protection = protection = GLOB ;

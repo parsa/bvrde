@@ -31,7 +31,7 @@ CTelnetView::CTelnetView() :
 
 CTelnetView::~CTelnetView()
 {
-   if( m_pShell ) m_pShell->RemoveLineListener(this);
+   ATLASSERT(m_pShell==NULL);
 }
 
 
@@ -42,12 +42,18 @@ CTelnetView::~CTelnetView()
 
 void CTelnetView::Init(CShellManager* pShell, DWORD dwFlags /*= 0*/)
 {
+   ATLASSERT(pShell);
+   Close();
    Clear();
-
-   if( m_pShell ) m_pShell->RemoveLineListener(this);
    m_pShell = pShell;
    m_dwFlags = dwFlags;
-   if( m_pShell ) m_pShell->AddLineListener(this);
+   m_pShell->AddLineListener(this);
+}
+
+void CTelnetView::Close()
+{
+   if( m_pShell ) m_pShell->RemoveLineListener(this);
+   m_pShell = NULL;
 }
 
 void CTelnetView::SetFlags(DWORD dwFlags)
@@ -121,7 +127,10 @@ LRESULT CTelnetView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 {
    if( m_pShell ) {
       m_pShell->RemoveLineListener(this);
-      if( m_dwFlags & TNV_TERMINATEONCLOSE ) m_pShell->Stop();
+      if( m_dwFlags & TNV_TERMINATEONCLOSE ) {
+         m_pShell->Stop();
+         m_pShell = NULL;
+      }
    }   
    bHandled = FALSE;
    return 0;
@@ -129,6 +138,9 @@ LRESULT CTelnetView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
 LRESULT CTelnetView::OnCompacting(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
+   // View is being closed. It's not being destroyed, since it's part of
+   // the docking framework. The view runs in the background (still gets input)
+   // and is ready to display itself if the user activates it from the memu.
    if( m_pShell ) {
       if( m_dwFlags & TNV_TERMINATEONCLOSE ) {
          _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, _T(""), FALSE);

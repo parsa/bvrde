@@ -777,6 +777,15 @@ BEGIN
     END
 END
 
+IDR_SOLUTION MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Add New Project...",          ID_NEW_PROJECT
+        MENUITEM "Add Existing Project...",     ID_ADD_PROJECT
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

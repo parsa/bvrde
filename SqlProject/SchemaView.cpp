@@ -178,10 +178,17 @@ LRESULT CSchemaView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
    CWaitCursor cursor;
    LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
    TVITEM& tvi = lpNMTV->itemNew;
+   // NOTE: We will make sure the item is shown as selected.
+   //       This will cause the right-hand view to get updated.
+   //       We should do this only while *not* initializing the tree!
+   //       See other hack in OnSize() handler.
+   if( IsWindowVisible() ) m_ctrlTree.SelectItem(tvi.hItem);
+   // Get information about the item
    tvi.mask = TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM | TVIF_CHILDREN;
-   m_ctrlTree.SelectItem(tvi.hItem);
    m_ctrlTree.GetItem(&tvi);
-   if( lpNMTV->action == TVE_EXPAND && m_ctrlTree.GetChildItem(tvi.hItem) == NULL ) {
+   if( lpNMTV->action == TVE_EXPAND 
+       && m_ctrlTree.GetChildItem(tvi.hItem) == NULL ) 
+   {
       LPARAM lParam = tvi.lParam;
       switch( lParam ) {
       case 0:
@@ -207,12 +214,15 @@ LRESULT CSchemaView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
             break;
          }
       }
+      // If populated, but no children was found, we'll need to
+      // reset the plus/minus symbol.
       if( m_ctrlTree.GetChildItem(tvi.hItem) == NULL ) {
          tvi.cChildren = 0;
          m_ctrlTree.SetItem(&tvi);
          return 0;
       }
    }
+   // The folder-items have their icons toggled in open/closed state.
    if( tvi.iImage == 0 || tvi.iImage == 1 ) {
       tvi.iSelectedImage = tvi.iImage = lpNMTV->action == TVE_EXPAND ? 0 : 1;
       m_ctrlTree.SetItem(&tvi);

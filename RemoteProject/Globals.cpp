@@ -42,7 +42,10 @@ CString SecGetPassword()
    // Prompt user for password
    CWaitCursor cursor;
    CPasswordDlg dlg;
-   dlg.DoModal();
+   if( dlg.DoModal() != IDOK ) {
+      s_cs.Unlock();
+      return _T("");
+   }
    sPassword = dlg.GetPassword();
    _tcscpy(g_szPassword, sPassword);
    s_cs.Unlock();

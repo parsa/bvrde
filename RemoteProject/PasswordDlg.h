@@ -14,6 +14,7 @@ public:
 
    CFont m_font;
    CStatic m_ctrlTitle;
+   CButton m_ctrlOK;
    CEdit m_ctrlPassword;
    CString m_sPassword;
 
@@ -26,11 +27,13 @@ public:
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
       MESSAGE_HANDLER(WM_CTLCOLORSTATIC, OnCtlColorStatic)
       COMMAND_ID_HANDLER(IDOK, OnClose)
+      COMMAND_ID_HANDLER(IDCANCEL, OnClose)
       COMMAND_CODE_HANDLER(EN_CHANGE, OnChange);
    END_MSG_MAP()
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      m_ctrlOK = GetDlgItem(IDOK);
       CLogFont lf = GetFont();
       lf.MakeBolder();
       lf.MakeLarger(6);
@@ -39,7 +42,7 @@ public:
       m_ctrlTitle.SetFont(m_font);
       m_ctrlPassword = GetDlgItem(IDC_PASSWORD);
       m_ctrlPassword.SetLimitText(99);
-      return 0;
+      return TRUE;
    }
    LRESULT OnCtlColorStatic(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {
@@ -59,7 +62,8 @@ public:
    }
    LRESULT OnChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
-      CWindow(GetDlgItem(IDOK)).EnableWindow(m_ctrlPassword.GetWindowTextLength()>0);
+      m_ctrlOK.EnableWindow(m_ctrlPassword.GetWindowTextLength() > 0);
+      m_ctrlOK.SetButtonStyle(m_ctrlPassword.GetWindowTextLength() > 0 ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
       return 0;
    }
 };

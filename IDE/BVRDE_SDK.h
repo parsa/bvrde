@@ -112,6 +112,13 @@ public:
 /////////////////////////////////////////////////////////
 // Misc interfaces
 
+/**
+ * @class IUpdateUI
+ *
+ * Callback interface for enabling/disabling menu- and toolbar items.
+ * This interface is handed to the listener through the IIdleListener
+ * interface.
+ */
 class IUpdateUI
 {
 public:
@@ -121,6 +128,12 @@ public:
    virtual BOOL UISetText(INT nID, LPCTSTR lpstrText, BOOL bForceUpdate = FALSE) = 0;
 };
 
+/**
+ * @class IViewFrame
+ *
+ * Interface implemented by the client window (MDI Client).
+ * This interface is returned by the IDevEnv::CreateClient method.
+ */
 class IViewFrame
 {
 public:
@@ -128,6 +141,14 @@ public:
    virtual HWND SetClient(HWND hWnd) = 0;
 };
 
+/**
+ * @class IWizardManager
+ *
+ * Callback interface for controlling insertion / placement of
+ * property pages in the Options and Property sheet.
+ * This interface is handed to the listener through the IWizardListener
+ * interface.
+ */
 class IWizardManager
 {
 public:
@@ -140,6 +161,12 @@ public:
 /////////////////////////////////////////////////////////
 // Listerner interfaces
 
+/**
+ * @class IAppListener
+ *
+ * Message routed from the main message pump. Includes
+ * \em all messages from the main message pump.
+ */
 class IAppListener
 {
 public:
@@ -153,24 +180,45 @@ public:
    virtual void OnIdle(IUpdateUI* pUIBase) = 0;
 };
 
+/**
+ * @class ITreeListener
+ *
+ * Messages from the Project Explorer tree.
+ */
 class ITreeListener
 {
 public:
    virtual LRESULT OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled) = 0;
 };
 
+/**
+ * @class IViewListener
+ *
+ * Interface for view related messages. The view forwards a number of
+ * Windows messages to these listeners.
+ */
 class IViewListener
 {
 public:
    virtual LRESULT OnViewMessage(IView* pView, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) = 0;
 };
 
+/**
+ * @class ICommandListener
+ *
+ * Interface for execution of custom commands entered in the Command View window.
+ */
 class ICommandListener
 {
 public:
    virtual void OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled) = 0;
 };
 
+/**
+ * @class IWizardListener
+ *
+ * Interface for ivokeing the Application Wizard or Property Wizard.
+ */
 class IWizardListener
 {
 public:
@@ -223,6 +271,11 @@ typedef enum IDE_WIZARD_TYPE
 };
 
 
+/**
+ * @class IDevEnv
+ *
+ * Main programming interface for the BVRDE IDE Framework.
+ */
 class IDevEnv
 {
 public:
@@ -285,6 +338,11 @@ public:
 /////////////////////////////////////////////////////////
 // IProject
 
+/**
+ * @class IElement
+ *
+ * Base interface for all programmable UI objects.
+ */
 class IElement
 {
 public:
@@ -296,6 +354,11 @@ public:
    virtual IDispatch* GetDispatch() = 0;
 };
 
+/**
+ * @class ISolution
+ *
+ * Interface for the Solution.
+ */
 class ISolution : public IElement
 {
 public:
@@ -314,6 +377,11 @@ public:
    virtual IProject* GetFocusProject() const = 0;
 };
 
+/**
+ * @class IProject
+ *
+ * Interface for a Project.
+ */
 class IProject : public IElement
 {
 public:
@@ -331,6 +399,13 @@ public:
    virtual INT GetItemCount() const = 0;
 };
 
+/**
+ * @class IView
+ *
+ * Interface for a view. A view need not be visible (opened) but must
+ * still implement and answer all methods in this interface; All files
+ * and folders in a project implement this interface.
+ */
 class IView : public IElement
 {
 public:

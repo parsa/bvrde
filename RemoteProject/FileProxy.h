@@ -32,6 +32,7 @@ public:
    bool SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE ppOut, DWORD dwSize);
    bool SetCurPath(LPCTSTR pstrPath);
    CString GetCurPath();
+   CString FindFile(LPCTSTR pstrFilename);
    bool EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles);
 
    CString GetParam(LPCTSTR pstrName) const;

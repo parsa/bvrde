@@ -252,6 +252,8 @@ bool CSftpProtocol::Load(ISerializable* pArc)
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
    if( m_sPath.IsEmpty() ) m_sPath = _T("/");
+   pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(128), 128);
+   m_sSearchPath.ReleaseBuffer();
 
    return true;
 }
@@ -264,6 +266,7 @@ bool CSftpProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("user"), m_sUsername);
    pArc->Write(_T("password"), m_sPassword);
    pArc->Write(_T("path"), m_sPath);
+   pArc->Write(_T("searchPath"), m_sSearchPath);
    return true;
 }
 
@@ -305,6 +308,7 @@ CString CSftpProtocol::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
    if( sName == _T("Path") ) return m_sPath;
+   if( sName == _T("SearchPath") ) return m_sSearchPath;
    if( sName == _T("Host") ) return m_sHost;
    if( sName == _T("Username") ) return m_sUsername;
    if( sName == _T("Password") ) return m_sPassword;
@@ -319,6 +323,7 @@ void CSftpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
 {
    CString sName = pstrName;
    if( sName == _T("Path") ) m_sPath = pstrValue;
+   if( sName == _T("SearchPath") ) m_sSearchPath = pstrValue;
    if( sName == _T("Host") ) m_sHost = pstrValue;
    if( sName == _T("Username") ) m_sUsername = pstrValue;
    if( sName == _T("Password") ) m_sPassword = pstrValue;
@@ -343,8 +348,8 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
    if( m_cryptSession == 0 ) return false;
 
    // Construct remote filename
-   CString sFilename;
-   sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
+   CString sFilename = pstrFilename; 
+   if( pstrFilename[0] != '/' ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
    sFilename.Replace(_T('\\'), _T('/'));
 
    // Open file
@@ -407,7 +412,7 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
       {
          // Done?
          if( dwStatus == SSH_FX_EOF ) {
-            *pdwSize = dwOffset;
+            if( pdwSize ) *pdwSize = dwOffset;
             break;
          }
          bSuccess = false;
@@ -475,8 +480,8 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
    if( m_cryptSession == 0 ) return false;
 
    // Construct remote filename
-   CString sFilename;
-   sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
+   CString sFilename = pstrFilename; 
+   if( pstrFilename[0] != '/' ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
    sFilename.Replace(_T('\\'), _T('/'));
 
    // Let's remove the file first
@@ -810,6 +815,31 @@ DWORD CSftpProtocol::_SendInit()
    DWORD cbSize  = SSH_READ_LONG(p); cbSize;
    BYTE id       = SSH_READ_BYTE(p); id;
    return SSH_READ_LONG(p);
+}
+
+CString CSftpProtocol::FindFile(LPCTSTR pstrFilename)
+{
+   if( pstrFilename[0] == '/' ) {
+      LPBYTE pData = NULL;
+      bool bFound = LoadFile(pstrFilename, true, &pData);
+      free(pData);
+      return bFound ? pstrFilename : NULL;
+   }
+   else {
+      CString sPath = m_sSearchPath;
+      while( !sPath.IsEmpty() ) {
+         CString sSubPath = sPath.SpanExcluding(_T(";"));
+         CString sFilename = sSubPath;
+         if( sFilename.Right(1) != _T("/") ) sFilename += _T("/");
+         sFilename += pstrFilename;
+         LPBYTE pData = NULL;
+         bool bFound = LoadFile(sFilename, true, &pData);
+         free(pData);
+         if( bFound ) return sFilename;
+         sPath = sPath.Mid(sSubPath.GetLength() + 1);
+      }
+      return _T("");
+   }
 }
 
 CString CSftpProtocol::_ResolvePath(LPCTSTR pstrPath)

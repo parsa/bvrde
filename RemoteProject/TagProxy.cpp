@@ -9,6 +9,7 @@ void CTagManager::Init(CRemoteProject* pProject)
 {
    m_TagInfo.Init(pProject);
    m_LexInfo.Init(pProject);
+   m_LexType = LEXTYPE_UNKNOWN;
 }
 
 bool CTagManager::IsLoaded() const
@@ -29,25 +30,29 @@ void CTagManager::Clear()
 
 TAGTYPE CTagManager::GetItemType(int iIndex)
 {
-   if( m_iWhatType == 0 ) return m_LexInfo.GetItemType(iIndex);
-   if( m_iWhatType == 1 ) return m_TagInfo.GetItemType(iIndex);
+   if( m_LexType == LEXTYPE_LEX ) return m_LexInfo.GetItemType(iIndex);
+   if( m_LexType == LEXTYPE_CTAGS ) return m_TagInfo.GetItemType(iIndex);
    return TAGTYPE_UNKNOWN;
 }
 
 int CTagManager::FindItem(int iStart, LPCTSTR pstrName)
 {
-   // HACK: 'm_iWhatType' is a stupid hack to remember what type of 
+   // HACK: 'm_LexType' is a stupid hack to remember what type of 
    //       tag-handler we used for FindItem() to allow GetItemType() 
    //       to return the correct type...
-   int iIndex = m_LexInfo.FindItem(iStart, pstrName);
-   if( iIndex >= 0 ) {
-      m_iWhatType = 0;
-      return iIndex;
+   if( iStart == 0 || m_LexType == LEXTYPE_LEX ) {
+      int iIndex = m_LexInfo.FindItem(iStart, pstrName);
+      if( iIndex >= 0 ) {
+         m_LexType = LEXTYPE_LEX;
+         return iIndex;
+      }
    }
-   iIndex = m_TagInfo.FindItem(iStart, pstrName);
-   if( iIndex >= 0 ) {
-      m_iWhatType = 1;
-      return iIndex;
+   if( iStart == 0 || m_LexType == LEXTYPE_CTAGS ) {
+      int iIndex = m_TagInfo.FindItem(iStart, pstrName);
+      if( iIndex >= 0 ) {
+         m_LexType = LEXTYPE_CTAGS;
+         return iIndex;
+      }
    }
    return -1;
 }

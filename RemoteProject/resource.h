@@ -211,6 +211,8 @@
 #define IDS_CAPTION_DISASSEMBLY         257
 #define IDS_CAPTION_MEMORY              258
 #define IDS_STATUS_ADDFILE              259
+#define IDS_COMMAND_SEARCHPATH          260
+#define IDS_MORE                        261
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003

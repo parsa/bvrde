@@ -81,7 +81,7 @@ public:
 
       m_ctrlTab.SetCurSel(0);
 
-      return 0;
+      return TRUE;
    }
    LRESULT OnModified(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {

@@ -194,9 +194,14 @@ bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aList)
       for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
          TAGINFO& info = file.aTags[iIndex];
          if( info.pstrFile == NULL ) continue;
-         if( info.Type != TAGTYPE_CLASS && info.Type != TAGTYPE_TYPEDEF ) continue;
-         TAGINFO* pTag = &m_aFiles[i]->aTags.m_aT[iIndex];
-         aList.Add(pTag);
+         switch( info.Type ) {
+         case TAGTYPE_CLASS:
+         case TAGTYPE_TYPEDEF:
+         case TAGTYPE_STRUCT:
+            TAGINFO* pTag = &m_aFiles[i]->aTags.m_aT[iIndex];
+            aList.Add(pTag);
+            break;
+         }
       }
    }
 
@@ -301,7 +306,10 @@ void CLexInfo::_LoadTags()
    // load the files in the future.
    m_bLoaded = true;
 
-   // Look for all lex files
+   // Don't load if configuration is turned off
+   if( !IsAvailable() ) return;
+
+   // Look for all project's lex files
    for( int i = 0; i < m_pProject->GetItemCount(); i++ ) {
       IView* pView = m_pProject->GetItem(i);
       CString sName;
@@ -314,7 +322,7 @@ void CLexInfo::_LoadTags()
    // Look for the global lex file (contains standard/system functions)
    if( m_aFiles.GetSize() > 0 ) {
       LEXFILE* pFile = new LEXFILE;
-      CString sName = _T("bvrde.txt");
+      CString sName = _T("common.lex");
       if( _ParseFile(sName, *pFile) ) m_aFiles.Add(pFile); else delete pFile;
    }
 }
@@ -367,6 +375,7 @@ bool CLexInfo::_ParseFile(CString& sName, LEXFILE& file) const
          case 'd': info.Type = TAGTYPE_DEFINE; break;
          case 't': info.Type = TAGTYPE_TYPEDEF; break;
          case 's': info.Type = TAGTYPE_STRUCT; break;
+         case 'e': info.Type = TAGTYPE_ENUM; break;
          default: info.Type = TAGTYPE_UNKNOWN;
          }
          p++;  // Skip protection

@@ -155,7 +155,8 @@ LRESULT CQuickWatchDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 
    // Start with viewing right away
    PostMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0));
-   return 0;
+
+   return TRUE;
 }
 
 LRESULT CQuickWatchDlg::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

@@ -87,7 +87,7 @@ public:
       m_ctrlFindText.SetCurSel(0);
       _UpdateButtons();
 
-      return 0;
+      return (LRESULT) TRUE;
    }
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {

@@ -26,6 +26,7 @@ public:
    // Operations
 
    void Init(CRemoteProject* pProject);
+   void Close();
    void Clear();
    void Rebuild();
    void Populate();

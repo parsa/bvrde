@@ -112,7 +112,8 @@ public:
       m_ctrlList.SelectItem(0);
 
       _UpdateButtons();
-      return 0;
+
+      return TRUE;
    }
 
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

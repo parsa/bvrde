@@ -70,11 +70,10 @@ CClassView::CClassView() :
 
 void CClassView::Init(CRemoteProject* pProject)
 {
-   m_aExpandedNames.RemoveAll();
-   m_pProject = pProject;
-   m_bLoaded = false;
-   m_iScrollPos = 0;
+   Close();
    
+   m_pProject = pProject;
+  
    if( IsWindow() 
        && m_pProject != NULL
        && m_pProject->m_TagManager.IsAvailable() ) 
@@ -88,6 +87,15 @@ void CClassView::Init(CRemoteProject* pProject)
          _pDevEnv->AddExplorerView(m_hWnd, CString(MAKEINTRESOURCE(IDS_CAPTION_CLASSVIEW)), 11);
       }
    }
+}
+
+void CClassView::Close()
+{
+   if( m_ctrlTree.IsWindow() ) m_ctrlTree.DeleteAllItems();
+   m_aExpandedNames.RemoveAll();
+   m_pProject = NULL;
+   m_iScrollPos = 0;
+   m_bLoaded = false;
 }
 
 void CClassView::Clear()
@@ -154,15 +162,17 @@ void CClassView::_PopulateTree()
       tvis.item.iImage = 0;
       tvis.item.iSelectedImage = 0;
       tvis.item.cChildren = 1;
+      tvis.item.pszText = LPSTR_TEXTCALLBACK;
       for( int i = 0; i < aList.GetSize(); i++ ) {
          TAGINFO* pTag = aList[i];
-         tvis.item.pszText = LPSTR_TEXTCALLBACK;
-         tvis.item.lParam = (LPARAM) pTag;
-         HTREEITEM hItem = m_ctrlTree.InsertItem(&tvis);
-         for( int j = 0; j < m_aExpandedNames.GetSize(); j++ ) {
-            if( m_aExpandedNames[j] == pTag->pstrName ) {
-               m_ctrlTree.Expand(hItem);
-               break;
+         if( pTag->Type == TAGTYPE_CLASS || pTag->Type == TAGTYPE_STRUCT ) {
+            tvis.item.lParam = (LPARAM) pTag;
+            HTREEITEM hItem = m_ctrlTree.InsertItem(&tvis);
+            for( int j = 0; j < m_aExpandedNames.GetSize(); j++ ) {
+               if( m_aExpandedNames[j] == pTag->pstrName ) {
+                  m_ctrlTree.Expand(hItem);
+                  break;
+               }
             }
          }
       }

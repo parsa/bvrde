@@ -99,6 +99,7 @@ public:
       _UpdateButtons();
 
       CenterWindow(GetParent());
+
       return TRUE;
    }
    LRESULT OnApply(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

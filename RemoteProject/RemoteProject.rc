@@ -564,17 +564,17 @@ END
 IDD_PASSWORD DIALOGEX 0, 0, 218, 135
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Password"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
+    EDITTEXT        IDC_PASSWORD,18,92,181,15,ES_PASSWORD | ES_AUTOHSCROLL,
+                    WS_EX_STATICEDGE
+    PUSHBUTTON      "OK",IDOK,161,114,50,14,WS_DISABLED
     CONTROL         "",IDC_STATIC,"Static",SS_WHITERECT,7,7,204,39
     ICON            IDI_KEY,IDC_STATIC,15,15,20,20
     LTEXT           "Enter connect password",IDC_TITLE,52,13,159,24,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
     CTEXT           "Enter the password for connecting to the remote server.\nThis password will be used to connect on all connections which was configured with a blank password.",
                     IDC_STATIC,10,54,198,34
-    EDITTEXT        IDC_PASSWORD,18,92,181,15,ES_PASSWORD | ES_AUTOHSCROLL,
-                    WS_EX_STATICEDGE
-    DEFPUSHBUTTON   "OK",IDOK,161,114,50,14,WS_DISABLED
 END
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
@@ -1045,6 +1045,8 @@ BEGIN
     IDS_CAPTION_DISASSEMBLY "Disassembly"
     IDS_CAPTION_MEMORY      "Memory"
     IDS_STATUS_ADDFILE      " Adding file(s)..."
+    IDS_COMMAND_SEARCHPATH  "Search Path"
+    IDS_MORE                "More"
 END
 
 #endif    // English (U.S.) resources
