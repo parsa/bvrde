@@ -64,9 +64,9 @@ BOOL CRemoteProject::Close()
    m_DebugManager.SignalStop();
    m_CompileManager.SignalStop();
 
-   m_viewDebugLog.Init(NULL);
-   m_viewClassTree.Init(NULL);
-   m_viewCompileLog.Init(NULL);
+   m_viewDebugLog.Close();
+   m_viewClassTree.Close();
+   m_viewCompileLog.Close();
 
    /*
    _pDevEnv->RemoveDockView(m_viewStack);
@@ -158,11 +158,14 @@ IView* CRemoteProject::GetItem(INT iIndex)
 
 BOOL CRemoteProject::Reset()
 {
+   int i;
    m_sName.Empty();
-   // Close the view's nicely before killing them off
-   for( int i = 0; i < m_aFiles.GetSize(); i++ ) m_aFiles[i]->CloseView();
+   // Close the views nicely before killing them off
+   for( i = 0; i < m_aFiles.GetSize(); i++ ) m_aFiles[i]->CloseView();
+   for( i = 0; i < m_aDependencies.GetSize(); i++ ) m_aDependencies[i]->CloseView();
    m_aFiles.RemoveAll();
    m_aLazyData.RemoveAll();
+   m_aDependencies.RemoveAll();
    m_bIsDirty = false;
    return TRUE;
 }
@@ -246,7 +249,11 @@ void CRemoteProject::DeactivateProject()
    // Need to remove the classbrowser view because
    // activating a new project should display new items
    m_viewClassTree.Clear();
-   
+
+   // Don't keep dependencies around
+   for( int i = 0; i < m_aDependencies.GetSize(); i++ ) m_aDependencies[i]->CloseView();
+   m_aDependencies.RemoveAll();
+
    _pDevEnv->RemoveIdleListener(this);
    _pDevEnv->RemoveCommandListener(this);
 }
@@ -1411,14 +1418,52 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          {
             // Notify all views
             DelayedViewMessage(DEBUG_CMD_DEBUG_START);
+
+            TCHAR szBuffer[32] = { 0 };
+            _pDevEnv->GetProperty(_T("gui.debugViews.showStack"), szBuffer, 31);
+            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
+            _pDevEnv->GetProperty(_T("gui.debugViews.showWatch"), szBuffer, 31);
+            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
+            _pDevEnv->GetProperty(_T("gui.debugViews.showThread"), szBuffer, 31);
+            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
+            _pDevEnv->GetProperty(_T("gui.debugViews.showRegister"), szBuffer, 31);
+            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
+            _pDevEnv->GetProperty(_T("gui.debugViews.showMemory"), szBuffer, 31);
+            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
+            _pDevEnv->GetProperty(_T("gui.debugViews.showDisassembly"), szBuffer, 31);
+            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
+            _pDevEnv->GetProperty(_T("gui.debugViews.showVariable"), szBuffer, 31);
+            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
+            _pDevEnv->GetProperty(_T("gui.debugViews.showBreakpoint"), szBuffer, 31);
+            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
          }
          break;
       case LAZY_DEBUG_KILL_EVENT:
          {
             // Notify all views
             DelayedViewMessage(DEBUG_CMD_DEBUG_STOP);
+
             // If we're closing the debug session, then dispose
-            // all debug views as well.
+            // all debug views as well...
+
+            TCHAR szBuffer[32] = { 0 };
+            _tcscpy(szBuffer, (m_viewStack.IsWindow() && m_viewStack.IsWindowVisible()) ? _T("true") : _T("false"));
+            _pDevEnv->SetProperty(_T("gui.debugViews.showStack"), szBuffer);
+            _tcscpy(szBuffer, (m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible()) ? _T("true") : _T("false"));
+            _pDevEnv->SetProperty(_T("gui.debugViews.showWatch"), szBuffer);
+            _tcscpy(szBuffer, (m_viewThread.IsWindow() && m_viewThread.IsWindowVisible()) ? _T("true") : _T("false"));
+            _pDevEnv->SetProperty(_T("gui.debugViews.showThread"), szBuffer);
+            _tcscpy(szBuffer, (m_viewRegister.IsWindow() && m_viewRegister.IsWindowVisible()) ? _T("true") : _T("false"));
+            _pDevEnv->SetProperty(_T("gui.debugViews.showRegister"), szBuffer);
+            _tcscpy(szBuffer, (m_viewMemory.IsWindow() && m_viewMemory.IsWindowVisible()) ? _T("true") : _T("false"));
+            _pDevEnv->SetProperty(_T("gui.debugViews.showMemory"), szBuffer);
+            _tcscpy(szBuffer, (m_viewDisassembly.IsWindow() && m_viewDisassembly.IsWindowVisible()) ? _T("true") : _T("false"));
+            _pDevEnv->SetProperty(_T("gui.debugViews.showDisassembly"), szBuffer);
+            _tcscpy(szBuffer, (m_viewVariable.IsWindow() && m_viewVariable.IsWindowVisible()) ? _T("true") : _T("false"));
+            _pDevEnv->SetProperty(_T("gui.debugViews.showVariable"), szBuffer);
+            _tcscpy(szBuffer, (m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible()) ? _T("true") : _T("false"));
+            _pDevEnv->SetProperty(_T("gui.debugViews.showBreakpoint"), szBuffer);
+
             if( m_viewStack.IsWindow() && m_viewStack.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
             if( m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
             if( m_viewThread.IsWindow() && m_viewThread.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
@@ -1539,7 +1584,8 @@ void CRemoteProject::SendViewMessage(UINT nCmd, LAZYDATA* pData)
 
 bool CRemoteProject::OpenView(LPCTSTR pstrFilename, long lLineNum)
 {
-   IView* pView = FindView(pstrFilename, FALSE);
+   IView* pView = FindView(pstrFilename, false);
+   if( pView == NULL ) pView = _CreateDependencyFile(pstrFilename, ::PathFindFileName(pstrFilename));
    if( pView == NULL ) return false;
    return pView->OpenView(lLineNum) == TRUE;
 }
@@ -1561,6 +1607,7 @@ IView* CRemoteProject::FindView(LPCTSTR pstrFilename, bool bLocally /*= false*/)
       ::PathStripPath(szFilename);
       if( _tcsicmp(szSearchFile, szFilename) == 0 ) return pView;
    }
+   // Scan for project files only?
    if( bLocally ) return NULL;
    // Locate file in another project
    ISolution* pSolution = _pDevEnv->GetSolution();
@@ -1573,6 +1620,14 @@ IView* CRemoteProject::FindView(LPCTSTR pstrFilename, bool bLocally /*= false*/)
          ::PathStripPath(szFilename);
          if( _tcsicmp(szSearchFile, szFilename) == 0 ) return pView;
       }
+   }
+   // Look for the file in the dependencies
+   for( int x = 0; x < m_aDependencies.GetSize(); x++ ) {
+      IView* pView = m_aDependencies[x];
+      TCHAR szFilename[MAX_PATH + 1] = { 0 };
+      pView->GetFileName(szFilename, MAX_PATH);
+      ::PathStripPath(szFilename);
+      if( _tcsicmp(szSearchFile, szFilename) == 0 ) return pView;
    }
    return NULL;
 }
@@ -2112,6 +2167,29 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
    return true;
 }
 
+IView* CRemoteProject::_CreateDependencyFile(LPCTSTR pstrFilename, LPCTSTR pstrName)
+{
+   // See if we can find the file...
+   CString sFilename = m_FileManager.FindFile(pstrFilename);
+   if( sFilename.IsEmpty() ) return NULL;
+   
+   // Create new object
+   IView* pView = _pDevEnv->CreateView(pstrFilename, this, this);
+   if( pView == NULL ) return false;
+
+   // Load some default properties
+   CViewSerializer arc;
+   arc.Add(_T("name"), pstrName);
+   arc.Add(_T("filename"), sFilename);
+   arc.Add(_T("location"), _T("remote"));
+   pView->Load(&arc);
+
+   // Add view to collection
+   m_aDependencies.Add(pView);
+
+   return pView;
+}
+
 // Static members
 
 CAccelerator CRemoteProject::m_accel;
@@ -2120,9 +2198,9 @@ CToolBarCtrl CRemoteProject::m_ctrlDebug;
 CToolBarCtrl CRemoteProject::m_ctrlBookmarks;
 CToolBarCtrl CRemoteProject::m_ctrlSearch;
 CComboBox CRemoteProject::m_ctrlMode;
-CTelnetView CRemoteProject::m_viewCompileLog;
 CClassView CRemoteProject::m_viewClassTree;
 CTelnetView CRemoteProject::m_viewDebugLog;
+CTelnetView CRemoteProject::m_viewCompileLog;
 CWatchView CRemoteProject::m_viewWatch;
 CStackView CRemoteProject::m_viewStack;
 CBreakpointView CRemoteProject::m_viewBreakpoint;

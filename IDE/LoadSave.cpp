@@ -86,6 +86,19 @@ void CMainFrame::_LoadSettings()
          _AddProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
          reg.ReadGroupEnd();
       }
+      // Load debugview settings
+      if (reg.ReadGroupBegin(_T("DebugViews")))
+      {
+          _AddProperty(&reg, _T("showWatch"), _T("gui.debugViews.showWatch"));
+          _AddProperty(&reg, _T("showStack"), _T("gui.debugViews.showStack"));
+          _AddProperty(&reg, _T("showVariable"), _T("gui.debugViews.showVariable"));
+          _AddProperty(&reg, _T("showThread"), _T("gui.debugViews.showThread"));
+          _AddProperty(&reg, _T("showMemory"), _T("gui.debugViews.showMemory"));
+          _AddProperty(&reg, _T("showRegister"), _T("gui.debugViews.showRegister"));
+          _AddProperty(&reg, _T("showDisassembly"), _T("gui.debugViews.showDisassembly"));
+          _AddProperty(&reg, _T("showBreakpoint"), _T("gui.debugViews.showBreakpoint"));
+          reg.ReadGroupEnd();
+      }
       reg.Close();
    }
 
@@ -345,6 +358,16 @@ void CMainFrame::_SaveSettings()
       _StoreProperty(&reg, _T("pane-bottom"), _T("window.pane.bottom"));
       _StoreProperty(&reg, _T("properties-cy"), _T("window.properties.cy"));
       _StoreProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
+      reg.WriteGroupEnd();
+      reg.WriteGroupBegin(_T("DebugViews"));
+      _StoreProperty(&reg, _T("showWatch"), _T("gui.debugViews.showWatch"));
+      _StoreProperty(&reg, _T("showStack"), _T("gui.debugViews.showStack"));
+      _StoreProperty(&reg, _T("showVariable"), _T("gui.debugViews.showVariable"));
+      _StoreProperty(&reg, _T("showThread"), _T("gui.debugViews.showThread"));
+      _StoreProperty(&reg, _T("showMemory"), _T("gui.debugViews.showMemory"));
+      _StoreProperty(&reg, _T("showRegister"), _T("gui.debugViews.showRegister"));
+      _StoreProperty(&reg, _T("showDisassembly"), _T("gui.debugViews.showDisassembly"));
+      _StoreProperty(&reg, _T("showBreakpoint"), _T("gui.debugViews.showBreakpoint"));
       reg.WriteGroupEnd();
    }
 
