@@ -113,7 +113,7 @@ public:
          icon.LoadIcon( (LPCTSTR) sIcon );
          int iImage = 0;
          if( !icon.IsNull() ) iImage = m_Images.AddIcon(icon);
-         int iIndex = m_ctrlList.InsertItem(-1, ff.GetFileTitle(), 0);
+         int iIndex = m_ctrlList.InsertItem(0, ff.GetFileTitle(), iImage);
          m_ctrlList.SetItemData(iIndex, m_aFiles.GetSize());
          m_aFiles.Add(ff.GetFilePath());
       }

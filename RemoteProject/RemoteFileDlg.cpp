@@ -84,6 +84,11 @@ LRESULT CRemoteFileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    _PopulateView(m_sOrigPath);
    _UpdateButtons();
 
+   // Position window about where the standard FileOpen dialog appears
+   RECT rcParent;
+   ::GetWindowRect(GetParent(), &rcParent);
+   SetWindowPos(GetParent(), rcParent.left + 10, rcParent.top + 50, 0, 0, SWP_NOSIZE);
+
    DlgResize_Init(true, true);
    return TRUE;
 }

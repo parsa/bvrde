@@ -467,7 +467,7 @@ bool CDebugManager::DoDebugCommand(LPCTSTR pstrText)
    //       However, we quickly give up and rely on
    //       GDB being asyncroniously. This does have an
    //       inpact on UI responsiveness though.
-   //       The problem, is, however, that there's no 
+   //       The problem is, however, that there's no 
    //       flow-control in the GDB-MI std-out handler, 
    //       so we'll risk to send the command in the middle 
    //       of regular output. This is a big mess!
@@ -564,7 +564,7 @@ bool CDebugManager::_CheckStatus()
 {
    CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
 
-   // Cannot do either run or debug when a session is
+   // Cannot do neither run nor debug when a session is
    // already running...
    if( m_ShellManager.IsBusy() ) {
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_WARNING));
@@ -773,8 +773,14 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
       if( sLine.Find(_T("no debugging symbols found")) >= 0 ) {
          m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NODEBUGINFO)), CString(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE)), MB_ICONINFORMATION);
       }
+      if( sLine.Find(_T("No symbol table is loaded")) >= 0 ) {
+         m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NODEBUGINFO)), CString(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE)), MB_ICONINFORMATION);
+      }
       if( sLine.Find(_T("No such file")) >= 0 ) {
-         m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NODEBUGFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE)), MB_ICONINFORMATION);
+         m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NODEBUGFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
+      }
+      if( sLine.Find(_T("gdb: unrecognized option")) >= 0 ) {
+         m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGVERSION)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
       }
    }
    // Outputting directly to the Command View if we're

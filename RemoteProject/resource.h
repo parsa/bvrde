@@ -201,6 +201,7 @@
 #define IDS_SAVEFILE                    248
 #define IDS_STACKLINE3                  249
 #define IDS_ERR_RELPATH                 250
+#define IDS_ERR_DEBUGVERSION            251
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003

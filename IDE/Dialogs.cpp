@@ -78,7 +78,7 @@ LRESULT CMainFrame::OnToolsExternal(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
    CExternalToolsDlg dlg(this);
    UINT nRes = dlg.DoModal();
    if( nRes == IDOK ) {
-      // Fake a project change to reinialize menus
+      // Fake a project change to reinitialize menus
       PostMessage(WM_APP_VIEWCHANGE);
    }
    return nRes == IDOK;

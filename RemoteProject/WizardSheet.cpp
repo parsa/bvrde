@@ -140,9 +140,11 @@ LRESULT CFileTransferPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    fm.SetParam(_T("Path"), sPath);
    fm.Start();
    if( !fm.SetCurPath(CWindowText(m_ctrlPath)) ) {
+      fm.SignalStop();
       GenerateError(_pDevEnv, IDS_ERR_NOCONNECTION);
    }
    else {
+      fm.SignalStop();
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE));
       CString sMsg(MAKEINTRESOURCE(IDS_CONNECTION_OK));
       _pDevEnv->ShowMessageBox(m_hWnd, sMsg, sCaption, MB_ICONINFORMATION);
@@ -315,9 +317,11 @@ LRESULT CCompilerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    sm.SetParam(_T("Extra"), sExtra);
    sm.Start();
    if( !sm.WaitForConnection() ) {
+      sm.SignalStop();
       GenerateError(_pDevEnv, IDS_ERR_NOCONNECTION);
    }
    else {
+      sm.SignalStop();
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE));
       CString sMsg(MAKEINTRESOURCE(IDS_CONNECTION_OK));
       _pDevEnv->ShowMessageBox(m_hWnd, sMsg, sCaption, MB_ICONINFORMATION);
@@ -590,9 +594,11 @@ LRESULT CDebuggerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    sm.SetParam(_T("Extra"), sExtra);
    sm.Start();
    if( !sm.WaitForConnection() ) {
+      sm.SignalStop();
       GenerateError(_pDevEnv, IDS_ERR_NOCONNECTION);
    }
    else {
+      sm.SignalStop();
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE));
       CString sMsg(MAKEINTRESOURCE(IDS_CONNECTION_OK));
       _pDevEnv->ShowMessageBox(m_hWnd, sMsg, sCaption, MB_ICONINFORMATION);

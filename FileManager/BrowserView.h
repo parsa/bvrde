@@ -16,13 +16,10 @@
 class CWaitCursor
 {
 public:
-   HCURSOR m_hWaitCursor;
    HCURSOR m_hOldCursor;
-   CWaitCursor() : m_hOldCursor(NULL)
+   CWaitCursor()
    {
-      m_hWaitCursor = ::LoadCursor(NULL, IDC_WAIT);
-      ATLASSERT(m_hWaitCursor!=NULL);
-      m_hOldCursor = ::SetCursor(m_hWaitCursor);
+      m_hOldCursor = ::SetCursor( ::LoadCursor(NULL, IDC_WAIT) );
    }
    ~CWaitCursor()
    {

@@ -13,3 +13,5 @@ del /S *.bsc
 del /S *.exp
 del /S *.tmp
 
+del Help\*.htm
+del Help\Images\*.png

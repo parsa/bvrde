@@ -393,23 +393,23 @@ END
 // Dialog
 //
 
-IDD_FILEBROWSE DIALOG DISCARDABLE  0, 0, 280, 150
-STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | 
-    WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+IDD_FILEBROWSE DIALOG DISCARDABLE  0, 0, 310, 177
+STYLE DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | WS_CAPTION | 
+    WS_SYSMENU | WS_THICKFRAME
 CAPTION "Open"
 FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "List1",IDC_LIST,"SysListView32",LVS_LIST | 
                     LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_AUTOARRANGE | 
                     LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | 
-                    WS_BORDER | WS_TABSTOP,4,22,268,82
-    LTEXT           "File &name:",IDC_FILENAME_LABEL,5,112,48,8,SS_NOTIFY
-    LTEXT           "Files of &type:",IDC_TYPES_LABEL,5,130,48,8,SS_NOTIFY
-    EDITTEXT        IDC_FILENAME,54,111,155,12,ES_AUTOHSCROLL
-    COMBOBOX        IDC_TYPES,54,128,155,87,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_BORDER | WS_TABSTOP,4,22,298,107
+    LTEXT           "File &name:",IDC_FILENAME_LABEL,4,139,48,8,SS_NOTIFY
+    LTEXT           "Files of &type:",IDC_TYPES_LABEL,4,157,48,8,SS_NOTIFY
+    EDITTEXT        IDC_FILENAME,53,138,189,12,ES_AUTOHSCROLL
+    COMBOBOX        IDC_TYPES,53,155,189,87,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    DEFPUSHBUTTON   "&Open",IDOK,222,110,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,222,127,50,14
+    DEFPUSHBUTTON   "&Open",IDOK,252,136,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,252,154,50,14
     LTEXT           "Look &in:",1091,4,6,27,8,SS_NOTIFY
     CONTROL         "",IDC_FOLDER,"ComboBoxEx32",CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP,37,4,142,98
@@ -608,9 +608,9 @@ BEGIN
     IDD_FILEBROWSE, DIALOG
     BEGIN
         LEFTMARGIN, 4
-        RIGHTMARGIN, 272
+        RIGHTMARGIN, 302
         TOPMARGIN, 3
-        BOTTOMMARGIN, 141
+        BOTTOMMARGIN, 168
     END
 
     IDD_WIZARD_FILETRANSFER, DIALOG
@@ -1013,6 +1013,7 @@ BEGIN
     IDS_SAVEFILE            "Save File\nFile has been modified. Do you wish to save the file?"
     IDS_STACKLINE3          "%s,  file='%s'  (%s)"
     IDS_ERR_RELPATH         "Use Full Path\nIt is better to use a complete start path.\nIt is not recommended to use a relative start path; use a full (complete) path instead.\n\nContinue?"
+    IDS_ERR_DEBUGVERSION    "Not supported\nThis version of GDB is not supported.\nThe GDB debugger needs to be at least version 5.3 to work with this IDE."
 END
 
 #endif    // English (U.S.) resources
