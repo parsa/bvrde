@@ -50,7 +50,7 @@ public:
       DISP_METHOD0(Rebuild, VT_EMPTY)
       DISP_METHOD0(StartApp, VT_EMPTY)
       DISP_METHOD0(DebugApp, VT_EMPTY)
-      DISP_METHOD(ExecCommand, VT_EMPTY, 2, VTS_BSTR VTS_UNKNOWN)
+      DISP_METHOD(ExecCommand, VT_EMPTY, 3, VTS_BSTR VTS_UNKNOWN VTS_I4)
    END_DISPATCH_MAP()
 
    BSTR __stdcall get_Name();
@@ -67,7 +67,7 @@ public:
    VOID __stdcall Rebuild();
    VOID __stdcall StartApp();
    VOID __stdcall DebugApp();
-   VOID __stdcall ExecCommand(BSTR Command, IUnknown* pUnk);
+   VOID __stdcall ExecCommand(BSTR Command, IUnknown* pUnk, LONG lTimeout);
 };
 
 

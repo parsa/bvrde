@@ -167,7 +167,7 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
             int cx = pPacket->plData[i] * tm.tmAveCharWidth;
             ctrlList.AddColumn(sName, i);
 
-            // Same columns in appear in new recordset? 
+            // Same columns appear in new recordset? 
             // Apply old widths.
             bool bAdjusted = false;
             if( m_aColumnInfo.GetSize() > i ) {

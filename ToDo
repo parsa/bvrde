@@ -42,11 +42,21 @@ Debugger:
 - Disassembly view
 - Memory inspector view
 
-HTML / XML
+HTML / XML:
 * Preview mode for HTML
 * Preview mode for XML
 * Design mode for HTML
 * HTML Toolbar
+
+Source Control:
+* Login
+* Check out
+* Check in
+* Status
+* Get Latest / Update
+- Diff files (visual)
+- Assign overlay icons to project files
+- Investigate other source control systems than CVS
 
 SQL:
 * Wizard to create a new SQL project

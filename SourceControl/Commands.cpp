@@ -28,7 +28,7 @@ CString CCommandThread::GetResult() const
 
 DWORD CCommandThread::Run()
 {
-   // Build command prompt and execute command through
+   // Build prompt and execute commands through
    // project's scripting mode.
    m_sResult.Empty();
    ISolution* pSolution = _pDevEnv->GetSolution();
@@ -41,7 +41,8 @@ DWORD CCommandThread::Run()
    bstrCommand += CComBSTR(m_sCommand);
    CComVariant vCommand = bstrCommand;
    CComVariant vCallback = (IUnknown*) this;
-   dd.Invoke2(OLESTR("ExecCommand"), &vCommand, &vCallback);
+   CComVariant vTimeout = 4000L;
+   dd.Invoke3(OLESTR("ExecCommand"), &vCommand, &vCallback, &vTimeout);
 
    // Let's look at the result
    CSimpleArray<CString> aLines;

@@ -15,7 +15,7 @@ public:
    CCompileManager* m_pManager;
    ILineCallback* m_pCallback;
 
-   void Run(CCompileManager* pManager, LPCTSTR pstrCommand, ILineCallback* pCallback)
+   void Run(CCompileManager* pManager, LPCTSTR pstrCommand, ILineCallback* pCallback, LONG lTimeout)
    {
       ATLASSERT(pManager);
       ATLASSERT(pCallback);
@@ -33,7 +33,11 @@ public:
       DWORD dwStartTick = ::GetTickCount();
       ::Sleep(200L); // HACK: Wait for thread to start!
       // Idle wait for command completion
-      while( pManager->GetParam(_T("InCommand")) == _T("true") ) ::Sleep(200L);
+      DWORD dwStart = ::GetTickCount();
+      while( pManager->GetParam(_T("InCommand")) == _T("true") ) {
+         ::Sleep(200L);
+         if( lTimeout > 0 && ::GetTickCount() > dwStart + (DWORD) lTimeout ) break;
+      }
       pManager->m_ShellManager.RemoveLineListener(this);
    }
 
@@ -140,13 +144,13 @@ VOID CProjectOM::DebugApp()
    m_pOwner->OnDebugDebug(0, 0, NULL, bDummy);
 }
 
-VOID CProjectOM::ExecCommand(BSTR Command, IUnknown* pUnk)
+VOID CProjectOM::ExecCommand(BSTR Command, IUnknown* pUnk, LONG lTimeout)
 {
    CComQIPtr<ILineCallback> spCallback = pUnk;
    if( spCallback == NULL ) return;
    USES_CONVERSION;
    CCommandExecute cmd;
-   cmd.Run(&m_pOwner->m_CompileManager, OLE2CT(Command), spCallback);
+   cmd.Run(&m_pOwner->m_CompileManager, OLE2CT(Command), spCallback, lTimeout);
 }
 
 

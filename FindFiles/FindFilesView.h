@@ -67,7 +67,8 @@ public:
          m_szFolder);
       CComVariant vCommand = szCommand;
       CComVariant vCallback = (IUnknown*) this;
-      dd.Invoke2(OLESTR("ExecCommand"), &vCommand, &vCallback);
+      CComVariant vTimeout = 0L;
+      dd.Invoke3(OLESTR("ExecCommand"), &vCommand, &vCallback, &vTimeout);
       return 0;
    }
 

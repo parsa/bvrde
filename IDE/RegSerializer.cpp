@@ -40,6 +40,9 @@ BOOL CRegSerializer::ReadGroupBegin(LPCTSTR pstrName)
 
 BOOL CRegSerializer::ReadGroupEnd()
 {
+   // Slight resemblance of a hack: We simply re-open
+   // the previous branch and even uses the Path-API to
+   // strip the last subkey. Works great, though...
    TCHAR szPath[MAX_PATH];
    ::lstrcpy(szPath, m_sPath);
    ::PathRemoveFileSpec(szPath);
