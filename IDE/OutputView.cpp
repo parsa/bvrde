@@ -158,6 +158,10 @@ void COutputView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_EDIT_CLEAR, TRUE);
 }
 
+void COutputView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+{
+}
+
 // Implementation
 
 bool COutputView::_OpenView(IProject* pProject, LPCTSTR pstrFilename, long lLineNum)

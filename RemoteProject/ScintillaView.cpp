@@ -189,6 +189,7 @@ LRESULT CScintillaView::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 
 LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
 {   
+/*
    SetFocus();
 
    long lPos = m_ctrlEdit.GetCurrentPos();
@@ -220,6 +221,38 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    ATLASSERT(menu.IsMenu());
    CMenuHandle submenu = menu.GetSubMenu(0);
    _pDevEnv->ShowPopupMenu(NULL, submenu, pt);
+*/
+   // Debugger has its own context menu
+   bHandled = FALSE;
+   if( m_pCppProject == NULL ) return 0;
+   if( m_sLanguage != _T("cpp") ) return 0;
+   if( !m_pCppProject->m_DebugManager.IsDebugging() ) return 0;
+
+   SetFocus();
+
+   long lPos = m_ctrlEdit.GetCurrentPos();
+   POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+
+   // Get the cursor position
+   POINT ptLocal = pt;
+   ScreenToClient(&ptLocal);
+   if( lParam == (LPARAM) -1 ) {
+      pt.x = m_ctrlEdit.PointXFromPosition(lPos);
+      pt.y = m_ctrlEdit.PointYFromPosition(lPos);
+   }
+
+   // Place cursor at mouse if not clicked inside a selection
+   lPos = m_ctrlEdit.PositionFromPoint(ptLocal.x, ptLocal.y);
+   CharacterRange cr = m_ctrlEdit.GetSelection();
+   if( lPos < cr.cpMin || lPos > cr.cpMax ) m_ctrlEdit.GotoPos(lPos);
+
+   CMenu menu;
+   menu.LoadMenu(IDR_EDIT_DEBUG);
+   ATLASSERT(menu.IsMenu());
+   CMenuHandle submenu = menu.GetSubMenu(0);
+   _pDevEnv->ShowPopupMenu(NULL, submenu, pt);
+
+   bHandled = TRUE;
    return 0;
 }
 
@@ -609,6 +642,11 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
       pUIBase->UIEnable(ID_DEBUG_QUICKWATCH, TRUE); 
    }
 }
+
+void CScintillaView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+{
+}
+
 
 // IOutputLineListener
 

@@ -182,6 +182,13 @@ BEGIN
     IDS_TREE_BINARY         "Binary Files"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_DATASIZE_BYTE        "Show content as Bytes\nShow as Bytes"
+    ID_DATASIZE_DWORD       "Show content as DWORDs\nShow as DWORDs"
+    ID_DATASIZE_WORD        "Show content as Words\nShow as Words"
+END
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -217,6 +217,10 @@ void CView::OnIdle(IUpdateUI* pUIBase)
    if( m_view.IsWindow() ) m_view.OnIdle(pUIBase);
 }
 
+void CView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+{
+}
+
 // IAppMessageListener
 
 LRESULT CView::OnAppMessage(HWND /*hWnd*/, UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

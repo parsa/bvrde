@@ -39,6 +39,7 @@ public:
    // IAppMessageListener
 
    LRESULT OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax);
    BOOL PreTranslateMessage(MSG* pMsg);
 
    // IView

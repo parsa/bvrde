@@ -187,6 +187,7 @@ class IIdleListener
 {
 public:
    virtual void OnIdle(IUpdateUI* pUIBase) = 0;
+   virtual void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax) = 0;
 };
 
 /**
@@ -228,7 +229,7 @@ public:
 /**
  * @class IWizardListener
  *
- * Interface for ivokeing the Application Wizard or Property Wizard.
+ * Interface for invoking the Application Wizard or Property Wizard.
  */
 class IWizardListener
 {
@@ -292,6 +293,7 @@ class IDevEnv
 public:
    virtual DWORD GetVersion() const = 0;
    virtual ISolution* GetSolution() const = 0;
+   virtual IView* GetActiveView() const = 0;
    virtual IDispatch* GetDispatch() = 0;
    //
    virtual BOOL AddExplorerView(HWND hWnd, LPCTSTR pstrTitle, int iImage) = 0;
@@ -376,9 +378,9 @@ public:
    virtual void Close() = 0;
    virtual BOOL LoadSolution(LPCTSTR pstrFilename) = 0;
    virtual BOOL SaveSolution(LPCTSTR pstrFilename) = 0;
+   virtual BOOL IsDirty() const = 0;
    virtual BOOL GetFileName(LPTSTR pstrFilename, UINT cchMax) const = 0;
    virtual BOOL IsLoaded() const = 0;
-   virtual BOOL IsDirty() const = 0;
    virtual IProject* GetItem(INT iIndex) = 0;
    virtual INT GetItemCount() const = 0;
    virtual BOOL AddProject(LPCTSTR pstrFilename) = 0;
@@ -398,8 +400,8 @@ class IProject : public IElement
 public:
    virtual BOOL Initialize(IDevEnv* pEnv, LPCTSTR pstrPath) = 0;
    virtual BOOL GetClass(LPTSTR pstrType, UINT cchMax) const = 0;
-   virtual BOOL IsDirty() const = 0;
    virtual BOOL Close() = 0;
+   virtual BOOL IsDirty() const = 0;
    virtual BOOL CreateProject() = 0;
    virtual void ActivateProject() = 0;
    virtual void DeactivateProject() = 0;
@@ -423,12 +425,12 @@ public:
    virtual BOOL OpenView(long lPosition) = 0;
    virtual void CloseView() = 0;
    virtual IElement* GetParent() const = 0;
+   virtual BOOL GetFileName(LPTSTR pstrFilename, UINT cchMax) const = 0;
    virtual BOOL SetName(LPCTSTR pstrName) = 0;
    virtual BOOL GetText(BSTR* pbstrText) = 0;
-   virtual BOOL GetFileName(LPTSTR pstrName, UINT cchMax) const = 0;
+   virtual BOOL IsDirty() const = 0;
    virtual BOOL Reload() = 0;
    virtual BOOL Save() = 0;
-   virtual BOOL IsDirty() const = 0;
    virtual void ActivateUI() = 0;
    virtual void DeactivateUI() = 0;
    virtual void EnableModeless(BOOL bEnable) = 0;

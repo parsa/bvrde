@@ -318,9 +318,9 @@ LRESULT CCommandView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
       tr.chrg.cpMax = max(0, iStart);
       tr.lpstrText = szBuffer;
       GetTextRange(&tr);
-      if( _tcsncmp(szBuffer, _T("> "), 3) == 0
-          || _tcsncmp(szBuffer, _T("\r> "), 3) == 0 
-          || _tcsncmp(szBuffer, _T("\n> "), 3) == 0 ) 
+      if( _tcscmp(szBuffer, _T("> ")) == 0
+          || _tcscmp(szBuffer, _T("\r> ")) == 0 
+          || _tcscmp(szBuffer, _T("\n> ")) == 0 ) 
       {
          ::MessageBeep((UINT)-1);
          return 0;
@@ -399,6 +399,10 @@ LRESULT CCommandView::OnEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 void CCommandView::OnIdle(IUpdateUI* pUIBase)
 {
    pUIBase->UIEnable(ID_EDIT_COPY, TRUE);
+}
+
+void CCommandView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+{
 }
 
 // ICustomCommandListener

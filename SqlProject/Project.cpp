@@ -250,6 +250,11 @@ void CSqlProject::OnIdle(IUpdateUI* pUIBase)
    }
 }
 
+void CSqlProject::OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
+{
+   AtlLoadString(wID, pstrText, cchMax);
+}
+
 // ITreeMessageListener
 
 LRESULT CSqlProject::OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled)

@@ -110,7 +110,8 @@ public:
       m_ctrlList.SetColumnWidth(0, LVSCW_AUTOSIZE_USEHEADER);
 
       m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TOOLTYPE_LOCAL)));
-      m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TOOLTYPE_REMOTE)));
+      m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TOOLTYPE_COMPILER)));
+      m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TOOLTYPE_DEBUGGER)));
       m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TOOLTYPE_SQL)));
 
       m_ctrlNew.SetIcon(m_iconNew);
@@ -233,8 +234,9 @@ public:
          m_ctrlArguments.SetWindowText(pTool->sArguments);
          m_ctrlPath.SetWindowText(pTool->sPath);
          if( pTool->sType == _T("local") ) m_ctrlType.SetCurSel(0);
-         if( pTool->sType == _T("remote") ) m_ctrlType.SetCurSel(1);
-         if( pTool->sType == _T("sql") ) m_ctrlType.SetCurSel(2);
+         if( pTool->sType == _T("compiler") ) m_ctrlType.SetCurSel(1);
+         if( pTool->sType == _T("debugger") ) m_ctrlType.SetCurSel(2);
+         if( pTool->sType == _T("sql") ) m_ctrlType.SetCurSel(3);
          m_ctrlPromptArgs.SetCheck( (pTool->lFlags & TOOLFLAGS_PROMPTARGS) != 0 ? BST_CHECKED : BST_UNCHECKED);
          m_ctrlConsoleOutput.SetCheck( (pTool->lFlags & TOOLFLAGS_CONSOLEOUTPUT) != 0 ? BST_CHECKED : BST_UNCHECKED);
       }
@@ -324,8 +326,9 @@ public:
       CString sType;
       switch( m_ctrlType.GetCurSel() ) {
       case 0: sType = _T("local"); break;
-      case 1: sType = _T("remote"); break;
-      case 2: sType = _T("sql"); break;
+      case 1: sType = _T("compiler"); break;
+      case 2: sType = _T("debugger"); break;
+      case 3: sType = _T("sql"); break;
       }
       pTool->sTitle = CWindowText(m_ctrlTitle);
       pTool->sCommand = CWindowText(m_ctrlCommand);

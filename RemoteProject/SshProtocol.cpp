@@ -273,6 +273,7 @@ DWORD CSshThread::Run()
    }
 
    m_pManager->m_bConnected = false;
+
    return 0;
 }
 

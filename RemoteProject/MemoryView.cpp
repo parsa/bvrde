@@ -231,3 +231,6 @@ void CMemoryView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UISetCheck(ID_MEMORY_SIZE_BYTE, m_iDisplaySize == 2);
 }
 
+void CMemoryView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+{
+}

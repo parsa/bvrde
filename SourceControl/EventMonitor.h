@@ -128,6 +128,11 @@ public:
       pUIBase->UIEnable(ID_VIEW_REPOSITORY, TRUE);
       pUIBase->UISetCheck(ID_VIEW_REPOSITORY, m_viewRepository.IsWindow());
    }
+
+   void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
+   {
+      AtlLoadString(wID, pstrText, cchMax);
+   }
 };
 
 

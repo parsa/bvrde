@@ -46,13 +46,13 @@ void CStartPageView::_AttachRecentProjectList()
          if( spDisp != NULL ) {
             CComQIPtr<IHTMLElement> spElement = spDisp;
             // 
-				//  <SCRIPT language=JavaScript>
-			 	//	   var oProjects = window.external.RecentProjects;
-				//	   var i = 0;
-				//	   for( i = 1; i <= oProjects.Count; i++ ) {
-			   //	      document.write('<' + 'A TABINDEX=' + i + ' href="project://' + oProjects.Item(i) + '">' + oProjects.Item(i) + '<' + '/A><BR>');
-				//    }
-				//  </SCRIPT>
+            //  <SCRIPT language=JavaScript>
+             //      var oProjects = window.external.RecentProjects;
+            //      var i = 0;
+            //      for( i = 1; i <= oProjects.Count; i++ ) {
+            //         document.write('<' + 'A TABINDEX=' + i + ' href="project://' + oProjects.Item(i) + '">' + oProjects.Item(i) + '<' + '/A><BR>');
+            //    }
+            //  </SCRIPT>
             //
             IDispatch* pProject = _pDevEnv->GetDispatch();
             CComDispatchDriver ddProject = pProject;

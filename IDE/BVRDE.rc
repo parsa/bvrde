@@ -485,7 +485,7 @@ END
 IDD_CONFIG_LAYOUT DIALOGEX 0, 0, 210, 198
 STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD
 EXSTYLE WS_EX_TRANSPARENT
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Tool Bars:",IDC_STATIC,7,7,77,10
     CONTROL         "Use large buttons",IDC_LARGE_ICONS,"Button",
@@ -1106,9 +1106,10 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_VIEW_PROPERTIES      "Show/Hide Properties window\nProperties"
+    ID_VIEW_PROPERTIES      "Show Properties\nProperties"
     ID_VIEW_OUTPUT          "Show/Hide the Output window\nOutput"
     ID_VIEW_COMMAND         "Show/Hide Command window\nCommand"
+    ID_VIEW_OPEN            "Open the document\\Open"
     ID_HELP_STARTPAGE       "Show Start Page\nStart Page"
     ID_HELP_SEARCH          "Search for items in documentation\nSearch"
 END
@@ -1233,18 +1234,20 @@ BEGIN
     IDS_KEYDUPLICATE        "Shortcut duplication\nThis shortcut is already in use. Continue?\nThe key combination is already used for a different shortcut."
     IDS_TREE_ASP            "ASP"
     IDS_TOOLTYPE_LOCAL      "Local"
-    IDS_TOOLTYPE_REMOTE     "Remote"
+    IDS_TOOLTYPE_COMPILER   "Compiler"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_TAB_CLOSE            "Close current tab\nClose"
-    ID_TAB_CLOSEALL         "Ckose all tabs\nClose all"
+    ID_TAB_CLOSE            "Close current document\nClose"
+    ID_TAB_CLOSEALL         "Ckose all documents\nClose all"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_TAB_CLOSEALLEXCEPT   "Close all tabs, except this one\nClose all except this"
+    ID_TAB_CLOSEALLEXCEPT   "Close all documents, except this one\nClose all except this"
+    ID_TAB_ACTIVATE         "Activate this document\nActivate"
+    ID_VIEW_FULLSCREEN      "Show document in Full Screen\nFull Screen"
     ID_EDIT_CLEARVIEW       "Clear all text in the view\nClear"
 END
 
@@ -1253,6 +1256,8 @@ BEGIN
     IDS_TOOLTYPE_SQL        "SQL"
     IDS_SOUNDS              "Sounds"
     IDS_CUSTOMIZE           "Customize"
+    IDS_TOOLTYPE_DEBUGGER   "Debugger"
+    IDS_EXTERNALTOOL        "Launches an external tool\nRun Tool"
 END
 
 #endif    // English (U.S.) resources
@@ -1310,6 +1315,7 @@ BEGIN
     BUTTON      ID_POPUP_NEW
     BUTTON      ID_POPUP_ADD
     BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_SAVE
     BUTTON      ID_FILE_SAVE_ALL
     SEPARATOR
     BUTTON      ID_EDIT_CUT
@@ -1325,6 +1331,34 @@ END
 IDR_PROJECT TOOLBAR DISCARDABLE  16, 15
 BEGIN
     BUTTON      ID_FILE_NEW
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_OPEN            "Opens the selected file\nOpen"
+    ID_FILE_SAVE            "Save the active file\nSave"
+    ID_FILE_PRINT           "Prints the active document\nPrint"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_COPY            "Copy the selection and move it to the clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and move it to the clipboard\nCut"
+    ID_EDIT_PASTE           "Inserts the clipboard contents in the document\nPaste"
+    ID_EDIT_UNDO            "Undoes the previous action\nUndo"
+    ID_EDIT_REDO            "Redoes what was undone\nRedo"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_POPUP_NEW            "Create a new Solution or Project\nCreate Solution"
+    ID_POPUP_ADD            "Add a project or file to the Solution\nAdd to Solution"
 END
 
 #endif    // English (U.K.) resources

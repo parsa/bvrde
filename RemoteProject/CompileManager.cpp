@@ -32,16 +32,19 @@ DWORD CCompileThread::Run()
       // First send window resize
       if( m_szWindow.cx > 0 ) m_pManager->m_ShellManager.WriteScreenSize(m_szWindow.cx, m_szWindow.cy);
 
-      // Get a local copy of the commands
       m_cs.Lock();
+
+      // Get a local copy of the commands
       CSimpleValArray<CString> aActions;
       while( m_aCommands.GetSize() > 0 ) {
          aActions.Add(m_aCommands[0]);
          m_aCommands.RemoveAt(0);
       }
-      m_pManager->m_bCommandMode = m_bCommandMode;
-      m_pManager->m_bIgnoreOutput = m_bIgnoreOutput;
-      m_pManager->m_bBuildSession = m_bBuildSession;
+
+      // Copy the batched flags value to the current session
+      UINT Flags = m_Flags;
+      m_pManager->m_Flags = Flags;
+
       m_cs.Unlock();
 
       // Execute commands
@@ -68,6 +71,11 @@ DWORD CCompileThread::Run()
          if( ShouldStop() ) break;
       }
 
+      // Request for re-loading of active file?
+      if( (Flags & COMPFLAG_RELOADFILE) != 0 ) {
+         m_pProject->DelayedGuiAction(GUI_ACTION_FILE_RELOAD);
+      }
+
       // Idle wait for completion before accepting new prompt commands...
       while( m_pManager->IsBusy() && m_aCommands.GetSize() == 0 ) ::Sleep(200L);     
    }
@@ -85,12 +93,10 @@ bool volatile CCompileManager::s_bBusy = false;
 
 
 CCompileManager::CCompileManager() :
+   m_Flags(0),
    m_pProject(NULL),
    m_bCompiling(false),
    m_bReleaseMode(true),
-   m_bCommandMode(false),
-   m_bIgnoreOutput(false),
-   m_bBuildSession(false),
    m_bWarningPlayed(false)
 {
    m_event.Create();
@@ -125,9 +131,7 @@ void CCompileManager::Clear()
    m_sLinkFlags = _T("");
    m_bReleaseMode = false;
    m_bWarningPlayed = false;
-   m_thread.m_bCommandMode = m_bCommandMode = false;
-   m_thread.m_bIgnoreOutput = m_bIgnoreOutput = false;  
-   m_thread.m_bBuildSession = m_bBuildSession = false;  
+   m_thread.m_Flags = m_Flags = 0;
 }
 
 bool CCompileManager::Load(ISerializable* pArc)
@@ -211,10 +215,8 @@ bool CCompileManager::Stop()
    m_thread.Stop();
    // Reset variables
    m_bCompiling = false;
-   m_bCommandMode = false;
-   m_bIgnoreOutput = false;
-   m_bWarningPlayed = false;
    s_bBusy = false;
+   m_Flags = 0;
    return true;
 }
 
@@ -225,8 +227,8 @@ void CCompileManager::SignalStop()
    m_ShellManager.SignalStop();
    m_thread.SignalStop();
    m_event.SetEvent();
-   m_bCommandMode = false;
    s_bBusy = false;
+   m_Flags = 0;
 }
 
 bool CCompileManager::IsBusy() const
@@ -251,10 +253,8 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
    // to make sure everything run from the correct path.
    // Then we submit the actual command (user configurable).
    CString sTitle;
+   UINT Flags = 0;
    CString sName = pstrName;
-   bool bCommandMode = false;
-   bool bIgnoreOutput = false;
-   bool bBuildSession = false;
    CSimpleArray<CString> aCommands;
    if( sName == "Clean" ) {
       if( !_PrepareProcess(pstrName) ) return false;
@@ -268,7 +268,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       aCommands.Add(m_sCommandCD);
       aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandBuild);
-      bBuildSession = true;
+      Flags |= COMPFLAG_BUILDSESSION;
    }
    if( sName == "Rebuild" ) {
       if( !_PrepareProcess(pstrName) ) return false;
@@ -277,7 +277,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       aCommands.Add(m_sCommandClean);
       aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandRebuild);
-      bBuildSession = true;
+      Flags |= COMPFLAG_BUILDSESSION;
    }
    if( sName == "Compile" ) {
       if( !_PrepareProcess(pstrName) ) return false;
@@ -285,7 +285,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       aCommands.Add(m_sCommandCD);
       aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandCompile);
-      bBuildSession = true;
+      Flags |= COMPFLAG_BUILDSESSION;
    }
    if( sName == "CheckSyntax" ) {
       if( !_PrepareProcess(pstrName) ) return false;
@@ -311,18 +311,28 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
    if( sName.Find(_T("cc ")) == 0 ) {
       sTitle.LoadString(IDS_EXECUTING);
       aCommands.Add(sName.Mid(3));
-      bCommandMode = true;
+      Flags |= COMPFLAG_COMMANDMODE;
    }
    if( sName.Find(_T("cz ")) == 0 ) {
       sTitle.LoadString(IDS_EXECUTING);
       aCommands.Add(sName.Mid(3));
-      bCommandMode = true;
-      bIgnoreOutput = true;
+      Flags |= COMPFLAG_COMMANDMODE | COMPFLAG_IGNOREOUTPUT;
    }
+   
+   // Finally translate the commands (replace meta-tokens)...
    for( int i = 0; i < aCommands.GetSize(); i++ ) {
       aCommands[i] = _TranslateCommand(aCommands[i], pstrParams);
    }
-   return _StartProcess(sTitle, aCommands, bBuildSession, bCommandMode, bIgnoreOutput);
+
+   // Some additional flags
+   if( sName.Find(_T("$FILE")) > 0 ) {
+      IView* pView = _pDevEnv->GetActiveView();
+      if( pView != NULL ) pView->Save();
+      Flags |= COMPFLAG_RELOADFILE;
+   }
+   
+   // Run the commands on the remote server...
+   return _StartProcess(sTitle, aCommands, Flags);
 }
 
 CString CCompileManager::GetParam(LPCTSTR pstrName) const
@@ -340,7 +350,7 @@ CString CCompileManager::GetParam(LPCTSTR pstrName) const
    if( sName == "CompileFlags" ) return m_sCompileFlags;
    if( sName == "LinkFlags" ) return m_sLinkFlags;
    if( sName == "Mode" ) return m_bReleaseMode ? _T("Release") : _T("Debug");
-   if( sName == "InCommand" ) return m_bCommandMode ? _T("true") : _T("false");
+   if( sName == "InCommand" ) return (m_Flags & COMPFLAG_COMMANDMODE) != 0 ? _T("true") : _T("false");
    return m_ShellManager.GetParam(pstrName);
 }
 
@@ -359,7 +369,7 @@ void CCompileManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == "CompileFlags" ) m_sCompileFlags = pstrValue;
    if( sName == "LinkFlags" ) m_sLinkFlags = pstrValue;
    if( sName == "Mode" ) m_bReleaseMode = _tcscmp(pstrValue, _T("Release")) == 0;
-   if( sName == "InCommand" ) m_bCommandMode = _tcscmp(pstrValue, _T("true")) == 0;
+   if( sName == "InCommand" ) m_Flags |= _tcscmp(pstrValue, _T("true")) == 0 ? COMPFLAG_COMMANDMODE : 0;
    m_ShellManager.SetParam(pstrName, pstrValue);
 }
 
@@ -370,19 +380,37 @@ CString CCompileManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrPara
    CString sName = pstrCommand;
    TCHAR szProjectName[128] = { 0 };
    m_pProject->GetName(szProjectName, 127);
+   TCHAR szProjectPath[MAX_PATH] = { 0 };
+   m_pProject->GetName(szProjectPath, MAX_PATH);
+
+   // Replace meta-tokens:
+   //   $PROJECTNAME$  = name of project
+   //   $PROJECTPATH$  = path where projectfile is located (local)
+   //   $PATH$         = source path on remote server
+   //   $FILEPATH$     = path of active view
+   //   $FILENAME$     = filename of active view
+   //   $NAME$         = namepart of filename of active view
 
    sName.Replace(_T("$PROJECTNAME$"), szProjectName);
+   sName.Replace(_T("$PROJECTPATH$"), szProjectPath);
    sName.Replace(_T("$PATH$"), m_ShellManager.GetParam(_T("Path")));
    sName.Replace(_T("\\n"), _T("\r\n"));
-   if( pstrParam != NULL ) {
-      TCHAR szName[MAX_PATH] = { 0 };
-      _tcscpy(szName, pstrParam);
-      sName.Replace(_T("$FILEPATH$"), szName);
-      ::PathStripPath(szName);
-      sName.Replace(_T("$FILENAME$"), szName);
-      ::PathRemoveExtension(szName);
-      sName.Replace(_T("$NAME$"), szName);
+
+   TCHAR szName[MAX_PATH] = { 0 };
+   if( pstrParam == NULL ) {
+      IView* pView = _pDevEnv->GetActiveView();
+      if( pView != NULL ) pView->GetFileName(szName, MAX_PATH);
    }
+   else {
+      _tcscpy(szName, pstrParam);
+   }
+
+   sName.Replace(_T("$FILEPATH$"), szName);
+   ::PathStripPath(szName);
+   sName.Replace(_T("$FILENAME$"), szName);
+   ::PathRemoveExtension(szName);
+   sName.Replace(_T("$NAME$"), szName);
+
    return sName;
 }
 
@@ -415,11 +443,7 @@ bool CCompileManager::_PrepareProcess(LPCTSTR /*pstrName*/)
    return true;
 }
 
-bool CCompileManager::_StartProcess(LPCTSTR pstrName, 
-                                    CSimpleArray<CString>& aCommands, 
-                                    bool bBuildSession,
-                                    bool bCommandMode,
-                                    bool bIgnoreOutput)
+bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCommands, UINT Flags)
 {
    ATLASSERT(m_pProject);
    ATLASSERT(!::IsBadStringPtr(pstrName,-1));
@@ -446,7 +470,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName,
    if( m_pProject->m_DebugManager.IsBusy() ) {
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_QUESTION));
       CString sMsg(MAKEINTRESOURCE(IDS_DEBUGGER_BUSY));
-      if( bIgnoreOutput || IDNO == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_YESNO | MB_ICONQUESTION) ) return false;
+      if( ((Flags & COMPFLAG_IGNOREOUTPUT) != 0) || IDNO == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_YESNO | MB_ICONQUESTION) ) return false;
       m_pProject->m_DebugManager.SignalStop();
       m_pProject->m_DebugManager.Stop();
    }
@@ -455,7 +479,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName,
    if( !m_ShellManager.IsConnected() ) {
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_QUESTION));
       CString sMsg(MAKEINTRESOURCE(IDS_WAITCONNECTION));
-      if( bIgnoreOutput || IDNO == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_YESNO | MB_ICONQUESTION) ) return false;
+      if( ((Flags & COMPFLAG_IGNOREOUTPUT) != 0) || IDNO == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_YESNO | MB_ICONQUESTION) ) return false;
       // Not connected yet? Let's connect now!
       CWaitCursor cursor;
       CString sStatus;
@@ -478,9 +502,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName,
    // and add marker that will end the compile session
    m_thread.m_cs.Lock();
    m_thread.m_szWindow = _GetViewWindowSize();
-   m_thread.m_bCommandMode = bCommandMode;
-   m_thread.m_bIgnoreOutput = bIgnoreOutput;
-   m_thread.m_bBuildSession = bBuildSession;
+   m_thread.m_Flags = Flags;
    for( int i = 0; i < aCommands.GetSize(); i++ ) {
       CString sCommand = aCommands[i];
       m_thread.m_aCommands.Add(sCommand);
@@ -496,7 +518,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName,
 
    // If this is a regular compile command (not user-entered or scripting prompt)
    // let's pop up the compile window...
-   if( !bCommandMode && !bIgnoreOutput ) {
+   if( (Flags & (COMPFLAG_IGNOREOUTPUT | COMPFLAG_COMMANDMODE)) == 0 ) {
       // Clear the compile window now (before output begins)
       ctrlEdit.SetWindowText(_T(""));
       // Send delayed message to view so it opens
@@ -507,7 +529,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName,
 
    // If this is in command mode, we'll be polite and wait for the command to
    // actually be submitted to the remote server before we continue...
-   if( bCommandMode ) {
+   if( (Flags & COMPFLAG_COMMANDMODE) != 0 ) {
       DWORD dwStartTick = ::GetTickCount();
       while( m_thread.m_aCommands.GetSize() > 0 ) {
          ::Sleep(50L);
@@ -562,13 +584,11 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       m_pProject->DelayedGuiAction(GUI_ACTION_STOP_ANIMATION);
       m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_STOP);
       // Play annoying build sound
-      if( m_bBuildSession ) ::PlaySound(_T("BVRDE_BuildSucceeded"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
+      if( (m_Flags & COMPFLAG_BUILDSESSION) != 0 ) ::PlaySound(_T("BVRDE_BuildSucceeded"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
       else ::PlaySound(_T("BVRDE_CommandComplete"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
       // Reset state
+      m_Flags = 0;
       m_bCompiling = false;
-      m_bCommandMode = false;
-      m_bIgnoreOutput = false;
-      m_bBuildSession = false;
       m_bWarningPlayed = false;
       s_bBusy = false;
       return;
@@ -581,8 +601,8 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 
    // Output text
    CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_OUTPUTVIEW);
-   if( m_bCommandMode ) ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
-   if( m_bIgnoreOutput ) return;
+   if( (m_Flags & COMPFLAG_COMMANDMODE) != 0 ) ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
+   if( (m_Flags & COMPFLAG_IGNOREOUTPUT) != 0 ) return;
 
    ATLASSERT(ctrlEdit.IsWindow());
    SCROLLINFO sinfo = { 0 };
@@ -621,12 +641,12 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    if( nColor == VT100_RED ) cf.crTextColor = RGB(200,0,0);
    if( _tcsstr(pstrText, _T("error:")) != NULL ) {
       cf.crTextColor = RGB(150,70,0);
-      ::PlaySound(_T("BVRDE_OutputError"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT | SND_NOSTOP);
+      if( !m_bWarningPlayed ) ::PlaySound(_T("BVRDE_OutputError"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT | SND_NOSTOP);
       m_bWarningPlayed = true;
    }
    if( _tcsstr(pstrText, _T("warning:")) != NULL ) {
       cf.crTextColor = RGB(70,70,0);
-      ::PlaySound(_T("BVRDE_OutputWarning"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT | SND_NOSTOP);
+      if( !m_bWarningPlayed ) ::PlaySound(_T("BVRDE_OutputWarning"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT | SND_NOSTOP);
       m_bWarningPlayed = true;
    }
    if( _tcschr(m_sPromptPrefix, *pstrText) != NULL ) cf.dwEffects |= CFE_BOLD;

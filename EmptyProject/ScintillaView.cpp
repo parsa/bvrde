@@ -157,3 +157,7 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
 {
    pUIBase->UIEnable(ID_FILE_SAVE, m_ctrlEdit.GetModify());
 }
+
+void CScintillaView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+{
+}

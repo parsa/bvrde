@@ -4,7 +4,19 @@
 
 #include "Project.h"
 
+////////////////////////////////////////////////////////
+//
 
+static CComAutoCriticalSection g_csDelayedData;
+
+struct CLockDelayedDataInit
+{
+   CLockDelayedDataInit() { g_csDelayedData.Lock(); };
+   ~CLockDelayedDataInit() { g_csDelayedData.Unlock(); };
+};
+
+
+////////////////////////////////////////////////////////
 // Delayed UI processing
 
 LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
@@ -25,7 +37,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
    // Try to obtain the semaphore
    // NOTE: WinNT specific API
-   if( !::TryEnterCriticalSection(&_Module.m_csStaticDataInit) ) {
+   if( !::TryEnterCriticalSection(&g_csDelayedData.m_sec) ) {
       // No need to block the thread; let's just re-post the request...
       m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
       return 0;
@@ -50,6 +62,12 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             case GUI_ACTION_STOP_ANIMATION:
                {
                   _pDevEnv->PlayAnimation(FALSE, 0);
+               }
+               break;
+            case GUI_ACTION_FILE_RELOAD:
+               {
+                  IView* pView = _pDevEnv->GetActiveView();
+                  if( pView != NULL ) pView->Reload();
                }
                break;
             }
@@ -91,14 +109,15 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             // Notify all views
             DelayedViewMessage(DEBUG_CMD_DEBUG_START);
 
-            if( m_DockManager.IsAutoShown(m_viewStack, _T("showStack")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
-            if( m_DockManager.IsAutoShown(m_viewWatch, _T("showWatch")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
-            if( m_DockManager.IsAutoShown(m_viewThread, _T("showThread")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
-            if( m_DockManager.IsAutoShown(m_viewRegister, _T("showRegister")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
-            if( m_DockManager.IsAutoShown(m_viewMemory, _T("showMemory")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
-            if( m_DockManager.IsAutoShown(m_viewDisassembly, _T("showDisassembly")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
-            if( m_DockManager.IsAutoShown(m_viewVariable, _T("showVariable")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
-            if( m_DockManager.IsAutoShown(m_viewBreakpoint, _T("showBreakpoint")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
+            // Open up all debugger view requested
+            if( m_DockManager.IsAutoShown(m_viewStack, _T("showStack")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
+            if( m_DockManager.IsAutoShown(m_viewWatch, _T("showWatch")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
+            if( m_DockManager.IsAutoShown(m_viewThread, _T("showThread")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
+            if( m_DockManager.IsAutoShown(m_viewRegister, _T("showRegister")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
+            if( m_DockManager.IsAutoShown(m_viewMemory, _T("showMemory")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
+            if( m_DockManager.IsAutoShown(m_viewDisassembly, _T("showDisassembly")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
+            if( m_DockManager.IsAutoShown(m_viewVariable, _T("showVariable")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
+            if( m_DockManager.IsAutoShown(m_viewBreakpoint, _T("showBreakpoint")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
          }
          break;
       case LAZY_DEBUG_KILL_EVENT:
@@ -118,17 +137,17 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             m_DockManager.SetInfo(m_viewVariable, _T("showVariable"));
             m_DockManager.SetInfo(m_viewBreakpoint, _T("showBreakpoint"));
 
-            if( m_viewStack.IsWindow() && m_viewStack.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
-            if( m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
-            if( m_viewThread.IsWindow() && m_viewThread.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
-            if( m_viewRegister.IsWindow() && m_viewRegister.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
-            if( m_viewMemory.IsWindow() && m_viewMemory.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
-            if( m_viewDisassembly.IsWindow() && m_viewDisassembly.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
-            if( m_viewVariable.IsWindow() && m_viewVariable.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
-            if( m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
+            if( m_viewStack.IsWindow() && m_viewStack.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
+            if( m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
+            if( m_viewThread.IsWindow() && m_viewThread.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
+            if( m_viewRegister.IsWindow() && m_viewRegister.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
+            if( m_viewMemory.IsWindow() && m_viewMemory.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
+            if( m_viewDisassembly.IsWindow() && m_viewDisassembly.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
+            if( m_viewVariable.IsWindow() && m_viewVariable.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
+            if( m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
          }
          break;
-      case LAZY_DEBUG_STOP_EVENT:
+      case LAZY_DEBUG_BREAK_EVENT:
          {
             // Debugger stopped at some point (breakpoint, user break, etc).
             // Let's update the debug views with fresh values.
@@ -170,7 +189,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          {
             // New debug information has arrived. Spread it around to the
             // debug views since they are the likely candidates for this data.
-            // Most of these messages originates from the LAZY_DEBUG_STOP_EVENT handling
+            // Most of these messages originates from the LAZY_DEBUG_BREAK_EVENT handling
             // above anyway.
 
             if( m_viewStack.WantsData() ) m_viewStack.SetInfo(data.szMessage, data.MiInfo);
@@ -196,10 +215,12 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          break;
       }
    }
+
    // Empty queue
    m_aLazyData.RemoveAll();
+
    // Release semaphore
-   ::LeaveCriticalSection(&_Module.m_csStaticDataInit);
+   ::LeaveCriticalSection(&g_csDelayedData.m_sec);
 
    // Now that we're not blocking, send debug commands
    for( int a = 0; a < aDbgCmd.GetSize(); a++ ) m_DebugManager.DoDebugCommand(aDbgCmd[a]);
@@ -215,7 +236,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
 void CRemoteProject::DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UINT iFlags)
 {
-   CLockStaticDataInit lock;
+   CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_SHOW_MESSAGE;
    _tcscpy(data.szCaption, pstrCaption);
@@ -227,7 +248,7 @@ void CRemoteProject::DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UI
 
 void CRemoteProject::DelayedOpenView(LPCTSTR pstrFilename, long lLineNum)
 {
-   CLockStaticDataInit lock;
+   CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_OPEN_VIEW;
    _tcscpy(data.szFilename, pstrFilename);
@@ -238,7 +259,7 @@ void CRemoteProject::DelayedOpenView(LPCTSTR pstrFilename, long lLineNum)
 
 void CRemoteProject::DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename, long lLineNum)
 {
-   CLockStaticDataInit lock;
+   CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_GUI_ACTION;
    data.wParam = iAction;
@@ -250,7 +271,7 @@ void CRemoteProject::DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename, long l
 
 void CRemoteProject::DelayedGuiAction(UINT iAction, HWND hWnd)
 {
-   CLockStaticDataInit lock;
+   CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_GUI_ACTION;
    data.wParam = iAction;
@@ -261,7 +282,7 @@ void CRemoteProject::DelayedGuiAction(UINT iAction, HWND hWnd)
 
 void CRemoteProject::DelayedStatusBar(LPCTSTR pstrText)
 {
-   CLockStaticDataInit lock;
+   CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_SET_STATUSBARTEXT;
    _tcscpy(data.szMessage, pstrText);
@@ -271,7 +292,7 @@ void CRemoteProject::DelayedStatusBar(LPCTSTR pstrText)
 
 void CRemoteProject::DelayedDebugCommand(LPCTSTR pstrCommand)
 {
-   CLockStaticDataInit lock;
+   CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_DEBUGCOMMAND;
    _tcscpy(data.szMessage, pstrCommand);
@@ -282,7 +303,7 @@ void CRemoteProject::DelayedDebugCommand(LPCTSTR pstrCommand)
 
 void CRemoteProject::DelayedViewMessage(WPARAM wCmd, LPCTSTR pstrFilename /*= NULL*/, long lLineNum /*= -1*/, UINT iFlags /*= 0*/)
 {
-   CLockStaticDataInit lock;
+   CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_SEND_VIEW_MESSAGE;
    data.wParam = wCmd;
@@ -297,7 +318,7 @@ void CRemoteProject::DelayedViewMessage(WPARAM wCmd, LPCTSTR pstrFilename /*= NU
 
 void CRemoteProject::DelayedDebugBreakpoint(LPCTSTR pstrFilename, long lLineNum)
 {
-   CLockStaticDataInit lock;
+   CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_SET_DEBUG_BREAKPOINT;
    _tcscpy(data.szFilename, pstrFilename);
@@ -306,9 +327,9 @@ void CRemoteProject::DelayedDebugBreakpoint(LPCTSTR pstrFilename, long lLineNum)
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
 
-void CRemoteProject::DelayedDebugEvent(LAZYACTION event /*= LAZY_DEBUG_STOP_EVENT*/)
+void CRemoteProject::DelayedDebugEvent(LAZYACTION event /*= LAZY_DEBUG_BREAK_EVENT*/)
 {
-   CLockStaticDataInit lock;
+   CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = event;
    m_aLazyData.Add(data);
@@ -317,7 +338,7 @@ void CRemoteProject::DelayedDebugEvent(LAZYACTION event /*= LAZY_DEBUG_STOP_EVEN
 
 void CRemoteProject::DelayedDebugInfo(LPCTSTR pstrCommand, CMiInfo& info)
 {
-   CLockStaticDataInit lock;
+   CLockDelayedDataInit lock;
    LAZYDATA dummy;
    m_aLazyData.Add(dummy);
    LAZYDATA& data = m_aLazyData[m_aLazyData.GetSize() - 1];

@@ -172,14 +172,14 @@ LRESULT CDisasmView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 LRESULT CDisasmView::OnShowSource(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    m_bShowSource = !m_bShowSource;
-   m_pProject->DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    return 0;
 }
 
 LRESULT CDisasmView::OnIntelStyle(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    m_bIntelStyle = !m_bIntelStyle;
-   m_pProject->DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    return 0;
 }
 
@@ -191,5 +191,9 @@ void CDisasmView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_DISASM_SHOWSOURCE, FALSE);  // Not supported yet
    pUIBase->UISetCheck(ID_DISASM_INTELSTYLE, m_bIntelStyle);
    pUIBase->UISetCheck(ID_DISASM_SHOWSOURCE, m_bShowSource);
+}
+
+void CDisasmView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+{
 }
 

@@ -42,6 +42,14 @@ public:
       pUIBase->UIEnable(ID_VIEW_FILEMANAGER, TRUE);
       pUIBase->UISetCheck(ID_VIEW_FILEMANAGER, m_viewBrowser.IsWindow());
    }
+   void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
+   {
+#if (_ATL_VER >= 0x0700)
+   	::LoadString(ATL::_AtlBaseModule.GetResourceInstance(), wID, pstrText, cchMax);
+#else //!(_ATL_VER >= 0x0700)
+	   ::LoadString(_Module.GetResourceInstance(), wID, pstrText, cchMax);
+#endif //!(_ATL_VER >= 0x0700)
+   }
 };
 
 

@@ -50,10 +50,26 @@ public:
    {
       m_wndMDIClient.SubclassWindow(hWnd);
    }
+
    void SetVisible(BOOL bVisible)
    {
       m_bTabsVisible = bVisible == TRUE;
       UpdateLayout();
+   }
+
+   void ChangeDirtyState(HWND hWnd)
+   {
+      TCITEM tci = { 0 };
+      tci.mask = TCIF_PARAM;
+      tci.lParam = (LPARAM) hWnd;
+      int iIndex = m_ctrlTab.FindItem(&tci);
+      if( iIndex < 0 ) return;
+      CString sName;
+      CString sFileName;
+      _LookupViewNames(hWnd, sName, sFileName);
+      tci.mask = TCIF_TEXT;
+      tci.pszText = (LPTSTR) (LPCTSTR) sName;
+      m_ctrlTab.SetItem(iIndex, &tci);
    }
 
    // Message map and handler
@@ -74,7 +90,7 @@ public:
       SetFont( AtlGetDefaultGuiFont() );
       // Create the tab control
       m_ctrlTab.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, IDC_COOLTAB);
-      m_ctrlTab.SetExtendedStyle(0, TCS_EX_SELHIGHLIGHT | TCS_EX_FLATSEPARATORS);
+      m_ctrlTab.SetExtendedStyle(0, TCS_EX_SELHIGHLIGHT | TCS_EX_FLATSEPARATORS | TCS_EX_SCROLLBUTTONS);
       return lRes;
    }
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -159,11 +175,8 @@ public:
          {
             // Get Tab text and tooltip text
             CWindow wnd = (HWND) lParam;
-            int nLen = wnd.GetWindowTextLength() + 1;
-            LPTSTR pstrText = (LPTSTR) _alloca(nLen * sizeof(TCHAR));
-            wnd.GetWindowText(pstrText, nLen);
-            CString sName = pstrText;
-            CString sFileName = pstrText;
+            CString sName;
+            CString sFileName;
             _LookupViewNames(wnd, sName, sFileName);
             // Create a new tab
             COOLTCITEM tci;
@@ -173,8 +186,8 @@ public:
             tci.lParam = lParam;
             m_ctrlTab.InsertItem(m_ctrlTab.GetItemCount(), &tci);
             // Position view in container (maximize if needed)
-            UpdateLayout();
             if( m_bTabsVisible ) m_wndMDIClient.SendMessage(WM_MDIMAXIMIZE, (WPARAM) (HWND) wnd);
+            UpdateLayout();
          }
          break;
       case WM_DESTROY:
@@ -201,8 +214,7 @@ public:
 
    void OnIdle()
    {
-      BOOL bMaximized = FALSE;
-      HWND hWndActive = (HWND) m_wndMDIClient.SendMessage(WM_MDIGETACTIVE, 0, (LPARAM) &bMaximized);
+      HWND hWndActive = (HWND) m_wndMDIClient.SendMessage(WM_MDIGETACTIVE, 0, 0L);
       static HWND s_hWndLastMDIClient = NULL;
       if( s_hWndLastMDIClient != hWndActive ) {
          s_hWndLastMDIClient = hWndActive;
@@ -247,20 +259,24 @@ public:
 
    // Implementation
 
-   void _LookupViewNames(HWND hWnd, CString& sName, CString& sFilename)
+   void _LookupViewNames(HWND hWnd, CString& sName, CString& sFilename) const
    {
+      // Try to get the IElement from the window so we can extract
+      // the proper name. If the window is not a known element, we'll
+      // just use the window-text.
       CWinProp prop = hWnd;
-      IElement* pElement = NULL;
-      prop.GetProperty(_T("View"), pElement);
-      if( pElement == NULL ) return;      
-      pElement->GetName(sName.GetBufferSetLength(128), 128);
-      sName.ReleaseBuffer();
-      CComDispatchDriver dd = pElement->GetDispatch();
-      if( dd == NULL ) return;
-      CComVariant v;
-      dd.GetPropertyByName(OLESTR("Filename"), &v);
-      if( v.vt != VT_BSTR ) return;
-      sFilename = v.bstrVal;
+      IView* pView = NULL;
+      prop.GetProperty(_T("View"), pView);
+      if( pView != NULL ) {
+         pView->GetName(sName.GetBufferSetLength(128), 128);
+         sName.ReleaseBuffer();
+         if( pView->IsDirty() ) sName += _T(" *");
+         pView->GetFileName(sFilename.GetBufferSetLength(MAX_PATH), MAX_PATH);
+         sFilename.ReleaseBuffer();
+      }
+      else {
+         sName = sFilename = CWindowText(hWnd);
+      }
    }
 };
 

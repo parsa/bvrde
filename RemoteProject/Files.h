@@ -23,6 +23,7 @@ public:
    CString m_sName;
    CString m_sFilename;
    CString m_sLocation;
+   CString m_sLanguage;
    BOOL m_bIsDirty;
 
 public:
@@ -81,7 +82,6 @@ class CTextFile : public CViewImpl
 public:
    CWindow m_wndFrame;
    CScintillaView m_view;
-   CString m_sLanguage;
    CTextFileOM m_Dispatch;
 
 public:

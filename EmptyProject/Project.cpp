@@ -233,6 +233,11 @@ void CEmptyProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_VIEW_PROPERTIES, pElement != NULL);
 }
 
+void CEmptyProject::OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
+{
+   AtlLoadString(wID, pstrText, cchMax);
+}
+
 // ITreeMessageListener
 
 LRESULT CEmptyProject::OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled)

@@ -54,6 +54,14 @@ public:
       if( pProject ) pProject->GetClass(szType, 127);
       pUIBase->UIEnable(ID_EDIT_FINDFILES, _tcscmp(szType, _T("Remote C++")) == 0);
    }
+   void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
+   {
+#if (_ATL_VER >= 0x0700)
+   	::LoadString(ATL::_AtlBaseModule.GetResourceInstance(), wID, pstrText, cchMax);
+#else //!(_ATL_VER >= 0x0700)
+	   ::LoadString(_Module.GetResourceInstance(), wID, pstrText, cchMax);
+#endif //!(_ATL_VER >= 0x0700)
+   }
 };
 
 

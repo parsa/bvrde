@@ -160,7 +160,7 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    UISetBlockAccelerators(true);
 
    // Register object for message filtering and idle updates
-   CMessageLoop* pLoop = _Module.GetMessageLoop();
+   CMessageLoop* pLoop = static_cast<CMessageLoopEx*>(_Module.GetMessageLoop());
    ATLASSERT(pLoop);
    pLoop->AddMessageFilter(this);
    pLoop->AddIdleHandler(this);
@@ -170,6 +170,7 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    AddWizardListener(this);
 
    SendMessage(WM_SETTINGCHANGE);
+
    return 0;
 }
 
@@ -209,9 +210,76 @@ LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
    return 0;
 }
 
-LRESULT CMainFrame::OnMenuSelect(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+LRESULT CMainFrame::OnMenuSelect(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-   // Prevent default CFrameWindowImpl handling for statusbar texts
+   // NOTE: This method overrides the CMDIFrameWindowImpl::OnMenuSelect
+   //       because of the special statusbar text-update handling.
+
+   if( m_hWndStatusBar == NULL ) return 1;
+
+   WORD wFlags = HIWORD(wParam);
+   if( wFlags == 0xFFFF && lParam == NULL ) {
+      // Menu closing
+      ::SendMessage(m_hWndStatusBar, SB_SIMPLE, FALSE, 0L);
+   }
+   else {
+      TCHAR szBuff[256] = { ' ', 0 };
+      if( (wFlags & MF_POPUP) == 0 ) {
+         UINT wID = LOWORD(wParam);
+         // check for special cases
+         if( wID >= 0xF000 && wID < 0xF1F0 )                            // system menu IDs
+            wID = (WORD)(((wID - 0xF000) >> 4) + ATL_IDS_SCFIRST);
+         else if( wID >= ID_FILE_MRU_FIRST && wID <= ID_FILE_MRU_LAST ) // MRU items
+            wID = ATL_IDS_MRU_FILE;
+         else if( wID >= ID_TOOLS_TOOL1 && wID <= ID_TOOLS_TOOL8 )
+            wID = IDS_EXTERNALTOOL;
+         else if( wID >= ATL_IDM_FIRST_MDICHILD )                       // MDI child windows
+            wID = ATL_IDS_MDICHILD;
+         // We translate it first if possible
+         AtlLoadString(wID, szBuff + 1, 254);
+         // Let other plugins translate it
+         for( int i = 0; i < m_aIdleListeners.GetSize(); i++ ) {
+            TCHAR szText[256] = { 0 };
+            m_aIdleListeners[i]->OnGetMenuText(wID, szText, 254);
+            if( szText[0] != '\0' ) _tcsncpy(szBuff + 1, szText, 254);
+         }
+         // Text may be formatted as:
+         //    MenuDescription\nToolbarText
+         // We'll extract the last part if possible
+         LPTSTR p = _tcschr(szBuff, '\n');
+         if( p != NULL ) *p = '\0';
+         // Update statusbar
+         ::SendMessage(m_hWndStatusBar, SB_SIMPLE, TRUE, 0L);
+         ::SendMessage(m_hWndStatusBar, SB_SETTEXT, (255 | SBT_NOBORDERS), (LPARAM) szBuff);
+      }
+   }
+
+   return 1;
+}
+
+LRESULT CMainFrame::OnToolTipText(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/)
+{
+   // NOTE: This method overrides the CMDIFrameWindowImpl::OnToolTipText
+   //       because of the special toolbar tooltip-update handling.
+
+   LPNMTTDISPINFO pDispInfo = (LPNMTTDISPINFO) pnmh;
+   pDispInfo->szText[0] = 0;
+   if( (idCtrl != 0) && !(pDispInfo->uFlags & TTF_IDISHWND) ) {
+      // We translate it first if possible
+      int cchBuff = sizeof(pDispInfo->szText) / sizeof(pDispInfo->szText[0]);
+      AtlLoadString(idCtrl, pDispInfo->szText, cchBuff);
+      // Let other plugins translate it
+      for( int i = 0; i < m_aIdleListeners.GetSize(); i++ ) {
+         TCHAR szText[256] = { 0 };
+         m_aIdleListeners[i]->OnGetMenuText(idCtrl, szText, 255);
+         if( szText[0] != '\0' ) _tcsncpy(pDispInfo->szText, szText, cchBuff);
+      }
+      // Text may be formatted as:
+      //    MenuDescription\nToolbarText
+      // We'll extract the last part if possible
+      LPTSTR p = _tcschr(pDispInfo->szText, '\n');
+      if( p != NULL ) _tcscpy(pDispInfo->szText, p + 1);
+   }
    return 0;
 }
 
@@ -283,8 +351,8 @@ LRESULT CMainFrame::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOO
    }
    else if( wParam == DELAY_TIMERID ) 
    {
-      KillTimer(DELAY_TIMERID);
       // Delay load some of the external libraries...
+      KillTimer(DELAY_TIMERID);
       ::LoadLibrary(_T("GenEdit.dll"));
       ::LoadLibrary(_T("SciLexer.dll"));
       ::LoadLibrary(_T("CppLexer.dll"));
@@ -389,10 +457,22 @@ LRESULT CMainFrame::OnFileOpen(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
    return 0;
 }
 
+LRESULT CMainFrame::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   CWaitCursor cursor;
+   PlayAnimation(TRUE, ANIM_SAVE);
+   // TODO: Don't rely on messages; use IView::Save()
+   CWindow wnd = MDIGetActive();
+   wnd.SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE, 0));
+   PlayAnimation(FALSE, 0);
+   return 0;
+}
+
 LRESULT CMainFrame::OnFileSaveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    CWaitCursor cursor;
    PlayAnimation(TRUE, ANIM_SAVE);
+   // TODO: Don't rely on messages
    CWindow(m_hWndMDIClient).SendMessageToDescendants(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE, 0));
    if( g_pSolution->IsLoaded() ) g_pSolution->SaveSolution(NULL);
    PlayAnimation(FALSE, 0);
@@ -471,7 +551,7 @@ LRESULT CMainFrame::OnFileStartWizard(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
 
 LRESULT CMainFrame::OnEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
-   // Copy/Cut/Paste is handled before view get a change. The
+   // Copy/Cut/Paste is handled before view gets a change. The
    // view must override the clipboard if possible!
    ::SendMessage(::GetFocus(), WM_COPY, 0, 0L);
    bHandled = FALSE;
@@ -562,10 +642,10 @@ LRESULT CMainFrame::OnToolsRun(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
       CComVariant vRet;
       vRet.Clear();
       dd.GetPropertyByName(L"Name", &vRet);
-      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$NAME$"), CString(vRet.bstrVal));
+      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$PROJECTNAME$"), CString(vRet.bstrVal));
       vRet.Clear();
       dd.GetPropertyByName(L"Filename", &vRet);
-      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$FILENAME$"), CString(vRet.bstrVal));
+      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$PROJECTFILE$"), CString(vRet.bstrVal));
       vRet.Clear();
       dd.GetPropertyByName(L"CurDir", &vRet);
       if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$PROJECTPATH$"), CString(vRet.bstrVal));
@@ -577,12 +657,6 @@ LRESULT CMainFrame::OnToolsRun(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
       // Extract information from IDispatch interface
       CComDispatchDriver dd = pView->GetDispatch();
       CComVariant vRet;
-      vRet.Clear();
-      dd.GetPropertyByName(L"Name", &vRet);
-      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$NAME$"), CString(vRet.bstrVal));
-      vRet.Clear();
-      dd.GetPropertyByName(L"Filename", &vRet);
-      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$FILENAME$"), CString(vRet.bstrVal));
       vRet.Clear();
       dd.Invoke0(L"GetSelection", &vRet);
       if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$SELECTION$"), CString(vRet.bstrVal));
@@ -887,7 +961,7 @@ LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
    // We're properly initialized now
    m_bInitialized = TRUE;
 
-   // Update UI with new state information
+   // Update UI with refresh state information
    UIReset();
    OnIdle();
 
@@ -896,6 +970,7 @@ LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
    m_MDIContainer.UpdateLayout();
 
    ::SetForegroundWindow(m_hWnd);
+
    return 0;
 }
 

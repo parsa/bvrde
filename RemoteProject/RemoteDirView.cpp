@@ -187,6 +187,7 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
       m_ctrlFiles.DeleteAllItems();
       m_ctrlDirUp.EnableWindow(FALSE);
       m_ctrlNoConnection.ShowWindow(SW_SHOW);
+      m_ctrlNoConnection.Invalidate();
       return false;
    }
 
@@ -205,6 +206,7 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
       m_ctrlFiles.DeleteAllItems();
       m_ctrlDirUp.EnableWindow(FALSE);
       m_ctrlNoConnection.ShowWindow(SW_SHOW);
+      m_ctrlNoConnection.Invalidate();
       m_pFileManager->SetCurPath(sOldPath);
       return false;
    }

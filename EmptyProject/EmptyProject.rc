@@ -366,6 +366,35 @@ BEGIN
     IDS_SAVEFILE            "Save File\nFile has been modified. Do you wish to save the file?"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_PROPERTIES      "Show properties\nProperties"
+    ID_VIEW_OPEN            "Open file\nOpen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_OPENWITH        "Open file with external editor\nOpen with"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_DELETE          "Remove the entry from the project\nRemove File"
+    ID_FILE_ADD_LOCAL       "Add a file to the Project\nAdd File"
+    ID_FILE_RENAME          "Rename the entry\nRename"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_ADD_FOLDER      "Add a folder to the Project\nAdd Folder"
+    ID_PROJECT_SET_DEFAULT  "Set as Default Project\nSet As Default"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_SAVE            "Save the entry\nSave"
+END
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

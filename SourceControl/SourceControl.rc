@@ -337,6 +337,20 @@ BEGIN
     IDS_BROWSER_ALL         "Scan all"
     IDS_BROWSER_SINGLE      "Scan single"
     IDS_BUILDING            "Please wait while the Repository structures are being built..."
+    IDS_NOTCONFIGURED       "No Source Control system is currently configured."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_SC_UPDATE            "Update file to with latest changes\nUpdate"
+    ID_SC_CHECKIN           "Check In file\nCheck In"
+    ID_SC_CHECKOUT          "Check out file\nCheck Out"
+    ID_SC_LOGIN             "Log in to Source Control\nLogin"
+    ID_SC_DIFFVIEW          "Show file differences\nDiff File"
+    ID_SC_ADDFILE           "Add File to Source Control\nAdd File"
+    ID_SC_REMOVEFILE        "Remove file from Source Control\nRemove File"
+    ID_SC_STATUS            "Show File Status\nStatus"
+    ID_SC_LOGOUT            "Log out of Source Control\nLogout"
 END
 
 #endif    // English (U.S.) resources

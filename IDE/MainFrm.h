@@ -44,7 +44,8 @@ public:
 
    CMainFrame();
 
-   enum { 
+   enum 
+   { 
       ANIMATE_TIMERID = 22,
       DELAY_TIMERID = 23,
    };
@@ -170,6 +171,7 @@ public:
       MESSAGE_HANDLER(WM_DRAWITEM, OnDrawItem)
       COMMAND_ID_HANDLER(ID_APP_EXIT, OnFileExit)
       COMMAND_ID_HANDLER(ID_FILE_OPEN, OnFileOpen)
+      COMMAND_ID_HANDLER(ID_FILE_SAVE, OnFileSave)
       COMMAND_ID_HANDLER(ID_FILE_SAVE_ALL, OnFileSaveAll)
       COMMAND_ID_HANDLER(ID_FILE_PRINT_SETUP, OnFilePrintSetup)
       COMMAND_ID_HANDLER(ID_FILE_STARTWIZARD, OnFileStartWizard)
@@ -209,6 +211,7 @@ public:
       COMMAND_RANGE_HANDLER(ID_FILE_MRU_FILE1, ID_FILE_MRU_FILE4, OnFileRecent)
       COMMAND_RANGE_HANDLER(ID_TOOLS_TOOL1, ID_TOOLS_TOOL8, OnToolsRun)
       COMMAND_RANGE_HANDLER(ID_MACROS_KEY1, ID_MACROS_KEY15, OnMacroShortcut)
+      NOTIFY_CODE_HANDLER(TTN_GETDISPINFO, OnToolTipText)
       NOTIFY_CODE_HANDLER(TBN_DROPDOWN, OnToolBarDropDown)
       NOTIFY_CODE_HANDLER(RBN_LAYOUTCHANGED, OnRebarLayoutChanged)
       NOTIFY_CODE_HANDLER(NM_RCLICK, OnRebarRClick)
@@ -242,6 +245,7 @@ public:
    LRESULT OnMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnFileOpen(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnFileSave(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnFileSaveAll(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnFilePrintSetup(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnFileRecent(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
@@ -282,6 +286,7 @@ public:
    LRESULT OnHelpSearch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnAppAbout(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnToolBarDropDown(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnToolTipText(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnRebarLayoutChanged(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnRebarRClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnUserInit(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -299,6 +304,7 @@ public:
 
    DWORD GetVersion() const;
    ISolution* GetSolution() const;
+   IView* GetActiveView() const;
    IDispatch* GetDispatch();
    //
    BOOL AddExplorerView(HWND hWnd, LPCTSTR pstrTitle, int iImage);
@@ -362,7 +368,7 @@ public:
    BOOL UIEnable(INT nID, BOOL bEnable, BOOL bForceUpdate = FALSE);
    BOOL UISetCheck(INT nID, INT nCheck, BOOL bForceUpdate = FALSE);
    BOOL UISetRadio(INT nID, BOOL bRadio, BOOL bForceUpdate = FALSE);
-   BOOL UISetText(INT nID, LPCTSTR lpstrText, BOOL bForceUpdate = FALSE);
+   BOOL UISetText(INT nID, LPCTSTR pstrText, BOOL bForceUpdate = FALSE);
 
    // CMessageFilter
 

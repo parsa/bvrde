@@ -11,6 +11,14 @@
 #define WM_APP_ENUMDONE  WM_APP + 44
 
 
+typedef struct tagFILEINFO
+{
+   CString sFilename;
+   CString sStatus;
+   CString sVersion;
+} FILEINFO;
+
+
 class CFileEnumThread : 
    public CThreadImpl<CFileEnumThread>, 
    public ILineCallback
@@ -19,7 +27,8 @@ public:
    HWND m_hWnd;
    long m_lTimeout;
    CString m_sCommand;
-   CSimpleArray<CString> m_aResult;
+   CSimpleArray<FILEINFO> m_aResult;
+   FILEINFO m_Info;
 
    void RunCommand(HWND hWnd, LPCTSTR pstrCommand, LONG lTimeout);
 
@@ -57,6 +66,7 @@ public:
       NOTIFY_HANDLER(IDC_SFOLDERS, TVN_SELCHANGED, OnSelChanged)
       NOTIFY_HANDLER(IDC_SFOLDERS, TVN_ITEMEXPANDED, OnItemExpanded)      
       NOTIFY_HANDLER(IDC_SFILES, LVN_KEYDOWN, OnListKeyDown)
+      NOTIFY_HANDLER(IDC_SFILES, LVN_ITEMCHANGED, OnListSelected)
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -67,9 +77,11 @@ public:
    LRESULT OnSelChanged(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnItemExpanded(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnListKeyDown(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnListSelected(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 
    // Implementation
 
+	void _ShowWaitingMessage(UINT nRes);
    CString _GetItemPath(HTREEITEM hItem) const;
    HTREEITEM _FindItemInTree(HTREEITEM hItem, LPCTSTR pstrName) const;
    bool _AddShellIcon(CImageListHandle& iml, LPCTSTR pstrExtension, DWORD dwFileAttribs, DWORD dwMoreFlags = 0) const;

@@ -33,6 +33,7 @@ public:
    void SetLanguage(CString& sLanguage);
    CString GetViewText();
    void SetViewText(LPCTSTR pstrText);
+   BOOL IsDirty() const;
    void OnIdle(IUpdateUI* pUIBase);
    BOOL PreTranslateMessage(MSG* pMsg);
    void OnFinalMessage(HWND hWnd);

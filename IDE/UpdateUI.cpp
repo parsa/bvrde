@@ -173,26 +173,16 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 
 BOOL CMainFrame::OnIdle()
 {
+   static IView* s_pOldView = NULL;
+   static IElement* s_pOldElement = NULL;
+   static BOOL s_bOldDirtyFlag = NULL;
+
    m_Dock.OnIdle();
    m_MDIContainer.OnIdle();
 
-   // Here we determine if the view/tree-focus has changed and
-   // update the Properties pane with the active view's properties.
-   static IElement* s_pOldElement = NULL;
-   CTreeViewCtrl& ctrlTree = m_viewExplorer.m_viewFile.m_ctrlTree;
-   HTREEITEM hItem = ctrlTree.GetSelectedItem();
-   if( hItem ) {
-      IElement* pElement = (IElement*) ctrlTree.GetItemData(hItem);
-      if( pElement != s_pOldElement ) {
-         s_pOldElement = pElement;
-         ShowProperties(pElement, FALSE);
-         UISetText(0, CString(MAKEINTRESOURCE(ATL_IDS_IDLEMESSAGE)));
-      }
-   }
-
    IProject* pCurProject = g_pSolution->GetActiveProject();
    HWND hWnd = MDIGetActive();  
-   
+
    UIEnable(ID_VIEW_OPEN, FALSE);
    UIEnable(ID_VIEW_PROPERTIES, s_pOldElement != NULL);
 
@@ -230,6 +220,35 @@ BOOL CMainFrame::OnIdle()
       UIEnable(ID_EDIT_UNDO, ctrlEdit.CanUndo());
    }
 
+   // Here we determine if the view/tree-focus has changed and
+   // update the Properties pane with the active view's properties.
+   CTreeViewCtrl& ctrlTree = m_viewExplorer.m_viewFile.m_ctrlTree;
+   HTREEITEM hItem = ctrlTree.GetSelectedItem();
+   if( hItem ) {
+      IElement* pElement = (IElement*) ctrlTree.GetItemData(hItem);
+      if( pElement != s_pOldElement ) {
+         s_pOldElement = pElement;
+         ShowProperties(pElement, FALSE);
+         UISetText(0, CString(MAKEINTRESOURCE(ATL_IDS_IDLEMESSAGE)));
+      }
+   }
+
+   // Here we determine if the active view suddenly changed dirty
+   // state and updates the Tab folders...
+   if( hWnd != NULL ) {
+      IView* pView = NULL;
+      CWinProp prop = hWnd;
+      prop.GetProperty(_T("View"), pView);
+      if( pView != NULL ) {
+         BOOL bDirty = pView->IsDirty();
+         if( pView != s_pOldView || bDirty != s_bOldDirtyFlag ) {
+            m_MDIContainer.ChangeDirtyState(hWnd);
+         }
+         s_bOldDirtyFlag = bDirty;
+      }
+      s_pOldView = pView;
+   }
+
    UIUpdateToolBar();
    UIUpdateStatusBar();
 
@@ -257,4 +276,5 @@ BOOL CMainFrame::UISetText(INT nID, LPCTSTR lpstrText, BOOL bForceUpdate /* = FA
 {
    return CUpdateDynamicUI<CMainFrame>::UISetText(nID, lpstrText, bForceUpdate);
 }
+
 

@@ -132,6 +132,11 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
    if( bModified ) pUIBase->UIEnable(ID_FILE_SAVE_ALL, TRUE);
 }
 
+void CScintillaView::OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
+{
+   AtlLoadString(wID, pstrText, cchMax);
+}
+
 // Message map and handlers
 
 LRESULT CScintillaView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -198,6 +203,7 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    ATLASSERT(menu.IsMenu());
    CMenuHandle submenu = menu.GetSubMenu(1);
    m_pDevEnv->ShowPopupMenu(NULL, submenu, pt);
+
    return 0;
 }
 
@@ -217,7 +223,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    int* ppStyles = NULL;
 
    // Get syntax coloring
-   for( long i = 1; i <= sizeof(syntax)/sizeof(SYNTAXCOLOR); i++ ) {
+   for( long i = 1; i <= sizeof(syntax) / sizeof(SYNTAXCOLOR); i++ ) {
       sKey.Format(_T("editors.%s.style%ld."), m_sLanguage, i);
       _GetSyntaxStyle(sKey, syntax[i - 1]);
    }
@@ -565,7 +571,8 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    // If this Editor is part of a C++ project we
    // know how to link it up with the debugger
-   if( m_sLanguage == _T("cpp") ) {
+   if( m_sLanguage == _T("cpp") ) 
+   {
       // Breakpoint marked as background color
       sKey.Format(_T("editors.%s."), m_sLanguage);
       TCHAR szBuffer[64] = { 0 };
@@ -764,10 +771,10 @@ LRESULT CScintillaView::OnMarginClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
    if( pSCN->margin == 2 ) {
       int iLine = LineFromPosition(pSCN->position);
       int iCount = GetLineCount();
-      if( pSCN->modifiers & SCMOD_CTRL ) {
+      if( (pSCN->modifiers & SCMOD_CTRL) != 0 ) {
          for( int i = 1; i <= iCount; i++ ) if( GetFoldExpanded(i) ) ToggleFold(i);
       }
-      else if( pSCN->modifiers & SCMOD_SHIFT ) {
+      else if( (pSCN->modifiers & SCMOD_SHIFT) != 0 ) {
          for( int i = 1; i <= iCount; i++ ) if( !GetFoldExpanded(i) ) ToggleFold(i);
       }
       else {

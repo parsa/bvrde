@@ -139,7 +139,7 @@ BOOL CViewImpl::Reload()
 
 BOOL CViewImpl::IsDirty() const
 {
-   return m_bIsDirty;
+   return m_wndClient.IsDirty();
 }
 
 BOOL CViewImpl::OpenView(long lLineNum)
@@ -233,6 +233,11 @@ void CViewImpl::OnIdle(IUpdateUI* pUIBase)
    if( m_wndClient.IsWindow() ) m_wndClient.OnIdle(pUIBase);
 }
 
+void CViewImpl::OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
+{
+   AtlLoadString(wID, pstrText, cchMax);
+}
+
 // IAppMessageListener
 
 LRESULT CViewImpl::OnAppMessage(HWND /*hWnd*/, UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -254,7 +259,7 @@ BOOL CViewImpl::PreTranslateMessage(MSG* pMsg)
 CHtmlView::CHtmlView(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename) : 
    CViewImpl(pProject, pParent, pstrFilename)
 {
-   m_sLanguage = "html";
+   m_sLanguage = _T("html");
 }
 
 BOOL CHtmlView::GetType(LPTSTR pstrType, UINT cchMax) const
@@ -270,7 +275,7 @@ BOOL CHtmlView::GetType(LPTSTR pstrType, UINT cchMax) const
 CPhpView::CPhpView(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename) : 
    CViewImpl(pProject, pParent, pstrFilename)
 {
-   m_sLanguage = "php";
+   m_sLanguage = _T("php");
 }
 
 BOOL CPhpView::GetType(LPTSTR pstrType, UINT cchMax) const
@@ -286,7 +291,7 @@ BOOL CPhpView::GetType(LPTSTR pstrType, UINT cchMax) const
 CAspView::CAspView(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename) : 
    CViewImpl(pProject, pParent, pstrFilename)
 {
-   m_sLanguage = "asp";
+   m_sLanguage = _T("asp");
 }
 
 BOOL CAspView::GetType(LPTSTR pstrType, UINT cchMax) const
@@ -302,7 +307,7 @@ BOOL CAspView::GetType(LPTSTR pstrType, UINT cchMax) const
 CXmlView::CXmlView(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename) : 
    CViewImpl(pProject, pParent, pstrFilename)
 {
-   m_sLanguage = "xml";
+   m_sLanguage = _T("xml");
 }
 
 BOOL CXmlView::GetType(LPTSTR pstrType, UINT cchMax) const

@@ -225,6 +225,10 @@ SOURCE=.\html.bmp
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\html.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\xmltrans.htm
 # End Source File
 # End Group

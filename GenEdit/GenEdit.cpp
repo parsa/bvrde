@@ -50,5 +50,6 @@ HWND GENEDIT_API Bvrde_CreateScintillaView(HWND hWndParent,
    }
    pView->SetFilename(pstrFilename);
    pView->SetLanguage(pstrLanguage);
+
    return hWnd;
 }

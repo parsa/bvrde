@@ -134,44 +134,6 @@ END
 // Menu
 //
 
-IDR_EDIT_TEXT MENU DISCARDABLE 
-BEGIN
-    POPUP "Popup"
-    BEGIN
-        MENUITEM "&Undo",                       ID_EDIT_UNDO
-        MENUITEM "&Redo",                       ID_EDIT_REDO
-        MENUITEM SEPARATOR
-        MENUITEM "Cu&t",                        ID_EDIT_CUT
-        MENUITEM "&Copy",                       ID_EDIT_COPY
-        MENUITEM "&Paste",                      ID_EDIT_PASTE
-        MENUITEM "&Delete",                     ID_EDIT_CLEAR
-        MENUITEM SEPARATOR
-        MENUITEM "&Go To...",                   ID_EDIT_GOTO
-        MENUITEM SEPARATOR
-        MENUITEM "&Properties",                 ID_FILE_PROPERTIES
-    END
-END
-
-IDR_EDIT_CPP MENU DISCARDABLE 
-BEGIN
-    POPUP "Popup"
-    BEGIN
-        MENUITEM "&Undo",                       ID_EDIT_UNDO
-        MENUITEM "&Redo",                       ID_EDIT_REDO
-        MENUITEM SEPARATOR
-        MENUITEM "Cu&t",                        ID_EDIT_CUT
-        MENUITEM "&Copy",                       ID_EDIT_COPY
-        MENUITEM "&Paste",                      ID_EDIT_PASTE
-        MENUITEM "&Delete",                     ID_EDIT_CLEAR
-        MENUITEM SEPARATOR
-        MENUITEM "&Go To...",                   ID_EDIT_GOTO
-        MENUITEM SEPARATOR
-        MENUITEM "Insert/Delete &Breakpoint",   ID_DEBUG_BREAKPOINT
-        MENUITEM SEPARATOR
-        MENUITEM "&Properties",                 ID_FILE_PROPERTIES
-    END
-END
-
 IDR_EDIT_DEBUG MENU DISCARDABLE 
 BEGIN
     POPUP "Popup"
@@ -372,6 +334,11 @@ BEGIN
         MENUITEM "Add Folder",                  ID_FILE_ADD_FOLDER
         MENUITEM "Add Local File",              ID_FILE_ADD_LOCAL
         MENUITEM "Add Remote File",             ID_FILE_ADD_REMOTE
+    END
+    POPUP "Sub6"
+    BEGIN
+        MENUITEM "Insert/Delete &Breakpoint",   ID_DEBUG_BREAKPOINT
+        MENUITEM SEPARATOR
     END
 END
 
@@ -1103,6 +1070,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_CLASSVIEW_GOTO       "Go to member definition\nGo to Definition"
+    ID_CLASSVIEW_PROPERTIES "Show Properties\nProperties"
     ID_CLASSVIEW_COPY       "Copy selected item text\nCopy"
 END
 
@@ -1128,23 +1097,48 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_DEBUG_BREAK          "Break debugger\nBreak"
+    ID_EDIT_UNINDENT        "Decrease indent for selected text\nUnindent"
+    ID_DEBUG_STEP_SET       "Sets the next statement\nSet Next"
+    ID_EDIT_COMMENT         "Add comments around selected text\nComment"
+    ID_EDIT_UNCOMMENT       "Remove comments from selected text\nUncomment"
+    ID_DEBUG_BREAK          "Break Debugger\nBreak"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_BUILD_BUILDMAKEFILE  "Generate a Makefile\nBuild Makefile"
+    ID_VIEW_MEMORY          "View Memory View\nMemory"
+    ID_VIEW_DISASM          "View Disassembly View\nDisassembly"
+    ID_BUILD_FILEWIZARD     "Run File Wizard\nRun File Wizard"
     ID_DISASM_INTELSTYLE    "Display Disassembly as Intel style\nIntel Style"
     ID_DISASM_SHOWSOURCE    "Show Dissasembly mixed with Source Code\nShow Source"
+    ID_CLASSVIEW_SORT       "Sort items alphabetically\nSort"
+    ID_CLASSVIEW_NOSORT     "Don't sort items\nDon't sort"
     ID_MEMORY_EDIT          "Edit value under cursor\nEdit Value"
     ID_MEMORY_SIZE_DWORD    "Display memory layout as DWORD\nDWORD size"
     ID_MEMORY_SIZE_WORD     "Display memory layout as WORD\nWORD size"
     ID_MEMORY_SIZE_BYTE     "Display memory layout as BYTE\nBYTE size"
-    ID_MEMORY_REFRESH       "Refresh memory data\nRefresh"
+    ID_MEMORY_REFRESH       "Update memory data\nRefresh"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_BUILD_CLEAN          "Clean the Project for temporary files\nClean"
+    ID_BUILD_PROJECT        "Build the active project\nBuild"
+    ID_BUILD_COMPILE        "Compiles the selected file\nCompile"
+    ID_DEBUG_START          "Run Process\nRun"
+    ID_DEBUG_DEBUG          "Start Debugging\nStart Debugging"
     ID_DEBUG_PROCESSES      "Attach to a running process\nAttach To Process"
+    ID_DEBUG_STEP_INTO      "Step Into\nStep Into"
+    ID_DEBUG_STEP_OVER      "Step Over\nStep Over"
+    ID_DEBUG_BREAKPOINT     "Insert Breakpoint\nInsert Breakpoint"
+    ID_DEBUG_CLEAR_BREAKPOINTS "Removes all Breakpoints\nRemove Breakpoints"
+    ID_VIEW_WATCH           "View watches\nWatches"
+    ID_VIEW_CALLSTACK       "View the Call Stack\nCallstack"
+    ID_VIEW_BREAKPOINTS     "View Breakpoint list\nBreakpoints"
+    ID_EDIT_UPPERCASE       "Make selected text uppercase\nUppercase"
+    ID_EDIT_LOWERCASE       "Make selected text lowercase\nLowercase"
+    ID_BOOKMARK_NEXT        "Go to next Bookmark\nNext Bookmark"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1153,6 +1147,81 @@ BEGIN
     IDS_NOCONNECTION        "No connection to the remote host at the moment."
     IDS_FILES               "Files"
     IDS_FILEMANAGER         "Remote Files"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BOOKMARK_PREVIOUS    "Go to previous Bookmark\nPrevious Bookmark"
+    ID_VIEW_COMPILE_LOG     "View Compile Log\nCompile Log"
+    ID_DEBUG_STOP           "Stops the debug session\nStop Debugger"
+    ID_DEBUG_THREADS        "Show threads\nThreads"
+    ID_DEBUG_QUICKWATCH     "Show quickwatch dialog\nQuickwatch"
+    ID_EDIT_AUTOCOMPLETE    "Autocomplete selected text\nAutocomplete"
+    ID_VIEW_DEBUG_LOG       "View Debug log\nDebug Log"
+    ID_BOOKMARK_TOGGLE      "Toogles bookmarks at the current line\nToggle Bookmark"
+    ID_BUILD_STOP           "Stop Build\nStop Build"
+    ID_DEBUG_STEP_OUT       "Step Out\nStep Out"
+    ID_DEBUG_STEP_RUN       "Debug until this line is hit\nRun To Here"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_DELETE          "Remove entry from project\nRemove"
+    ID_FILE_ADD_REMOTE      "Add a remote file\nAdd Remote"
+    ID_FILE_ADD_LOCAL       "Add a local file\nAdd Local"
+    ID_FILE_RENAME          "Rename entry\nRename"
+    ID_FILE_PROPERTIES      "Show properties\nProperties"
+    ID_FILE_ADD_FOLDER      "Add a folder\nAdd Folder"
+    ID_PROJECT_SET_DEFAULT  "Set as Default Project\nSet as Default"
+    ID_BUILD_SOLUTION       "Rebuild the entire Solution\nRebuild Solution"
+    ID_BUILD_REBUILD        "Rebuild the active Project\nRebuild"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_SAVE            "Saves the active file\nSave"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_VARIABLES       "View Variables\nVariables"
+    ID_VIEW_THREADS         "View Thread Summery View\nThreads"
+    ID_VIEW_REGISTERS       "View Registers\nRegisters"
+    ID_EDIT_VIEWWS          "View White space markers\nView White Space"
+    ID_EDIT_VIEWEOL         "View Eof Of Line markers\nView EOL"
+    ID_EDIT_TABIFY          "Tabify selected text\nTabify"
+    ID_EDIT_UNTABIFY        "Untabify selected text\nUntabify"
+    ID_EDIT_INDENT          "Increase indent of selected text\nIndent"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BOOKMARKS_TOGGLE     "Toggle Bookmarks\nToggle Bookmarks"
+    ID_BOOKMARKS_GOTO       "Goto Bookmark\nGoto Bookmark"
+    ID_BOOKMARKS_GOTO1      "Goto Bookmark #1\nGoto Bookmark"
+    ID_BOOKMARKS_GOTO2      "Goto Bookmark #2\nGoto Bookmark"
+    ID_BOOKMARKS_GOTO3      "Goto Bookmark #3\nGoto Bookmark"
+    ID_BOOKMARKS_GOTO4      "Goto Bookmark #4\nGoto Bookmark"
+    ID_BOOKMARKS_GOTO5      "Goto Bookmark #5\nGoto Bookmark"
+    ID_BOOKMARKS_GOTO6      "Goto Bookmark #6\nGoto Bookmark"
+    ID_BOOKMARKS_GOTO7      "Goto Bookmark #7\nGoto Bookmark"
+    ID_BOOKMARKS_GOTO8      "Goto Bookmark #8\nGoto Bookmark"
+    ID_BOOKMARS_SET         "Place a Bookmark at the current line\nSet Bookmark"
+    ID_BUILD_CHECKSYNTAX    "Check file syntax\nCheck Syntax"
+    ID_BUILD_BUILDTAGS      "Build CTAG file\nBuild CTAGS"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_PROPERTIES      "Show Properties\nProperties"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_VIEWWORDWRAP    "Word wrap lines\nWord wrap"
+    ID_EDIT_ZOOM_IN         "Zoom text in\nZoom In"
+    ID_EDIT_ZOOM_OUT        "Zoom text out\nZoom out"
+    ID_EDIT_DELLINE         "Delete line at cursor\nDelete Line"
 END
 
 #endif    // English (U.S.) resources

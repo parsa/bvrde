@@ -51,6 +51,9 @@ BOOL CContainerWindow::PreTranslateMessage(MSG* pMsg)
 
 void CContainerWindow::OnIdle(IUpdateUI* pUIBase)
 {
+   ATLASSERT(m_pView);
+
+   int iCurSel = GetCurSel();
    BOOL bIsRunning = m_pView->IsQueryRunning();
    int nLen = m_wndSource.GetWindowTextLength();
 
@@ -61,12 +64,10 @@ void CContainerWindow::OnIdle(IUpdateUI* pUIBase)
 
    int iHistoryPos = m_pView->GetHistoryPos();
    int nHistoryCount = m_pView->GetHistoryCount();
-   pUIBase->UIEnable(ID_HISTORY_NEW, TRUE);
-   pUIBase->UIEnable(ID_HISTORY_DELETE, nHistoryCount > 1);
-   pUIBase->UIEnable(ID_HISTORY_LEFT, iHistoryPos > 0);
-   pUIBase->UIEnable(ID_HISTORY_RIGHT, iHistoryPos < nHistoryCount - 1);
-
-   int iCurSel = GetCurSel();
+   pUIBase->UIEnable(ID_HISTORY_NEW, iCurSel == 0 );
+   pUIBase->UIEnable(ID_HISTORY_DELETE, iCurSel == 0 && nHistoryCount > 1);
+   pUIBase->UIEnable(ID_HISTORY_LEFT, iCurSel == 0 && iHistoryPos > 0);
+   pUIBase->UIEnable(ID_HISTORY_RIGHT, iCurSel == 0 && iHistoryPos < nHistoryCount - 1);
 
    pUIBase->UIEnable(ID_VIEW_TAB1, TRUE);
    pUIBase->UIEnable(ID_VIEW_TAB2, TRUE);
@@ -108,7 +109,7 @@ LRESULT CContainerWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
    m_wndSource.SubclassWindow( Bvrde_CreateScintillaView(m_hWnd, _pDevEnv, szFilename, _T("sql")) );
    m_wndSource.Init(m_pProject, m_pView);
    m_wndSource.ModifyStyle(0, WS_BORDER);
-   m_wndSource.ModifyStyleEx(0, WS_EX_CLIENTEDGE);
+   m_wndSource.ModifyStyleEx(WS_EX_CLIENTEDGE, 0);
    m_wndSource.SendMessage(WM_SETTINGCHANGE);
 
    m_wndResult.Create(m_hWnd, rcDefault);

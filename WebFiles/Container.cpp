@@ -80,6 +80,12 @@ void CContainerWindow::SetViewText(LPCTSTR pstrText)
    m_wndSource.EmptyUndoBuffer();
 }
 
+BOOL CContainerWindow::IsDirty() const
+{
+   if( ::IsWindow(m_wndSource) ) return m_wndSource.GetModify();
+   return FALSE;
+}
+
 void CContainerWindow::OnFinalMessage(HWND /*hWnd*/)
 {
    if( m_pProject == NULL ) delete m_pView;

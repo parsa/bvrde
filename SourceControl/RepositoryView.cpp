@@ -6,7 +6,7 @@
 
 
 ////////////////////////////////////////////////////////////////7
-//
+// CFileEnumThread
 //
 
 void CFileEnumThread::RunCommand(HWND hWnd, LPCTSTR pstrCommand, LONG lTimeout)
@@ -75,8 +75,20 @@ HRESULT CFileEnumThread::OnIncomingLine(BSTR bstr)
       sFile.TrimLeft();
       sFile.TrimRight();
       // Add if not exists...
-      for( int i = 0; i < m_aResult.GetSize(); i++ ) if( m_aResult[i] == sFile ) return S_OK;
-      return m_aResult.Add(sFile) ? S_OK : E_OUTOFMEMORY;
+      for( int i = 0; i < m_aResult.GetSize(); i++ ) if( m_aResult[i].sFilename == sFile ) return S_OK;
+      m_Info.sFilename = sFile;
+      return m_aResult.Add(m_Info) ? S_OK : E_OUTOFMEMORY;
+   }
+   p = wcsstr(bstr, L"Status: ");
+   if( p != NULL ) {
+      m_Info.sStatus = p + 8;
+   }
+   p = wcsstr(bstr, L"Working revision: ");
+   if( p != NULL ) {
+      m_Info.sVersion = _T("");
+      p += 18;
+      while( *p == ' ' ) p++;
+      while( *p != '\0' && *p != ' ' ) m_Info.sVersion += *p++;
    }
    return S_OK;
 }
@@ -103,8 +115,48 @@ ULONG CFileEnumThread::Release(void)
 }
 
 
+/////////////////////////////////////////////////////////////////////////
+// CTagElement
+
+class CTagElement : public IElement
+{
+public:
+   FILEINFO* m_pInfo;
+   
+   CTagElement(FILEINFO* pFile) : m_pInfo(pFile) 
+   {
+   }
+   BOOL Load(ISerializable* /*pArc*/)
+   {
+      return FALSE;
+   }
+   BOOL Save(ISerializable* pArc)
+   {
+      ATLASSERT(!::IsBadReadPtr(m_pInfo,sizeof(FILEINFO)));
+      pArc->Write(_T("type"), _T("Revision Info"));
+      pArc->Write(_T("file"), m_pInfo->sFilename);
+      pArc->Write(_T("filename"), ::PathFindFileName(m_pInfo->sFilename));
+      pArc->Write(_T("status"), m_pInfo->sStatus);
+      pArc->Write(_T("version"), m_pInfo->sVersion);
+      return TRUE;
+   }
+   BOOL GetName(LPTSTR pstrName, UINT cchMax) const
+   {
+      return _tcsncpy(pstrName, m_pInfo->sFilename, cchMax) > 0;
+   }
+   BOOL GetType(LPTSTR pstrType, UINT cchMax) const
+   {
+      return _tcsncpy(pstrType, _T("Revision Info"), cchMax) > 0;
+   }
+   IDispatch* GetDispatch()
+   {
+      return NULL;
+   }
+};
+
+
 ////////////////////////////////////////////////////////////////7
-//
+// CRepositoryView
 //
 
 LRESULT CRepositoryView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -119,7 +171,7 @@ LRESULT CRepositoryView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    m_ctrlFiles.Create(m_hWnd, rcDefault, NULL, dwStyle, WS_EX_CLIENTEDGE, IDC_SFILES);
    RECT rcBuilding = { 10, 20, 180, 120 };
    dwStyle = SS_LEFT | WS_CHILD;
-   m_ctrlBuilding.Create(m_hWnd, rcBuilding, CString(MAKEINTRESOURCE(IDS_BUILDING)), dwStyle);
+   m_ctrlBuilding.Create(m_hWnd, rcBuilding, _T(""), dwStyle);
    m_ctrlBuilding.SetFont(AtlGetDefaultGuiFont());
 
    // Prepare images
@@ -175,14 +227,11 @@ LRESULT CRepositoryView::OnViewOpens(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    m_ctrlBuilding.ShowWindow(SW_HIDE);
    if( m_thread.IsRunning() ) return 0;
    // Show idle message
-   if( m_thread.m_aResult.GetSize() == 0 ) {
-      m_ctrlBuilding.ShowWindow(SW_SHOW);
-      m_ctrlFolders.DeleteAllItems();
-      m_ctrlFiles.DeleteAllItems();
-   }
+   if( m_thread.m_aResult.GetSize() == 0 ) _ShowWaitingMessage(IDS_BUILDING);
    // Build entire structure
    TCHAR szCommand[200] = { 0 };
    _pDevEnv->GetProperty(_T("sourcecontrol.browse.all"), szCommand, 199);
+	if( _tcslen(szCommand) == 0 ) _ShowWaitingMessage(IDS_NOTCONFIGURED);
    m_thread.RunCommand(m_hWnd, szCommand, 8000L);
    return 0;
 }
@@ -203,7 +252,7 @@ LRESULT CRepositoryView::OnFileEnumDone(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    }
 
    for( int i = 0; i < m_thread.m_aResult.GetSize(); i++ ) {
-      CString sFilename = m_thread.m_aResult[i];
+      CString sFilename = m_thread.m_aResult[i].sFilename;
       // Take the return string, muffle it from C:\temp\... to /temp/...
       // and build the tree structure. We're adding nodes to the tree always.
       sFilename.Replace('\\', '/');
@@ -219,7 +268,8 @@ LRESULT CRepositoryView::OnFileEnumDone(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
             CString sPath = _GetItemPath(hParent);
             if( m_sSelPath.IsEmpty() ) m_sSelPath = sPath;
             if( sPath != m_sSelPath ) continue;
-            m_ctrlFiles.InsertItem(LVIF_TEXT | LVIF_IMAGE, m_ctrlFiles.GetItemCount(), sPart, 0, 0, 0, 0L);
+            int iItem = m_ctrlFiles.InsertItem(LVIF_TEXT | LVIF_IMAGE, m_ctrlFiles.GetItemCount(), sPart, 0, 0, 0, 0L);
+            m_ctrlFiles.SetItemData(iItem, i);
             m_ctrlFolders.Expand(hParent);
             m_ctrlFolders.SelectItem(hParent);
          }
@@ -281,6 +331,18 @@ LRESULT CRepositoryView::OnListKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHand
    return 0;
 }
 
+LRESULT CRepositoryView::OnListSelected(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+{
+   int iIndex = m_ctrlFiles.GetSelectedIndex();
+   if( iIndex < 0 ) return 0;
+   int iItem = m_ctrlFiles.GetItemData(iIndex);
+   if( iItem >= m_thread.m_aResult.GetSize() ) return 0;
+   FILEINFO info = m_thread.m_aResult[iItem];
+   CTagElement prop = &info;
+   _pDevEnv->ShowProperties(&prop, FALSE);
+   return 0;
+}
+
 HTREEITEM CRepositoryView::_FindItemInTree(HTREEITEM hItem, LPCTSTR pstrName) const
 {
    CString sName;
@@ -317,5 +379,14 @@ bool CRepositoryView::_AddShellIcon(CImageListHandle& iml, LPCTSTR pstrExtension
       SHGFI_USEFILEATTRIBUTES | SHGFI_SMALLICON | SHGFI_SYSICONINDEX | dwMoreFlags);
    CIcon icon = hil.GetIcon(sfi.iIcon, ILD_TRANSPARENT);
    return iml.AddIcon(icon) == TRUE;
+}
+
+void CRepositoryView::_ShowWaitingMessage(UINT nRes)
+{
+	m_ctrlFolders.DeleteAllItems();
+	m_ctrlFiles.DeleteAllItems();
+	m_ctrlBuilding.SetWindowText(CString(MAKEINTRESOURCE(nRes)));
+	m_ctrlBuilding.ShowWindow(SW_SHOW);
+	m_ctrlBuilding.Invalidate();
 }
 

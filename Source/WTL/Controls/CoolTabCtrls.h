@@ -71,6 +71,7 @@
 #define TCS_EX_SELHIGHLIGHT   0x00000080      // Highlight selected tab with special font
 #define TCS_EX_COMPRESSLINE   0x00000100      // Compress tabs if larger than client area
 
+
 // Layout structure for tab
 typedef struct
 {
@@ -86,7 +87,7 @@ typedef struct
 typedef struct tagCOOLTCITEM : TCITEM
 {
    int cx;
-   RECT rcSize;
+   RECT rcItem;
    COLORREF clrText;
    COLORREF clrBkgnd;
    LPTSTR pszTipText;
@@ -101,8 +102,16 @@ class ATL_NO_VTABLE CCustomTabCtrl :
 public:
    DECLARE_WND_CLASS(TBase::GetWndClassName())
 
+   enum
+   {
+      IDC_CB_SCROLLLEFT = 1044,
+      IDC_CB_SCROLLRIGHT = 1045,
+   };
+
    CCustomTabCtrl() : 
       m_iCurSel(-1), 
+      m_iScrollPos(0),
+      m_iScrollStep(40),
       m_dwExtStyle(0UL), 
       m_hFont(NULL), 
       m_hSelFont(NULL),
@@ -113,17 +122,21 @@ public:
 
    // Data members
 
-   int m_iCurSel;
-   TCMETRICS m_metrics;
-   CSimpleValArray< COOLTCITEM* > m_Items;
-   CWindow m_wndNotify;
-   CToolTipCtrl m_Tip;
-   CImageList m_ImageList;
-   DWORD m_dwExtStyle;
-   UINT m_idDlgCtrl;
-   HFONT m_hFont;
-   HFONT m_hSelFont;
-   int m_nMinWidth;
+   int m_iCurSel;                             // Currently selected item
+   TCMETRICS m_metrics;                       // Various display metrics
+   CSimpleValArray< COOLTCITEM* > m_Items;    // List of tab items
+   CWindow m_wndNotify;                       // Handle to notify window
+   CButton m_ctrlLeft;                        // Left scrollbutton
+   CButton m_ctrlRight;                       // Right scrollbutton
+   CToolTipCtrl m_Tip;                        // Tooltip control
+   CImageList m_ImageList;                    // Tab images
+   DWORD m_dwExtStyle;                        // Extended style flags
+   UINT m_idDlgCtrl;                          // ID of this control
+   HFONT m_hFont;                             // Font for normal tabs
+   HFONT m_hSelFont;                          // Font for selected tab
+   int m_nMinWidth;                           // Minimum tab width
+   int m_iScrollPos;                          // Scroll position (view offset)
+   int m_iScrollStep;                         // Pixels to scroll on scrollbutton click
 
    // Operations
 
@@ -177,6 +190,8 @@ public:
    {
       ATLASSERT(::IsWindow(m_hWnd));
       while( GetItemCount() > 0 ) DeleteItem(0); // Slooow!!!
+      m_iCurSel = -1;
+      m_iScrollPos = 0;
       return TRUE;
    }
    BOOL DeleteItem(int iItem)
@@ -196,8 +211,8 @@ public:
       // Remove from structures
       COOLTCITEM* pItem = m_Items[iItem];
       m_Items.RemoveAt(iItem);
-      if( pItem->mask & TCIF_TEXT ) ATLTRY( delete [] pItem->pszText );
-      if( pItem->mask & TCIF_TOOLTIP ) ATLTRY( delete [] pItem->pszTipText );
+      if( (pItem->mask & TCIF_TEXT) != 0 ) ATLTRY( delete [] pItem->pszText );
+      if( (pItem->mask & TCIF_TOOLTIP) != 0 ) ATLTRY( delete [] pItem->pszTipText );
       ATLTRY( delete pItem );
       // Send notification
       NMHDR nmh = { m_hWnd, m_idDlgCtrl, TCN_DELETEITEM };
@@ -222,24 +237,24 @@ public:
       // Copy caller's data to the internal structure
       COOLTCITEM* pDstItem = m_Items[iItem];
       UINT mask = pItem->mask;
-      if( mask & TCIF_TEXT ) {
+      if( (mask & TCIF_TEXT) != 0 ) {
          ATLASSERT(!::IsBadStringPtr(pItem->pszText,(UINT)-1));
-         if( pDstItem->mask & TCIF_TEXT ) ATLTRY( delete [] pDstItem->pszText );
+         if( (pDstItem->mask & TCIF_TEXT) != 0 ) ATLTRY( delete [] pDstItem->pszText );
          ATLTRY( pDstItem->pszText = new TCHAR[ ::lstrlen(pItem->pszText) + 1 ] );
          ::lstrcpy(pDstItem->pszText, pItem->pszText);
       }
-      if( mask & TCIF_TOOLTIP ) {
+      if( (mask & TCIF_TOOLTIP) != 0 ) {
          ATLASSERT(!::IsBadStringPtr(pItem->pszTipText,(UINT)-1));
-         if( pDstItem->mask & TCIF_TOOLTIP ) ATLTRY( delete [] pDstItem->pszTipText );
+         if( (pDstItem->mask & TCIF_TOOLTIP) != 0 ) ATLTRY( delete [] pDstItem->pszTipText );
          ATLTRY( pDstItem->pszTipText = new TCHAR[ ::lstrlen(pItem->pszTipText) + 1 ] );
          ::lstrcpy(pDstItem->pszTipText, pItem->pszTipText);
       }
-      if( mask & TCIF_STATE ) pDstItem->dwState = pItem->dwState;
-      if( mask & TCIF_IMAGE ) pDstItem->iImage = pItem->iImage;
-      if( mask & TCIF_PARAM ) pDstItem->lParam = pItem->lParam;
-      if( mask & TCIF_WIDTH ) pDstItem->cx = pItem->cx;
-      if( mask & TCIF_TEXTCOLOR ) pDstItem->clrText = pItem->clrText;
-      if( mask & TCIF_BKCOLOR ) pDstItem->clrBkgnd = pItem->clrBkgnd;
+      if( (mask & TCIF_STATE) != 0 ) pDstItem->dwState = pItem->dwState;
+      if( (mask & TCIF_IMAGE) != 0 ) pDstItem->iImage = pItem->iImage;
+      if( (mask & TCIF_PARAM) != 0 ) pDstItem->lParam = pItem->lParam;
+      if( (mask & TCIF_WIDTH) != 0 ) pDstItem->cx = pItem->cx;
+      if( (mask & TCIF_TEXTCOLOR) != 0 ) pDstItem->clrText = pItem->clrText;
+      if( (mask & TCIF_BKCOLOR) != 0 ) pDstItem->clrBkgnd = pItem->clrBkgnd;
       pDstItem->mask |= mask;
 
       _Repaint();
@@ -263,28 +278,28 @@ public:
       const UINT maskSrc = pSrcItem->mask;
 
       pItem->mask = 0;
-      if( mask & TCIF_TEXT ) {
+      if( (mask & TCIF_TEXT) != 0 ) {
          ATLASSERT(pItem->pszText);
          pItem->mask |= (maskSrc & TCIF_TEXT);
          ::lstrcpyn( pItem->pszText, pSrcItem->pszText == NULL ? _T("") : pSrcItem->pszText, pItem->cchTextMax );
       }
-      if( mask & TCIF_IMAGE ) {
+      if( (mask & TCIF_IMAGE) != 0 ) {
          pItem->mask |= (maskSrc & TCIF_IMAGE);
          pItem->iImage = pSrcItem->iImage;
       }
-      if( mask & TCIF_PARAM ) {
+      if( (mask & TCIF_PARAM) != 0 ) {
          pItem->mask |= (maskSrc & TCIF_PARAM);
          pItem->lParam = pSrcItem->lParam;
       }
-      if( mask & TCIF_STATE ) {
+      if( (mask & TCIF_STATE) != 0 ) {
          pItem->mask |= (maskSrc & TCIF_STATE);
          pItem->dwState = pSrcItem->dwState;
       }
-      if( mask & TCIF_TEXTCOLOR ) {
+      if( (mask & TCIF_TEXTCOLOR) != 0 ) {
          pItem->mask |= (maskSrc & TCIF_TEXTCOLOR);
          pItem->clrText = pSrcItem->clrText;
       }
-      if( mask & TCIF_BKCOLOR ) {
+      if( (mask & TCIF_BKCOLOR) != 0 ) {
          pItem->mask |= (maskSrc & TCIF_BKCOLOR);
          pItem->clrBkgnd = pSrcItem->clrBkgnd;
       }
@@ -353,7 +368,7 @@ public:
    {
       ATLASSERT(!::IsBadWritePtr(pinfo,sizeof(TCHITTESTINFO)));
       for( int i = 0; i < m_Items.GetSize(); i++ ) {
-         if( ::PtInRect(&m_Items[i]->rcSize, pinfo->pt) ) {
+         if( ::PtInRect(&m_Items[i]->rcItem, pinfo->pt) ) {
             pinfo->flags = TCHT_ONITEM;
             return i;
          }
@@ -379,9 +394,41 @@ public:
    {
       return 1;
    }
-   CToolTipCtrl GetTooltips() const
+   CToolTipCtrl GetToolTips() const
    {
       return m_Tip;
+   }
+
+   int GetScrollPos() const
+   {
+      return m_iScrollPos;
+   }
+   void SetScrollPos(int iPos)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      if( m_Items.GetSize() == 0 ) {
+         m_iScrollPos = 0;
+         return;
+      }
+      RECT rcClient;
+      GetClientRect(&rcClient);
+      int iMax = m_Items[m_Items.GetSize() - 1]->rcItem.right - m_Items[0]->rcItem.left;
+      if( iMax - rcClient.right > 0 && iPos > iMax - rcClient.right ) iPos = iMax - rcClient.right;
+      if( iPos < 0 ) iPos = 0;
+      m_iScrollPos = iPos;
+      _Repaint();
+   }
+   void SetScrollStep(int iStep)
+   {
+      m_iScrollStep = iStep;
+   }
+   BOOL IsScrollVisible(int Side) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      if( (m_dwExtStyle & TCS_EX_SCROLLBUTTONS) == 0 ) return _IsScrollBarNeeded(Side);
+      if( Side == HTLEFT ) return m_ctrlLeft.IsWindowVisible();
+      if( Side == HTRIGHT ) return m_ctrlRight.IsWindowVisible();
+      return FALSE;
    }
 
    void SetNotify(HWND hWnd)
@@ -397,7 +444,7 @@ public:
    {
       ATLASSERT(::IsWindow(m_hWnd));
       if( !_ValidateItem(iItem) ) return 0;
-      RECT rcOld = m_Items[iItem]->rcSize;     
+      RECT rcOld = m_Items[iItem]->rcItem;     
       m_Items[iItem].cx = cx;
       m_Items[iItem].mask |= TCIF_WIDTH;
       _Repaint();
@@ -411,7 +458,7 @@ public:
       if( prcItem == NULL ) return FALSE;
       ::SetRectEmpty(prcItem);
       if( iItem < 0 || iItem >= m_Items.GetSize() ) return FALSE;
-      *prcItem = m_Items[iItem]->rcSize;
+      *prcItem = m_Items[iItem]->rcItem;
       return TRUE;
    }
 
@@ -467,11 +514,31 @@ public:
       m_idDlgCtrl = GetDlgCtrlID();
       m_wndNotify = GetParent();
 
+      m_ctrlLeft.Create(m_hWnd, rcDefault, _T("<"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 0, IDC_CB_SCROLLLEFT);
+      m_ctrlLeft.SetFont( AtlGetDefaultGuiFont() );
+      m_ctrlRight.Create(m_hWnd, rcDefault, _T(">"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 0, IDC_CB_SCROLLRIGHT);
+      m_ctrlRight.SetFont( AtlGetDefaultGuiFont() );
+
       SendMessage(WM_SETTINGCHANGE);
 
       // This is a little WTL subclass helper notification
       NMHDR nmh = { m_hWnd, m_idDlgCtrl, TCN_INITIALIZE };
       m_wndNotify.SendMessage(WM_NOTIFY, nmh.idFrom, (LPARAM) &nmh);
+   }
+
+   BOOL _IsScrollBarNeeded(int Side) const
+   {
+      ATLASSERT(Side==HTLEFT || Side==HTRIGHT || Side==HTHSCROLL);
+      if( m_Items.GetSize() == 0 ) return FALSE;
+      // Left button is easy
+      if( Side == HTLEFT ) return m_iScrollPos > 0;
+      // Right button need to have side calc'ed
+      RECT rcClient;
+      GetClientRect(&rcClient);
+      int iMax = m_Items[m_Items.GetSize() - 1]->rcItem.right - m_Items[0]->rcItem.left;
+      if( Side == HTRIGHT ) return m_iScrollPos + rcClient.right < iMax;
+      if( Side == HTHSCROLL ) return rcClient.right < iMax;
+      return FALSE;
    }
 
    ATLINLINE bool _ValidateItem(int iItem) const
@@ -483,9 +550,8 @@ public:
    ATLINLINE void _Repaint()
    {
       T* pT = static_cast<T*>(this);
-      if( (pT->GetStyle() & WS_VISIBLE) == 0 ) return;
       pT->UpdateLayout();
-      Invalidate();
+      if( (pT->GetStyle() & WS_VISIBLE) != 0 ) Invalidate();
    }
 
    // Message map and handlers
@@ -504,6 +570,8 @@ public:
       MESSAGE_HANDLER(WM_LBUTTONDOWN, OnLButtonClick)
       MESSAGE_HANDLER(WM_RBUTTONDOWN, OnRButtonClick)
       MESSAGE_RANGE_HANDLER(WM_MOUSEFIRST, WM_MOUSELAST, OnMouseMessage) 
+      COMMAND_ID_HANDLER(IDC_CB_SCROLLLEFT, OnScrollLeft)
+      COMMAND_ID_HANDLER(IDC_CB_SCROLLRIGHT, OnScrollRight)
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -579,6 +647,19 @@ public:
       return 0;
    }
 
+   LRESULT OnScrollLeft(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+   {
+      SetScrollPos(GetScrollPos() - m_iScrollStep);
+      m_ctrlLeft.SetButtonStyle(BS_PUSHBUTTON);
+      return 0;
+   }
+   LRESULT OnScrollRight(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+   {
+      SetScrollPos(GetScrollPos() + m_iScrollStep);
+      m_ctrlRight.SetButtonStyle(BS_PUSHBUTTON);
+      return 0;
+   }
+
    LRESULT OnMouseMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {
       MSG msg = { m_hWnd, uMsg, wParam, lParam };
@@ -590,6 +671,12 @@ public:
    LRESULT OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
       switch( wParam ) {
+      case VK_HOME:
+         if( m_iCurSel != 0 ) SetCurSel(0);
+         return 0;
+      case VK_END:
+         if( m_Items.GetSize() > 0 ) SetCurSel(m_Items.GetSize() - 1);
+         return 0;
       case VK_LEFT:
          if( m_iCurSel > 0 ) SetCurSel(m_iCurSel - 1);
          return 0;
@@ -622,7 +709,7 @@ public:
       DWORD dwStyle = GetStyle();
 
       // Reposition buttons
-      int xpos = m_metrics.cxIndent;
+      int xpos = -m_iScrollPos + m_metrics.cxIndent;
       for( int i = 0; i < nCount; i++ ) {
          COOLTCITEM* pItem = m_Items[i];
          // Hidden button?
@@ -633,7 +720,7 @@ public:
          if( pItem->iImage >= 0 && (pItem->mask & TCIF_IMAGE) != 0 && !m_ImageList.IsNull() ) {
             cx += szIcon.cx + (m_metrics.cxImagePadding * 2);
          }
-         if( pItem->mask & TCIF_TEXT ) {
+         if( (pItem->mask & TCIF_TEXT) != 0 ) {
             RECT rcText = { 0 };
             dc.SelectFont(i == m_iCurSel ? hSelFont : hFont);
             dc.DrawText(pItem->pszText, ::lstrlen(pItem->pszText), &rcText, DT_SINGLELINE|DT_CALCRECT);
@@ -644,13 +731,13 @@ public:
          // Selected button is allowed to grow further
          if( m_iCurSel == i ) cx += m_metrics.cxSelMargin * 2;
          // Need separators?
-         if( m_dwExtStyle & TCS_EX_FLATSEPARATORS ) cx += 2;
+         if( (m_dwExtStyle & TCS_EX_FLATSEPARATORS) != 0 ) cx += 2;
          // Fixed width?
-         if( pItem->mask & TCIF_WIDTH ) cx = pItem->cx;
+         if( (pItem->mask & TCIF_WIDTH) != 0 ) cx = pItem->cx;
          // Minimum width?
          if( cx < m_nMinWidth ) cx = m_nMinWidth;
          // Finally...
-         RECT& rc = pItem->rcSize;
+         RECT& rc = pItem->rcItem;
          rc.top = 0;
          rc.bottom = rcClient.bottom - rcClient.top;
          rc.left = xpos;
@@ -660,12 +747,12 @@ public:
 
       // Allow buttons to fill entire row
       int cx = (rcClient.right - rcClient.left) - xpos;
-      if( dwStyle & TCS_RAGGEDRIGHT ) {
+      if( (dwStyle & TCS_RAGGEDRIGHT) != 0 ) {
          if( cx > 0 ) {
             int iDiff = cx / m_Items.GetSize();
             for( int i = 0; i < nCount; i++ ) {
-               m_Items[i]->rcSize.right += iDiff;
-               if( i > 0 ) m_Items[i]->rcSize.left += iDiff;
+               m_Items[i]->rcItem.right += iDiff;
+               if( i > 0 ) m_Items[i]->rcItem.left += iDiff;
                iDiff *= 2;
             }
          }
@@ -676,9 +763,9 @@ public:
          int iWidth = (rcClient.right - rcClient.left) / nCount;
          for( int i = 0; i < nCount; i++ ) {
             COOLTCITEM* pItem = m_Items[i];
-            int cx = min( iWidth, pItem->rcSize.right - pItem->rcSize.left );
-            pItem->rcSize.right = xpos + cx;
-            pItem->rcSize.left = xpos;
+            int cx = min( iWidth, pItem->rcItem.right - pItem->rcItem.left );
+            pItem->rcItem.right = xpos + cx;
+            pItem->rcItem.left = xpos;
             xpos += cx;
          }
       }
@@ -686,7 +773,7 @@ public:
       // Expand currently selected button to overlap other buttons.
       // NOTE: To make sense, take the cxIndent/cxMargin/cxSelMargin into
       //       account when choosing a value.
-      if( m_iCurSel != - 1 ) ::InflateRect(&m_Items[m_iCurSel]->rcSize, m_metrics.cxOverlap, 0);
+      if( m_iCurSel != - 1 ) ::InflateRect(&m_Items[m_iCurSel]->rcItem, m_metrics.cxOverlap, 0);
 
       dc.SelectFont(hOldFont);
 
@@ -698,17 +785,34 @@ public:
       }
       // Recreate tooltip rects
       for( int j = 0; j < nCount; j++ ) {
-         if( m_Items[j]->mask & TCIF_TOOLTIP ) {
+         if( (m_Items[j]->mask & TCIF_TOOLTIP) != 0 ) {
             if( !m_Tip.IsWindow() ) m_Tip.Create(m_hWnd);
-            m_Tip.AddTool(m_hWnd, m_Items[j]->pszTipText, &m_Items[j]->rcSize, j + 1);
+            m_Tip.AddTool(m_hWnd, m_Items[j]->pszTipText, &m_Items[j]->rcItem, j + 1);
          }
-         else if( dwStyle & TCS_TOOLTIPS ) {
+         else if( (dwStyle & TCS_TOOLTIPS) != 0 ) {
             if( !m_Tip.IsWindow() ) m_Tip.Create(m_hWnd);
-            m_Tip.AddTool(m_hWnd, m_Items[j]->pszText, &m_Items[j]->rcSize, j + 1);
+            m_Tip.AddTool(m_hWnd, m_Items[j]->pszText, &m_Items[j]->rcItem, j + 1);
          }
       }
       // Reactivate tooltips
       if( m_Tip.IsWindow() ) m_Tip.Activate(m_Tip.GetToolCount() > 0);
+
+      // Show scrollbuttons
+      if( (m_dwExtStyle & TCS_EX_SCROLLBUTTONS) == 0 )
+      {
+         m_ctrlLeft.ShowWindow(SW_HIDE);
+         m_ctrlRight.ShowWindow(SW_HIDE);
+      }
+      else
+      {
+         BOOL bLeftNeeded = _IsScrollBarNeeded(HTLEFT);
+         RECT rcLeft = { rcClient.right - 38, rcClient.top + 2, rcClient.right - 23, rcClient.bottom - 2 };
+         m_ctrlLeft.SetWindowPos(NULL, &rcLeft, SWP_NOZORDER | SWP_NOACTIVATE | (bLeftNeeded ? SWP_SHOWWINDOW : SWP_HIDEWINDOW));
+         BOOL bRightNeeded = _IsScrollBarNeeded(HTRIGHT);
+         RECT rcRight = { rcClient.right - 20, rcClient.top + 2, rcClient.right - 5, rcClient.bottom - 2 };
+         m_ctrlRight.SetWindowPos(NULL, &rcRight, SWP_NOZORDER | SWP_NOACTIVATE | (bRightNeeded ? SWP_SHOWWINDOW : SWP_HIDEWINDOW));
+         if( m_iScrollPos > 0 && !_IsScrollBarNeeded(HTHSCROLL) ) SetScrollPos(0);
+      }
    }
 
    void DoPaint(CDCHandle dc, RECT &rcClip)
@@ -748,7 +852,7 @@ public:
          // so it can cover the tabs below it.
          RECT rcIntersect;
          for( int i = 0; i < nCount; i++ ) {
-            rc = m_Items[i]->rcSize;
+            rc = m_Items[i]->rcItem;
             if( rc.bottom - rc.top == 0 ) pT->UpdateLayout();
             if( i != m_iCurSel ) {
                if( ::IntersectRect(&rcIntersect, &rc, &rcClip) ) {
@@ -761,7 +865,7 @@ public:
             }
          }
          if( m_iCurSel != -1 ) {
-            rc = m_Items[m_iCurSel]->rcSize;
+            rc = m_Items[m_iCurSel]->rcItem;
             if( ::IntersectRect(&rcIntersect, &rc, &rcClip) ) {
                nmc.dwItemSpec = m_iCurSel;
                nmc.uItemState = CDIS_SELECTED;
@@ -854,8 +958,8 @@ public:
       ::SetTextColor(lpNMCustomDraw->hdc, ::GetSysColor(COLOR_BTNTEXT));
       
       UINT state = 0;
-      if( lpNMCustomDraw->uItemState & CDIS_SELECTED ) state |= DFCS_PUSHED;
-      if( lpNMCustomDraw->uItemState & CDIS_DISABLED ) state |= DFCS_INACTIVE;
+      if( (lpNMCustomDraw->uItemState & CDIS_SELECTED) != 0 ) state |= DFCS_PUSHED;
+      if( (lpNMCustomDraw->uItemState & CDIS_DISABLED) != 0 ) state |= DFCS_INACTIVE;
       ::DrawFrameControl(lpNMCustomDraw->hdc, &lpNMCustomDraw->rc, DFC_BUTTON, DFCS_BUTTONPUSH | state );
       
       TCITEM item = { 0 };
@@ -864,7 +968,7 @@ public:
       item.pszText = szText;
       item.cchTextMax = (sizeof(szText)/sizeof(TCHAR)) - 1;
       GetItem(lpNMCustomDraw->dwItemSpec, &item);
-      if( lpNMCustomDraw->uItemState & CDIS_SELECTED ) {
+      if( (lpNMCustomDraw->uItemState & CDIS_SELECTED) != 0 ) {
          lpNMCustomDraw->rc.left += 2;
          lpNMCustomDraw->rc.top += 2;
       }
@@ -916,7 +1020,7 @@ public:
    DWORD OnItemPrePaint(int /*idCtrl*/, LPNMCUSTOMDRAW lpNMCustomDraw)
    {
       CDCHandle dc( lpNMCustomDraw->hdc );
-      bool bSelected = lpNMCustomDraw->uItemState & CDIS_SELECTED;
+      bool bSelected = (lpNMCustomDraw->uItemState & CDIS_SELECTED) != 0;
 
       COLORREF bgColor = ::GetSysColor(bSelected ? COLOR_WINDOW     : COLOR_3DFACE);
       COLORREF fgColor = ::GetSysColor(bSelected ? COLOR_WINDOWTEXT : COLOR_BTNTEXT);
@@ -1049,7 +1153,7 @@ public:
       GetClientRect(&rc);
       HBRUSH hOldBrush = dc.SelectBrush(m_hbrBack);
       dc.PatBlt(rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, PATCOPY);
-      if( GetStyle() & TCS_BOTTOM ) 
+      if( (GetStyle() & TCS_BOTTOM) != 0 ) 
       {
          dc.SelectStockPen(BLACK_PEN);
          dc.MoveTo(rc.left, rc.top + 1);
@@ -1078,12 +1182,12 @@ public:
       DWORD dwStyle = GetStyle();
       DWORD dwExtStyle = GetExtendedStyle();
 
-      if( dwStyle & TCS_BUTTONS ) /* */;
-      else if( dwStyle & TCS_BOTTOM ) rc.bottom -= 3; 
+      if( (dwStyle & TCS_BUTTONS) != 0 ) /* */;
+      else if( (dwStyle & TCS_BOTTOM) != 0 ) rc.bottom -= 3; 
       else rc.top += 3;
 
       // Paint separators if needed
-      if( dwExtStyle & TCS_EX_FLATSEPARATORS ) 
+      if( (dwExtStyle & TCS_EX_FLATSEPARATORS) != 0 ) 
       {
          if( (int) lpNMCustomDraw->dwItemSpec != iCurSel 
              && (int) lpNMCustomDraw->dwItemSpec != iCurSel - 1 
@@ -1099,7 +1203,7 @@ public:
       RECT rcText = rc;
 
       // Tab is selected, so paint tab folder
-      if( dwStyle & TCS_BUTTONS ) 
+      if( (dwStyle & TCS_BUTTONS) != 0 ) 
       {
          ::InflateRect(&rc, -4, -3);
          ::InflateRect(&rcText, -2, -2);
@@ -1109,7 +1213,7 @@ public:
             dc.Draw3dRect(&rc, ::GetSysColor(COLOR_HIGHLIGHT), ::GetSysColor(COLOR_HIGHLIGHT));
          }
       }
-      else if( dwStyle & TCS_BOTTOM ) 
+      else if( (dwStyle & TCS_BOTTOM) != 0 ) 
       {
          if( bSelected ) 
          {
@@ -1165,10 +1269,10 @@ public:
             rcText.left += szIcon.cx + (metrics.cxImagePadding * 2);
          }
       }
-      if( item.mask & TCIF_TEXT )
+      if( (item.mask & TCIF_TEXT) != 0 )
       {
          dc.SetTextColor(::GetSysColor(COLOR_BTNTEXT));
-         if( item.mask & TCIF_TEXTCOLOR ) dc.SetTextColor(item.clrText);
+         if( (item.mask & TCIF_TEXTCOLOR) != 0 ) dc.SetTextColor(item.clrText);
          HFONT hOldFont = dc.SelectFont(bSelected ? GetSelFont() : GetFont());
          dc.DrawText(item.pszText, -1, &rcText, DT_SINGLELINE | DT_CENTER | DT_VCENTER | DT_END_ELLIPSIS);
          dc.SelectFont(hOldFont);

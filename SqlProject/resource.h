@@ -160,13 +160,12 @@
 #define ID_HISTORY_DELETE               40408
 #define ID_HISTORY_NEW                  40409
 #define ID_HISTORY_RIGHT                40410
-#define ID_HISTORIK_LEFT                40411
+#define ID_HISTORY_LEFT                 40411
 #define ID_QUERY_INSPECT                40412
 #define ID_VIEW_TAB1                    40417
 #define ID_VIEW_TAB2                    40418
 #define ID_VIEW_TAB3                    40419
 #define ID_VIEW_SETLINE                 40420
-#define ID_HISTORY_LEFT                 40421
 #define ID_EDIT_AUTOCOMPLETE            40422
 #define ID_VIEW_NEXT_TAB                40423
 #define ID_VIEW_PREV_TAB                40424
@@ -176,7 +175,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
-#define _APS_NEXT_COMMAND_VALUE         40423
+#define _APS_NEXT_COMMAND_VALUE         40425
 #define _APS_NEXT_CONTROL_VALUE         1008
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

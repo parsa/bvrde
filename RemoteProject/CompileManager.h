@@ -14,6 +14,11 @@
 // Forward declare
 class CCompileManager;
 
+#define COMPFLAG_COMMANDMODE    1
+#define COMPFLAG_IGNOREOUTPUT   2
+#define COMPFLAG_BUILDSESSION   4
+#define COMPFLAG_RELOADFILE     8
+
 
 class CCompileThread : public CThreadImpl<CCompileThread>
 {
@@ -27,9 +32,7 @@ public:
    CComAutoCriticalSection m_cs;           // Thread synch lock
    SIZE m_szWindow;                        // Initial size of output window
    CSimpleArray<CString> m_aCommands;      // List of commands waiting for execution
-   bool m_bCommandMode;                    // State of next batch
-   bool m_bIgnoreOutput;                   // State of next batch
-   bool m_bBuildSession;                   // Has issued compile command?
+   UINT m_Flags;                           // Various COMPFLAG_xxx flags
 };
 
 
@@ -71,7 +74,7 @@ public:
 
    SIZE _GetViewWindowSize() const;
    bool _PrepareProcess(LPCTSTR /*pstrName*/);
-   bool _StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCommands, bool bBuildSession, bool bCommandMode, bool bIgnoreOutput);
+   bool _StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCommands, UINT Flags);
    CString _TranslateCommand(LPCTSTR pstrAction, LPCTSTR pstrParams = NULL) const;
 
    // IOutputLineListener
@@ -86,11 +89,9 @@ public:
    CEvent m_event;                         // Event that triggers command/batch execution
    static volatile bool s_bBusy;           // Flag signals thread busy state
    bool m_bReleaseMode;                    // Project is in Release (combobox on toolbar)
-   bool m_bCommandMode;                    // An external command (prompt) is executing
-   bool m_bIgnoreOutput;                   // Don't print output in Compile view
    bool m_bCompiling;                      // Are we currently compiling?
-   bool m_bBuildSession;                   // Do we have a build session going on?
    bool m_bWarningPlayed;                  // Error warning sound played once?
+   UINT m_Flags;                           // Various state flags for current compile batch
    //
    CString m_sCommandCD;
    CString m_sCommandBuild;

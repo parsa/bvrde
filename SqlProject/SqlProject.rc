@@ -351,7 +351,7 @@ BEGIN
     BUTTON      ID_QUERY_INSPECT
     BUTTON      ID_HISTORY_NEW
     BUTTON      ID_HISTORY_DELETE
-    BUTTON      ID_HISTORIK_LEFT
+    BUTTON      ID_HISTORY_LEFT
     BUTTON      ID_HISTORY_RIGHT
     BUTTON      ID_FILE_DELETE
     BUTTON      ID_FILE_SAVE
@@ -517,6 +517,51 @@ BEGIN
     IDS_FILTER_SQL          "SQL files|*.sql|All Files|*.*|"
     IDS_CAPTION_QUESTION    "BVRDE"
     IDS_NO_ROWS_AFFECTED    "The command did not return data, and it did not return any rows."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_PROPERTIES      "Show properties\nProperties"
+    ID_VIEW_OPEN            "Open\nOpen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_DELETE          "Remove entry from project\nRemove"
+    ID_FILE_RENAME          "Rename entry\nRename"
+    ID_PROJECT_SET_DEFAULT  "Set this project as default project\nSet Default Project"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_QUERY_RUN            "Run query\nRun Query"
+    ID_QUERY_STOP           "Stop running query\nStop Query"
+    ID_QUERY_RUNSELECTED    "Run selected text\nRun Selected Text"
+    ID_ADD_DATABASE         "Create a new databasen entry\nAdd New Link"
+    ID_DATABASE_DISCONNECT  "Disconnect database\nDisconnect"
+    ID_FILE_PROPERTIES      "Show Properties\nProperties"
+    ID_HISTORY_DELETE       "Delete history entry\nDelete SQL"
+    ID_HISTORY_NEW          "Create blank page and push text to history\nNew SQL"
+    ID_HISTORY_RIGHT        "Go forward in SQL history\nForward in history"
+    ID_QUERY_INSPECT        "Inspect\nInspect"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_COPY            "Copy selected row to clipboard\nCopy"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_TAB1            "Go to SQL view\nSQL View"
+    ID_VIEW_TAB2            "Go to Result view\nResult View"
+    ID_VIEW_TAB3            "Go to SQL Result View\nResult View"
+    ID_HISTORY_LEFT         "Go back in SQL history\nBack in history"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_SAVE            "Save as SQL file\nSave SQL"
 END
 
 #endif    // English (U.S.) resources

@@ -8,7 +8,7 @@
 
 
 /////////////////////////////////////////////////////////////////////////
-// CTagProperties
+// CTagElement
 
 class CTagElement : public IElement
 {
@@ -57,7 +57,7 @@ public:
 
 
 /////////////////////////////////////////////////////////////////////////
-// Constructor/destructor
+// CClassView
 
 CClassView::CClassView() :
    m_pProject(NULL), 
@@ -67,8 +67,6 @@ CClassView::CClassView() :
 {
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Operations
 
 void CClassView::Init(CRemoteProject* pProject)
@@ -261,8 +259,6 @@ void CClassView::_GoToDefinition(TAGINFO* pTag)
    }
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Message handlers
 
 LRESULT CClassView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -443,5 +439,9 @@ void CClassView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_CLASSVIEW_NOSORT, TRUE);
    pUIBase->UISetCheck(ID_CLASSVIEW_SORT, _tcscmp(szValue, _T("alpha")) == 0);
    pUIBase->UISetCheck(ID_CLASSVIEW_NOSORT, _tcscmp(szValue, _T("no")) == 0);
+}
+
+void CClassView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+{
 }
 

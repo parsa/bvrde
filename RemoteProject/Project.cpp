@@ -394,6 +394,11 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UISetCheck(ID_VIEW_BREAKPOINTS, m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible());
 }
 
+void CRemoteProject::OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
+{
+   AtlLoadString(wID, pstrText, cchMax);
+}
+
 // ITreeMessageListener
 
 LRESULT CRemoteProject::OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled)
@@ -553,16 +558,23 @@ void CRemoteProject::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
 
 void CRemoteProject::OnMenuCommand(LPCTSTR pstrType, LPCTSTR pstrCommand, LPCTSTR pstrArguments, LPCTSTR pstrPath, int iFlags, BOOL& bHandled)
 {
-   bHandled = FALSE;
-   if( _tcscmp(pstrType, _T("remote")) != 0 ) return;
-   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
-   _pDevEnv->ActivateAutoHideView(ctrlEdit);
-   CString sCommandline;
-   sCommandline.Format(_T("%s %s %s"), 
-      (iFlags & TOOLFLAGS_CONSOLEOUTPUT) != 0 ? _T("cc") : _T("cz"), 
-      pstrCommand, 
-      pstrArguments);
-   m_CompileManager.DoAction(sCommandline);
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) return;
+   if( _tcscmp(pstrType, _T("compiler")) == 0 ) {
+      CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
+      _pDevEnv->ActivateAutoHideView(ctrlEdit);
+      CString sCommandline;
+      sCommandline.Format(_T("%s %s %s"), 
+         (iFlags & TOOLFLAGS_CONSOLEOUTPUT) != 0 ? _T("cc") : _T("cz"), 
+         pstrCommand, 
+         pstrArguments);
+      m_CompileManager.DoAction(sCommandline);
+      bHandled = TRUE;
+   }
+   if( _tcscmp(pstrType, _T("debugger")) == 0 ) {
+      CString sCommand;
+      sCommand.Format(_T("gdb %s %s"), pstrCommand, pstrArguments);
+      OnUserCommand(sCommand, bHandled);
+   }
 }
 
 // Message handlers
@@ -882,7 +894,7 @@ LRESULT CRemoteProject::OnViewBreakpoints(WORD /*wNotifyCode*/, WORD wID, HWND /
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewBreakpoint, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewBreakpoint, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
    }
    else {
@@ -913,7 +925,7 @@ LRESULT CRemoteProject::OnViewRegisters(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewRegister, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewRegister, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
    }
    else {
@@ -944,7 +956,7 @@ LRESULT CRemoteProject::OnViewMemory(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewMemory, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewMemory, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
    }
    else {
@@ -975,7 +987,7 @@ LRESULT CRemoteProject::OnViewDisassembly(WORD /*wNotifyCode*/, WORD /*wID*/, HW
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewDisassembly, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewDisassembly, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
    }
    else {
@@ -1006,7 +1018,7 @@ LRESULT CRemoteProject::OnViewThreads(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewThread, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewThread, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
    }
    else {
@@ -1037,7 +1049,7 @@ LRESULT CRemoteProject::OnViewStack(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewStack, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewStack, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
    }
    else {
@@ -1068,7 +1080,7 @@ LRESULT CRemoteProject::OnViewVariables(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewVariable, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewVariable, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
    }
    else {
@@ -1099,7 +1111,7 @@ LRESULT CRemoteProject::OnViewWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewWatch, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewWatch, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
          m_viewWatch.ActivateWatches();
       }
    }

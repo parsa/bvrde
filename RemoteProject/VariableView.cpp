@@ -100,7 +100,7 @@ LRESULT CVariableView::OnTabChange(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
    // Refresh all values
    if( IsWindowVisible() ) {
       m_ctrlList.ResetContent();
-      m_pProject->DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      m_pProject->DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    }
    return 0;
 }
@@ -123,6 +123,6 @@ LRESULT CVariableView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    sCommand.Format(_T("-gdb-set variable %s=%ls"), szName, vValue.bstrVal);
    m_pProject->DelayedDebugCommand(sCommand);
    // Refresh all values
-   m_pProject->DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    return 0;
 }

@@ -238,6 +238,12 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_EDIT_AUTOCOMPLETE, TRUE);   
 }
 
+void CScintillaView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+{
+}
+
+// Implementation
+
 int CScintillaView::_FindItem(CSimpleArray<CString>& aList, LPCTSTR pstrName) const
 {
    for( int i = 0; i < aList.GetSize(); i++ ) if( aList[i].CompareNoCase(pstrName) == 0 ) return i;

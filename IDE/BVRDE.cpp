@@ -146,8 +146,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    // We want to embed ActiveX windows
    AtlAxWinInit();
 
-   CMessageLoop theLoop;
-   _Module.AddMessageLoop(&theLoop);
+   CMessageLoop msgloop;
+   _Module.AddMessageLoop(&msgloop);
 
    // Create out global Solution reference
    g_pSolution = new CSolution();
@@ -171,7 +171,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    splash.RemoveSplash(500);
 
    // Run...
-   int nRet = theLoop.Run();
+   int nRet = msgloop.Run();
 
    _Module.RemoveMessageLoop();
 

@@ -44,6 +44,7 @@ public:
    // IIdleListener
 
    void OnIdle(IUpdateUI* pUIBase);
+   void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax);
 
    // Message map and handlers
 

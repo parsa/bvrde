@@ -510,6 +510,7 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
    // Wait for the remote connect to happen
    m_ShellManager.Start();
    if( !m_ShellManager.WaitForConnection() ) {      
+      SignalStop();
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
       CString sMsg(MAKEINTRESOURCE(IDS_ERR_HOSTCONNECT));
       _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
@@ -522,6 +523,7 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
    _pDevEnv->PlayAnimation(FALSE, 0);
 
+   // Fire up the debug views
    m_pProject->DelayedDebugEvent(LAZY_DEBUG_START_EVENT);
 
    // Execute the commands
@@ -529,6 +531,7 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
       // Run debugger on remote server
       CString sCommand = _TranslateCommand(aCommands[i]);
       if( !m_ShellManager.WriteData(sCommand) ) {
+         SignalStop();
          CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
          CString sMsg(MAKEINTRESOURCE(IDS_ERR_DATAWRITE));
          _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
@@ -539,6 +542,7 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
 
    // Wait for the debug prompt
    if( !_WaitForDebuggerStart() ) {
+      SignalStop();
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
       CString sMsg(MAKEINTRESOURCE(IDS_ERR_DEBUGGERSTART));
       _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
@@ -671,7 +675,7 @@ void CDebugManager::_ParseNewFrame(CMiInfo& info)
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUG_NOSOURCE)));
    }
    // Cause the debug views to refresh
-   m_pProject->DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    // Make sure the new state is known to our engine
    m_pProject->DelayedDebugInfo(_T("stopped"), info);
 }

@@ -27,6 +27,18 @@ ISolution* CMainFrame::GetSolution() const
    return g_pSolution;
 }
 
+IView* CMainFrame::GetActiveView() const
+{
+   // const HWND hWnd = MDIGetActive();
+   HWND hWnd = (HWND) ::SendMessage(m_hWndMDIClient, WM_MDIGETACTIVE, 0, 0L);
+   IView* pView = NULL;
+   if( ::IsWindow(hWnd) ) {
+      CWinProp prop = hWnd;
+      prop.GetProperty(_T("View"), pView);
+   }
+   return pView;
+}
+
 IView* CMainFrame::CreateView(LPCTSTR pstrFilename, IProject* pProject /*= NULL*/, IElement* pElement /*= NULL*/)
 {
    ATLASSERT(!::IsBadStringPtr(pstrFilename,-1));
@@ -322,7 +334,7 @@ IViewFrame* CMainFrame::CreateClient(LPCTSTR pstrTitle, IProject* pProject, IVie
    ATLASSERT(pView);
    CLockStaticDataInit lock;
    // Create a MDI Client window for the caller.
-   CChildFrame* pChild;
+   CChildFrame* pChild = NULL;
    ATLTRY( pChild = new CChildFrame(this, this, pProject, pView) );
    ATLASSERT(pChild);
    if( pChild == NULL ) return NULL;

@@ -91,6 +91,9 @@ void CViewImpl::ActivateUI()
    CMenuHandle menuMain = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
    CMenuHandle menuEdit = menuMain.GetSubMenu(1);
    MergeMenu(menuEdit, menu.GetSubMenu(2), menuEdit.GetMenuItemCount());
+
+   // C++ Edit-menu has a "Insert/Remove Breakpoint" menuitem
+   if( m_sLanguage == _T("cpp") ) MergeMenu(menuEdit, menu.GetSubMenu(6), menuEdit.GetMenuItemCount() - 4);
 }
 
 void CViewImpl::DeactivateUI()

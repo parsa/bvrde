@@ -95,6 +95,7 @@ public:
 public:
    BOOL Initialize(IDevEnv* pEnv, LPCTSTR pstrPath);
    BOOL IsDirty() const;
+   BOOL GetFileName(LPTSTR pstrFilename, UINT cchMax) const;
    BOOL GetClass(LPTSTR pstrType, UINT cchMax) const;
    BOOL Close();
    INT GetItemCount() const;
@@ -113,6 +114,7 @@ public:
 // IIdleListener
 public:
    void OnIdle(IUpdateUI* pUIBase);
+   void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax);
 
 // ITreeMessageListener
 public:
@@ -149,7 +151,7 @@ public:
    void DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename = NULL, long lLineNum = -1);
    void DelayedViewMessage(WPARAM wCmd, LPCTSTR pstrFilename = NULL, long lLineNum = -1, UINT iFlags = 0);
    void DelayedDebugBreakpoint(LPCTSTR pstrFilename, long lLineNum);
-   void DelayedDebugEvent(LAZYACTION event = LAZY_DEBUG_STOP_EVENT);
+   void DelayedDebugEvent(LAZYACTION event = LAZY_DEBUG_BREAK_EVENT);
    void DelayedDebugInfo(LPCTSTR pstrCommand, CMiInfo& info);
    static void InitializeToolBars();
 

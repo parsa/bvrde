@@ -157,9 +157,12 @@
 #define IDS_TOOLTYPE_LOCAL              238
 #define IDS_TOOLTYPE_REMOTE             239
 #define IDD_ARGUMENTPROMPT              239
+#define IDS_TOOLTYPE_COMPILER           239
 #define IDS_TOOLTYPE_SQL                240
 #define IDS_SOUNDS                      241
 #define IDS_CUSTOMIZE                   242
+#define IDS_TOOLTYPE_DEBUGGER           243
+#define IDS_EXTERNALTOOL                244
 #define IDD_MSGBOX                      263
 #define IDI_MSG_INFORMATION             264
 #define IDI_MSG_WARNING                 265

@@ -97,12 +97,13 @@ public:
    }
    virtual BOOL OnIdle(int nIdleCount)
    {
+      if( m_aIdleHandler.GetSize() == 0 ) return FALSE;
       for( int i = 0; i < m_aIdleHandler.GetSize(); i++ )
       {
          CIdleHandlerEx* pIdleHandler = m_aIdleHandler[i];
-         if( pIdleHandler != NULL ) pIdleHandler->OnIdle(nIdleCount);
+         if( pIdleHandler != NULL ) if( !pIdleHandler->OnIdle(nIdleCount) ) return FALSE;
       }
-      return TRUE; // Always continue
+      return TRUE;
    }
 };
 

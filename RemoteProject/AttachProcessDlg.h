@@ -83,8 +83,8 @@ public:
       return 0;
    }
 
-	void DrawItem(LPDRAWITEMSTRUCT lpDIS)
-	{
+   void DrawItem(LPDRAWITEMSTRUCT lpDIS)
+   {
       CString sText;
       m_ctrlList.GetText(lpDIS->itemID, sText);
       COLORREF clrBack = ::GetSysColor(COLOR_WINDOW);
@@ -98,8 +98,9 @@ public:
       CDCHandle dc = lpDIS->hDC;
       dc.FillSolidRect(&lpDIS->rcItem, clrBack);
       dc.SetTextColor(clrText);
+      dc.SetBkMode(TRANSPARENT);
       dc.TextOut(lpDIS->rcItem.left, lpDIS->rcItem.top, sText);
-	}
+   }
 
    // ILineCallback
 

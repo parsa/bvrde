@@ -187,6 +187,11 @@ void CView::OnIdle(IUpdateUI* pUIBase)
    if( m_wndClient.IsWindow() ) m_wndClient.OnIdle(pUIBase);
 }
 
+void CView::OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
+{
+   AtlLoadString(wID, pstrText, cchMax);
+}
+
 // IAppMessageListener
 
 LRESULT CView::OnAppMessage(HWND /*hWnd*/, UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
