@@ -1109,7 +1109,7 @@ inline bool AtlIsEditControl(HWND hWnd)
 
 // Load HTML from resource (resource type RT_HTML only).
 // Thanks to Anatoly Ivasyuk for fixing a sz-string problem.
-inline CString AtlLoadHTML(_U_STRINGorID html)
+inline CString AtlLoadHtmlResource(_U_STRINGorID html)
 {
 #if (_ATL_VER >= 0x0700)
    HRSRC hrsrc = ::FindResource(ATL::_AtlBaseModule.GetResourceInstance(), html.m_lpstr, RT_HTML);

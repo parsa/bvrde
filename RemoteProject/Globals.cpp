@@ -217,12 +217,15 @@ CString GetFileTypeFromFilename(LPCTSTR pstrFilename)
       _T(".JAVA"), _T("java"),
       _T(".JS"),   _T("java"),
       _T(".VB"),   _T("basic"),
-      _T(".BAS"),  _T("basic"),
       _T(".VBS"),  _T("basic"),
+      _T(".BAS"),  _T("basic"),
       _T(".PAS"),  _T("pascal"),
+      _T(".INT"),  _T("pascal"),
       _T(".PY"),   _T("python"),
+      _T(".PYC"),  _T("python"),
       _T(".P"),    _T("perl"),
       _T(".PL"),   _T("perl"),
+      _T(".PM"),   _T("perl"),
       _T(".PERL"), _T("perl"),
       _T(".ASP"),  _T("html"),
       _T(".ASPX"), _T("html"),
@@ -297,8 +300,14 @@ void PumpIdleMessages()
          ::DispatchMessage(&msg); 
          break;
       default:
-         ::SetCursor(hCursor);
-         return;
+         if( msg.message >= WM_USER ) {
+            ::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
+            ::DispatchMessage(&msg); 
+         }
+         else {
+            ::SetCursor(hCursor);
+            return;
+         }
       }
    }
    ::SetCursor(hCursor);

@@ -98,8 +98,10 @@ public:
       iSel = m_ctrlFiles.GetItemData(iSel);
       m_sSelFile = m_aFiles[iSel];
       iSel = m_ctrlList.GetCurSel();
+      if( iSel < 0 ) return 0;
       m_ctrlList.GetText(iSel, m_sSelName);
       iSel = m_ctrlList.GetItemData(iSel);
+      if( iSel < 0 ) return 0;
       m_ctrlDescription.SetWindowText(m_aDescriptions[iSel]);
 
       ::EnableWindow(GetDlgItem(IDOK), TRUE);

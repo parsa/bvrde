@@ -61,7 +61,10 @@ public:
    {
       ::wsprintf(m_szIniFile, _T("%sTemplates\\Files.ini"), CModulePath());
       m_TreeImages.Create(IDB_FOLDERS, 16, 0, RGB(255,0,255));
-      m_ListImages.Create(IDB_ITEMS, 32, 100, RGB(255,0,255));
+      CBitmap bmpItems;
+      bmpItems.LoadBitmap(IDB_ITEMS);
+      m_ListImages.Create(32, 32, ILC_COLOR32 | ILC_MASK, 4, 100);
+      m_ListImages.Add(bmpItems, RGB(255,0,255));
       m_ctrlTree = GetDlgItem(IDC_GROUPTREE);
       m_ctrlTree.SetImageList(m_TreeImages, TVSIL_NORMAL);
       m_ctrlList = GetDlgItem(IDC_FILELIST);

@@ -41,7 +41,7 @@ public:
       CenterWindow(GetParent());
       // Create a really small font
       CLogFont lf = AtlGetDefaultGuiFont();
-      _tcscpy(lf.lfFaceName, _T("Arial"));
+      _tcscpy(lf.lfFaceName, _T("Small Fonts"));
       lf.lfHeight = -8;
       m_SmallFont.CreateFontIndirect(&lf);
       CClientDC dc = m_hWnd;

@@ -106,7 +106,7 @@ void CPreviewView::SetViewText(LPCTSTR pstrText)
          bstr = s;
       }
       else {
-         CString sXslt = AtlLoadHTML(IDR_XML);
+         CString sXslt = AtlLoadHtmlResource(IDR_XML);
 
          CComPtr<IXMLDOMDocument> spXslt;
          Hr = spXslt.CoCreateInstance(PROGID_XMLDOMDocument);

@@ -64,9 +64,12 @@ public:
 
       if( IsSimple() ) return lRes;
 
+      COLORREF clrBorders = ::GetSysColor(COLOR_3DLIGHT);
+      if( AtlIsOldWindows() ) clrBorders = ::GetSysColor(COLOR_3DSHADOW);
+
       CClientDC dc(m_hWnd);
       CPen pen;
-      pen.CreatePen(PS_SOLID, 1, ::GetSysColor(COLOR_3DSHADOW));
+      pen.CreatePen(PS_SOLID, 1, clrBorders);
       HPEN hOldPen = dc.SelectPen(pen);
       HBRUSH hOldBrush = dc.SelectStockBrush(NULL_BRUSH);
       int nCount = (int) GetParts(0, NULL);

@@ -53,6 +53,7 @@ public:
       TCHAR szName[100];    // Name of ttolbar
       int iPosition;        // Position of band in ReBar
       HWND hWnd;            // Handle to ToolBarCtrl window
+      int nBand;            // Rebard insert index
       BOOL bShowDefault;    // Show as default
       BOOL bNewRow;         // Is on new line?
    };

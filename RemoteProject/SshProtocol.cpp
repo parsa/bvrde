@@ -191,7 +191,9 @@ DWORD CSshThread::Run()
          m_pManager->m_bConnected = *ppstr == NULL;
          // Send our own login commands
          if( m_pManager->m_bConnected && !sExtraCommands.IsEmpty() ) {
-            m_pManager->WriteData(sExtraCommands);
+            CString sCustom = sExtraCommands;
+            sCustom.Remove('\r');
+            m_pManager->WriteData(sCustom);
          }
       }
 
@@ -353,8 +355,8 @@ bool CSshProtocol::Load(ISerializable* pArc)
    m_sPath.ReleaseBuffer();
    pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(200), 200);
    m_sExtraCommands.ReleaseBuffer();
-   m_sExtraCommands.Replace(_T("\\n"), _T("\n"));
-   
+   m_sExtraCommands.Replace(_T("\\n"), _T("\r\n"));
+
    return true;
 }
 

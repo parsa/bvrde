@@ -8,7 +8,7 @@
 #pragma code_seg( "MISC" )
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 // CViewImpl
 
 CViewImpl::CViewImpl(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) : 
@@ -131,7 +131,7 @@ bool CViewImpl::_IsValidFile(LPBYTE pData, DWORD dwSize) const
 }
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CFolderFile::CFolderFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) : 
@@ -175,7 +175,7 @@ IDispatch* CFolderFile::GetDispatch()
 }
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CTextFile::CTextFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
@@ -463,7 +463,7 @@ LRESULT CTextFile::SendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CCppFile::CCppFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
@@ -491,7 +491,7 @@ BOOL CCppFile::GetType(LPTSTR pstrType, UINT cchMax) const
 }
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CHeaderFile::CHeaderFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
@@ -507,7 +507,7 @@ BOOL CHeaderFile::GetType(LPTSTR pstrType, UINT cchMax) const
 }
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CMakeFile::CMakeFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
@@ -523,7 +523,7 @@ BOOL CMakeFile::GetType(LPTSTR pstrType, UINT cchMax) const
 }
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CJavaFile::CJavaFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
@@ -539,7 +539,7 @@ BOOL CJavaFile::GetType(LPTSTR pstrType, UINT cchMax) const
 }
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CBasicFile::CBasicFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
@@ -555,7 +555,7 @@ BOOL CBasicFile::GetType(LPTSTR pstrType, UINT cchMax) const
 }
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CHtmlFile::CHtmlFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
@@ -571,7 +571,7 @@ BOOL CHtmlFile::GetType(LPTSTR pstrType, UINT cchMax) const
 }
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CXmlFile::CXmlFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
@@ -588,7 +588,7 @@ BOOL CXmlFile::GetType(LPTSTR pstrType, UINT cchMax) const
 
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CPerlFile::CPerlFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
@@ -604,7 +604,7 @@ BOOL CPerlFile::GetType(LPTSTR pstrType, UINT cchMax) const
 }
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CPythonFile::CPythonFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
@@ -620,7 +620,7 @@ BOOL CPythonFile::GetType(LPTSTR pstrType, UINT cchMax) const
 }
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CPascalFile::CPascalFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :

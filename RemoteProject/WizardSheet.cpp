@@ -28,9 +28,23 @@
 ///////////////////////////////////////////////////////////////
 //
 
+enum
+{
+   FILETRANSFER_FTP = 0,
+   FILETRANSFER_SFTP,
+   FILETRANSFER_NETWORK,
+};
+
+enum
+{
+   SHELLTRANSFER_TELNET = 0,
+   SHELLTRANSFER_RLOGIN,
+   SHELLTRANSFER_SSH,
+};
+
 struct WIZDATA
 {
-   long lType;
+   int iType;
    CString sHost;
    CString sUsername;
    CString sPassword;
@@ -71,9 +85,9 @@ LRESULT CFileTransferPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_NETWORKDRIVE)));
 
    CString sType = m_pProject->m_FileManager.GetParam(_T("Type"));
-   int iTypeIndex = 0; // ftp
-   if( sType == _T("sftp") ) iTypeIndex = 1;
-   if( sType == _T("network") ) iTypeIndex = 2;
+   int iTypeIndex = FILETRANSFER_FTP;
+   if( sType == _T("sftp") ) iTypeIndex = FILETRANSFER_SFTP;
+   if( sType == _T("network") ) iTypeIndex = FILETRANSFER_NETWORK;
    m_ctrlType.SetCurSel(iTypeIndex);
 
    g_data.sHost.Empty();
@@ -102,13 +116,14 @@ LRESULT CFileTransferPage::OnTypeChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
    int iTypeIndex = m_ctrlType.GetCurSel();
    long lPort = 21;
    switch( iTypeIndex ) {
-   case 1: lPort = 22; break; // sftp
+   case FILETRANSFER_SFTP: lPort = 22; break;
    }
+   g_data.iType = iTypeIndex;
    m_ctrlPort.SetWindowText(ToString(lPort));
-   m_ctrlHost.EnableWindow(iTypeIndex != 2);
-   m_ctrlPort.EnableWindow(iTypeIndex != 2);
-   m_ctrlUsername.EnableWindow(iTypeIndex != 2);
-   m_ctrlPassword.EnableWindow(iTypeIndex != 2);
+   m_ctrlHost.EnableWindow(iTypeIndex != FILETRANSFER_NETWORK);
+   m_ctrlPort.EnableWindow(iTypeIndex != FILETRANSFER_NETWORK);
+   m_ctrlUsername.EnableWindow(iTypeIndex != FILETRANSFER_NETWORK);
+   m_ctrlPassword.EnableWindow(iTypeIndex != FILETRANSFER_NETWORK);
    return 0;
 }
 
@@ -119,7 +134,7 @@ LRESULT CFileTransferPage::OnTextChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
    if( m_ctrlHost.GetWindowTextLength() == 0 ) bOK = FALSE;
    if( m_ctrlPort.GetWindowTextLength() == 0 ) bOK = FALSE;
    if( m_ctrlUsername.GetWindowTextLength() == 0 && m_ctrlPassword.GetWindowTextLength() == 0 ) bOK = FALSE;
-   if( iTypeIndex == 2 ) bOK = TRUE;  // Network drive don't need host/username/password
+   if( iTypeIndex == FILETRANSFER_NETWORK ) bOK = TRUE;  // Network drive don't need host/username/password
    if( m_ctrlPath.GetWindowTextLength() == 0 ) bOK = FALSE;
    SetWizardButtons(bOK ? PSWIZB_BACK | PSWIZB_NEXT : PSWIZB_BACK);
    CWindow(GetDlgItem(IDC_TEST)).EnableWindow(bOK);
@@ -142,8 +157,8 @@ LRESULT CFileTransferPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
    CString sType = _T("ftp");
    switch( iTypeIndex ) {
-   case 1: sType = _T("sftp"); break;
-   case 2: sType = _T("network"); break;
+   case FILETRANSFER_SFTP: sType = _T("sftp"); break;
+   case FILETRANSFER_NETWORK: sType = _T("network"); break;
    }
 
    CFileManager fm;
@@ -183,7 +198,7 @@ int CFileTransferPage::OnSetActive()
 int CFileTransferPage::OnWizardNext()
 {
    // Store the values on the first page for use in the remaining pages.
-   g_data.lType = m_ctrlType.GetCurSel();
+   g_data.iType = m_ctrlType.GetCurSel();
    g_data.sHost = CWindowText(m_ctrlHost);
    g_data.sUsername = CWindowText(m_ctrlUsername);
    g_data.sPassword = CWindowText(m_ctrlPassword);
@@ -197,8 +212,8 @@ int CFileTransferPage::OnApply()
 
    int iTypeIndex = m_ctrlType.GetCurSel();
    CString sType = _T("ftp");
-   if( iTypeIndex == 1 ) sType = _T("sftp");
-   if( iTypeIndex == 2 ) sType = _T("network");
+   if( iTypeIndex == FILETRANSFER_SFTP ) sType = _T("sftp");
+   if( iTypeIndex == FILETRANSFER_NETWORK ) sType = _T("network");
    CString sHost = CWindowText(m_ctrlHost);
    CString sUsername = CWindowText(m_ctrlUsername);
    CString sPassword = CWindowText(m_ctrlPassword);
@@ -251,6 +266,8 @@ LRESULT CFileOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 
 int CFileOptionsPage::OnSetActive()
 {
+   m_ctrlList.SetItemEnabled(m_ctrlList.FindProperty(1), g_data.iType == FILETRANSFER_FTP);
+   m_ctrlList.SetItemEnabled(m_ctrlList.FindProperty(2), g_data.iType == FILETRANSFER_FTP);
    return 0;
 }
 
@@ -306,10 +323,10 @@ LRESULT CCompilerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    }
 
    CString sType = m_pProject->m_CompileManager.GetParam(_T("Type"));
-   long lType = 0; // telnet
-   if( sType == _T("rlogin") ) lType = 1;
-   if( sType == _T("ssh") ) lType = 2;
-   m_ctrlType.SetCurSel(lType);
+   int iType = SHELLTRANSFER_TELNET;
+   if( sType == _T("ssh") ) iType = SHELLTRANSFER_SSH;
+   if( sType == _T("rlogin") ) iType = SHELLTRANSFER_RLOGIN;
+   m_ctrlType.SetCurSel(iType);
 
    return 0;
 }
@@ -330,8 +347,8 @@ LRESULT CCompilerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 
    CString sType = _T("telnet");
    switch( m_ctrlType.GetCurSel() ) {
-   case 1: sType = _T("rlogin"); break;
-   case 2: sType = _T("ssh"); break;
+   case SHELLTRANSFER_SSH: sType = _T("ssh"); break;
+   case SHELLTRANSFER_RLOGIN: sType = _T("rlogin"); break;
    }
 
    if( sType == _T("ssh") ) CheckCryptLib();
@@ -367,8 +384,8 @@ LRESULT CCompilerPage::OnTypeChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 {
    long lPort = 23;
    switch( m_ctrlType.GetCurSel() ) {
-   case 1: lPort = 513; break; // rlogin
-   case 2: lPort = 22; break;  // ssh
+   case SHELLTRANSFER_SSH: lPort = 22; break;
+   case SHELLTRANSFER_RLOGIN: lPort = 513; break;
    }
    m_ctrlPort.SetWindowText(ToString(lPort));
    return 0;
@@ -424,8 +441,8 @@ int CCompilerPage::OnApply()
 
    CString sType = _T("telnet");
    switch( m_ctrlType.GetCurSel() ) {
-   case 1: sType = _T("rlogin"); break;
-   case 2: sType = _T("ssh"); break;
+   case SHELLTRANSFER_SSH: sType = _T("ssh"); break;
+   case SHELLTRANSFER_RLOGIN: sType = _T("rlogin"); break;
    }
 
    m_pProject->m_CompileManager.Stop();
@@ -590,10 +607,10 @@ LRESULT CDebuggerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    }
 
    CString sType = m_pProject->m_DebugManager.GetParam(_T("Type"));
-   long lType = 0; // telnet
-   if( sType == _T("rlogin") ) lType = 1;
-   if( sType == _T("ssh") ) lType = 2;
-   m_ctrlType.SetCurSel(lType);
+   int iType = SHELLTRANSFER_TELNET;
+   if( sType == _T("ssh") ) iType = SHELLTRANSFER_SSH;
+   if( sType == _T("rlogin") ) iType = SHELLTRANSFER_RLOGIN;
+   m_ctrlType.SetCurSel(iType);
 
    return 0;
 }
@@ -602,8 +619,8 @@ LRESULT CDebuggerPage::OnTypeChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 {
    long lPort = 23;
    switch( m_ctrlType.GetCurSel() ) {
-   case 1: lPort = 513; break; // rlogin
-   case 2: lPort = 22; break;  // ssh
+   case SHELLTRANSFER_SSH: lPort = 22; break;
+   case SHELLTRANSFER_RLOGIN: lPort = 513; break;
    }
    m_ctrlPort.SetWindowText(ToString(lPort));
    return 0;
@@ -636,8 +653,8 @@ LRESULT CDebuggerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 
    CString sType = _T("telnet");
    switch( m_ctrlType.GetCurSel() ) {
-   case 1: sType = _T("rlogin"); break;
-   case 2: sType = _T("ssh"); break;
+   case SHELLTRANSFER_SSH: sType = _T("ssh"); break;
+   case SHELLTRANSFER_RLOGIN: sType = _T("rlogin"); break;
    }
 
    if( sType == _T("ssh") ) CheckCryptLib();
@@ -689,8 +706,8 @@ int CDebuggerPage::OnApply()
 
    CString sType = _T("telnet");
    switch( m_ctrlType.GetCurSel() ) {
-   case 1: sType = _T("rlogin"); break;
-   case 2: sType = _T("ssh"); break;
+   case SHELLTRANSFER_SSH: sType = _T("ssh"); break;
+   case SHELLTRANSFER_RLOGIN: sType = _T("rlogin"); break;
    }
 
    m_pProject->m_DebugManager.Stop();

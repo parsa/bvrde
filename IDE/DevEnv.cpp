@@ -514,6 +514,7 @@ BOOL CMainFrame::PlayAnimation(BOOL bStart, UINT uType)
    // Start the show
    m_iAnimatePos = 0;
    SetTimer(ANIMATE_TIMERID, 200L); // 200ms timer
+   PostMessage(WM_TIMER, (WPARAM) ANIMATE_TIMERID);
    return TRUE;
 }
 

@@ -97,12 +97,19 @@ void CMainFrame::_ArrangeToolBars()
    for( int i = 0; i < nCount; i++ ) {
       TOOLBAR& tb = m_aToolBars[i];
       if( i == 0 ) tb.bNewRow = TRUE;
-      if( !AddSimpleReBarBand(tb.hWnd, NULL, tb.bNewRow, 0, TRUE) ) continue;
       if( !m_CmdBar.AddToolbar(tb.hWnd) ) continue;
+      if( !AddSimpleReBarBand(tb.hWnd, NULL, tb.bNewRow, 0, TRUE) ) continue;
+      tb.nBand = m_Rebar.GetBandCount() - 1;
       // We might need to hide it
-      int nBand = m_Rebar.GetBandCount() - 1;
-      m_Rebar.ShowBand(nBand, tb.bShowDefault);
-      if( tb.bShowDefault ) m_Rebar.MaximizeBand(nBand);
+      m_Rebar.ShowBand(tb.nBand, tb.bShowDefault);
+   }
+   // Adjust sizes (experimental!!)
+   for( int j = 0; j < nCount; j++ ) {
+      TOOLBAR& tb = m_aToolBars[j];
+      if( tb.bNewRow && !tb.bShowDefault && j > 2 ) {
+         m_Rebar.MinimizeBand(tb.nBand);
+         m_Rebar.MaximizeBand(tb.nBand, FALSE);
+      }
    }
    m_CmdBar.Prepare();
 }
