@@ -145,6 +145,7 @@ CString CTagInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NUL
       switch( info.Type ) {
       case TAGTYPE_ENUM:
       case TAGTYPE_CLASS:
+      case TAGTYPE_MEMBER:
       case TAGTYPE_STRUCT:
       case TAGTYPE_TYPEDEF:
       case TAGTYPE_FUNCTION:

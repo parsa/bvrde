@@ -134,7 +134,7 @@ BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition)
       // Is this a separator?
       if( (state & MF_POPUP) != 0 ) {
          // Strip the HIBYTE because it contains a count of items
-         state = LOBYTE(state) | MF_POPUP;
+         state = (LOBYTE(state)) | MF_POPUP;
          // Then create the new submenu by using recursive call
          HMENU hSubMenu = ::CreateMenu();
          MergeMenu(hSubMenu, ::GetSubMenu(hMenuSource, i), 0);

@@ -45,14 +45,14 @@ LRESULT CRemoteFileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    int nSmallCx = ::GetSystemMetrics(SM_CXSMICON);
    int nSmallCy = ::GetSystemMetrics(SM_CYSMICON);
 
-   m_FolderImages.Create(nSmallCx, nSmallCy, ILC_COLORDDB | ILC_MASK, 4, 0);
+   m_FolderImages.Create(nSmallCx, nSmallCy, ILC_COLOR32 | ILC_MASK, 4, 0);
    if( m_FolderImages.IsNull() ) return -1;
    _AddShellIcon(m_FolderImages, _T(""), FILE_ATTRIBUTE_DIRECTORY);
    _AddShellIcon(m_FolderImages, _T(""), FILE_ATTRIBUTE_DIRECTORY, SHGFI_OPENICON);
    _AddShellIcon(m_FolderImages, _T("C:\\"), FILE_ATTRIBUTE_DIRECTORY);
    m_ctrlFolder.SetImageList(m_FolderImages);
 
-   m_FileImages.Create(nSmallCx, nSmallCy, ILC_COLORDDB | ILC_MASK, 8, 0);
+   m_FileImages.Create(nSmallCx, nSmallCy, ILC_COLOR32 | ILC_MASK, 8, 0);
    if( m_FileImages.IsNull() ) return -1;
    _AddShellIcon(m_FileImages, _T(""), FILE_ATTRIBUTE_DIRECTORY);
    _AddShellIcon(m_FileImages, _T(".txt"), FILE_ATTRIBUTE_NORMAL);

@@ -61,6 +61,7 @@
 #define IDS_LOG_TELNETCONNECT           123
 #define IDS_LOG_CONNECTERROR            123
 #define IDS_BUILD                       124
+#define IDD_ATTACHPROCESS               124
 #define IDS_WAITCONNECTION              125
 #define IDS_CAPTION_QUESTION            126
 #define IDS_WIZARD_TITLE_TRANSFER       127
@@ -226,6 +227,7 @@
 #define IDS_STACKSUBSTR                 269
 #define IDS_NETWORKDRIVE                270
 #define IDS_COMMAND_STARTTIMEOUT        271
+#define IDS_ERR_NOATTACH                272
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -374,9 +376,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        124
+#define _APS_NEXT_RESOURCE_VALUE        125
 #define _APS_NEXT_COMMAND_VALUE         40128
-#define _APS_NEXT_CONTROL_VALUE         1025
+#define _APS_NEXT_CONTROL_VALUE         1027
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

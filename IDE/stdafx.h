@@ -56,6 +56,11 @@ extern CSimpleArray<CPlugin> g_aPlugins;
 extern CSolution* g_pSolution;
 
 
+#if _MSC_VER >= 1300
+   #pragma warning(disable : 4996)
+#endif
+
+
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 

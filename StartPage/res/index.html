@@ -195,15 +195,9 @@
 												<TR>
 													<TD>
 														<P><B></B>&nbsp;</P>
-														<P><B>Most <EM>Recent </EM>Projects&nbsp;</B></P>
-														<SCRIPT language=JavaScript>
-															var oProjects = window.external.RecentProjects;
-															var i = 0;
-															for( i = 1; i <= oProjects.Count; i++ ) {
-																document.write('<' + 'A TABINDEX=' + i + ' href="project://' + oProjects.Item(i) + '">' + oProjects.Item(i) + '<' + '/A><BR>');
-															}
-														</SCRIPT>
-														<P><BR><B>What <I>BVRDE&nbsp;</I>Does for You</B>
+														<P><B>Most <EM>Recent</EM> Projects&nbsp;</B></P>
+														<DIV id="mru"></DIV>
+														<P><BR><B>What <I>BVRDE</I> Does for You</B>
 														</P>
 														<UL>
 															<LI>
@@ -213,10 +207,10 @@
 															Frees up your time to focus on the creative and challenging&nbsp;programming
 															</LI>
 															<LI>
-															Easy compilation of projects&nbsp;- on all platforms
+															Easy compilation of projects - on all platforms
 															</LI>
 															<LI>
-															Well-known debugging command and&nbsp;inspector support
+															Well-known debugging command and inspector support
 															</LI>
 															<LI>
 															Allows you to manage several remote projects in one solution

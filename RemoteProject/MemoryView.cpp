@@ -37,6 +37,8 @@ void CMemoryView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
    if( _tcscmp(pstrType, _T("addr")) == 0 ) 
    {
+      m_bAllowUpdate = true;
+
       CString sText = _T("{\\rtf1\\ansi\\deff0\\deftab720{\\colortbl\\red0\\green0\\blue0;\\red0\\green0\\blue180;\\red130\\green130\\blue130;}\\deflang1033\\pard\\plain\\f0\\fs18 ");
       CString sAddress;
       CString sMemory;
@@ -64,6 +66,14 @@ void CMemoryView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       stream.dwCookie = (DWORD) &cookie;
       stream.pfnCallback = _EditStreamCallback;
       m_ctrlMemory.StreamIn(SF_RTF, stream);
+
+      CHARFORMAT cfDefault;
+      cfDefault.cbSize = sizeof(cfDefault);
+      cfDefault.dwEffects = CFE_PROTECTED; 
+      cfDefault.dwMask = CFM_PROTECTED;
+      m_ctrlMemory.SetDefaultCharFormat(cfDefault);
+
+      m_bAllowUpdate = false;
    }
 }
 
@@ -123,12 +133,13 @@ LRESULT CMemoryView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
    
    m_ctrlAddress.Create(this, 1, m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
    m_ctrlAddress.SetFont(AtlGetDefaultGuiFont());
-   m_ctrlMemory.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL, WS_EX_CLIENTEDGE);
+   m_ctrlMemory.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_VISIBLE | ES_MULTILINE | /*ES_READONLY |*/ ES_AUTOVSCROLL, WS_EX_CLIENTEDGE);
    m_ctrlMemory.SetFont(AtlGetStockFont(ANSI_FIXED_FONT));
    m_ctrlMemory.SetBackgroundColor(clrBack);
    m_ctrlMemory.SetTargetDevice(NULL, 1);
+   m_ctrlMemory.SetEventMask(ENM_PROTECTED);
    m_ctrlMemory.SetUndoLimit(0);
-   
+
    m_ctrlAddress.SetFocus();
    
    return 0;
@@ -155,6 +166,20 @@ LRESULT CMemoryView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
    UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, pt, TRUE, this);
    PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0), (LPARAM) m_hWnd);
    return 0;
+}
+
+LRESULT CMemoryView::OnProtected(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+{
+   if( m_bAllowUpdate ) return 0;
+   LONG iSelStart = 0;
+   LONG iSelStop = 0;
+   m_ctrlMemory.GetSel(iSelStart, iSelStop);
+   if( iSelStart != iSelStop ) return 1;
+   int iLine = m_ctrlMemory.LineFromChar(iSelStart);
+   int iCol = iSelStart - m_ctrlMemory.LineIndex(iLine);
+   if( iCol < 10 || iCol > 10 + (16 * (m_iDisplaySize + 2)) ) return 1;
+   // TODO: Change memory; GDB doesn't support a "data-write-memory" command!!!
+   return 1;
 }
 
 LRESULT CMemoryView::OnEditChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)

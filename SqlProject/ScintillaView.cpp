@@ -246,6 +246,8 @@ int CScintillaView::_FindItem(CSimpleArray<CString>& aList, LPCTSTR pstrName) co
 
 void CScintillaView::_AutoComplete(CHAR ch, int iLenEntered)
 {
+   USES_CONVERSION;
+
    // Allow popups?
    if( !m_bAutoComplete ) return;
 
@@ -359,7 +361,8 @@ void CScintillaView::_AutoComplete(CHAR ch, int iLenEntered)
    // Sort list items
    for( int a = 0; a < aList.GetSize(); a++ ) {
       for( int b = a + 1; b < aList.GetSize(); b++ ) {
-         if( _FunkyStrCmp(aList[a], aList[b]) > 0 ) {
+         // Scintilla uses a strange compare scheme
+         if( _ScintillaCompare(aList[a], aList[b]) > 0 ) {
             CString sTemp = aList[a];
             aList[a] = aList[b];
             aList[b] = sTemp;
@@ -377,7 +380,6 @@ void CScintillaView::_AutoComplete(CHAR ch, int iLenEntered)
    if( sList.IsEmpty() ) return;
 
    // Display popup
-   USES_CONVERSION;
    _RegisterListImages();
    AutoCSetIgnoreCase(TRUE);
    AutoCShow(iLenEntered, T2CA(sList));
@@ -573,7 +575,7 @@ CScintillaView::SQLKEYWORD CScintillaView::_GetKeyword(CString& sKeyword) const
    return SQL_CONTEXT_UNKNOWN;
 }
 
-int CScintillaView::_FunkyStrCmp(LPCTSTR src, LPCTSTR dst) const
+int CScintillaView::_ScintillaCompare(LPCTSTR src, LPCTSTR dst) const
 {
    // Scintilla control has an obscure sorting of items!
    while( *dst ) {
@@ -585,6 +587,7 @@ int CScintillaView::_FunkyStrCmp(LPCTSTR src, LPCTSTR dst) const
    }
    return 1;
 }
+
 
 /* XPM */
 static char *OwnerImage[] = {

@@ -31,19 +31,19 @@ UINT CManPageGenerator::Generate(HWND hWnd, LPCTSTR pstrKeyword, LPCTSTR pstrLan
    ::wsprintf(szCommand, _T("man -wa %s"), pstrKeyword);
 
    CComBSTR bstrCommand = szCommand;
-   m_sResult = L"";
+   m_bstrResult = L"";
 
    CComVariant aParams[3];
    aParams[2] = bstrCommand;
    aParams[1] = (IUnknown*) this;
    aParams[0] = 3000L;
    if( FAILED( dd.InvokeN(OLESTR("ExecCommand"), aParams, 3) ) ) return IDS_ERR_INVOKE;
-   if( m_sResult.Length() == 0 ) return IDS_ERR_BADANSWER;
-   if( wcsstr(m_sResult, L"command not found") != NULL ) return IDS_ERR_NOTSUPPORTED;
-   if( wcsstr(m_sResult, L"unknown option") != NULL ) return IDS_ERR_BADVERSION;
+   if( m_bstrResult.Length() == 0 ) return IDS_ERR_BADANSWER;
+   if( wcsstr(m_bstrResult, L"command not found") != NULL ) return IDS_ERR_NOTSUPPORTED;
+   if( wcsstr(m_bstrResult, L"unknown option") != NULL ) return IDS_ERR_BADVERSION;
 
    TCHAR szFilename[MAX_PATH] = { 0 };
-   if( !_FindFilename(m_sResult, lPos, lCount, szFilename) ) return IDS_ERR_NOTFOUND;
+   if( !_FindFilename(m_bstrResult, lPos, lCount, szFilename) ) return IDS_ERR_NOTFOUND;
 
    // Now we can generate the html document...
    if( _tcsstr(szFilename, L".gz") != NULL ) {
@@ -54,17 +54,17 @@ UINT CManPageGenerator::Generate(HWND hWnd, LPCTSTR pstrKeyword, LPCTSTR pstrLan
    }
 
    bstrCommand = szCommand;
-   m_sResult = L"";
+   m_bstrResult = L"";
 
    aParams[2] = bstrCommand;
    aParams[1] = (IUnknown*) this;
    aParams[0] = 6000L;
    if( FAILED( dd.InvokeN(OLESTR("ExecCommand"), aParams, 3) ) ) return IDS_ERR_INVOKE;
-   if( m_sResult.Length() == 0 ) return IDS_ERR_BADANSWER;
-   if( wcsstr(m_sResult, L"command not found") != NULL ) return IDS_ERR_NOTSUPPORTED;
+   if( m_bstrResult.Length() == 0 ) return IDS_ERR_BADANSWER;
+   if( wcsstr(m_bstrResult, L"command not found") != NULL ) return IDS_ERR_NOTSUPPORTED;
 
-   if( wcsstr(m_sResult, L"<HTML>") == NULL ) return IDS_ERR_NOTFOUND;
-   bstrResult = wcsstr(m_sResult, L"<HTML>");
+   if( wcsstr(m_bstrResult, L"<HTML>") == NULL ) return IDS_ERR_NOTFOUND;
+   bstrResult = wcsstr(m_bstrResult, L"<HTML>");
 
    // We should shine up the HTML a bit to look presentable.
    // This is after all a Windows machine, and not a crummy UNIX box.
@@ -139,8 +139,8 @@ DWORD CManPageGenerator::_StrReplace(CComBSTR& bstr, LPCWSTR pstrSearchFor, LPCW
 
 HRESULT CManPageGenerator::OnIncomingLine(BSTR bstr)
 {
-   m_sResult += bstr;
-   m_sResult += _T("\n");
+   m_bstrResult += bstr;
+   m_bstrResult += L"\n";
    return S_OK;
 }
 

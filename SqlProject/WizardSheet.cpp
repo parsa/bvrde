@@ -31,8 +31,10 @@ LRESULT CProviderPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 {
    _ASSERTE(m_pProject);
 
+   CWaitCursor cursor;
+
    m_ctrlList = GetDlgItem(IDC_LIST);
-   
+
    CComPtr<ISourcesRowset> spSR;
    HRESULT Hr = spSR.CoCreateInstance(CLSID_OLEDB_ENUMERATOR);
    if( FAILED(Hr) ) return 0;
@@ -304,6 +306,7 @@ LRESULT CConnectionPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 
    m_wndDefault.m_pProject = m_pProject;
    m_wndDefault.Create(m_hWnd);
+
    return 0;
 }
 
@@ -329,7 +332,7 @@ int CConnectionPage::OnSetActive()
    CComQIPtr<IServiceProvider> spSP = m_pProject->m_pWizardView->m_Db.m_spInit;
    if( spSP ) {
       CComPtr<ISpecifyPropertyPages> spSPP;
-      spSP->QueryService(OLEDB_SVC_DSLPropertyPages, IID_ISpecifyPropertyPages, (VOID**) &spSPP);
+      spSP->QueryService(OLEDB_SVC_DSLPropertyPages, IID_ISpecifyPropertyPages, (LPVOID*) &spSPP);
       if( spSPP ) {
          struct
          {

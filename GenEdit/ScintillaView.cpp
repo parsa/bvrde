@@ -671,6 +671,7 @@ LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
    }
 
    switch( pSCN->ch ) {
+   case '*':
    case '>':
    case '{':
    case '[':
@@ -884,6 +885,9 @@ void CScintillaView::_AutoSuggest(CHAR ch)
    CString sName = _GetNearText(lPos - 1);
    if( sName.IsEmpty() ) return;
 
+   // Don't popup within comments and stuff
+   if( !_IsValidInsertPos(lPos) ) return;
+
    // Grab the last 256 characters or so
    CHAR szText[256] = { 0 };
    int nMin = lPos - (sizeof(szText) - 1);
@@ -1002,7 +1006,9 @@ void CScintillaView::_AutoComplete(CHAR ch)
       // Sort them
       for( int a = 0; a < aList.GetSize(); a++ ) {
          for( int b = a + 1; b < aList.GetSize(); b++ ) {
-            if( _FunkyStrCmp(aList[a], aList[b]) > 0 ) {
+            // Right; Scintilla uses strcmp() to compile its items
+            // for non case-sensitive compares
+            if( stricmp(T2CA(aList[a]), T2CA(aList[b])) > 0 ) {
                CString sTemp = aList[a];
                aList[a] = aList[b];
                aList[b] = sTemp;
@@ -1016,7 +1022,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
    sList.TrimRight();
    if( sList.IsEmpty() ) return;
    ClearRegisteredImages();
-   AutoCSetIgnoreCase(TRUE);
+   AutoCSetIgnoreCase(FALSE);
    AutoCShow(1, T2CA(sList));
 }
 
@@ -1128,14 +1134,65 @@ void CScintillaView::_MaintainIndent(CHAR ch)
  */
 void CScintillaView::_MaintainTags(CHAR ch)
 {
+   USES_CONVERSION;
+
    if( !m_bAutoClose ) return;
 
-   USES_CONVERSION;
+   int nCaret = GetCurrentPos();
+
+   // Special rules before comments
+
+   if( ch == '\n' ) {
+      //
+      // Automatically close JavaDoc-style comments
+      //
+      int iLine = LineFromPosition(nCaret);
+      CHAR szText[256] = { 0 };
+      if( GetLineLength(iLine - 1) >= sizeof(szText) ) return;
+      GetLine(iLine - 1, szText);
+      CString sText = szText;
+      sText.TrimRight(_T("\r\n"));
+      if( sText == _T("/**") ) 
+      {
+         BeginUndoAction();
+         ReplaceSel(" * \r\n */");
+         SetSel(nCaret + 3, nCaret + 3);
+         EndUndoAction();
+         return;
+      }
+      //
+      // Trim empty line
+      //
+      if( !sText.IsEmpty() ) 
+      {
+         // Line was not empty; let's see when we trim the string...
+         sText.TrimLeft();
+         if( sText.IsEmpty() ) {
+            int iStart = PositionFromLine(iLine - 1);
+            int iLength = GetLineLength(iLine - 1);
+            if( iLength > 0 ) {
+               BeginUndoAction();
+               SetSel(iStart, iStart + iLength);
+               ReplaceSel("");
+               SetSel(nCaret - iLength, nCaret - iLength);
+               EndUndoAction();
+            }
+         }
+      }
+   }
+
+   // Rest of the rules do not apply within comments and stuff
+   if( !_IsValidInsertPos(nCaret) ) return;
+
+   // Standard auto-complete rules
+
    if( ch == '>'
        && (m_sLanguage == _T("html") || m_sLanguage == _T("xml")) )
    {
+      //
+      // Close HTML and XML tags
+      //      
       // Grab the last 256 characters or so
-      int nCaret = GetCurrentPos();
       CHAR szText[256] = { 0 };
       int nMin = nCaret - (sizeof(szText) - 1);
       if( nMin < 0 ) nMin = 0;
@@ -1160,8 +1217,10 @@ void CScintillaView::_MaintainTags(CHAR ch)
    }
    else if( ch == '{' && m_sLanguage == _T("cpp") )
    {
+      //
+      // Auto-close braces in C++
+      //
       // Grab current line for inspection
-      int nCaret = GetCurrentPos();
       int iLine = LineFromPosition(nCaret);
       CHAR szText[256] = { 0 };
       if( GetLineLength(iLine) >= sizeof(szText) ) return;
@@ -1189,7 +1248,9 @@ void CScintillaView::_MaintainTags(CHAR ch)
       }
    }
    else if( ch == '[' && m_sLanguage == _T("cpp") ) {
-      int nCaret = GetCurrentPos();
+      //
+      // Insert hard-braces for C++ arrays
+      //
       ReplaceSel("]");
       SetSel(nCaret, nCaret);
    }
@@ -1396,23 +1457,29 @@ bool CScintillaView::_AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) 
    return true;
 }
 
+bool CScintillaView::_IsValidInsertPos(long lPos) const
+{
+   // Don't do it inside comments and literals
+   switch( GetStyleAt(lPos) ) {
+   case SCE_C_STRING:
+   case SCE_C_STRINGEOL:
+   case SCE_C_COMMENT:
+   case SCE_C_COMMENTDOC:
+   case SCE_C_COMMENTLINE:
+   case SCE_HJ_COMMENT:
+   case SCE_HJ_STRINGEOL:
+   case SCE_HPHP_COMMENT:
+   case SCE_HPHP_SIMPLESTRING:
+      return false;
+   }
+   return true;
+}
+
+
 bool CScintillaView::_iseditchar(char ch) const
 {
    return isalnum(ch) || ch == '_' || ch == '$';
 }
 
-int CScintillaView::_FunkyStrCmp(LPCTSTR src, LPCTSTR dst)
-{
-   // Scintilla control has an obscure sorting of items!
-   while( *dst ) 
-   {
-      TCHAR c1 = *src < 'a' || *src > 'z' ? *src : *src - 'a' + 'A';
-      TCHAR c2 = *dst < 'a' || *dst > 'z' ? *dst : *dst - 'a' + 'A';
-      if( c1 - c2 != 0 ) return c1 - c2;
-      src++;
-      dst++;
-   }
-   return 1;
-}
 
 FINDREPLACEA CScintillaView::s_frFind = { 0 };

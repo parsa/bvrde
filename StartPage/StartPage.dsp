@@ -229,5 +229,9 @@ SOURCE=".\res\spacer(1).gif"
 SOURCE=.\res\spacer.gif
 # End Source File
 # End Group
+# Begin Source File
+
+SOURCE=.\res\style.css
+# End Source File
 # End Target
 # End Project

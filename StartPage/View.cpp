@@ -25,6 +25,59 @@ BOOL CStartPageView::PreTranslateMessage(MSG* pMsg)
    return (BOOL) SendMessage(WM_FORWARDMSG, 0, (LPARAM) pMsg);
 }
 
+void CStartPageView::_AttachRecentProjectList()
+{
+   // NOTE: Due to the improved security system of IE we don't get to run scripts on
+   //       the webpage if user settings are overly strict, and we don't bother to
+   //       implement IInternetSecurity; so here we dynamically build and set the
+   //       Recent Projects lists.
+   CComPtr<IDispatch> spDisp;
+   m_spBrowser->get_Document(&spDisp);
+   if( spDisp != NULL ) {
+      CComQIPtr<IHTMLDocument2> spDoc = spDisp;
+      CComPtr<IHTMLElementCollection> spElements;
+      spDoc->get_all(&spElements);
+      if( spElements ) {
+         spDisp.Release();
+         CComVariant vName = L"mru";
+         CComVariant vEmpty;
+         vEmpty.vt = VT_ERROR;
+         spElements->item(vName, vEmpty, &spDisp);
+         if( spDisp != NULL ) {
+            CComQIPtr<IHTMLElement> spElement = spDisp;
+            // 
+				//  <SCRIPT language=JavaScript>
+			 	//	   var oProjects = window.external.RecentProjects;
+				//	   var i = 0;
+				//	   for( i = 1; i <= oProjects.Count; i++ ) {
+			   //	      document.write('<' + 'A TABINDEX=' + i + ' href="project://' + oProjects.Item(i) + '">' + oProjects.Item(i) + '<' + '/A><BR>');
+				//    }
+				//  </SCRIPT>
+            //
+            IDispatch* pProject = _pDevEnv->GetDispatch();
+            CComDispatchDriver ddProject = pProject;
+            CComVariant vResult;
+            ddProject.GetPropertyByName(L"RecentProjects", &vResult);
+            if( vResult.vt != VT_DISPATCH ) return;
+            CComDispatchDriver ddList = vResult.pdispVal;
+            CComBSTR bstrResult;
+            long lIndex = 1;
+            while( true ) {
+               CComVariant vName;
+               CComVariant vIndex = lIndex++;
+               ddList.Invoke1(L"Item", &vIndex, &vName);
+               if( vName.vt != VT_BSTR ) break;
+               if( ::SysStringLen(vName.bstrVal) == 0 ) break;
+               TCHAR szLine[400] = { 0 };
+               ::wsprintf(szLine, _T("<A TABINDEX=%ld href=\"project://%ls\">%ls</A><BR>"), lIndex, vName.bstrVal, vName.bstrVal);
+               bstrResult += szLine;
+            }
+            spElement->put_innerHTML(bstrResult);
+         }
+      }
+   }
+}
+
 
 ///////////////////////////////////////////////////////7
 // IView
@@ -263,4 +316,6 @@ void __stdcall CStartPageView::__DocumentComplete(/*[in]*/ IDispatch* pDisp,
    enum { WM_APP_IDLETIME = WM_APP + 1001 };
    CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
    wndMain.PostMessage(WM_APP_IDLETIME);
+   // Build the recent list
+   _AttachRecentProjectList();
 }

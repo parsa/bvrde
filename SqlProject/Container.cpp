@@ -71,6 +71,8 @@ void CContainerWindow::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_VIEW_TAB1, TRUE);
    pUIBase->UIEnable(ID_VIEW_TAB2, TRUE);
    pUIBase->UIEnable(ID_VIEW_TAB3, TRUE);
+   pUIBase->UIEnable(ID_VIEW_NEXT_TAB, TRUE);
+   pUIBase->UIEnable(ID_VIEW_PREV_TAB, TRUE);
    pUIBase->UISetCheck(ID_VIEW_TAB1, iCurSel == 0);
    pUIBase->UISetCheck(ID_VIEW_TAB2, iCurSel == 1);
    pUIBase->UISetCheck(ID_VIEW_TAB3, iCurSel == 2);
@@ -213,21 +215,32 @@ LRESULT CContainerWindow::OnQueryStop(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
 LRESULT CContainerWindow::OnViewTab1(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    SetCurFocus(0);
-   bHandled = FALSE;
    return 0;
 }
 
-LRESULT CContainerWindow::OnViewTab2(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CContainerWindow::OnViewTab2(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    SetCurFocus(1);
-   bHandled = FALSE;
    return 0;
 }
 
-LRESULT CContainerWindow::OnViewTab3(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CContainerWindow::OnViewTab3(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    SetCurFocus(2);
-   bHandled = FALSE;
+   return 0;
+}
+
+LRESULT CContainerWindow::OnViewNextTab(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   SetCurFocus((GetCurSel() + 1) % 3);
+   return 0;
+}
+
+LRESULT CContainerWindow::OnViewPrevTab(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   int iTab = GetCurSel() - 1;
+   if( iTab < 0 ) iTab = 2;
+   SetCurFocus(iTab);
    return 0;
 }
 

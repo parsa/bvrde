@@ -103,12 +103,17 @@ void CMainFrame::_ArrangeToolBars()
       // We might need to hide it
       m_Rebar.ShowBand(tb.nBand, tb.bShowDefault);
    }
-   // Adjust sizes (experimental!!)
-   for( int j = 0; j < nCount; j++ ) {
-      TOOLBAR& tb = m_aToolBars[j];
-      if( tb.bNewRow && !tb.bShowDefault && j > 2 ) {
-         m_Rebar.MinimizeBand(tb.nBand);
-         m_Rebar.MaximizeBand(tb.nBand, FALSE);
+   // Adjust sizes (Experimental; Windows XP only! Crashes on Windows 98/2000)
+   DWORD dwMajor = 0;
+   DWORD dwMinor = 0;
+   AtlGetCommCtrlVersion(&dwMajor, &dwMinor);
+   if( dwMajor >= 6 ) {
+      for( int j = 0; j < nCount; j++ ) {
+         TOOLBAR& tb = m_aToolBars[j];
+         if( tb.bNewRow && !tb.bShowDefault && j > 2 ) {
+            m_Rebar.MinimizeBand(tb.nBand);
+            m_Rebar.MaximizeBand(tb.nBand, FALSE);
+         }
       }
    }
    m_CmdBar.Prepare();

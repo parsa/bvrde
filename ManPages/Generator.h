@@ -10,7 +10,7 @@ class CManPageGenerator :
    public ILineCallback
 {
 public:
-   CComBSTR m_sResult;
+   CComBSTR m_bstrResult;
 
    UINT Generate(HWND hWnd, LPCTSTR pstrKeyword, LPCTSTR pstrLanguage, long& lPos, long& lCount, CComBSTR& bstrResult);
    

@@ -172,6 +172,7 @@ CString CLexInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NUL
       case TAGTYPE_ENUM:
       case TAGTYPE_CLASS:
       case TAGTYPE_STRUCT:
+      case TAGTYPE_MEMBER:
       case TAGTYPE_TYPEDEF:
       case TAGTYPE_FUNCTION:
          // Owner has to match...
@@ -195,6 +196,7 @@ bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aList)
    // List all classes available in TAG file...
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       const LEXFILE& file = *m_aFiles[i];
+      if( !file.bIncludeInBrowser ) continue;
       int nCount = file.aTags.GetSize();
       for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
          const TAGINFO& info = file.aTags[iIndex];
@@ -221,6 +223,7 @@ bool CLexInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aList)
    // List all globals available in TAG file...
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       const LEXFILE& file = *m_aFiles[i];
+      if( !file.bIncludeInBrowser ) continue;
       int nCount = file.aTags.GetSize();
       for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
          const TAGINFO& info = file.aTags[iIndex];
@@ -330,8 +333,14 @@ void CLexInfo::_LoadTags()
    // Look for the global lex file (contains standard/system functions)
    if( m_aFiles.GetSize() > 0 ) {
       LEXFILE* pFile = new LEXFILE;
-      CString sName = _T("common.lex");
-      if( _ParseFile(sName, sName, *pFile) ) m_aFiles.Add(pFile); else delete pFile;
+      CString sName = _T("CommonLex");
+      if( _ParseFile(sName, sName, *pFile) ) {
+         pFile->bIncludeInBrowser = false;
+         m_aFiles.Add(pFile); 
+      }
+      else {
+         delete pFile;
+      }
    }
 }
 
@@ -357,6 +366,7 @@ bool CLexInfo::_ParseFile(LPCTSTR pstrFilename, CString& sName, LEXFILE& file) c
 
    file.pData = p;
    file.sFilename = sName;
+   file.bIncludeInBrowser = true;
 
    LPCTSTR pstrFile = NULL;
    LPCTSTR pstrNamePart = NULL;
@@ -368,7 +378,7 @@ bool CLexInfo::_ParseFile(LPCTSTR pstrFilename, CString& sName, LEXFILE& file) c
          p = _tcschr(p, '\n');
          if( p == NULL ) break;
          *p = '\0';
-         if( _tcsicmp(pstrFilename, pstrFile) != 0 ) break;
+         if( !(_tcsicmp(pstrFilename, pstrFile) == 0 || sFilename == _T("CommonLex")) ) break;
          pstrNamePart = ::PathFindFileName(pstrFile);
          p++;
       }

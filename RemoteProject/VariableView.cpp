@@ -47,11 +47,9 @@ void CVariableView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       CString sName = info.GetItem(_T("name"));
       while( !sName.IsEmpty() ) {
          CString sValue = info.GetSubItem(_T("value"));
-         if( sValue.GetLength() >= MAX_MI_VALUE_LEN ) sValue += _T("...");
          BOOL bEnable = TRUE;
          if( sValue.GetLength() > 0 && sValue[0] == _T('{') ) bEnable = FALSE;
          if( sValue.GetLength() > 0 && sValue[0] == _T('<') ) bEnable = FALSE;
-         if( sValue.GetLength() > MAX_MI_VALUE_LEN ) bEnable = FALSE;
          HPROPERTY hProp = m_ctrlList.AddItem(PropCreateSimple(sName, sValue));
          m_ctrlList.SetItemEnabled(hProp, bEnable);
          sName = info.FindNext(_T("name"));

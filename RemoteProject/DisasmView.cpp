@@ -59,7 +59,7 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       CString sDisasm;
       CString sFunction;
       CString sLocation;
-      CString sText = _T("{\\rtf1\\ansi\\deff0\\deftab720{\\colortbl\\red0\\green0\\blue0;\\red0\\green0\\blue180;\\red130\\green130\\blue130;}\\deflang1033\\pard\\plain\\f0\\fs18 ");
+      CString sText = _T("{\\rtf1\\ansi\\deff0\\deftab720{\\colortbl\\red0\\green0\\blue0;\\red0\\green0\\blue180;\\red130\\green130\\blue130;\\red180\\green0\\blue0;}\\deflang1033\\pard\\plain\\f0\\fs18 ");
       CString sValue = info.GetItem(_T("address"));
       while( !sValue.IsEmpty() ) {
          sLocation = info.GetSubItem(_T("func-name"));
@@ -83,10 +83,12 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          }
          // Build up disassembly line in RTF text.
          // We mark resolved address names with grey text.
+         // Assembly lined marked as bad are coloured red.
          sDisasm = info.GetSubItem(_T("inst"));
          sDisasm.Replace(_T("\\"), _T("\\\\ "));
          sDisasm.Replace(_T("{"), _T("\\{ "));
          sDisasm.Replace(_T("}"), _T("\\} "));
+         sDisasm.Replace(_T("(bad)"), _T("\\cf3 (bad)\\cf0 "));
          if( sDisasm.Find('<') > 0 ) {
             sDisasm.Replace(_T("<"), _T("\\cf2  <"));
             sDisasm += _T("\\cf0 ");

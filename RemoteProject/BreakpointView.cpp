@@ -104,7 +104,7 @@ LRESULT CBreakpointView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHa
    if( m_bUpdating ) return 0;
    if( (lpNMLV->uNewState & LVIS_STATEIMAGEMASK) == (lpNMLV->uOldState & LVIS_STATEIMAGEMASK) ) return 0;
    // User changed item? Let's update the debugger...
-   int iItem = m_ctrlList.GetSelectedIndex();
+   int iItem = lpNMLV->iItem;
    long lName = (long) m_ctrlList.GetItemData(iItem);
    if( m_ctrlList.GetCheckState(iItem) ) {
       CString sCommand;

@@ -237,6 +237,7 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( ClassName ) ;
 					}
 <FindMembers>[ \t]*"struct"[ \t\r\n]+	{ 
+					  msg( "found struct    ", current->name ) ;
 					  current->section = STRUCT_SEC ;
 					  addType( current ) ;
 					  current->lineNo = yyLineNr;
@@ -246,6 +247,7 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( ClassName ) ;
 					}
 <FindMembers>[ \t]*"enum"[ \t\r\n]+	{ 
+					  msg( "found enum    ", current->name ) ;
 					  current->section = ENUM_SEC ;
 					  addType( current ) ;
 					  current->lineNo = yyLineNr;
@@ -276,6 +278,11 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( FindMembers ) ;
 					}
 
+<FindMembers>"extern"[ \t]*[a-z_A-Z~:.0-9]+ { 
+					  addType( current ) ;
+				          current->lineNo = yyLineNr;
+					  current->name  = yytext ;
+					}
 <FindMembers>[a-z_A-Z~:.0-9]+		{ 
 					  addType( current ) ;
 				          current->lineNo = yyLineNr;
@@ -391,8 +398,9 @@ static int yyread(char *buf,int max_size)
 					}
 <Sharp>.				{ current->type += *yytext ; }
 
-<Curly>[^\n{}"/]*			{ current->program += yytext ; }
-<Curly>"//".*				{ current->program += yytext ; }
+<Curly>[^\n{}\"/]*			{ current->program += yytext ; }
+<Curly>"//".*[\r]*\n			{ current->program += yytext ; ++yyLineNr ; }
+<Curly>"//"[\r]*\n			{ current->program += yytext ; ++yyLineNr ; }
 <Curly>\"[^\n"]*\"			{ current->program += yytext ; }
 <Curly>"/*"\**[ \t]*			{ 
 					  current->program += yytext ;
@@ -467,7 +475,7 @@ static int yyread(char *buf,int max_size)
 <Round>[ \t\r\n]+			{ lineCount() ; current->args += " " ; }
 <Round>.				{ current->args += *yytext ; }
 
-<Function>[ \t]*"const"[ \t\r\n]*	{ lineCount() ; current->args += " const " ; }
+<Function>[ \t]*"const"[ \t\r\n]*	{ lineCount() ; current->args += " const" ; }
 
 <Function>[ \t]*"throw"[ \t\r\n]*"("	{ 
 					  current->args += " throw(" ;
@@ -505,6 +513,9 @@ static int yyread(char *buf,int max_size)
 					}
 
 <SkipInits>"{"				{ BEGIN( SkipCurly ) ; }
+
+<SkipCurly>[ \t\r\n]*"/""/"+[\r]*\n	{ lineCount() ; }
+<SkipCurly>\"[^\n"]*\"
 <SkipCurly>"{"				{ ++bracketCount ; }
 <SkipCurly>"}"				{ 
 					  if( bracketCount > 0 )
@@ -618,14 +629,14 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( FindMembers ) ;
 					}
 
-<FindMembers>[ \t\r\n]*"/""/"+\n	{ lineCount() ; }
+<FindMembers>[ \t\r\n]*"/""/"+[\r]*\n	{ lineCount() ; }
 <FindMembers>[ \t\r\n]*"/*""*"+"/"	{ lineCount() ; }
 <FindMembers>[ \t\r\n]*"/***"		{ 
 					  lineCount() ;
 					  lastCContext = YY_START ;
 					  BEGIN( SkipComment ) ;
 					}
-<FindMembers>[ \t\r\n]*"/**"[ \t]*	{ 
+<FindMembers>[ \t\r\n]*"/**"[ \t\r]*	{ 
 					  lineCount() ;
 					  if( current->doc.length() > 0
 					      ||  current->memo.length() > 0 )
@@ -651,8 +662,9 @@ static int yyread(char *buf,int max_size)
 					  current->doc += yytext ;
 					  BEGIN( Doc ) ;
 					}
+<Doc>\r
 <Doc>\n[ \t]*"*"*[ \t]*			{ 
-					  current->doc += '\n' ;
+					  if( !current->doc.empty() ) current->doc += '\n' ;
 					  yyLineNr++ ;
 					}
 <VerbDoc,Doc>.				{ current->doc += *yytext ; }
@@ -801,13 +813,13 @@ static int yyread(char *buf,int max_size)
 <Memo>.					{ current->memo += *yytext ; }
 <Return>.				{ current->retrn += *yytext ; }
 
-<Author>\n[ \t\r\n]*			{ current->author  += '\n' ; }
-<Version>\n[ \t\r\n]*			{ current->version += '\n' ; }
-<See>\n[ \t\r\n]*			{ *(current->see.last()) += '\n' ; }
-<Param>\n[ \t\r\n]*			{ *(current->param.last()) += '\n' ; }
-<Exception>\n[ \t\r\n]*			{ *(current->exception.last()) += '\n' ; }
-<Memo>\n[ \t\r\n]*			{ current->memo += *yytext ; }
-<Return>\n[ \t\r\n]*			{ current->retrn += *yytext ; }
+<Author>\n[ \t\r\n]*			{ current->author  += '\n' ; lineCount() ; }
+<Version>\n[ \t\r\n]*			{ current->version += '\n' ; lineCount() ; }
+<See>\n[ \t\r\n]*			{ *(current->see.last()) += '\n' ; lineCount() ; }
+<Param>\n[ \t\r\n]*			{ *(current->param.last()) += '\n' ; lineCount() ; }
+<Exception>\n[ \t\r\n]*			{ *(current->exception.last()) += '\n' ; lineCount() ; }
+<Memo>\n[ \t\r\n]*			{ current->memo += *yytext ; lineCount() ; }
+<Return>\n[ \t\r\n]*			{ current->retrn += *yytext ; lineCount() ; }
 
 <*>.
 <*>\n					{ yyLineNr++ ; }

@@ -5,9 +5,6 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#define MAX_MI_KEY_LEN 32
-#define MAX_MI_VALUE_LEN 64
-
 
 /**
  * @class CMiInfo
@@ -22,9 +19,11 @@ class CMiInfo
 {
 public:
    CMiInfo(LPCTSTR pstrInput = NULL);
+   ~CMiInfo();
 
 // Operations
 public:
+   void Release();
    bool Parse(LPCTSTR pstrInput);
    void Copy(const CMiInfo& src);
    CString GetItem(LPCTSTR pstrKey, LPCTSTR pstrGroup = NULL, LPCTSTR pstrFrame = NULL, long lPosition = 0);
@@ -35,18 +34,20 @@ public:
 private:
    typedef struct MIINFO
    {
-      TCHAR szKey[MAX_MI_KEY_LEN + 1];
-      TCHAR szFrame[MAX_MI_KEY_LEN + 1];
-      TCHAR szGroup[MAX_MI_KEY_LEN + 1];
-      TCHAR szValue[MAX_MI_VALUE_LEN + 1];
+      LPCTSTR pstrKey;
+      LPCTSTR pstrFrame;
+      LPCTSTR pstrGroup;
+      LPCTSTR pstrValue;
       short iIndex;
    };
+   LPTSTR m_pstrData;
+   DWORD* m_pdwRefCount;
    CSimpleValArray<MIINFO> m_aItems;
    int m_iSearchIndex;
 
-   bool _FindBlockEnd(LPCTSTR pstrText, int& iPos) const;
-   bool _ParseString(CString& sText, LPCTSTR pstrFrame, LPCTSTR pstrGroup, short iIndex);
-   void _GetPlainText(LPTSTR pstrDest, LPCTSTR pstrSrc, int iStart, int nLen, int cchMax) const;
+   void _ConvertToPlainText(LPTSTR pstrText);
+   bool _FindBlockEnd(LPTSTR pstrText, int& iPos) const;
+   bool _ParseString(LPTSTR pstrSrc, int iStart, LPCTSTR pstrFrame, LPCTSTR pstrGroup, short iIndex);
 };
 
 

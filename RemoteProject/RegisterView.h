@@ -17,6 +17,7 @@ public:
    CRemoteProject* m_pProject;
    CSimpleArray<CString> m_aNames;
    CSimpleArray<CString> m_aValues;
+   bool m_bInitialResize;
 
    // Operations
 
@@ -29,9 +30,11 @@ public:
 
    BEGIN_MSG_MAP(CRegisterView)
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
+      MESSAGE_HANDLER(WM_SIZE, OnSize)
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+   LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 };
 
 

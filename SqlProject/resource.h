@@ -168,6 +168,8 @@
 #define ID_VIEW_SETLINE                 40420
 #define ID_HISTORY_LEFT                 40421
 #define ID_EDIT_AUTOCOMPLETE            40422
+#define ID_VIEW_NEXT_TAB                40423
+#define ID_VIEW_PREV_TAB                40424
 
 // Next default values for new objects
 // 

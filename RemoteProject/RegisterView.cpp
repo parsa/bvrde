@@ -22,6 +22,7 @@ CRegisterView::CRegisterView() :
 void CRegisterView::Init(CRemoteProject* pProject)
 {
    m_pProject = pProject;
+   m_bInitialResize = false;
 }
 
 bool CRegisterView::WantsData()
@@ -63,6 +64,8 @@ void CRegisterView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          sText.Format(IDS_REGISTER, m_aNames[i], m_aValues[i]);
          AddString(sText);
       }
+      if( !m_bInitialResize ) PostMessage(WM_SIZE);
+      m_bInitialResize = true;
    }
 }
 
@@ -81,4 +84,12 @@ LRESULT CRegisterView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
    SetFont(AtlGetDefaultGuiFont());
    SetColumnWidth(180);
    return lRes;
+}
+
+LRESULT CRegisterView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   CClientRect rcClient = m_hWnd;
+   if( (rcClient.bottom - rcClient.top) / GetItemHeight(0) >= GetCount() ) SetColumnWidth(rcClient.right - rcClient.left);
+   else SetColumnWidth(180);
+   return 0;
 }

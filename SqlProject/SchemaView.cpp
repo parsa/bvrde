@@ -160,6 +160,12 @@ LRESULT CSchemaView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
    return 0;
 }
 
+LRESULT CSchemaView::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   m_ctrlTree.SetFocus();
+   return 0;
+}
+
 LRESULT CSchemaView::OnListActivate(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
    int iIndex = m_ctrlList.GetNextItem(-1, LVNI_ALL | LVNI_SELECTED);
@@ -424,7 +430,7 @@ BOOL CSchemaView::_SetHtml(LPARAM lParam)
 {
    ATLASSERT(m_spBrowser);
    CString sHTML;
-   if( lParam == 0 ) sHTML = AtlLoadHTML(IDR_INFO);
+   if( lParam == 0 ) sHTML = AtlLoadHtmlResource(IDR_INFO);
    static LPCTSTR ppstrTranslations[] =
    {
       _T("$DATABASE"),         MAKEINTRESOURCE(IDS_DATABASE),

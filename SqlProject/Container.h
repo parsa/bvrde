@@ -54,6 +54,8 @@ public:
       COMMAND_ID_HANDLER(ID_VIEW_TAB1, OnViewTab1)
       COMMAND_ID_HANDLER(ID_VIEW_TAB2, OnViewTab2)
       COMMAND_ID_HANDLER(ID_VIEW_TAB3, OnViewTab3)
+      COMMAND_ID_HANDLER(ID_VIEW_NEXT_TAB, OnViewNextTab)
+      COMMAND_ID_HANDLER(ID_VIEW_PREV_TAB, OnViewPrevTab)
       COMMAND_ID_HANDLER(ID_VIEW_SETLINE, OnViewSetLine)
       COMMAND_ID_HANDLER(ID_HISTORY_LEFT, OnViewTab1)
       COMMAND_ID_HANDLER(ID_HISTORY_RIGHT, OnViewTab1)
@@ -79,6 +81,8 @@ public:
    LRESULT OnViewTab1(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewTab2(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewTab3(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewNextTab(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewPrevTab(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewSetLine(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnTabChange(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 };

@@ -360,6 +360,10 @@ SOURCE=..\Source\WTL\Include\Scintilla.h
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=.\AttachProcessDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CryptLibDlg.h
 # End Source File
 # Begin Source File

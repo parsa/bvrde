@@ -96,8 +96,8 @@ public:
    void _RegisterListImages();
    void _AutoComplete(CHAR ch, int iLenEntered);
    SQLKEYWORD _GetKeyword(CString& sKeyword) const;
-   int _FunkyStrCmp(LPCTSTR pstr1, LPCTSTR pstr2) const;
    void _AnalyseText(SQLANALYZE& Info, int iLenEntered);
+   int _ScintillaCompare(LPCTSTR src, LPCTSTR dst) const;
    int _FindItem(CSimpleArray<CString>& aList, LPCTSTR pstrName) const;
 };
 

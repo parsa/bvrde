@@ -168,13 +168,82 @@ LRESULT CQuickWatchDlg::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    return 0;
 }
 
+LRESULT CQuickWatchDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   if( m_ctrlLine.GetWindowTextLength() == 0 ) return 0;
+   _CreateVariable();
+   return 0;
+}
+
+LRESULT CQuickWatchDlg::OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   m_pDevEnv->EnableModeless(TRUE);
+   DestroyWindow();
+   return 0;
+}
+
+LRESULT CQuickWatchDlg::OnSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   int iIndex = m_ctrlList.GetCurSel();
+   if( iIndex < 0 ) return 0;
+   int iPos = m_ctrlList.GetItemData(iIndex);
+   CString sName = m_aItems[iPos].sName;
+   CString sText = m_aItems[iPos].sKey;
+   // FIX: First we need to strip away the "quickwatch" pseudo-name, and
+   //      then hack our way through the GDB peculiarities, such as the
+   //      "public", "private" entries...
+   sText.Replace(_T("quickwatch"), m_aItems[0].sName);
+   sText.Replace(_T("public."), _T(""));
+   sText.Replace(_T("private."), _T(""));
+   sText.Replace(_T("protected."), _T(""));
+   // Remove the types
+   for( int i = 0; i < m_aItems.GetSize(); i++ ) {
+      if( !m_aItems[i].sType.IsEmpty() ) {
+         CString sType;
+         sType.Format(_T(".%s"), m_aItems[i].sType);
+         sText.Replace(sType, _T(""));
+      }
+   }
+   // Do final replacements
+   if( !sName.IsEmpty() ) {
+      // Turn expression "szName.32" into "szName+32"
+      if( _istdigit(sName[0]) ) {
+         int iPos = sText.ReverseFind('.');
+         if( iPos > 0 ) sText.SetAt(iPos, '+');
+      }
+      // Turn expression "szName+32.*szName+32" into just "*szName+32"
+      if( sName[0] == '*' ) sText = sName;
+   }
+   m_ctrlLine.SetWindowText(sText);
+   return 0;
+}
+
+// Edit messages
+
+LRESULT CQuickWatchDlg::OnEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   _UpdateButtons();
+   return 0;
+}
+
 LRESULT CQuickWatchDlg::OnEditChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
+   if( wParam == '\r' ) return PostMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0));
+   if( wParam == VK_ESCAPE ) return PostMessage(WM_COMMAND, MAKEWPARAM(IDCANCEL, 0));
+   if( wParam == VK_TAB ) return (LRESULT) ::SetFocus(GetNextDlgTabItem(m_ctrlLine, FALSE));
    bHandled = FALSE;
-   if( wParam == '\r' ) {
-      PostMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0));
-      bHandled = TRUE;
-   }
+   return 0;
+}
+
+// List messages
+
+LRESULT CQuickWatchDlg::OnListChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+{
+   // NOTE: Handling WM_CHARTOITEM would be the proper thing to do, but Windows will
+   //       then not handle arrow-keys and I'm too lazy to implement these now...
+   if( wParam == VK_RETURN || wParam == VK_ESCAPE ) return PostMessage(WM_COMMAND, MAKEWPARAM(IDCANCEL, 0));
+   if( wParam == VK_TAB ) return (LRESULT) ::SetFocus(GetNextDlgTabItem(m_ctrlList, TRUE));
+   bHandled = FALSE;
    return 0;
 }
 
@@ -220,60 +289,6 @@ LRESULT CQuickWatchDlg::OnListClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPa
    return 0;
 }
 
-LRESULT CQuickWatchDlg::OnSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{
-   int iIndex = m_ctrlList.GetCurSel();
-   if( iIndex < 0 ) return 0;
-   int iPos = m_ctrlList.GetItemData(iIndex);
-   CString sName = m_aItems[iPos].sName;
-   CString sText = m_aItems[iPos].sKey;
-   // FIX: First we need to strip away the "quickwatch" pseudo-name, and
-   //      then hack our way through the GDB peculiarities, such as the
-   //      "public", "private" entries...
-   sText.Replace(_T("quickwatch"), m_aItems[0].sName);
-   sText.Replace(_T("public."), _T(""));
-   sText.Replace(_T("private."), _T(""));
-   sText.Replace(_T("protected."), _T(""));
-   // Remove the types
-   for( int i = 0; i < m_aItems.GetSize(); i++ ) {
-      CString sType;
-      sType.Format(_T(".%s"), m_aItems[i].sType);
-      sText.Replace(sType, _T(""));
-   }
-   // Do final replacements
-   if( !sName.IsEmpty() ) {
-      // Turn expression "szName.32" into "szName+32"
-      if( _istdigit(sName[0]) ) {
-         int iPos = sText.ReverseFind('.');
-         if( iPos > 0 ) sText.SetAt(iPos, '+');
-      }
-      // Turn expression "szName+32.*szName+32" into just "*szName+32"
-      if( sName[0] == '*' ) sText = sName;
-   }
-   m_ctrlLine.SetWindowText(sText);
-   return 0;
-}
-
-LRESULT CQuickWatchDlg::OnEditChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{
-   _UpdateButtons();
-   return 0;
-}
-
-LRESULT CQuickWatchDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{
-   if( m_ctrlLine.GetWindowTextLength() == 0 ) return 0;
-   _CreateVariable();
-   return 0;
-}
-
-LRESULT CQuickWatchDlg::OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{
-   m_pDevEnv->EnableModeless(TRUE);
-   DestroyWindow();
-   return 0;
-}
-
 // Ownerdraw
 
 void CQuickWatchDlg::DrawItem(LPDRAWITEMSTRUCT lpDIS)
@@ -286,7 +301,7 @@ void CQuickWatchDlg::DrawItem(LPDRAWITEMSTRUCT lpDIS)
    const ITEM& item = m_aItems[lpDIS->itemData];
    RECT rc = lpDIS->rcItem;
    int iMiddle = rc.left + m_iColumnWidth;
-   bool bSelected = lpDIS->itemState & ODS_SELECTED;
+   bool bSelected = (lpDIS->itemState & ODS_SELECTED) != 0;
 
    dc.FillSolidRect(&rc, ::GetSysColor(bSelected ? COLOR_HIGHLIGHT : COLOR_WINDOW));
 
@@ -338,7 +353,7 @@ int CQuickWatchDlg::_GetItemHeight(int iIndex) const
 {
    // Calculate height of item.
    // NOTE: This may be a multi-line text so we need to determine the
-   //       correct DrawText height
+   //       correct DrawText height.
    CString sValue = m_aItems[iIndex].sValue.Left(80);
    sValue.TrimRight();
    if( sValue.IsEmpty() ) sValue = _T("X");
@@ -368,7 +383,7 @@ void CQuickWatchDlg::_CreateVariable()
    sCommand.Format(_T("-var-create quickwatch * %s"), m_sVariableName);
    m_pProject->m_DebugManager.DoDebugCommand(sCommand);
    // Add to history
-   m_ctrlLine.AddString(m_sVariableName);
+   if( m_ctrlLine.FindStringExact(-1, m_sVariableName) == CB_ERR ) m_ctrlLine.AddString(m_sVariableName);
 }
 
 void CQuickWatchDlg::_RemoveVariable()

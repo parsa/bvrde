@@ -15,7 +15,7 @@ public:
    static _ATL_FUNC_INFO DocumentCompleteInfo;
 };
 __declspec(selectany) _ATL_FUNC_INFO IWebBrowserEvents2Base::BeforeNavigate2Info = { CC_STDCALL, VT_EMPTY, 7, {VT_DISPATCH,VT_BYREF|VT_VARIANT,VT_BYREF|VT_VARIANT,VT_BYREF|VT_VARIANT,VT_BYREF|VT_VARIANT,VT_BYREF|VT_VARIANT,VT_BYREF|VT_BOOL} };
-__declspec(selectany) _ATL_FUNC_INFO IWebBrowserEvents2Base::DocumentCompleteInfo = {CC_STDCALL, VT_EMPTY, 2, {VT_DISPATCH,VT_BSTR}};
+__declspec(selectany) _ATL_FUNC_INFO IWebBrowserEvents2Base::DocumentCompleteInfo = { CC_STDCALL, VT_EMPTY, 2, {VT_DISPATCH,VT_BSTR} };
 
 
 class CStartPageView : 
@@ -33,6 +33,7 @@ public:
    // Operations
 
    BOOL PreTranslateMessage(MSG* pMsg);
+   void _AttachRecentProjectList();
 
    // IView
 

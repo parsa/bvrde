@@ -3,7 +3,10 @@
 #include "resource.h"
 
 #include "Project.h"
+
 #include "RemoteFileDlg.h"
+#include "AttachProcessDlg.h"
+
 #include "ViewSerializer.h"
 
 
@@ -357,7 +360,7 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_DEBUG_BREAKPOINT, FALSE);
    pUIBase->UIEnable(ID_DEBUG_CLEAR_BREAKPOINTS, TRUE);
    pUIBase->UIEnable(ID_DEBUG_QUICKWATCH, FALSE);
-   pUIBase->UIEnable(ID_DEBUG_PROCESSES, FALSE);
+   pUIBase->UIEnable(ID_DEBUG_PROCESSES, !bBusy);
 
    pUIBase->UIEnable(ID_VIEW_COMPILE_LOG, TRUE);
    pUIBase->UIEnable(ID_VIEW_DEBUG_LOG, TRUE);
@@ -908,7 +911,7 @@ LRESULT CRemoteProject::OnViewMemory(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
       m_viewMemory.Init(this);
       m_viewMemory.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_HIDE, CWindow::rcDefault);
-      RECT rcDefault = { 120, 140, 780, 400 };
+      RECT rcDefault = { 60, 140, 780, 400 };
       m_DockManager.SetInfo(m_viewMemory, IDE_DOCK_FLOAT, rcDefault);
    }
 
@@ -1175,6 +1178,19 @@ LRESULT CRemoteProject::OnDebugQuickWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HW
    m_pQuickWatchDlg->Create(m_wndMain);
    m_pQuickWatchDlg->ShowWindow(SW_SHOW);
    return 0;
+}
+
+LRESULT CRemoteProject::OnDebugProcesses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+
+   if( m_DebugManager.IsDebugging() ) return 0;
+
+   CAttachProcessDlg dlg;
+   dlg.Init(this, m_DebugManager.GetParam(L"App"));
+   if( dlg.DoModal() != IDOK ) return 0;
+
+   return m_DebugManager.AttachProcess(dlg.GetPid());
 }
 
 LRESULT CRemoteProject::OnBuildClean(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
@@ -1949,9 +1965,9 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
    // project filelist.
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       CString sName;
-      m_aFiles[i]->GetName(sName.GetBufferSetLength(128), 128);
+      m_aFiles[i]->GetFileName(sName.GetBufferSetLength(128), 128);
       sName.ReleaseBuffer();
-      if( sName.CompareNoCase(pstrName) == 0 ) {
+      if( sName.CompareNoCase(pstrFilename) == 0 ) {
          GenerateError(_pDevEnv, IDS_ERR_FILEINCLUDED, 0);
          return false;
       }       

@@ -181,6 +181,7 @@ public:
       COMMAND_ID_HANDLER(ID_DEBUG_STEP_OUT, OnDebugStepOut)
       COMMAND_ID_HANDLER(ID_DEBUG_CLEAR_BREAKPOINTS, OnDebugClearBreakpoints)     
       COMMAND_ID_HANDLER(ID_DEBUG_QUICKWATCH, OnDebugQuickWatch)
+      COMMAND_ID_HANDLER(ID_DEBUG_PROCESSES, OnDebugProcesses)
       COMMAND_ID_HANDLER(ID_BUILD_CLEAN, OnBuildClean)
       COMMAND_ID_HANDLER(ID_BUILD_PROJECT, OnBuildProject)
       COMMAND_ID_HANDLER(ID_BUILD_REBUILD, OnBuildRebuild)
@@ -202,42 +203,43 @@ public:
 
    LRESULT OnFileRemove(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnFileRename(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
-   LRESULT OnFileAddFolder(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnFileAddLocal(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnFileAddRemote(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnEditBreak(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
+   LRESULT OnFileAddFolder(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnFileAddLocal(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnFileAddRemote(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnEditBreak(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewOpen(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
-   LRESULT OnViewCompileLog(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnViewDebugLog(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnViewProperties(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnViewThreads(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
+   LRESULT OnViewCompileLog(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewDebugLog(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewProperties(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewThreads(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewBreakpoints(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
-   LRESULT OnViewRegisters(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnViewMemory(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnViewDisassembly(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnViewVariables(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnViewWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnViewStack(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnProjectSetDefault(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnDebugStart(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnDebugDebug(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnDebugBreak(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnDebugStop(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnDebugStepOver(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnDebugStepInto(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnDebugStepOut(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnDebugClearBreakpoints(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnDebugQuickWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnBuildClean(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnBuildProject(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnBuildRebuild(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnBuildSolution(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnBuildCompile(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnBuildCheckSyntax(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnBuildTags(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnBuildMakefile(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnBuildFileWizard(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
-   LRESULT OnBuildStop(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
+   LRESULT OnViewRegisters(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewMemory(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewDisassembly(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewVariables(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewStack(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnProjectSetDefault(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugStart(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugDebug(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugBreak(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugStop(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugStepOver(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugStepInto(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugStepOut(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugClearBreakpoints(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugQuickWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugProcesses(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnBuildClean(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnBuildProject(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnBuildRebuild(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnBuildSolution(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnBuildCompile(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnBuildCheckSyntax(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnBuildTags(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnBuildMakefile(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnBuildFileWizard(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnBuildStop(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnToolBarDropDown(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeLabelBegin(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeLabelEdit(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);

@@ -28,6 +28,7 @@ private:
       LPTSTR pData;
       CString sFilename;
       CSimpleValArray<TAGINFO> aTags;
+      bool bIncludeInBrowser;
    } LEXFILE;
 
 // ITagInfoHandler

@@ -107,6 +107,12 @@ LRESULT CResultView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
    return 0;
 }
 
+LRESULT CResultView::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   m_wndClient.SetFocus();
+   return 0;
+}
+
 LRESULT CResultView::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
    bHandled = FALSE;

@@ -71,11 +71,13 @@ public:
   ALT_MSG_MAP(1)
       MESSAGE_HANDLER(WM_CHAR, OnEditChar)
    ALT_MSG_MAP(2)
+      MESSAGE_HANDLER(WM_CHAR, OnListChar)
       MESSAGE_HANDLER(WM_LBUTTONDOWN, OnListClick)
    END_MSG_MAP()
 
    LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnListChar(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnListClick(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnEditChar(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnEditChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

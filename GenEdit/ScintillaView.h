@@ -159,8 +159,8 @@ public:
    bool _ReplaceOnce();
    int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings);
    CString _GetNearText(long lPosition);
-   int _FunkyStrCmp(LPCTSTR src, LPCTSTR dst);
    bool _iseditchar(char ch) const;
+   bool _IsValidInsertPos(long lPos) const;
    void _GetSyntaxStyle(LPCTSTR pstrName, SYNTAXCOLOR& syntax);
    bool _AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) const;
    void _DefineMarker(int nMarker, int nType, COLORREF clrFore, COLORREF clrBack);

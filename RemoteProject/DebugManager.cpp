@@ -361,104 +361,31 @@ bool CDebugManager::RunDebug()
 {
    // Launch the remote process in debug mode and switch
    // editor state to debugging.
-
-   CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
-
-   if( !_CheckStatus() ) return false;
-
-   CWaitCursor cursor;
-
-   Stop();
-
-   CTelnetView* pView = m_pProject->GetDebugView();
-   
-   CString sStatus;
-   sStatus.LoadString(IDS_STATUS_CONNECT_WAIT);
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
-   _pDevEnv->PlayAnimation(TRUE, ANIM_TRANSFER);
-
-   pView->Clear();
-   pView->Init(&m_ShellManager, 0);
-
-   // Display the output window
-   RECT rcWin = { 120, 120, 800 + 120, 600 + 120 };   
-   _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_HIDE, rcWin);
-
-   // Prepare session
-   m_ShellManager.AddLineListener(this);
-   m_nIgnoreErrors = 0;
-   m_bDebugging = true;
-   m_bBreaked = false;
-   m_nDebugAck = 0;
-   m_nLastAck = 0;
-
-   // Wait for the remote connect to happen
-   m_ShellManager.Start();
-   if( !m_ShellManager.WaitForConnection() ) {      
-      CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
-      CString sMsg(MAKEINTRESOURCE(IDS_ERR_HOSTCONNECT));
-      _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
-      _pDevEnv->PlayAnimation(FALSE, 0);
-      Stop();
-      return false;
-   }
-
-   sStatus.LoadString(IDS_STATUS_DEBUGGING);
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
-   _pDevEnv->PlayAnimation(FALSE, 0);
-
-   m_pProject->DelayedDebugEvent(LAZY_DEBUG_START_EVENT);
-
-   // Run debugger on remote server
-   CString sCommand;
-   sCommand = _TranslateCommand(m_sCommandCD);
-   if( !m_ShellManager.WriteData(sCommand) ) {
-      CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
-      CString sMsg(MAKEINTRESOURCE(IDS_ERR_DATAWRITE));
-      _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
-      Stop();
-      return false;
-   }
+   CSimpleArray<CString> aList;
+   CString sCommand = m_sCommandCD;
+   aList.Add(sCommand);   
    sCommand.Format(_T("%s %s"), m_sDebuggerExecutable, m_sDebuggerArgs);
-   m_ShellManager.WriteData(_TranslateCommand(sCommand)); 
-
-   // Wait for the debug prompt
-   if( !_WaitForDebuggerStart() ) {
-      CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
-      CString sMsg(MAKEINTRESOURCE(IDS_ERR_DEBUGGERSTART));
-      _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
-      Stop();
-      return false;
-   }
-
-   sStatus.LoadString(IDS_STATUS_DEBUGGING);
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, TRUE);
-
-   // Collect new breakpoint positions directly from open views.
-   LAZYDATA data;
-   m_pProject->SendViewMessage(DEBUG_CMD_REQUEST_BREAKPOINTS, &data);
-
-   // If there are no breakpoints defined, then let's
-   // set a breakpoint in the main function
-   if( m_aBreakpoints.GetSize() == 0 ) {
-      CString sCommand;
-      sCommand.Format(_T("-break-insert -t %s"), m_sDebugMain);
-      DoDebugCommand(sCommand);
-   }
-
-   // Set known breakpoints.
-   // This includes newly updated breakpoints from active views and
-   // old breakpoints from the list.
-   for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
-      CString sCommand;
-      sCommand.Format(_T("-break-insert %s"), m_aBreakpoints.GetKeyAt(i));
-      DoDebugCommand(sCommand);
-   }
-
+   aList.Add(sCommand);   
+   if( !_AttachProcess(aList) ) return false;
    // Start debugging session
-   DoDebugCommand(_T("-exec-run"));
+   return DoDebugCommand(_T("-exec-run"));
+}
 
-   return true;
+bool CDebugManager::AttachProcess(long lPID)
+{  
+   // Launch the remote process from a PID (Process ID)
+   CSimpleArray<CString> aList;
+   CString sCommand = m_sCommandCD;
+   aList.Add(sCommand);   
+   sCommand.Format(_T("%s -i=mi --pid=%ld"), m_sDebuggerExecutable, lPID);
+   aList.Add(sCommand);   
+   // FIX: The MI interface does not yet support the "-target-attach" command
+   //      and using the "--pid" command-line argument tends to prompt for
+   //      "press RETURN to continue"...
+   //sCommand.Format(_T("-target-attach %ld"), lPID);
+   sCommand = _T("\n");
+   //aList.Add(sCommand);      
+   return _AttachProcess(aList);
 }
 
 bool CDebugManager::RunContinue()
@@ -546,6 +473,107 @@ void CDebugManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
 }
 
 // Implementation
+
+bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
+{
+   // Launch the remote process in debug mode and switch
+   // editor state to debugging.
+
+   CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
+
+   if( !_CheckStatus() ) return false;
+
+   CWaitCursor cursor;
+
+   Stop();
+
+   CTelnetView* pView = m_pProject->GetDebugView();
+   
+   CString sStatus;
+   sStatus.LoadString(IDS_STATUS_CONNECT_WAIT);
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
+   _pDevEnv->PlayAnimation(TRUE, ANIM_TRANSFER);
+
+   pView->Clear();
+   pView->Init(&m_ShellManager, 0);
+
+   // Display the output window
+   RECT rcWin = { 120, 120, 800 + 120, 600 + 120 };   
+   _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_HIDE, rcWin);
+
+   // Prepare session
+   m_ShellManager.AddLineListener(this);
+   m_nIgnoreErrors = 0;
+   m_bDebugging = true;
+   m_bBreaked = false;
+   m_nDebugAck = 0;
+   m_nLastAck = 0;
+
+   // Wait for the remote connect to happen
+   m_ShellManager.Start();
+   if( !m_ShellManager.WaitForConnection() ) {      
+      CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
+      CString sMsg(MAKEINTRESOURCE(IDS_ERR_HOSTCONNECT));
+      _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
+      _pDevEnv->PlayAnimation(FALSE, 0);
+      Stop();
+      return false;
+   }
+
+   sStatus.LoadString(IDS_STATUS_DEBUGGING);
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
+   _pDevEnv->PlayAnimation(FALSE, 0);
+
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_START_EVENT);
+
+   // Execute the commands
+   for( int i = 0; i < aCommands.GetSize(); i++ ) {
+      // Run debugger on remote server
+      CString sCommand = _TranslateCommand(aCommands[i]);
+      if( !m_ShellManager.WriteData(sCommand) ) {
+         CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
+         CString sMsg(MAKEINTRESOURCE(IDS_ERR_DATAWRITE));
+         _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
+         Stop();
+         return false;
+      }
+   }
+
+   // Wait for the debug prompt
+   if( !_WaitForDebuggerStart() ) {
+      CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
+      CString sMsg(MAKEINTRESOURCE(IDS_ERR_DEBUGGERSTART));
+      _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
+      Stop();
+      return false;
+   }
+
+   sStatus.LoadString(IDS_STATUS_DEBUGGING);
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, TRUE);
+
+   // Collect new breakpoint positions directly from open views.
+   LAZYDATA data;
+   m_pProject->SendViewMessage(DEBUG_CMD_REQUEST_BREAKPOINTS, &data);
+
+   // If there are no breakpoints defined, then let's
+   // set a breakpoint in the main function
+   if( m_aBreakpoints.GetSize() == 0 ) {
+      CString sCommand;
+      sCommand.Format(_T("-break-insert -t %s"), m_sDebugMain);
+      DoDebugCommand(sCommand);
+   }
+
+   // Set known breakpoints.
+   // This includes newly updated breakpoints from active views and
+   // old breakpoints from the list.
+   for( int b = 0; b < m_aBreakpoints.GetSize(); b++ ) {
+      CString sCommand;
+      sCommand.Format(_T("-break-insert %s"), m_aBreakpoints.GetKeyAt(b));
+      DoDebugCommand(sCommand);
+   }
+
+   return true;
+}
 
 bool CDebugManager::_WaitForDebuggerStart()
 {
@@ -800,13 +828,19 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
    // Not seen first GDB prompt yet? GDB might be spitting out error messages
    // in raw format then...
    if( m_nDebugAck == 0 ) {
-      if( sLine.Find(_T("no debugging symbols found")) >= 0 ) {
+      if( sLine.Find(_T("o debugging symbols found")) >= 0 ) {
          m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NODEBUGINFO)), CString(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE)), MB_ICONINFORMATION);
       }
-      if( sLine.Find(_T("No symbol table is loaded")) >= 0 ) {
+      if( sLine.Find(_T("nable to attach to process")) >= 0 ) {
+         m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NOATTACH)), CString(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE)), MB_ICONINFORMATION);
+      }
+      if( sLine.Find(_T("o such process")) >= 0 ) {
+         m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NOATTACH)), CString(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE)), MB_ICONINFORMATION);
+      }
+      if( sLine.Find(_T("o symbol table is loaded")) >= 0 ) {
          m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NODEBUGINFO)), CString(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE)), MB_ICONINFORMATION);
       }
-      if( sLine.Find(_T("No such file")) >= 0 ) {
+      if( sLine.Find(_T("o such file")) >= 0 ) {
          m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NODEBUGFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
       }
       if( sLine.Find(_T("gdb: unrecognized option")) >= 0 ) {
@@ -829,16 +863,17 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
    }
 }
 
-void CDebugManager::_ParseTargetOutput(LPCTSTR pstrText)
+void CDebugManager::_ParseTargetOutput(LPCTSTR /*pstrText*/)
 {
-   CString sLine = pstrText;
-   if( sLine.IsEmpty() ) return;
 }
 
-void CDebugManager::_ParseLogOutput(LPCTSTR pstrText)
+void CDebugManager::_ParseLogOutput(LPCTSTR /*pstrText*/)
 {
-   CString sLine = pstrText;
-   if( sLine.IsEmpty() ) return;
+}
+
+void CDebugManager::_ParseKeyPrompt(LPCTSTR pstrText)
+{
+   if( _tcsncmp(pstrText, _T("---Type <return>"), 16) == 0 ) DoDebugCommand(_T("\r\n"));
 }
 
 /**
@@ -887,6 +922,7 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    }
    // Look at raw text always
    if( *pstrText == '~' ) _ParseConsoleOutput(pstrText + 1);
+   if( *pstrText == '-' ) _ParseKeyPrompt(pstrText);
    // Not accepting lines before first acknoledge
    if( m_nDebugAck == 0 ) return;
    // Parse output stream

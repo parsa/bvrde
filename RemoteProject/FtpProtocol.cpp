@@ -419,7 +419,10 @@ CString CFtpProtocol::FindFile(LPCTSTR pstrFilename)
          CString sFilename = sSubPath;
          if( sFilename.Right(1) != _T("/") ) sFilename += _T("/");
          sFilename += pstrFilename;
-         HINTERNET hFind = ::FtpFindFirstFile(m_hFTP, sFilename, &fd, dwFlags, 0);
+         DWORD dwLen = MAX_PATH;
+         TCHAR szFilename[MAX_PATH] = { 0 };
+         ::UrlCanonicalize(sFilename, szFilename, &dwLen, 0);
+         HINTERNET hFind = ::FtpFindFirstFile(m_hFTP, szFilename, &fd, dwFlags, 0);
          if( hFind != NULL ) {
             ::InternetCloseHandle(hFind);
             return sFilename;

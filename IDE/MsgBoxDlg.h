@@ -276,6 +276,7 @@ public:
       if( m_ctrlOK.IsWindowVisible() && wParam == (WPARAM) sOK[0] ) PostMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0), (LPARAM) m_hWnd);
       if( m_ctrlCancel.IsWindowVisible() && wParam == (WPARAM) sCancel[0] ) PostMessage(WM_COMMAND, MAKEWPARAM(IDCANCEL, 0), (LPARAM) m_hWnd);
       if( wParam == (WPARAM) VK_ESCAPE ) PostMessage(WM_COMMAND, MAKEWPARAM(IDCANCEL, 0), (LPARAM) m_hWnd);
+      if( wParam == (WPARAM) VK_RETURN ) PostMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0), (LPARAM) m_hWnd);
       bHandled = FALSE;
       return 0;
    }

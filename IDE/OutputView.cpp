@@ -108,10 +108,10 @@ LRESULT COutputView::OnLButtonDblClk(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
       // Extract filename
       int iStart = iPos - 1;
       if( iStart < 0 ) continue;
-      while( iStart >= 0 && _tcschr(_T(" \t:;(){}/\\\"'"), s[iStart]) == NULL ) iStart--;
+      while( iStart >= 0 && _tcschr(_T(" \t:;(){}\"'"), s[iStart]) == NULL ) iStart--;
       iStart++;
       int iEnd = iPos + 1;
-      while( iEnd < iLen && _tcschr(_T(" \t:;(){}/\\\"'."), s[iEnd]) == NULL ) iEnd++;
+      while( iEnd < iLen && _tcschr(_T(" \t:;(){}\"'."), s[iEnd]) == NULL ) iEnd++;
       CString sFilename = s.Mid(iStart, iEnd - iStart);
 
       // Extract line number
@@ -166,16 +166,34 @@ bool COutputView::_OpenView(IProject* pProject, LPCTSTR pstrFilename, long lLine
    if( pProject == NULL ) return false;
    if( _tcslen(pstrFilename) < 2 ) return false;
    // Munge filename
-   TCHAR szSearchFile[MAX_PATH];
-   _tcscpy(szSearchFile, pstrFilename);
-   ::PathStripPath(szSearchFile);
+   TCHAR szName[MAX_PATH];
+   _tcscpy(szName, pstrFilename);
+   ::PathStripPath(szName);
    // Locate file in project's views
-   for( INT i = 0; i < pProject->GetItemCount(); i++ ) {
+   // Unfortunately we don't control in what form the filename is delivered.
+   // We should consider:
+   //     '/path/filename'
+   //     'subfolder/filename'
+   //     'filename'
+   INT i;
+   for( i = 0; i < pProject->GetItemCount(); i++ ) {
+      IView* pView = pProject->GetItem(i);
+      TCHAR szFilename[MAX_PATH + 1] = { 0 };
+      pView->GetFileName(szFilename, MAX_PATH);
+      if( _tcsicmp(szFilename, pstrFilename) == 0 ) return pView->OpenView(lLineNum) == TRUE;
+   }
+   for( i = 0; i < pProject->GetItemCount(); i++ ) {
+      IView* pView = pProject->GetItem(i);
+      TCHAR szFilename[MAX_PATH + 1] = { 0 };
+      pView->GetFileName(szFilename, MAX_PATH);
+      if( _tcsstr(szFilename, pstrFilename) != NULL ) return pView->OpenView(lLineNum) == TRUE;
+   }
+   for( i = 0; i < pProject->GetItemCount(); i++ ) {
       IView* pView = pProject->GetItem(i);
       TCHAR szFilename[MAX_PATH + 1] = { 0 };
       pView->GetFileName(szFilename, MAX_PATH);
       ::PathStripPath(szFilename);
-      if( _tcsicmp(szSearchFile, szFilename) == 0 ) return pView->OpenView(lLineNum) == TRUE;
+      if( _tcsicmp(szName, szFilename) == 0 ) return pView->OpenView(lLineNum) == TRUE;
    }
    // TODO: Consider launching files by filename even if they don't
    //       exist in one of the projects.

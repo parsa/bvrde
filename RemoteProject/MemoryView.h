@@ -28,6 +28,7 @@ public:
    CRemoteProject* m_pProject;
    CContainedWindowT<CEdit> m_ctrlAddress;
    CRichEditCtrl m_ctrlMemory;
+   bool m_bAllowUpdate;
 
    // Operations
 
@@ -55,6 +56,7 @@ public:
       COMMAND_ID_HANDLER(ID_MEMORY_SIZE_DWORD, OnMemorySize)
       COMMAND_ID_HANDLER(ID_MEMORY_SIZE_WORD, OnMemorySize)
       COMMAND_ID_HANDLER(ID_MEMORY_SIZE_BYTE, OnMemorySize)
+      NOTIFY_CODE_HANDLER(EN_PROTECTED, OnProtected)
    ALT_MSG_MAP(1)
       MESSAGE_HANDLER(WM_CHAR, OnEditChar)
       MESSAGE_HANDLER(WM_KEYDOWN, OnEditKeyDown)
@@ -65,6 +67,7 @@ public:
    LRESULT OnContextMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnEditChar(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnEditKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnProtected(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnMemoryEdit(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMemoryRefresh(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMemorySize(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

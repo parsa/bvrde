@@ -53,6 +53,7 @@ public:
    bool Save(ISerializable* pArc);
 
    bool RunNormal();
+   bool AttachProcess(long lPID);
    bool RunContinue();
    bool RunDebug();
    bool Break();
@@ -88,6 +89,7 @@ private:
    bool _PauseDebugger();
    void _ResumeDebugger();
    bool _WaitForDebuggerStart();
+   bool _AttachProcess(CSimpleArray<CString>& aCommands);
    CString _TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam = NULL);
    void _ParseNewFrame(CMiInfo& info);
    void _UpdateBreakpoint(CMiInfo& info);
@@ -96,6 +98,7 @@ private:
    void _ParseConsoleOutput(LPCTSTR pstrText);
    void _ParseTargetOutput(LPCTSTR pstrText);
    void _ParseLogOutput(LPCTSTR pstrText);
+   void _ParseKeyPrompt(LPCTSTR pstrText);
 };
 
 

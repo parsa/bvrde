@@ -298,8 +298,8 @@ BEGIN
             MENUITEM "Start with Debugger\tCtrl+F5", ID_DEBUG_DEBUG
             MENUITEM "Stop Debugging\tShift+F5",    ID_DEBUG_STOP
             MENUITEM "&Break\tCtrl+Break",          ID_DEBUG_BREAK
-            MENUITEM "&Processes",                  ID_DEBUG_PROCESSES
-            , GRAYED
+            MENUITEM SEPARATOR
+            MENUITEM "&Attach to Process",          ID_DEBUG_PROCESSES
             MENUITEM SEPARATOR
             MENUITEM "Step &Into\tF11",             ID_DEBUG_STEP_INTO
             MENUITEM "Step &Over\tF10",             ID_DEBUG_STEP_OVER
@@ -424,7 +424,6 @@ IDR_MEMORY MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "&Edit Address Value",         ID_MEMORY_EDIT
         MENUITEM "&Refresh",                    ID_MEMORY_REFRESH
         MENUITEM SEPARATOR
         MENUITEM "Display as &DWORD",           ID_MEMORY_SIZE_DWORD
@@ -567,7 +566,7 @@ IDD_QUICKWATCH DIALOGEX 0, 0, 280, 177
 STYLE DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | 
     WS_THICKFRAME
 CAPTION "Quick Watch"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Expression:",IDC_STATIC,7,7,100,9,0,WS_EX_TRANSPARENT
     COMBOBOX        IDC_LINE,7,19,199,63,CBS_DROPDOWN | WS_VSCROLL | 
@@ -652,6 +651,18 @@ BEGIN
                     WS_EX_TRANSPARENT
 END
 
+IDD_ATTACHPROCESS DIALOG DISCARDABLE  0, 0, 323, 161
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Attach To Process"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,266,7,50,14,WS_DISABLED
+    PUSHBUTTON      "Cancel",IDCANCEL,266,24,50,14
+    LISTBOX         IDC_LIST,7,7,253,147,LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | 
+                    WS_TABSTOP
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -721,6 +732,14 @@ BEGIN
         RIGHTMARGIN, 211
         TOPMARGIN, 7
         BOTTOMMARGIN, 128
+    END
+
+    IDD_ATTACHPROCESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 316
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 154
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1116,6 +1135,16 @@ BEGIN
     ID_MEMORY_SIZE_WORD     "Display memory layout as WORD\nWORD size"
     ID_MEMORY_SIZE_BYTE     "Display memory layout as BYTE\nBYTE size"
     ID_MEMORY_REFRESH       "Refresh memory data\nRefresh"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_DEBUG_PROCESSES      "Attach to a running process\nAttach To Process"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERR_NOATTACH        "Attach failed\nUnable to attach to the process\nThe debugger failed to take over the remote process."
 END
 
 #endif    // English (U.S.) resources

@@ -38,6 +38,7 @@ public:
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
       MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
       MESSAGE_HANDLER(WM_SIZE, OnSize)
+      MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus)
    ALT_MSG_MAP(1)   
       NOTIFY_HANDLER(IDC_DBLIST, LVN_ITEMACTIVATE, OnListActivate)
       NOTIFY_HANDLER(IDC_DBTREE, TVN_ITEMEXPANDING, OnTreeExpanding)
@@ -47,6 +48,7 @@ public:
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnSetFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnListActivate(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeExpanding(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeSelection(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);

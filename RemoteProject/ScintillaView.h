@@ -105,7 +105,6 @@ public:
 
    // Implementation
 
-   void _AdjustToolTip();
    void _AutoComplete(CHAR ch);
    void _FunctionTip(CHAR ch);
    void _ClearSquigglyLines();
@@ -115,13 +114,13 @@ public:
    bool _HasSelection() const;
    bool _IsRealCppEditPos(long lPos) const;
    int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings);
+   void _ShowToolTip(long lPos, CString& sText, COLORREF clrBack, COLORREF clrText);
    CString _FindBlockType(long lPosition);
    CString _FindTagType(const CString& sName, long lPosition);
    CString _GetSelectedText();
-   CString _GetNearText(long iPosition);
+   CString _GetNearText(long iPosition, bool bExcludeKeywords = true);
    inline bool _iscppchar(CHAR ch) const;
    inline bool _iscppchar(WCHAR ch) const;
-   inline int _FunkyStrCmp(LPCTSTR src, LPCTSTR dst) const;
 };
 
 
