@@ -13,6 +13,8 @@ BOOL CStartPageView::PreTranslateMessage(MSG* pMsg)
 {
    if( ::GetFocus() != m_hWnd ) return FALSE;
 
+   if( pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_F1 ) return FALSE;
+
    if( (pMsg->message < WM_KEYFIRST || pMsg->message > WM_KEYLAST) 
        && (pMsg->message < WM_MOUSEFIRST || pMsg->message > WM_MOUSELAST) ) 
    {
