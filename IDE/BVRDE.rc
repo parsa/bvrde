@@ -443,6 +443,29 @@ BEGIN
                     WS_VSCROLL | WS_TABSTOP
 END
 
+IDD_MACROBIND DIALOGEX 0, 0, 284, 172
+STYLE DS_CONTROL | WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST,7,7,90,155,LBS_OWNERDRAWVARIABLE | 
+                    LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Default shortcut:",IDC_STATIC,109,7,53,8,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    CONTROL         "HotKey1",IDC_DEFAULT_KEY,"msctls_hotkey32",WS_BORDER,
+                    109,18,103,13
+    LTEXT           "Current shortcut:",IDC_STATIC,109,40,63,8,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "HotKey1",IDC_CURRENT_KEY,"msctls_hotkey32",WS_BORDER,
+                    109,50,103,13
+    LTEXT           "Enter new shortcut:",IDC_STATIC,109,74,73,8,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "HotKey1",IDC_NEW_KEY,"msctls_hotkey32",WS_BORDER | 
+                    WS_TABSTOP,109,86,103,13
+    PUSHBUTTON      "Assign",IDC_ASSIGN,223,8,50,14
+    PUSHBUTTON      "Remove",IDC_REMOVE,223,26,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -540,6 +563,14 @@ BEGIN
         RIGHTMARGIN, 211
         TOPMARGIN, 7
         BOTTOMMARGIN, 128
+    END
+
+    IDD_MACROBIND, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 273
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1135,6 +1166,8 @@ BEGIN
     IDS_STOPRECORDING       "Stop Recording?\nDo you wish to stop recording active macro?\nYou must stop recording before playing a macro."
     IDS_CAPTION_SAVEMACRO   "Save Macro"
     IDS_FILTER_MACRO        "Macros|*.vbs|All Files|*.*|"
+    IDS_MACROBIND           "Macros"
+    IDS_KEYDUPLICATE        "Shortcut duplication\nThis shortcut is already in use. Continue?\nThe key combination is already used for a different shortcut."
 END
 
 STRINGTABLE DISCARDABLE 

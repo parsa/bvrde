@@ -65,6 +65,7 @@ public:
    CMDIContainer m_MDIContainer;
    CDotNetDockingWindow m_Dock;
    CAccelerator m_UserAccel;
+   CAccelerator m_MacroAccel;
    CApplicationOM m_Dispatch;
    CImageList m_AnimateImages;
    //
@@ -198,6 +199,7 @@ public:
       COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
       COMMAND_RANGE_HANDLER(ID_FILE_MRU_FILE1, ID_FILE_MRU_FILE4, OnFileRecent)
       COMMAND_RANGE_HANDLER(ID_TOOLS_TOOL1, ID_TOOLS_TOOL8, OnToolsRun)
+      COMMAND_RANGE_HANDLER(ID_MACROS_KEY1, ID_MACROS_KEY15, OnMacroShortcut)
       NOTIFY_CODE_HANDLER(TBN_DROPDOWN, OnToolBarDropDown)
       NOTIFY_CODE_HANDLER(RBN_LAYOUTCHANGED, OnRebarLayoutChanged)
       NOTIFY_CODE_HANDLER(NM_RCLICK, OnRebarRClick)
@@ -250,6 +252,7 @@ public:
    LRESULT OnMacroCancel(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMacroPlay(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMacroSave(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnMacroShortcut(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewExplorer(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewPropertyBar(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewOutput(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

@@ -37,12 +37,15 @@ bool CMacro::RunMacroFromFile(LPCTSTR pstrFilename, LPCTSTR pstrFunction)
       return false;
    }
    DWORD dwSize = f.GetSize();
-   LPSTR pstr = (LPSTR) _alloca(dwSize + 1);
+   LPSTR pstr = new CHAR[dwSize + 1];
    f.Read(pstr, dwSize);
    f.Close();
    pstr[dwSize] = '\0';
 
-   return RunMacroFromScript(pstr, pstrFunction);
+   bool bRes = RunMacroFromScript(pstr, pstrFunction);
+   
+   delete [] pstr;
+   return bRes;
 }
 
 bool CMacro::RunMacroFromScript(CComBSTR bstrData, 

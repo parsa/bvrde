@@ -11,8 +11,10 @@
 #include "DlgTabCtrl.h"
 
 #define WM_USER_MODIFIED WM_USER + 434
+
 #include "LayoutDlg.h"
 #include "KeyboardDlg.h"
+#include "MacroBindDlg.h"
 
 
 class CCustomizeDlg :
@@ -24,6 +26,7 @@ public:
    CDialogTabCtrl m_ctrlTab;
    CLayoutDlg m_viewLayout;
    CKeyboardDlg m_viewKeyboard;
+   CMacroBindDlg m_viewMacros;
 
    CMainFrame* m_pMainFrame;
 
@@ -48,15 +51,20 @@ public:
 
       HMENU hMenu = m_pMainFrame->GetMenuHandle(IDE_HWND_MAIN);
       HACCEL hDefaultAccel = m_pMainFrame->m_hAccel;
-      HACCEL* phAccel = &m_pMainFrame->m_UserAccel.m_hAccel;
-
-      m_viewKeyboard.Init(m_hWnd, hMenu, hDefaultAccel, phAccel);
-      m_viewKeyboard.Create(m_ctrlTab, rcDefault);
-      ATLASSERT(::IsWindow(m_viewKeyboard));
+      HACCEL* phUserAccel = &m_pMainFrame->m_UserAccel.m_hAccel;
+      HACCEL* phMacroAccel = &m_pMainFrame->m_MacroAccel.m_hAccel;
 
       m_viewLayout.Init(m_hWnd, m_pMainFrame);
       m_viewLayout.Create(m_ctrlTab, rcDefault);
       ATLASSERT(::IsWindow(m_viewLayout));
+
+      m_viewKeyboard.Init(m_hWnd, hMenu, hDefaultAccel, phUserAccel);
+      m_viewKeyboard.Create(m_ctrlTab, rcDefault);
+      ATLASSERT(::IsWindow(m_viewKeyboard));
+
+      m_viewMacros.Init(m_hWnd, hMenu, hDefaultAccel, phMacroAccel);
+      m_viewMacros.Create(m_ctrlTab, rcDefault);
+      ATLASSERT(::IsWindow(m_viewMacros));
 
       CString s;
       TCITEM item = { 0 };
@@ -67,6 +75,10 @@ public:
       s.LoadString(IDS_KEYBOARD);
       item.pszText = (LPTSTR) (LPCTSTR) s;
       m_ctrlTab.InsertItem(1, &item, m_viewKeyboard);
+      s.LoadString(IDS_MACROBIND);
+      item.pszText = (LPTSTR) (LPCTSTR) s;
+      m_ctrlTab.InsertItem(2, &item, m_viewMacros);
+
       m_ctrlTab.SetCurSel(0);
 
       return 0;
@@ -94,8 +106,9 @@ public:
       // Simulate Apply by calling it directly on the view
       CWaitCursor cursor;
       BOOL bDummy;
-      m_viewKeyboard.OnApply(0, 0, NULL, bDummy);
       m_viewLayout.OnApply(0, 0, NULL, bDummy);
+      m_viewKeyboard.OnApply(0, 0, NULL, bDummy);
+      m_viewMacros.OnApply(0, 0, NULL, bDummy);
       return 0;
    }
 };

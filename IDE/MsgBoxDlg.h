@@ -166,7 +166,7 @@ public:
       COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
       COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
    ALT_MSG_MAP(1)
-      MESSAGE_HANDLER(WM_KEYDOWN, OnChar)
+      MESSAGE_HANDLER(WM_KEYUP, OnKeyUp)
    END_MSG_MAP()
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -182,23 +182,25 @@ public:
       m_ctrlAskAgain = GetDlgItem(IDC_DONT_SHOW);
 
       if( (m_uType & MB_TYPEMASK) == MB_YESNO ) {
+         // YES/NO type
          m_ctrlOK.SetWindowText(CString(MAKEINTRESOURCE(IDS_YES)));
          m_ctrlCancel.SetWindowText(CString(MAKEINTRESOURCE(IDS_NO)));
       }
       else if( (m_uType & MB_TYPEMASK) == MB_OKCANCEL ) {
+         // OK/CANCEL type
          m_ctrlOK.SetWindowText(CString(MAKEINTRESOURCE(IDS_OK)));
          m_ctrlCancel.SetWindowText(CString(MAKEINTRESOURCE(IDS_CANCEL)));
       }
       else {
-         // MB_OK type...
-         m_ctrlCancel.SetWindowText(CString(MAKEINTRESOURCE(IDS_OK)));
+         // OK type
          m_ctrlOK.ShowWindow(SW_HIDE);
+         m_ctrlCancel.SetWindowText(CString(MAKEINTRESOURCE(IDS_OK)));
       }
 
       enum { ICON_SIZE = 32 };
 
       if( !m_Icon.IsNull() ) m_Icon.DestroyIcon();
-      switch( m_uType & 0xF0 ) {
+      switch( m_uType & MB_ICONMASK ) {
       case MB_ICONQUESTION:
          m_Icon.LoadIcon(IDI_MSG_QUESTION, ICON_SIZE, ICON_SIZE);
          break;
@@ -214,8 +216,9 @@ public:
          break;
       }
 
-      m_ctrlAskAgain.ShowWindow(m_uType & MB_REMOVABLE ? SW_SHOWNOACTIVATE : SW_HIDE);
+      m_ctrlAskAgain.ShowWindow((m_uType & MB_REMOVABLE) != 0 ? SW_SHOWNOACTIVATE : SW_HIDE);
 
+      // Don't show a message that's already been dismissed
       m_lHash = _CalcTextHash();
       if( _FindTextHash() ) {
          ResizeClient(1, 1); // HACK: Hide window; still flashes dialog
@@ -223,6 +226,7 @@ public:
          return FALSE;
       }
 
+      // Extract title/description from input text
       CString sTitle;
       CString sDescription;
 
@@ -245,34 +249,42 @@ public:
       SetDlgItemText(IDC_DESCRIPTION, sDescription);
 
       // Make it sound like a Windows MessageBox
-      ::MessageBeep( m_uType & (MB_ICONQUESTION | MB_ICONHAND | MB_ICONEXCLAMATION | MB_ICONASTERISK) );
+      ::MessageBeep(m_uType & MB_ICONMASK);
       
       CenterWindow(GetParent());
       
       // Handle default-button change
-      m_ctrlOK.SetFocus();
-      if( (m_ctrlOK.GetStyle() & WS_VISIBLE) != 0 && 
-          (m_uType & MB_DEFBUTTON2) != 0 ) 
+      if( (m_uType & MB_TYPEMASK) == MB_OK 
+          || ((m_ctrlOK.GetStyle() & WS_VISIBLE) != 0 
+              && (m_uType & MB_DEFBUTTON2) != 0) ) 
       {
          m_ctrlOK.ModifyStyle(0x0F, BS_PUSHBUTTON);
          m_ctrlCancel.ModifyStyle(0x0F, BS_DEFPUSHBUTTON);
          m_ctrlCancel.SetFocus();
       }
+      else 
+      {
+         m_ctrlOK.SetFocus();
+      }
 
       return FALSE;
    }
-   LRESULT OnChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+   LRESULT OnKeyUp(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
       CWindowText sOK = GetDlgItem(IDOK);
       CWindowText sCancel = GetDlgItem(IDCANCEL);
       if( m_ctrlOK.IsWindowVisible() && wParam == (WPARAM) sOK[0] ) PostMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0), (LPARAM) m_hWnd);
       if( m_ctrlCancel.IsWindowVisible() && wParam == (WPARAM) sCancel[0] ) PostMessage(WM_COMMAND, MAKEWPARAM(IDCANCEL, 0), (LPARAM) m_hWnd);
+      if( wParam == (WPARAM) VK_ESCAPE ) PostMessage(WM_COMMAND, MAKEWPARAM(IDCANCEL, 0), (LPARAM) m_hWnd);
       bHandled = FALSE;
       return 0;
    }
    LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
-      if( (m_uType & MB_SHOWONCE) != 0 || m_ctrlAskAgain.GetCheck() == BST_CHECKED ) _SaveTextHash();
+      // Display once message?
+      if( (m_uType & MB_SHOWONCE) != 0 || m_ctrlAskAgain.GetCheck() == BST_CHECKED ) {
+         _SaveTextHash();
+      }
       // Modeless dialog? Must enable surrounding windows as well.
       if( (m_uType & MB_MODELESS) != 0 ) {
          m_pDevEnv->EnableModeless(TRUE);

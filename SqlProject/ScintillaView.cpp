@@ -421,8 +421,10 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info)
                bCurIsObjectNext = false;
             }
             else {
-               Info.aAlias.Add(sKeyword);
-               if( Info.aTables.GetSize() > 0 ) Info.aAlias.Add(Info.aTables[ Info.aTables.GetSize() - 1 ]);
+               if( Info.aTables.GetSize() > 0 ) {
+                  Info.aAlias.Add(sKeyword);
+                  Info.aAlias.Add(Info.aTables[ Info.aTables.GetSize() - 1 ]);
+               }
             }
          }
          if( kw != SQL_CONTEXT_UNKNOWN ) {

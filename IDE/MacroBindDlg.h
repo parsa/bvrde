@@ -1,19 +1,31 @@
-#if !defined(AFX_KEYBOARDDLG_H__20030126_01A0_E58B_B164_0080AD509054__INCLUDED_)
-#define AFX_KEYBOARDDLG_H__20030126_01A0_E58B_B164_0080AD509054__INCLUDED_
+#if !defined(AFX_MACROBINDDLG_H__20040515_BB37_18C3_F7BB_0080AD509054__INCLUDED_)
+#define AFX_MACROBINDDLG_H__20040515_BB37_18C3_F7BB_0080AD509054__INCLUDED_
 
+#if _MSC_VER > 1000
 #pragma once
+#endif // _MSC_VER > 1000
+
+#include "MacrosDlg.h"
 
 
-class CKeyboardDlg : 
-   public CDialogImpl<CKeyboardDlg>,
-   public COwnerDraw<CKeyboardDlg>
+class CMacroBindDlg : 
+   public CDialogImpl<CMacroBindDlg>,
+   public COwnerDraw<CMacroBindDlg>
 {
 public:
-   enum { IDD = IDD_KEYBOARD };
+   enum { IDD = IDD_MACROBIND };
 
-   enum { MAX_ACCELS = 200 };
+   // We only reserve 15 resource-identifiers for this!
+   // TODO: Remove hard-coded limit in mainfrm.h
+   enum { MAX_ACCELS = 15 };
 
-   typedef CSimpleMap<WORD, ACCEL> ACCELMAP;
+   typedef struct tagMACROACCEL : ACCEL
+   {
+      TCHAR szFilename[MAX_PATH];
+      TCHAR szFunction[200];
+   } MACROACCEL;
+
+   typedef CSimpleMap<WORD, MACROACCEL> ACCELMAP;
 
    HWND m_hWndSheet;
    ACCELMAP m_mapCurrent;
@@ -29,7 +41,7 @@ public:
    CFont m_fontBold;
 
 
-   CKeyboardDlg() :
+   CMacroBindDlg() :
       m_hWndSheet(NULL),
       m_phAccel(NULL), 
       m_hMenu(NULL),
@@ -44,18 +56,17 @@ public:
       m_hMenu = hMenu;
       m_phAccel = phAccel;
       _LoadTable(m_mapDefault, hDefault);
-      _LoadTable(m_mapCurrent, *m_phAccel);
    }
 
    // Message map and handlers
 
-   BEGIN_MSG_MAP(CKeyboardDlg)
+   BEGIN_MSG_MAP(CMacroBindDlg)
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
       COMMAND_ID_HANDLER(IDC_ASSIGN, OnAssign)
       COMMAND_ID_HANDLER(IDC_REMOVE, OnRemove)
       COMMAND_CODE_HANDLER(EN_CHANGE, OnItemChange)
       COMMAND_HANDLER(IDC_LIST, LBN_SELCHANGE, OnSelChange)
-      CHAIN_MSG_MAP( COwnerDraw<CKeyboardDlg> )
+      CHAIN_MSG_MAP( COwnerDraw<CMacroBindDlg> )
       REFLECT_NOTIFICATIONS()
    ALT_MSG_MAP(1)
       MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus)
@@ -80,7 +91,9 @@ public:
       m_ctrlCurrent.SubclassWindow(GetDlgItem(IDC_CURRENT_KEY));
       m_ctrlNew = GetDlgItem(IDC_NEW_KEY);
 
-      _BuildMenu(m_hMenu);
+      _BuildList();
+
+      _LoadTable(m_mapCurrent, m_ctrlList);
 
       m_ctrlList.SetCurSel(0);
       _UpdateButtons();
@@ -99,15 +112,17 @@ public:
       CXmlSerializer arc;
       if( !arc.Open(_T("Settings"), sFilename) ) return 0;
 
-      arc.Delete(_T("KeyMappings"));
-      if( !arc.WriteGroupBegin(_T("KeyMappings")) ) return 0;
+      arc.Delete(_T("MacroMappings"));
+      if( !arc.WriteGroupBegin(_T("MacroMappings")) ) return 0;
       for( int i = 0; i < m_mapCurrent.GetSize(); i++ ) {
          // Write settings to config file
-         ACCEL accel = m_mapCurrent.GetValueAt(i);
-         arc.WriteItem(_T("Key"));
+         MACROACCEL accel = m_mapCurrent.GetValueAt(i);
+         arc.WriteItem(_T("Macro"));
          arc.Write(_T("cmd"), (long) accel.cmd);
          arc.Write(_T("key"), (long) accel.key);
          arc.Write(_T("flags"), (long) accel.fVirt);
+         arc.Write(_T("filename"), accel.szFilename);
+         arc.Write(_T("function"), accel.szFunction);
       }
       arc.WriteGroupEnd();
 
@@ -118,13 +133,24 @@ public:
 
    LRESULT OnAssign(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
-      WORD wKey = (WORD) m_ctrlNew.GetHotKey();
-      WORD wCmd = (WORD) m_ctrlList.GetItemData(m_ctrlList.GetCurSel());
-      ACCEL accel = _GetAccelFromHotKey(wCmd, wKey);
-      if( m_mapDefault.FindKey(accel.cmd) >= 0 ) {
-         if( IDNO == g_pDevEnv->ShowMessageBox(m_hWnd, CString(MAKEINTRESOURCE(IDS_KEYDUPLICATE)), CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), MB_YESNO | MB_ICONQUESTION) ) return 0;
+      // Find free command-identifier
+      int iCurSel = m_ctrlList.GetCurSel();
+      MACROACCEL macro = _FindItem(iCurSel);
+      if( macro.cmd == 0 ) {
+         for( WORD wCmd = ID_MACROS_KEY1; wCmd < ID_MACROS_KEY15; wCmd++ ) {
+            if( m_mapCurrent.FindKey(wCmd) < 0 ) {
+               macro.cmd = wCmd;
+               m_ctrlList.GetText(iCurSel, macro.szFunction);
+               m_ctrlList.GetText(m_ctrlList.GetItemData(iCurSel) - 1, macro.szFilename);
+               break;
+            }
+         }
       }
-      if( !m_mapCurrent.SetAt(accel.cmd, accel) ) m_mapCurrent.Add(accel.cmd, accel);
+      if( macro.cmd == 0 ) return 0;
+      // 
+      WORD wKey = (WORD) m_ctrlNew.GetHotKey();
+      (ACCEL&) macro = _GetAccelFromHotKey(macro.cmd, wKey);
+      if( !m_mapCurrent.SetAt(macro.cmd, macro) ) m_mapCurrent.Add(macro.cmd, macro);
       //
       m_ctrlCurrent.SetHotKey(LOBYTE(wKey), HIBYTE(wKey));      
       m_ctrlNew.SetHotKey(0, 0);
@@ -136,8 +162,8 @@ public:
    }
    LRESULT OnRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
-      WORD cmd = (WORD) m_ctrlList.GetItemData(m_ctrlList.GetCurSel());
-      m_mapCurrent.Remove(cmd);
+      MACROACCEL& macro = _FindItem(m_ctrlList.GetCurSel());
+      m_mapCurrent.Remove(macro.cmd);
       //
       m_ctrlCurrent.SetHotKey(0, 0);
       m_ctrlNew.SetHotKey(0, 0);
@@ -214,38 +240,61 @@ public:
 
    void _UpdateButtons()
    {
-      int cmd = m_ctrlList.GetCurSel();
-      if( cmd != LB_ERR ) cmd = (int) m_ctrlList.GetItemData(cmd);
+      int iCurSel = m_ctrlList.GetCurSel();
+      LPARAM lParam = m_ctrlList.GetItemData(iCurSel);
+      MACROACCEL& macro = _FindItem(iCurSel);
       // Clear hotkeys
       m_ctrlDefault.SetHotKey(0, 0);
       m_ctrlCurrent.SetHotKey(0, 0);
       // Look up currently assigned shortcut
-      int posCurrent = m_mapCurrent.FindKey((WORD&)cmd);
-      if( posCurrent >= 0 ) {
-         ACCEL accel = m_mapCurrent.GetValueAt(posCurrent);
-         WORD wKey = _GetHotkeyFromAccel(accel);
+      if( macro.cmd >= 0 ) {
+         WORD wKey = _GetHotkeyFromAccel(macro);
          m_ctrlCurrent.SetHotKey(LOBYTE(wKey), HIBYTE(wKey));
       }
       // Look up default shortcut
-      int posDefault = m_mapDefault.FindKey((WORD&)cmd);
+      int posDefault = m_mapDefault.FindKey((WORD&)macro.cmd);
       if( posDefault >= 0 ) {
-         ACCEL accel = m_mapDefault.GetValueAt(posDefault);
+         MACROACCEL accel = m_mapDefault.GetValueAt(posDefault);
          WORD wKey = _GetHotkeyFromAccel(accel);
          m_ctrlDefault.SetHotKey(LOBYTE(wKey), HIBYTE(wKey));
       }
       // Enable/disable controls
-      m_ctrlDefault.EnableWindow(cmd != 0);
-      m_ctrlCurrent.EnableWindow(cmd != 0);
-      m_ctrlNew.EnableWindow(cmd != 0);
-      ::EnableWindow(GetDlgItem(IDC_ASSIGN), cmd != 0 && m_ctrlNew.GetHotKey() != 0 && m_mapCurrent.GetSize() < MAX_ACCELS);
-      ::EnableWindow(GetDlgItem(IDC_REMOVE), cmd != 0 && m_ctrlCurrent.GetHotKey() != 0);
+      m_ctrlDefault.EnableWindow(lParam != 0);
+      m_ctrlCurrent.EnableWindow(lParam != 0);
+      m_ctrlNew.EnableWindow(lParam != 0);
+      ::EnableWindow(GetDlgItem(IDC_ASSIGN), lParam != 0 && m_ctrlNew.GetHotKey() != 0 && m_mapCurrent.GetSize() < MAX_ACCELS);
+      ::EnableWindow(GetDlgItem(IDC_REMOVE), lParam != 0 && m_ctrlCurrent.GetHotKey() != 0);
    }
 
+   bool _LoadTable(ACCELMAP& map, CListBox& ctrlList) const
+   {
+      map.RemoveAll();
+      CString sFilename;
+      sFilename.Format(_T("%sBVRDE.XML"), CModulePath());
+      CXmlSerializer arc;
+      if( !arc.Open(_T("Settings"), sFilename) ) return 0;
+      if( !arc.ReadGroupBegin(_T("MacroMappings")) ) return 0;
+      while( arc.ReadGroupBegin(_T("Macro")) ) {
+         MACROACCEL macro;
+         ::ZeroMemory(&macro, sizeof(macro));
+         long lVal;
+         arc.Read(_T("cmd"), lVal); macro.cmd = (WORD) lVal;
+         arc.Read(_T("key"), lVal); macro.key = (WORD) lVal;
+         arc.Read(_T("flags"), lVal); macro.fVirt = (BYTE) lVal;
+         arc.Read(_T("filename"), macro.szFilename, MAX_PATH);
+         arc.Read(_T("function"), macro.szFunction, 199);
+         map.Add(macro.cmd, macro);
+         arc.ReadGroupEnd();
+      }
+      arc.ReadGroupEnd();
+      arc.Close();
+      return true;
+   }
    bool _LoadTable(ACCELMAP& map, HACCEL hAccel) const
    {
       map.RemoveAll();
       if( hAccel == NULL ) return false;
-      ACCEL aAccel[MAX_ACCELS];
+      MACROACCEL aAccel[200];
       int nCount = ::CopyAcceleratorTable(hAccel, aAccel, sizeof(aAccel)/sizeof(ACCEL));
       ATLASSERT(nCount<sizeof(aAccel)/sizeof(ACCEL));
       for( int i = 0; i < nCount; i++ ) map.Add(aAccel[i].cmd, aAccel[i]);
@@ -259,6 +308,23 @@ public:
       return ::CreateAcceleratorTable(aAccel, map.GetSize());
    }
 
+   MACROACCEL _FindItem(int iIndex) const
+   {
+      MACROACCEL macro;
+      ::ZeroMemory(&macro, sizeof(macro));
+      if( iIndex < 0 ) return macro;
+      CString sText;
+      m_ctrlList.GetText(iIndex, sText);
+      CString sParent;
+      m_ctrlList.GetText(m_ctrlList.GetItemData(iIndex) - 1, sParent);
+      for( int i = 0; i < m_mapCurrent.GetSize(); i++ ) {
+         MACROACCEL& item = m_mapCurrent.GetValueAt(i);
+         if( sText == item.szFunction && sParent == item.szFilename ) {
+            return item;
+         }
+      }
+      return macro;
+   }
    WORD _GetHotkeyFromAccel(const ACCEL& accel) const
    {
       WORD wKey = accel.key;
@@ -282,61 +348,41 @@ public:
       return accel;
    }
 
-   void _BuildMenu(HMENU hMenu)
+   void _BuildList()
    {
-      ATLASSERT(::IsMenu(hMenu));
-      CMenuHandle menu = hMenu;
-      int nCount = menu.GetMenuItemCount();
-      // We're conducting two scans: one for regular items, another
-      // for submenus (which we then parse recursively)...
-      for( int i = 0; i < 2; i++ ) {
-         for( int j = 0; j < nCount; j++ ) {
-            // Get menu information
-            TCHAR szText[128] = { 0 };
-            menu.GetMenuString(j, szText, (sizeof(szText)/sizeof(TCHAR))-1, MF_BYPOSITION);
-            UINT uState = menu.GetMenuState(j, MF_BYPOSITION) & 0xFF;     
-            UINT nID = menu.GetMenuItemID(j);
+      CString sPattern;
+      sPattern.Format(_T("%s*.vbs"), CModulePath());
+      CFindFile ff;
+      for( BOOL bRes = ff.FindFile(sPattern); bRes; bRes = ff.FindNextFile() ) {
+         if( ff.IsDots() ) continue;
+         if( ff.IsDirectory() ) continue;
+         CString sDescription;
+         CSimpleArray<CString> aNames;
+         CSimpleArray<CString> aDescriptions;
+         CMacrosDlg::GetFileInfo(ff.GetFilePath(), sDescription, aNames, aDescriptions);
+         if( aNames.GetSize() == 0 ) continue;
 
-            // Filter items
-            if( nID == (UINT) -1 ) nID = 0;
-            if( szText[0] == '\0' ) continue;
-            if( uState & MF_SEPARATOR ) continue;
-            if( uState & MF_MENUBREAK ) continue;
-            if( nID >= ID_FILE_MRU_FIRST && nID <= ID_FILE_MRU_LAST ) continue;
-            if( nID >= ATL_IDM_FIRST_MDICHILD && nID <= ATL_IDM_FIRST_MDICHILD + 15 ) continue;
+         int iItem = m_ctrlList.AddString(ff.GetFileTitle());
+         m_ctrlList.SetItemData(iItem, 0);
+         // Recalc new item-height
+         MEASUREITEMSTRUCT mis = { 0 };
+         mis.itemData = 0;
+         MeasureItem(&mis);
+         m_ctrlList.SetItemHeight(iItem, mis.itemHeight);
 
-            if( i == 0 && (uState & MF_POPUP) != 0 ) continue;
-            if( i == 1 && (uState & MF_POPUP) == 0 ) continue;
-
-            // Trim text and remove shortcut part
-            LPTSTR ps, pd;         
-            for( ps = pd = szText; *ps; ps = ::CharNext(ps) ) {
-               if( *ps == '&' ) continue;
-               if( *ps == '\t' ) break;
-               *pd = *ps;
-#ifdef _MBCS
-               if( ::IsDBCSLeadByte(*ps) ) *(pd + 1) = *(ps + 1);
-#endif
-               pd = ::CharNext(pd);
-            }
-            *pd = '\0';
-
-            // Add to list
-            int idx = m_ctrlList.AddString(szText);
-            m_ctrlList.SetItemData( idx, (LPARAM) nID );
+         for( int i = 0; i < aNames.GetSize(); i++ ) {
+            int iFile = m_ctrlList.AddString(aNames[i]);
+            m_ctrlList.SetItemData(iFile, (LPARAM) iItem + 1);
             // Recalc new item-height
             MEASUREITEMSTRUCT mis = { 0 };
-            mis.itemData = nID;
+            mis.itemData = iItem + 1;
             MeasureItem(&mis);
-            m_ctrlList.SetItemHeight(idx, mis.itemHeight);
-
-            // Recursively parse submenus
-            if( uState & MF_POPUP ) _BuildMenu(menu.GetSubMenu(j));
+            m_ctrlList.SetItemHeight(iFile, mis.itemHeight);
          }
       }
    }
 };
 
 
-#endif // !defined(AFX_KEYBOARDDLG_H__20030126_01A0_E58B_B164_0080AD509054__INCLUDED_)
+#endif // !defined(AFX_MACROBINDDLG_H__20040515_BB37_18C3_F7BB_0080AD509054__INCLUDED_)
 

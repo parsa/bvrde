@@ -8,7 +8,7 @@ to compile with the later Visual Studio.NET version. You must however import
 the DSW project files to do this.
 
 Installation of Microsoft Windows Template Library (WTL) and Microsoft Platform
-SDK is required. Links for these products are available on the website.
+SDK is required. Links for these products are available below.
 
 To compile the projects, you should use the "Batch Build" option in Developer Studio.
 This will build all the projects in the solution in the correct order.
@@ -17,6 +17,22 @@ The source distribution does not contain all the required binary files to
 successfully run the application. You can copy the remaining files 
 (such as CL32.DLL, SciLexer.DLL and BVRDE.XML) from the binary distribution 
 to the \Bin folder to allow the application to run.
+
+    Links
+
+The folllowing links are needed or useful for compiling the projects:
+
+ Microsoft WTL library
+ http://wtl.sourceforge.net
+
+ Microsoft Platform SDK
+ http://msdn.microsoft.com/developer/sdk/platform.htm
+
+ The Scintilla Editor
+ http://www.scintilla.org
+
+ Cryptlib library
+ http://www.cs.auckland.ac.nz/~pgut001/cryptlib/
 
     Resolving Errors
 
@@ -43,4 +59,4 @@ may ignore these warnings.
 
 
 Bjarke Viksøe (bjarke@viksoe.dk)
-http://www.viksoe.dk/bvrde
+http://bvrde.sourceforge.net

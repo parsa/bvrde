@@ -39,6 +39,7 @@ public:
       NOTIFY_CODE_HANDLER(NM_RCLICK, OnTreeRightClick)
       NOTIFY_CODE_HANDLER(TVN_ITEMEXPANDING, OnTreeExpanding)
       NOTIFY_CODE_HANDLER(TVN_ITEMEXPANDED, OnTreeExpanded)
+      NOTIFY_CODE_HANDLER(TVN_GETDISPINFO, OnGetDisplayInfo)
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -48,6 +49,7 @@ public:
    LRESULT OnTreeRightClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeExpanding(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeExpanded(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnGetDisplayInfo(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 };
 
 

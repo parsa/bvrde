@@ -9,6 +9,7 @@ O// MainFrm.cpp : implmentation of the CMainFrame class
 
 #include "ChooseSolutionDlg.h"
 #include "RegSerializer.h"
+#include "XmlSerializer.h"
 #include "DummyElement.h"
 #include "atlcmdline.h"
 #include "Macro.h"
@@ -508,6 +509,45 @@ LRESULT CMainFrame::OnToolsRun(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
    arc.Close();
 
    ::ShellExecute(m_hWnd, _T("open"), szCommand, szArguments, szPath, SW_SHOWNORMAL);
+   return 0;
+}
+
+LRESULT CMainFrame::OnMacroShortcut(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   TCHAR szBuffer[32] = { 0 };
+   g_pDevEnv->GetProperty(_T("editors.general.saveBeforeTool"), szBuffer, 31);
+   if( _tcscmp(szBuffer, _T("true")) == 0 ) SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE_ALL, 0));
+
+   CString sFilename;
+   sFilename.Format(_T("%sBVRDE.xml"), CModulePath());
+   CXmlSerializer arc;
+   if( !arc.Open(_T("Settings"), sFilename) ) return 0;
+   if( arc.ReadGroupBegin(_T("MacroMappings")) ) {
+      while( arc.ReadGroupBegin(_T("Macro")) ) {
+         CString sFilename;
+         CString sFunction;
+         long lCmd;
+         arc.Read(_T("cmd"), lCmd);
+         arc.Read(_T("filename"), sFilename);
+         arc.Read(_T("function"), sFunction);
+         arc.ReadGroupEnd();
+         // If it's a match, then execute macro
+         if( lCmd == wID ) {
+            CString sFullFilename = sFilename;
+            sFullFilename.Format(_T("%s%s.vbs"), CModulePath(), sFilename);
+            CComObject<CMacro>* pScript;
+            HRESULT Hr = CComObject<CMacro>::CreateInstance(&pScript);
+            if( FAILED(Hr) ) return 0;
+            pScript->AddRef();
+            pScript->Init(this, &m_Dispatch);
+            pScript->RunMacroFromFile(sFullFilename, sFunction);
+            pScript->Release();
+         }
+      }
+      arc.ReadGroupEnd();
+   }
+   arc.Close();
+
    return 0;
 }
 

@@ -127,10 +127,10 @@ public:
 
    // Operations
 
-   bool GetFileInfo(LPCTSTR pstrFilename,
-                    CString& sFileDescription, 
-                    CSimpleArray<CString>& aNames, 
-                    CSimpleArray<CString>& aDescriptions)
+   static bool GetFileInfo(LPCTSTR pstrFilename,
+                           CString& sFileDescription, 
+                           CSimpleArray<CString>& aNames, 
+                           CSimpleArray<CString>& aDescriptions)
    {
       CFile f;
       if( !f.Open(pstrFilename) ) {

@@ -319,6 +319,10 @@ SOURCE=.\LayoutDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\MacroBindDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\MacrosDlg.h
 # End Source File
 # Begin Source File
@@ -585,4 +589,3 @@ SOURCE=..\ToDo
 # End Source File
 # End Target
 # End Project
-

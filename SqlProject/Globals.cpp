@@ -81,8 +81,8 @@ CString GetSystemErrorText(DWORD dwErr)
    if( lpMsgBuf == NULL ) {
       LPCTSTR pstrModules[] = 
       { 
-         _T("WININET"), 
-         _T("WSOCK32"), 
+         _T("OLEDB32), 
+         _T("OLEDB32R"), 
          NULL 
       };
       for( LPCTSTR* ppstr = pstrModules; lpMsgBuf == NULL && *ppstr; ppstr++ ) 

@@ -299,8 +299,8 @@ bool CDebugManager::RunNormal()
 
    m_ShellManager.Start();
    if( !m_ShellManager.WaitForConnection() ) {      
-      CString sMsg(MAKEINTRESOURCE(IDS_ERR_HOSTCONNECT));
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
+      CString sMsg(MAKEINTRESOURCE(IDS_ERR_HOSTCONNECT));
       _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
       _pDevEnv->PlayAnimation(FALSE, 0);
       Stop();
@@ -313,8 +313,8 @@ bool CDebugManager::RunNormal()
 
    CString sCommand = _TranslateCommand(m_sCommandCD);
    if( !m_ShellManager.WriteData(sCommand) ) {
-      CString sMsg(MAKEINTRESOURCE(IDS_ERR_DATAWRITE));
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
+      CString sMsg(MAKEINTRESOURCE(IDS_ERR_DATAWRITE));
       _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
       Stop();
       return false;
@@ -365,8 +365,8 @@ bool CDebugManager::RunDebug()
    // Wait for the remote connect to happen
    m_ShellManager.Start();
    if( !m_ShellManager.WaitForConnection() ) {      
-      CString sMsg(MAKEINTRESOURCE(IDS_ERR_HOSTCONNECT));
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
+      CString sMsg(MAKEINTRESOURCE(IDS_ERR_HOSTCONNECT));
       _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
       _pDevEnv->PlayAnimation(FALSE, 0);
       Stop();
@@ -383,8 +383,8 @@ bool CDebugManager::RunDebug()
    CString sCommand;
    sCommand = _TranslateCommand(m_sCommandCD);
    if( !m_ShellManager.WriteData(sCommand) ) {
-      CString sMsg(MAKEINTRESOURCE(IDS_ERR_DATAWRITE));
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
+      CString sMsg(MAKEINTRESOURCE(IDS_ERR_DATAWRITE));
       _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
       Stop();
       return false;
@@ -394,8 +394,8 @@ bool CDebugManager::RunDebug()
 
    // Wait for the debug prompt
    if( !_WaitForDebuggerStart() ) {
-      CString sMsg(MAKEINTRESOURCE(IDS_ERR_DEBUGGERSTART));
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
+      CString sMsg(MAKEINTRESOURCE(IDS_ERR_DEBUGGERSTART));
       _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
       Stop();
       return false;

@@ -39,15 +39,15 @@ public:
    BEGIN_MSG_MAP(CStackView)
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
       MESSAGE_HANDLER(WM_SIZE, OnSize)
-      COMMAND_HANDLER(IDC_TYPE, CBN_SELCHANGE, OnSelChange)
-      COMMAND_HANDLER(IDC_LIST, LBN_DBLCLK, OnDblClick)
+      COMMAND_HANDLER(IDC_TYPE, CBN_SELCHANGE, OnThreadSelChange)
+      COMMAND_HANDLER(IDC_LIST, LBN_DBLCLK, OnListDblClick)
       CHAIN_MSG_MAP( COwnerDraw<CStackView> )
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-   LRESULT OnDblClick(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
-   LRESULT OnSelChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnListDblClick(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnThreadSelChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 
    void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
 };

@@ -98,9 +98,10 @@ void CMainFrame::_LoadSettings()
    }
 
    // Open archive...
-   CXmlSerializer arc;
    CString sFilename;
    sFilename.Format(_T("%sBVRDE.xml"), CModulePath());
+
+   CXmlSerializer arc;
    if( !arc.Open(g_spConfigDoc, _T("Settings"), sFilename) ) return;
 
    TCHAR szBuffer[MAX_PATH] = { 0 };
@@ -240,7 +241,7 @@ void CMainFrame::_LoadSettings()
       arc.ReadGroupEnd();
    }
 
-   // Load Key mapping
+   // Load Key mappings
    if( arc.ReadGroupBegin(_T("KeyMappings")) ) 
    {
       ACCEL accel[100];
@@ -264,6 +265,32 @@ void CMainFrame::_LoadSettings()
 
       if( !m_UserAccel.IsNull() ) m_UserAccel.DestroyObject();
       m_UserAccel = (nCount == 0 ? NULL : (::CreateAcceleratorTable(accel, nCount)));
+   }
+
+   // Load Macro mappings
+   if( arc.ReadGroupBegin(_T("MacroMappings")) ) 
+   {
+      ACCEL accel[15];
+      int nCount = 0;    
+      while( arc.ReadGroupBegin(_T("Macro")) ) {
+         long lCmd;
+         long lKey;
+         long lFlags;
+         arc.Read(_T("cmd"), lCmd);
+         arc.Read(_T("key"), lKey);
+         arc.Read(_T("flags"), lFlags);
+         arc.ReadGroupEnd();
+
+         accel[nCount].cmd = (WORD) lCmd;
+         accel[nCount].key = (WORD) lKey;
+         accel[nCount].fVirt = (BYTE) lFlags;
+         nCount++;
+         if( nCount == sizeof(accel)/sizeof(ACCEL) ) break;
+      }
+      arc.ReadGroupEnd();
+
+      if( !m_MacroAccel.IsNull() ) m_MacroAccel.DestroyObject();
+      m_MacroAccel = (nCount == 0 ? NULL : (::CreateAcceleratorTable(accel, nCount)));
    }
 
    // Load AutoText

@@ -45,10 +45,10 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          int iItem = m_ctrlThreads.AddString(sText);
          DWORD dwThreadId = _ttol(sValue);
          m_ctrlThreads.SetItemData(iItem, dwThreadId);
-         if( m_dwCurThread = dwThreadId ) m_ctrlThreads.SetCurSel(iItem);
+         if( m_dwCurThread == dwThreadId ) m_ctrlThreads.SetCurSel(iItem);
          sValue = info.FindNext(_T("thread-id"));
       }
-      m_ctrlThreads.SetCurSel(0);
+      if( m_ctrlThreads.GetCurSel() == -1 ) m_ctrlThreads.SetCurSel(0);
    }
    else if( _tcscmp(pstrType, _T("stack")) == 0 
             || _tcscmp(pstrType, _T("new-thread-id")) == 0 )
@@ -119,7 +119,7 @@ LRESULT CStackView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
    return 0;
 }
 
-LRESULT CStackView::OnDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT CStackView::OnListDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    ATLASSERT(m_pProject);
    int iIndex = m_ctrlStack.GetCurSel();
@@ -135,7 +135,7 @@ LRESULT CStackView::OnDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
    return 0;
 }
 
-LRESULT CStackView::OnSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT CStackView::OnThreadSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    ATLASSERT(m_pProject);
    CString sCommand;

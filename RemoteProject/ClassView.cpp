@@ -122,7 +122,7 @@ void CClassView::Populate()
    for( int i = 0; i < aList.GetSize(); i++ ) {
       CTagInfo::TAGINFO* pTag = aList[i];
       if( pTag->Type == CTagInfo::TAGTYPE_CLASS ) {
-         tvis.item.pszText = (LPTSTR) pTag->pstrName;
+         tvis.item.pszText = LPSTR_TEXTCALLBACK;
          tvis.item.lParam = (LPARAM) pTag;
          m_ctrlTree.InsertItem(&tvis);
       }
@@ -254,7 +254,7 @@ LRESULT CClassView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
             int iImage = 3;
             if( pTag->Type == CTagInfo::TAGTYPE_MEMBER ) iImage = 4;
             m_ctrlTree.InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM,
-               pTag->pstrName, 
+               LPSTR_TEXTCALLBACK, 
                iImage, iImage, 
                0, 0,
                (LPARAM) pTag,
@@ -282,5 +282,14 @@ LRESULT CClassView::OnTreeExpanded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
       m_ctrlTree.Expand(tvi.hItem, TVE_COLLAPSE | TVE_COLLAPSERESET);
    }
    bHandled = FALSE;
+   return 0;
+}
+
+LRESULT CClassView::OnGetDisplayInfo(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
+{
+   LPNMTVDISPINFO lpNMTVDI = (LPNMTVDISPINFO) pnmh;
+   if( (lpNMTVDI->item.mask & TVIF_TEXT) == 0 ) return 0;
+   CTagInfo::TAGINFO* pTag = (CTagInfo::TAGINFO*) m_ctrlTree.GetItemData(lpNMTVDI->item.hItem);
+   lpNMTVDI->item.pszText = (LPTSTR) pTag->pstrName;
    return 0;
 }

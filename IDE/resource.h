@@ -144,7 +144,9 @@
 #define IDS_CAPTION_SAVEMACRO           233
 #define IDR_FULLSCREEN                  234
 #define IDS_FILTER_MACRO                234
+#define IDS_MACROBIND                   235
 #define IDI_PROJECT                     236
+#define IDS_KEYDUPLICATE                236
 #define IDD_MSGBOX                      263
 #define IDI_MSG_INFORMATION             264
 #define IDI_MSG_WARNING                 265
@@ -248,6 +250,7 @@
 #define IDD_OPTIONS_TAGS                32010
 #define IDD_OPTIONS_ALIAS               32011
 #define IDD_OPTIONS_AUTOTEXT            32012
+#define IDD_MACROBIND                   32013
 #define ID_WINDOW_NEXT                  32796
 #define ID_WINDOW_PREVIOUS              32797
 #define ID_TOOLS_ADDIN_MANAGER          32803
@@ -270,6 +273,21 @@
 #define ID_TAB_CLOSEALLEXCEPT           32864
 #define ID_TAB_ACTIVATE                 32865
 #define ID_VIEW_FULLSCREEN              32866
+#define ID_MACROS_KEY1                  32867
+#define ID_MACROS_KEY2                  32868
+#define ID_MACROS_KEY3                  32869
+#define ID_MACROS_KEY4                  32870
+#define ID_MACROS_KEY5                  32871
+#define ID_MACROS_KEY6                  32872
+#define ID_MACROS_KEY7                  32873
+#define ID_MACROS_KEY8                  32874
+#define ID_MACROS_KEY9                  32875
+#define ID_MACROS_KEY10                 32876
+#define ID_MACROS_KEY11                 32877
+#define ID_MACROS_KEY12                 32878
+#define ID_MACROS_KEY13                 32879
+#define ID_MACROS_KEY14                 32880
+#define ID_MACROS_KEY15                 32881
 
 // Next default values for new objects
 // 

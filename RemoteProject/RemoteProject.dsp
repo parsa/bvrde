@@ -530,4 +530,3 @@ SOURCE=.\Res\up.ico
 # End Group
 # End Target
 # End Project
-

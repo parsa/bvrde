@@ -150,6 +150,7 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
    }
 
    if( !m_UserAccel.IsNull() && m_UserAccel.TranslateAccelerator(m_hWnd, pMsg) ) return TRUE;
+   if( !m_MacroAccel.IsNull() && m_MacroAccel.TranslateAccelerator(m_hWnd, pMsg) ) return TRUE;
 
    HWND hWnd = MDIGetActive();
    if( hWnd != NULL ) return (BOOL) ::SendMessage(hWnd, WM_FORWARDMSG, 0, (LPARAM) pMsg);
