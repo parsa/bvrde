@@ -68,7 +68,7 @@ Compiling under Visual Studio.NET will generate a number of warnings. You
 may ignore these warnings.
 
 The realtime C++ lexer, "cpp.l", needs a lex/yacc utility to compile. It 
-is currently compiled with "flex" but other lexers may work.
+is currently compiled with "flex" but other lex-tools may work.
 
 
 Bjarke Viksøe (bjarke@viksoe.dk)

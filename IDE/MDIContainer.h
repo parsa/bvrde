@@ -31,11 +31,11 @@ public:
    
    CContainedWindow m_wndMDIClient;
    CDotNetTabCtrl m_ctrlTab;
-   bool m_bVisible;
+   bool m_bTabsVisible;
 
    CMDIContainer() :
       m_wndMDIClient(this, 1),
-      m_bVisible(true)
+      m_bTabsVisible(true)
    {
    }
    ~CMDIContainer()
@@ -52,7 +52,7 @@ public:
    }
    void SetVisible(BOOL bVisible)
    {
-      m_bVisible = bVisible == TRUE;
+      m_bTabsVisible = bVisible == TRUE;
       UpdateLayout();
    }
 
@@ -76,12 +76,12 @@ public:
       m_ctrlTab.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, IDC_COOLTAB);
       m_ctrlTab.SetExtendedStyle(0, TCS_EX_SELHIGHLIGHT | TCS_EX_FLATSEPARATORS);
       return lRes;
-   };
+   }
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       UpdateLayout();
       return 0;
-   };
+   }
    LRESULT OnSelChange(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       // Someone clicked on a tab...
@@ -91,7 +91,6 @@ public:
       tci.mask = TCIF_PARAM;
       m_ctrlTab.GetItem(iIndex, &tci);
       m_wndMDIClient.SendMessage(WM_MDIACTIVATE, (WPARAM) tci.lParam);
-      m_wndMDIClient.SetFocus();
       return 0;
    }
    LRESULT OnRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
@@ -159,13 +158,13 @@ public:
       case WM_CREATE:
          {
             // Get Tab text and tooltip text
-            HWND hWnd = (HWND) lParam;
-            int nLen = ::GetWindowTextLength(hWnd) + 1;
+            CWindow wnd = (HWND) lParam;
+            int nLen = wnd.GetWindowTextLength() + 1;
             LPTSTR pstrText = (LPTSTR) _alloca(nLen * sizeof(TCHAR));
-            ::GetWindowText(hWnd, pstrText, nLen);
+            wnd.GetWindowText(pstrText, nLen);
             CString sName = pstrText;
             CString sFileName = pstrText;
-            _LookupViewNames(hWnd, sName, sFileName);
+            _LookupViewNames(wnd, sName, sFileName);
             // Create a new tab
             COOLTCITEM tci;
             tci.mask = TCIF_TEXT | TCIF_TOOLTIP | TCIF_PARAM;
@@ -173,9 +172,9 @@ public:
             tci.pszTipText = (LPTSTR) (LPCTSTR) sFileName;
             tci.lParam = lParam;
             m_ctrlTab.InsertItem(m_ctrlTab.GetItemCount(), &tci);
+            // Position view in container (maximize if needed)
             UpdateLayout();
-            // Maximize view
-            if( m_bVisible ) m_wndMDIClient.SendMessage(WM_MDIMAXIMIZE, (WPARAM) hWnd, 0);
+            if( m_bTabsVisible ) m_wndMDIClient.SendMessage(WM_MDIMAXIMIZE, (WPARAM) (HWND) wnd);
          }
          break;
       case WM_DESTROY:
@@ -217,7 +216,7 @@ public:
       GetClientRect(&rc);
       // Place tab control in frame if populated
       int cy = ::GetSystemMetrics(SM_CYMENUSIZE) + 4;
-      if( m_ctrlTab.GetItemCount() > 0 && m_bVisible ) {
+      if( m_ctrlTab.GetItemCount() > 0 && m_bTabsVisible ) {
          RECT rcTab = { rc.left, rc.top, rc.right, rc.top + cy };
          m_ctrlTab.SetWindowPos(NULL, &rcTab, SWP_SHOWWINDOW | SWP_NOZORDER | SWP_NOACTIVATE);
          rc.top += cy;

@@ -60,7 +60,7 @@ public:
       for( i = 0; i < m_ranges.GetSize(); i++ ) {
          for( int j = m_ranges[i].cx; j <= m_ranges[i].cy; j++ ) {
             pMap[iIndex].m_nID = (WORD) j;
-            pMap[iIndex].m_wType = UPDUI_MENUPOPUP | UPDUI_TOOLBAR | UPDUI_DISABLED;
+            pMap[iIndex].m_wType = UPDUI_MENUPOPUP | UPDUI_TOOLBAR;
             iIndex++;
          }
       }

@@ -60,7 +60,7 @@ int CTagManager::FindItem(int iStart, LPCTSTR pstrName)
 CString CTagManager::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NULL*/)
 {
    CString sItem = m_LexInfo.GetItemDeclaration(pstrName, pstrOwner);
-   if( sItem.IsEmpty() ) sItem = m_TagInfo.GetItemDeclaration(pstrName, pstrOwner);
+   if( sItem.IsEmpty() && pstrOwner != NULL ) sItem = m_TagInfo.GetItemDeclaration(pstrName, NULL);
    return sItem;
 }
 

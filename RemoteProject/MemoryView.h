@@ -26,6 +26,10 @@ public:
    bool WantsData();
    void SetInfo(LPCTSTR pstrType, CMiInfo& info);
 
+   // Implementation
+
+   void _UpdateDisplay();
+
    // Message map and handlers
 
    BEGIN_MSG_MAP(CMemoryView)

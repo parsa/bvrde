@@ -212,10 +212,13 @@ BOOL CMainFrame::OnIdle()
       int iEnd = 0;
       ctrlEdit.GetSel(iStart, iEnd);
       UIEnable(ID_EDIT_COPY, iEnd > iStart);
+      UIEnable(ID_EDIT_CUT, iEnd > iStart);
+      UIEnable(ID_EDIT_PASTE, ::IsClipboardFormatAvailable(CF_TEXT));
    }
 
    UIUpdateToolBar();
    UIUpdateStatusBar();
+
    return FALSE;
 }
 

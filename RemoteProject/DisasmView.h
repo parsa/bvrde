@@ -9,7 +9,8 @@ class CRemoteProject; // Forward declare
 
 
 class CDisasmView : 
-   public CWindowImpl<CDisasmView>
+   public CWindowImpl<CDisasmView>,
+   public IIdleListener
 {
 public:
    DECLARE_WND_CLASS(_T("BVRDE_DisasmView"))
@@ -26,6 +27,8 @@ public:
    CEdit m_ctrlAddress;
    CRichEditCtrl m_ctrlView;
    TEXTMETRIC m_tm;
+   bool m_bIntelStyle;
+   bool m_bShowSource;
 
    // Operations
 
@@ -36,18 +39,27 @@ public:
 
    // Implementation
 
-   long _EstimateInstructionCount() const;
    static DWORD CALLBACK _EditStreamCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
+
+   // IIdleListener
+
+   void OnIdle(IUpdateUI* pUIBase);
 
    // Message map and handlers
 
    BEGIN_MSG_MAP(CDisasmView)
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
       MESSAGE_HANDLER(WM_SIZE, OnSize)
+      MESSAGE_HANDLER(WM_CONTEXTMENU, OnContextMenu)
+      COMMAND_ID_HANDLER(ID_DISASM_SHOWSOURCE, OnShowSource)
+      COMMAND_ID_HANDLER(ID_DISASM_INTELSTYLE, OnIntelStyle)
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnContextMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnShowSource(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnIntelStyle(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 };
 
 

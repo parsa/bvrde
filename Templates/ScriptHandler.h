@@ -129,10 +129,10 @@ public:
 
       // Dynamically load MSHTML for getting ShowHTMLDialog() function
       HINSTANCE hInst = ::LoadLibrary(_T("MSHTML.DLL"));
-      if( hInst == NULL ) return FALSE;
+      if( hInst == NULL ) return false;
       // The SHOWHTMLDIALOGFN declare is from the IE SDK.
       SHOWHTMLDIALOGFN *pfnShowHTMLDialog = (SHOWHTMLDIALOGFN*) ::GetProcAddress(hInst, "ShowHTMLDialog");
-      if( pfnShowHTMLDialog == NULL ) return FALSE;
+      if( pfnShowHTMLDialog == NULL ) return false;
 
       CComBSTR bstrFilename = L"file:///";
       bstrFilename += T2CW(pstrHtmlFilename);
@@ -150,7 +150,7 @@ public:
       ::FreeLibrary(hInst);
 
       // User cancelled dialog?
-      if( CComBSTR(m_Container.m_Globals.get_Item(CComBSTR(L"Cancel"))).Length() > 0 ) return FALSE;
+      if( CComBSTR(m_Container.m_Globals.get_Item(CComBSTR(L"Cancel"))).Length() > 0 ) return false;
 
       return Hr == S_OK;
    }

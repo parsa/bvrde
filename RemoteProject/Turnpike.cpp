@@ -92,23 +92,14 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             // Notify all views
             DelayedViewMessage(DEBUG_CMD_DEBUG_START);
 
-            TCHAR szBuffer[32] = { 0 };
-            _pDevEnv->GetProperty(_T("gui.debugViews.showStack"), szBuffer, 31);
-            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
-            _pDevEnv->GetProperty(_T("gui.debugViews.showWatch"), szBuffer, 31);
-            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
-            _pDevEnv->GetProperty(_T("gui.debugViews.showThread"), szBuffer, 31);
-            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
-            _pDevEnv->GetProperty(_T("gui.debugViews.showRegister"), szBuffer, 31);
-            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
-            _pDevEnv->GetProperty(_T("gui.debugViews.showMemory"), szBuffer, 31);
-            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
-            _pDevEnv->GetProperty(_T("gui.debugViews.showDisassembly"), szBuffer, 31);
-            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
-            _pDevEnv->GetProperty(_T("gui.debugViews.showVariable"), szBuffer, 31);
-            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
-            _pDevEnv->GetProperty(_T("gui.debugViews.showBreakpoint"), szBuffer, 31);
-            if( _tcscmp(szBuffer, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
+            if( m_DockManager.IsAutoShown(m_viewStack, _T("showStack")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
+            if( m_DockManager.IsAutoShown(m_viewWatch, _T("showWatch")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
+            if( m_DockManager.IsAutoShown(m_viewThread, _T("showThread")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
+            if( m_DockManager.IsAutoShown(m_viewRegister, _T("showRegister")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
+            if( m_DockManager.IsAutoShown(m_viewMemory, _T("showMemory")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
+            if( m_DockManager.IsAutoShown(m_viewDisassembly, _T("showDisassembly")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
+            if( m_DockManager.IsAutoShown(m_viewVariable, _T("showVariable")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
+            if( m_DockManager.IsAutoShown(m_viewBreakpoint, _T("showBreakpoint")) ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
          }
          break;
       case LAZY_DEBUG_KILL_EVENT:
@@ -119,23 +110,14 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             // If we're closing the debug session, then dispose
             // all debug views as well...
 
-            TCHAR szBuffer[32] = { 0 };
-            _tcscpy(szBuffer, (m_viewStack.IsWindow() && m_viewStack.IsWindowVisible()) ? _T("true") : _T("false"));
-            _pDevEnv->SetProperty(_T("gui.debugViews.showStack"), szBuffer);
-            _tcscpy(szBuffer, (m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible()) ? _T("true") : _T("false"));
-            _pDevEnv->SetProperty(_T("gui.debugViews.showWatch"), szBuffer);
-            _tcscpy(szBuffer, (m_viewThread.IsWindow() && m_viewThread.IsWindowVisible()) ? _T("true") : _T("false"));
-            _pDevEnv->SetProperty(_T("gui.debugViews.showThread"), szBuffer);
-            _tcscpy(szBuffer, (m_viewRegister.IsWindow() && m_viewRegister.IsWindowVisible()) ? _T("true") : _T("false"));
-            _pDevEnv->SetProperty(_T("gui.debugViews.showRegister"), szBuffer);
-            _tcscpy(szBuffer, (m_viewMemory.IsWindow() && m_viewMemory.IsWindowVisible()) ? _T("true") : _T("false"));
-            _pDevEnv->SetProperty(_T("gui.debugViews.showMemory"), szBuffer);
-            _tcscpy(szBuffer, (m_viewDisassembly.IsWindow() && m_viewDisassembly.IsWindowVisible()) ? _T("true") : _T("false"));
-            _pDevEnv->SetProperty(_T("gui.debugViews.showDisassembly"), szBuffer);
-            _tcscpy(szBuffer, (m_viewVariable.IsWindow() && m_viewVariable.IsWindowVisible()) ? _T("true") : _T("false"));
-            _pDevEnv->SetProperty(_T("gui.debugViews.showVariable"), szBuffer);
-            _tcscpy(szBuffer, (m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible()) ? _T("true") : _T("false"));
-            _pDevEnv->SetProperty(_T("gui.debugViews.showBreakpoint"), szBuffer);
+            m_DockManager.SetInfo(m_viewStack, _T("showStack"));
+            m_DockManager.SetInfo(m_viewWatch, _T("showWatch"));
+            m_DockManager.SetInfo(m_viewThread, _T("showThread"));
+            m_DockManager.SetInfo(m_viewRegister, _T("showRegister"));
+            m_DockManager.SetInfo(m_viewMemory, _T("showMemory"));
+            m_DockManager.SetInfo(m_viewDisassembly, _T("showDisassembly"));
+            m_DockManager.SetInfo(m_viewVariable, _T("showVariable"));
+            m_DockManager.SetInfo(m_viewBreakpoint, _T("showBreakpoint"));
 
             if( m_viewStack.IsWindow() && m_viewStack.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
             if( m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
@@ -226,6 +208,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
       HWND hWnd = ::GetActiveWindow();
       _pDevEnv->ShowMessageBox(hWnd, sMessage, sCaption, iFlags | MB_MODELESS);
    }
+
    return 0;   
 }
 

@@ -60,7 +60,7 @@ public:
 // Constructor/destructor
 
 CClassView::CClassView() :
-   m_pProject(NULL), m_bLoaded(false), m_bLocked(false)
+   m_pProject(NULL), m_bPopulated(false), m_bLocked(false)
 {
 }
 
@@ -72,7 +72,7 @@ void CClassView::Init(CRemoteProject* pProject)
 {
    Close();
 
-   m_bLoaded = false;
+   m_bPopulated = false;
    m_bLocked = false;
    m_pProject = pProject;
    m_aExpandedNames.RemoveAll();
@@ -97,7 +97,7 @@ void CClassView::Close()
    if( m_ctrlTree.IsWindow() ) m_ctrlTree.DeleteAllItems();
    m_aExpandedNames.RemoveAll();
    m_pProject = NULL;
-   m_bLoaded = false;
+   m_bPopulated = false;
    m_bLocked = false;
 }
 
@@ -135,7 +135,7 @@ void CClassView::Clear()
    // Delete all items and reset
    m_ctrlTree.DeleteAllItems();
    m_aExpandedNames.RemoveAll();
-   m_bLoaded = false;
+   m_bPopulated = false;
    m_bLocked = false;
 }
 
@@ -143,7 +143,7 @@ void CClassView::Populate()
 {
    ATLASSERT(IsWindow());
    // TAGS files already scanned and nothing was found!
-   if( m_bLoaded ) return;
+   if( m_bPopulated ) return;
    // Show status text
    CWaitCursor cursor;
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_LOADTAG)));
@@ -156,7 +156,7 @@ void CClassView::Populate()
 void CClassView::Rebuild()
 {
    // Signal that we should rebuild the tree
-   m_bLoaded = false;
+   m_bPopulated = false;
    // View is not showing right now? Delay populating the tree then.
    if( !IsWindowVisible() ) return;
    // Ok, do it then...
@@ -221,7 +221,7 @@ void CClassView::_PopulateTree()
       m_ctrlTree.SetScrollPos(SB_VERT, iScrollPos, TRUE);
    }
 
-   m_bLoaded = true;
+   m_bPopulated = true;
    m_aExpandedNames.RemoveAll();
 }
 

@@ -469,10 +469,13 @@ CString CDebugManager::GetTagInfo(LPCTSTR pstrValue)
    // We must be debugging to talk to the debugger
    if( !IsDebugging() ) return _T("");
    // Send query to GDB debugger about the data value.
+   CString sValue = pstrValue;
+   sValue.Replace(_T("\\"), _T("\\\\"));
+   sValue.Replace(_T("\""), _T("\\\""));
    // NOTE: Somewhere down in the _TranslateCommand() method
    //       we'll make sure to ignore any errors returned.
    CString sCommand;
-   sCommand.Format(_T("-data-evaluate-expression \"%s\""), pstrValue);
+   sCommand.Format(_T("-data-evaluate-expression \"%s\""), sValue);
    DoDebugCommand(sCommand);
    return _T("");  // We don't have an answer right now!
 }
@@ -806,6 +809,11 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
       if( sLine.Find(_T("gdb: unrecognized option")) >= 0 ) {
          m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGVERSION)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
       }
+   }
+   // GDB is known to be unstable at times
+   if( sLine.Find(_T("An internal GDB error was detected.")) >= 0 ) {
+      m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGUNSTABLE)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
+      SignalStop();
    }
    // Outputting directly to the Command View if we're
    // in "command mode" (user entered custom command at prompt or scripting).

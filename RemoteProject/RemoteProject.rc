@@ -400,6 +400,17 @@ BEGIN
     END
 END
 
+IDR_DISASSEMBLY MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Copy",                       ID_EDIT_COPY
+        MENUITEM SEPARATOR
+        MENUITEM "&Show as Intel Style",        ID_DISASM_INTELSTYLE
+        MENUITEM "&Show Source",                ID_DISASM_SHOWSOURCE
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -585,7 +596,7 @@ END
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Integration",-1,0,0,38,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,46,4,212,1
@@ -786,6 +797,7 @@ BEGIN
     SEPARATOR
     BUTTON      ID_DEBUG_START
     BUTTON      ID_DEBUG_DEBUG
+    BUTTON      ID_DEBUG_BREAK
     BUTTON      ID_DEBUG_STOP
 END
 
@@ -1062,6 +1074,19 @@ BEGIN
     IDS_ERR_FILEENCODING    "Unsupported File Type\nThe file type is not supported.\nUnicode and UTF-8 files are not supported by this application."
     IDS_COMMAND_COMPILEFLAGS "Compile Flags"
     IDS_COMMAND_LINKFLAGS   "Link Flags"
+    IDS_ERR_DEBUGUNSTABLE   "Debugging unstable\nThe GDB Debugger is in an unstable state.\nThe Debugger reported an internal error and further debugging may be unreliable. Debug session is shutting down."
+    IDS_STACKSUBSTR         ",  file"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_DEBUG_BREAK          "Break debugger\nBreak"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_DISASM_INTELSTYLE    "Display Disassembly as Intel style\nIntel Style"
+    ID_DISASM_SHOWSOURCE    "Show Dissasembly mixed with Source Code\nShow Source"
 END
 
 #endif    // English (U.S.) resources

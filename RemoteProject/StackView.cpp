@@ -158,28 +158,31 @@ void CStackView::DrawItem(LPDRAWITEMSTRUCT lpDIS)
    CString sText;
    m_ctrlStack.GetText(iIndex, sText);
 
+   COLORREF clrSecond = COLOR_GRAYTEXT;
    int iPosLine = sText.Find(_T("line="));
+   if( iPosLine >= 0 ) {
+      clrSecond = ::GetSysColor(COLOR_WINDOWTEXT);
+      clrSecond = BlendRGB(clrSecond, RGB(0,0,60), 80);
+   }
 
    dc.FillSolidRect(&rc, ::GetSysColor(bSelected ? COLOR_HIGHLIGHT : COLOR_WINDOW));
 
-   RECT rcFirst = rc;
-   RECT rcSecond = rc;
    CString sSecond;
-   if( iPosLine == -1 ) {
-      int iPosComma = sText.Find(_T(", "));
-      if( iPosComma > 0 ) {
-         sSecond = sText.Mid(iPosComma);
-         sText = sText.Left(iPosComma);
-      }
+   int iPosComma = sText.Find(_T("file="));
+   if( iPosComma > 0 ) {
+      sSecond = sText.Mid(iPosComma);
+      sText = sText.Left(iPosComma);
    }
 
+   RECT rcFirst = rc;
+   RECT rcSecond = rc;
    dc.SetBkMode(TRANSPARENT);
    dc.SetTextColor(::GetSysColor(bSelected ? COLOR_HIGHLIGHTTEXT : COLOR_WINDOWTEXT));
    dc.DrawText(sText, -1, &rcFirst, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS | DT_CALCRECT);
    dc.DrawText(sText, -1, &rcFirst, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
    if( !sSecond.IsEmpty() ) {
       rcSecond.left = rcFirst.right;
-      dc.SetTextColor(::GetSysColor(bSelected ? COLOR_HIGHLIGHTTEXT : COLOR_GRAYTEXT));
+      dc.SetTextColor(bSelected ? (::GetSysColor(COLOR_HIGHLIGHTTEXT)) : clrSecond);
       dc.DrawText(sSecond, -1, &rcSecond, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
    }
 }

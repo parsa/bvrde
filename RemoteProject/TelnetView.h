@@ -55,19 +55,21 @@ public:
    BEGIN_MSG_MAP(CTelnetView)
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
       MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
-      MESSAGE_HANDLER(WM_KEYDOWN, OnKeyDown)
+      MESSAGE_HANDLER(WM_KEYUP, OnKeyUp)
       MESSAGE_HANDLER(WM_COMPACTING, OnCompacting)      
       MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkgnd)
       MESSAGE_HANDLER(WM_GETMINMAXINFO, OnGetMinMaxInfo)
+      MESSAGE_HANDLER(WM_LBUTTONDOWN, OnButtonDown)
       CHAIN_MSG_MAP( CScrollWindowImpl<CTelnetView> )
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-   LRESULT OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnKeyUp(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnCompacting(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnGetMinMaxInfo(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
    // IOutputListener
 

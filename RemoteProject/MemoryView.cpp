@@ -58,6 +58,35 @@ void CMemoryView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    }
 }
 
+// Implementation
+
+void CMemoryView::_UpdateDisplay()
+{
+   CString sAddress = CWindowText(m_ctrlAddress);
+   CString sFormat = _T("x");
+   int iPos = sAddress.Find(',');
+   if( iPos > 0 ) {
+      sFormat = sAddress.Mid(iPos + 1);
+      sAddress = sAddress.Left(iPos);
+      sFormat.TrimLeft();
+      sAddress.TrimRight();
+   }
+   if( sAddress.IsEmpty() ) return;
+   // Estimate rows needed to fill display
+   CClientDC dc = m_hWnd;
+   TEXTMETRIC tm = { 0 };
+   dc.GetTextMetrics(&tm);
+   CClientRect rcClient = m_hWnd;
+   long lRows = (rcClient.bottom - rcClient.top) / tm.tmHeight;     
+   // Get data from debugger
+   CString sCommand;
+   sCommand.Format(_T("-data-read-memory \"%s\" %s 4 %ld 1 ."), 
+      sAddress, 
+      sFormat,
+      (lRows + 3) * 4);
+   m_pProject->DelayedDebugCommand(sCommand);
+}
+
 
 /////////////////////////////////////////////////////////////////////////
 // Message handlers
@@ -67,7 +96,7 @@ LRESULT CMemoryView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
    ModifyStyleEx(WS_EX_CLIENTEDGE, 0);
    m_ctrlAddress.Create(this, 1, m_hWnd, &rcDefault, NULL, WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, WS_EX_CLIENTEDGE);
    m_ctrlAddress.SetFont(AtlGetDefaultGuiFont());
-   m_ctrlMemory.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | ES_MULTILINE | ES_READONLY, WS_EX_CLIENTEDGE);
+   m_ctrlMemory.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VSCROLL | WS_HSCROLL | WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL, WS_EX_CLIENTEDGE);
    m_ctrlMemory.SetFont(AtlGetStockFont(ANSI_FIXED_FONT));
    m_ctrlAddress.SetFocus();
    return 0;
@@ -92,25 +121,7 @@ LRESULT CMemoryView::OnEditChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
 
 LRESULT CMemoryView::OnEditKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
-   if( wParam == VK_RETURN ) {
-      CString sAddress = CWindowText(m_ctrlAddress);
-      CString sFormat = _T("x");
-      int iPos = sAddress.Find(',');
-      if( iPos > 0 ) {
-         sFormat = sAddress.Mid(iPos + 1);
-         sAddress = sAddress.Left(iPos);
-         sFormat.TrimLeft();
-         sAddress.TrimRight();
-      }
-      if( sAddress.IsEmpty() ) return 0;
-      CString sCommand;
-      sCommand.Format(_T("-data-read-memory \"%s\" %s 4 64 1 ."), 
-         sAddress, 
-         sFormat);
-      m_pProject->DelayedDebugCommand(sCommand);
-      return 0;
-   }
+   if( wParam == VK_RETURN ) _UpdateDisplay();
    bHandled = FALSE;
    return 0;
 }
-

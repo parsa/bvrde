@@ -104,9 +104,15 @@ DWORD CSshThread::Run()
    status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_ACTIVE, TRUE);
    if( cryptStatusError(status) ) {
       m_pManager->m_dwErrorCode = WSASERVICE_NOT_FOUND;
+      if( status == CRYPT_ERROR_MEMORY ) m_pManager->m_dwErrorCode = ERROR_OUTOFMEMORY;
+      if( status == CRYPT_ERROR_INVALID ) m_pManager->m_dwErrorCode = DIGSIG_E_CRYPTO;
       if( status == CRYPT_ERROR_TIMEOUT )  m_pManager->m_dwErrorCode = ERROR_TIMEOUT;
       if( status == CRYPT_ERROR_WRONGKEY ) m_pManager->m_dwErrorCode = ERROR_NOT_AUTHENTICATED;
+      CHAR szError[200] = { 0 };
+      int ccbSize = sizeof(szError) - 1;
+      clib.cryptGetAttributeString(cryptSession, CRYPT_ATTRIBUTE_INT_ERRORMESSAGE, szError, &ccbSize);
       m_pCallback->BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_LOG_SSHHOST)));
+      m_pCallback->BroadcastLine(VT100_RED, A2CT(szError));
       if( cryptSession != 0 ) {
          clib.cryptDestroySession(cryptSession);
          cryptSession = 0;

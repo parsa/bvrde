@@ -312,6 +312,10 @@ SOURCE=..\Source\WTL\Controls\CoolTabCtrls.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\DockManager.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\GenEdit\GenEdit.h
 # End Source File
 # Begin Source File

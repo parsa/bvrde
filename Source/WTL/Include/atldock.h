@@ -339,6 +339,7 @@ public:
       MESSAGE_HANDLER(WM_SIZE, OnSize)
       MESSAGE_HANDLER(WM_SYSCOMMAND, OnSysCommand)
       MESSAGE_HANDLER(WM_MENUCHAR, OnMenuChar)
+      MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus)
       MESSAGE_HANDLER(WM_GETMINMAXINFO, OnMsgForward)
       MESSAGE_HANDLER(WM_DOCK_UPDATELAYOUT, OnSize)
       MESSAGE_HANDLER(WM_NCACTIVATE, OnNcActivate)
@@ -443,6 +444,13 @@ public:
          CWindow wndRoot = m_pCtx->hwndRoot;
          return ::SendMessage(wndRoot.GetTopLevelParent(), uMsg, wParam, lParam);
       }
+      return lRes;
+   }
+
+   LRESULT OnSetFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+   {
+      LRESULT lRes = DefWindowProc(uMsg, wParam, lParam);
+      ::SetFocus(m_pCtx->hwndChild);
       return lRes;
    }
 
@@ -1259,7 +1267,7 @@ public:
       ::ShowWindow(pCtx->hwndChild, SW_SHOWNOACTIVATE);
       if( Side == DOCK_LASTKNOWN ) Side = pCtx->LastSide;
       if( !IsDocked(Side) ) return FALSE;
-      return pT->_DockWindow(pCtx, Side, iRequestedSize);
+      return pT->_DockWindow(pCtx, Side, iRequestedSize, FALSE);
    }
 
    BOOL FloatWindow(HWND hWnd, const RECT& rc)
@@ -1464,7 +1472,7 @@ public:
    LRESULT OnDock(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       T* pT = static_cast<T*>(this);
-      pT->_DockWindow((DOCKCONTEXT*) lParam, (short) wParam,0);
+      pT->_DockWindow((DOCKCONTEXT*) lParam, (short) wParam, 0, TRUE);
       return 0;
    }
 
@@ -1561,7 +1569,7 @@ public:
       }
    }
 
-   BOOL _DockWindow(DOCKCONTEXT* ctx, short Side, int iRequestedSize)
+   BOOL _DockWindow(DOCKCONTEXT* ctx, short Side, int iRequestedSize, BOOL bSetFocus)
    {
       ATLASSERT(ctx);
       ATLASSERT(IsDocked(Side));
@@ -1585,6 +1593,7 @@ public:
       ctx->bKeepSize = iRequestedSize > 0;
       // Dock
       m_panes[Side].DockWindow(ctx);
+      if( bSetFocus ) ::SetFocus(ctx->hwndChild);
       PostMessage(WM_DOCK_UPDATELAYOUT);
       return TRUE;
    }

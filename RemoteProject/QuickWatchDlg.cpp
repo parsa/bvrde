@@ -44,7 +44,6 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       // Query item, children and value
       m_iQueryParent = 0;
       m_sQueryVariable = _T("quickwatch");
-      m_pProject->m_DebugManager.DoDebugCommand(_T("-var-info-type quickwatch"));
       m_pProject->m_DebugManager.DoDebugCommand(_T("-var-list-children quickwatch"));
       m_pProject->m_DebugManager.DoDebugCommand(_T("-var-evaluate-expression quickwatch"));
       // Recalc column-width
@@ -97,6 +96,7 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       CString sName = info.GetItem(_T("name"));
       while( !sName.IsEmpty() ) {
          CString sExp = info.GetSubItem(_T("exp"));
+         CString sType = info.GetSubItem(_T("type"));
          CString sNumChild = info.GetSubItem(_T("numchild"));
          if( sExp.IsEmpty() ) {
             sExp = sName;
@@ -205,8 +205,6 @@ LRESULT CQuickWatchDlg::OnListClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPa
                m_iQueryParent = i;
                m_sQueryVariable = item.sKey;
                CString sCommand;
-               sCommand.Format(_T("-var-info-type %s"), item.sKey);
-               m_pProject->m_DebugManager.DoDebugCommand(sCommand);
                sCommand.Format(_T("-var-list-children %s"), item.sKey);
                m_pProject->m_DebugManager.DoDebugCommand(sCommand);
                // Set off value evaluation run...
@@ -236,6 +234,13 @@ LRESULT CQuickWatchDlg::OnSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
    sText.Replace(_T("public."), _T(""));
    sText.Replace(_T("private."), _T(""));
    sText.Replace(_T("protected."), _T(""));
+   // Remove the types
+   for( int i = 0; i < m_aItems.GetSize(); i++ ) {
+      CString sType;
+      sType.Format(_T(".%s"), m_aItems[i].sType);
+      sText.Replace(sType, _T(""));
+   }
+   // Do final replacements
    if( !sName.IsEmpty() ) {
       // Turn expression "szName.32" into "szName+32"
       if( _istdigit(sName[0]) ) {

@@ -846,13 +846,18 @@ LRESULT CRemoteProject::OnViewBreakpoints(WORD /*wNotifyCode*/, WORD wID, HWND /
       m_viewBreakpoint.Init(this);
       m_viewBreakpoint.Create(m_wndMain, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewBreakpoint, IDE_DOCK_HIDE, CWindow::rcDefault);
+      RECT rcDefault = { 420, 40, 780, 300 };
+      m_DockManager.SetInfo(m_viewBreakpoint, IDE_DOCK_FLOAT, rcDefault);
    }
    
    // Position the view
    if( !m_viewBreakpoint.IsWindowVisible() ) {
-      RECT s_rcWin = { 420, 40, 780, 300 };
-      _pDevEnv->AddDockView(m_viewBreakpoint, IDE_DOCK_FLOAT, s_rcWin);
-      DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      IDE_DOCK_TYPE DockType;
+      RECT rcWindow = { 0 };
+      if( m_DockManager.GetInfo(m_viewBreakpoint, DockType, rcWindow) ) {
+         _pDevEnv->AddDockView(m_viewBreakpoint, DockType, rcWindow);
+         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      }
    }
    else {
       _pDevEnv->AddDockView(m_viewBreakpoint, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -867,18 +872,23 @@ LRESULT CRemoteProject::OnViewRegisters(WORD /*wNotifyCode*/, WORD wID, HWND /*h
 
    // Create the Registers view
    if( !m_viewRegister.IsWindow() ) {
-      CString s(MAKEINTRESOURCE(IDS_CAPTION_REGISTERS));
+      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_REGISTERS));
       DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
       m_viewRegister.Init(this);
-      m_viewRegister.Create(m_wndMain, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
+      m_viewRegister.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewRegister, IDE_DOCK_HIDE, CWindow::rcDefault);
+      RECT rcDefault = { 420, 40, 640, 300 };
+      m_DockManager.SetInfo(m_viewRegister, IDE_DOCK_FLOAT, rcDefault);
    }
 
    // Position the view
    if( !m_viewRegister.IsWindowVisible() ) {
-      RECT s_rcWin = { 420, 40, 640, 300 };
-      _pDevEnv->AddDockView(m_viewRegister, IDE_DOCK_FLOAT, s_rcWin);
-      DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      IDE_DOCK_TYPE DockType;
+      RECT rcWindow = { 0 };
+      if( m_DockManager.GetInfo(m_viewRegister, DockType, rcWindow) ) {
+         _pDevEnv->AddDockView(m_viewRegister, DockType, rcWindow);
+         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      }
    }
    else {
       _pDevEnv->AddDockView(m_viewRegister, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -893,18 +903,23 @@ LRESULT CRemoteProject::OnViewMemory(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
 
    // Create the Memory view
    if( !m_viewMemory.IsWindow() ) {
-      CString s(MAKEINTRESOURCE(IDS_CAPTION_MEMORY));
+      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_MEMORY));
       DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
       m_viewMemory.Init(this);
-      m_viewMemory.Create(m_wndMain, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
+      m_viewMemory.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_HIDE, CWindow::rcDefault);
+      RECT rcDefault = { 120, 140, 760, 400 };
+      m_DockManager.SetInfo(m_viewMemory, IDE_DOCK_FLOAT, rcDefault);
    }
 
    // Position the view
    if( !m_viewMemory.IsWindowVisible() ) {
-      RECT s_rcWin = { 120, 140, 760, 400 };
-      _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_FLOAT, s_rcWin);
-      DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      IDE_DOCK_TYPE DockType;
+      RECT rcWindow = { 0 };
+      if( m_DockManager.GetInfo(m_viewMemory, DockType, rcWindow) ) {
+         _pDevEnv->AddDockView(m_viewMemory, DockType, rcWindow);
+         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      }
    }
    else {
       _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -919,18 +934,23 @@ LRESULT CRemoteProject::OnViewDisassembly(WORD /*wNotifyCode*/, WORD wID, HWND /
 
    // Create the Disassembly view
    if( !m_viewDisassembly.IsWindow() ) {
-      CString s(MAKEINTRESOURCE(IDS_CAPTION_DISASSEMBLY));
+      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_DISASSEMBLY));
       DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
       m_viewDisassembly.Init(this);
-      m_viewDisassembly.Create(m_wndMain, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
+      m_viewDisassembly.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_HIDE, CWindow::rcDefault);
+      RECT rcDefault = { 320, 50, 690, 400 };
+      m_DockManager.SetInfo(m_viewDisassembly, IDE_DOCK_FLOAT, rcDefault);
    }
 
    // Position the view
    if( !m_viewDisassembly.IsWindowVisible() ) {
-      RECT s_rcWin = { 320, 50, 690, 400 };
-      _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_FLOAT, s_rcWin);
-      DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      IDE_DOCK_TYPE DockType;
+      RECT rcWindow = { 0 };
+      if( m_DockManager.GetInfo(m_viewDisassembly, DockType, rcWindow) ) {
+         _pDevEnv->AddDockView(m_viewDisassembly, DockType, rcWindow);
+         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      }
    }
    else {
       _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -945,18 +965,23 @@ LRESULT CRemoteProject::OnViewThreads(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 
    // Create the Thread view
    if( !m_viewThread.IsWindow() ) {
-      CString s(MAKEINTRESOURCE(IDS_CAPTION_THREADS));
+      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_THREADS));
       DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
       m_viewThread.Init(this);
-      m_viewThread.Create(m_wndMain, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
+      m_viewThread.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewThread, IDE_DOCK_HIDE, CWindow::rcDefault);
+      RECT rcDefault = { 420, 220, 700, 350 };
+      m_DockManager.SetInfo(m_viewThread, IDE_DOCK_BOTTOM, rcDefault);
    }
 
    // Position the view
    if( !m_viewThread.IsWindowVisible() ) {
-      RECT s_rcWin = { 420, 220, 700, 350 };
-      _pDevEnv->AddDockView(m_viewThread, IDE_DOCK_BOTTOM, s_rcWin);
-      DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      IDE_DOCK_TYPE DockType;
+      RECT rcWindow = { 0 };
+      if( m_DockManager.GetInfo(m_viewThread, DockType, rcWindow) ) {
+         _pDevEnv->AddDockView(m_viewThread, DockType, rcWindow);
+         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      }
    }
    else {
       _pDevEnv->AddDockView(m_viewThread, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -971,18 +996,23 @@ LRESULT CRemoteProject::OnViewStack(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
 
    // Create the Stack view
    if( !m_viewStack.IsWindow() ) {
-      CString s(MAKEINTRESOURCE(IDS_CAPTION_CALLSTACK));
+      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_CALLSTACK));
       DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
       m_viewStack.Init(this);
-      m_viewStack.Create(m_wndMain, CWindow::rcDefault, s, dwStyle, 0);
+      m_viewStack.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, 0);
       _pDevEnv->AddDockView(m_viewStack, IDE_DOCK_HIDE, CWindow::rcDefault);
+      RECT rcDefault = { 420, 520, 780, 650 };
+      m_DockManager.SetInfo(m_viewStack, IDE_DOCK_BOTTOM, rcDefault);
    }
 
    // Position the view
    if( !m_viewStack.IsWindowVisible() ) {
-      RECT rcWin = { 420, 520, 780, 650 };
-      _pDevEnv->AddDockView(m_viewStack, IDE_DOCK_BOTTOM, rcWin);
-      DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      IDE_DOCK_TYPE DockType;
+      RECT rcWindow = { 0 };
+      if( m_DockManager.GetInfo(m_viewStack, DockType, rcWindow) ) {
+         _pDevEnv->AddDockView(m_viewStack, DockType, rcWindow);
+         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      }
    }
    else {
       _pDevEnv->AddDockView(m_viewStack, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -997,18 +1027,23 @@ LRESULT CRemoteProject::OnViewVariables(WORD /*wNotifyCode*/, WORD wID, HWND /*h
 
    // Create the Variables view
    if( !m_viewVariable.IsWindow() ) {
-      CString s(MAKEINTRESOURCE(IDS_CAPTION_VARIABLES));
+      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_VARIABLES));
       DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
       m_viewVariable.Init(this);
-      m_viewVariable.Create(m_wndMain, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
+      m_viewVariable.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewVariable, IDE_DOCK_HIDE, CWindow::rcDefault);
+      RECT rcDefault = { 450, 520, 760, 750 };
+      m_DockManager.SetInfo(m_viewVariable, IDE_DOCK_BOTTOM, rcDefault);
    }
 
    // Position the view
    if( !m_viewVariable.IsWindowVisible() ) {
-      RECT rcWin = { 450, 520, 760, 750 };
-      _pDevEnv->AddDockView(m_viewVariable, IDE_DOCK_BOTTOM, rcWin);
-      DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      IDE_DOCK_TYPE DockType;
+      RECT rcWindow = { 0 };
+      if( m_DockManager.GetInfo(m_viewVariable, DockType, rcWindow) ) {
+         _pDevEnv->AddDockView(m_viewVariable, DockType, rcWindow);
+         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+      }
    }
    else {
       _pDevEnv->AddDockView(m_viewVariable, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -1023,19 +1058,24 @@ LRESULT CRemoteProject::OnViewWatch(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
 
    // Create the Watches view
    if( !m_viewWatch.IsWindow() ) {
-      CString s(MAKEINTRESOURCE(IDS_CAPTION_WATCH));
+      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_WATCH));
       DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
       m_viewWatch.Init(this);
-      m_viewWatch.Create(m_wndMain, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
+      m_viewWatch.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewWatch, IDE_DOCK_HIDE, CWindow::rcDefault);
+      RECT rcDefault = { 320, 180, 750, 450 };
+      m_DockManager.SetInfo(m_viewWatch, IDE_DOCK_FLOAT, rcDefault);
    }
 
    // Position the view
    if( !m_viewWatch.IsWindowVisible() ) {
-      RECT rcWin = { 320, 180, 750, 450 };
-      _pDevEnv->AddDockView(m_viewWatch, IDE_DOCK_FLOAT, rcWin);
-      DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
-      m_viewWatch.ActivateWatches();
+      IDE_DOCK_TYPE DockType;
+      RECT rcWindow = { 0 };
+      if( m_DockManager.GetInfo(m_viewWatch, DockType, rcWindow) ) {
+         _pDevEnv->AddDockView(m_viewWatch, DockType, rcWindow);
+         DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+         m_viewWatch.ActivateWatches();
+      }
    }
    else {
       _pDevEnv->AddDockView(m_viewWatch, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -1510,7 +1550,6 @@ void CRemoteProject::InitializeToolBars()
    //       class so we need to initialize them only once.
    if( m_ctrlBuild.IsWindow() ) return;
 
-   CString s;
    CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
 
    m_ctrlDebug = CFrameWindowImplBase<>::CreateSimpleToolBarCtrl(wndMain, IDR_DEBUG, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
@@ -1520,10 +1559,8 @@ void CRemoteProject::InitializeToolBars()
 
    m_ctrlMode.Create(m_ctrlBuild, CWindow::rcDefault, NULL, WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | CBS_HASSTRINGS);
    m_ctrlMode.SetFont(AtlGetDefaultGuiFont());
-   s.LoadString(IDS_RELEASE);
-   m_ctrlMode.AddString(s);
-   s.LoadString(IDS_DEBUG);
-   m_ctrlMode.AddString(s);
+   m_ctrlMode.AddString(CString(MAKEINTRESOURCE(IDS_RELEASE)));
+   m_ctrlMode.AddString(CString(MAKEINTRESOURCE(IDS_DEBUG)));
    m_ctrlMode.SetCurSel(1);
 
    m_ctrlBuild.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
@@ -1558,7 +1595,7 @@ void CRemoteProject::_InitializeData()
 
    // Create the Compile Log view
    sCaption.LoadString(IDS_CAPTION_COMPILELOG);
-   dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+   dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
    m_viewCompileLog.Init(&m_CompileManager.m_ShellManager);
    m_viewCompileLog.Create(m_wndMain, CWindow::rcDefault, sCaption, dwStyle, WS_EX_CLIENTEDGE);
    _pDevEnv->AddDockView(m_viewCompileLog, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -1566,7 +1603,7 @@ void CRemoteProject::_InitializeData()
    // Create the Debug Log view
    COLORREF clrBack = BlendRGB(::GetSysColor(COLOR_WINDOW), RGB(0,0,0), 5);
    sCaption.LoadString(IDS_CAPTION_DEBUGLOG);
-   dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+   dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
    m_viewDebugLog.Init(&m_DebugManager.m_ShellManager);
    m_viewDebugLog.Create(m_wndMain, CWindow::rcDefault, sCaption, dwStyle, WS_EX_CLIENTEDGE);
    m_viewDebugLog.SetColors(::GetSysColor(COLOR_WINDOWTEXT), clrBack);

@@ -136,7 +136,7 @@ LRESULT CTelnetView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
    return 0;
 }
 
-LRESULT CTelnetView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+LRESULT CTelnetView::OnKeyUp(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
    if( wParam == 'C' && (::GetKeyState(VK_CONTROL) & 0x8000) != 0 ) m_pShell->WriteSignal(TERMINAL_BREAK);
    if( wParam == 'D' && (::GetKeyState(VK_CONTROL) & 0x8000) != 0 ) m_pShell->WriteSignal(TERMINAL_QUIT);
@@ -165,7 +165,7 @@ LRESULT CTelnetView::OnEraseBkgnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*
    RECT rcClip;
    dc.GetClipBox(&rcClip);
    dc.FillSolidRect(&rcClip, m_clrBack);
-   return TRUE; // We've done the painting
+   return TRUE; // We're done the painting
 }
 
 LRESULT CTelnetView::OnGetMinMaxInfo(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
@@ -182,6 +182,12 @@ LRESULT CTelnetView::OnGetMinMaxInfo(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lP
       (2 * ::GetSystemMetrics(SM_CYSIZEFRAME)) + 
       (2 * ::GetSystemMetrics(SM_CYEDGE)) + 
       ::GetSystemMetrics(SM_CYHSCROLL);
+   return 0;
+}
+
+LRESULT CTelnetView::OnButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   SetFocus();
    return 0;
 }
 

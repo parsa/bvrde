@@ -60,6 +60,8 @@ void CBreakpointView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          sNumber = info.FindNext(_T("number"));
       }
       if( iSel == -1 ) {
+         // No selection yet? Let's take the oppotunity to
+         // resize the column headers...
          m_ctrlList.SetColumnWidth(0, 90);
          m_ctrlList.SetColumnWidth(1, 100);
          m_ctrlList.SetColumnWidth(2, 120);
@@ -97,8 +99,11 @@ LRESULT CBreakpointView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 LRESULT CBreakpointView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
    LPNMLISTVIEW lpNMLV = (LPNMLISTVIEW) pnmh;
+   // To prevent submitting new debug commands while we're just updating
+   // existing items with GDB output, we check this guy...
    if( m_bUpdating ) return 0;
    if( (lpNMLV->uNewState & LVIS_STATEIMAGEMASK) == (lpNMLV->uOldState & LVIS_STATEIMAGEMASK) ) return 0;
+   // User changed item? Let's update the debugger...
    int iItem = m_ctrlList.GetSelectedIndex();
    long lName = (long) m_ctrlList.GetItemData(iItem);
    if( m_ctrlList.GetCheckState(iItem) ) {
@@ -111,6 +116,7 @@ LRESULT CBreakpointView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHa
       sCommand.Format(_T("-break-disable %ld"), lName);
       m_pProject->DelayedDebugCommand(sCommand);
    }
+   // Get a fresh view of things
    m_pProject->DelayedDebugCommand(_T("-break-list"));
    return 0;
 }

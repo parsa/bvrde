@@ -15,10 +15,10 @@ public:
 
    CClassView();
 
-   bool m_bLoaded;
-   bool m_bLocked;
-   CRemoteProject* m_pProject;
-   CSimpleArray<CString> m_aExpandedNames;
+   bool m_bLocked;                               // Is data structures locked?
+   bool m_bPopulated;                            // Has tree been populated?
+   CRemoteProject* m_pProject;                   // Reference to project
+   CSimpleArray<CString> m_aExpandedNames;       // List of exanded tree-names
 
    CImageListCtrl m_Images;
    CTreeViewCtrl m_ctrlTree;

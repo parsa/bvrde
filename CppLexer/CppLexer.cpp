@@ -25,16 +25,16 @@ BOOL APIENTRY DllMain( HANDLE hInstance, DWORD /*dwReason*/, LPVOID /*lpReserved
 /////////////////////////////////////////////////////////////////////////////
 // Parse method
 
-LPSTR W2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars)
+LPSTR _W2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars)
 {
    lpa[0] = '\0';
    ::WideCharToMultiByte(CP_ACP, 0, lpw, -1, lpa, nChars, NULL, NULL);
    return lpa;
 }
 
-bool UDgreater(std::string elem1, std::string elem2)
+bool _UDgreater(std::string& elem1, std::string& elem2)
 {
-   return elem1 < elem2;
+   return elem1.substr(0, elem1.find('|')) < elem2.substr(0, elem2.find('|'));
 }
 
 
@@ -48,7 +48,7 @@ BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
    parseCpp( root );
 
    char szFilename[MAX_PATH] = { 0 };
-   W2AHelper(szFilename, pstrFilename, ::lstrlenW(pstrFilename));
+   _W2AHelper(szFilename, pstrFilename, ::lstrlenW(pstrFilename));
    
    std::vector<std::string> aList;
 
@@ -108,7 +108,7 @@ BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
       aList.push_back(sRes);
    }
 
-   std::sort(aList.begin(), aList.end(), UDgreater);
+   std::sort(aList.begin(), aList.end(), _UDgreater);
 
    delete root;
 
@@ -121,8 +121,8 @@ BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
    if( p ) *p = '_';
    strcat(szTargetFilename, ".lex");
 
-   char szFirstLine[MAX_PATH];
-   ::wsprintf(szFirstLine, "#%s\n", szFilename);
+   char szFirstLine[MAX_PATH + 2];
+   ::wsprintfA(szFirstLine, "#%s\n", szFilename);
 
    HANDLE hFile = ::CreateFile(szTargetFilename, 
       GENERIC_WRITE, 

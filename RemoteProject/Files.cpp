@@ -334,6 +334,7 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
          free(pstrData);
       }
    }
+
    return TRUE;
 }
 
@@ -413,7 +414,6 @@ BOOL CTextFile::OpenView(long lLineNum)
    lLineNum = max(0, lLineNum - 1);
    m_view.m_ctrlEdit.GotoLine(lLineNum);
    m_view.m_ctrlEdit.EnsureVisible(lLineNum);
-   m_wndFrame.PostMessage(WM_SETFOCUS);
 
    return TRUE;
 }

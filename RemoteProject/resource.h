@@ -40,6 +40,7 @@
 #define IDR_DEBUG                       114
 #define IDM_BOOKMARKS                   114
 #define IDS_STATUS_STARTED              115
+#define IDR_DISASSEMBLY                 115
 #define IDS_STATUS_FINISHED             116
 #define IDD_QUICKWATCH                  116
 #define IDS_COMPILEBUSY                 117
@@ -219,6 +220,8 @@
 #define IDS_ERR_FILEENCODING            265
 #define IDS_COMMAND_COMPILEFLAGS        266
 #define IDS_COMMAND_LINKFLAGS           267
+#define IDS_ERR_DEBUGUNSTABLE           268
+#define IDS_STACKSUBSTR                 269
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -353,13 +356,15 @@
 #define ID_VIEW_MEMORY                  40114
 #define ID_VIEW_DISASM                  40115
 #define ID_BUILD_FILEWIZARD             40116
+#define ID_DISASM_INTELSTYLE            40117
+#define ID_DISASM_SHOWSOURCE            40118
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        124
-#define _APS_NEXT_COMMAND_VALUE         40117
+#define _APS_NEXT_COMMAND_VALUE         40121
 #define _APS_NEXT_CONTROL_VALUE         1025
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

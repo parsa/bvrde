@@ -433,7 +433,7 @@ UINT CMainFrame::ShowPopupMenu(IElement* pElement, HMENU hMenu, POINT pt, BOOL b
    // Allow plugins to customize menu
    for( int i = 0; i < g_aPlugins.GetSize(); i++ ) g_aPlugins[i].SetPopupMenu(pElement, hMenu);
    // Show popup-menu
-   const DWORD dwFlags = TPM_LEFTBUTTON | TPM_VERTICAL | TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD;
+   DWORD dwFlags = TPM_LEFTBUTTON | TPM_VERTICAL | TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD;
    UINT nCmd = (UINT) m_CmdBar.TrackPopupMenu(hMenu, dwFlags, pt.x, pt.y, NULL);
    // We need the command returned now because TrackPopupMenu() would otherwise post the
    // result-message - rather than sending it. We need the value, because we might

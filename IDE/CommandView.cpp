@@ -272,6 +272,7 @@ LRESULT CCommandView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
    SetFont(AtlGetDefaultGuiFont());
    SetBackgroundColor(::GetSysColor(COLOR_WINDOW));
    LimitText(60000);
+   SetUndoLimit(0);
    SetSel(-1, -1);
 
    m_pMainFrame->AddCommandListener(this);
@@ -302,6 +303,20 @@ LRESULT CCommandView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
          s_thread.Start();
       }
       return 0;
+   }
+   if( wParam == VK_BACK ) {
+      // Cannot delete prompt itself
+      LONG iStart, iEnd;
+      GetSel(iStart, iEnd);
+      TCHAR szBuffer[5] = { 0 };
+      TEXTRANGE tr = { 0 };
+      tr.chrg.cpMin = max(0, iStart - 3);
+      tr.chrg.cpMax = max(0, iStart);
+      tr.lpstrText = szBuffer;
+      GetTextRange(&tr);
+      if( _tcsncmp(szBuffer, _T("> "), 3) == 0 ) return 0;
+      if( _tcsncmp(szBuffer, _T("\r> "), 3) == 0 ) return 0;
+      if( _tcsncmp(szBuffer, _T("\n> "), 3) == 0 ) return 0;
    }
    bHandled = FALSE;
    return 0;

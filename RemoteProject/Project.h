@@ -11,6 +11,7 @@
 #include "FileProxy.h"
 #include "CompileManager.h"
 #include "DebugManager.h"
+#include "DockManager.h"
 #include "TagProxy.h"
 
 #include "ObjectModel.h"
@@ -22,7 +23,7 @@
 #include "WatchView.h"
 #include "BreakpointView.h"
 #include "RegisterView.h"
-#include "memoryView.h"
+#include "MemoryView.h"
 #include "DisasmView.h"
 #include "ThreadView.h"
 #include "WizardSheet.h"
@@ -51,6 +52,7 @@ public:
    CDebugManager m_DebugManager;
    CTagManager m_TagManager;
    CProjectOM m_Dispatch;
+   CDockManager m_DockManager;
 
 private:
    CString m_sName;

@@ -22,6 +22,7 @@ public:
    {
       CString sKey;
       CString sName;
+      CString sType;
       CString sValue;
       int iParent;
       int iIndent;

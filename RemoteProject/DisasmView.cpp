@@ -10,7 +10,9 @@
 // Constructor/destructor
 
 CDisasmView::CDisasmView() :
-   m_pProject(NULL)
+   m_pProject(NULL),
+   m_bIntelStyle(false),
+   m_bShowSource(false)
 {
 }
 
@@ -34,8 +36,17 @@ bool CDisasmView::WantsData()
 
 void CDisasmView::PopulateView(CSimpleArray<CString>& aDbgCmd)
 {
+   // Estimate instruction count needed to fill screen
+   const long AVG_INST_SIZE = 5;
+   CClientRect rcClient = m_hWnd;
+   long lRows = (rcClient.bottom - rcClient.top) / m_tm.tmHeight * AVG_INST_SIZE;
+   // Execute command
    CString sCommand;
-   sCommand.Format(_T("-data-disassemble -s $pc -e \"$pc + %ld\" -- 0"), _EstimateInstructionCount());
+   sCommand.Format(_T("-gdb-set disassembly-flavor %s"), m_bIntelStyle ? _T("intel") : _T("att"));
+   aDbgCmd.Add(sCommand);
+   sCommand.Format(_T("-data-disassemble -s $pc -e \"$pc + %ld\" -- %ld"), 
+      lRows,
+      m_bShowSource ? 1 : 0);
    aDbgCmd.Add(sCommand);
 }
 
@@ -100,18 +111,6 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 
 // Implementation
 
-long CDisasmView::_EstimateInstructionCount() const
-{
-   ATLASSERT(::IsWindow(m_hWnd));
-   // Guess of code size based on average instruction size in bytes!!
-   // We'll try to only disassemble as many instructions as will
-   // fit on one page since GDB doesn't allow us to say "start address -> num"
-   // instructions" even if it's documented to do so.
-   const long AVG_INST_SIZE = 5;
-   CClientRect rcClient = m_hWnd;
-   return (rcClient.bottom - rcClient.top) / m_tm.tmHeight * AVG_INST_SIZE;
-}
-
 DWORD CALLBACK CDisasmView::_EditStreamCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)
 {
    STREAMCOOKIE* cookie = (STREAMCOOKIE*) dwCookie;
@@ -153,5 +152,42 @@ LRESULT CDisasmView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
    m_ctrlAddress.MoveWindow(&rcAddress);
    m_ctrlView.MoveWindow(&rcMemory);
    return 0;
+}
+
+LRESULT CDisasmView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{   
+   POINT pt;
+   ::GetCursorPos(&pt);
+   CMenu menu;
+   menu.LoadMenu(IDR_DISASSEMBLY);
+   ATLASSERT(menu.IsMenu());
+   CMenuHandle submenu = menu.GetSubMenu(0);
+   UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, pt, TRUE, this);
+   PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0), (LPARAM) m_hWnd);
+   return 0;
+}
+
+LRESULT CDisasmView::OnShowSource(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   m_bShowSource = !m_bShowSource;
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+   return 0;
+}
+
+LRESULT CDisasmView::OnIntelStyle(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   m_bIntelStyle = !m_bIntelStyle;
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+   return 0;
+}
+
+// IIdleListener
+
+void CDisasmView::OnIdle(IUpdateUI* pUIBase)
+{
+   pUIBase->UIEnable(ID_DISASM_INTELSTYLE, TRUE);
+   pUIBase->UIEnable(ID_DISASM_SHOWSOURCE, FALSE);  // Not supported yet
+   pUIBase->UISetCheck(ID_DISASM_INTELSTYLE, m_bIntelStyle);
+   pUIBase->UISetCheck(ID_DISASM_SHOWSOURCE, m_bShowSource);
 }
 
