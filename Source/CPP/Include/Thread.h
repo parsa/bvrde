@@ -160,6 +160,7 @@ typedef CThreadT<true> CThread;
 /////////////////////////////////////////////////////////////////////////////
 // CThreadImpl
 
+template< class T >
 class CThreadImpl : public CThread
 {
 public:
@@ -176,7 +177,7 @@ public:
    virtual BOOL Start()
    {
       m_bStopped = false;
-      if( !Create(ThreadProc, (LPVOID) this) ) return FALSE;
+      if( !Create(ThreadProc, (LPVOID) static_cast<T*>(this) ) ) return FALSE;
       return TRUE;
    }
    virtual void Stop()
@@ -200,7 +201,7 @@ public:
 
    static DWORD WINAPI ThreadProc(LPVOID pData)
    {
-      CThreadImpl* pThis = static_cast<CThreadImpl*>(pData);
+      T* pThis = static_cast<T*>(pData);
 #if defined(_MT) || defined(_DLL)
       ATLTRY(_endthreadex( pThis->Run() ));
       return 0;
@@ -210,7 +211,7 @@ public:
       return dwRet;
 #endif
    }
-   virtual DWORD Run()
+   DWORD Run()
    {
       _ASSERTE(false); // must override this
 /*
