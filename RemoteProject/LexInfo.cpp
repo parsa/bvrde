@@ -192,7 +192,7 @@ bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aList)
       const LEXFILE& file = *m_aFiles[i];
       int nCount = file.aTags.GetSize();
       for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
-         TAGINFO& info = file.aTags[iIndex];
+         const TAGINFO& info = file.aTags[iIndex];
          if( info.pstrFile == NULL ) continue;
          switch( info.Type ) {
          case TAGTYPE_CLASS:
@@ -218,7 +218,7 @@ bool CLexInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aList)
       const LEXFILE& file = *m_aFiles[i];
       int nCount = file.aTags.GetSize();
       for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
-         TAGINFO& info = file.aTags[iIndex];
+         const TAGINFO& info = file.aTags[iIndex];
          // Must not be parent of something
          if( info.pstrFields[0][0] != '\0' ) continue;
          if( info.pstrFile == NULL ) continue;
@@ -245,7 +245,7 @@ bool CLexInfo::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList,
       const LEXFILE& file = *m_aFiles[i];
       int nCount = file.aTags.GetSize();
       for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
-         TAGINFO& info = file.aTags[iIndex];
+         const TAGINFO& info = file.aTags[iIndex];
          if( _tcscmp(info.pstrFields[0], pstrType) == 0 ) {
             TAGINFO* pTag = &m_aFiles[i]->aTags.m_aT[iIndex];
             aList.Add(pTag);
@@ -344,7 +344,7 @@ bool CLexInfo::_ParseFile(CString& sName, LEXFILE& file) const
    pstrData[dwSize] = '\0';
 
    LPTSTR p = (LPTSTR) malloc((dwSize + 1) * sizeof(TCHAR));
-   AtlA2WHelper(p, pstrData, dwSize);
+   AtlA2WHelper(p, pstrData, dwSize + 1);
    free(pstrData);
 
    file.pData = p;

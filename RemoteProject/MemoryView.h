@@ -33,11 +33,13 @@ public:
       MESSAGE_HANDLER(WM_SIZE, OnSize)
    ALT_MSG_MAP(1)
       MESSAGE_HANDLER(WM_CHAR, OnEditChar)
+      MESSAGE_HANDLER(WM_KEYDOWN, OnEditKeyDown)
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnEditChar(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnEditKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 };
 
 

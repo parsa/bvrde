@@ -89,9 +89,9 @@ public:
    IDispatch* __stdcall get_App() { return m_spDevEnv; };
    IDispatch* __stdcall get_Response() { return &m_Response; };
    IDispatch* __stdcall get_Globals() { return &m_Globals; };
-   IDispatch* __stdcall get_Solution() { return m_spSolution; };
-   IDispatch* __stdcall get_Project() { return m_spProject; };
-   IDispatch* __stdcall get_File() { return m_spView; };
+   IDispatch* __stdcall get_Solution() { return m_spSolution->AddRef(); m_spSolution; };
+   IDispatch* __stdcall get_Project() { return m_spProject->AddRef(); m_spProject; };
+   IDispatch* __stdcall get_File() { return m_spView->AddRef(); m_spView; };
 };
 
 

@@ -1542,6 +1542,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          {
             // Debugger stopped at some point (breakpoint, user break, etc).
             // Let's update the debug views with fresh values.
+
             if( m_viewBreakpoint.WantsData() ) {
                aDbgCmd.Add(CString(_T("-break-list")));
             }
@@ -1579,6 +1580,9 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          {
             // New debug information has arrived. Spread it around to the
             // debug views since they are the likely candidates for this data.
+            // Most of these messages originates from the LAZY_DEBUG_STOP_EVENT handling
+            // above anyway.
+
             if( m_viewStack.WantsData() ) m_viewStack.SetInfo(data.szMessage, data.MiInfo);
             if( m_viewWatch.WantsData() ) m_viewWatch.SetInfo(data.szMessage, data.MiInfo);               
             if( m_viewThread.WantsData() ) m_viewThread.SetInfo(data.szMessage, data.MiInfo);

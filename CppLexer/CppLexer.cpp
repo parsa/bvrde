@@ -135,7 +135,7 @@ BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
    if( hFile == INVALID_HANDLE_VALUE ) return FALSE;
    DWORD dwWritten = 0;
    ::WriteFile(hFile, szFirstLine, strlen(szFirstLine), &dwWritten, NULL);
-   for( int i = 0; i < aList.size(); i++ ) {
+   for( size_t i = 0; i < aList.size(); i++ ) {
       ::WriteFile(hFile, aList[i].c_str(), aList[i].length(), &dwWritten, NULL);
    }
    ::CloseHandle(hFile);

@@ -501,7 +501,7 @@ bool CRloginProtocol::WriteData(LPCTSTR pstrData)
    int nLen = _tcslen(pstrData);
    LPSTR pstr = (LPSTR) _alloca(nLen + 2);
    ATLASSERT(pstr);
-   pstr = AtlW2AHelper(pstr, pstrData, nLen);
+   AtlW2AHelper(pstr, pstrData, nLen + 1);
    strcpy(pstr + nLen, "\n");
    CLockStaticDataInit lock;
    if( !m_socket.Write(pstr, nLen + 1) ) {

@@ -278,6 +278,10 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
             return FALSE;
          }
          CComBSTR bstr( (int) dwSize );
+         // BUG: Using 'dwSize' without the additional sz-terminator is
+         //      problematic since the AtlW2AHelper conversion actually
+         //      returns an error/failure. However, 'pData' is *not*
+         //      NULL terminated at this point!
          AtlA2WHelper(bstr, (LPCSTR) pData, dwSize);
          *pbstrText = bstr.Detach();
          free(pData);
@@ -362,7 +366,7 @@ BOOL CTextFile::OpenView(long lLineNum)
          ::SetLastError(ERROR_OUTOFMEMORY);
          return FALSE;
       }
-      AtlW2AHelper(pstrData, sText, nLen);
+      AtlW2AHelper(pstrData, sText, nLen + 1);
       pstrData[nLen] = '\0';
       m_view.SetText(pstrData);
       free(pstrData);

@@ -45,7 +45,7 @@ class McList : public std::vector<T>
 public:
    ~McList()
    {
-      for( int i = 0; i < size(); i++ ) delete at(i);
+      for( size_t i = 0; i < size(); i++ ) delete at(i);
    }
    inline T last() const { return at(size() - 1); };
    inline void append(T p) { push_back(p); };

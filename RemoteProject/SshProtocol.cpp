@@ -443,7 +443,7 @@ bool CSshProtocol::WriteData(LPCTSTR pstrData)
    LPSTR pstr = (LPSTR) _alloca(nLen + 2);
    ATLASSERT(pstr);
    if( pstr == NULL ) return false;
-   pstr = AtlW2AHelper(pstr, pstrData, nLen);
+   AtlW2AHelper(pstr, pstrData, nLen + 1);
    strcpy(pstr + nLen, "\n");
    CLockStaticDataInit lock;
    int iWritten = 0;
