@@ -1141,8 +1141,8 @@ void CScintillaView::_ShowToolTip(long lPos, CString& sText, COLORREF clrBack, C
    int nLength = sText.GetLength();
    for( int i = 0; i < nLength; i++ ) {
       cxWidth++;
-      if( (cxWidth > SUGGESTED_LINE_WIDTH 
-           && (sText[i] == '(' || sText[i] == '{' || sText[i] == ','))
+      TCHAR ch = sText[i];
+      if( (cxWidth > SUGGESTED_LINE_WIDTH && (ch == '(' || ch == '{' || ch == ','))
           || cxWidth > MAX_LINE_WIDTH ) 
       {
          CString sTemp = sText.Left(i + 1);
@@ -1151,6 +1151,7 @@ void CScintillaView::_ShowToolTip(long lPos, CString& sText, COLORREF clrBack, C
          sTemp += sText.Mid(i + 1);
          sText = sTemp;
          nLength = sText.GetLength();
+         cxWidth = 0;
       }
       if( sText[i] == '\n' ) cxWidth = 0;
    }

@@ -17,6 +17,7 @@ public:
    enum { IDD = IDD_QUICKWATCH };
 
    enum { CX_INDENT = 18 };
+   enum { MAX_VALUE_DISPLAY_LENGTH = 160 };
 
    typedef struct tagITEM
    {

@@ -212,7 +212,7 @@ LRESULT CQuickWatchDlg::OnSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
          if( iPos > 0 ) sText.SetAt(iPos, '+');
       }
       // Turn expression "szName+32.*szName+32" into just "*szName+32"
-      if( sName[0] == '*' ) sText = sName;
+      if( sName[0] == '*' ) sText.Replace(sName.Mid(1) + _T("."), _T(""));
    }
    m_ctrlLine.SetWindowText(sText);
    return 0;
@@ -317,11 +317,11 @@ void CQuickWatchDlg::DrawItem(LPDRAWITEMSTRUCT lpDIS)
    rcName.left += item.iIndent * CX_INDENT;
    dc.DrawText(item.sName, -1, &rcName, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
 
-   if( item.sValue.FindOneOf(_T("[{")) == 0 ) clrText = ::GetSysColor(COLOR_HIGHLIGHT);
+   if( item.sValue.FindOneOf(_T("[{@")) == 0 ) clrText = ::GetSysColor(COLOR_HIGHLIGHT);
    if( item.sValue.Find(_T(" <")) >= 0 ) clrText = ::GetSysColor(COLOR_GRAYTEXT);
    dc.SetTextColor(bSelected ? ::GetSysColor(COLOR_HIGHLIGHTTEXT) : clrText);
    RECT rcValue = { iMiddle + 3, rc.top + 1, rc.right - 2, rc.bottom };
-   dc.DrawText(item.sValue.Left(80), -1, &rcValue, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_NOPREFIX);
+   dc.DrawText(item.sValue.Left(MAX_VALUE_DISPLAY_LENGTH), -1, &rcValue, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_NOPREFIX);
 
    if( !bSelected ) 
    {
@@ -354,7 +354,7 @@ int CQuickWatchDlg::_GetItemHeight(int iIndex) const
    // Calculate height of item.
    // NOTE: This may be a multi-line text so we need to determine the
    //       correct DrawText height.
-   CString sValue = m_aItems[iIndex].sValue.Left(80);
+   CString sValue = m_aItems[iIndex].sValue.Left(MAX_VALUE_DISPLAY_LENGTH);
    sValue.TrimRight();
    if( sValue.IsEmpty() ) sValue = _T("X");
    RECT rc;
