@@ -208,6 +208,8 @@
 #define IDS_COMMAND_CHECKSYNTAX         255
 #define IDS_STATUS_SAVEFILE             256
 #define IDS_STATUS_LOADFILE             257
+#define IDS_CAPTION_DISASSEMBLY         257
+#define IDS_CAPTION_MEMORY              258
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -337,13 +339,15 @@
 #define ID_BUILD_CHECKSYNTAX            40110
 #define ID_BUILD_BUILDTAGS              40111
 #define ID_BUILD_BUILDMAKEFILE          40112
+#define ID_VIEW_MEMORY                  40114
+#define ID_VIEW_DISASM                  40115
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        124
-#define _APS_NEXT_COMMAND_VALUE         40114
+#define _APS_NEXT_COMMAND_VALUE         40116
 #define _APS_NEXT_CONTROL_VALUE         1024
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

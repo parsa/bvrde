@@ -112,13 +112,11 @@ LRESULT CViewImpl::SendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 CString CViewImpl::_GetRealFilename() const
 {
+   // Resolve filename if it has a relative path
    CString sPath;
-   if( m_sFilename.Left(1) == _T(".") )
-   {
-      if( m_pCppProject ) {
-         m_pCppProject->GetPath(sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
-         sPath.ReleaseBuffer();
-      }
+   if( m_pCppProject != NULL && m_sFilename.Left(1) == _T(".") ) {
+      m_pCppProject->GetPath(sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
+      sPath.ReleaseBuffer();
    }
    return sPath + m_sFilename;
 }
@@ -221,13 +219,6 @@ BOOL CTextFile::Save()
       if( !m_pCppProject->m_FileManager.SaveFile(m_sFilename, true, (LPBYTE) pstrText, strlen(pstrText)) ) {
          free(pstrText);
          return FALSE;
-      }
-      if( m_sLanguage == "cpp" ) {
-         // Using the C++ online scanner? We should parse the new file,
-         // merge the tags if possible and rebuild the ClassView.
-         if( m_pCppProject->m_TagManager.m_LexInfo.IsAvailable() ) {
-            m_pCppProject->m_TagManager.m_LexInfo.MergeFile(m_sFilename, pstrText);
-         }
       }
    }
    else 
@@ -343,7 +334,7 @@ BOOL CTextFile::OpenView(long lLineNum)
       if( !GetText(&bstrText) ) return FALSE;
       CString sText = bstrText;
 
-      if( m_sLocation != _T("remote") ) 
+      if( m_sLocation != _T("remote") )
       {
          DWORD dwAttribs = ::GetFileAttributes(_GetRealFilename());
          if( dwAttribs & FILE_ATTRIBUTE_READONLY ) {

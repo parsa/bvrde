@@ -12,7 +12,7 @@
 #define _WIN32_IE         0x0501
 #define _RICHEDIT_VER     0x0200
 
-#define NOCRYPT				// Disable include of wincrypt.h
+#define NOCRYPT            // Disable include of wincrypt.h
 #define _WINSOCKAPI_       // Don't include WinSOCK v1
 #define _WTL_NEW_PAGE_NOTIFY_HANDLERS
 

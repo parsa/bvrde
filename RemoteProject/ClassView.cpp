@@ -73,6 +73,7 @@ void CClassView::Init(CRemoteProject* pProject)
    m_aExpandedNames.RemoveAll();
    m_pProject = pProject;
    m_bLoaded = false;
+   m_iScrollPos = 0;
    
    if( IsWindow() 
        && m_pProject != NULL
@@ -92,8 +93,9 @@ void CClassView::Init(CRemoteProject* pProject)
 void CClassView::Clear()
 {
    if( !m_ctrlTree.IsWindow() ) return;
-   // Remember which braches were expanded before we
-   // recreate the list
+   // Remember which braches were expanded when we try to
+   // recreate the list the next time...
+   m_iScrollPos = 0;
    m_aExpandedNames.RemoveAll();
    HTREEITEM hItem = m_ctrlTree.GetRootItem();
    while( hItem != NULL ) {
@@ -105,6 +107,7 @@ void CClassView::Clear()
       }
       hItem = m_ctrlTree.GetNextSiblingItem(hItem);
    }
+   m_iScrollPos = m_ctrlTree.GetScrollPos(SB_VERT);
    // Delete all items
    m_ctrlTree.DeleteAllItems();
    m_bLoaded = false;
@@ -138,11 +141,12 @@ void CClassView::_PopulateTree()
    m_pProject->m_TagManager.GetOuterList(aList);
    if( aList.GetSize() > 0 ) 
    {
-      CWindowRedraw redraw = m_ctrlTree;
+      m_ctrlTree.SetRedraw(FALSE);
 
       m_ctrlTree.DeleteAllItems();  
 
       // Insert classes and expand previously expanded branches...
+      HTREEITEM hFirstVisible = NULL;
       TV_INSERTSTRUCT tvis = { 0 };
       tvis.hParent = TVI_ROOT;
       tvis.hInsertAfter = TVI_LAST;
@@ -172,6 +176,11 @@ void CClassView::_PopulateTree()
       tvis.item.iSelectedImage = 1;
       tvis.item.lParam = 0;
       m_ctrlTree.InsertItem(&tvis);
+
+      m_ctrlTree.SetRedraw(TRUE);
+
+      // FIX: Scrolling must be done outside WM_SETREDRAW section
+      m_ctrlTree.SetScrollPos(SB_VERT, m_iScrollPos, TRUE);
    }
 
    m_bLoaded = true;
@@ -245,6 +254,7 @@ LRESULT CClassView::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
 
 LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
+   USES_CONVERSION;
    HTREEITEM hItem = m_ctrlTree.GetDropHilightItem();
    if( hItem == NULL ) hItem = m_ctrlTree.GetSelectedItem();
    if( hItem == NULL ) return 0;
@@ -272,7 +282,6 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
          m_ctrlTree.GetItemText(hItem, sText);
          HGLOBAL hGlobal = GlobalAlloc(GMEM_FIXED, sText.GetLength() + 1);
          if( hGlobal == NULL ) return 0;
-         USES_CONVERSION;
          memcpy(hGlobal, T2CA(sText), sText.GetLength() + 1);
          if( !::OpenClipboard(m_hWnd) ) return 0;
          ::EmptyClipboard();
@@ -292,16 +301,15 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
 
 LRESULT CClassView::OnTreeBeginDrag(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
+   USES_CONVERSION;
    LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
    CString sText;
    m_ctrlTree.GetItemText(lpNMTV->itemNew.hItem, sText);
    CComObject<CSimpleDataObj>* pObj = NULL;
    if( FAILED( CComObject<CSimpleDataObj>::CreateInstance(&pObj) ) ) return 0;
-   USES_CONVERSION;
    if( FAILED( pObj->SetTextData(T2CA(sText)) ) ) return 0;
    DWORD dwEffect = 0;
-   CComPtr<IDataObject> spObj = pObj;
-   ::DoDragDrop(spObj, this, DROPEFFECT_COPY, &dwEffect);
+   ::DoDragDrop(pObj, this, DROPEFFECT_COPY, &dwEffect);
    return 0;
 }
 

@@ -38,7 +38,7 @@ static Entry*		current_root = 0 ;
 static Entry*		global_root  = 0 ;
 static Entry*		current      = 0 ;
 
-static int		yyLineNr = 0 ;
+static int		yyLineNr = 1 ;
 static char		yyFileName[264] ;
 static McString*	currentString ;
 
@@ -158,24 +158,28 @@ static int yyread(char *buf,int max_size)
 
 <FindMembers>[ \t]*"typedef"[ \t\n]+"class"[ \t\n]+	{
 					  current->section = TYPEDEF_SEC ;
+				      current->lineNo = yyLineNr;
 					  current->type = "typedef class" ;
 					  current->name.clear() ;
 					  lineCount() ;
 					}
 <FindMembers>[ \t]*"typedef"[ \t\n]+"struct"[ \t\n]+	{
 					  current->section = TYPEDEF_SEC ;
+				      current->lineNo = yyLineNr;
 					  current->type = "typedef struct" ;
 					  current->name.clear() ;
 					  lineCount() ;
 					}
 <FindMembers>[ \t]*"typedef"[ \t\n]+"enum"[ \t\n]+	{
 					  current->section = TYPEDEF_SEC ;
+				      current->lineNo = yyLineNr;
 					  current->type = "typedef enum" ;
 					  current->name.clear() ;
 					  lineCount() ;
 					}
 <FindMembers>[ \t]*"typedef"[ \t\n]+"union"[ \t\n]+	{
 					  current->section = TYPEDEF_SEC ;
+				      current->lineNo = yyLineNr;
 					  current->type = "typedef union" ;
 					  current->name.clear() ;
 					  lineCount() ;
@@ -183,38 +187,45 @@ static int yyread(char *buf,int max_size)
 
 <FindMembers>[ \t]*"class"[ \t\n]+	{ current->section = CLASS_SEC ;
 					  addType( current ) ;
+				      current->lineNo = yyLineNr;
 					  current->type += " class" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
 					}
 <FindMembers>[ \t]*"struct"[ \t\n]+	{ current->section = UNION_SEC ;
 					  addType( current ) ;
+				      current->lineNo = yyLineNr;
 					  current->type += " struct" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
 					}
 <FindMembers>[ \t]*"enum"[ \t\n]+	{ current->section = UNION_SEC ;
 					  addType( current ) ;
+				      current->lineNo = yyLineNr;
 					  current->type += " enum" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
 					}
 <FindMembers>[ \t]*"union"[ \t\n]+	{ current->section = UNION_SEC ;
 					  addType( current ) ;
+				      current->lineNo = yyLineNr;
 					  current->type += " union" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
 					}
 
 <FindMembers>"operator"/[^a-z_A-Z0-9]	{ addType( current ) ;
+				      current->lineNo = yyLineNr;
 					  current->name  = yytext ;
 					  BEGIN( Operator ) ;
 					}
 <Operator>[^(]*				{ current->name += yytext ;
+				      current->lineNo = yyLineNr;
 					  BEGIN( FindMembers ) ;
 					}
 
 <FindMembers>[a-z_A-Z~:.0-9]+		{ addType( current ) ;
+				      current->lineNo = yyLineNr;
 					  current->name  = yytext ;
 					}
 
@@ -229,6 +240,7 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( Define ) ;
 					}
 <Define>[a-z_A-Z:.0-9]+			{ current->name = yytext ;
+				      current->lineNo = yyLineNr;
 					  BEGIN( DefineEnd ) ;
 					}
 <DefineEnd>[ \t]			{ BEGIN( DefineEnd ) ; }
@@ -254,10 +266,12 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( FindMembers ) ;
 					}
 
-<FindMembers>[*&]+		{ current->name += yytext ; }
+<FindMembers>[*&]+		{ current->name += yytext ; 
+				      current->lineNo = yyLineNr;
+					}
 
 <FindMembers>[;=,]		{ BEGIN( FindMembers ) ;
-					  current->lineNo = yyLineNr + 1;
+					  if( current->lineNo == 0 ) current->lineNo = yyLineNr + 1;
 					  msg( "found variable ", current->name ) ;
 					  if( current->done == onlyDocs )
 					  {
@@ -377,10 +391,10 @@ static int yyread(char *buf,int max_size)
 <Function>"("			{ current->type += current->name ;
 					  current->name  = current->args ;
 					  current->args  = yytext ;
+			          current->lineNo = yyLineNr;
 					  BEGIN( Round ) ;
 					}
 <Function>[:;{]			{ msg( "found method   ", current->name ) ;
-				        current->lineNo = yyLineNr;
 					  if( current->done == onlyDocs )
 					  {
 					    current->section = FUNCTION_SEC ;
@@ -429,13 +443,14 @@ static int yyread(char *buf,int max_size)
 <ClassName>[a-z_A-Z0-9\[\]*&]+	{ current->type += ' ' ;
 						  current->type += current->name ;
 					  	  current->name = yytext ;
+						  current->lineNo = yyLineNr;
 						}
 <ClassName>[ \t]*":"[ \t]*	{ current->args = ":" ;
 					  BEGIN( Bases ) ;
 					}
 <Bases,ClassName>[ \t]*"{"[ \t]*	{ current->file = yyFileName ;
-					  	  current->startLine = yyLineNr ;
-						  current->lineNo = yyLineNr;
+					  	  if( current->lineNo == 0 ) current->lineNo = yyLineNr;
+						  current->startLine = yyLineNr ;
 					  	  msg( "found class    ", current->name ) ;
 					  	  BEGIN( Curly ) ;
 						}
@@ -486,7 +501,7 @@ static int yyread(char *buf,int max_size)
 						  current->done = onlyDocs ;
 						  BEGIN( Doc ) ;
 						}
-<VerbDoc,Doc>\n[ \t]*"*"+"/"	{ BEGIN( FindMembers ) ; }
+<VerbDoc,Doc>\n[ \t]*"*"+"/"	{ yyLineNr++; BEGIN( FindMembers ) ; }
 <Doc>"\\begin{verbatim}"	{ current->doc += yytext ;
 					  BEGIN( VerbDoc ) ;
 					}
@@ -506,6 +521,7 @@ static int yyread(char *buf,int max_size)
 
 <FindMembers>("//@{".*\n)|("/*@{"[^*]*\*+"/")	{ lineCount() ;
 								  current->file = yyFileName ;
+							  	  if( current->lineNo == 0 ) current->lineNo = yyLineNr;
 								  current->startLine = yyLineNr ;
 								  BEGIN( SubDoc ) ;
 								}
@@ -517,7 +533,7 @@ static int yyread(char *buf,int max_size)
 					}
 <SubDoc>.				{ current->program += *yytext ; }
 <SubDoc>\n				{ current->program += *yytext ;
-					  ++yyLineNr ;
+					  yyLineNr++ ;
 					}
 <SubDoc>("//@{".*\n)|("/*@{"[^*]*\*+"/")	{ lineCount() ;
 							  current->program += yytext ;
@@ -559,8 +575,11 @@ static int yyread(char *buf,int max_size)
 <CppMemo>[^.]			{ current->memo += yytext ;
 					  current->doc  += yytext ; }
 <CppMemo>"."[ \t\n]*		{ BEGIN( CppDoc ) ;
+                      yyLineNr++;
 					  current->doc  += yytext ; }
-<CppDoc>(\n|.)			{ current->doc  += *yytext ; }
+<CppDoc>(\n|.)			{ current->doc  += *yytext ; 
+	                  yyLineNr++;
+						}
 <CppMemo>"/"("*"|"/")		{ current->memo += yytext ; }
 <CppDoc>"/"("*"|"/")		{ current->doc  += yytext ; }
 
@@ -725,8 +744,8 @@ void parseCpp(Entry* rt)
     global_root   = rt ;
     protection    = PUBL ;
     current       = new Entry ;
-    yyLineNr      = 0;
-    yyFileName[0] = '\0';
+    yyLineNr      = 1 ;
+    yyFileName[0] = '\0' ;
 
     inputString   = rt->program ;
     inputPosition = 0 ;

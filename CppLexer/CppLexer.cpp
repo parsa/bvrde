@@ -31,8 +31,6 @@ bool UDgreater( std::string elem1, std::string elem2 )
 BOOL CALLBACK CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
 {   
    extern void parseCpp(Entry* rt);
-   extern int yyLineNr;
-   extern char yyFileName[264];
 
    Entry* root = new Entry();
    if( root == NULL ) return FALSE;
@@ -73,6 +71,7 @@ BOOL CALLBACK CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
       strncpy(szMemo, cr->memo.c_str(), 99);
       for( int i = 0; szMemo[i]; i++ ) {
          switch( szMemo[i] ) {
+         case '|':
          case '\r':
          case '\n':
          case '\t':
@@ -80,6 +79,8 @@ BOOL CALLBACK CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
             break;
          }
       }
+
+      if( cr->protection == GLOB ) cl = NULL;
 
       ::wsprintf(szBuffer, "%s|%c|%s%s %s|%s|%ld|%s\n", 
          cr->name.c_str(),  
@@ -91,7 +92,6 @@ BOOL CALLBACK CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
          (long) cr->lineNo, 
          szMemo);   
 
-      if( cr->protection == GLOB ) cl = NULL;
       if( type == 'c' ) cl = cr;
       else if( type == 's' ) cl = cr;
       else if( type == 't' ) cl = cr;

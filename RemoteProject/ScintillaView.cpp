@@ -214,6 +214,17 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
       return 1; // Return ERROR indication
    }
 
+   if( m_sLanguage == "cpp" ) {
+      // Using the C++ online scanner? We should parse the new file,
+      // merge the tags if possible and rebuild the ClassView.
+      if( m_pCppProject->m_TagManager.m_LexInfo.IsAvailable() ) {
+         LPSTR pstrText = NULL;
+         if( !GetText(pstrText) ) return 0;
+         m_pCppProject->m_TagManager.m_LexInfo.MergeFile(m_sFilename, pstrText);
+         free(pstrText);
+      }
+   }
+
    return 0;
 }
 

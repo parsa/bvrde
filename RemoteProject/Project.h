@@ -22,6 +22,8 @@
 #include "WatchView.h"
 #include "BreakpointView.h"
 #include "RegisterView.h"
+#include "memoryView.h"
+#include "DisasmView.h"
 #include "ThreadView.h"
 #include "WizardSheet.h"
 #include "QuickWatchDlg.h"
@@ -71,6 +73,8 @@ private:
    static CStackView m_viewStack;
    static CBreakpointView m_viewBreakpoint;
    static CRegisterView m_viewRegister;
+   static CMemoryView m_viewMemory;
+   static CDisasmView m_viewDisassembly;
    static CVariableView m_viewVariable;
    static CThreadView m_viewThread;
 
@@ -158,6 +162,8 @@ public:
       COMMAND_ID_HANDLER(ID_VIEW_PROPERTIES, OnViewProperties)
       COMMAND_ID_HANDLER(ID_VIEW_THREADS, OnViewThreads)
       COMMAND_ID_HANDLER(ID_VIEW_REGISTERS, OnViewRegisters)
+      COMMAND_ID_HANDLER(ID_VIEW_MEMORY, OnViewMemory)
+      COMMAND_ID_HANDLER(ID_VIEW_DISASM, OnViewDisassembly)
       COMMAND_ID_HANDLER(ID_VIEW_BREAKPOINTS, OnViewBreakpoints)
       COMMAND_ID_HANDLER(ID_VIEW_WATCH, OnViewWatch)
       COMMAND_ID_HANDLER(ID_VIEW_VARIABLES, OnViewVariables)
@@ -203,6 +209,8 @@ public:
    LRESULT OnViewThreads(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
    LRESULT OnViewBreakpoints(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewRegisters(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
+   LRESULT OnViewMemory(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
+   LRESULT OnViewDisassembly(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
    LRESULT OnViewVariables(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
    LRESULT OnViewWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   
    LRESULT OnViewStack(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);   

@@ -35,7 +35,7 @@ public:
    // Overloads
 
    int OnSetActive();
-	int OnWizardNext();
+   int OnWizardNext();
    int OnApply();
 
    // Message map and handlers

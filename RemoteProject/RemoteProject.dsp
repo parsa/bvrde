@@ -106,6 +106,14 @@ SOURCE=.\ClassView.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\DisasmView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\MemoryView.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\RegisterView.cpp
 # End Source File
 # Begin Source File
@@ -365,6 +373,14 @@ SOURCE=.\BreakpointView.h
 # Begin Source File
 
 SOURCE=.\ClassView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DisasmView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\MemoryView.h
 # End Source File
 # Begin Source File
 

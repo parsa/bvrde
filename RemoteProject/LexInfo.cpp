@@ -50,7 +50,7 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
    if( s_hInst == NULL ) s_hInst = ::LoadLibrary(sModule);
    if( s_hInst == NULL ) return false;
 
-   // Lex the file...
+   // Lex the file.
    // It's not unlikely that the parse fails since it should stop at
    // normals syntax errors and less obvious LALR failures! In
    // this case we just ignore the contents...
@@ -132,7 +132,8 @@ int CLexInfo::FindItem(int iStart, LPCTSTR pstrName)
             n = (min + max) / 2;
          }
          // Find first instance of the particular string
-         if( _tcscmp(pstrName, file.aTags[n].pstrName) != 0 ) return -1;
+         if( min >= max ) continue;
+         if( _tcscmp(pstrName, file.aTags[n].pstrName) != 0 ) continue;
          while( n > 0 && _tcscmp(pstrName, file.aTags[n - 1].pstrName) == 0 ) n--;
          m_iFile = i;
          return n;
@@ -193,11 +194,10 @@ bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aList)
       int nCount = file.aTags.GetSize();
       for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
          TAGINFO& info = file.aTags[iIndex];
-         switch( info.Type ) {
-         case TAGTYPE_CLASS:
-            TAGINFO* pTag = &m_aFiles[i]->aTags.m_aT[iIndex];
-            aList.Add(pTag);
-         }
+         if( info.pstrFile == NULL ) continue;
+         if( info.Type != TAGTYPE_CLASS ) continue;
+         TAGINFO* pTag = &m_aFiles[i]->aTags.m_aT[iIndex];
+         aList.Add(pTag);
       }
    }
 
@@ -217,6 +217,7 @@ bool CLexInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aList)
          TAGINFO& info = file.aTags[iIndex];
          // Must not be parent of something
          if( info.pstrFields[0][0] != '\0' ) continue;
+         if( info.pstrFile == NULL ) continue;
          // Functions and variables are accepted
          switch( info.Type ) {
          case TAGTYPE_MEMBER:
@@ -309,6 +310,13 @@ void CLexInfo::_LoadTags()
       pView->GetName(sName.GetBufferSetLength(128), 128);
       sName.ReleaseBuffer();
       LEXFILE* pFile = new LEXFILE;
+      if( _ParseFile(sName, *pFile) ) m_aFiles.Add(pFile); else delete pFile;
+   }
+
+   // Look for the global lex file (contains standard/system functions)
+   if( m_aFiles.GetSize() > 0 ) {
+      LEXFILE* pFile = new LEXFILE;
+      CString sName = _T("bvrde.txt");
       if( _ParseFile(sName, *pFile) ) m_aFiles.Add(pFile); else delete pFile;
    }
 }

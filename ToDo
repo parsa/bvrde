@@ -31,7 +31,7 @@ C++ IDE:
 - Remove Trailing spaces
 * Auto Brackets
 * Replace Tabs
-- Online scanner/lexer
+* Online scanner/lexer
 
 Debugger:
 * Remote GNU GDB integration

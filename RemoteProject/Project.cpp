@@ -53,6 +53,7 @@ BOOL CRemoteProject::Initialize(IDevEnv* pEnv, LPCTSTR pstrPath)
 BOOL CRemoteProject::Close()
 {
    if( !m_bLoaded ) return TRUE;
+   m_bLoaded = false;
 
    _pDevEnv->RemoveAppListener(this);
    _pDevEnv->RemoveTreeListener(this);
@@ -71,6 +72,8 @@ BOOL CRemoteProject::Close()
    _pDevEnv->RemoveDockView(m_viewStack);
    _pDevEnv->RemoveDockView(m_viewVariable);
    _pDevEnv->RemoveDockView(m_viewRegister);
+   _pDevEnv->RemoveDockView(m_viewMemory);
+   _pDevEnv->RemoveDockView(m_viewDisassembly);
    _pDevEnv->RemoveDockView(m_viewWatch);
    _pDevEnv->RemoveDockView(m_viewThread);
    _pDevEnv->RemoveDockView(m_viewBreakpoint);
@@ -80,6 +83,8 @@ BOOL CRemoteProject::Close()
    if( m_viewStack.IsWindow() ) m_viewStack.DestroyWindow();
    if( m_viewVariable.IsWindow() ) m_viewVariable.DestroyWindow();
    if( m_viewRegister.IsWindow() ) m_viewRegister.DestroyWindow();
+   if( m_viewMemory.IsWindow() ) m_viewMemory.DestroyWindow();
+   if( m_viewDisassembly.IsWindow() ) m_viewDisassembly.DestroyWindow();
    if( m_viewWatch.IsWindow() ) m_viewWatch.DestroyWindow();
    if( m_viewThread.IsWindow() ) m_viewThread.DestroyWindow();
    if( m_viewBreakpoint.IsWindow() ) m_viewBreakpoint.DestroyWindow();
@@ -126,6 +131,7 @@ BOOL CRemoteProject::GetClass(LPTSTR pstrType, UINT cchMax) const
 
 BOOL CRemoteProject::IsDirty() const
 {
+   if( !m_bLoaded ) return FALSE;
    if( m_bIsDirty ) return TRUE;
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       if( m_aFiles[i]->IsDirty() ) return TRUE;
@@ -221,6 +227,8 @@ void CRemoteProject::ActivateProject()
    m_viewClassTree.Init(this);
    m_viewStack.Init(this);
    m_viewRegister.Init(this);
+   m_viewDisassembly.Init(this);
+   m_viewMemory.Init(this);
    m_viewBreakpoint.Init(this);
    m_viewVariable.Init(this);
    m_viewThread.Init(this);
@@ -345,6 +353,8 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_VIEW_COMPILE_LOG, TRUE);
    pUIBase->UIEnable(ID_VIEW_DEBUG_LOG, TRUE);
    pUIBase->UIEnable(ID_VIEW_REGISTERS, bDebugging);
+   pUIBase->UIEnable(ID_VIEW_MEMORY, bDebugging);
+   pUIBase->UIEnable(ID_VIEW_DISASM, bDebugging);
    pUIBase->UIEnable(ID_VIEW_THREADS, bDebugging);
    pUIBase->UIEnable(ID_VIEW_VARIABLES, bDebugging);
    pUIBase->UIEnable(ID_VIEW_WATCH, bDebugging);
@@ -354,6 +364,8 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UISetCheck(ID_VIEW_COMPILE_LOG, m_viewCompileLog.IsWindowVisible());
    pUIBase->UISetCheck(ID_VIEW_DEBUG_LOG, m_viewDebugLog.IsWindowVisible());
    pUIBase->UISetCheck(ID_VIEW_REGISTERS, m_viewRegister.IsWindow() && m_viewRegister.IsWindowVisible());
+   pUIBase->UISetCheck(ID_VIEW_MEMORY, m_viewMemory.IsWindow() && m_viewMemory.IsWindowVisible());
+   pUIBase->UISetCheck(ID_VIEW_DISASM, m_viewDisassembly.IsWindow() && m_viewDisassembly.IsWindowVisible());
    pUIBase->UISetCheck(ID_VIEW_THREADS, m_viewThread.IsWindow() && m_viewThread.IsWindowVisible());
    pUIBase->UISetCheck(ID_VIEW_VARIABLES, m_viewVariable.IsWindow() && m_viewVariable.IsWindowVisible());
    pUIBase->UISetCheck(ID_VIEW_WATCH, m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible());
@@ -849,6 +861,56 @@ LRESULT CRemoteProject::OnViewRegisters(WORD /*wNotifyCode*/, WORD wID, HWND /*h
    }
    else {
       _pDevEnv->AddDockView(m_viewRegister, IDE_DOCK_HIDE, CWindow::rcDefault);
+   }
+   return 0;
+}
+
+LRESULT CRemoteProject::OnViewMemory(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+
+   // Create the Memory view
+   if( !m_viewMemory.IsWindow() ) {
+      CString s(MAKEINTRESOURCE(IDS_CAPTION_MEMORY));
+      DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+      m_viewMemory.Init(this);
+      m_viewMemory.Create(m_wndMain, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
+      _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_HIDE, CWindow::rcDefault);
+   }
+
+   // Position the view
+   if( !m_viewMemory.IsWindowVisible() ) {
+      RECT s_rcWin = { 120, 140, 760, 400 };
+      _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_FLOAT, s_rcWin);
+      DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+   }
+   else {
+      _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_HIDE, CWindow::rcDefault);
+   }
+   return 0;
+}
+
+LRESULT CRemoteProject::OnViewDisassembly(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+
+   // Create the Disassembly view
+   if( !m_viewDisassembly.IsWindow() ) {
+      CString s(MAKEINTRESOURCE(IDS_CAPTION_DISASSEMBLY));
+      DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+      m_viewDisassembly.Init(this);
+      m_viewDisassembly.Create(m_wndMain, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
+      _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_HIDE, CWindow::rcDefault);
+   }
+
+   // Position the view
+   if( !m_viewDisassembly.IsWindowVisible() ) {
+      RECT s_rcWin = { 320, 50, 690, 400 };
+      _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_FLOAT, s_rcWin);
+      DelayedDebugEvent(LAZY_DEBUG_STOP_EVENT);
+   }
+   else {
+      _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
    return 0;
 }
@@ -1354,6 +1416,8 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             if( m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
             if( m_viewThread.IsWindow() && m_viewThread.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
             if( m_viewRegister.IsWindow() && m_viewRegister.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
+            if( m_viewMemory.IsWindow() && m_viewMemory.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
+            if( m_viewDisassembly.IsWindow() && m_viewDisassembly.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
             if( m_viewVariable.IsWindow() && m_viewVariable.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
             if( m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible() ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
          }
@@ -1373,6 +1437,11 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             }
             if( m_viewStack.WantsData() ) {
                aDbgCmd.Add(CString(_T("-stack-list-frames")));
+            }
+            if( m_viewDisassembly.WantsData() ) {
+               CString sCommand;
+               sCommand.Format(_T("-data-disassemble -s $pc -e \"$pc + %ld\" -- 0"), m_viewDisassembly.EstimateInstructionCount());
+               aDbgCmd.Add(sCommand);
             }
             if( m_viewVariable.WantsData() ) {
                switch( m_viewVariable.GetCurSel() ) {
@@ -1400,6 +1469,8 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             if( m_viewWatch.WantsData() ) m_viewWatch.SetInfo(data.szMessage, data.MiInfo);               
             if( m_viewThread.WantsData() ) m_viewThread.SetInfo(data.szMessage, data.MiInfo);
             if( m_viewRegister.WantsData() ) m_viewRegister.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewMemory.WantsData() ) m_viewMemory.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewDisassembly.WantsData() ) m_viewDisassembly.SetInfo(data.szMessage, data.MiInfo);
             if( m_viewVariable.WantsData() ) m_viewVariable.SetInfo(data.szMessage, data.MiInfo);
             if( m_viewBreakpoint.WantsData() ) m_viewBreakpoint.SetInfo(data.szMessage, data.MiInfo);
             if( m_pQuickWatchDlg && m_pQuickWatchDlg->IsWindow() && m_pQuickWatchDlg->IsWindowVisible() ) m_pQuickWatchDlg->SetInfo(data.szMessage, data.MiInfo);
@@ -2036,5 +2107,7 @@ CWatchView CRemoteProject::m_viewWatch;
 CStackView CRemoteProject::m_viewStack;
 CBreakpointView CRemoteProject::m_viewBreakpoint;
 CRegisterView CRemoteProject::m_viewRegister;
+CMemoryView CRemoteProject::m_viewMemory;
+CDisasmView CRemoteProject::m_viewDisassembly;
 CVariableView CRemoteProject::m_viewVariable;
 CThreadView CRemoteProject::m_viewThread;

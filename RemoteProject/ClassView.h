@@ -17,6 +17,7 @@ public:
 
    bool m_bLoaded;
    CRemoteProject* m_pProject;
+   int m_iScrollPos;
    CSimpleArray<CString> m_aExpandedNames;
 
    CImageListCtrl m_Images;

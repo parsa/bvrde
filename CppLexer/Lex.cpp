@@ -1216,6 +1216,7 @@ goto find_rule; \
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
+#line 1 "cpp.l"
 #define INITIAL 0
 /*************************************************************************
 
@@ -1225,6 +1226,7 @@ char *yytext;
     and Malte Zoeckler.
 
  *************************************************************************/
+#line 12 "cpp.l"
 
 #include "StdAfx.h"
 
@@ -1254,7 +1256,7 @@ static Entry*		current_root = 0 ;
 static Entry*		global_root  = 0 ;
 static Entry*		current      = 0 ;
 
-static int		yyLineNr = 0 ;
+static int		yyLineNr = 1 ;
 static char		yyFileName[264] ;
 static McString*	currentString ;
 
@@ -1381,6 +1383,7 @@ static int yyread(char *buf,int max_size)
 
 #define Exception 38
 
+#line 1387 "lex.cpp.c"
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -1534,8 +1537,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
+#line 138 "cpp.l"
 
 
+#line 1544 "lex.cpp.c"
 
 	if ( yy_init )
 		{
@@ -1642,6 +1647,7 @@ do_action:	/* This label is used only to access EOF actions. */
 	{ /* beginning of action switch */
 case 1:
 YY_RULE_SETUP
+#line 140 "cpp.l"
 { 
                                           yyLineNr= 1 ; int i;
 					  for( i = 0 ; yytext[i+1] != 6 ; i++ )
@@ -1651,30 +1657,36 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
+#line 147 "cpp.l"
 { BEGIN( FindMembers ) ; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
+#line 149 "cpp.l"
 { current->protection = protection = PUBL ;
 					  lineCount() ;
 					}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
+#line 152 "cpp.l"
 { current->protection = protection = PROT ;
 					  lineCount() ;
 					}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
+#line 155 "cpp.l"
 { current->protection = protection = PRIV ;
 					  lineCount() ;
 					}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
+#line 159 "cpp.l"
 {
 					  current->section = TYPEDEF_SEC ;
+				      current->lineNo = yyLineNr;
 					  current->type = "typedef class" ;
 					  current->name.clear() ;
 					  lineCount() ;
@@ -1682,8 +1694,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
+#line 166 "cpp.l"
 {
 					  current->section = TYPEDEF_SEC ;
+				      current->lineNo = yyLineNr;
 					  current->type = "typedef struct" ;
 					  current->name.clear() ;
 					  lineCount() ;
@@ -1691,8 +1705,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
+#line 173 "cpp.l"
 {
 					  current->section = TYPEDEF_SEC ;
+				      current->lineNo = yyLineNr;
 					  current->type = "typedef enum" ;
 					  current->name.clear() ;
 					  lineCount() ;
@@ -1700,8 +1716,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
+#line 180 "cpp.l"
 {
 					  current->section = TYPEDEF_SEC ;
+				      current->lineNo = yyLineNr;
 					  current->type = "typedef union" ;
 					  current->name.clear() ;
 					  lineCount() ;
@@ -1709,8 +1727,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
+#line 188 "cpp.l"
 { current->section = CLASS_SEC ;
 					  addType( current ) ;
+				      current->lineNo = yyLineNr;
 					  current->type += " class" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
@@ -1718,8 +1738,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
+#line 195 "cpp.l"
 { current->section = UNION_SEC ;
 					  addType( current ) ;
+				      current->lineNo = yyLineNr;
 					  current->type += " struct" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
@@ -1727,8 +1749,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
+#line 202 "cpp.l"
 { current->section = UNION_SEC ;
 					  addType( current ) ;
+				      current->lineNo = yyLineNr;
 					  current->type += " enum" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
@@ -1736,8 +1760,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
+#line 209 "cpp.l"
 { current->section = UNION_SEC ;
 					  addType( current ) ;
+				      current->lineNo = yyLineNr;
 					  current->type += " union" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
@@ -1748,69 +1774,86 @@ case 14:
 yy_c_buf_p = yy_cp = yy_bp + 8;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
+#line 217 "cpp.l"
 { addType( current ) ;
+				      current->lineNo = yyLineNr;
 					  current->name  = yytext ;
 					  BEGIN( Operator ) ;
 					}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
+#line 222 "cpp.l"
 { current->name += yytext ;
+				      current->lineNo = yyLineNr;
 					  BEGIN( FindMembers ) ;
 					}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
+#line 227 "cpp.l"
 { addType( current ) ;
+				      current->lineNo = yyLineNr;
 					  current->name  = yytext ;
 					}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
+#line 232 "cpp.l"
 { BEGIN( SkipCPP ) ; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
+#line 233 "cpp.l"
 
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
+#line 234 "cpp.l"
 { yyLineNr++ ; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
+#line 235 "cpp.l"
 { yyLineNr++ ;
 					  BEGIN( FindMembers ) ;
 					}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
+#line 239 "cpp.l"
 { current->type = "#define" ;
 					  BEGIN( Define ) ;
 					}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
+#line 242 "cpp.l"
 { current->name = yytext ;
+				      current->lineNo = yyLineNr;
 					  BEGIN( DefineEnd ) ;
 					}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
+#line 246 "cpp.l"
 { BEGIN( DefineEnd ) ; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
+#line 247 "cpp.l"
 { current->args = yytext ;
 					  BEGIN( DefineEnded ) ;
 					}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
+#line 250 "cpp.l"
 { yyLineNr++ ; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
+#line 251 "cpp.l"
 { if( current->done == onlyDocs )
 					  {
 					    current->section = MACRO_SEC ;
@@ -1831,12 +1874,16 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-{ current->name += yytext ; }
+#line 269 "cpp.l"
+{ current->name += yytext ; 
+				      current->lineNo = yyLineNr;
+					}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
+#line 273 "cpp.l"
 { BEGIN( FindMembers ) ;
-					  current->lineNo = yyLineNr + 1;
+					  if( current->lineNo == 0 ) current->lineNo = yyLineNr + 1;
 					  msg( "found variable ", current->name ) ;
 					  if( current->done == onlyDocs )
 					  {
@@ -1859,6 +1906,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
+#line 295 "cpp.l"
 { current->args += yytext ;
 					  sharpCount=1;
 					  BEGIN( Array ) ;
@@ -1866,6 +1914,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
+#line 299 "cpp.l"
 { current->args += *yytext ;
 					  if (--sharpCount<=0)
 	                                     BEGIN( FindMembers ) ;
@@ -1873,16 +1922,19 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
+#line 303 "cpp.l"
 { current->args += *yytext ;
 					  sharpCount++;	
 					}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
+#line 306 "cpp.l"
 { current->args += *yytext ; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
+#line 308 "cpp.l"
 { addType( current ) ;
 					  current->type += yytext ;
 					  sharpCount=1;
@@ -1891,6 +1943,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
+#line 313 "cpp.l"
 { current->type += *yytext ;
 					  if (--sharpCount<=0)
 	                                     BEGIN( FindMembers ) ;
@@ -1898,28 +1951,34 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
+#line 317 "cpp.l"
 { current->type += *yytext ;
 					  sharpCount++;	
 					}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
+#line 320 "cpp.l"
 { current->type += *yytext ; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
+#line 322 "cpp.l"
 { current->program += yytext ; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
+#line 323 "cpp.l"
 { current->program += yytext ; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
+#line 324 "cpp.l"
 { current->program += yytext ; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
+#line 325 "cpp.l"
 { current->program += yytext ;
 					  lastContext = Curly ;
 					  BEGIN( Comment ) ;
@@ -1927,6 +1986,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
+#line 329 "cpp.l"
 { current->program += yytext ;
 					  ++yyLineNr ;
 					  lastContext = Curly ;
@@ -1935,12 +1995,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
+#line 334 "cpp.l"
 { current->program += yytext ;
 					  ++bracketCount ;
 					}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
+#line 337 "cpp.l"
 { if( bracketCount )
 					  {
 					    current->program += yytext ;
@@ -1969,28 +2031,33 @@ YY_RULE_SETUP
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
+#line 362 "cpp.l"
 { current->program += yytext ;
 					  yyLineNr++ ;
 					}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
+#line 365 "cpp.l"
 { current->program += yytext ; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
+#line 367 "cpp.l"
 { current->args = yytext ;
 					  BEGIN( Round ) ;
 					}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
+#line 370 "cpp.l"
 { current->args += *yytext ;
 					  ++bracketCount ;
 					}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
+#line 373 "cpp.l"
 { current->args += *yytext ;
 					  if( bracketCount )
 					    --bracketCount ;
@@ -2000,24 +2067,29 @@ YY_RULE_SETUP
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
+#line 379 "cpp.l"
 { lineCount() ; current->args += ", " ; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
+#line 380 "cpp.l"
 { lineCount() ; current->args += ' ' ; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
+#line 381 "cpp.l"
 { current->args += *yytext ; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
+#line 383 "cpp.l"
 { current->args += " const " ;
 					 	 lineCount() ;
 						}
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
+#line 387 "cpp.l"
 { current->args += " throw(" ;
 						  lineCount() ;
 					  	BEGIN( Round ) ;
@@ -2025,16 +2097,18 @@ YY_RULE_SETUP
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
+#line 391 "cpp.l"
 { current->type += current->name ;
 					  current->name  = current->args ;
 					  current->args  = yytext ;
+			          current->lineNo = yyLineNr;
 					  BEGIN( Round ) ;
 					}
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
+#line 397 "cpp.l"
 { msg( "found method   ", current->name ) ;
-				        current->lineNo = yyLineNr;
 					  if( current->done == onlyDocs )
 					  {
 					    current->section = FUNCTION_SEC ;
@@ -2058,14 +2132,17 @@ YY_RULE_SETUP
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
+#line 419 "cpp.l"
 { BEGIN( SkipCurly ) ; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
+#line 420 "cpp.l"
 { ++bracketCount ; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
+#line 421 "cpp.l"
 { if( bracketCount )
 					    --bracketCount ;
 					  else
@@ -2074,6 +2151,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
+#line 427 "cpp.l"
 { if( current->done == onlyDocs )
 					  {
 					    current->section = VARIABLE_SEC ;
@@ -2093,28 +2171,33 @@ YY_RULE_SETUP
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
+#line 443 "cpp.l"
 { current->type += ' ' ;
 						  current->type += current->name ;
 					  	  current->name = yytext ;
+						  current->lineNo = yyLineNr;
 						}
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
+#line 448 "cpp.l"
 { current->args = ":" ;
 					  BEGIN( Bases ) ;
 					}
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
+#line 451 "cpp.l"
 { current->file = yyFileName ;
-					  	  current->startLine = yyLineNr ;
-						  current->lineNo = yyLineNr;
+					  	  if( current->lineNo == 0 ) current->lineNo = yyLineNr;
+						  current->startLine = yyLineNr ;
 					  	  msg( "found class    ", current->name ) ;
 					  	  BEGIN( Curly ) ;
 						}
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
+#line 457 "cpp.l"
 { current->extends.append( new McString(yytext) ) ;
 					  current->args += ' ' ;
 					  current->args += yytext ;
@@ -2122,26 +2205,31 @@ YY_RULE_SETUP
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
+#line 461 "cpp.l"
 { current->args += ',' ; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
+#line 463 "cpp.l"
 { current->program += yytext ;
 					  yyLineNr++ ;
 					}
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
+#line 466 "cpp.l"
 { current->program += yytext ; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
+#line 467 "cpp.l"
 { current->program += yytext ;
 					  BEGIN( Curly ) ;
 					}
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
+#line 471 "cpp.l"
 { lineCount() ;
 							  if( current->doc.length() > 0
 							  ||  current->memo.length() > 0 )
@@ -2157,26 +2245,31 @@ YY_RULE_SETUP
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
+#line 483 "cpp.l"
 { current->memo += yytext ; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
+#line 484 "cpp.l"
 { yyLineNr++ ;
 					  BEGIN( FindMembers ) ;
 					}
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
+#line 488 "cpp.l"
 
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
+#line 489 "cpp.l"
 { lastCContext = YY_START ;
 					  BEGIN( SkipComment ) ;
 					}
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
+#line 492 "cpp.l"
 { lineCount() ;
 						  if( current->doc.length() > 0
 						  ||  current->memo.length() > 0 )
@@ -2192,80 +2285,96 @@ YY_RULE_SETUP
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-{ BEGIN( FindMembers ) ; }
+#line 504 "cpp.l"
+{ yyLineNr++; BEGIN( FindMembers ) ; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
+#line 505 "cpp.l"
 { current->doc += yytext ;
 					  BEGIN( VerbDoc ) ;
 					}
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
+#line 508 "cpp.l"
 { current->doc += '\n' ;
 					  yyLineNr++ ;
 					}
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
+#line 511 "cpp.l"
 { current->doc += yytext ;
 					  BEGIN( Doc ) ;
 					}
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
+#line 514 "cpp.l"
 { current->doc += '\n' ;
 					  yyLineNr++ ;
 					}
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
+#line 517 "cpp.l"
 { current->doc += *yytext ; }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
+#line 518 "cpp.l"
 { current->doc += yytext ; }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
+#line 519 "cpp.l"
 { current->doc += yytext ; }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
+#line 520 "cpp.l"
 { BEGIN( FindMembers ) ; }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
+#line 522 "cpp.l"
 { lineCount() ;
 								  current->file = yyFileName ;
+							  	  if( current->lineNo == 0 ) current->lineNo = yyLineNr;
 								  current->startLine = yyLineNr ;
 								  BEGIN( SubDoc ) ;
 								}
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
+#line 528 "cpp.l"
 { current->program += yytext ;
 					  BEGIN( SubDocComment ) ;
 					}
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
+#line 531 "cpp.l"
 { current->program += yytext ;
 					  BEGIN( SubDocCppComment ) ;
 					}
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
+#line 534 "cpp.l"
 { current->program += *yytext ; }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
+#line 535 "cpp.l"
 { current->program += *yytext ;
-					  ++yyLineNr ;
+					  yyLineNr++ ;
 					}
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
+#line 538 "cpp.l"
 { lineCount() ;
 							  current->program += yytext ;
 							  ++bracketCount ;
@@ -2273,6 +2382,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
+#line 542 "cpp.l"
 { lineCount() ;
 							  if( bracketCount )
 							  {
@@ -2292,34 +2402,41 @@ YY_RULE_SETUP
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
+#line 559 "cpp.l"
 { current->program += yytext ; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
+#line 560 "cpp.l"
 { current->program += yytext ; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
+#line 561 "cpp.l"
 { current->program += yytext ; }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
+#line 562 "cpp.l"
 { current->program += yytext ;
 					  ++yyLineNr ;
 					}
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
+#line 565 "cpp.l"
 { current->program += yytext ;
 					  BEGIN( SubDoc ) ;
 					}
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
+#line 569 "cpp.l"
 { current->program += yytext ; }
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
+#line 570 "cpp.l"
 { current->program += yytext ;
 					  ++yyLineNr ;
 					  BEGIN( SubDoc ) ;
@@ -2327,28 +2444,37 @@ YY_RULE_SETUP
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
+#line 575 "cpp.l"
 { current->memo += yytext ;
 					  current->doc  += yytext ; }
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
+#line 577 "cpp.l"
 { BEGIN( CppDoc ) ;
+                      yyLineNr++;
 					  current->doc  += yytext ; }
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-{ current->doc  += *yytext ; }
+#line 580 "cpp.l"
+{ current->doc  += *yytext ; 
+	                  yyLineNr++;
+						}
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
+#line 583 "cpp.l"
 { current->memo += yytext ; }
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
+#line 584 "cpp.l"
 { current->doc  += yytext ; }
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
+#line 586 "cpp.l"
 {
 					  current->see.append( new McString ) ;
 					  BEGIN( See ) ;
@@ -2356,16 +2482,19 @@ YY_RULE_SETUP
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
+#line 590 "cpp.l"
 {
 					  BEGIN( Author ) ; }
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
+#line 592 "cpp.l"
 {
 					  BEGIN( Version ) ; }
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
+#line 594 "cpp.l"
 {
 					  current->param.append( new McString  ) ;
 					  BEGIN( Param ) ;
@@ -2373,6 +2502,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 106:
 YY_RULE_SETUP
+#line 598 "cpp.l"
 {
 					  current->exception.append( new McString ) ;
 					  BEGIN( Exception ) ;
@@ -2380,11 +2510,13 @@ YY_RULE_SETUP
 	YY_BREAK
 case 107:
 YY_RULE_SETUP
+#line 602 "cpp.l"
 {
 					  BEGIN( Return ) ; }
 	YY_BREAK
 case 108:
 YY_RULE_SETUP
+#line 604 "cpp.l"
 {
 					  current->name.clear() ;
 					  current->section = MANUAL_SEC ;
@@ -2393,6 +2525,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 109:
 YY_RULE_SETUP
+#line 609 "cpp.l"
 {
 					  current->memo.clear() ;
 					  BEGIN( Memo ) ;
@@ -2400,6 +2533,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 110:
 YY_RULE_SETUP
+#line 614 "cpp.l"
 {
 					  current->type.clear() ;
 					  BEGIN( Type ) ;
@@ -2407,6 +2541,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 111:
 YY_RULE_SETUP
+#line 618 "cpp.l"
 {
 					  current->args.clear() ;
 					  BEGIN( Args ) ;
@@ -2414,122 +2549,151 @@ YY_RULE_SETUP
 	YY_BREAK
 case 112:
 YY_RULE_SETUP
+#line 623 "cpp.l"
 { current->name = yytext ; }
 	YY_BREAK
 case 113:
 YY_RULE_SETUP
+#line 624 "cpp.l"
 { BEGIN( CppDoc ) ; }
 	YY_BREAK
 case 114:
 YY_RULE_SETUP
+#line 626 "cpp.l"
 { current->type = yytext ; }
 	YY_BREAK
 case 115:
 YY_RULE_SETUP
+#line 627 "cpp.l"
 { BEGIN( CppDoc ) ; }
 	YY_BREAK
 case 116:
 YY_RULE_SETUP
+#line 629 "cpp.l"
 { current->args = yytext ; }
 	YY_BREAK
 case 117:
 YY_RULE_SETUP
+#line 630 "cpp.l"
 { BEGIN( CppDoc ) ; }
 	YY_BREAK
 case 118:
 YY_RULE_SETUP
+#line 632 "cpp.l"
 { current->author  += *yytext ; }
 	YY_BREAK
 case 119:
 YY_RULE_SETUP
+#line 633 "cpp.l"
 { current->version += *yytext ; }
 	YY_BREAK
 case 120:
 YY_RULE_SETUP
+#line 634 "cpp.l"
 { *(current->see.last())       += *yytext ; }
 	YY_BREAK
 case 121:
 YY_RULE_SETUP
+#line 635 "cpp.l"
 { *(current->param.last())     += *yytext ; }
 	YY_BREAK
 case 122:
 YY_RULE_SETUP
+#line 636 "cpp.l"
 { *(current->exception.last()) += *yytext ; }
 	YY_BREAK
 case 123:
 YY_RULE_SETUP
+#line 637 "cpp.l"
 { current->memo    += *yytext ; }
 	YY_BREAK
 case 124:
 YY_RULE_SETUP
+#line 638 "cpp.l"
 { current->retrn   += *yytext ; }
 	YY_BREAK
 case 125:
 YY_RULE_SETUP
+#line 640 "cpp.l"
 { current->author  += '\n' ; }
 	YY_BREAK
 case 126:
 YY_RULE_SETUP
+#line 641 "cpp.l"
 { current->version += '\n' ; }
 	YY_BREAK
 case 127:
 YY_RULE_SETUP
+#line 642 "cpp.l"
 { *(current->see.last())       += '\n' ; }
 	YY_BREAK
 case 128:
 YY_RULE_SETUP
+#line 643 "cpp.l"
 { *(current->param.last())     += '\n' ; }
 	YY_BREAK
 case 129:
 YY_RULE_SETUP
+#line 644 "cpp.l"
 { *(current->exception.last()) += '\n' ; }
 	YY_BREAK
 case 130:
 YY_RULE_SETUP
+#line 645 "cpp.l"
 { current->memo    += *yytext ; }
 	YY_BREAK
 case 131:
 YY_RULE_SETUP
+#line 646 "cpp.l"
 { current->retrn   += *yytext ; }
 	YY_BREAK
 case 132:
 YY_RULE_SETUP
+#line 648 "cpp.l"
 
 	YY_BREAK
 case 133:
 YY_RULE_SETUP
+#line 649 "cpp.l"
 { yyLineNr++ ; }
 	YY_BREAK
 case 134:
 YY_RULE_SETUP
+#line 650 "cpp.l"
 { lastCContext = YY_START ;
 					  BEGIN( SkipComment ) ;
 					}
 	YY_BREAK
 case 135:
 YY_RULE_SETUP
+#line 653 "cpp.l"
 
 	YY_BREAK
 case 136:
 YY_RULE_SETUP
+#line 654 "cpp.l"
 { BEGIN( lastCContext ) ; }
 	YY_BREAK
 case 137:
 YY_RULE_SETUP
+#line 655 "cpp.l"
 { lastCContext = YY_START ;
 					  BEGIN( SkipCxxComment ) ;
 					}
 	YY_BREAK
 case 138:
 YY_RULE_SETUP
+#line 658 "cpp.l"
 { yyLineNr++ ;
 					  BEGIN( lastCContext ) ;
 					}
 	YY_BREAK
 case 139:
 YY_RULE_SETUP
+#line 661 "cpp.l"
 ECHO;
 	YY_BREAK
+#line 2697 "lex.cpp.c"
 			case YY_STATE_EOF(INITIAL):
 			case YY_STATE_EOF(Cxx_Memo):
 			case YY_STATE_EOF(SubDoc):
@@ -3449,6 +3613,7 @@ int main()
 	return 0;
 	}
 #endif
+#line 661 "cpp.l"
 
 
 
@@ -3535,8 +3700,8 @@ void parseCpp(Entry* rt)
     global_root   = rt ;
     protection    = PUBL ;
     current       = new Entry ;
-    yyLineNr      = 0;
-    yyFileName[0] = '\0';
+    yyLineNr      = 1 ;
+    yyFileName[0] = '\0' ;
 
     inputString   = rt->program ;
     inputPosition = 0 ;

@@ -89,8 +89,7 @@ LRESULT CBreakpointView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 
 LRESULT CBreakpointView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-   RECT rcClient;
-   GetClientRect(&rcClient);
+   CClientRect rcClient = m_hWnd;
    m_ctrlList.MoveWindow(&rcClient);
    return 0;
 }

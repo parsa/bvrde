@@ -106,7 +106,7 @@ public:
 
    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject)
    {
-      if( riid == __uuidof(ILineCallback) || || riid == IID_IUnknown ) {
+      if( riid == __uuidof(ILineCallback) || riid == IID_IUnknown ) {
          *ppvObject = (ILineCallback*) this;
          return S_OK;
       }

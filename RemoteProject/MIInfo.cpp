@@ -48,6 +48,7 @@ CString CMiInfo::GetItem(LPCTSTR pstrKey,
       m_iSearchIndex = i;
       return info.szValue;
    }
+   m_iSearchIndex = INT_MAX;
    return _T("");
 }
 
@@ -68,7 +69,7 @@ CString CMiInfo::FindNext(LPCTSTR pstrKey,
                           LPCTSTR pstrGroup /*= NULL*/, 
                           LPCTSTR pstrFrame /*= NULL*/)
 {
-   ATLASSERT(m_iSearchIndex>=0);
+   ATLASSERT(m_iSearchIndex>=0 && m_iSearchIndex<m_aItems.GetSize());
    for( int i = m_iSearchIndex + 1; i < m_aItems.GetSize(); i++ ) {
       const MIINFO& info = m_aItems[i];
       if( _tcscmp(info.szKey, pstrKey) != 0 ) continue;
@@ -182,6 +183,7 @@ void CMiInfo::_GetPlainText(LPTSTR pstrDest, LPCTSTR pstrSrc, int iStart, int nL
    pstrSrc += iStart;
    while( *pstrSrc && --nLen >= 0 && --cchMax >= 0 ) {
       if( *pstrSrc == '\\' ) {
+         if( *pstrSrc == 't' ) *pstrDest++ = '\t';
          pstrSrc++;
          nLen--;
       }

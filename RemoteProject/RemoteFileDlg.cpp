@@ -299,6 +299,7 @@ bool CRemoteFileDlg::_PopulateView(LPCTSTR pstrPath)
 
    CSimpleArray<WIN32_FIND_DATA> aFiles;
    if( !m_pFileManager->EnumFiles(aFiles) ) {
+      m_ctrlList.DeleteAllItems();
       m_ctrlNoConnection.ShowWindow(SW_SHOW);
       return false;
    }

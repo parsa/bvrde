@@ -83,6 +83,7 @@ int CTagInfo::FindItem(int iStart, LPCTSTR pstrName)
            n = (min + max) / 2;
        }
        // Find first instance of the particular string
+       if( min >= max ) return -1;
        if( _tcscmp(pstrName, m_aTags[n].pstrName) != 0 ) return -1;
        while( n > 0 && _tcscmp(pstrName, m_aTags[n - 1].pstrName) == 0 ) n--;
        return n;

@@ -137,7 +137,10 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
    AddAutoHideView(m_viewOutput, IDE_DOCK_BOTTOM, 1);
    AddAutoHideView(m_viewCommand, IDE_DOCK_BOTTOM, 6);
+
+   m_viewOutput.SetUndoLimit(0);
    m_viewOutput.Clear();
+   m_viewCommand.SetUndoLimit(0);
    m_viewCommand.Clear();
 
    // Set up MRU stuff
