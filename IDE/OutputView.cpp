@@ -144,5 +144,7 @@ bool COutputView::_OpenView(IProject* pProject, LPCTSTR pstrFilename, long lLine
       ::PathStripPath(szFilename);
       if( _tcsicmp(szSearchFile, szFilename) == 0 ) return pView->OpenView(lLineNum) == TRUE;
    }
+   // TODO: Consider launching files by filename even if they don't
+   //       exist in one of the projects.
    return false;
 }

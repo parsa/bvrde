@@ -51,10 +51,10 @@ public:
       DWORD dwCode = 0;
       ::GetExitCodeThread(m_hThread, &dwCode);
       if( dwCode == STILL_ACTIVE ) {
-         // Hvis vinduet ikke er oprettet endnu, så er vi
-         // nødt til at vente lidt på den...
+         // If the windows hasn't been created yet, then we'll
+         // have to wait a bit for the thread to start...
          while( !m_bCreated ) ::Sleep(500L);
-         // Ok, nu kan vi lukke vinduet.
+         // Ok, now we can close it
          PostMessage(WM_USER_REMOVESPLASH, 0, dwDelay);
       }
       ::CloseHandle(m_hThread);
@@ -104,7 +104,7 @@ public:
       CAnimateWindow wndAnimate = m_hWnd;
       if( !wndAnimate.AnimateWindow(200) ) ::ShowWindow(m_hWnd, SW_SHOW);
 
-      // Marker at dialogen endelig er oprettet!
+      // Mark that the window was created
       m_bCreated = true;
       return 0;
    }

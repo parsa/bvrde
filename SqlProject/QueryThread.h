@@ -47,7 +47,7 @@ typedef struct DATAPACKET
 } DATAPACKET;
 
 
-class CQueryThread : public CThreadImpl
+class CQueryThread : public CThreadImpl<CQueryThread>
 {
 public:
    CQueryThread(CDbOperations* pDbData);

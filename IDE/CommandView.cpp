@@ -54,7 +54,7 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, D
 /////////////////////////////////////////////////////
 // CCommandThread
 
-class CCommandThread : public CThreadImpl
+class CCommandThread : public CThreadImpl<CCommandThread>
 {
 public:
    CRichEditCtrl m_ctrlEdit;

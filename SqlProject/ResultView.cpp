@@ -189,6 +189,7 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
          dc.SelectFont(hOldFont);
          if( m_ctrlTab.GetItemCount() == 2 ) m_ctrlTab.SetCurFocus(0);
       }
+      break;
    case PACKET_ROWINFO:
       {
          if( pPacket->iCols == 0 ) break;
@@ -272,6 +273,7 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
    if( pPacket->plData ) delete [] pPacket->plData;
    if( pPacket->pstrData ) delete [] pPacket->pstrData;
    delete pPacket;
+
    return 0;
 }
 
