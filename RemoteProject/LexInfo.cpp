@@ -70,7 +70,7 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
       return false;
    }
 
-   // Since we're changing the file data, and the ClassView references
+   // Since we're changing the parse data, and the ClassView references
    // this data, we must 'lock' it down so it doesn't use the old pointers...
    m_pProject->GetClassView()->Lock();
 
@@ -89,7 +89,7 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
 
    // Signal the tree to rebuild itself!
    // This is important since we've removed some of the TAGINFO pointers
-   // from the list and we need to unlock the data
+   // from the list and need to unlock the data.
    m_pProject->GetClassView()->Rebuild();
    m_pProject->GetClassView()->Unlock();
 

@@ -612,7 +612,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
    // Attempt auto-completion after 3 characters have been typed on a new line.
    // We'll later check if this really could be time to auto-complete!
    static WORD s_nChars = 0;
-   if( ch == '\n' ) s_nChars = 0;
+   if( ch == '\n' || ch == ';' || ch == ' ' || ch == '\t' ) s_nChars = 0;
    if( _iscppchar(ch) && ++s_nChars == AUTOCOMPLETE_AFTER_TYPED_CHARS ) bShow = true;
    // So?
    if( lPos < 10 ) bShow = false;
@@ -632,16 +632,40 @@ void CScintillaView::_AutoComplete(CHAR ch)
       // we're on an empty line or after equal-sign, then we'll
       // show current class scope members.
       iLenEntered = sName.GetLength();
+      if( ch == '.' || ch == '>' || ch == ':' ) iLenEntered = 0;
       lPos -= sName.GetLength();
       while( true ) {
          char ch = m_ctrlEdit.GetCharAt(--lPos);
          if( lPos < 0 ) return;
-         if( ch == '\n' ) break;
-         if( ch == '=' ) break;
+         if( ch == '\n' ||  ch == '=' ) {
+            sType = _FindBlockType(lPos);
+            break;
+         }
          if( isspace(ch) ) continue;
-         return;
+         // We have a type. It could be a member of the class function
+         // we're currently implementing...
+         sType = _FindBlockType(lPos);
+         if( sType.IsEmpty() ) return;
+         if( iLenEntered == 0 ) {
+            // Keep looking for a member that matches in this class...
+            CSimpleValArray<TAGINFO*> aList;
+            m_pCppProject->m_TagManager.GetMemberList(sType, aList, true);
+            sType = _T("");
+            for( int i = 0; i < aList.GetSize(); i++ ) {
+               if( sName == aList[i]->pstrName ) {
+                  // What good fortune we have! Here's the member.
+                  // HACK: We don't really have the type, but we might be able
+                  //       to extract it from the TAG search pattern!!
+                  sType = aList[i]->pstrToken;
+                  int iPos = sType.FindOneOf(_T(" \t<("));
+                  if( iPos < 0 ) return;
+                  sType = sType.Left(iPos);
+                  break;
+               }
+            }
+         }
+         break;
       }
-      sType = _FindBlockType(lPos);
    }
    if( sType.IsEmpty() ) return;
 
@@ -772,9 +796,8 @@ void CScintillaView::_FunctionTip(CHAR ch)
    // Find the member
    long lMemberPos = lPos - 2 - sName.GetLength();
    CString sMember = _GetNearText(lMemberPos);
-   if( sMember.IsEmpty() ) return;
    // Make sure we can recognize the class type
-   CString sType = _FindTagType(sMember, lPos);
+   CString sType = sMember.IsEmpty() ? _FindBlockType(lPos) : _FindTagType(sMember, lPos);
    if( sType.IsEmpty() ) return;
    // Finally get the function text
    CString sValue = m_pCppProject->GetTagInfo(sName, sType);

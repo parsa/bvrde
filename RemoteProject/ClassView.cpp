@@ -136,8 +136,6 @@ void CClassView::Clear()
 void CClassView::Populate()
 {
    ATLASSERT(IsWindow());
-   // Not ready?
-   if( m_pProject == NULL ) return;
    // TAGS files already scanned and nothing was found!
    if( m_bLoaded ) return;
    // Show status text
@@ -149,9 +147,9 @@ void CClassView::Populate()
 
 void CClassView::Rebuild()
 {
-   // Don't want classes hanging around
-   Clear();
-   // View not showing right? No need to populate now.
+   // Signal that we should rebuild the tree
+   m_bLoaded = false;
+   // View not showing right now? No need to populate then.
    if( !IsWindowVisible() ) return;
    // Ok, do it then...
    _PopulateTree();
@@ -159,6 +157,9 @@ void CClassView::Rebuild()
 
 void CClassView::_PopulateTree()
 {
+   // Not ready?
+   if( m_pProject == NULL ) return;
+
    CSimpleValArray<TAGINFO*> aList;
    m_pProject->m_TagManager.GetOuterList(aList);
    if( aList.GetSize() > 0 ) 
@@ -171,7 +172,7 @@ void CClassView::_PopulateTree()
       // Clear tree
       m_ctrlTree.DeleteAllItems();  
 
-      // Not locked anymore; tree is clean!
+      // Not locked anymore; tree is safe!
       m_bLocked = false;
    
       // Insert classes and expand previously expanded branches...
