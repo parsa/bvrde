@@ -14,30 +14,6 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Danish resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)
-#ifdef _WIN32
-LANGUAGE LANG_DANISH, SUBLANG_DEFAULT
-#pragma code_page(1252)
-#endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    ID_EDIT_CLEAR           "Clear the view\nClear"
-    ID_EDIT_COPY            "Copy the selected text\nCopy"
-END
-
-#endif    // Danish resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
@@ -51,11 +27,13 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Dialog
 //
 
-IDD_TOOLS DIALOGEX 0, 0, 259, 198
+IDD_TOOLS DIALOGEX 0, 0, 259, 225
 STYLE DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "External Tools"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
+    LTEXT           "Menu Contents",IDC_STATIC,7,7,80,14,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
     CONTROL         "List1",IDC_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOCOLUMNHEADER | 
                     LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,21,245,69
@@ -78,28 +56,31 @@ BEGIN
     EDITTEXT        IDC_PATH,51,144,184,12,ES_AUTOHSCROLL
     PUSHBUTTON      "",IDC_BROWSE_PATH,238,144,14,12,BS_ICON | NOT 
                     WS_TABSTOP
+    CONTROL         "Type: ",IDC_STATIC,"Static",SS_SIMPLE | SS_NOPREFIX | 
+                    SS_CENTERIMAGE | WS_GROUP,7,161,39,12,WS_EX_TRANSPARENT
+    COMBOBOX        IDC_TYPE,51,159,104,12,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
     CONTROL         "Use Output Window",IDC_USE_OUTPUT,"Button",
-                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,7,162,84,10,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,178,84,10,
                     WS_EX_TRANSPARENT
-    DEFPUSHBUTTON   "OK",IDOK,149,177,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,202,177,50,14
+    CONTROL         "Prompt for arguments",IDC_PROMPT_ARGS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,191,84,10,
+                    WS_EX_TRANSPARENT
+    DEFPUSHBUTTON   "OK",IDOK,149,204,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,202,204,50,14
     PUSHBUTTON      "IDI_LOAD1",IDC_NEW,198,7,13,13,BS_ICON
     PUSHBUTTON      "IDI_LOAD1",IDC_DELETE,211,7,13,13,BS_ICON
     PUSHBUTTON      "IDI_LOAD1",IDC_UP,225,7,13,13,BS_ICON
     PUSHBUTTON      "IDI_LOAD1",IDC_DOWN,239,7,13,13,BS_ICON
-    LTEXT           "Menu Contents",IDC_STATIC,7,7,80,14,SS_CENTERIMAGE,
-                    WS_EX_TRANSPARENT
 END
 
-IDD_LAYOUT DIALOG DISCARDABLE  0, 0, 210, 198
+IDD_CONFIG_SOUNDS DIALOG DISCARDABLE  0, 0, 210, 198
 STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "ToolBars:",IDC_STATIC,7,7,77,10
-    CONTROL         "Use large buttons",IDC_LARGE_ICONS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,153,126,10
-    CONTROL         "Tree1",IDC_LIST,"SysTreeView32",WS_BORDER | WS_TABSTOP,
-                    7,17,166,128
+    LTEXT           "Sounds are configured in the Windows Sounds and Audio Control Panel applet.",
+                    IDC_STATIC,7,7,196,19
+    PUSHBUTTON      "Launch Sounds applet",IDC_LAUNCH,84,34,108,14
 END
 
 IDD_OPTIONS DIALOGEX 0, 0, 387, 225
@@ -209,18 +190,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,238,140,50,14
 END
 
-IDD_CUSTOMIZE DIALOGEX 0, 0, 303, 225
-STYLE DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-EXSTYLE WS_EX_TOOLWINDOW
-CAPTION "Customize"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
-BEGIN
-    CONTROL         "Tab1",IDC_TAB,"SysTabControl32",0x0,7,7,289,191
-    DEFPUSHBUTTON   "OK",IDOK,193,204,50,14,WS_DISABLED
-    PUSHBUTTON      "Cancel",IDCANCEL,246,204,50,14
-END
-
-IDD_KEYBOARD DIALOGEX 0, 0, 284, 172
+IDD_CONFIG_KEYBOARD DIALOGEX 0, 0, 284, 172
 STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
@@ -378,13 +348,15 @@ BEGIN
     CONTROL         "Bottomless editor",IDC_BOTTOMLESS,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,48,120,10,
                     WS_EX_TRANSPARENT
-    LTEXT           "Configuration",IDC_STATIC,0,71,43,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,49,75,208,1
-    LTEXT           "EOL mode:",IDC_STATIC,14,87,43,12,SS_CENTERIMAGE
-    COMBOBOX        IDC_EOL,60,87,68,51,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    CONTROL         "Mark Caret Line",IDC_CARETLINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,14,59,120,10,WS_EX_TRANSPARENT
+    LTEXT           "Configuration",IDC_STATIC,0,83,43,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,49,87,208,1
+    LTEXT           "EOL mode:",IDC_STATIC,14,99,43,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_EOL,60,99,68,51,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "Caret Width: ",IDC_STATIC,14,103,43,12,SS_CENTERIMAGE
-    EDITTEXT        IDC_CARETWIDTH,60,103,21,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Caret Width: ",IDC_STATIC,14,115,43,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_CARETWIDTH,60,115,21,12,ES_AUTOHSCROLL | ES_NUMBER
 END
 
 IDD_OPTIONS_PRINTING DIALOGEX 0, 0, 259, 153
@@ -399,7 +371,7 @@ BEGIN
                     WS_GROUP | WS_TABSTOP,14,27,120,10,WS_EX_TRANSPARENT
 END
 
-IDD_MACROS DIALOG DISCARDABLE  0, 0, 223, 202
+IDD_CONFIG_MACROS DIALOG DISCARDABLE  0, 0, 223, 202
 STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Macros"
@@ -492,6 +464,37 @@ BEGIN
     PUSHBUTTON      "Remove",IDC_REMOVE,223,26,50,14
 END
 
+IDD_ARGUMENTPROMPT DIALOG DISCARDABLE  0, 0, 282, 106
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "Tool Arguments"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "",IDC_STATIC,7,7,268,68
+    LTEXT           "Edit arguments before running tool:",IDC_STATIC,15,17,
+                    191,10
+    LTEXT           "Command:",IDC_STATIC,18,31,37,13,SS_NOPREFIX | 
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_COMMAND,59,31,204,13,ES_AUTOHSCROLL
+    LTEXT           "Arguments:",IDC_STATIC,18,48,36,13,SS_NOPREFIX | 
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_ARGUMENTS,59,48,204,13,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,171,85,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,225,85,50,14
+END
+
+IDD_CONFIG_LAYOUT DIALOGEX 0, 0, 210, 198
+STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD
+EXSTYLE WS_EX_TRANSPARENT
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Tool Bars:",IDC_STATIC,7,7,77,10
+    CONTROL         "Use large buttons",IDC_LARGE_ICONS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,153,126,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Tree1",IDC_LIST,"SysTreeView32",WS_BORDER | WS_TABSTOP,
+                    7,17,166,128
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -506,10 +509,10 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 252
         TOPMARGIN, 7
-        BOTTOMMARGIN, 191
+        BOTTOMMARGIN, 218
     END
 
-    IDD_LAYOUT, DIALOG
+    IDD_CONFIG_SOUNDS, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 203
@@ -559,15 +562,7 @@ BEGIN
         BOTTOMMARGIN, 154
     END
 
-    IDD_CUSTOMIZE, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 296
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 218
-    END
-
-    IDD_KEYBOARD, DIALOG
+    IDD_CONFIG_KEYBOARD, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 273
@@ -575,7 +570,7 @@ BEGIN
         BOTTOMMARGIN, 162
     END
 
-    IDD_MACROS, DIALOG
+    IDD_CONFIG_MACROS, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 216
@@ -597,6 +592,22 @@ BEGIN
         RIGHTMARGIN, 273
         TOPMARGIN, 7
         BOTTOMMARGIN, 162
+    END
+
+    IDD_ARGUMENTPROMPT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 275
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 99
+    END
+
+    IDD_CONFIG_LAYOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 203
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 191
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -972,7 +983,7 @@ BEGIN
     IDS_CAPTION_ERROR       "Error"
     IDS_CAPTION_QUESTION    "Question"
     IDS_CAPTION_MESSAGE     "Message"
-    IDS_ERR_PROJECTTYPE     "Error loading Project\nProject has an unrecognized type.\nThe Project will be removed from the Solution."
+    IDS_ERR_PROJECTTYPE     "Error loading Project\nProject has an unrecognized type.\nThe Project '%s' has the unknown type '%s'. It will be removed from the Solution."
     IDS_ERR_SAVEPROJECT     "Save Error\nAn error occured while writing project file."
     IDS_SAVE_DIRTY          "Save changes\nChanges has been made to this solution. Do you wish to save changes first?"
     IDS_FILTER_PROJECT      "Project files|*.prj|All Files|*.*|"
@@ -1031,6 +1042,8 @@ BEGIN
     ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
     ID_EDIT_FIND            "Find the specified text\nFind"
     ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_CLEAR2          "Clear the view\nClear"
+    ID_EDIT_COPY2           "Copy the selected text\nCopy"
     ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
     ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
     ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
@@ -1188,7 +1201,7 @@ BEGIN
     IDS_ERR_FILELOCKED      "File Locked\nCannot acces file. It is locked?!"
     IDS_ERR_FILEOPEN        "File Open Error\nFile was not found or could not be opened.\nTry another file."
     IDS_ERR_VBSCRIPT        "Script Component missing\nUnable to create VBScript component.\nWhat a strange Windows installation you have?!"
-    IDS_COMMAND_HELP        "The following syntax is accepted:\r\n  help - this text.\r\n  run <file> - execute program.\r\n  exec <file> - execute program and capture output.\r\n  print <file> - send contents to printer.\r\n"
+    IDS_COMMAND_HELP        "The following syntax is accepted:\r\n  help - this text.\r\n  ? <expr> - evaluate expression.\r\n  run <file> - execute program.\r\n  exec <file> - execute program and capture output.\r\n  print <file> - send contents to printer.\r\n"
     IDS_ERR_UNKNOWNCOMMAND  "Unknown command.\r\n"
     IDS_TYPEHELP            "Type ""help"" to see available commands.\r\n"
     IDS_ERR_SCRIPT          "An error occured while parsing the script:\nSource: %ls\nError: %08X\nDescription: %ls\nLine: %ld\n"
@@ -1218,6 +1231,9 @@ BEGIN
     IDS_FILTER_MACRO        "Macros|*.vbs|All Files|*.*|"
     IDS_MACROBIND           "Macros"
     IDS_KEYDUPLICATE        "Shortcut duplication\nThis shortcut is already in use. Continue?\nThe key combination is already used for a different shortcut."
+    IDS_TREE_ASP            "ASP"
+    IDS_TOOLTYPE_LOCAL      "Local"
+    IDS_TOOLTYPE_REMOTE     "Remote"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1230,6 +1246,13 @@ STRINGTABLE DISCARDABLE
 BEGIN
     ID_TAB_CLOSEALLEXCEPT   "Close all tabs, except this one\nClose all except this"
     ID_EDIT_CLEARVIEW       "Clear all text in the view\nClear"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TOOLTYPE_SQL        "SQL"
+    IDS_SOUNDS              "Sounds"
+    IDS_CUSTOMIZE           "Customize"
 END
 
 #endif    // English (U.S.) resources

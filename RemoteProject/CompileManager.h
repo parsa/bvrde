@@ -29,6 +29,7 @@ public:
    CSimpleArray<CString> m_aCommands;      // List of commands waiting for execution
    bool m_bCommandMode;                    // State of next batch
    bool m_bIgnoreOutput;                   // State of next batch
+   bool m_bBuildSession;                   // Has issued compile command?
 };
 
 
@@ -70,7 +71,7 @@ public:
 
    SIZE _GetViewWindowSize() const;
    bool _PrepareProcess(LPCTSTR /*pstrName*/);
-   bool _StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCommands, bool bCommandMode = false, bool bIgnoreOutput = false);
+   bool _StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCommands, bool bBuildSession, bool bCommandMode, bool bIgnoreOutput);
    CString _TranslateCommand(LPCTSTR pstrAction, LPCTSTR pstrParams = NULL) const;
 
    // IOutputLineListener
@@ -88,6 +89,8 @@ public:
    bool m_bCommandMode;                    // An external command (prompt) is executing
    bool m_bIgnoreOutput;                   // Don't print output in Compile view
    bool m_bCompiling;                      // Are we currently compiling?
+   bool m_bBuildSession;                   // Do we have a build session going on?
+   bool m_bWarningPlayed;                  // Error warning sound played once?
    //
    CString m_sCommandCD;
    CString m_sCommandBuild;

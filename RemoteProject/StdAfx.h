@@ -31,6 +31,8 @@ extern CComModule _Module;
 #include <atldlgs.h>
 #include <atlscrl.h>
 
+#include <mmsystem.h>
+
 #include <wininet.h>
 
 #include <winsock2.h>

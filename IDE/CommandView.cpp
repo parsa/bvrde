@@ -67,7 +67,8 @@ public:
       ATLASSERT(m_ctrlEdit.IsWindow());
       m_ctrlEdit.SetReadOnly(TRUE);
       if( !_BroadcastCommand(m_sCommandLine) 
-          && _tcsicmp(m_sCommandLine, _T("help")) != 0 ) 
+          && m_sCommandLine.CompareNoCase(_T("help")) != 0
+          && !m_sCommandLine.IsEmpty() )
       {
          AppendRtfText(m_ctrlEdit, CString(MAKEINTRESOURCE(IDS_ERR_UNKNOWNCOMMAND)), CFM_COLOR, 0, COLOR_RED);
          // On first time an un-interpreted (errornous) command is entered, print the
@@ -400,7 +401,7 @@ void CCommandView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_EDIT_COPY, TRUE);
 }
 
-// ICommandListener
+// ICustomCommandListener
 
 void CCommandView::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
 {
@@ -456,5 +457,30 @@ void CCommandView::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
    {
       AppendRtfText(m_hWnd, CString(MAKEINTRESOURCE(IDS_COMMAND_HELP)));
    }
+}
+
+void CCommandView::OnMenuCommand(LPCTSTR pstrType, LPCTSTR pstrCommand, LPCTSTR pstrArguments, LPCTSTR pstrPath, int iFlags, BOOL& bHandled)
+{
+   // Support for the following types:
+   //   local
+   bHandled = FALSE;
+   if( _tcscmp(pstrType, _T("local")) != 0 || _tcslen(pstrType) == 0 ) return;
+   if( (iFlags & TOOLFLAGS_CONSOLEOUTPUT) != 0 ) {
+      // Yes, let's show this baby
+      g_pDevEnv->ActivateAutoHideView(m_hWnd);
+      // Run command
+      AppendRtfText(m_hWnd, _T("\r\n\r\n"));
+      CString sCommandline;
+      sCommandline.Format(_T("%s %s"), pstrCommand, pstrArguments);
+      _ExecAndCapture(sCommandline);
+      // Display prompt as last item
+      AppendRtfText(m_hWnd, _T("\r\n> "), CFM_BOLD, CFE_BOLD);
+      SetSel(-1, -1);
+   }
+   else {
+      // Just launch the application using the Shell
+      ::ShellExecute(m_hWnd, _T("open"), pstrCommand, pstrArguments, pstrPath, SW_SHOWNORMAL);
+   }
+   bHandled = TRUE;
 }
 

@@ -233,7 +233,8 @@ public:
    ISerializable* m_pArc;
    CString m_sLanguage;
 
-   typedef struct tagSTYLEFONT {
+   typedef struct tagSTYLEFONT 
+   {
       TCHAR szTitle[64];
       TCHAR szFaceName[LF_FACESIZE];
       COLORREF clrText;
@@ -243,7 +244,7 @@ public:
       bool bBold;
    } STYLEFONT;
 
-   STYLEFONT m_aFonts[10];
+   STYLEFONT m_aFonts[15];
 
    CListBox m_ctrlList;
    CFontPickerComboCtrl m_ctrlFace;

@@ -180,6 +180,19 @@ BEGIN
     END
 END
 
+IDR_TEXT MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Open",                       ID_VIEW_OPEN
+        MENUITEM "Open with...",                ID_VIEW_OPENWITH
+        MENUITEM SEPARATOR
+        MENUITEM "&Remove",                     ID_FILE_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_VIEW_PROPERTIES
+    END
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -266,7 +279,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_NEW_FOLDER          "Folder"
-    IDS_FILTER_FILES        "Source files|*.c*;*.h*;*.?c;*.inc|All Files|*.*|"
+    IDS_FILTER_FILES        "Source files|*.c*;*.h*;*.?c;*.inc|Web Files|*.htm*;*.p*;*.asp;*.js*|All Files|*.*|"
     IDS_FINDFAILED          "Not found\nCould not find the string '%s'."
     IDS_CAPTION_ERROR       "Error"
     IDS_CAPTION_WARNING     "Warning"

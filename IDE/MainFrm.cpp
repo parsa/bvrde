@@ -8,6 +8,8 @@
 #include "MainFrm.h"
 
 #include "ChooseSolutionDlg.h"
+#include "ArgumentPromptDlg.h"
+
 #include "RegSerializer.h"
 #include "XmlSerializer.h"
 #include "DummyElement.h"
@@ -138,8 +140,6 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    AddAutoHideView(m_viewOutput, IDE_DOCK_BOTTOM, 1);
    AddAutoHideView(m_viewCommand, IDE_DOCK_BOTTOM, 6);
 
-   m_viewOutput.SetUndoLimit(0);
-   m_viewCommand.SetUndoLimit(0);
    m_viewOutput.Clear();
    m_viewCommand.Clear();
 
@@ -381,9 +381,9 @@ LRESULT CMainFrame::OnFileOpen(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
    CFileDialog dlg(TRUE, NULL, NULL, dwStyle, sFilter, m_hWnd);
    dlg.m_ofn.Flags &= ~OFN_ENABLEHOOK;
    if( dlg.DoModal() != IDOK ) return 0;
-   CWaitCursor cursor;
    // Create the new view. It will not be attached to any project.
    // TODO: Consider attaching to current project?
+   CWaitCursor cursor;
    IView* pView = CreateView(dlg.m_ofn.lpstrFile, NULL, NULL);
    if( pView ) ATLTRY( pView->OpenView(0) );
    return 0;
@@ -410,6 +410,7 @@ LRESULT CMainFrame::OnFileRecent(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
    m_mru.MoveToTop(wID);
    // Open solution file
    if( !SendMessage(WM_APP_LOADSOLUTION, 0, (LPARAM) szFile) ) {
+      // Failed to load? Remove from MRU list
       m_mru.RemoveFromList(wID);
    }
    m_mru.WriteToRegistry(REG_BVRDE _T("\\Mru"));
@@ -514,21 +515,97 @@ LRESULT CMainFrame::OnToolsRun(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
    g_pDevEnv->GetProperty(_T("editors.general.saveBeforeTool"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("true")) == 0 ) SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE_ALL, 0));
 
+   // Get information about this tool
    CRegSerializer arc;
    if( !arc.Open(REG_BVRDE _T("\\Tools")) ) return 0;
    CString sKey;
    sKey.Format(_T("Tool%ld"), wID - ID_TOOLS_TOOL1 + 1L);
    if( !arc.ReadGroupBegin(sKey) ) return 0;
-
    TCHAR szCommand[300] = { 0 };
    TCHAR szArguments[300] = { 0 };
    TCHAR szPath[300] = { 0 };
+   TCHAR szType[100] = { 0 };
+   long lFlags = 0;
    arc.Read(_T("command"), szCommand, 299);
    arc.Read(_T("arguments"), szArguments, 299);
    arc.Read(_T("path"), szPath, 299);
+   arc.Read(_T("type"), szType, 99);
+   arc.Read(_T("flags"), lFlags);
    arc.Close();
 
-   ::ShellExecute(m_hWnd, _T("open"), szCommand, szArguments, szPath, SW_SHOWNORMAL);
+   CString sCommand = szCommand;
+   CString sArguments = szArguments;
+   CString sPath = szPath;
+
+   // Do replacement of special meta-tokens
+   //    $PROJECTNAME$
+   //    $PROJECTPATH$
+   //    $HOSTNAME$
+   //    $NAME$
+   //    $FILENAME$
+   //    $SELECTION$
+   //    $APPPATH$
+   HWND hWnd = MDIGetActive();
+   IView* pView = NULL;
+   IProject* pProject = NULL;  
+   if( ::IsWindow(hWnd) ) {
+      CWinProp prop = hWnd;
+      prop.GetProperty(_T("Project"), pProject);
+      prop.GetProperty(_T("View"), pView);
+   }
+   if( pProject == NULL ) {
+      pProject = GetSolution()->GetActiveProject();
+   }
+   if( pProject != NULL ) {
+      // Extract information from IDispatch interface
+      CComDispatchDriver dd = pProject->GetDispatch();
+      CComVariant vRet;
+      vRet.Clear();
+      dd.GetPropertyByName(L"Name", &vRet);
+      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$NAME$"), CString(vRet.bstrVal));
+      vRet.Clear();
+      dd.GetPropertyByName(L"Filename", &vRet);
+      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$FILENAME$"), CString(vRet.bstrVal));
+      vRet.Clear();
+      dd.GetPropertyByName(L"CurDir", &vRet);
+      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$PROJECTPATH$"), CString(vRet.bstrVal));
+      vRet.Clear();
+      dd.GetPropertyByName(L"Server", &vRet);
+      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$HOSTNAME$"), CString(vRet.bstrVal));
+   }
+   if( pView != NULL ) {
+      // Extract information from IDispatch interface
+      CComDispatchDriver dd = pView->GetDispatch();
+      CComVariant vRet;
+      vRet.Clear();
+      dd.GetPropertyByName(L"Name", &vRet);
+      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$NAME$"), CString(vRet.bstrVal));
+      vRet.Clear();
+      dd.GetPropertyByName(L"Filename", &vRet);
+      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$FILENAME$"), CString(vRet.bstrVal));
+      vRet.Clear();
+      dd.Invoke0(L"GetSelection", &vRet);
+      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$SELECTION$"), CString(vRet.bstrVal));
+   }
+   sArguments.Replace(_T("$APPPATH$"), CModulePath());
+
+   // Do we need to prompt for changes in arguments
+   if( (lFlags & TOOLFLAGS_PROMPTARGS) != 0 ) {
+      CArgumentPromptDlg dlg;
+      dlg.m_sCommand = sCommand;
+      dlg.m_sArguments = sArguments;
+      if( dlg.DoModal() != IDOK ) return 0;
+      sCommand = dlg.m_sCommand;
+      sArguments = dlg.m_sArguments;
+   }
+
+   // Let's see who handles this command...
+   BOOL bHandled = FALSE;
+   for( int i = m_aCommandListeners.GetSize() - 1; i >= 0; --i ) {
+      m_aCommandListeners[i]->OnMenuCommand(szType, sCommand, sArguments, sPath, (int) lFlags, bHandled);
+      if( bHandled ) break;
+   }
+
    return 0;
 }
 
@@ -551,7 +628,7 @@ LRESULT CMainFrame::OnMacroShortcut(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
          arc.Read(_T("filename"), sFilename);
          arc.Read(_T("function"), sFunction);
          arc.ReadGroupEnd();
-         // If it's a match, then execute macro
+         // If it's a match, then execute macro...
          if( lCmd == wID ) {
             CString sFullFilename = sFilename;
             sFullFilename.Format(_T("%s%s.vbs"), CModulePath(), sFilename);

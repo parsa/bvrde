@@ -98,6 +98,7 @@ DWORD CRloginThread::Run()
    DWORD dwPos = 0;
    DWORD dwStartLinePos = 0;
    DWORD dwBufferSize = MAX_BUFFER_SIZE;
+   bool bInitialized = false;
 
    CEvent event;
    event.Create();
@@ -116,6 +117,10 @@ DWORD CRloginThread::Run()
    for( LPSTR p = szBuffer; *p; p++ ) if( *p == '|' ) *p = '\0';
    int nSent = ::send(socket, szBuffer, nLen, 0); nSent;
 
+   // NOTE: Like most of these network wrappers this is
+   //       a very simplistic client implementation and
+   //       we should really spend more time on fulfilling
+   //       the RFC specifications.
    // TODO: We are in "cooked" mode and should probably
    //       be concerned about it until told otherwise...
    //       At least we should process "urgent" TCP packets.
@@ -159,9 +164,44 @@ DWORD CRloginThread::Run()
          }
          dwSize -= dwRead;
 
-         if( !m_pManager->m_bConnected ) {
-            CString s = _GetLine(bReadBuffer, 0, dwRead);
-            s.MakeUpper();
+#ifdef _DEBUG
+         bReadBuffer[dwRead] = '\0';
+         ATLTRACE(_T("RLOGIN: '%hs' len=%ld\n"), bReadBuffer, dwRead);
+#endif
+
+         if( !bInitialized ) 
+         {
+            CString sLine = _GetLine(bReadBuffer, 0, dwRead);
+            sLine.MakeUpper();
+            // Server answered with 0-byte?
+            if( sLine.IsEmpty() ) {
+               if( dwRead > 0 ) {
+                  // Skip the 0-answer
+                  BYTE b = _GetByte(socket, bReadBuffer, dwRead, dwPos);
+                  if( b == 0 ) {
+                     // Negotiate window size may be initiated
+                     b = _GetByte(socket, bReadBuffer, dwRead, dwPos);
+                     if( b == 0x80 ) {
+                        CLockStaticDataInit lock;
+                        int iTermWidth = 80;
+                        int iTermHeight = 24;
+                        BYTE b[12] = { 0xFF, 0xFF, 0x73, 0x73, 0, 0, 0, 0, 0, 0, 0, 0 };
+                        b[4] = (BYTE) ((iTermHeight >> 8) & 0xFF);
+                        b[5] = (BYTE) (iTermHeight & 0xFF);
+                        b[6] = (BYTE) ((iTermWidth >> 8) & 0xFF);
+                        b[7] = (BYTE) (iTermWidth & 0xFF);
+                        socket.Write(b, sizeof(b));
+                        m_pManager->m_bCanWindowSize = true;
+                     }
+                     bInitialized = true;
+                  }
+               }
+            }
+         }
+         else if( !m_pManager->m_bConnected ) 
+         {
+            CString sLine = _GetLine(bReadBuffer, 0, dwRead);
+            sLine.MakeUpper();
             // Did authorization fail?
             static LPCTSTR pstrFailed[] =
             {
@@ -175,7 +215,7 @@ DWORD CRloginThread::Run()
             };
             const LPCTSTR* ppstr = pstrFailed;
             while( *ppstr ) {
-               if( s.Find(*ppstr) >= 0 ) {
+               if( sLine.Find(*ppstr) >= 0 ) {
                   m_pManager->m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_LOGIN_FAILED)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR | MB_MODELESS);
                   m_pManager->m_dwErrorCode = ERROR_LOGIN_WKSTA_RESTRICTION;
                   SignalStop();
@@ -183,42 +223,29 @@ DWORD CRloginThread::Run()
                }
                ppstr++;
             }
-            if( *ppstr == NULL ) {
-               // Skip the 0-answer
-               BYTE b = _GetByte(socket, bReadBuffer, dwRead, dwPos);
-               // Negotiate window size
-               b = _GetByte(socket, bReadBuffer, dwRead, dwPos);
-               if( b == 0x80 ) {
-                  int iTermWidth = 80;
-                  int iTermHeight = 24;
-                  BYTE b[12] = { 0xFF, 0xFF, 0x73, 0x73, 0, 0, 0, 0, 0, 0, 0, 0 };
-                  b[4] = (BYTE) ((iTermHeight >> 8) & 0xFF);
-                  b[5] = (BYTE) (iTermHeight & 0xFF);
-                  b[6] = (BYTE) ((iTermWidth >> 8) & 0xFF);
-                  b[7] = (BYTE) (iTermWidth & 0xFF);
-                  socket.Write(b, sizeof(b));
-                  m_pManager->m_bCanWindowSize = true;
-               }
-
-               if( !sUsername.IsEmpty() ) {
-                  CLockStaticDataInit lock;
-                  CHAR szBuffer[200];
-                  ::wsprintfA(szBuffer, "%ls\n", sUsername);
-                  ::send(socket, szBuffer, strlen(szBuffer), 0);
-               }
-               if( !sPassword.IsEmpty() ) {
-                  CLockStaticDataInit lock;
-                  CHAR szBuffer[200];
-                  ::wsprintfA(szBuffer, "%ls\n", sPassword);
-                  ::send(socket, szBuffer, strlen(szBuffer), 0);
-               }
+            if( sLine.Find(_T("LOGIN:")) >= 0 ) {
+               CLockStaticDataInit lock;
+               CHAR szBuffer[200];
+               ::wsprintfA(szBuffer, "%ls\n", sUsername);
+               ::send(socket, szBuffer, strlen(szBuffer), 0);
+               ::Sleep(500L);
+            }
+            else if( sLine.Find(_T("PASSWORD:")) >= 0 ) {
+               CLockStaticDataInit lock;
+               CHAR szBuffer[200];
+               ::wsprintfA(szBuffer, "%ls\n", sPassword);
+               ::send(socket, szBuffer, strlen(szBuffer), 0);
+            }
+            else if( *ppstr == NULL ) {
+               // Not a login prompt or error; we assume it's the login banner and
+               // we successfully entered the system.
+               // Send additional login commands
                if( !sExtraCommands.IsEmpty() ) {
                   CLockStaticDataInit lock;
                   CHAR szBuffer[1024];
                   ::wsprintfA(szBuffer, "%ls\n", sExtraCommands);
                   ::send(socket, szBuffer, strlen(szBuffer), 0);
                }
-
                m_pManager->m_bConnected = true;
             }
          }
@@ -228,7 +255,7 @@ DWORD CRloginThread::Run()
             ATLASSERT(iPos<sizeof(bReadBuffer));
             BYTE b = bReadBuffer[iPos++];
             switch( b ) {
-            case '\0x0':
+            case '\0':
             case '\0x1':
             case '\0x2':
             case '\0x10':

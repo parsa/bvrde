@@ -64,7 +64,7 @@ public:
          m_szFolder);
       CComVariant aParams[3];
       aParams[2] = szCommand;
-      aParams[1] = (IUnknown*) this;
+      aParams[1] = static_cast<IUnknown*>(this);
       aParams[0] = 0L;
       dd.InvokeN(OLESTR("ExecCommand"), aParams, 3);
       return 0;
@@ -74,6 +74,7 @@ public:
 
    virtual HRESULT STDMETHODCALLTYPE OnIncomingLine(BSTR bstr)
    {
+      if( ShouldStop() ) return E_ABORT;
       USES_CONVERSION;
       // Format of grep output is:
       //   filename:linenum:textsnippet

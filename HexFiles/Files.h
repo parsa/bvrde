@@ -14,7 +14,7 @@
 
 class CView : 
    public IView,
-   public IAppListener,
+   public IAppMessageListener,
    public IIdleListener
 {
 public:
@@ -35,7 +35,7 @@ public:
 
    void OnIdle(IUpdateUI* /*pUIBase*/);
 
-   // IAppListener
+   // IAppMessageListener
 
    LRESULT OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    BOOL PreTranslateMessage(MSG* pMsg);
@@ -53,6 +53,7 @@ public:
    IElement* GetParent() const;
    BOOL SetName(LPCTSTR pstrName);
    BOOL Save();
+   BOOL Reload();
    BOOL OpenView(long lLineNum);
    void CloseView();
    BOOL GetText(BSTR* pbstrText);

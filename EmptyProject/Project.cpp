@@ -193,7 +193,7 @@ void CEmptyProject::DeactivateUI()
 {
 }
 
-// IAppListener
+// IAppMessageListener
 
 LRESULT CEmptyProject::OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -229,10 +229,11 @@ void CEmptyProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_FILE_RENAME, TRUE);
 
    pUIBase->UIEnable(ID_VIEW_OPEN, pElement != NULL);
+   pUIBase->UIEnable(ID_VIEW_OPENWITH, FALSE);
    pUIBase->UIEnable(ID_VIEW_PROPERTIES, pElement != NULL);
 }
 
-// ITreeListener
+// ITreeMessageListener
 
 LRESULT CEmptyProject::OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled)
 {
@@ -261,19 +262,24 @@ BOOL CEmptyProject::OnInitWizard(IWizardManager* pManager, IProject* pProject, L
    return TRUE;
 }
 
-BOOL CEmptyProject::OnInitProperties(IWizardManager* pManager, IElement* pElement)
+BOOL CEmptyProject::OnInitProperties(IWizardManager* /*pManager*/, IElement* /*pElement*/)
 {
    return TRUE;
 }
 
-BOOL CEmptyProject::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
+BOOL CEmptyProject::OnInitOptions(IWizardManager* /*pManager*/, ISerializable* /*pArc*/)
 {
    return TRUE;
 }
 
-// ICommandListener
+// ICustomCommandListener
 
-void CEmptyProject::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
+void CEmptyProject::OnUserCommand(LPCTSTR /*pstrCommand*/, BOOL& bHandled)
+{
+   bHandled = FALSE;
+}
+
+void CEmptyProject::OnMenuCommand(LPCTSTR /*pstrType*/, LPCTSTR /*pstrCommand*/, LPCTSTR /*pstrArguments*/, LPCTSTR /*pstrPath*/, int /*iFlags*/, BOOL& bHandled)
 {
    bHandled = FALSE;
 }
@@ -522,7 +528,6 @@ LRESULT CEmptyProject::OnTreeRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHan
    sType.ReleaseBuffer();
    UINT nRes = 0;
    if( sType == _T("Folder") ) nRes = IDR_FOLDER;
-   else if( sType == _T("CPP") ) nRes = IDR_CPP;
    else if( sType == _T("Project") ) nRes = IDR_PROJECT;
    else nRes = IDR_TEXT;
    CMenu menu;

@@ -119,7 +119,7 @@ IDR_XML                 HTML    DISCARDABLE     "res\\xmltrans.htm"
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
 STYLE WS_CHILD
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "Tag Support",-1,0,0,43,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,4,207,1
@@ -127,10 +127,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,120,10,
                     WS_EX_TRANSPARENT
     CONTROL         "Autocase tags",IDC_AUTOCASE,"Button",BS_AUTOCHECKBOX | 
-                    WS_GROUP | WS_TABSTOP,14,28,61,10,WS_EX_TRANSPARENT
+                    WS_GROUP | WS_TABSTOP,14,27,61,10,WS_EX_TRANSPARENT
     CONTROL         "Automatically close tags",IDC_CLOSETAGS,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,42,91,10,
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,40,91,10,
                     WS_EX_TRANSPARENT
+    CONTROL         "Match Braces",IDC_MATCHBRACES,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,14,53,120,10,WS_EX_TRANSPARENT
 END
 
 
@@ -222,11 +224,13 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_CAPTION_MESSAGE     "Message"
     IDS_CAPTION_TOOLBAR     "HTML"
+    IDS_TREE_PHP            "PHP"
     IDS_TREE_ADVANCED       "Advanced"
     IDS_TREE_HTML           "HTML"
     IDS_TREE_XML            "XML"
     IDS_SAVEFILE            "Save File\nFile has been modified. Do you wish to save the file?"
     IDS_CAPTION_QUESTION    "BVRDE"
+    IDS_TREE_ASP            "ASP"
 END
 
 #endif    // English (U.S.) resources

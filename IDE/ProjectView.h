@@ -71,7 +71,7 @@ public:
       m_ctrlTree.GetItem(&item);
       if( item.iImage == 0 || item.iImage == 1 ) {
          item.mask = TVIF_IMAGE | TVIF_SELECTEDIMAGE;
-         item.iImage = item.iSelectedImage = lpNMTV->action & TVE_EXPAND ? 1 : 0;
+         item.iImage = item.iSelectedImage = (lpNMTV->action & TVE_EXPAND) != 0 ? 1 : 0;
          m_ctrlTree.SetItem(&item);
       }
       return 0;

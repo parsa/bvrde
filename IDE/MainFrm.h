@@ -26,6 +26,7 @@
 #include "OutputView.h"
 #include "CommandView.h"
 #include "UpdateUI.h"
+#include "XmlSerializer.h"
 
 
 class CMainFrame : 
@@ -78,12 +79,12 @@ public:
    COutputView m_viewOutput;
    CCommandView m_viewCommand;
    //
-   CSimpleValArray<IAppListener*> m_aAppListeners;
+   CSimpleValArray<IAppMessageListener*> m_aAppListeners;
    CSimpleValArray<IIdleListener*> m_aIdleListeners;
-   CSimpleValArray<ITreeListener*> m_aTreeListeners;
-   CSimpleValArray<IViewListener*> m_aViewListeners;
+   CSimpleValArray<ITreeMessageListener*> m_aTreeListeners;
+   CSimpleValArray<IViewMessageListener*> m_aViewListeners;
    CSimpleValArray<IWizardListener*> m_aWizardListeners;
-   CSimpleValArray<ICommandListener*> m_aCommandListeners;
+   CSimpleValArray<ICustomCommandListener*> m_aCommandListeners;
    CHashMap<CString, CString> m_aProperties;
    CSimpleArray<TOOLBAR> m_aToolBars;      // Collection of toolbars
    CString m_sMacro;                       // Currently recorded macro content
@@ -337,16 +338,16 @@ public:
    BOOL SetProperty(LPCTSTR pstrKey, LPCTSTR pstrValue);
    BOOL EnumProperties(int& iStart, LPCTSTR pstrPattern, LPTSTR pstrKey, LPTSTR pstrValue);
    //
-   BOOL AddAppListener(IAppListener* pListener);
-   BOOL RemoveAppListener(IAppListener* pListener);
+   BOOL AddAppListener(IAppMessageListener* pListener);
+   BOOL RemoveAppListener(IAppMessageListener* pListener);
    BOOL AddIdleListener(IIdleListener* pListener);
    BOOL RemoveIdleListener(IIdleListener* pListener);
-   BOOL AddTreeListener(ITreeListener* pListener);
-   BOOL RemoveTreeListener(ITreeListener* pListener);
-   BOOL AddViewListener(IViewListener* pListener);
-   BOOL RemoveViewListener(IViewListener* pListener);
-   BOOL AddCommandListener(ICommandListener* pListener);
-   BOOL RemoveCommandListener(ICommandListener* pListener);
+   BOOL AddTreeListener(ITreeMessageListener* pListener);
+   BOOL RemoveTreeListener(ITreeMessageListener* pListener);
+   BOOL AddViewListener(IViewMessageListener* pListener);
+   BOOL RemoveViewListener(IViewMessageListener* pListener);
+   BOOL AddCommandListener(ICustomCommandListener* pListener);
+   BOOL RemoveCommandListener(ICustomCommandListener* pListener);
    BOOL AddWizardListener(IWizardListener* pListener);
    BOOL RemoveWizardListener(IWizardListener* pListener);
 
@@ -380,6 +381,7 @@ public:
    void _LoadPlugins();
    void _LoadSettings();
    void _SaveSettings();
+   bool _LoadGeneralSettings(CXmlSerializer& arc);
    void _AddProperty(ISerializable* pArc, LPCTSTR pstrAttribute, LPCTSTR pstrKey);
    void _StoreProperty(ISerializable* pArc, LPCTSTR pstrAttribute, LPCTSTR pstrKey);
    void _LoadUIState();

@@ -100,6 +100,10 @@ SOURCE=.\Globals.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\RepositoryView.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SourceControl.cpp
 # End Source File
 # Begin Source File
@@ -126,6 +130,14 @@ SOURCE=.\WizardSheet.cpp
 # Begin Group "Includes"
 
 # PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\Source\WTL\Include\atlctrlsext.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\WTL\Include\atlgdix.h
+# End Source File
 # Begin Source File
 
 SOURCE=..\Source\WTL\Include\atlwinmisc.h

@@ -101,8 +101,8 @@ public:
    CDefaultConnectionDlg m_wndDefault;
    CComPtr<IPropertyPage> m_spPage;
 
-   //IUnknown methods
-   
+   // IUnknown methods
+
    STDMETHOD(QueryInterface)(REFIID, LPVOID*);
    STDMETHOD_(ULONG, AddRef)(void);
    STDMETHOD_(ULONG, Release)(void);

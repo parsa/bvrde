@@ -26,17 +26,18 @@
 #include "MemoryView.h"
 #include "DisasmView.h"
 #include "ThreadView.h"
+#include "RemoteDirView.h"
 #include "WizardSheet.h"
 #include "QuickWatchDlg.h"
 
 
 class CRemoteProject : 
    public IProject,
-   virtual public IAppListener,
+   virtual public IAppMessageListener,
    virtual public IIdleListener,
-   virtual public ITreeListener,
+   virtual public ITreeMessageListener,
    virtual public IWizardListener,
-   virtual public ICommandListener
+   virtual public ICustomCommandListener
 {
 public:
    CRemoteProject();
@@ -80,6 +81,7 @@ private:
    static CDisasmView m_viewDisassembly;
    static CVariableView m_viewVariable;
    static CThreadView m_viewThread;
+   static CRemoteDirView m_viewRemoteDir;
 
 // IElement
 public:
@@ -103,7 +105,7 @@ public:
    void ActivateUI();
    void DeactivateUI();
 
-// IAppListener
+// IAppMessageListener
 public:
    LRESULT OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    BOOL PreTranslateMessage(MSG* pMsg);
@@ -112,7 +114,7 @@ public:
 public:
    void OnIdle(IUpdateUI* pUIBase);
 
-// ITreeListener
+// ITreeMessageListener
 public:
    LRESULT OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled);
 
@@ -122,9 +124,10 @@ public:
    BOOL OnInitWizard(IWizardManager* pManager, IProject* pProject, LPCTSTR pstrName);
    BOOL OnInitOptions(IWizardManager* pManager, ISerializable* pArc);
 
-// ICommandListener
+// ICustomCommandListener
 public:
    void OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled);
+   void OnMenuCommand(LPCTSTR pstrType, LPCTSTR pstrCommand, LPCTSTR pstrArguments, LPCTSTR pstrPath, int iFlags, BOOL& bHandled);
 
 // Operations
 public:
@@ -171,6 +174,7 @@ public:
       COMMAND_ID_HANDLER(ID_VIEW_WATCH, OnViewWatch)
       COMMAND_ID_HANDLER(ID_VIEW_VARIABLES, OnViewVariables)
       COMMAND_ID_HANDLER(ID_VIEW_CALLSTACK, OnViewStack)
+      COMMAND_ID_HANDLER(ID_VIEW_FILEMANAGER, OnViewRemoteDir)
       COMMAND_ID_HANDLER(ID_PROJECT_SET_DEFAULT, OnProjectSetDefault)      
       COMMAND_ID_HANDLER(ID_DEBUG_START, OnDebugStart)
       COMMAND_ID_HANDLER(ID_DEBUG_DEBUG, OnDebugDebug)
@@ -219,6 +223,7 @@ public:
    LRESULT OnViewVariables(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewStack(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewRemoteDir(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnProjectSetDefault(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugStart(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugDebug(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

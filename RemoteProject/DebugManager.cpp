@@ -377,14 +377,12 @@ bool CDebugManager::AttachProcess(long lPID)
    CSimpleArray<CString> aList;
    CString sCommand = m_sCommandCD;
    aList.Add(sCommand);   
-   sCommand.Format(_T("%s -i=mi --pid=%ld"), m_sDebuggerExecutable, lPID);
-   aList.Add(sCommand);   
    // FIX: The MI interface does not yet support the "-target-attach" command
    //      and using the "--pid" command-line argument tends to prompt for
    //      "press RETURN to continue"...
    //sCommand.Format(_T("-target-attach %ld"), lPID);
-   sCommand = _T("\n");
-   //aList.Add(sCommand);      
+   sCommand.Format(_T("%s -i=mi --pid=%ld"), m_sDebuggerExecutable, lPID);
+   aList.Add(sCommand);   
    return _AttachProcess(aList);
 }
 
@@ -732,7 +730,13 @@ void CDebugManager::_ParseOutOfBand(LPCTSTR pstrText)
             info.GetItem(_T("func")));
          m_pProject->DelayedMessage(sMessage, CString(MAKEINTRESOURCE(IDS_STOPPED)), MB_ICONINFORMATION);
       }
-      // Assume current position changed
+      // Handles reason:
+      //    'breakpoint-hit'
+      if( sValue.Find(_T("breakpoint")) == 0 ) {
+         // Play the breakpoint sound
+         ::PlaySound(_T("BVRDE_BreakpointHit"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
+      }
+      // Assume current position changed, so we'll need to notify views about this
       _ParseNewFrame(info);
       return;
    }
@@ -852,6 +856,10 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
       m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGUNSTABLE)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
       SignalStop();
    }
+   // Thread has terminated?
+   if( sLine.Find(_T("has terminated.")) >= 0 ) {
+      DoDebugCommand(_T("-thread-list-ids"));
+   }
    // Outputting directly to the Command View if we're
    // in "command mode" (user entered custom command at prompt or scripting).
    if( m_bCommandMode ) {
@@ -873,6 +881,8 @@ void CDebugManager::_ParseLogOutput(LPCTSTR /*pstrText*/)
 
 void CDebugManager::_ParseKeyPrompt(LPCTSTR pstrText)
 {
+   // FIX: How "Machine Interface" is it really, when GDB from time to time
+   //      prompts me to hit return to continue?!!
    if( _tcsncmp(pstrText, _T("---Type <return>"), 16) == 0 ) DoDebugCommand(_T("\r\n"));
 }
 

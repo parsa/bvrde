@@ -27,6 +27,8 @@ CMiInfo::~CMiInfo()
 void CMiInfo::Release()
 {
    if( m_pstrData == NULL ) return;
+   // TODO: Really need to protect the reference-counting members
+   //       with a thread-lock.
    if( --(*m_pdwRefCount) == 0 ) {
       free(m_pstrData);
       free(m_pdwRefCount);
@@ -242,7 +244,7 @@ void CMiInfo::_ConvertToPlainText(LPTSTR pstrSrc)
 {
    ATLASSERT(!::IsBadWritePtr(pstrSrc,_tcslen(pstrSrc)));
    // Converts from C-style (escaped) to ASCII text.
-   // Notice that the string is converted inline!
+   // Notice that the string is converted inplace!
    LPCTSTR pstrText = pstrSrc;
    LPTSTR pstrDest = pstrSrc;
    while( *pstrSrc != '\0' ) {

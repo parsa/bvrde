@@ -22,8 +22,11 @@ extern CComModule _Module;
 
 #include <atlcom.h>
 #include <atlwin.h>
-#include <atlctrls.h>
 #include <atlmisc.h>
+#include <atlctrls.h>
+#include <atlctrlx.h>
+#include <atlgdix.h>
+#include <atlctrlsext.h>
 
 #include "atlwinmisc.h"
 #include "Thread.h"

@@ -49,6 +49,7 @@ public:
    IElement* GetParent() const;
    BOOL SetName(LPCTSTR pstrName);
    BOOL Save();
+   BOOL Reload();
    BOOL OpenView(long lLineNum);
    void CloseView();
    BOOL GetText(BSTR* pbstrText);

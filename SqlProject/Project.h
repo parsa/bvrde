@@ -10,11 +10,11 @@ class CView;
 
 class CSqlProject : 
    public IProject,
-   virtual public IAppListener,
+   virtual public IAppMessageListener,
    virtual public IIdleListener,
-   virtual public ITreeListener,
+   virtual public ITreeMessageListener,
    virtual public IWizardListener,
-   virtual public ICommandListener
+   virtual public ICustomCommandListener
 {
 public:
    CSqlProject();
@@ -43,7 +43,7 @@ public:
    IView* GetItem(INT iIndex);
    INT GetItemCount() const;
 
-   // IAppListener
+   // IAppMessageListener
 
    LRESULT OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    BOOL PreTranslateMessage(MSG* pMsg);
@@ -52,13 +52,14 @@ public:
 
    void OnIdle(IUpdateUI* pUIBase);
 
-   // ITreeListener
+   // ITreeMessageListener
 
    LRESULT OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled);
 
-   // ICommandListener
+   // ICustomCommandListener
 
    void OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled);
+   void OnMenuCommand(LPCTSTR pstrType, LPCTSTR pstrCommand, LPCTSTR pstrArguments, LPCTSTR pstrPath, int iFlags, BOOL& bHandled);
 
    // IWizardListener
 

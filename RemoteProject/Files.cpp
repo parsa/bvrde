@@ -158,6 +158,11 @@ BOOL CFolderFile::Save(ISerializable* pArc)
    return TRUE;
 }
 
+BOOL CFolderFile::Reload()
+{
+   return FALSE;
+}
+
 BOOL CFolderFile::OpenView(long /*lLineNum*/)
 {
    return TRUE;
@@ -255,6 +260,12 @@ BOOL CTextFile::Save()
 
    free(pstrText);
    return TRUE;
+}
+
+BOOL CTextFile::Reload()
+{
+   if( IsOpen() ) _pDevEnv->DestroyClient(m_wndFrame);
+   return OpenView(0);
 }
 
 BOOL CTextFile::IsDirty() const
@@ -363,9 +374,9 @@ BOOL CTextFile::OpenView(long lLineNum)
 
       // Load the file (local file or from remote server)
       // As a little hack we allow the file to be opened if we request a line-number
-      // less than -1! This allows empty pages to be opened and later saved.
+      // as 0! This allows empty pages to be opened and later saved.
       CComBSTR bstrText;
-      if( !GetText(&bstrText) && lLineNum >= -1 ) return FALSE;
+      if( !GetText(&bstrText) && lLineNum > 0 ) return FALSE;
       CString sText = bstrText;
 
       CString sName;
@@ -472,18 +483,6 @@ CCppFile::CCppFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pP
    m_sLanguage = _T("cpp");
 }
 
-BOOL CCppFile::Load(ISerializable* pArc)
-{
-   if( !CTextFile::Load(pArc) ) return FALSE;
-   return TRUE;
-}
-
-BOOL CCppFile::Save(ISerializable* pArc)
-{
-   if( !CTextFile::Save(pArc) ) return FALSE;
-   return TRUE;
-}
-
 BOOL CCppFile::GetType(LPTSTR pstrType, UINT cchMax) const
 {
    _tcsncpy(pstrType, _T("CPP"), cchMax);
@@ -567,6 +566,38 @@ CHtmlFile::CHtmlFile(CRemoteProject* pCppProject, IProject* pProject, IElement* 
 BOOL CHtmlFile::GetType(LPTSTR pstrType, UINT cchMax) const
 {
    _tcsncpy(pstrType, _T("HTML"), cchMax);
+   return TRUE;
+}
+
+
+////////////////////////////////////////////////////////
+//
+
+CPhpFile::CPhpFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
+   CTextFile(pCppProject, pProject, pParent)
+{
+   m_sLanguage = _T("php");
+}
+
+BOOL CPhpFile::GetType(LPTSTR pstrType, UINT cchMax) const
+{
+   _tcsncpy(pstrType, _T("PHP"), cchMax);
+   return TRUE;
+}
+
+
+////////////////////////////////////////////////////////
+//
+
+CAspFile::CAspFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
+   CTextFile(pCppProject, pProject, pParent)
+{
+   m_sLanguage = _T("asp");
+}
+
+BOOL CAspFile::GetType(LPTSTR pstrType, UINT cchMax) const
+{
+   _tcsncpy(pstrType, _T("ASP"), cchMax);
    return TRUE;
 }
 

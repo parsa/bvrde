@@ -9,7 +9,7 @@
 #include "FindFilesView.h"
 
 
-class CEventMonitor : public IAppListener, public IIdleListener
+class CEventMonitor : public IAppMessageListener, public IIdleListener
 {
 public: 
    CFindFilesView m_viewFind;

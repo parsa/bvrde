@@ -77,6 +77,11 @@ BOOL CViewImpl::Save()
    return TRUE;
 }
 
+BOOL CViewImpl::Reload()
+{
+   return FALSE;
+}
+
 BOOL CViewImpl::IsDirty() const
 {
    return m_bIsDirty;
@@ -301,8 +306,10 @@ BOOL CTextFile::OpenView(long lLineNum)
    else 
    {
       // Load the file
+      // If we request line number 0, the file will always open. This allows
+      // a non-existing file to appear.
       CComBSTR bstrText;
-      if( !GetText(&bstrText) ) return FALSE;
+      if( !GetText(&bstrText) && lLineNum > 0 ) return FALSE;
       CString sText = bstrText;
 
       DWORD dwAttribs = ::GetFileAttributes(_GetRealFilename());
@@ -488,6 +495,38 @@ CHtmlFile::CHtmlFile(CEmptyProject* pLocalProject, IProject* pProject, IElement*
 BOOL CHtmlFile::GetType(LPTSTR pstrType, UINT cchMax) const
 {
    _tcsncpy(pstrType, _T("HTML"), cchMax);
+   return TRUE;
+}
+
+
+///////////////////////////////////////////////////////7
+//
+
+CPhpFile::CPhpFile(CEmptyProject* pLocalProject, IProject* pProject, IElement* pParent) :
+   CTextFile(pLocalProject, pProject, pParent)
+{
+   m_sLanguage = _T("php");
+}
+
+BOOL CPhpFile::GetType(LPTSTR pstrType, UINT cchMax) const
+{
+   _tcsncpy(pstrType, _T("PHP"), cchMax);
+   return TRUE;
+}
+
+
+///////////////////////////////////////////////////////7
+//
+
+CAspFile::CAspFile(CEmptyProject* pLocalProject, IProject* pProject, IElement* pParent) :
+   CTextFile(pLocalProject, pProject, pParent)
+{
+   m_sLanguage = _T("asp");
+}
+
+BOOL CAspFile::GetType(LPTSTR pstrType, UINT cchMax) const
+{
+   _tcsncpy(pstrType, _T("ASP"), cchMax);
    return TRUE;
 }
 

@@ -9,7 +9,7 @@
 class CCommandView : 
    public CWindowImpl<CCommandView, CRichEditCtrl>,
    public CRichEditCommands<CCommandView>,
-   public ICommandListener,
+   public ICustomCommandListener,
    public IIdleListener
 {
 public:
@@ -52,9 +52,10 @@ public:
 
    void OnIdle(IUpdateUI* pUIBase);
 
-   // ICommandListener
+   // ICustomCommandListener
 
    void OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled);
+   void OnMenuCommand(LPCTSTR pstrType, LPCTSTR pstrCommand, LPCTSTR pstrArguments, LPCTSTR pstrPath, int iFlags, BOOL& bHandled);
 };
 
 

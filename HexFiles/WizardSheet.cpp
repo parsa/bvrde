@@ -14,12 +14,8 @@
    { TCHAR szBuf[32] = { 0 }; _pDevEnv->GetProperty(prop, szBuf, 31); \
      if( _tcscmp(szBuf, _T("false"))!=0 ) CButton(GetDlgItem(id)).Click(); }
 
-#define GET_CHECK(id, prop) \
-   _pDevEnv->SetProperty(prop, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"))
-
-#define TRANSFER_PROP(name, prop) \
-   { TCHAR szBuf[32] = { 0 }; _pDevEnv->GetProperty(prop, szBuf, 31); \
-     m_pArc->Write(name, szBuf); }
+#define WRITE_CHECKBOX(id, name) \
+     m_pArc->Write(name, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"));
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -34,9 +30,6 @@ LRESULT CHexEditorOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 
 int CHexEditorOptionsPage::OnApply()
 {
-   CString sKey = _T("editors.binary.");
-   GET_CHECK(IDC_READONLY, sKey + _T("readOnly"));
-
    if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
    {
       while( m_pArc->ReadGroupBegin(_T("Editor")) ) {
@@ -45,7 +38,7 @@ int CHexEditorOptionsPage::OnApply()
          if( _tcscmp(szLanguage, _T("binary")) == 0 ) {
             m_pArc->Delete(_T("Visuals"));
             m_pArc->WriteItem(_T("Visuals"));
-            TRANSFER_PROP(_T("readOnly"), sKey + _T("readOnly"));
+            WRITE_CHECKBOX(IDC_READONLY, _T("readOnly"));
          }
          m_pArc->ReadGroupEnd();
       }

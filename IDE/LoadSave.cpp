@@ -118,13 +118,17 @@ void CMainFrame::_LoadSettings()
       if( ::GetTickCount() - dwStartTick > 5000UL ) return;
    }
 
-   // Open archive...
+   // Open archive and load settings...
    CString sFilename;
    sFilename.Format(_T("%sBVRDE.xml"), CModulePath());
-
    CXmlSerializer arc;
    if( !arc.Open(g_spConfigDoc, _T("Settings"), sFilename) ) return;
+   if( !_LoadGeneralSettings(arc) ) return;
+   arc.Close();
+}
 
+bool CMainFrame::_LoadGeneralSettings(CXmlSerializer& arc)
+{
    TCHAR szBuffer[MAX_PATH] = { 0 };
    CString sKey;
    CString sValue;
@@ -138,6 +142,7 @@ void CMainFrame::_LoadSettings()
          _AddProperty(&arc, _T("savePrompt"), sKey + _T("savePrompt"));
          _AddProperty(&arc, _T("showEdge"), sKey + _T("showEdge"));
          _AddProperty(&arc, _T("bottomless"), sKey + _T("bottomless"));
+         _AddProperty(&arc, _T("markCaretLine"), sKey + _T("markCaretLine"));
          _AddProperty(&arc, _T("eolMode"), sKey + _T("eolMode"));
          _AddProperty(&arc, _T("caretWidth"), sKey + _T("caretWidth"));
       }
@@ -182,6 +187,7 @@ void CMainFrame::_LoadSettings()
             _AddProperty(&arc, _T("matchBraces"), sKey + _T("matchBraces"));
             _AddProperty(&arc, _T("autoClose"), sKey + _T("autoClose"));
             _AddProperty(&arc, _T("markErrors"), sKey + _T("markErrors"));
+            _AddProperty(&arc, _T("breakpointLines"), sKey + _T("breakpointLines"));
             _AddProperty(&arc, _T("autoCase"), sKey + _T("autoCase"));
             _AddProperty(&arc, _T("autoComplete"), sKey + _T("autoComplete"));
             _AddProperty(&arc, _T("autoSuggest"), sKey + _T("autoSuggest"));
@@ -237,6 +243,9 @@ void CMainFrame::_LoadSettings()
       _AddProperty(&arc, _T("sticky"), _T("sourcecontrol.opt.sticky"));
       _AddProperty(&arc, _T("updatedirs"), _T("sourcecontrol.opt.updatedirs"));
       _AddProperty(&arc, _T("branch"), _T("sourcecontrol.opt.branch"));
+      _AddProperty(&arc, _T("general"), _T("sourcecontrol.opt.general"));
+      _AddProperty(&arc, _T("browseAll"), _T("sourcecontrol.browse.all"));
+      _AddProperty(&arc, _T("browseSingle"), _T("sourcecontrol.browse.single"));
       arc.ReadGroupEnd();
    }
 
@@ -349,7 +358,7 @@ void CMainFrame::_LoadSettings()
       arc.ReadGroupEnd();
    }
 
-   arc.Close();
+   return true;
 }
 
 void CMainFrame::_SaveSettings()

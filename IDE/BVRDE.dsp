@@ -295,6 +295,10 @@ SOURCE=.\AddinManagerDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ArgumentPromptDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ChooseSolutionDlg.h
 # End Source File
 # Begin Source File
@@ -332,6 +336,10 @@ SOURCE=.\MsgBoxDlg.h
 # Begin Source File
 
 SOURCE=.\OptionsDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SoundsDlg.h
 # End Source File
 # Begin Source File
 

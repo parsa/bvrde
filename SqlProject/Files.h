@@ -21,7 +21,7 @@ class CSqlProject;
 class CView : 
    public CDbOperations,
    public IView,
-   public IAppListener,
+   public IAppMessageListener,
    public IIdleListener
 {
 public:
@@ -59,6 +59,7 @@ public:
    void EnableModeless(BOOL bEnable);
    IElement* GetParent() const;
    BOOL Save();
+   BOOL Reload();
    BOOL GetText(BSTR* pbstrText);
    BOOL GetFileName(LPTSTR pstrName, UINT cchMax) const;
    LRESULT PostMessage(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0);
@@ -68,7 +69,7 @@ public:
 
    void OnIdle(IUpdateUI* /*pUIBase*/);
 
-   // IAppListener
+   // IAppMessageListener
 
    LRESULT OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    BOOL PreTranslateMessage(MSG* pMsg);

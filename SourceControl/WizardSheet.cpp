@@ -53,6 +53,9 @@ LRESULT COptionsPage::OnTypeChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOO
    _Commands.sOptMessage    = _T("");
    _Commands.sOptUpdateDirs = _T("");
    _Commands.sOptBranch     = _T("");
+   _Commands.sOptCommon    = _T("");
+   _Commands.sBrowseAll     = _T("");
+   _Commands.sBrowseSingle  = _T("");
 
    switch( iIndex ) {
    case 1:
@@ -72,6 +75,9 @@ LRESULT COptionsPage::OnTypeChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOO
       _Commands.sOptMessage = _T("-m");
       _Commands.sOptUpdateDirs = _T("-dP");
       _Commands.sOptBranch = _T("-j");
+      _Commands.sOptCommon = _T("");
+      _Commands.sBrowseAll = _T("cvs -q status");
+      _Commands.sBrowseSingle = _T("cvs -l status $PATH$");
       break;
    }
 
@@ -141,6 +147,16 @@ int COptionsPage::OnApply()
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(54), &v);
    _Commands.sOptBranch = v.bstrVal;
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(55), &v);
+   _Commands.sOptCommon = v.bstrVal;
+
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(80), &v);
+   _Commands.sBrowseAll = v.bstrVal;
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(81), &v);
+   _Commands.sBrowseSingle = v.bstrVal;
 
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(99), &v);
@@ -164,10 +180,11 @@ int COptionsPage::OnApply()
       m_pArc->Write(_T("message"), _Commands.sOptMessage);
       m_pArc->Write(_T("recursive"), _Commands.sOptRecursive);
       m_pArc->Write(_T("sticky"), _Commands.sOptStickyTag);
+      m_pArc->Write(_T("general"), _Commands.sOptCommon);
+      m_pArc->Write(_T("browseAll"), _Commands.sBrowseAll);
+      m_pArc->Write(_T("browseSingle"), _Commands.sBrowseSingle);
       m_pArc->ReadGroupEnd();
    }
-
-   _pDevEnv->SetProperty(_T("sourcecontrol.enable"), _Commands.bEnabled ? _T("true") : _T("false"));
 
    // HACK: To clear the iterator cache
    m_pArc->ReadGroupEnd();
@@ -235,6 +252,18 @@ void COptionsPage::_PopulateList()
    sName.LoadString(IDS_OPTION_BRANCH);
    sValue = _Commands.sOptBranch;
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 54));
+   sName.LoadString(IDS_OPTION_GENERAL);
+   sValue = _Commands.sOptCommon;
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 55));
+
+   sName.LoadString(IDS_GROUP_BROWSER);
+   m_ctrlList.AddItem(PropCreateCategory(sName));
+   sName.LoadString(IDS_BROWSER_ALL);
+   sValue = _Commands.sBrowseAll;
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 80));
+   sName.LoadString(IDS_BROWSER_SINGLE);
+   sValue = _Commands.sBrowseSingle;
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 81));
 
    sName.LoadString(IDS_GROUP_MISC);
    m_ctrlList.AddItem(PropCreateCategory(sName));

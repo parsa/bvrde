@@ -40,26 +40,38 @@ bool _UDgreater(std::string& elem1, std::string& elem2)
 
 BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
 {   
-   extern void parseCpp(Entry* rt);
+   extern void parseCpp(Entry*);
 
    Entry* root = new Entry();
    if( root == NULL ) return FALSE;
    root->program = pstrText;
-   parseCpp( root );
+   try
+   {
+      parseCpp( root );
+   }
+   catch(...)
+   {
+      delete root;
+      return FALSE;
+   }
 
    char szFilename[MAX_PATH] = { 0 };
-   _W2AHelper(szFilename, pstrFilename, ::lstrlenW(pstrFilename));
-   
+   _W2AHelper(szFilename, pstrFilename, sizeof(szFilename) - 1);
+
    std::vector<std::string> aList;
 
+   Entry* cc = NULL;
    Entry* cl = NULL;
-   char szBuffer[1000] = { 0 };
+   char szBuffer[1025] = { 0 };
    for( Entry* cr = root->sub; cr; cr = cr->sub )
    {
       if( cr->name.empty() ) continue;
       if( cr->name.at(0) == '#' ) continue;
       if( cr->name.at(0) == '*' ) continue;
       if( cr->name.at(0) == '(' ) continue;
+
+      // We don't want class-member implementations in .cpp files to
+      // be included. We will get them from the header instead.
       if( cr->name.find("::") != std::string::npos ) continue;
 
       char type = 'm';
@@ -86,8 +98,13 @@ BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
       std::replace(cr->name.begin(), cr->name.end(), '|', '¦');
       std::replace(cr->args.begin(), cr->args.end(), '|', '¦');
 
-      if( cr->protection == GLOB ) cl = NULL;
+      if( cr->protection == GLOB ) cc = cl = NULL;
 
+      // Keep track of who the parent is. Nesting is a problem because
+      // we are not really keeping a b-tree structure, but a list...
+      Entry* parent = cc;
+      if( cl != NULL && cr->lineNo >= cl->startLine && cr->lineNo <= cl->lineNo ) parent = cl;
+      
       ::wsprintf(szBuffer, "%s|%c%c|%s%s%s%s|%s|%ld|%s\n", 
          cr->name.c_str(),  
          type,
@@ -96,11 +113,11 @@ BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
          cr->type.empty() ? "" : " ",
          cr->name.c_str(),
          cr->args.c_str(),
-         cl == NULL ? "" : cl->name.c_str(),
+         parent == NULL ? "" : parent->name.c_str(),
          (long) cr->lineNo,
          cr->memo.c_str());
 
-      if( type == 'c' ) cl = cr;
+      if( type == 'c' ) cc = cl = cr;
       else if( type == 's' ) cl = cr;
       else if( type == 't' ) cl = cr;
 

@@ -35,7 +35,7 @@ UINT CManPageGenerator::Generate(HWND hWnd, LPCTSTR pstrKeyword, LPCTSTR pstrLan
 
    CComVariant aParams[3];
    aParams[2] = bstrCommand;
-   aParams[1] = (IUnknown*) this;
+   aParams[1] = static_cast<IUnknown*>(this);
    aParams[0] = 3000L;
    if( FAILED( dd.InvokeN(OLESTR("ExecCommand"), aParams, 3) ) ) return IDS_ERR_INVOKE;
    if( m_bstrResult.Length() == 0 ) return IDS_ERR_BADANSWER;
@@ -57,7 +57,7 @@ UINT CManPageGenerator::Generate(HWND hWnd, LPCTSTR pstrKeyword, LPCTSTR pstrLan
    m_bstrResult = L"";
 
    aParams[2] = bstrCommand;
-   aParams[1] = (IUnknown*) this;
+   aParams[1] = static_cast<IUnknown*>(this);
    aParams[0] = 6000L;
    if( FAILED( dd.InvokeN(OLESTR("ExecCommand"), aParams, 3) ) ) return IDS_ERR_INVOKE;
    if( m_bstrResult.Length() == 0 ) return IDS_ERR_BADANSWER;
@@ -133,7 +133,6 @@ DWORD CManPageGenerator::_StrReplace(CComBSTR& bstr, LPCWSTR pstrSearchFor, LPCW
    }
    return dwCount;
 }
-
 
 // ILineCallback
 

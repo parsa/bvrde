@@ -16,12 +16,8 @@
    { TCHAR szBuf[32] = { 0 }; _pDevEnv->GetProperty(prop, szBuf, 31); \
      if( _tcscmp(szBuf, _T("false"))!=0 ) CButton(GetDlgItem(id)).Click(); }
 
-#define GET_CHECK(id, prop) \
-   _pDevEnv->SetProperty(prop, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"))
-
-#define TRANSFER_PROP(name, prop) \
-   { TCHAR szBuf[32] = { 0 }; _pDevEnv->GetProperty(prop, szBuf, 31); \
-     m_pArc->Write(name, szBuf); }
+#define WRITE_CHECKBOX(id, name) \
+     m_pArc->Write(name, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"));
 
 
 ///////////////////////////////////////////////////////////////
@@ -386,21 +382,21 @@ int CConnectionPage::OnApply()
 STDMETHODIMP CConnectionPage::QueryInterface(REFIID iid, void** ppvObject)
 {
    *ppvObject = NULL;
-   if( iid == IID_IPropertyPageSite ) *ppvObject = (IPropertyPageSite*) this;
-   else if( iid == IID_IPropertyBag ) *ppvObject = (IPropertyBag*) this;
-   else if( iid == IID_IUnknown ) *ppvObject = (IPropertyBag*) this;
+   if( iid == IID_IPropertyPageSite ) *ppvObject = static_cast<IPropertyPageSite*>(this);
+   else if( iid == IID_IPropertyBag ) *ppvObject = static_cast<IPropertyBag*>(this);
+   else if( iid == IID_IUnknown ) *ppvObject = static_cast<IPropertyBag*>(this);
    else return E_NOINTERFACE;
    return S_OK;
 }
 
 STDMETHODIMP_(DWORD) CConnectionPage::AddRef(VOID)
 {
-   return 0;
+   return 1;
 }
 
 STDMETHODIMP_(DWORD) CConnectionPage::Release(VOID)
 {
-   return 0;
+   return 1;
 }
 
 // IPropertyPageSite
@@ -483,26 +479,14 @@ LRESULT CAdvancedEditOptionsPage::OnButtonClick(WORD wNotifyCode, WORD wID, HWND
 
 int CAdvancedEditOptionsPage::OnApply()
 {
-   CString sKey;
-   sKey.Format(_T("editors.%s."), m_sLanguage);
-   GET_CHECK(IDC_AUTOCOMPLETE, sKey + _T("autoComplete"));
-   GET_CHECK(IDC_IGNOREVIEWS, sKey + _T("ignoreViews"));
-   GET_CHECK(IDC_AUTOCOMMIT, sKey + _T("autoCommit"));
-   GET_CHECK(IDC_STRIPCOMMENTS, sKey + _T("stripComments"));
-   GET_CHECK(IDC_MATCHBRACES, sKey + _T("matchBraces"));
-   GET_CHECK(IDC_BACKGROUNDLOAD, sKey + _T("backgroundLoad"));
-  
    TCHAR szTerminator[64] = { 0 };
    GetDlgItemText(IDC_TERMINATOR, szTerminator, 63);
-   _pDevEnv->SetProperty(sKey + _T("terminator"), szTerminator);
 
    long lMaxRecords = 0;
    if( IsDlgButtonChecked(IDC_LIMITRECORDS) ) lMaxRecords = GetDlgItemInt(IDC_MAXROWS);
-   _pDevEnv->SetProperty(sKey + _T("maxRecords"), ToString(lMaxRecords));
 
    long lMaxErrors = 0;
    if( IsDlgButtonChecked(IDC_LIMITERRORS) ) lMaxErrors = GetDlgItemInt(IDC_MAXERRORS);
-   _pDevEnv->SetProperty(sKey + _T("maxErrors"), ToString(lMaxErrors));
 
    if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
    {
@@ -512,12 +496,12 @@ int CAdvancedEditOptionsPage::OnApply()
          if( m_sLanguage == szLanguage ) {
             m_pArc->Delete(_T("Advanced"));
             m_pArc->WriteItem(_T("Advanced"));
-            TRANSFER_PROP(_T("autoComplete"), sKey + _T("autoComplete"));
-            TRANSFER_PROP(_T("ignoreViews"), sKey + _T("ignoreViews"));
-            TRANSFER_PROP(_T("autoCommit"), sKey + _T("autoCommit"));
-            TRANSFER_PROP(_T("stripComments"), sKey + _T("stripComments"));
-            TRANSFER_PROP(_T("matchBraces"), sKey + _T("matchBraces"));
-            TRANSFER_PROP(_T("backgroundLoad"), sKey + _T("backgroundLoad"));
+            WRITE_CHECKBOX(IDC_AUTOCOMPLETE, _T("autoComplete"));
+            WRITE_CHECKBOX(IDC_IGNOREVIEWS, _T("ignoreViews"));
+            WRITE_CHECKBOX(IDC_AUTOCOMMIT, _T("autoCommit"));
+            WRITE_CHECKBOX(IDC_STRIPCOMMENTS, _T("stripComments"));
+            WRITE_CHECKBOX(IDC_MATCHBRACES, _T("matchBraces"));
+            WRITE_CHECKBOX(IDC_BACKGROUNDLOAD, _T("backgroundLoad"));
             m_pArc->Write(_T("terminator"), szTerminator);
             m_pArc->Write(_T("maxRecords"), lMaxRecords);
             m_pArc->Write(_T("maxErrors"), lMaxErrors);
@@ -526,7 +510,7 @@ int CAdvancedEditOptionsPage::OnApply()
       }
       m_pArc->ReadGroupEnd();
    }
-   
+
    // HACK: To clear the iterator cache
    m_pArc->ReadGroupEnd();
 

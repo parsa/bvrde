@@ -58,6 +58,7 @@ BOOL APIENTRY ManPages_ShowHelp(IDevEnv* pDevEnv, LPCWSTR pstrKeyword, LPCWSTR p
    }
    if( pFrame == NULL ) return FALSE;
    if( pFrame->SetPage(pstrKeyword, pstrLanguage, -1) ) pFrame->ShowWindow(SW_SHOW);
+
    return TRUE;
 }
 

@@ -190,6 +190,8 @@ BEGIN
         MENUITEM "&Paste",                      ID_EDIT_PASTE
         MENUITEM SEPARATOR
         MENUITEM "Insert/Delete &Breakpoint",   ID_DEBUG_BREAKPOINT
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_FILE_PROPERTIES
     END
 END
 
@@ -566,7 +568,7 @@ IDD_QUICKWATCH DIALOGEX 0, 0, 280, 177
 STYLE DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | 
     WS_THICKFRAME
 CAPTION "Quick Watch"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Expression:",IDC_STATIC,7,7,100,9,0,WS_EX_TRANSPARENT
     COMBOBOX        IDC_LINE,7,19,199,63,CBS_DROPDOWN | WS_VSCROLL | 
@@ -638,16 +640,19 @@ BEGIN
     CONTROL         "Mark error with squiggly lines",IDC_MARKERRORS,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,71,120,10,
                     WS_EX_TRANSPARENT
-    LTEXT           "Tag Support",-1,0,89,43,9
-    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,93,208,1
+    CONTROL         "Show debug indicators as coloured lines",
+                    IDC_BREAKPOINTLINES,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,14,82,156,10,WS_EX_TRANSPARENT
+    LTEXT           "Tag Support",-1,0,98,43,9
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,102,208,1
     CONTROL         "Use Auto Completion feature",IDC_AUTOCOMPLETE,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,106,120,10,
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,112,120,10,
                     WS_EX_TRANSPARENT
     CONTROL         "Populate Class Browser with tags",IDC_CLASSBROWSER,
-                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,117,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,123,
                     120,10,WS_EX_TRANSPARENT
     CONTROL         "Use online class scanner",IDC_ONLINESCANNER,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,128,120,10,
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,134,120,10,
                     WS_EX_TRANSPARENT
 END
 
@@ -878,7 +883,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_NEW_FOLDER          "Folder"
-    IDS_FILTER_FILES        "Source files|*.c*;*.h*;*.?c;*.inc|All Files|*.*|"
+    IDS_FILTER_FILES        "Source files|*.c*;*.h*;*.?c;*.inc|Web Files|*.htm*;*.p*;*.asp;*.js*|All Files|*.*|"
     IDS_FINDFAILED          "Not found\nCould not find the string '%s'."
     IDS_CAPTION_ERROR       "Error"
     IDS_CAPTION_WARNING     "Warning"
@@ -1145,6 +1150,9 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERR_NOATTACH        "Attach failed\nUnable to attach to the process\nThe debugger failed to take over the remote process."
+    IDS_NOCONNECTION        "No connection to the remote host at the moment."
+    IDS_FILES               "Files"
+    IDS_FILEMANAGER         "Remote Files"
 END
 
 #endif    // English (U.S.) resources

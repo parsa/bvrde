@@ -101,7 +101,7 @@ public:
    {
       _ASSERTE(m_hThread);
       if( m_bSuspended ) return TRUE;
-      if( ::SuspendThread(m_hThread) == -1 ) return FALSE;
+      if( ::SuspendThread(m_hThread) == (DWORD) -1 ) return FALSE;
       m_bSuspended = true;
       return TRUE;
    }
@@ -109,7 +109,7 @@ public:
    {
       _ASSERTE(m_hThread);
       if( !m_bSuspended ) return TRUE;
-      if( ::ResumeThread(m_hThread) == -1 ) return FALSE;
+      if( ::ResumeThread(m_hThread) == (DWORD) -1 ) return FALSE;
       m_bSuspended = false;
       return TRUE;
    }

@@ -12,11 +12,11 @@
 
 class CEmptyProject : 
    public IProject,
-   virtual public IAppListener,
+   virtual public IAppMessageListener,
    virtual public IIdleListener,
-   virtual public ITreeListener,
+   virtual public ITreeMessageListener,
    virtual public IWizardListener,
-   virtual public ICommandListener
+   virtual public ICustomCommandListener
 {
 public:
    CEmptyProject();
@@ -57,7 +57,7 @@ public:
    void ActivateUI();
    void DeactivateUI();
 
-// IAppListener
+// IAppMessageListener
 public:
    LRESULT OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    BOOL PreTranslateMessage(MSG* pMsg);
@@ -66,7 +66,7 @@ public:
 public:
    void OnIdle(IUpdateUI* pUIBase);
 
-// ITreeListener
+// ITreeMessageListener
 public:
    LRESULT OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled);
 
@@ -76,9 +76,10 @@ public:
    BOOL OnInitWizard(IWizardManager* pManager, IProject* pProject, LPCTSTR pstrName);
    BOOL OnInitOptions(IWizardManager* pManager, ISerializable* pArc);
 
-// ICommandListener
+// ICustomCommandListener
 public:
    void OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled);
+   void OnMenuCommand(LPCTSTR pstrType, LPCTSTR pstrCommand, LPCTSTR pstrArguments, LPCTSTR pstrPath, int iFlags, BOOL& bHandled);
 
 // Operations
 public:

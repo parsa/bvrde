@@ -574,14 +574,14 @@ BOOL CMainFrame::EnumProperties(int& iStart, LPCTSTR pstrPattern, LPTSTR pstrKey
    return FALSE;
 }
 
-BOOL CMainFrame::AddAppListener(IAppListener* pListener)
+BOOL CMainFrame::AddAppListener(IAppMessageListener* pListener)
 {
    CLockStaticDataInit lock;
    if( m_aAppListeners.Find(pListener) >= 0 ) return FALSE;
    return m_aAppListeners.Add(pListener);
 }
 
-BOOL CMainFrame::RemoveAppListener(IAppListener* pListener)
+BOOL CMainFrame::RemoveAppListener(IAppMessageListener* pListener)
 {
    CLockStaticDataInit lock;
    return m_aAppListeners.Remove(pListener);
@@ -600,40 +600,40 @@ BOOL CMainFrame::RemoveIdleListener(IIdleListener* pListener)
    return m_aIdleListeners.Remove(pListener);
 }
 
-BOOL CMainFrame::AddTreeListener(ITreeListener* pListener)
+BOOL CMainFrame::AddTreeListener(ITreeMessageListener* pListener)
 {
    CLockStaticDataInit lock;
    if( m_aTreeListeners.Find(pListener) >= 0 ) return FALSE;
    return m_aTreeListeners.Add(pListener);
 }
 
-BOOL CMainFrame::RemoveTreeListener(ITreeListener* pListener)
+BOOL CMainFrame::RemoveTreeListener(ITreeMessageListener* pListener)
 {
    CLockStaticDataInit lock;
    return m_aTreeListeners.Remove(pListener);
 }
 
-BOOL CMainFrame::AddViewListener(IViewListener* pListener)
+BOOL CMainFrame::AddViewListener(IViewMessageListener* pListener)
 {
    CLockStaticDataInit lock;
    if( m_aViewListeners.Find(pListener) >= 0 ) return FALSE;
    return m_aViewListeners.Add(pListener);
 }
 
-BOOL CMainFrame::RemoveViewListener(IViewListener* pListener)
+BOOL CMainFrame::RemoveViewListener(IViewMessageListener* pListener)
 {
    CLockStaticDataInit lock;
    return m_aViewListeners.Remove(pListener);
 }
 
-BOOL CMainFrame::AddCommandListener(ICommandListener* pListener)
+BOOL CMainFrame::AddCommandListener(ICustomCommandListener* pListener)
 {
    CLockStaticDataInit lock;
    if( m_aCommandListeners.Find(pListener) >= 0 ) return FALSE;
    return m_aCommandListeners.Add(pListener);
 }
 
-BOOL CMainFrame::RemoveCommandListener(ICommandListener* pListener)
+BOOL CMainFrame::RemoveCommandListener(ICustomCommandListener* pListener)
 {
    CLockStaticDataInit lock;
    return m_aCommandListeners.Remove(pListener);

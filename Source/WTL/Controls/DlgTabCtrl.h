@@ -321,7 +321,7 @@ public:
       // The tab's client area is filled by views, so there is no need
       // to paint that area. Also an embedded ListView control sometimes fail
       // to repaint properly if we don't do this...
-      CDCHandle dc((HDC)wParam);
+      CDCHandle dc = (HDC) wParam;
       RECT rc;
       GetClientRect(&rc);
       CRgn rgn1, rgn2, rgn;

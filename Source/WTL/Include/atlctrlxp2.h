@@ -64,14 +64,17 @@ public:
 
       if( IsSimple() ) return lRes;
 
-	   static OSVERSIONINFO ovi = { 0 };
+      static OSVERSIONINFO ovi = { 0 };
       if( ovi.dwOSVersionInfoSize == 0 ) {
-	      ovi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	      ::GetVersionEx(&ovi);
+         ovi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+         ::GetVersionEx(&ovi);
       }
 
       COLORREF clrBorders = ::GetSysColor(COLOR_3DLIGHT);
-      if( ovi.dwMajorVersion <= 5 ) clrBorders = ::GetSysColor(COLOR_3DSHADOW);
+      if( ovi.dwMajorVersion < 5 || (ovi.dwMajorVersion == 5 && ovi.dwMinorVersion == 0)) {
+         // Pre WinXP system...
+         clrBorders = ::GetSysColor(COLOR_3DSHADOW);
+      }
 
       CClientDC dc(m_hWnd);
       CPen pen;

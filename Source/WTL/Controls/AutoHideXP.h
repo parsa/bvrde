@@ -257,7 +257,8 @@ public:
       SetWindowPos(HWND_TOP, &rcWin, SWP_FRAMECHANGED|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER);
       // Set focus to child view
       ::SetFocus(m_pane.hWnd);
-      //::InvalidateRect(m_pane.hWnd, NULL, TRUE);
+      // HACK: Send notification to child (note the funky message type)
+      ::SendMessage(m_pane.hWnd, WM_COMPACTING, 0, 0L);
       return 0;
    }
 };

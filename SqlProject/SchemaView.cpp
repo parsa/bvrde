@@ -192,7 +192,7 @@ LRESULT CSchemaView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
    // Get information about the item
    tvi.mask = TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM | TVIF_CHILDREN;
    m_ctrlTree.GetItem(&tvi);
-   if( lpNMTV->action == TVE_EXPAND 
+   if( (lpNMTV->action & TVE_EXPAND) != 0
        && m_ctrlTree.GetChildItem(tvi.hItem) == NULL ) 
    {
       LPARAM lParam = tvi.lParam;
@@ -230,7 +230,7 @@ LRESULT CSchemaView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
    }
    // The folder-items have their icons toggled in open/closed state.
    if( tvi.iImage == 0 || tvi.iImage == 1 ) {
-      tvi.iSelectedImage = tvi.iImage = lpNMTV->action == TVE_EXPAND ? 0 : 1;
+      tvi.iSelectedImage = tvi.iImage = (lpNMTV->action & TVE_EXPAND) != 0 ? 0 : 1;
       m_ctrlTree.SetItem(&tvi);
    }
    bHandled = FALSE;

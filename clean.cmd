@@ -12,6 +12,7 @@ del /S *.aps
 del /S *.bsc
 del /S *.exp
 del /S *.tmp
+del /S *.bak
 
 del Help\*.htm
 del Help\Images\*.png

@@ -212,7 +212,7 @@ void CSqlProject::InitializeToolBars()
    _pDevEnv->AddToolBar(m_ctrlToolbar, CString(MAKEINTRESOURCE(IDS_CAPTION_TOOLBAR)));
 }
 
-// IAppListener
+// IAppMessageListener
 
 LRESULT CSqlProject::OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -250,7 +250,7 @@ void CSqlProject::OnIdle(IUpdateUI* pUIBase)
    }
 }
 
-// ITreeListener
+// ITreeMessageListener
 
 LRESULT CSqlProject::OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled)
 {
@@ -260,12 +260,11 @@ LRESULT CSqlProject::OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled)
    return lResult;
 }
 
-// ICommandListener
+// ICustomCommandListener
 
 void CSqlProject::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
 {
    bHandled = FALSE;
-   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
    if( _tcsncmp(pstrCommand, _T("sql "), 4) == 0 ) 
    {
       IProject* pProject = _pDevEnv->GetSolution()->GetActiveProject();
@@ -273,8 +272,18 @@ void CSqlProject::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
    }
    if( _tcsicmp(pstrCommand, _T("help")) == 0 ) 
    {
+      CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
       AppendRtfText(ctrlEdit, CString(MAKEINTRESOURCE(IDS_HELP)));
    }
+}
+
+void CSqlProject::OnMenuCommand(LPCTSTR pstrType, LPCTSTR pstrCommand, LPCTSTR pstrArguments, LPCTSTR /*pstrPath*/, int /*iFlags*/, BOOL& bHandled)
+{
+   bHandled = FALSE;
+   if( _tcscmp(pstrType, _T("sql")) != 0 ) return;
+   CString sCommandline;
+   sCommandline.Format(_T("sql %s %s"), pstrCommand, pstrArguments);
+   OnUserCommand(sCommandline, bHandled);
 }
 
 // IWizardListener

@@ -34,6 +34,8 @@ extern CComModule _Module;
 #include <atlsplit.h>
 #include <atlctrlx.h>
 
+#include <mmsystem.h>
+
 #include "../IDE/BVRDE_SDK.h"
 extern IDevEnv* _pDevEnv;
 

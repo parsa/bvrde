@@ -53,7 +53,7 @@ public:
 
    BEGIN_MSG_MAP(CFolderView)
       REFLECTED_NOTIFY_CODE_HANDLER(NM_RCLICK, OnRightClick)
-      //CHAIN_MSG_MAP_MEMBER( m_ShellMenu )
+      //CHAIN_MSG_MAP_MEMBER( m_ShellMenu )  // My XP menu won't allow Shell customizations of the menu
       CHAIN_MSG_MAP( CShellTreeCtrl )
    END_MSG_MAP()
 
@@ -211,8 +211,9 @@ public:
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
       MESSAGE_HANDLER(WM_SIZE, OnSize)
       NOTIFY_HANDLER(IDC_SHELL_FOLDER, TVN_SELCHANGED, OnSelChanged)
-      NOTIFY_HANDLER(IDC_SHELL_FILES, NM_DBLCLK, OnDblClick)
+      NOTIFY_HANDLER(IDC_SHELL_FILES, LVN_ITEMACTIVATE, OnDblClick)
       NOTIFY_HANDLER(IDC_SHELL_FILES, LVN_BEGINDRAG, OnBeginDrag)
+      NOTIFY_HANDLER(IDC_SHELL_FILES, LVN_KEYDOWN, OnKeyDown)
       REFLECT_NOTIFICATIONS()
    END_MSG_MAP()
 
@@ -231,12 +232,12 @@ public:
       ::LoadString(_Module.GetResourceInstance(), IDS_FILES, szTitle, 127);
       m_ctrlFiles.InsertColumn(0, szTitle, LVCFMT_LEFT, 200, 0);
       m_ctrlFolders.Populate();
+
       return 0;
    }
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
-      RECT rcClient;
-      GetClientRect(&rcClient);
+      CClientRect rcClient = m_hWnd;
       int cy = (rcClient.bottom - rcClient.top) / 2;
       m_ctrlFolders.MoveWindow(rcClient.left, rcClient.top, rcClient.right, rcClient.top + cy);
       m_ctrlFiles.MoveWindow(rcClient.left, rcClient.top + cy, rcClient.right, rcClient.bottom - cy);
@@ -250,8 +251,8 @@ public:
       CWindowRedraw redraw = m_ctrlFiles;
       LPNMTREEVIEW pnmtv = (LPNMTREEVIEW) pnmh;
       CPidl pidl;
-      m_ctrlFolders.GetItemPidl(pnmtv->itemNew.hItem, &pidl);
-      m_ctrlFiles.Populate(pidl);
+      if( !m_ctrlFolders.GetItemPidl(pnmtv->itemNew.hItem, &pidl) ) return 0;
+      if( !m_ctrlFiles.Populate(pidl) ) return 0;
       return 0;
    }
    LRESULT OnDblClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
@@ -261,15 +262,27 @@ public:
       CWindowRedraw redraw = m_ctrlFolders;
       CPidl pidl;
       TCHAR szPath[MAX_PATH] = { 0 };
-      m_ctrlFiles.GetItemPath(pnmlv->iItem, szPath);
-      m_ctrlFiles.GetItemPidl(pnmlv->iItem, &pidl);
+      if( !m_ctrlFiles.GetItemPath(pnmlv->iItem, szPath) ) return 0;
+      if( !m_ctrlFiles.GetItemPidl(pnmlv->iItem, &pidl) ) return 0;
       m_ctrlFolders.SelectPidl(pidl);
       DWORD dwFlags = ::GetFileAttributes(szPath);
-      if( (dwFlags & FILE_ATTRIBUTE_DIRECTORY) == 0 && _tcslen(szPath) > 0 ) 
-      {
+      if( (dwFlags & FILE_ATTRIBUTE_DIRECTORY) == 0 && _tcslen(szPath) > 0 ) {
          IView* pView = _pDevEnv->CreateView(szPath, NULL, NULL);
-         if( pView ) pView->OpenView(0);
+         if( pView ) return (LRESULT) pView->OpenView(0);
       }
+      else {
+         m_ctrlFiles.SelectItem(0);
+      }
+      return 0;
+   }
+   LRESULT OnKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
+   {
+      LPNMLVKEYDOWN lpNMLVD = (LPNMLVKEYDOWN) pnmh;
+      if( lpNMLVD->wVKey == VK_BACK ) {
+         m_ctrlFolders.SelectItem(m_ctrlFolders.GetParentItem(m_ctrlFolders.GetSelectedItem()));
+         m_ctrlFiles.SelectItem(0);
+      }
+      bHandled = FALSE;
       return 0;
    }
    LRESULT OnBeginDrag(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)

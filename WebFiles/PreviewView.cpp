@@ -65,7 +65,7 @@ CString CPreviewView::GetViewText()
 void CPreviewView::SetViewText(LPCTSTR pstrText)
 {
    ATLASSERT(m_spBrowser);
-   if( m_sLanguage == _T("html") )
+   if( m_sLanguage != _T("xml") )
    {
       CComPtr<IDispatch> spDoc;
       m_spBrowser->get_Document(&spDoc);

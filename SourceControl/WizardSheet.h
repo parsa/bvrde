@@ -7,6 +7,7 @@
 
 #include <atlframe.h>      // for COwnerDraw
 #include <atldlgs.h>       // for CPropertyPageImpl
+
 #include "PropertyList.h"
 
 

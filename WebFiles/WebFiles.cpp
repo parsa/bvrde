@@ -50,6 +50,8 @@ public:
    BOOL OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    {
       static CAdvancedEditOptionsPage s_pageHtmlAdvanced;
+      static CAdvancedEditOptionsPage s_pagePhpAdvanced;
+      static CAdvancedEditOptionsPage s_pageAspAdvanced;
       static CAdvancedEditOptionsPage s_pageXmlAdvanced;
 
       static CString sAdvanced(MAKEINTRESOURCE(IDS_TREE_ADVANCED));
@@ -57,11 +59,23 @@ public:
       s_pageHtmlAdvanced.SetTitle((LPCTSTR)sAdvanced);
       s_pageHtmlAdvanced.m_sLanguage = _T("html");
       s_pageHtmlAdvanced.m_pArc = pArc;
+      s_pagePhpAdvanced.SetTitle((LPCTSTR)sAdvanced);
+      s_pagePhpAdvanced.m_sLanguage = _T("php");
+      s_pagePhpAdvanced.m_pArc = pArc;
+      s_pageAspAdvanced.SetTitle((LPCTSTR)sAdvanced);
+      s_pageAspAdvanced.m_sLanguage = _T("asp");
+      s_pageAspAdvanced.m_pArc = pArc;
       s_pageXmlAdvanced.SetTitle((LPCTSTR)sAdvanced);
       s_pageXmlAdvanced.m_sLanguage = _T("xml");
       s_pageXmlAdvanced.m_pArc = pArc;
 
       pManager->SetWizardGroup(CString(MAKEINTRESOURCE(IDS_TREE_HTML)));
+      pManager->AddWizardPage(s_pagePhpAdvanced.IDD, s_pagePhpAdvanced);
+
+      pManager->SetWizardGroup(CString(MAKEINTRESOURCE(IDS_TREE_PHP)));
+      pManager->AddWizardPage(s_pageAspAdvanced.IDD, s_pageAspAdvanced);
+
+      pManager->SetWizardGroup(CString(MAKEINTRESOURCE(IDS_TREE_ASP)));
       pManager->AddWizardPage(s_pageHtmlAdvanced.IDD, s_pageHtmlAdvanced);
 
       pManager->SetWizardGroup(CString(MAKEINTRESOURCE(IDS_TREE_XML)));
@@ -128,11 +142,15 @@ UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR pstrFilename)
    if( pstrExt == NULL ) return FALSE;
    LPCTSTR pstrExtensions[] =
    {
+      _T(".PHTML"),
       _T(".HTML"),
       _T(".HTM"),
       _T(".XML"),
       _T(".XSL"),
       _T(".PHP"),
+      _T(".PHP3"),
+      _T(".PHP4"),
+      _T(".PHP5"),
       _T(".TPL"),
       _T(".ASP"),
       _T(".JSP"),
@@ -154,13 +172,19 @@ IView* WINAPI Plugin_CreateView(LPCTSTR pstrFilename, IProject* pProject, IEleme
    {
       TYPE_NONE,
       TYPE_HTML,
+      TYPE_PHP,
+      TYPE_ASP,
       TYPE_XML,
    } iType = TYPE_NONE;
+   if( _tcsicmp(pstrExt, _T(".PHTML")) == 0 ) iType = TYPE_PHP;
    if( _tcsicmp(pstrExt, _T(".HTML")) == 0 ) iType = TYPE_HTML;
    if( _tcsicmp(pstrExt, _T(".HTM")) == 0 ) iType = TYPE_HTML;
-   if( _tcsicmp(pstrExt, _T(".ASP")) == 0 ) iType = TYPE_HTML;
-   if( _tcsicmp(pstrExt, _T(".ASPX")) == 0 ) iType = TYPE_HTML;
-   if( _tcsicmp(pstrExt, _T(".PHP")) == 0 ) iType = TYPE_HTML;
+   if( _tcsicmp(pstrExt, _T(".ASP")) == 0 ) iType = TYPE_ASP;
+   if( _tcsicmp(pstrExt, _T(".ASPX")) == 0 ) iType = TYPE_ASP;
+   if( _tcsicmp(pstrExt, _T(".PHP")) == 0 ) iType = TYPE_PHP;
+   if( _tcsicmp(pstrExt, _T(".PHP3")) == 0 ) iType = TYPE_PHP;
+   if( _tcsicmp(pstrExt, _T(".PHP4")) == 0 ) iType = TYPE_PHP;
+   if( _tcsicmp(pstrExt, _T(".PHP5")) == 0 ) iType = TYPE_PHP;
    if( _tcsicmp(pstrExt, _T(".JSP")) == 0 ) iType = TYPE_HTML;
    if( _tcsicmp(pstrExt, _T(".TPL")) == 0 ) iType = TYPE_HTML;
    if( _tcsicmp(pstrExt, _T(".XML")) == 0 ) iType = TYPE_XML;
@@ -169,6 +193,8 @@ IView* WINAPI Plugin_CreateView(LPCTSTR pstrFilename, IProject* pProject, IEleme
 
    if( iType == TYPE_HTML ) return new CHtmlView(pProject, pParent, pstrFilename);
    if( iType == TYPE_XML ) return new CXmlView(pProject, pParent, pstrFilename);
+   if( iType == TYPE_PHP ) return new CPhpView(pProject, pParent, pstrFilename);
+   if( iType == TYPE_ASP ) return new CAspView(pProject, pParent, pstrFilename);
 
    return NULL;
 }

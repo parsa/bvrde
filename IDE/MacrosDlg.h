@@ -13,7 +13,7 @@ class CMacrosDlg :
    public CDialogImpl<CMacrosDlg>
 {
 public:
-   enum { IDD = IDD_MACROS };
+   enum { IDD = IDD_CONFIG_MACROS };
 
    CListBox m_ctrlList;
    CComboBox m_ctrlFiles;

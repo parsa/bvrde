@@ -90,6 +90,8 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv->SetProperty(_T("file.extension.txt"), _T("Text Document"));
    _pDevEnv->SetProperty(_T("file.extension.py"), _T("Python Script File"));
    _pDevEnv->SetProperty(_T("file.extension.pl"), _T("Perl Script File"));
+   _pDevEnv->SetProperty(_T("file.extension.php"), _T("PHP Web Script"));
+   _pDevEnv->SetProperty(_T("file.extension.asp"), _T("ASP Web Script"));
 
    _pDevEnv->ReserveUIRange(40000, 40000 + 200);
 

@@ -63,10 +63,11 @@ public:
    CFolderFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
 
 public:
+   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
    BOOL Load(ISerializable* pArc);
    BOOL Save(ISerializable* pArc);
+   BOOL Reload();
    BOOL OpenView(long lLineNum);
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
    void CloseView();
    IDispatch* GetDispatch();
 };
@@ -92,6 +93,7 @@ public:
 public:
    BOOL Load(ISerializable* pArc);
    BOOL Save(ISerializable* pArc);
+   BOOL Reload();
    BOOL Save();
    BOOL IsDirty() const;
    BOOL OpenView(long lLineNum);
@@ -115,8 +117,6 @@ public:
    CCppFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
 
 public:
-   BOOL Load(ISerializable* pArc);
-   BOOL Save(ISerializable* pArc);
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
 
@@ -193,6 +193,32 @@ class CHtmlFile : public CTextFile
 {
 public:
    CHtmlFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
+
+public:
+   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
+};
+
+
+///////////////////////////////////////////////////////7
+//
+
+class CPhpFile : public CTextFile
+{
+public:
+   CPhpFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
+
+public:
+   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
+};
+
+
+///////////////////////////////////////////////////////7
+//
+
+class CAspFile : public CTextFile
+{
+public:
+   CAspFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
 
 public:
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const;

@@ -132,6 +132,11 @@ BOOL CViewImpl::Save()
    return TRUE;
 }
 
+BOOL CViewImpl::Reload()
+{
+   return FALSE;
+}
+
 BOOL CViewImpl::IsDirty() const
 {
    return m_bIsDirty;
@@ -149,8 +154,10 @@ BOOL CViewImpl::OpenView(long lLineNum)
       m_wndClient.SetLanguage(m_sLanguage);
 
       // Load the file (local file or from remote server)
+      // Allow a file operation to fail if line number is 0, so a non-existing
+      // file can actually open...
       CComBSTR bstrText;
-      if( !GetText(&bstrText) ) return FALSE;
+      if( !GetText(&bstrText) && lLineNum > 0 ) return FALSE;
 
       CString sName;
       GetName(sName.GetBufferSetLength(128), 128);
@@ -226,7 +233,7 @@ void CViewImpl::OnIdle(IUpdateUI* pUIBase)
    if( m_wndClient.IsWindow() ) m_wndClient.OnIdle(pUIBase);
 }
 
-// IAppListener
+// IAppMessageListener
 
 LRESULT CViewImpl::OnAppMessage(HWND /*hWnd*/, UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
@@ -253,6 +260,38 @@ CHtmlView::CHtmlView(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename
 BOOL CHtmlView::GetType(LPTSTR pstrType, UINT cchMax) const
 {
    _tcsncpy(pstrType, _T("HTML"), cchMax);
+   return TRUE;
+}
+
+
+///////////////////////////////////////////////////////7
+//
+
+CPhpView::CPhpView(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename) : 
+   CViewImpl(pProject, pParent, pstrFilename)
+{
+   m_sLanguage = "php";
+}
+
+BOOL CPhpView::GetType(LPTSTR pstrType, UINT cchMax) const
+{
+   _tcsncpy(pstrType, _T("PHP"), cchMax);
+   return TRUE;
+}
+
+
+///////////////////////////////////////////////////////7
+//
+
+CAspView::CAspView(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename) : 
+   CViewImpl(pProject, pParent, pstrFilename)
+{
+   m_sLanguage = "asp";
+}
+
+BOOL CAspView::GetType(LPTSTR pstrType, UINT cchMax) const
+{
+   _tcsncpy(pstrType, _T("ASP"), cchMax);
    return TRUE;
 }
 

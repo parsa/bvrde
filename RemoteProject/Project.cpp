@@ -241,6 +241,7 @@ void CRemoteProject::ActivateProject()
    m_viewWatch.Init(this);
 
    m_viewClassTree.Populate();
+   m_viewRemoteDir.Init(this);
 
    // Project filenames are relative to the solution, so
    // we need to change current Windows path.
@@ -252,6 +253,7 @@ void CRemoteProject::DeactivateProject()
    // Need to remove the classbrowser view because
    // activating a new project should display new items
    m_viewClassTree.Clear();
+   m_viewRemoteDir.Release();
 
    // Don't keep dependencies around
    for( int i = 0; i < m_aDependencies.GetSize(); i++ ) m_aDependencies[i]->CloseView();
@@ -266,6 +268,7 @@ void CRemoteProject::ActivateUI()
    CMenu menu;
    menu.LoadMenu(IDR_MAIN);
    ATLASSERT(menu.IsMenu());
+
    CMenuHandle menuMain = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
    CMenuHandle menuFile = menuMain.GetSubMenu(0);
    CMenuHandle menuView = menuMain.GetSubMenu(2);
@@ -274,6 +277,9 @@ void CRemoteProject::ActivateUI()
    MergeMenu(menuMain, menu.GetSubMenu(1), 4);
    MergeMenu(menuView, menu.GetSubMenu(3), 3);
    MergeMenu(menuView.GetSubMenu(4), menu.GetSubMenu(4), 2);
+
+   CMenuHandle menuViews = menuView.GetSubMenu(2);
+   menuViews.AppendMenu(MF_STRING, ID_VIEW_FILEMANAGER, CString(MAKEINTRESOURCE(IDS_FILEMANAGER)));
 
    // Propagate dirty flag to project itself.
    // This will allow us to memorize if the project was ever changed
@@ -286,7 +292,7 @@ void CRemoteProject::DeactivateUI()
 {
 }
 
-// IAppListener
+// IAppMessageListener
 
 LRESULT CRemoteProject::OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -319,6 +325,9 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    BOOL bBusy = bCompiling || bProcessStarted;
    BOOL bDebugBreak = m_DebugManager.IsBreaked();
    BOOL bIsFolder = sFileType == _T("Project") || sFileType == _T("Folder");
+
+   pUIBase->UIEnable(ID_VIEW_FILEMANAGER, TRUE);
+   pUIBase->UISetCheck(ID_VIEW_FILEMANAGER, m_viewRemoteDir.IsWindow());
 
    pUIBase->UIEnable(ID_PROJECT_SET_DEFAULT, !bBusy);
    pUIBase->UIEnable(ID_FILE_OPENSOLUTION, !bBusy);
@@ -385,7 +394,7 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UISetCheck(ID_VIEW_BREAKPOINTS, m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible());
 }
 
-// ITreeListener
+// ITreeMessageListener
 
 LRESULT CRemoteProject::OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled)
 {
@@ -482,7 +491,7 @@ BOOL CRemoteProject::OnInitOptions(IWizardManager* pManager, ISerializable* pArc
    return TRUE;
 }
 
-// ICommandListener
+// ICustomCommandListener
 
 void CRemoteProject::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
 {
@@ -529,7 +538,7 @@ void CRemoteProject::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
             ::Sleep(100L);
             // NOTE: We'll only wait 5 secs for completion. This is a
             //       bit of a hack, but we have very little control over
-            //       what the debugger might be spitting out. At least, stopping
+            //       what the debugger might be spitting out. At least stopping
             //       the tight loop will allow the user to abort the session!
             if( ::GetTickCount() - dwStartTime > 5000UL ) break;
          }
@@ -540,6 +549,20 @@ void CRemoteProject::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
    {
       AppendRtfText(ctrlEdit, CString(MAKEINTRESOURCE(IDS_HELP)));
    }
+}
+
+void CRemoteProject::OnMenuCommand(LPCTSTR pstrType, LPCTSTR pstrCommand, LPCTSTR pstrArguments, LPCTSTR pstrPath, int iFlags, BOOL& bHandled)
+{
+   bHandled = FALSE;
+   if( _tcscmp(pstrType, _T("remote")) != 0 ) return;
+   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
+   _pDevEnv->ActivateAutoHideView(ctrlEdit);
+   CString sCommandline;
+   sCommandline.Format(_T("%s %s %s"), 
+      (iFlags & TOOLFLAGS_CONSOLEOUTPUT) != 0 ? _T("cc") : _T("cz"), 
+      pstrCommand, 
+      pstrArguments);
+   m_CompileManager.DoAction(sCommandline);
 }
 
 // Message handlers
@@ -794,7 +817,7 @@ LRESULT CRemoteProject::OnViewOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    if( pElement == this ) return 0;
 
    IView* pView = static_cast<IView*>(pElement);
-   if( !pView->OpenView(0) ) {
+   if( !pView->OpenView(1) ) {
       if( ::GetLastError() == ERROR_FILE_NOT_FOUND ) {
          HWND hWnd = ::GetActiveWindow();
          if( IDYES == _pDevEnv->ShowMessageBox(hWnd, CString(MAKEINTRESOURCE(IDS_CREATEFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), MB_YESNO | MB_ICONQUESTION) ) {
@@ -1084,6 +1107,24 @@ LRESULT CRemoteProject::OnViewWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
       _pDevEnv->AddDockView(m_viewWatch, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
 
+   return 0;
+}
+
+LRESULT CRemoteProject::OnViewRemoteDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   // Create/remove repository view
+   if( !m_viewRemoteDir.IsWindow() ) {
+      CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
+      CString sTitle(MAKEINTRESOURCE(IDS_FILEMANAGER));
+      DWORD dwStyle = WS_CHILD | WS_VISIBLE;
+      m_viewRemoteDir.Create(wndMain, CWindow::rcDefault, sTitle, dwStyle);
+      _pDevEnv->AddAutoHideView(m_viewRemoteDir, IDE_DOCK_LEFT, 7);
+      _pDevEnv->ActivateAutoHideView(m_viewRemoteDir);
+   }
+   else {
+      _pDevEnv->RemoveAutoHideView(m_viewRemoteDir);
+      m_viewRemoteDir.PostMessage(WM_CLOSE);
+   }
    return 0;
 }
 
@@ -2044,3 +2085,5 @@ CMemoryView CRemoteProject::m_viewMemory;
 CDisasmView CRemoteProject::m_viewDisassembly;
 CVariableView CRemoteProject::m_viewVariable;
 CThreadView CRemoteProject::m_viewThread;
+CRemoteDirView CRemoteProject::m_viewRemoteDir;
+

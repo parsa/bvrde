@@ -13,7 +13,7 @@
 extern CScCommands _Commands;
 
 
-class CEventMonitor : public IAppListener, public IIdleListener
+class CEventMonitor : public IAppMessageListener, public IIdleListener
 {
 public:
    CRepositoryView m_viewRepository;
@@ -29,8 +29,8 @@ public:
                   CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
                   TCHAR szTitle[128] = { 0 };
                   ::LoadString(_Module.GetResourceInstance(), IDS_TITLE, szTitle, 127);
-                  DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VSCROLL;
-                  m_viewRepository.Create(wndMain, CWindow::rcDefault, szTitle, dwStyle, WS_EX_CLIENTEDGE);
+                  DWORD dwStyle = WS_CHILD | WS_VISIBLE;
+                  m_viewRepository.Create(wndMain, CWindow::rcDefault, szTitle, dwStyle);
                   _pDevEnv->AddAutoHideView(m_viewRepository, IDE_DOCK_LEFT, 2);
                   _pDevEnv->ActivateAutoHideView(m_viewRepository);
                }

@@ -5,11 +5,11 @@
 
  
 class CKeyboardDlg : 
-   public CDialogImpl<CKeyboardDlg>,
+   public CPropertyPageImpl<CKeyboardDlg>,
    public COwnerDraw<CKeyboardDlg>
 {
 public:
-   enum { IDD = IDD_KEYBOARD };
+   enum { IDD = IDD_CONFIG_KEYBOARD };
 
    enum { MAX_ACCELS = 200 };
 
@@ -56,7 +56,7 @@ public:
       COMMAND_CODE_HANDLER(EN_CHANGE, OnItemChange)
       COMMAND_HANDLER(IDC_LIST, LBN_SELCHANGE, OnSelChange)
       CHAIN_MSG_MAP( COwnerDraw<CKeyboardDlg> )
-      REFLECT_NOTIFICATIONS()
+      CHAIN_MSG_MAP( CPropertyPageImpl<CKeyboardDlg> )
    ALT_MSG_MAP(1)
       MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus)
    END_MSG_MAP()
@@ -67,7 +67,7 @@ public:
       ATLASSERT(::IsMenu(m_hMenu));
 
       m_ctrlList = GetDlgItem(IDC_LIST);
-      
+
       CLogFont lf;
       lf.SetMenuFont();
       lf.MakeLarger(2);
@@ -75,7 +75,7 @@ public:
       lf.MakeLarger(1);
       lf.MakeBolder();
       m_fontBold.CreateFontIndirect(&lf);
-      
+
       m_ctrlDefault.SubclassWindow(GetDlgItem(IDC_DEFAULT_KEY));
       m_ctrlCurrent.SubclassWindow(GetDlgItem(IDC_CURRENT_KEY));
       m_ctrlNew = GetDlgItem(IDC_NEW_KEY);
@@ -85,10 +85,9 @@ public:
       m_ctrlList.SetCurSel(0);
       _UpdateButtons();
 
-      CenterWindow(GetParent());
       return TRUE;
    }
-   LRESULT OnApply(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+   int OnApply()
    {
       if( *m_phAccel != NULL ) ::DestroyAcceleratorTable(*m_phAccel);
       *m_phAccel = _BuildAccel(m_mapCurrent);
@@ -97,10 +96,10 @@ public:
       sFilename.Format(_T("%sBVRDE.XML"), CModulePath());
 
       CXmlSerializer arc;
-      if( !arc.Open(_T("Settings"), sFilename) ) return 0;
+      if( !arc.Open(_T("Settings"), sFilename) ) return PSNRET_INVALID_NOCHANGEPAGE;
 
       arc.Delete(_T("KeyMappings"));
-      if( !arc.WriteGroupBegin(_T("KeyMappings")) ) return 0;
+      if( !arc.WriteGroupBegin(_T("KeyMappings")) ) return PSNRET_INVALID_NOCHANGEPAGE;
       for( int i = 0; i < m_mapCurrent.GetSize(); i++ ) {
          // Write settings to config file
          ACCEL accel = m_mapCurrent.GetValueAt(i);
@@ -113,7 +112,7 @@ public:
 
       arc.Save();
       arc.Close();
-      return 0;
+      return PSNRET_NOERROR;
    }
 
    LRESULT OnAssign(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -131,7 +130,7 @@ public:
       m_ctrlNew.SetFocus();
       //
       _UpdateButtons();
-      ::PostMessage(m_hWndSheet, WM_USER_MODIFIED, 0, 0);
+      SetModified(TRUE);
       return 0;
    }
    LRESULT OnRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -144,7 +143,7 @@ public:
       m_ctrlNew.SetFocus();
       //
       _UpdateButtons();
-      ::PostMessage(m_hWndSheet, WM_USER_MODIFIED, 0, 0);
+      SetModified(TRUE);
       return 0;
    }
 
@@ -263,9 +262,9 @@ public:
    {
       WORD wKey = accel.key;
       WORD wFlags = 0;
-      if( accel.fVirt & FALT ) wFlags |= HOTKEYF_ALT;
-      if( accel.fVirt & FCONTROL ) wFlags |= HOTKEYF_CONTROL;
-      if( accel.fVirt & FSHIFT ) wFlags |= HOTKEYF_SHIFT;
+      if( (accel.fVirt & FALT) != 0 ) wFlags |= HOTKEYF_ALT;
+      if( (accel.fVirt & FCONTROL) != 0 ) wFlags |= HOTKEYF_CONTROL;
+      if( (accel.fVirt & FSHIFT) != 0 ) wFlags |= HOTKEYF_SHIFT;
       return MAKEWORD(wKey, wFlags);
    }
    ACCEL _GetAccelFromHotKey(WORD wCmd, WORD wKey) const
@@ -276,9 +275,9 @@ public:
       accel.cmd = wCmd;
       accel.key = LOBYTE(wKey);
       accel.fVirt = FVIRTKEY | FNOINVERT;
-      if( HIBYTE(wKey) & HOTKEYF_ALT ) accel.fVirt |= FALT;
-      if( HIBYTE(wKey) & HOTKEYF_CONTROL ) accel.fVirt |= FCONTROL;
-      if( HIBYTE(wKey) & HOTKEYF_SHIFT ) accel.fVirt |= FSHIFT;      
+      if( (HIBYTE(wKey) & HOTKEYF_ALT) != 0 ) accel.fVirt |= FALT;
+      if( (HIBYTE(wKey) & HOTKEYF_CONTROL) != 0 ) accel.fVirt |= FCONTROL;
+      if( (HIBYTE(wKey) & HOTKEYF_SHIFT) != 0 ) accel.fVirt |= FSHIFT;      
       return accel;
    }
 
@@ -331,7 +330,7 @@ public:
             m_ctrlList.SetItemHeight(idx, mis.itemHeight);
 
             // Recursively parse submenus
-            if( uState & MF_POPUP ) _BuildMenu(menu.GetSubMenu(j));
+            if( (uState & MF_POPUP) != 0 ) _BuildMenu(menu.GetSubMenu(j));
          }
       }
    }

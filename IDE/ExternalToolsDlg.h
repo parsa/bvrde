@@ -20,6 +20,7 @@ public:
    CEdit m_ctrlCommand;
    CEdit m_ctrlArguments;
    CEdit m_ctrlPath;
+   CComboBox m_ctrlType;
    CButton m_ctrlNew;
    CButton m_ctrlDelete;
    CButton m_ctrlDown;
@@ -27,6 +28,8 @@ public:
    CButton m_ctrlBrowseFile;
    CButton m_ctrlBrowseArguments;
    CButton m_ctrlBrowsePath;
+   CButton m_ctrlConsoleOutput;
+   CButton m_ctrlPromptArgs;
 
    CIcon m_iconNew;
    CIcon m_iconDelete;
@@ -40,6 +43,8 @@ public:
       CString sCommand;
       CString sArguments;
       CString sPath;
+      CString sType;
+      long lFlags;
    } TOOL;
    TOOL m_aTools[30];
    int m_nTools;
@@ -86,6 +91,9 @@ public:
       m_ctrlBrowseFile = GetDlgItem(IDC_BROWSE_FILE);
       m_ctrlBrowseArguments = GetDlgItem(IDC_BROWSE_ARGUMENTS);
       m_ctrlBrowsePath = GetDlgItem(IDC_BROWSE_PATH);
+      m_ctrlType = GetDlgItem(IDC_TYPE);
+      m_ctrlPromptArgs = GetDlgItem(IDC_PROMPT_ARGS);
+      m_ctrlConsoleOutput = GetDlgItem(IDC_USE_OUTPUT);
 
       m_iconNew.LoadIcon(IDI_NEW, 16, 16);
       m_iconDelete.LoadIcon(IDI_DELETE, 16, 16);
@@ -100,6 +108,10 @@ public:
       m_ctrlList.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
       m_ctrlList.AddColumn(_T(""), 0);
       m_ctrlList.SetColumnWidth(0, LVSCW_AUTOSIZE_USEHEADER);
+
+      m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TOOLTYPE_LOCAL)));
+      m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TOOLTYPE_REMOTE)));
+      m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TOOLTYPE_SQL)));
 
       m_ctrlNew.SetIcon(m_iconNew);
       m_ctrlDelete.SetIcon(m_iconDelete);
@@ -131,10 +143,12 @@ public:
    {    
       CString sNewTool(MAKEINTRESOURCE(IDS_NEWTOOL));
       m_aTools[m_nTools].sTitle = sNewTool;
+      m_aTools[m_nTools].sType = _T("local");
       int iItem = m_ctrlList.InsertItem(m_ctrlList.GetItemCount(), sNewTool);
       m_ctrlList.SetItemData(iItem, (LPARAM) &m_aTools[m_nTools]);
       m_ctrlList.SelectItem(iItem);
       m_ctrlTitle.SetFocus();
+      m_ctrlTitle.SetSel(0, -1);
       m_ctrlNew.SetButtonStyle(BS_PUSHBUTTON);
       m_nTools++;
       return 0;
@@ -208,6 +222,9 @@ public:
          m_ctrlCommand.SetWindowText(_T(""));
          m_ctrlArguments.SetWindowText(_T(""));
          m_ctrlPath.SetWindowText(_T(""));
+         m_ctrlType.SetCurSel(0);
+         m_ctrlPromptArgs.SetCheck(BST_UNCHECKED);
+         m_ctrlConsoleOutput.SetCheck(BST_UNCHECKED);
       }
       else if( LISTITEM_SELECTED(pnmlv) ) {
          TOOL* pTool = (TOOL*) pnmlv->lParam;
@@ -215,13 +232,15 @@ public:
          m_ctrlCommand.SetWindowText(pTool->sCommand);
          m_ctrlArguments.SetWindowText(pTool->sArguments);
          m_ctrlPath.SetWindowText(pTool->sPath);
+         if( pTool->sType == _T("local") ) m_ctrlType.SetCurSel(0);
+         if( pTool->sType == _T("remote") ) m_ctrlType.SetCurSel(1);
+         if( pTool->sType == _T("sql") ) m_ctrlType.SetCurSel(2);
+         m_ctrlPromptArgs.SetCheck( (pTool->lFlags & TOOLFLAGS_PROMPTARGS) != 0 ? BST_CHECKED : BST_UNCHECKED);
+         m_ctrlConsoleOutput.SetCheck( (pTool->lFlags & TOOLFLAGS_CONSOLEOUTPUT) != 0 ? BST_CHECKED : BST_UNCHECKED);
       }
       else if( LISTITEM_UNSELECTED(pnmlv) ) {
          TOOL* pTool = (TOOL*) pnmlv->lParam;
-         pTool->sTitle = CWindowText(m_ctrlTitle);
-         pTool->sCommand = CWindowText(m_ctrlCommand);
-         pTool->sArguments = CWindowText(m_ctrlArguments);
-         pTool->sPath = CWindowText(m_ctrlPath);
+         _BuildToolStructure(pTool);
       }
       _UpdateButtons();
       return 0;
@@ -249,6 +268,9 @@ public:
             tool.sArguments = szBuffer;
             arc.Read(_T("path"), szBuffer, 299);
             tool.sPath = szBuffer;
+            arc.Read(_T("type"), szBuffer, 299);
+            tool.sType = szBuffer;
+            arc.Read(_T("flags"), tool.lFlags);
          
             int iItem = m_ctrlList.InsertItem(m_ctrlList.GetItemCount(), tool.sTitle);
             m_ctrlList.SetItemData(iItem, (LPARAM) &tool);
@@ -265,10 +287,7 @@ public:
       int iIndex = m_ctrlList.GetSelectedIndex();
       if( iIndex >= 0 ) {
          TOOL* pTool = (TOOL*) m_ctrlList.GetItemData(iIndex);
-         pTool->sTitle = CWindowText(m_ctrlTitle);
-         pTool->sCommand = CWindowText(m_ctrlCommand);
-         pTool->sArguments = CWindowText(m_ctrlArguments);
-         pTool->sPath = CWindowText(m_ctrlPath);
+         _BuildToolStructure(pTool);
       }
 
       CRegSerializer arc;
@@ -282,6 +301,8 @@ public:
                arc.Write(_T("command"), pTool->sCommand);
                arc.Write(_T("arguments"), pTool->sArguments);
                arc.Write(_T("path"), pTool->sPath);
+               arc.Write(_T("type"), pTool->sType);
+               arc.Write(_T("flags"), pTool->lFlags);
                arc.WriteGroupEnd();
             }
          }
@@ -292,6 +313,26 @@ public:
          }
          arc.Close();
       }
+   }
+
+   void _BuildToolStructure(TOOL* pTool)
+   {
+      ATLASSERT(pTool);
+      long lFlags = 0;
+      if( m_ctrlPromptArgs.GetCheck() == BST_CHECKED ) lFlags |= TOOLFLAGS_PROMPTARGS;
+      if( m_ctrlConsoleOutput.GetCheck() == BST_CHECKED ) lFlags |= TOOLFLAGS_CONSOLEOUTPUT;
+      CString sType;
+      switch( m_ctrlType.GetCurSel() ) {
+      case 0: sType = _T("local"); break;
+      case 1: sType = _T("remote"); break;
+      case 2: sType = _T("sql"); break;
+      }
+      pTool->sTitle = CWindowText(m_ctrlTitle);
+      pTool->sCommand = CWindowText(m_ctrlCommand);
+      pTool->sArguments = CWindowText(m_ctrlArguments);
+      pTool->sPath = CWindowText(m_ctrlPath);
+      pTool->lFlags = lFlags;
+      pTool->sType = sType;
    }
 
    void _UpdateButtons()
@@ -310,6 +351,9 @@ public:
       m_ctrlBrowseFile.EnableWindow(nSelCount > 0);
       m_ctrlBrowseArguments.EnableWindow(nSelCount > 0);
       m_ctrlBrowsePath.EnableWindow(nSelCount > 0);
+      m_ctrlType.EnableWindow(nSelCount > 0);
+      m_ctrlConsoleOutput.EnableWindow(nSelCount > 0);
+      m_ctrlPromptArgs.EnableWindow(nSelCount > 0);
    }
 };
 

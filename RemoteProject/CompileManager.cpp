@@ -41,6 +41,7 @@ DWORD CCompileThread::Run()
       }
       m_pManager->m_bCommandMode = m_bCommandMode;
       m_pManager->m_bIgnoreOutput = m_bIgnoreOutput;
+      m_pManager->m_bBuildSession = m_bBuildSession;
       m_cs.Unlock();
 
       // Execute commands
@@ -68,7 +69,7 @@ DWORD CCompileThread::Run()
       }
 
       // Idle wait for completion before accepting new prompt commands...
-      while( m_pManager->IsBusy() && m_aCommands.GetSize() == 0 ) ::Sleep(200L);
+      while( m_pManager->IsBusy() && m_aCommands.GetSize() == 0 ) ::Sleep(200L);     
    }
 
    return 0;
@@ -88,7 +89,9 @@ CCompileManager::CCompileManager() :
    m_bCompiling(false),
    m_bReleaseMode(true),
    m_bCommandMode(false),
-   m_bIgnoreOutput(false)
+   m_bIgnoreOutput(false),
+   m_bBuildSession(false),
+   m_bWarningPlayed(false)
 {
    m_event.Create();
    Clear();
@@ -121,8 +124,10 @@ void CCompileManager::Clear()
    m_sCompileFlags = _T("");
    m_sLinkFlags = _T("");
    m_bReleaseMode = false;
+   m_bWarningPlayed = false;
    m_thread.m_bCommandMode = m_bCommandMode = false;
    m_thread.m_bIgnoreOutput = m_bIgnoreOutput = false;  
+   m_thread.m_bBuildSession = m_bBuildSession = false;  
 }
 
 bool CCompileManager::Load(ISerializable* pArc)
@@ -208,6 +213,7 @@ bool CCompileManager::Stop()
    m_bCompiling = false;
    m_bCommandMode = false;
    m_bIgnoreOutput = false;
+   m_bWarningPlayed = false;
    s_bBusy = false;
    return true;
 }
@@ -248,6 +254,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
    CString sName = pstrName;
    bool bCommandMode = false;
    bool bIgnoreOutput = false;
+   bool bBuildSession = false;
    CSimpleArray<CString> aCommands;
    if( sName == "Clean" ) {
       if( !_PrepareProcess(pstrName) ) return false;
@@ -261,6 +268,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       aCommands.Add(m_sCommandCD);
       aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandBuild);
+      bBuildSession = true;
    }
    if( sName == "Rebuild" ) {
       if( !_PrepareProcess(pstrName) ) return false;
@@ -269,6 +277,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       aCommands.Add(m_sCommandClean);
       aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandRebuild);
+      bBuildSession = true;
    }
    if( sName == "Compile" ) {
       if( !_PrepareProcess(pstrName) ) return false;
@@ -276,6 +285,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       aCommands.Add(m_sCommandCD);
       aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandCompile);
+      bBuildSession = true;
    }
    if( sName == "CheckSyntax" ) {
       if( !_PrepareProcess(pstrName) ) return false;
@@ -295,6 +305,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       SignalStop();
       // Update statusbar now
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_STOPPED)));
+      ::PlaySound(_T("BVRDE_BuildCancelled"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT);
       return true;
    }
    if( sName.Find(_T("cc ")) == 0 ) {
@@ -311,7 +322,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
    for( int i = 0; i < aCommands.GetSize(); i++ ) {
       aCommands[i] = _TranslateCommand(aCommands[i], pstrParams);
    }
-   return _StartProcess(sTitle, aCommands, bCommandMode, bIgnoreOutput);
+   return _StartProcess(sTitle, aCommands, bBuildSession, bCommandMode, bIgnoreOutput);
 }
 
 CString CCompileManager::GetParam(LPCTSTR pstrName) const
@@ -406,8 +417,9 @@ bool CCompileManager::_PrepareProcess(LPCTSTR /*pstrName*/)
 
 bool CCompileManager::_StartProcess(LPCTSTR pstrName, 
                                     CSimpleArray<CString>& aCommands, 
-                                    bool bCommandMode /*= false*/,
-                                    bool bIgnoreOutput /*= false*/)
+                                    bool bBuildSession,
+                                    bool bCommandMode,
+                                    bool bIgnoreOutput)
 {
    ATLASSERT(m_pProject);
    ATLASSERT(!::IsBadStringPtr(pstrName,-1));
@@ -434,7 +446,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName,
    if( m_pProject->m_DebugManager.IsBusy() ) {
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_QUESTION));
       CString sMsg(MAKEINTRESOURCE(IDS_DEBUGGER_BUSY));
-      if( IDNO == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_YESNO | MB_ICONQUESTION) ) return false;
+      if( bIgnoreOutput || IDNO == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_YESNO | MB_ICONQUESTION) ) return false;
       m_pProject->m_DebugManager.SignalStop();
       m_pProject->m_DebugManager.Stop();
    }
@@ -443,7 +455,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName,
    if( !m_ShellManager.IsConnected() ) {
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_QUESTION));
       CString sMsg(MAKEINTRESOURCE(IDS_WAITCONNECTION));
-      if( IDNO == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_YESNO | MB_ICONQUESTION) ) return false;
+      if( bIgnoreOutput || IDNO == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_YESNO | MB_ICONQUESTION) ) return false;
       // Not connected yet? Let's connect now!
       CWaitCursor cursor;
       CString sStatus;
@@ -468,6 +480,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName,
    m_thread.m_szWindow = _GetViewWindowSize();
    m_thread.m_bCommandMode = bCommandMode;
    m_thread.m_bIgnoreOutput = bIgnoreOutput;
+   m_thread.m_bBuildSession = bBuildSession;
    for( int i = 0; i < aCommands.GetSize(); i++ ) {
       CString sCommand = aCommands[i];
       m_thread.m_aCommands.Add(sCommand);
@@ -533,7 +546,7 @@ SIZE CCompileManager::_GetViewWindowSize() const
 void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 {
    ATLASSERT(!::IsBadStringPtr(pstrText,-1));
-   
+
    CString sText;
    sText.Format(_T("%s\r\n"), pstrText);
 
@@ -542,14 +555,21 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       if( iPos == 0 ) return; // HACK: Ignore if printed on first column!
                               //       Avoid halting on echo.
       m_ShellManager.RemoveLineListener(this);
+      // Notify the rest of the environment
       CString sStatus;
       sStatus.Format(IDS_STATUS_FINISHED, m_sProcessName);
       m_pProject->DelayedStatusBar(sStatus);
       m_pProject->DelayedGuiAction(GUI_ACTION_STOP_ANIMATION);
       m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_STOP);
+      // Play annoying build sound
+      if( m_bBuildSession ) ::PlaySound(_T("BVRDE_BuildSucceeded"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
+      else ::PlaySound(_T("BVRDE_CommandComplete"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
+      // Reset state
       m_bCompiling = false;
       m_bCommandMode = false;
       m_bIgnoreOutput = false;
+      m_bBuildSession = false;
+      m_bWarningPlayed = false;
       s_bBusy = false;
       return;
    }
@@ -599,8 +619,16 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    cf.dwEffects = 0;
    cf.crTextColor = ::GetSysColor(COLOR_WINDOWTEXT);
    if( nColor == VT100_RED ) cf.crTextColor = RGB(200,0,0);
-   if( _tcsstr(pstrText, _T("error:")) != NULL ) cf.crTextColor = RGB(150,70,0);
-   if( _tcsstr(pstrText, _T("warning:")) != NULL ) cf.crTextColor = RGB(70,70,0);
+   if( _tcsstr(pstrText, _T("error:")) != NULL ) {
+      cf.crTextColor = RGB(150,70,0);
+      ::PlaySound(_T("BVRDE_OutputError"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT | SND_NOSTOP);
+      m_bWarningPlayed = true;
+   }
+   if( _tcsstr(pstrText, _T("warning:")) != NULL ) {
+      cf.crTextColor = RGB(70,70,0);
+      ::PlaySound(_T("BVRDE_OutputWarning"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT | SND_NOSTOP);
+      m_bWarningPlayed = true;
+   }
    if( _tcschr(m_sPromptPrefix, *pstrText) != NULL ) cf.dwEffects |= CFE_BOLD;
    if( *pstrText == '/' && _tcschr(pstrText, ':') != NULL ) cf.dwEffects &= ~CFE_BOLD;
 

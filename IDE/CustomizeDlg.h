@@ -10,44 +10,29 @@
 
 #include "DlgTabCtrl.h"
 
-#define WM_USER_MODIFIED WM_USER + 434
-
+#include "SoundsDlg.h"
 #include "LayoutDlg.h"
 #include "KeyboardDlg.h"
 #include "MacroBindDlg.h"
 
 
 class CCustomizeDlg :
-   public CDialogImpl<CCustomizeDlg>
+   public CPropertySheetImpl<CCustomizeDlg>
 {
 public:
-   enum { IDD = IDD_CUSTOMIZE };
-
-   CDialogTabCtrl m_ctrlTab;
+   CMainFrame* m_pMainFrame;
+   //
+   CSoundsDlg m_viewSounds;
    CLayoutDlg m_viewLayout;
    CKeyboardDlg m_viewKeyboard;
    CMacroBindDlg m_viewMacros;
 
-   CMainFrame* m_pMainFrame;
-
-   CCustomizeDlg(CMainFrame* pMainFrame) : 
-      m_pMainFrame(pMainFrame)
-   {     
-   }
-
-   BEGIN_MSG_MAP(CCustomizeDlg)
-      MESSAGE_HANDLER(WM_INITDIALOG, OnCreate)
-      MESSAGE_HANDLER(WM_USER_MODIFIED, OnModified)      
-      COMMAND_ID_HANDLER(IDOK, OnOK)
-      COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
-      REFLECT_NOTIFICATIONS()
-   END_MSG_MAP()
-
-   LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+   void Init(CMainFrame* pMainFrame)
    {
-      CenterWindow(GetParent());
+      m_pMainFrame = pMainFrame;
 
-      m_ctrlTab.SubclassWindow(GetDlgItem(IDC_TAB));
+      static CString sTitle(MAKEINTRESOURCE(IDS_CUSTOMIZE));
+      SetTitle(sTitle);
 
       HMENU hMenu = m_pMainFrame->GetMenuHandle(IDE_HWND_MAIN);
       HACCEL hDefaultAccel = m_pMainFrame->m_hAccel;
@@ -55,61 +40,27 @@ public:
       HACCEL* phMacroAccel = &m_pMainFrame->m_MacroAccel.m_hAccel;
 
       m_viewLayout.Init(m_hWnd, m_pMainFrame);
-      m_viewLayout.Create(m_ctrlTab, rcDefault);
-      ATLASSERT(::IsWindow(m_viewLayout));
+      m_viewLayout.Create();
+      m_viewLayout.SetTitle(IDS_LAYOUT);
 
       m_viewKeyboard.Init(m_hWnd, hMenu, hDefaultAccel, phUserAccel);
-      m_viewKeyboard.Create(m_ctrlTab, rcDefault);
-      ATLASSERT(::IsWindow(m_viewKeyboard));
+      m_viewKeyboard.Create();
+      m_viewKeyboard.SetTitle(IDS_KEYBOARD);
 
       m_viewMacros.Init(m_hWnd, hMenu, hDefaultAccel, phMacroAccel);
-      m_viewMacros.Create(m_ctrlTab, rcDefault);
-      ATLASSERT(::IsWindow(m_viewMacros));
+      m_viewMacros.Create();
+      m_viewMacros.SetTitle(IDS_MACROBIND);
 
-      CString s;
-      TCITEM item = { 0 };
-      item.mask = TCIF_TEXT;
-      s.LoadString(IDS_TOOLBARS);
-      item.pszText = (LPTSTR) (LPCTSTR) s;
-      m_ctrlTab.InsertItem(0, &item, m_viewLayout);
-      s.LoadString(IDS_KEYBOARD);
-      item.pszText = (LPTSTR) (LPCTSTR) s;
-      m_ctrlTab.InsertItem(1, &item, m_viewKeyboard);
-      s.LoadString(IDS_MACROBIND);
-      item.pszText = (LPTSTR) (LPCTSTR) s;
-      m_ctrlTab.InsertItem(2, &item, m_viewMacros);
+      m_viewSounds.Init(m_hWnd, m_pMainFrame);
+      m_viewSounds.Create();
+      m_viewSounds.SetTitle(IDS_SOUNDS);
 
-      m_ctrlTab.SetCurSel(0);
+      AddPage(m_viewLayout);
+      AddPage(m_viewKeyboard);
+      AddPage(m_viewMacros);
+      AddPage(m_viewSounds);
 
-      return TRUE;
-   }
-   LRESULT OnModified(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-   {
-      ::EnableWindow(GetDlgItem(IDOK), TRUE);
-      return 0;
-   }
-
-   LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-   {
-      BOOL bDummy;
-      OnApply(0, 0, NULL, bDummy);
-      EndDialog(wID);
-      return 0;
-   }
-   LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-   {
-      EndDialog(wID);
-      return 0;
-   }
-   LRESULT OnApply(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-   {
-      // Simulate Apply by calling it directly on the view
-      CWaitCursor cursor;
-      BOOL bDummy;
-      m_viewLayout.OnApply(0, 0, NULL, bDummy);
-      m_viewKeyboard.OnApply(0, 0, NULL, bDummy);
-      m_viewMacros.OnApply(0, 0, NULL, bDummy);
-      return 0;
+      m_psh.dwFlags |= PSH_NOCONTEXTHELP;
    }
 };
 

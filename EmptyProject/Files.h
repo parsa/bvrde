@@ -39,6 +39,7 @@ public:
    virtual IElement* GetParent() const;
    virtual BOOL SetName(LPCTSTR pstrName);
    virtual BOOL Save();
+   virtual BOOL Reload();
    virtual BOOL GetText(BSTR* pbstrText);
    virtual BOOL GetFileName(LPTSTR pstrName, UINT cchMax) const;
    virtual LRESULT PostMessage(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0);
@@ -186,6 +187,32 @@ class CHtmlFile : public CTextFile
 {
 public:
    CHtmlFile(CEmptyProject* pLocalProject, IProject* pProject, IElement* pParent);
+
+public:
+   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
+};
+
+
+///////////////////////////////////////////////////////7
+//
+
+class CPhpFile : public CTextFile
+{
+public:
+   CPhpFile(CEmptyProject* pLocalProject, IProject* pProject, IElement* pParent);
+
+public:
+   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
+};
+
+
+///////////////////////////////////////////////////////7
+//
+
+class CAspFile : public CTextFile
+{
+public:
+   CAspFile(CEmptyProject* pLocalProject, IProject* pProject, IElement* pParent);
 
 public:
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const;

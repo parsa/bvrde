@@ -14,7 +14,7 @@
 
 class CViewImpl : 
    public IView,
-   public IAppListener,
+   public IAppMessageListener,
    public IIdleListener
 {
 public:
@@ -36,7 +36,7 @@ public:
 
    void OnIdle(IUpdateUI* /*pUIBase*/);
 
-   // IAppListener
+   // IAppMessageListener
 
    LRESULT OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    BOOL PreTranslateMessage(MSG* pMsg);
@@ -54,6 +54,7 @@ public:
    virtual IElement* GetParent() const;
    virtual BOOL SetName(LPCTSTR pstrName);
    virtual BOOL Save();
+   virtual BOOL Reload();
    virtual BOOL OpenView(long lLineNum);
    virtual void CloseView();
    virtual BOOL GetText(BSTR* pbstrText);
@@ -71,6 +72,30 @@ class CHtmlView : public CViewImpl
 {
 public:
    CHtmlView(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename);
+
+   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
+};
+
+
+///////////////////////////////////////////////////////7
+//
+
+class CPhpView : public CViewImpl
+{
+public:
+   CPhpView(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename);
+
+   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
+};
+
+
+///////////////////////////////////////////////////////7
+//
+
+class CAspView : public CViewImpl
+{
+public:
+   CAspView(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename);
 
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };

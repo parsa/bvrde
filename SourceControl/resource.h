@@ -61,6 +61,12 @@
 #define IDS_TYPE_SERVER                 1035
 #define IDS_OPTION_UPDATEDIRS           1036
 #define IDS_OPTION_BRANCH               1037
+#define IDS_FILES                       1038
+#define IDS_OPTION_GENERAL              1039
+#define IDS_GROUP_BROWSER               1040
+#define IDS_BROWSER_ALL                 1041
+#define IDS_BROWSER_SINGLE              1042
+#define IDS_BUILDING                    1043
 #define IDC_FINDTEXT                    1137
 #define IDC_WHOLEWORD                   1138
 #define IDC_KEEPOUT                     1138

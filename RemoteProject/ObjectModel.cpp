@@ -43,6 +43,8 @@ public:
       pManager->m_ShellManager.RemoveLineListener(this);
    }
 
+   // IOutputLineListener
+
    void OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    {
       if( *pstrText == '[' ) return;                        // Is prompt?

@@ -17,12 +17,8 @@
    { TCHAR szBuf[32] = { 0 }; _pDevEnv->GetProperty(prop, szBuf, 31); \
      if( _tcscmp(szBuf, _T("false"))!=0 ) CButton(GetDlgItem(id)).Click(); }
 
-#define GET_CHECK(id, prop) \
-   _pDevEnv->SetProperty(prop, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"))
-
-#define TRANSFER_PROP(name, prop) \
-   { TCHAR szBuf[32] = { 0 }; _pDevEnv->GetProperty(prop, szBuf, 31); \
-     m_pArc->Write(name, szBuf); }
+#define WRITE_CHECKBOX(id, name) \
+     m_pArc->Write(name, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"));
 
 
 ///////////////////////////////////////////////////////////////
@@ -824,24 +820,13 @@ LRESULT CAdvancedEditOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/,
    SET_CHECK(IDC_AUTOSUGGEST, sKey + _T("autoSuggest"));
    SET_CHECK(IDC_AUTOCLOSE, sKey + _T("autoClose"));
    SET_CHECK(IDC_MARKERRORS, sKey + _T("markErrors"));
+   SET_CHECK(IDC_BREAKPOINTLINES, sKey + _T("breakpointLines"));
 
    return 0;
 }
 
 int CAdvancedEditOptionsPage::OnApply()
 {
-   CString sKey;
-   sKey.Format(_T("editors.%s."), m_sLanguage);
-   GET_CHECK(IDC_NOTIPS, sKey + _T("noTips"));
-   GET_CHECK(IDC_PROTECTFILES, sKey + _T("protectDebugged"));
-   GET_CHECK(IDC_MATCHBRACES, sKey + _T("matchBraces"));
-   GET_CHECK(IDC_AUTOCOMPLETE, sKey + _T("autoComplete"));
-   GET_CHECK(IDC_CLASSBROWSER, sKey + _T("classBrowser"));
-   GET_CHECK(IDC_ONLINESCANNER, sKey + _T("onlineScanner"));
-   GET_CHECK(IDC_AUTOSUGGEST, sKey + _T("autoSuggest"));
-   GET_CHECK(IDC_AUTOCLOSE, sKey + _T("autoClose"));
-   GET_CHECK(IDC_MARKERRORS, sKey + _T("markErrors"));
-
    if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
    {
       while( m_pArc->ReadGroupBegin(_T("Editor")) ) {
@@ -850,21 +835,22 @@ int CAdvancedEditOptionsPage::OnApply()
          if( m_sLanguage == szLanguage ) {
             m_pArc->Delete(_T("Advanced"));
             m_pArc->WriteItem(_T("Advanced"));
-            TRANSFER_PROP(_T("noTips"), sKey + _T("noTips"));
-            TRANSFER_PROP(_T("protectDebugged"), sKey + _T("protectDebugged"));
-            TRANSFER_PROP(_T("matchBraces"), sKey + _T("matchBraces"));
-            TRANSFER_PROP(_T("autoComplete"), sKey + _T("autoComplete"));
-            TRANSFER_PROP(_T("classBrowser"), sKey + _T("classBrowser"));
-            TRANSFER_PROP(_T("onlineScanner"), sKey + _T("onlineScanner"));
-            TRANSFER_PROP(_T("autoSuggest"), sKey + _T("autoSuggest"));
-            TRANSFER_PROP(_T("autoClose"), sKey + _T("autoClose"));
-            TRANSFER_PROP(_T("markErrors"), sKey + _T("markErrors"));
+            WRITE_CHECKBOX(IDC_NOTIPS, _T("noTips"));
+            WRITE_CHECKBOX(IDC_PROTECTFILES, _T("protectDebugged"));
+            WRITE_CHECKBOX(IDC_MATCHBRACES, _T("matchBraces"));
+            WRITE_CHECKBOX(IDC_AUTOCOMPLETE, _T("autoComplete"));
+            WRITE_CHECKBOX(IDC_CLASSBROWSER, _T("classBrowser"));
+            WRITE_CHECKBOX(IDC_ONLINESCANNER, _T("onlineScanner"));
+            WRITE_CHECKBOX(IDC_AUTOSUGGEST, _T("autoSuggest"));
+            WRITE_CHECKBOX(IDC_AUTOCLOSE, _T("autoClose"));
+            WRITE_CHECKBOX(IDC_MARKERRORS, _T("markErrors"));
+            WRITE_CHECKBOX(IDC_BREAKPOINTLINES, _T("breakpointLines"));
          }
          m_pArc->ReadGroupEnd();
       }
       m_pArc->ReadGroupEnd();
    }
-   
+
    // HACK: To clear the iterator cache
    m_pArc->ReadGroupEnd();
 

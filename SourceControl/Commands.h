@@ -57,6 +57,9 @@ public:
    CString sOptStickyTag;
    CString sOptUpdateDirs;
    CString sOptBranch;
+   CString sOptCommon;
+   CString sBrowseAll;
+   CString sBrowseSingle;
 
    bool Init();
    bool CollectFiles(CSimpleArray<CString>& aFiles);

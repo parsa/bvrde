@@ -8,7 +8,7 @@
 #include "BrowserView.h"
 
 
-class CEventMonitor : public IAppListener, public IIdleListener
+class CEventMonitor : public IAppMessageListener, public IIdleListener
 {
 public:
    CBrowserView m_viewBrowser;

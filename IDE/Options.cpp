@@ -37,6 +37,10 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    static CFormattingOptionsPage s_pageMakeFormat;
    static CColorsOptionsPage s_pageHtmlColors;
    static CFormattingOptionsPage s_pageHtmlFormat;
+   static CColorsOptionsPage s_pagePhpColors;
+   static CFormattingOptionsPage s_pagePhpFormat;
+   static CColorsOptionsPage s_pageAspColors;
+   static CFormattingOptionsPage s_pageAspFormat;
    static CColorsOptionsPage s_pageXmlColors;
    static CFormattingOptionsPage s_pageXmlFormat;
    static CColorsOptionsPage s_pagePerlColors;
@@ -119,6 +123,22 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    s_pageHtmlFormat.m_sLanguage = _T("html");
    s_pageHtmlFormat.m_pDevEnv = this;
    s_pageHtmlFormat.m_pArc = pArc;
+   s_pagePhpColors.SetTitle((LPCTSTR)sColors);
+   s_pagePhpColors.m_sLanguage = _T("php");
+   s_pagePhpColors.m_pDevEnv = this;
+   s_pagePhpColors.m_pArc = pArc;
+   s_pagePhpFormat.SetTitle((LPCTSTR)sFormat);
+   s_pagePhpFormat.m_sLanguage = _T("php");
+   s_pagePhpFormat.m_pDevEnv = this;
+   s_pagePhpFormat.m_pArc = pArc;
+   s_pageAspColors.SetTitle((LPCTSTR)sColors);
+   s_pageAspColors.m_sLanguage = _T("asp");
+   s_pageAspColors.m_pDevEnv = this;
+   s_pageAspColors.m_pArc = pArc;
+   s_pageAspFormat.SetTitle((LPCTSTR)sFormat);
+   s_pageAspFormat.m_sLanguage = _T("asp");
+   s_pageAspFormat.m_pDevEnv = this;
+   s_pageAspFormat.m_pArc = pArc;
    s_pageXmlColors.SetTitle((LPCTSTR)sColors);
    s_pageXmlColors.m_sLanguage = _T("xml");
    s_pageXmlColors.m_pDevEnv = this;
@@ -209,6 +229,14 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    pManager->AddWizardGroup(sEditors, CString(MAKEINTRESOURCE(IDS_TREE_HTML)));
    pManager->AddWizardPage(s_pageHtmlColors.IDD, s_pageHtmlColors);
    pManager->AddWizardPage(s_pageHtmlFormat.IDD, s_pageHtmlFormat);
+   //
+   pManager->AddWizardGroup(sEditors, CString(MAKEINTRESOURCE(IDS_TREE_PHP)));
+   pManager->AddWizardPage(s_pageHtmlColors.IDD, s_pagePhpColors);
+   pManager->AddWizardPage(s_pageHtmlFormat.IDD, s_pagePhpFormat);
+   //
+   pManager->AddWizardGroup(sEditors, CString(MAKEINTRESOURCE(IDS_TREE_ASP)));
+   pManager->AddWizardPage(s_pageHtmlColors.IDD, s_pageAspColors);
+   pManager->AddWizardPage(s_pageHtmlFormat.IDD, s_pageAspFormat);
    //
    pManager->AddWizardGroup(sEditors, CString(MAKEINTRESOURCE(IDS_TREE_XML)));
    pManager->AddWizardPage(s_pageXmlColors.IDD, s_pageXmlColors);

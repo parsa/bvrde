@@ -215,9 +215,9 @@ public:
          TVITEM item = { 0 };
          item.hItem = lpnmtv->itemNew.hItem;
          item.mask = TVIF_IMAGE;
-         item.iImage = item.iSelectedImage = lpnmtv->action == TVE_EXPAND ? 1 : 0;
+         item.iImage = item.iSelectedImage = (lpnmtv->action & TVE_EXPAND) != 0 ? 1 : 0;
          m_ctrlTree.SetItem(&item);
-         if( lpnmtv->action == TVE_EXPAND ) m_ctrlTree.SelectItem(hChild);
+         if( (lpnmtv->action & TVE_EXPAND) != 0 ) m_ctrlTree.SelectItem(hChild);
       }
       bHandled = FALSE;
       return 0;

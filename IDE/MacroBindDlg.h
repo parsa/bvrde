@@ -9,7 +9,7 @@
 
 
 class CMacroBindDlg : 
-   public CDialogImpl<CMacroBindDlg>,
+   public CPropertyPageImpl<CMacroBindDlg>,
    public COwnerDraw<CMacroBindDlg>
 {
 public:
@@ -67,7 +67,7 @@ public:
       COMMAND_CODE_HANDLER(EN_CHANGE, OnItemChange)
       COMMAND_HANDLER(IDC_LIST, LBN_SELCHANGE, OnSelChange)
       CHAIN_MSG_MAP( COwnerDraw<CMacroBindDlg> )
-      REFLECT_NOTIFICATIONS()
+      CHAIN_MSG_MAP( CPropertyPageImpl<CMacroBindDlg> )
    ALT_MSG_MAP(1)
       MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus)
    END_MSG_MAP()
@@ -102,7 +102,7 @@ public:
 
       return TRUE;
    }
-   LRESULT OnApply(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+   int OnApply()
    {
       if( *m_phAccel != NULL ) ::DestroyAcceleratorTable(*m_phAccel);
       *m_phAccel = _BuildAccel(m_mapCurrent);
@@ -111,10 +111,10 @@ public:
       sFilename.Format(_T("%sBVRDE.XML"), CModulePath());
 
       CXmlSerializer arc;
-      if( !arc.Open(_T("Settings"), sFilename) ) return 0;
+      if( !arc.Open(_T("Settings"), sFilename) ) return PSNRET_INVALID_NOCHANGEPAGE;
 
       arc.Delete(_T("MacroMappings"));
-      if( !arc.WriteGroupBegin(_T("MacroMappings")) ) return 0;
+      if( !arc.WriteGroupBegin(_T("MacroMappings")) ) return PSNRET_INVALID_NOCHANGEPAGE;
       for( int i = 0; i < m_mapCurrent.GetSize(); i++ ) {
          // Write settings to config file
          MACROACCEL accel = m_mapCurrent.GetValueAt(i);
@@ -129,7 +129,7 @@ public:
 
       arc.Save();
       arc.Close();
-      return 0;
+      return PSNRET_NOERROR;
    }
 
    LRESULT OnAssign(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -158,7 +158,7 @@ public:
       m_ctrlNew.SetFocus();
       //
       _UpdateButtons();
-      ::PostMessage(m_hWndSheet, WM_USER_MODIFIED, 0, 0);
+      SetModified(TRUE);
       return 0;
    }
    LRESULT OnRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -171,7 +171,7 @@ public:
       m_ctrlNew.SetFocus();
       //
       _UpdateButtons();
-      ::PostMessage(m_hWndSheet, WM_USER_MODIFIED, 0, 0);
+      SetModified(TRUE);
       return 0;
    }
 

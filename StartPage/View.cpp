@@ -142,7 +142,13 @@ BOOL CStartPageView::SetName(LPCTSTR pstrName)
 BOOL CStartPageView::Save()
 {
    ATLASSERT(false);
-   return TRUE;
+   return FALSE;
+}
+
+BOOL CStartPageView::Reload()
+{
+   ATLASSERT(false);
+   return FALSE;
 }
 
 BOOL CStartPageView::OpenView(long lLineNum)

@@ -264,6 +264,9 @@ DWORD CQueryThread::Run()
 
          // Send done packet
          ::PostMessage(m_hWndNotify, WM_USER_DATA_AVAILABLE, 0, (LPARAM) new DATAPACKET(PACKET_DONE));
+
+         // Finally play stupid sound
+         ::PlaySound(_T("BVRDE_SqlComplete"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
       }
       else if( state == STATE_INFOREQUEST ) 
       {

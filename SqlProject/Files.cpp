@@ -184,6 +184,11 @@ BOOL CView::Save()
    return TRUE;
 }
 
+BOOL CView::Reload()
+{
+   return FALSE;
+}
+
 BOOL CView::GetText(BSTR* pbstrText)
 {
    return FALSE;
@@ -212,7 +217,7 @@ void CView::OnIdle(IUpdateUI* pUIBase)
    if( m_view.IsWindow() ) m_view.OnIdle(pUIBase);
 }
 
-// IAppListener
+// IAppMessageListener
 
 LRESULT CView::OnAppMessage(HWND /*hWnd*/, UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {

@@ -17,14 +17,17 @@
 #define IDS_STATUS_PRINTING             1009
 #define IDS_CAPTION_TOOLBAR             1009
 #define IDS_PRINT_TITLE                 1010
+#define IDS_TREE_PHP                    1010
 #define IDS_TREE_ADVANCED               1011
 #define IDS_TREE_HTML                   1012
 #define IDS_TREE_XML                    1013
 #define IDS_SAVEFILE                    1014
 #define IDS_CAPTION_QUESTION            1015
+#define IDS_TREE_ASP                    1016
 #define IDC_AUTOCOMPLETE                1039
 #define IDC_CLOSETAGS                   1040
 #define IDC_AUTOCASE                    1041
+#define IDC_MATCHBRACES                 1042
 #define IDD_OPTIONS_ADVANCED            32010
 #define ID_EDIT_UPPERCASE               40029
 #define ID_EDIT_LOWERCASE               40030

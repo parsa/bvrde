@@ -84,7 +84,7 @@ public:
 // MDI Frame command message map
 
 template< class T >
-class CMDICommands
+class CMDICommands : public CMessageMap
 {
 public:
    BEGIN_MSG_MAP(CMDICommands)

@@ -474,7 +474,9 @@ bool CSolution::_AddProject(LPCTSTR pstrSolutionFilename, LPCTSTR pstrFilename, 
       }
    }
    // Failed to find plugin of that type!
-   m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_PROJECTTYPE, IDS_CAPTION_ERROR, MB_ICONERROR);
+   CString sText;
+   sText.Format(IDS_ERR_PROJECTTYPE, pFilePart, Project.sType);
+   m_pMainFrame->ShowMessageBox(hWndMain, sText, CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR);
    m_aProjects.RemoveAt(m_aProjects.GetSize() - 1);
    return false;
 }

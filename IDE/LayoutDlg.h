@@ -7,10 +7,10 @@
 
 
 class CLayoutDlg :
-   public CDialogImpl<CLayoutDlg>
+   public CPropertyPageImpl<CLayoutDlg>
 {
 public:
-   enum { IDD = IDD_LAYOUT };
+   enum { IDD = IDD_CONFIG_LAYOUT };
 
    CMainFrame* m_pMainFrame;
    HWND m_hWndSheet;
@@ -27,9 +27,9 @@ public:
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
       COMMAND_CODE_HANDLER(BN_CLICKED, OnChanged)
       NOTIFY_CODE_HANDLER(TVN_ITEMCHECKED, OnItemChanged)
-      REFLECT_NOTIFICATIONS()
+      CHAIN_MSG_MAP( CPropertyPageImpl<CLayoutDlg> )
    END_MSG_MAP()
-
+   
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       m_ctrlTree.SubclassWindow(GetDlgItem(IDC_LIST));
@@ -39,9 +39,9 @@ public:
          m_ctrlTree.SetCheckState(hItem, ::IsWindowVisible(tb.hWnd));
       }
       m_ctrlLarge = GetDlgItem(IDC_LARGE_ICONS);
-      return TRUE;
+      return true;
    }
-   LRESULT OnApply(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+   int OnApply()
    {
       CReBarCtrl Rebar = m_pMainFrame->m_Rebar;
       HTREEITEM hItem = m_ctrlTree.GetRootItem();
@@ -74,16 +74,16 @@ public:
          iIndex++;
       }
       m_pMainFrame->_SaveToolBarState();
-      return 0;
+      return PSNRET_NOERROR;
    }
    LRESULT OnChanged(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
-      ::PostMessage(m_hWndSheet, WM_USER_MODIFIED, 0, 0);
+      SetModified(TRUE);
       return 0;
    }
    LRESULT OnItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
-      ::PostMessage(m_hWndSheet, WM_USER_MODIFIED, 0, 0);
+      SetModified(TRUE);
       return 0;
    }
 };

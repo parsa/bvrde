@@ -227,9 +227,9 @@ CString GetFileTypeFromFilename(LPCTSTR pstrFilename)
       _T(".PL"),   _T("perl"),
       _T(".PM"),   _T("perl"),
       _T(".PERL"), _T("perl"),
-      _T(".ASP"),  _T("html"),
-      _T(".ASPX"), _T("html"),
-      _T(".PHP"),  _T("html"),
+      _T(".ASP"),  _T("asp"),
+      _T(".ASPX"), _T("asp"),
+      _T(".PHP"),  _T("php"),
       _T(".TPL"),  _T("html"),
       _T(".HTM"),  _T("html"),
       _T(".HTML"), _T("html"),
@@ -278,6 +278,8 @@ CTextFile* CreateViewFromFilename(IDevEnv* pDevEnv,
    if( sType == _T("perl") ) return new CPerlFile(pCppProject, pProject, pParent);
    if( sType == _T("xml") ) return new CXmlFile(pCppProject, pProject, pParent);
    if( sType == _T("html") ) return new CHtmlFile(pCppProject, pProject, pParent);
+   if( sType == _T("php") ) return new CPhpFile(pCppProject, pProject, pParent);
+   if( sType == _T("asp") ) return new CAspFile(pCppProject, pProject, pParent);
    return new CTextFile(pCppProject, pProject, pParent);
 }
 

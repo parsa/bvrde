@@ -74,8 +74,6 @@ BOOL CFrameWindow::SetPage(LPCTSTR pstrKeyword, LPCTSTR pstrLanguage, long lPos)
    info.lPos = lPos;
    m_aStack.Add(info);
 
-   m_wndBrowser.SetFocus();
-
    _UpdateButtons();
 
    return TRUE;
@@ -368,5 +366,6 @@ void __stdcall CFrameWindow::__DocumentComplete(
    /*[in]*/ IDispatch* pDisp, 
    /*[in]*/ BSTR bstrText)
 {
+   m_wndBrowser.SetFocus();
 }
 

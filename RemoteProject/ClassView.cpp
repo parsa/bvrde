@@ -369,7 +369,7 @@ LRESULT CClassView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
 {
    LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
    TVITEM& tvi = lpNMTV->itemNew;
-   if( lpNMTV->action == TVE_EXPAND ) {
+   if( (lpNMTV->action & TVE_EXPAND) != 0 ) {
       CWaitCursor cursor;
       CSimpleValArray<TAGINFO*> aList;
       TAGINFO* pParent = (TAGINFO*) m_ctrlTree.GetItemData(tvi.hItem);

@@ -62,6 +62,8 @@
 #define ANIM_TRANSFER               3
 #define ANIM_SAVE                   4
 
+#define TOOLFLAGS_CONSOLEOUTPUT     1
+#define TOOLFLAGS_PROMPTARGS        2
 
 
 /////////////////////////////////////////////////////////
@@ -164,18 +166,23 @@ public:
 // Listerner interfaces
 
 /**
- * @class IAppListener
+ * @class IAppMessageListener
  *
  * Message routed from the main message pump. Includes
  * \em all messages from the main message pump.
  */
-class IAppListener
+class IAppMessageListener
 {
 public:
    virtual LRESULT OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) = 0;
    virtual BOOL PreTranslateMessage(MSG* pMsg) = 0;
 };
 
+/**
+ * @class IIdleListener
+ *
+ * Idle messages from the system.
+ */
 class IIdleListener
 {
 public:
@@ -183,11 +190,11 @@ public:
 };
 
 /**
- * @class ITreeListener
+ * @class ITreeMessageListener
  *
  * Messages from the Project Explorer tree.
  */
-class ITreeListener
+class ITreeMessageListener
 {
 public:
    virtual LRESULT OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled) = 0;
@@ -199,21 +206,23 @@ public:
  * Interface for view related messages. The view forwards a number of
  * Windows messages to these listeners.
  */
-class IViewListener
+class IViewMessageListener
 {
 public:
    virtual LRESULT OnViewMessage(IView* pView, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) = 0;
 };
 
 /**
- * @class ICommandListener
+ * @class ICustomCommandListener
  *
- * Interface for execution of custom commands entered in the Command View window.
+ * Interface for execution of custom commands entered in the Command View window
+ * or from the Tools menu.
  */
-class ICommandListener
+class ICustomCommandListener
 {
 public:
    virtual void OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled) = 0;
+   virtual void OnMenuCommand(LPCTSTR pstrType, LPCTSTR pstrCommand, LPCTSTR pstrArguments, LPCTSTR pstrPath, int iFlags, BOOL& bHandled) = 0;
 };
 
 /**
@@ -322,16 +331,16 @@ public:
    virtual BOOL GetProperty(LPCTSTR pstrKey, LPTSTR pstrValue, UINT cchMax) = 0;
    virtual BOOL EnumProperties(int& iStart, LPCTSTR pstrPattern, LPTSTR pstrKey, LPTSTR pstrValue) = 0;
    //
-   virtual BOOL AddAppListener(IAppListener* pListener) = 0;
-   virtual BOOL RemoveAppListener(IAppListener* pListener) = 0;
+   virtual BOOL AddAppListener(IAppMessageListener* pListener) = 0;
+   virtual BOOL RemoveAppListener(IAppMessageListener* pListener) = 0;
    virtual BOOL AddIdleListener(IIdleListener* pListener) = 0;
    virtual BOOL RemoveIdleListener(IIdleListener* pListener) = 0;
-   virtual BOOL AddTreeListener(ITreeListener* pListener) = 0;
-   virtual BOOL RemoveTreeListener(ITreeListener* pListener) = 0;
-   virtual BOOL AddViewListener(IViewListener* pListener) = 0;
-   virtual BOOL RemoveViewListener(IViewListener* pListener) = 0;
-   virtual BOOL AddCommandListener(ICommandListener* pListener) = 0;
-   virtual BOOL RemoveCommandListener(ICommandListener* pListener) = 0;
+   virtual BOOL AddTreeListener(ITreeMessageListener* pListener) = 0;
+   virtual BOOL RemoveTreeListener(ITreeMessageListener* pListener) = 0;
+   virtual BOOL AddViewListener(IViewMessageListener* pListener) = 0;
+   virtual BOOL RemoveViewListener(IViewMessageListener* pListener) = 0;
+   virtual BOOL AddCommandListener(ICustomCommandListener* pListener) = 0;
+   virtual BOOL RemoveCommandListener(ICustomCommandListener* pListener) = 0;
    virtual BOOL AddWizardListener(IWizardListener* pListener) = 0;
    virtual BOOL RemoveWizardListener(IWizardListener* pListener) = 0;
 };
@@ -417,6 +426,7 @@ public:
    virtual BOOL SetName(LPCTSTR pstrName) = 0;
    virtual BOOL GetText(BSTR* pbstrText) = 0;
    virtual BOOL GetFileName(LPTSTR pstrName, UINT cchMax) const = 0;
+   virtual BOOL Reload() = 0;
    virtual BOOL Save() = 0;
    virtual BOOL IsDirty() const = 0;
    virtual void ActivateUI() = 0;

@@ -143,6 +143,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    }
 
    SendMessageToDescendants(WM_SETTINGCHANGE);
+
    return 0;
 }
 
@@ -162,14 +163,14 @@ LRESULT CScintillaView::OnHelp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
    ATLASSERT(fnShowHelp);
    if( fnShowHelp == NULL ) return 0;
    // Locate the text near the cursor
+   bHandled = TRUE;
    long lPos = m_ctrlEdit.GetCurrentPos();
-   CString sText = _GetNearText(lPos);
+   CString sText = _GetNearText(lPos, false);
    if( sText.IsEmpty() ) return 0;
    // Open man-page
    BOOL bRes = FALSE;
    ATLTRY( bRes = fnShowHelp(_pDevEnv, sText, m_sLanguage) );
    if( !bRes ) return 0;
-   bHandled = TRUE;
    return 0;
 }
 
@@ -536,6 +537,7 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    else sText = _GetNearText(lPos);
    if( sText.IsEmpty() ) return 0;        
    // Find raw declaration in TAG file or from debugger
+   CString sParent;
    CString sValue = m_pCppProject->GetTagInfo(sText);
    if( sValue.IsEmpty() ) {
       // Try to locate the function/parent name instead to derive its type
@@ -548,8 +550,8 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
          case '>':
             {
                CString sMember = _GetNearText(lStartPos - (ch == '.' ? 1L : 2L));
-               CString sType = _FindTagType(sMember, lStartPos);
-               if( !sType.IsEmpty() ) sValue = m_pCppProject->GetTagInfo(sText, sType);
+               sParent = _FindTagType(sMember, lStartPos);
+               if( !sParent.IsEmpty() ) sValue = m_pCppProject->GetTagInfo(sText, sParent);
             }
             break;
          default:
@@ -558,14 +560,14 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
       }
    }
    if( sValue.IsEmpty() ) {
+      // It could be a class-scope member
+      sParent = _FindBlockType(lPos);
+      sValue = m_pCppProject->GetTagInfo(sText, sParent);
+   }
+   if( sValue.IsEmpty() ) {
       // Just see if we can match up a type directly for the name
       CString sType = _FindTagType(sText, lPos);
       if( !sType.IsEmpty() ) sValue.Format(_T("%s %s"), sType, sText);
-   }
-   if( sValue.IsEmpty() ) {
-      // It could be a class-scope member
-      CString sType = _FindBlockType(lPos);
-      sValue = m_pCppProject->GetTagInfo(sText, sType);
    }
    // We always flag the MouseDwell start because the debugger
    // might want to deliver delayed type information.
@@ -632,7 +634,7 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    // occured at so we'll have to try to match a substring or message
    // with the content of the line.
    CHAR szLine[256] = { 0 };
-   if( m_ctrlEdit.GetLineLength(iLineNo) >= sizeof(szLine) ) return;
+   if( m_ctrlEdit.GetLineLength(iLineNo) >= sizeof(szLine) - 1 ) return;
    m_ctrlEdit.GetLine(iLineNo, szLine);
 
    CString sLine = szLine;
@@ -964,7 +966,7 @@ CString CScintillaView::_FindBlockType(long lPosition)
    if( iStartLine < 0 ) iStartLine = 0;
 
    CHAR szBuffer[256] = { 0 };
-   if( m_ctrlEdit.GetLineLength(iStartLine) >= sizeof(szBuffer) ) return _T("");
+   if( m_ctrlEdit.GetLineLength(iStartLine) >= sizeof(szBuffer) - 1 ) return _T("");
    m_ctrlEdit.GetLine(iStartLine, szBuffer);
   
    // Now we need to determine the scope type. We'll look for name 'xxx' in the
@@ -1042,7 +1044,7 @@ CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
    // See if we can find a matching type from the tag information.
    for( ; iStartLine <= iEndLine; iStartLine++ ) {
       CHAR szBuffer[256] = { 0 };
-      if( m_ctrlEdit.GetLineLength(iStartLine) >= sizeof(szBuffer) ) continue;
+      if( m_ctrlEdit.GetLineLength(iStartLine) >= sizeof(szBuffer) - 1 ) continue;
       m_ctrlEdit.GetLine(iStartLine, szBuffer);
       
       CString sLine = szBuffer;
@@ -1233,7 +1235,7 @@ CString CScintillaView::_GetNearText(long lPosition, bool bExcludeKeywords /*= t
    int iLine = m_ctrlEdit.LineFromPosition(lPosition);
    long lLinePos = m_ctrlEdit.PositionFromLine(iLine);
    CHAR szText[256] = { 0 };
-   if( m_ctrlEdit.GetLineLength(iLine) >= sizeof(szText) ) return _T("");
+   if( m_ctrlEdit.GetLineLength(iLine) >= sizeof(szText) - 1 ) return _T("");
    m_ctrlEdit.GetLine(iLine, szText);
    // We need to get a C++ identifier only, so let's find the
    // end position of the string
@@ -1243,7 +1245,7 @@ CString CScintillaView::_GetNearText(long lPosition, bool bExcludeKeywords /*= t
    //     CFoo<CMyType> member
    //     foo[32].iMemberVar = 0
    //     foo().iMemberVar = 0
-   if( iStart > 0 && szText[iStart - 1] == '>' ) while( iStart > 0 && szText[--iStart] != '<' ) /* */;
+   if( iStart > 1 && szText[iStart - 1] == '>' && szText[iStart - 2] != '-' ) while( iStart > 0 && szText[--iStart] != '<' ) /* */;
    if( iStart > 0 && szText[iStart - 1] == ']' ) while( iStart > 0 && szText[--iStart] != '[' ) /* */;
    if( iStart > 0 && szText[iStart - 1] == ')' ) while( iStart > 0 && szText[--iStart] != '(' ) /* */;
    while( iStart > 0 && _iscppchar(szText[iStart - 1]) ) iStart--;

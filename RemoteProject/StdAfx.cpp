@@ -13,6 +13,9 @@
 // WinSOCKET functions
 #pragma comment(lib, "ws2_32.lib")
 
+// Sound playing functions
+#pragma comment(lib, "winmm.lib")
+
 // Delay load
 #pragma comment(lib, "Delayimp.lib")
 #pragma comment(linker, "/DelayLoad:wininet.dll")

@@ -208,5 +208,7 @@ CTextFile* CreateViewFromFilename(LPCTSTR pstrFilename,
    if( sType == _T("perl") ) return new CPerlFile(pLocalProject, pProject, pParent);
    if( sType == _T("xml") ) return new CXmlFile(pLocalProject, pProject, pParent);
    if( sType == _T("html") ) return new CHtmlFile(pLocalProject, pProject, pParent);
+   if( sType == _T("php") ) return new CPhpFile(pLocalProject, pProject, pParent);
+   if( sType == _T("asp") ) return new CAspFile(pLocalProject, pProject, pParent);
    return new CTextFile(pLocalProject, pProject, pParent);
 }

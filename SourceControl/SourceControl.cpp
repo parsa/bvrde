@@ -78,6 +78,7 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
 
    _pDevEnv->AddAppListener(&_Monitor);
    _pDevEnv->AddIdleListener(&_Monitor);
+
    _pDevEnv->ReserveUIRange(42000, 42099);
 
    _Commands.Init();

@@ -14,12 +14,8 @@
    { TCHAR szBuf[32] = { 0 }; _pDevEnv->GetProperty(prop, szBuf, 31); \
      if( _tcscmp(szBuf, _T("false"))!=0 ) CButton(GetDlgItem(id)).Click(); }
 
-#define GET_CHECK(id, prop) \
-   _pDevEnv->SetProperty(prop, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"))
-
-#define TRANSFER_PROP(name, prop) \
-   { TCHAR szBuf[32] = { 0 }; _pDevEnv->GetProperty(prop, szBuf, 31); \
-     m_pArc->Write(name, szBuf); }
+#define WRITE_CHECKBOX(id, name) \
+     m_pArc->Write(name, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"));
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -34,18 +30,13 @@ LRESULT CAdvancedEditOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/,
    SET_CHECK(IDC_AUTOCOMPLETE, sKey + _T("autoComplete"));
    SET_CHECK(IDC_CLOSETAGS, sKey + _T("autoClose"));
    SET_CHECK(IDC_AUTOCASE, sKey + _T("autoCase"));
+   SET_CHECK(IDC_MATCHBRACES, sKey + _T("matchBraces"));
 
    return 0;
 }
 
 int CAdvancedEditOptionsPage::OnApply()
 {
-   CString sKey;
-   sKey.Format(_T("editors.%s."), m_sLanguage);
-   GET_CHECK(IDC_AUTOCOMPLETE, sKey + _T("autoComplete"));
-   GET_CHECK(IDC_CLOSETAGS, sKey + _T("autoClose"));
-   GET_CHECK(IDC_AUTOCASE, sKey + _T("autoCase"));   
-
    if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
    {
       while( m_pArc->ReadGroupBegin(_T("Editor")) ) {
@@ -54,15 +45,16 @@ int CAdvancedEditOptionsPage::OnApply()
          if( m_sLanguage == szLanguage ) {
             m_pArc->Delete(_T("Advanced"));
             m_pArc->WriteItem(_T("Advanced"));
-            TRANSFER_PROP(_T("autoComplete"), sKey + _T("autoComplete"));
-            TRANSFER_PROP(_T("autoClose"), sKey + _T("autoClose"));
-            TRANSFER_PROP(_T("autoCase"), sKey + _T("autoCase"));
+            WRITE_CHECKBOX(IDC_AUTOCOMPLETE, _T("autoComplete"));
+            WRITE_CHECKBOX(IDC_CLOSETAGS, _T("autoClose"));
+            WRITE_CHECKBOX(IDC_AUTOCASE, _T("autoCase"));
+            WRITE_CHECKBOX(IDC_MATCHBRACES, _T("matchBraces"));
          }
          m_pArc->ReadGroupEnd();
       }
       m_pArc->ReadGroupEnd();
    }
-   
+
    // HACK: To clear the iterator cache
    m_pArc->ReadGroupEnd();
 

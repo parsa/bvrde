@@ -228,6 +228,9 @@
 #define IDS_NETWORKDRIVE                270
 #define IDS_COMMAND_STARTTIMEOUT        271
 #define IDS_ERR_NOATTACH                272
+#define IDS_NOCONNECTION                273
+#define IDS_FILES                       274
+#define IDS_FILEMANAGER                 275
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -260,6 +263,7 @@
 #define IDC_AUTOSUGGEST                 1043
 #define IDC_AUTOCLOSE                   1044
 #define IDC_MARKERRORS                  1045
+#define IDC_BREAKPOINTLINES             1046
 #define IDC_NOTIPS                      1048
 #define IDC_PROTECTFILES                1049
 #define IDC_TYPES_LABEL                 1089
@@ -371,13 +375,14 @@
 #define ID_MEMORY_SIZE_WORD             40125
 #define ID_MEMORY_SIZE_BYTE             40126
 #define ID_MEMORY_REFRESH               40127
+#define ID_VIEW_FILEMANAGER             40128
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        125
-#define _APS_NEXT_COMMAND_VALUE         40128
+#define _APS_NEXT_COMMAND_VALUE         40129
 #define _APS_NEXT_CONTROL_VALUE         1027
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

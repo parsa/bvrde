@@ -2250,7 +2250,7 @@ public:
       pT->Cut();
       return 0;
    }
-   LRESULT OnEditPaste(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+   LRESULT OnEditPaste(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       T* pT = static_cast<T*>(this); pT;
       pT->Paste();

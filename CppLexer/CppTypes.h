@@ -95,5 +95,16 @@ public:
 };
 
 
+inline void xxx_fatal_error(const char* msg)
+{
+#ifdef _DEBUG
+   printf("ERROR: %s\n", msg);
+#endif
+   throw 1;
+}
+
+#define YY_FATAL_ERROR(msg) xxx_fatal_error(msg)
+
+
 #endif // !defined(AFX_CPPTYPES_H__20040706_E768_9830_6D75_0080AD509054__INCLUDED_)
 

@@ -53,7 +53,7 @@ public:
       CComDispatchDriver dd = m_pProject->GetDispatch();
       CComVariant aParams[3];
       aParams[2] = L"ps -s";
-      aParams[1] = (IUnknown*) this;
+      aParams[1] = static_cast<IUnknown*>(this);
       aParams[0] = 3000L;
       dd.InvokeN(OLESTR("ExecCommand"), aParams, 3);
 

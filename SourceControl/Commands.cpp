@@ -30,7 +30,7 @@ DWORD CCommandThread::Run()
 {
    ::CoInitialize(NULL);
 
-   // Build prompt and execute commands through
+   // Build prompt and execute commands through the
    // project's scripting mode.
    m_sResult.Empty();
    ISolution* pSolution = _pDevEnv->GetSolution();
@@ -43,7 +43,7 @@ DWORD CCommandThread::Run()
    bstrCommand += CComBSTR(m_sCommand);
    CComVariant aParams[3];
    aParams[2] = bstrCommand;
-   aParams[1] = (IUnknown*) this;
+   aParams[1] = static_cast<IUnknown*>(this);
    aParams[0] = m_lTimeout;
    dd.InvokeN(OLESTR("ExecCommand"), aParams, 3);
 
@@ -91,6 +91,7 @@ void CCommandThread::_SplitResult(CString sResult, CSimpleArray<CString>& aLines
 
 HRESULT CCommandThread::OnIncomingLine(BSTR bstr)
 {
+   if( ShouldStop() ) return E_ABORT;
    m_sResult += bstr;
    m_sResult += _T("\n");
    return S_OK;
@@ -101,7 +102,7 @@ HRESULT CCommandThread::OnIncomingLine(BSTR bstr)
 HRESULT CCommandThread::QueryInterface(REFIID riid, void** ppvObject)
 {
    if( riid == __uuidof(ILineCallback) || riid == IID_IUnknown ) {
-      *ppvObject = (ILineCallback*) this;
+      *ppvObject = static_cast<ILineCallback*>(this);
       return S_OK;
    }
    return E_NOINTERFACE;
@@ -166,6 +167,13 @@ bool CScCommands::Init()
    sOptUpdateDirs = szBuffer;
    _pDevEnv->GetProperty(_T("sourcecontrol.opt.branch"), szBuffer, 127);
    sOptBranch = szBuffer;
+   _pDevEnv->GetProperty(_T("sourcecontrol.opt.general"), szBuffer, 127);
+   sOptCommon = szBuffer;
+
+   _pDevEnv->GetProperty(_T("sourcecontrol.browse.all"), szBuffer, 127);
+   sBrowseAll = szBuffer;
+   _pDevEnv->GetProperty(_T("sourcecontrol.browse.single"), szBuffer, 127);
+   sBrowseSingle = szBuffer;
 
    return true;
 }
@@ -227,7 +235,7 @@ bool CScCommands::CheckIn(CSimpleArray<CString>& aFiles)
    if( dlg.DoModal() != IDOK ) return false;
 
    CString sCmd;
-   sCmd.Format(_T("%s %s %s"), sProgram, sCmdCheckIn, dlg.m_sOptions);
+   sCmd.Format(_T("%s %s %s %s"), sProgram, sOptCommon, sCmdCheckIn, dlg.m_sOptions);
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
       sCmd += _T(" ");
       sCmd += aFiles[i];
@@ -242,7 +250,7 @@ bool CScCommands::CheckIn(CSimpleArray<CString>& aFiles)
 bool CScCommands::CheckOut(CSimpleArray<CString>& aFiles)
 {
    CString sCmd;
-   sCmd.Format(_T("%s %s"), sProgram, sCmdCheckOut);
+   sCmd.Format(_T("%s %s %s"), sProgram, sOptCommon, sCmdCheckOut);
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
       sCmd += _T(" ");
       sCmd += aFiles[i];
@@ -262,7 +270,7 @@ bool CScCommands::Update(CSimpleArray<CString>& aFiles)
    if( dlg.DoModal() != IDOK ) return false;
 
    CString sCmd;
-   sCmd.Format(_T("%s %s"), sProgram, sCmdUpdate);
+   sCmd.Format(_T("%s %s %s"), sProgram, sOptCommon, sCmdUpdate);
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
       sCmd += _T(" ");
       sCmd += aFiles[i];
@@ -282,7 +290,7 @@ bool CScCommands::AddFile(CSimpleArray<CString>& aFiles)
    if( dlg.DoModal() != IDOK ) return false;
    
    CString sCmd;
-   sCmd.Format(_T("%s %s %s"), sProgram, sCmdAddFile, dlg.m_sOptions);
+   sCmd.Format(_T("%s %s %s %s"), sProgram, sOptCommon, sCmdAddFile, dlg.m_sOptions);
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
       sCmd += _T(" ");
       sCmd += aFiles[i];
@@ -297,7 +305,7 @@ bool CScCommands::AddFile(CSimpleArray<CString>& aFiles)
 bool CScCommands::RemoveFile(CSimpleArray<CString>& aFiles)
 {
    CString sCmd;
-   sCmd.Format(_T("%s %s"), sProgram, sCmdRemoveFile);
+   sCmd.Format(_T("%s %s %s"), sProgram, sOptCommon, sCmdRemoveFile);
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
       sCmd += _T(" ");
       sCmd += aFiles[i];
@@ -313,7 +321,7 @@ bool CScCommands::LogIn(CSimpleArray<CString>& aFiles)
 {
    CLoginCvsDlg dlg;
    CString sCmd;
-   sCmd.Format(_T("%s %s"), sProgram, sCmdLogIn);
+   sCmd.Format(_T("%s %s %s"), sProgram, sOptCommon, sCmdLogIn);
    if( sType == _T("cvs") ) {
       if( dlg.DoModal() != IDOK ) return false;
       sCmd += dlg.m_sOptions;
@@ -340,7 +348,7 @@ bool CScCommands::LogIn(CSimpleArray<CString>& aFiles)
 bool CScCommands::LogOut(CSimpleArray<CString>& aFiles)
 {
    CString sCmd;
-   sCmd.Format(_T("%s %s"), sProgram, sCmdLogOut);
+   sCmd.Format(_T("%s %s %s"), sProgram, sOptCommon, sCmdLogOut);
    sCmd += _T("\n");
    m_thread.Stop();
    m_thread.SetCommand(ID_SC_LOGOUT, sCmd);
@@ -351,7 +359,7 @@ bool CScCommands::LogOut(CSimpleArray<CString>& aFiles)
 bool CScCommands::StatusFile(CSimpleArray<CString>& aFiles)
 {
    CString sCmd;
-   sCmd.Format(_T("%s %s"), sProgram, sCmdStatus);
+   sCmd.Format(_T("%s %s %s"), sProgram, sOptCommon, sCmdStatus);
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
       sCmd += _T(" ");
       sCmd += aFiles[i];
@@ -366,7 +374,7 @@ bool CScCommands::StatusFile(CSimpleArray<CString>& aFiles)
 bool CScCommands::DiffFile(CSimpleArray<CString>& aFiles)
 {
    CString sCmd;
-   sCmd.Format(_T("%s %s"), sProgram, sCmdDiff);
+   sCmd.Format(_T("%s %s %s"), sProgram, sOptCommon, sCmdDiff);
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
       sCmd += _T(" ");
       sCmd += aFiles[i];

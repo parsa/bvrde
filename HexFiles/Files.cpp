@@ -95,6 +95,11 @@ BOOL CView::Save()
    return TRUE;
 }
 
+BOOL CView::Reload()
+{
+   return FALSE;
+}
+
 BOOL CView::IsDirty() const
 {
    if( !::IsWindow(m_wndClient) ) return FALSE;
@@ -182,7 +187,7 @@ void CView::OnIdle(IUpdateUI* pUIBase)
    if( m_wndClient.IsWindow() ) m_wndClient.OnIdle(pUIBase);
 }
 
-// IAppListener
+// IAppMessageListener
 
 LRESULT CView::OnAppMessage(HWND /*hWnd*/, UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {

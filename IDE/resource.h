@@ -121,8 +121,10 @@
 #define IDS_WIZARD_NEWFILE              220
 #define IDD_KEYBOARD                    221
 #define IDS_WIZARD_TITLE_FILEFINISH     221
+#define IDD_CONFIG_KEYBOARD             221
 #define IDD_LAYOUT                      222
 #define IDS_WIZARD_SUBTITLE_FILEFINISH  222
+#define IDD_CONFIG_LAYOUT               222
 #define IDD_OPTIONS_GENERAL             223
 #define IDS_STATUS_LOADING              223
 #define IDD_TOOLS                       224
@@ -133,6 +135,7 @@
 #define IDS_TREE_PYTHON                 227
 #define IDD_MACROS                      228
 #define IDS_FULLSCREEN_TOOLBAR          228
+#define IDD_CONFIG_MACROS               228
 #define IDB_BUILDANIM                   229
 #define IDS_FULLSCREEN                  229
 #define IDB_PRINTANIM                   230
@@ -149,7 +152,14 @@
 #define IDI_PROJECT                     236
 #define IDS_KEYDUPLICATE                236
 #define IDR_OUTPUTVIEW                  237
+#define IDS_TREE_ASP                    237
 #define IDR_COMMANDVIEW                 238
+#define IDS_TOOLTYPE_LOCAL              238
+#define IDS_TOOLTYPE_REMOTE             239
+#define IDD_ARGUMENTPROMPT              239
+#define IDS_TOOLTYPE_SQL                240
+#define IDS_SOUNDS                      241
+#define IDS_CUSTOMIZE                   242
 #define IDD_MSGBOX                      263
 #define IDI_MSG_INFORMATION             264
 #define IDI_MSG_WARNING                 265
@@ -196,6 +206,7 @@
 #define IDC_CARETWIDTH                  1039
 #define IDC_NOAUTOCOMPLETE              1039
 #define IDC_NOCLASSBROWSER              1040
+#define IDC_CARETLINE                   1040
 #define IDC_ONLINESCANNER               1041
 #define IDC_MATCHBRACES                 1042
 #define IDC_FOLDING                     1043
@@ -219,6 +230,7 @@
 #define IDC_BROWSE_ARGUMENTS            1062
 #define IDC_BROWSE_PATH                 1063
 #define IDC_USE_TABBED                  1064
+#define IDC_PROMPT_ARGS                 1064
 #define IDC_USE_MDI                     1065
 #define IDC_FONT                        1066
 #define IDC_TABINDENTS                  1067
@@ -236,6 +248,8 @@
 #define IDC_EDIT                        1078
 #define IDC_EDIT2                       1079
 #define IDC_HOTKEY                      1082
+#define IDC_TYPE                        1085
+#define IDC_LAUNCH                      1087
 #define IDC_TEXT                        1148
 #define IDC_DONT_SHOW                   1197
 #define IDC_DESCRIPTION                 1198
@@ -254,6 +268,7 @@
 #define IDD_OPTIONS_ALIAS               32011
 #define IDD_OPTIONS_AUTOTEXT            32012
 #define IDD_MACROBIND                   32013
+#define IDD_CONFIG_SOUNDS               32014
 #define ID_WINDOW_NEXT                  32796
 #define ID_WINDOW_PREVIOUS              32797
 #define ID_TOOLS_ADDIN_MANAGER          32803
@@ -292,14 +307,16 @@
 #define ID_MACROS_KEY13                 32879
 #define ID_MACROS_KEY14                 32880
 #define ID_MACROS_KEY15                 32881
+#define ID_EDIT_CLEAR2                  57638
+#define ID_EDIT_COPY2                   57639
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        239
+#define _APS_NEXT_RESOURCE_VALUE        240
 #define _APS_NEXT_COMMAND_VALUE         32868
-#define _APS_NEXT_CONTROL_VALUE         1085
+#define _APS_NEXT_CONTROL_VALUE         1088
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

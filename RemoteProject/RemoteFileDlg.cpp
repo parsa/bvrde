@@ -27,6 +27,7 @@ LRESULT CRemoteFileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    ATLASSERT(m_pFileManager);
 
    m_sSeparator = m_pFileManager->GetParam(_T("Separator"));
+   ATLASSERT(!m_sSeparator.IsEmpty());
 
    m_sOrigPath = m_ofn.lpstrInitialDir;
    if( m_sOrigPath.Right(1) != m_sSeparator ) m_sOrigPath += m_sSeparator;
@@ -93,7 +94,7 @@ LRESULT CRemoteFileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 
 LRESULT CRemoteFileDlg::OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-   if( lParam != (LPARAM) (HWND) m_ctrlNoConnection ) {
+   if( (HWND) lParam != m_ctrlNoConnection ) {
       bHandled = FALSE;
       return 0;
    }
@@ -140,7 +141,7 @@ LRESULT CRemoteFileDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
       }
    }
 
-   // Create return buffer. The Path is the first entry.
+   // Create result. The path is the first entry.
    LPTSTR pstr = m_cBuffer;
    ::lstrcpy(pstr, m_sPath);
    pstr += ::lstrlen(pstr) + 1;
@@ -162,7 +163,7 @@ LRESULT CRemoteFileDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
       if( !m_sDefExt.IsEmpty() && s.Find('.') < 0 ) s += _T(".") + m_sDefExt;
       aFiles.Add(s);
    }
-   // ... then create the return-buffer, which is returned as a SZ-array.
+   // ... then generate the return-buffer, which is returned as a SZ-array.
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
       ::lstrcpy(pstr, aFiles[i]);
       pstr += ::lstrlen(pstr) + 1;
@@ -246,6 +247,7 @@ LRESULT CRemoteFileDlg::OnItemOpen(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
    OnOK(0, IDOK, NULL, bDummy);
    return 0;
 }
+
 LRESULT CRemoteFileDlg::OnItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
    if( m_bInside ) return 0;
@@ -282,7 +284,7 @@ void CRemoteFileDlg::_UpdateButtons()
       iIndex = m_ctrlList.GetNextItem(iIndex, LVNI_SELECTED);
    }
    m_ctrlOK.EnableWindow(bHasFilename && (nSelCount <= 1 || !bFolderSelected));
-   m_ctrlUp.EnableWindow(m_ctrlFolder.GetCount() > 1);
+   m_ctrlUp.EnableWindow(m_ctrlFolder.GetCurSel() >= 1);
 }
 
 bool CRemoteFileDlg::_PopulateView(LPCTSTR pstrPath)
@@ -325,10 +327,10 @@ bool CRemoteFileDlg::_PopulateView(LPCTSTR pstrPath)
 
       sFilename.MakeUpper();
       int iImage = 3;
-      if( fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) iImage = 0;
       if( sFilename.Find(_T(".TXT")) > 0) iImage = 1;
       if( sFilename.Find(_T(".C")) > 0 ) iImage = 4;
       if( sFilename.Find(_T(".H")) > 0 ) iImage = 4;
+      if( (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0 ) iImage = 0;
       m_ctrlList.InsertItem(LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE, 
          i, 
          fd.cFileName, 
@@ -339,7 +341,7 @@ bool CRemoteFileDlg::_PopulateView(LPCTSTR pstrPath)
 
    m_ctrlList.SortItemsEx(_ListSortProc, (LPARAM) this);
 
-   CString sPath = _T("");
+   CString sPath;
    CString sName = sHost;
    int iIndex = 0;
    while( true ) {      
@@ -358,6 +360,7 @@ bool CRemoteFileDlg::_PopulateView(LPCTSTR pstrPath)
 
       sPath += sName;
       sPath += m_sSeparator;
+
       iIndex++;
    }
 

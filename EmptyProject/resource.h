@@ -239,6 +239,7 @@
 #define ID_CLASSVIEW_GOTO               1200
 #define ID_CLASSVIEW_PROPERTIES         1201
 #define IDD_OPTIONS_ADVANCED            32009
+#define ID_VIEW_OPENWITH                40069
 #define ID_EDIT_DELLINE                 40088
 #define ID_FILE_OPEN_WITH               43001
 #define ID_FILE_COMPILE                 43002

@@ -59,6 +59,11 @@ LRESULT CMainFrame::OnToolsOptions(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
       CLockWindowUpdate lock = m_hWnd;
       // Save settings back to XML file
       arc.Save();
+      arc.Close();
+      // Re-open archive and load settings...
+      if( !arc.Open(_T("Settings"), sFilename) ) return 0;
+      if( !_LoadGeneralSettings(arc) ) return 0;
+      arc.Close();
       // Need to show MDI container/CoolTabs?
       TCHAR szBuffer[64] = { 0 };
       GetProperty(_T("gui.main.client"), szBuffer, 63);
@@ -93,7 +98,8 @@ LRESULT CMainFrame::OnToolsAddinManager(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 
 LRESULT CMainFrame::OnToolsCustomize(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-   CCustomizeDlg dlg(this);
+   CCustomizeDlg dlg;
+   dlg.Init(this);
    UINT nRes = dlg.DoModal();
    if( nRes == IDOK ) UIClear();
    return nRes == IDOK;

@@ -1366,8 +1366,8 @@ public:
          delete m_map[i];
       }
       for( i = 0; i < 4; i++ ) {
-		 m_panes[i].m_map.RemoveAll();
-	  }
+       m_panes[i].m_map.RemoveAll();
+     }
       m_map.RemoveAll();
       return 0;
    }

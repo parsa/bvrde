@@ -285,6 +285,12 @@ int CSolutionFinishPage::OnWizardFinish()
    { TCHAR szBuf[32] = { 0 }; g_pDevEnv->GetProperty(prop, szBuf, 31); \
      m_pArc->Write(name, szBuf); }
 
+#define WRITE_CHECKBOX(id, name) \
+     m_pArc->Write(name, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"));
+
+#define WRITE_TEXT(id, name) \
+     m_pArc->Write(name, CWindowText(GetDlgItem(id)));
+
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -355,20 +361,13 @@ LRESULT CDocumentsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 
 int CDocumentsOptionsPage::OnApply()
 {
-   GET_CHECK(IDC_READONLY, _T("gui.document.protectReadOnly"));
-   GET_CHECK(IDC_DETECT_CHANGE, _T("gui.document.detectChange"));
-   GET_CHECK(IDC_AUTOLOAD, _T("gui.document.autoLoad"));
-   GET_CHECK(IDC_FINDTEXT, _T("gui.document.findText"));
-   GET_CHECK(IDC_FINDMESSAGES, _T("gui.document.findMessages"));
-   GET_CHECK(IDC_CLEARUNDO, _T("gui.document.clearUndo"));
-
    m_pArc->ReadItem(_T("Document"));
-   TRANSFER_PROP(_T("protectReadOnly"), _T("gui.document.protectReadOnly"));
-   TRANSFER_PROP(_T("detectChange"), _T("gui.document.detectChange"));
-   TRANSFER_PROP(_T("autoLoad"), _T("gui.document.autoLoad"));
-   TRANSFER_PROP(_T("findText"), _T("gui.document.findText"));
-   TRANSFER_PROP(_T("findMessages"), _T("gui.document.findMessages"));
-   TRANSFER_PROP(_T("clearUndo"), _T("gui.document.clearUndo"));
+   WRITE_CHECKBOX(IDC_READONLY, _T("protectReadOnly"));
+   WRITE_CHECKBOX(IDC_DETECT_CHANGE, _T("detectChange"));
+   WRITE_CHECKBOX(IDC_AUTOLOAD, _T("autoLoad"));
+   WRITE_CHECKBOX(IDC_FINDTEXT, _T("findText"));
+   WRITE_CHECKBOX(IDC_FINDMESSAGES, _T("findMessages"));
+   WRITE_CHECKBOX(IDC_CLEARUNDO, _T("clearUndo"));
    return PSNRET_NOERROR;
 }
 
@@ -495,6 +494,7 @@ int CAssociationsOptionsPage::OnApply()
    }
 
    // BUG: Need to remove existing associations when items are unchecked!
+
    return PSNRET_NOERROR;
 }
 
@@ -747,7 +747,8 @@ LRESULT CColorsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
 #define RGR2RGB(x) RGB((x >> 16) & 0xFF, (x >> 8) & 0xFF, x & 0xFF)
 
    ::ZeroMemory(m_aFonts, sizeof(m_aFonts));
-   for( long i = 0; i < 10; i++ ) {
+
+   for( long i = 0; i < sizeof(m_aFonts) / sizeof(m_aFonts[0]); i++ ) {
       CString sKey;
       sKey.Format(_T("editors.%s.style%ld."), m_sLanguage, i + 1L);
       LPTSTR p = NULL;
@@ -774,6 +775,7 @@ LRESULT CColorsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
       m_ctrlList.AddString(m_aFonts[i].szTitle);
    }
    m_ctrlList.SetCurSel(0);
+
    BOOL bDummy;
    OnItemSelect(NULL, 0, NULL, bDummy);
 
@@ -931,6 +933,8 @@ LRESULT CColorsOptionsPage::OnFaceChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 
 int CColorsOptionsPage::OnApply()
 {
+   ATLASSERT(m_pArc);
+
    for( long i = 0; i < m_ctrlList.GetCount(); i++ ) {
       TCHAR szBuffer[32];
       CString sKey;
@@ -1149,6 +1153,7 @@ LRESULT CEditorsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    SET_CHECK(IDC_SAVEPROMPT, sKey + _T("savePrompt"));
    SET_CHECK(IDC_SHOWEDGE, sKey + _T("showEdge"));
    SET_CHECK(IDC_BOTTOMLESS, sKey + _T("bottomless"));
+   SET_CHECK(IDC_CARETLINE, sKey + _T("markCaretLine"));
 
    m_ctrlCaretWidth.SetLimitText(1);
 
@@ -1177,6 +1182,7 @@ int CEditorsOptionsPage::OnApply()
    GET_CHECK(IDC_SAVEPROMPT, sKey + _T("savePrompt"));
    GET_CHECK(IDC_SHOWEDGE, sKey + _T("showEdge"));
    GET_CHECK(IDC_BOTTOMLESS, sKey + _T("bottomless"));
+   GET_CHECK(IDC_CARETLINE, sKey + _T("markCaretLine"));
 
    TCHAR szBuffer[32];
    _tcscpy(szBuffer, _T("auto"));
@@ -1195,6 +1201,7 @@ int CEditorsOptionsPage::OnApply()
       TRANSFER_PROP(_T("savePrompt"), sKey + _T("savePrompt"));
       TRANSFER_PROP(_T("showEdge"), sKey + _T("showEdge"));
       TRANSFER_PROP(_T("bottomless"), sKey + _T("bottomless"));
+      TRANSFER_PROP(_T("markCaretLine"), sKey + _T("markCaretLine"));
       TRANSFER_PROP(_T("eolMode"), sKey + _T("eolMode"));
       TRANSFER_PROP(_T("caretWidth"), sKey + _T("caretWidth"));
       m_pArc->ReadGroupEnd();
@@ -1219,11 +1226,8 @@ LRESULT CPrintingOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPA
 
 int CPrintingOptionsPage::OnApply()
 {
-   GET_CHECK(IDC_WORDWRAP, _T("priting.general.wordWrap"));
-   GET_CHECK(IDC_COLORS, _T("priting.general.colors"));
-
    m_pArc->ReadItem(_T("Printing"));
-   TRANSFER_PROP(_T("wordWrap"), _T("priting.general.wordWrap"));
-   TRANSFER_PROP(_T("colors"), _T("priting.general.colors"));
+   WRITE_CHECKBOX(IDC_WORDWRAP, _T("wordWrap"));
+   WRITE_CHECKBOX(IDC_COLORS, _T("colors"));
    return PSNRET_NOERROR;
 }

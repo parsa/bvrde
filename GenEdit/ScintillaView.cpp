@@ -18,6 +18,17 @@
  *
  */
 
+#ifndef BlendRGB
+   #define BlendRGB(c1, c2, factor) \
+      RGB( GetRValue(c1) + ((GetRValue(c2) - GetRValue(c1)) * factor / 100L), \
+           GetGValue(c1) + ((GetGValue(c2) - GetGValue(c1)) * factor / 100L), \
+           GetBValue(c1) + ((GetBValue(c2) - GetBValue(c1)) * factor / 100L) )
+#endif
+
+#ifndef RGR2RGB
+   #define RGR2RGB(x) RGB((x >> 16) & 0xFF, (x >> 8) & 0xFF, x & 0xFF)
+#endif
+
 
 CScintillaView::CScintillaView(IDevEnv* pDevEnv) :
    m_wndParent(this, 1),   
@@ -197,6 +208,10 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    CString sFilename = m_sFilename;
    sFilename.MakeLower();
 
+   COLORREF clrBack = RGB(255,255,255);
+   COLORREF clrBackShade = BlendRGB(clrBack, RGB(0,0,0), 3);
+   COLORREF clrBackDarkShade = BlendRGB(clrBack, RGB(0,0,0), 8);
+
    CString sKey;
    SYNTAXCOLOR syntax[20] = { 0 };
    int* ppStyles = NULL;
@@ -213,6 +228,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    m_pDevEnv->GetProperty(sKey, sKeywords1.GetBuffer(2048), 2048);
    sKeywords1.ReleaseBuffer();
 
+   int iKeywordSet = 1;
    CString sKeywords2;
    sKey.Format(_T("editors.%s.customwords"), m_sLanguage);
    m_pDevEnv->GetProperty(sKey, sKeywords2.GetBuffer(2048), 2048);
@@ -242,9 +258,9 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
          SCE_C_CHARACTER,      4,
          SCE_C_PREPROCESSOR,   5,
          SCE_C_WORD2,          6,
-         STYLE_BRACELIGHT,     7,
-         STYLE_BRACEBAD,       8,
-         SCE_C_COMMENTDOCKEYWORD, 9,
+         STYLE_BRACELIGHT,             7,
+         STYLE_BRACEBAD,               8,
+         SCE_C_COMMENTDOCKEYWORD,      9,
          SCE_C_COMMENTDOCKEYWORDERROR, 9,
          -1, -1,
       };
@@ -254,6 +270,8 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       syntax[6] = syntax[0];
       syntax[6].bBold = true;
       syntax[7] = syntax[0];
+      syntax[7].clrText = RGB(0,0,0);
+      syntax[7].clrBack = clrBackDarkShade;
       syntax[7].bBold = true;
       syntax[8] = syntax[0];
       syntax[8].clrText = RGB(200,0,0);
@@ -443,16 +461,23 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       };
       ppStyles = aXmlStyles;
    }
-   else if( m_sLanguage == _T("html") ) 
+   else if( m_sLanguage == _T("html") 
+            || m_sLanguage == _T("php") 
+            || m_sLanguage == _T("asp") ) 
    {
       // Make really sure it's the HTML lexer or a matching lexer
       // for HTML with embedded scripts.
-      if( sFilename.Find(_T(".php")) >= 0 ) SetLexer(SCLEX_PHP);
-      else if( sFilename.Find(_T(".asp")) >= 0 ) SetLexer(SCLEX_ASP);
-      else if( sFilename.Find(_T(".aspx")) >= 0 ) SetLexer(SCLEX_ASP);
-      else SetLexer(SCLEX_HTML);
+      // FIX: Scintilla's stylers for embedded HTML scripts are pretty
+      //      broken and the default HTML lexer actually works much better.
+      //   if( sFilename.Find(_T(".php")) >= 0 ) SetLexer(SCLEX_PHP);
+      //   else if( sFilename.Find(_T(".asp")) >= 0 ) SetLexer(SCLEX_ASP);
+      //   else if( sFilename.Find(_T(".aspx")) >= 0 ) SetLexer(SCLEX_ASP);
+      SetLexer(SCLEX_HTML);
 
-      // Turn off indicator style bits for languages with embedded scripts
+      if( m_sLanguage == _T("asp") ) iKeywordSet = 1;  // JavaScript keylist
+      if( m_sLanguage == _T("php") ) iKeywordSet = 4;  // PHP keylist
+
+      // Turn on indicator style bits for languages with embedded scripts
       // since the Scintilla lexer uses all possible styles
       SetStyleBits(7);
 
@@ -470,40 +495,66 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
          SCE_H_COMMENT,          5,
          SCE_H_XCCOMMENT,        5,
          SCE_H_ASP,              6,
+         SCE_H_QUESTION,         8,
          //
          SCE_HB_DEFAULT,         6,
          SCE_HB_IDENTIFIER,      6,
          SCE_HB_COMMENTLINE,     5,
+         SCE_HB_STRING,          4,
          //
          SCE_HJ_DEFAULT,         6,
-         SCE_HJ_KEYWORD,         6,
+         SCE_HJ_KEYWORD,         7,
          SCE_HJ_COMMENT,         5,
          SCE_HJ_COMMENTLINE,     5,
+         SCE_HJ_DOUBLESTRING,    4,
+         SCE_HJ_SINGLESTRING,    4,
          //
          SCE_HP_DEFAULT,         6,
          SCE_HP_IDENTIFIER,      6,
          SCE_HP_COMMENTLINE,     5,
+         SCE_HP_STRING,          4,
          //
          SCE_HBA_DEFAULT,        6,
          SCE_HBA_IDENTIFIER,     6,
          SCE_HBA_COMMENTLINE,    5,
+         SCE_HBA_STRING,         4,
          //
          SCE_HP_DEFAULT,         6,
          SCE_HP_IDENTIFIER,      6,
          SCE_HP_COMMENTLINE,     5,
+         SCE_HP_STRING,          4,
          //
          SCE_HJA_DEFAULT,        6,
-         SCE_HJA_KEYWORD,        6,
+         SCE_HJA_KEYWORD,        7,
          SCE_HJA_COMMENT,        5,
          //
          SCE_HPHP_DEFAULT,       6,
-         SCE_HPHP_WORD,          6,
+         SCE_HPHP_WORD,          7,
+         SCE_HPHP_HSTRING,       4,
+         SCE_HPHP_SIMPLESTRING,  4,
          SCE_HPHP_COMMENT,       5,
          SCE_HPHP_COMMENTLINE,   5,
+         //
+         STYLE_BRACELIGHT,       9,
+         STYLE_BRACEBAD,         10,
          //
          -1, -1,
       };
       ppStyles = aHtmlStyles;
+
+      // Some derived styles
+      syntax[7] = syntax[6];
+      syntax[7].clrText = BlendRGB(syntax[6].clrText, RGB(0,0,0), 40);
+      syntax[8] = syntax[0];
+      syntax[8].clrText = RGB(100,0,0);
+      syntax[8].bBold = true;
+      syntax[9] = syntax[6];
+      syntax[9].clrText = RGB(0,0,0);
+      syntax[9].clrBack = clrBackDarkShade;
+      syntax[9].bBold = true;
+      syntax[10] = syntax[6];
+      syntax[10].clrText = RGB(200,0,0);
+      syntax[10].bBold = true;
    }
 
    // Clear all styles
@@ -515,10 +566,22 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    // If this Editor is part of a C++ project we
    // know how to link it up with the debugger
    if( m_sLanguage == _T("cpp") ) {
+      // Breakpoint marked as background color
+      sKey.Format(_T("editors.%s."), m_sLanguage);
+      TCHAR szBuffer[64] = { 0 };
+      bool bBreakpointAsLines = false;
+      if( m_pDevEnv->GetProperty(sKey + _T("breakpointLines"), szBuffer, 63) ) bBreakpointAsLines = _tcscmp(szBuffer, _T("true")) == 0;
       // Define markers for current-line and breakpoint
-      _DefineMarker(MARKER_BREAKPOINT, SC_MARK_CIRCLE, RGB(0,0,0), RGB(200,32,32));
-      _DefineMarker(MARKER_CURLINE, SC_MARK_SHORTARROW, RGB(0,0,0), RGB(0,200,0));
-      _DefineMarker(MARKER_RUNNING, SC_MARK_SHORTARROW, RGB(0,0,0), RGB(240,240,0));
+      if( bBreakpointAsLines ) {
+         _DefineMarker(MARKER_BREAKPOINT, SC_MARK_BACKGROUND, RGB(250,62,62), RGB(250,62,62));
+         _DefineMarker(MARKER_CURLINE, SC_MARK_BACKGROUND, RGB(0,245,0), RGB(0,245,0));
+         _DefineMarker(MARKER_RUNNING, SC_MARK_BACKGROUND, RGB(245,245,0), RGB(245,245,0));
+      }
+      else {
+         _DefineMarker(MARKER_BREAKPOINT, SC_MARK_CIRCLE, RGB(0,0,0), RGB(200,32,32));
+         _DefineMarker(MARKER_CURLINE, SC_MARK_SHORTARROW, RGB(0,0,0), RGB(0,200,0));
+         _DefineMarker(MARKER_RUNNING, SC_MARK_SHORTARROW, RGB(0,0,0), RGB(240,240,0));
+      }
       // Set other debugging options
       SetMouseDwellTime(800);
    }
@@ -526,7 +589,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    // Apply keywords
    USES_CONVERSION;
    SetKeyWords(0, T2A(sKeywords1));
-   if( !sKeywords2.IsEmpty() ) SetKeyWords(1, T2A(sKeywords2));
+   if( !sKeywords2.IsEmpty() ) SetKeyWords(iKeywordSet, T2A(sKeywords2));
 
    // Apply our color-styles according to the
    // style-definition lists declared above
@@ -565,15 +628,15 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    SetMarginSensitiveN(2, TRUE);
    SetProperty("fold", m_bFolding ? "1" : "0");
    SetProperty("fold.html", m_bFolding ? "1" : "0");
-   COLORREF clrFore = RGB(255,255,255);
-   COLORREF clrBack = RGB(128,128,128);
-   _DefineMarker(SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS, clrFore, clrBack);
-   _DefineMarker(SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS, clrFore, clrBack);
-   _DefineMarker(SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE, clrFore, clrBack);
-   _DefineMarker(SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER, clrFore, clrBack);
-   _DefineMarker(SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED, clrFore, clrBack);
-   _DefineMarker(SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED, clrFore, clrBack);
-   _DefineMarker(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER, clrFore, clrBack);
+   COLORREF clrMarkerFore = RGB(255,255,255);
+   COLORREF clrMarkerBack = RGB(128,128,128);
+   _DefineMarker(SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS, clrMarkerFore, clrMarkerBack);
+   _DefineMarker(SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS, clrMarkerFore, clrMarkerBack);
+   _DefineMarker(SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE, clrMarkerFore, clrMarkerBack);
+   _DefineMarker(SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER, clrMarkerFore, clrMarkerBack);
+   _DefineMarker(SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED, clrMarkerFore, clrMarkerBack);
+   _DefineMarker(SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED, clrMarkerFore, clrMarkerBack);
+   _DefineMarker(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER, clrMarkerFore, clrMarkerBack);
    SetFoldFlags(4);
    bValue = false;
    if( m_pDevEnv->GetProperty(sKey + _T("wordWrap"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
@@ -621,7 +684,10 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    SetEdgeMode(bValue ? EDGE_LINE : EDGE_NONE);
    bValue = false;
    if( m_pDevEnv->GetProperty(sKey + _T("bottomless"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
-   SetEndAtLastLine(!bValue);
+   bValue = false;
+   if( m_pDevEnv->GetProperty(sKey + _T("markCaretLine"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   SetCaretLineVisible(bValue);
+   SetCaretLineBack(clrBackShade);
 
    SetEdgeColumn(80);         // Place the right edge (if visible)
    UsePopUp(FALSE);           // We'll do our own context menu
@@ -682,12 +748,12 @@ LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
 
    _AutoText(pSCN->ch);
    _AutoSuggest(pSCN->ch);
-  
+
    m_cPrevChar = (CHAR) pSCN->ch;
-   if( m_cPrevChar == '$' && GetLexer() == SCLEX_PHP ) m_bAutoCompleteNext = true;
-   if( m_cPrevChar == '<' && m_sLanguage == _T("html") ) m_bAutoCompleteNext = true;
+   if( m_cPrevChar == '$' && m_sLanguage == _T("php") ) m_bAutoCompleteNext = true;
    if( m_cPrevChar == '<' && m_sLanguage == _T("xml") ) m_bAutoCompleteNext = true;
-   
+   if( m_cPrevChar == '<' && m_sLanguage == _T("html") ) m_bAutoCompleteNext = true;
+
    bHandled = FALSE;
    return 0;
 }
@@ -736,8 +802,12 @@ void CScintillaView::_MatchBraces(long lPos)
 {
    if( !m_bMatchBraces ) return;
    CHAR ch = (CHAR) GetCharAt(lPos);
-   if( (ch == '{' && m_sLanguage == _T("cpp"))
-       || (ch == '(' && m_sLanguage == _T("sql")) ) 
+   int iStyle = GetStyleAt(lPos);
+   if( (ch == '{' && m_sLanguage == _T("cpp") && iStyle == SCE_C_OPERATOR )
+       || (ch == '<' && m_sLanguage == _T("html"))
+       || (ch == '{' && m_sLanguage == _T("java"))
+       || (ch == '{' && m_sLanguage == _T("php") && iStyle == SCE_HPHP_OPERATOR )
+       || (ch == '{' && m_sLanguage == _T("asp")) ) 
    {
       long lMatch = BraceMatch(lPos);
       if( lMatch == -1 ) BraceBadLight(lPos);
@@ -965,8 +1035,8 @@ void CScintillaView::_AutoComplete(CHAR ch)
       if( m_bAutoCase ) sList.MakeLower();
    }
    // Get auto-completion words from PHP or XML text
-   if( (ch == '$' && GetLexer() == SCLEX_PHP) 
-       || (ch == '$' && GetLexer() == SCLEX_PERL) 
+   if( (ch == '$' && m_sLanguage == _T("php")) 
+       || (ch == '$' && m_sLanguage == _T("perl")) 
        || (ch == '<' && m_sLanguage == _T("xml")) )
    {
       // Grab the last 512 characters or so
@@ -994,14 +1064,16 @@ void CScintillaView::_AutoComplete(CHAR ch)
          pstr = strstr(pstr, szFind);
       }
       // Add globals for PHP...
-      if( GetLexer() == SCLEX_PHP ) {
+      if( m_sLanguage == _T("php") ) {
          _AddUnqiue(aList, _T("_GET"));
+         _AddUnqiue(aList, _T("_FORM"));
          _AddUnqiue(aList, _T("_POST"));
          _AddUnqiue(aList, _T("_REQUEST"));
          _AddUnqiue(aList, _T("_SESSION"));
          _AddUnqiue(aList, _T("_SERVER"));
          _AddUnqiue(aList, _T("_ENV"));
          _AddUnqiue(aList, _T("_COOKIE"));
+         _AddUnqiue(aList, _T("this"));
       }
       // Sort them
       for( int a = 0; a < aList.GetSize(); a++ ) {
@@ -1035,96 +1107,109 @@ void CScintillaView::_MaintainIndent(CHAR ch)
 {
    if( !m_bAutoIndent && !m_bSmartIndent ) return;
    int iCurPos = GetCurrentPos();
+   if( !_IsValidInsertPos(iCurPos) ) return;
    int iCurLine = GetCurrentLine();
    int iLastLine = iCurLine - 1;
+   // Find the most recent non-empty list.
+   // We'll assume it contains the correct current indent.
    int iIndentAmount = 0;
-   while( iLastLine >= 0 && GetLineLength(iLastLine) == 0) iLastLine--;
-   if( iLastLine >= 0 ) {
-      iIndentAmount = GetLineIndentation(iLastLine);
-      if( m_bSmartIndent ) {
-         int iIndentWidth = GetIndent();
-         if( iIndentWidth == 0 ) iIndentWidth = GetTabWidth();
-         if( m_sLanguage == _T("cpp") 
-             || m_sLanguage == _T("java") 
-             || m_sLanguage == _T("perl") 
-             || GetLexer() == SCLEX_PHP )             
-         {
-            if( ch == '}' ) {
-               iLastLine = iCurLine;
-               iIndentAmount = GetLineIndentation(iLastLine);
-            }
-            int iLen = GetLineLength(iLastLine);
-            // Extract line (scintilla doesn't sz-terminate)
-            LPSTR pstr = (LPSTR) _alloca(iLen + 1);
-            GetLine(iLastLine, pstr);
-            pstr[iLen] = '\0';
-            // Strip line and check if smart indent is needed
-            CString sLine = pstr;
-            int iPos = sLine.Find(_T("//")); if( iPos >= 0 ) sLine = sLine.Left(iPos);
-            sLine.TrimRight();
-            if( ch == '\n' && sLine.Right(1) == _T("{") ) iIndentAmount += iIndentWidth;
-            if( ch == '\n' && sLine.Right(1) == _T(",") ) iIndentAmount = max(iIndentAmount, sLine.Find('(') + 1);
-            sLine.TrimLeft();
-            if( ch == '}' && sLine == _T("}") ) iIndentAmount -= iIndentWidth;
+   while( iLastLine >= 0 && GetLineLength(iLastLine) == 0 ) iLastLine--;
+   if( iLastLine < 0 ) return;
+   iIndentAmount = GetLineIndentation(iLastLine);
+   if( m_bSmartIndent ) {
+      int iIndentWidth = GetIndent();
+      if( iIndentWidth == 0 ) iIndentWidth = GetTabWidth();
+      if( m_sLanguage == _T("cpp") 
+          || m_sLanguage == _T("java") 
+          || m_sLanguage == _T("perl") 
+          || m_sLanguage == _T("php") )             
+      {
+         if( ch == '}' ) {
+            iLastLine = iCurLine;
+            iIndentAmount = GetLineIndentation(iLastLine);
          }
-         else if( m_sLanguage == _T("xml") ) 
-         {
-            if( ch == '\n' ) {
-               CHAR szText[256] = { 0 };
-               if( GetLineLength(iLastLine) >= sizeof(szText) ) return;
-               GetLine(iLastLine, szText);
-               if( strchr(szText, '>') != NULL && strchr(szText, '/') == NULL ) {
-                  if( m_bAutoClose ) {
-                     ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n" : "\n");
-                     _SetLineIndentation(iCurLine + 1, iIndentAmount);
-                     SetSel(iCurPos, iCurPos);
-                  }
-                  iIndentAmount += iIndentWidth;
+         int iLen = GetLineLength(iLastLine);
+         // Extract line (scintilla doesn't sz-terminate)
+         LPSTR pstr = (LPSTR) _alloca(iLen + 1);
+         GetLine(iLastLine, pstr);
+         pstr[iLen] = '\0';
+         // Strip line and check if smart indent is needed
+         CString sLine = pstr;
+         int iPos = sLine.Find(_T("//")); if( iPos >= 0 ) sLine = sLine.Left(iPos);
+         sLine.TrimRight();
+         if( ch == '\n' && sLine.Right(1) == _T("{") ) iIndentAmount += iIndentWidth;
+         if( ch == '\n' && sLine.Right(1) == _T(",") ) iIndentAmount = max(iIndentAmount, sLine.Find('(') + 1);
+         sLine.TrimLeft();
+         if( ch == '}' && sLine == _T("}") ) iIndentAmount -= iIndentWidth;
+      }
+      else if( m_sLanguage == _T("xml") ) 
+      {
+         if( ch == '\n' ) {
+            CHAR szText[256] = { 0 };
+            if( GetLineLength(iLastLine) >= sizeof(szText) - 1 ) return;
+            GetLine(iLastLine, szText);
+            if( strchr(szText, '>') != NULL && strchr(szText, '/') == NULL ) {
+               if( m_bAutoClose ) {
+                  ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n" : "\n");
+                  _SetLineIndentation(iCurLine + 1, iIndentAmount);
+                  SetSel(iCurPos, iCurPos);
                }
+               iIndentAmount += iIndentWidth;
             }
          }
-         else if( m_sLanguage == _T("html") )
-         {
-            if( ch == '\n' ) {
-               CHAR szText[256] = { 0 };
-               if( GetLineLength(iLastLine) >= sizeof(szText) ) return;
-               GetLine(iLastLine, szText);
-               if( strchr(szText, '>') != NULL && strchr(szText, '/') == NULL ) {
-                  CString sLine = szText;
-                  sLine.TrimLeft();
-                  sLine.MakeUpper();
-                  static LPCTSTR ppstrBlocks[] = 
-                  {
-                     _T("<BODY"),
-                     _T("<FORM"),
-                     _T("<FRAMESET"),
-                     _T("<HEAD"),
-                     _T("<HTML"),
-                     _T("<OBJECT")
-                     _T("<SCRIPT"),
-                     _T("<TABLE"),
-                     _T("<TD"),
-                     _T("<THEAD"),
-                     _T("<TR"),
-                     _T("<UL"),
-                     NULL,
-                  };
-                  for( LPCTSTR* ppstr = ppstrBlocks; *ppstr; ppstr++ ) {
-                     if( sLine.Find(*ppstr) >= 0 ) {
-                        if( m_bAutoClose ) {
-                           ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n" : "\n");
-                           _SetLineIndentation(iCurLine + 1, iIndentAmount);
-                           SetSel(iCurPos, iCurPos);
-                        }
-                        iIndentAmount += iIndentWidth;
-                        break;
+      }
+      else if( m_sLanguage == _T("html") )
+      {
+         if( ch == '\n' && GetCharAt(iCurPos - (GetEOLMode() == SC_EOL_CRLF ? 3 : 2)) == '>' ) {
+            CHAR szLine1[256] = { 0 };
+            CHAR szLine2[256] = { 0 };
+            if( GetLineLength(iCurLine) >= sizeof(szLine1) - 1 ) return;
+            if( GetLineLength(iCurLine - 1) >= sizeof(szLine2) - 1 ) return;
+            GetLine(iCurLine, szLine1);
+            GetLine(iCurLine - 1, szLine2);
+            CString sLine1 = szLine1;
+            CString sLine2 = szLine2;
+            sLine1.TrimLeft();
+            sLine1.TrimRight();
+            sLine1.MakeUpper();
+            sLine2.MakeUpper();
+            // These are the HTML tags that we'll indent content
+            // for on a new line.
+            static LPCTSTR ppstrBlocks[] = 
+            {
+               _T("<BODY"),
+               _T("<FORM"),
+               _T("<FRAMESET"),
+               _T("<HEAD"),
+               _T("<HTML"),
+               _T("<OBJECT")
+               _T("<SCRIPT"),
+               _T("<TABLE"),
+               _T("<TD"),
+               _T("<THEAD"),
+               _T("<TR"),
+               _T("<UL"),
+               NULL,
+            };
+            for( LPCTSTR* ppstr = ppstrBlocks; *ppstr; ppstr++ ) {
+               if( sLine2.Find(*ppstr) >= 0 ) {
+                  if( m_bAutoClose ) {
+                     CString sCloseCommand = *ppstr;
+                     sCloseCommand.Replace(_T("<"), _T("</"));
+                     if( sLine1.Find(sCloseCommand) == 0 ) {
+                        ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n" : "\n");
+                        _SetLineIndentation(iCurLine + 1, iIndentAmount);
+                        SetSel(iCurPos, iCurPos);
                      }
                   }
+                  iIndentAmount += iIndentWidth;
+                  break;
                }
             }
          }
       }
    }
+   // So do we need to indent?
    if( iIndentAmount >= 0 ) _SetLineIndentation(iCurLine, iIndentAmount);
 }
 
@@ -1138,7 +1223,7 @@ void CScintillaView::_MaintainTags(CHAR ch)
 
    if( !m_bAutoClose ) return;
 
-   int nCaret = GetCurrentPos();
+   int lPosition = GetCurrentPos();
 
    // Special rules before comments
 
@@ -1146,17 +1231,22 @@ void CScintillaView::_MaintainTags(CHAR ch)
       //
       // Automatically close JavaDoc-style comments
       //
-      int iLine = LineFromPosition(nCaret);
-      CHAR szText[256] = { 0 };
-      if( GetLineLength(iLine - 1) >= sizeof(szText) ) return;
+      int iLine = LineFromPosition(lPosition);
+      if( iLine == 0 ) return;
+      CHAR szText[30] = { 0 };
+      if( GetLineLength(iLine - 1) >= sizeof(szText) - 1 ) return;
       GetLine(iLine - 1, szText);
       CString sText = szText;
+      sText.TrimLeft();
       sText.TrimRight(_T("\r\n"));
       if( sText == _T("/**") ) 
       {
          BeginUndoAction();
-         ReplaceSel(" * \r\n */");
-         SetSel(nCaret + 3, nCaret + 3);
+         ReplaceSel("* \r\n*/");
+         _SetLineIndentation(iLine, GetLineIndentation(iLine - 1) + 1);
+         _SetLineIndentation(iLine + 1, GetLineIndentation(iLine - 1) + 1);
+         LineUp();
+         LineEnd();
          EndUndoAction();
          return;
       }
@@ -1174,7 +1264,7 @@ void CScintillaView::_MaintainTags(CHAR ch)
                BeginUndoAction();
                SetSel(iStart, iStart + iLength);
                ReplaceSel("");
-               SetSel(nCaret - iLength, nCaret - iLength);
+               SetSel(lPosition - iLength, lPosition - iLength);
                EndUndoAction();
             }
          }
@@ -1182,9 +1272,11 @@ void CScintillaView::_MaintainTags(CHAR ch)
    }
 
    // Rest of the rules do not apply within comments and stuff
-   if( !_IsValidInsertPos(nCaret) ) return;
+   if( !_IsValidInsertPos(lPosition) ) return;
 
    // Standard auto-complete rules
+
+   int iStyle = GetStyleAt(lPosition);
 
    if( ch == '>'
        && (m_sLanguage == _T("html") || m_sLanguage == _T("xml")) )
@@ -1194,36 +1286,39 @@ void CScintillaView::_MaintainTags(CHAR ch)
       //      
       // Grab the last 256 characters or so
       CHAR szText[256] = { 0 };
-      int nMin = nCaret - (sizeof(szText) - 1);
+      int nMin = lPosition - (sizeof(szText) - 1);
       if( nMin < 0 ) nMin = 0;
-      if( nCaret - nMin < 3 ) return; // Smallest tag is 3 characters ex. <p>
-      GetTextRange(nMin, nCaret, szText);
+      if( lPosition - nMin < 3 ) return; // Smallest tag is 3 characters ex. <p>
+      GetTextRange(nMin, lPosition, szText);
 
-      if( szText[nCaret - nMin - 2] == '/' ) return;
+      if( szText[lPosition - nMin - 2] == '/' ) return;
 
-      CString sFound = _FindOpenXmlTag(szText, nCaret - nMin);
+      CString sFound = _FindOpenXmlTag(szText, lPosition - nMin);
       if( sFound.IsEmpty() ) return;
       // Ignore some of the typical non-closed HTML tags
+      if( sFound.CompareNoCase(_T("META")) == 0 ) return;
       if( sFound.CompareNoCase(_T("IMG")) == 0 ) return;
       if( sFound.CompareNoCase(_T("BR")) == 0 ) return;
+      if( sFound.CompareNoCase(_T("HR")) == 0 ) return;
       if( sFound.CompareNoCase(_T("P")) == 0 ) return;
       // Insert end-tag into text
       CString sInsert;
       sInsert.Format(_T("</%s>"), sFound);
       BeginUndoAction();
       ReplaceSel(T2CA(sInsert));
-      SetSel(nCaret, nCaret);
+      SetSel(lPosition, lPosition);
       EndUndoAction();
    }
-   else if( ch == '{' && m_sLanguage == _T("cpp") )
+   else if( ch == '{' 
+            && (m_sLanguage == _T("cpp") || m_sLanguage == _T("java") || m_sLanguage == _T("php")) )
    {
       //
-      // Auto-close braces in C++
+      // Auto-close braces in C-like languages
       //
       // Grab current line for inspection
-      int iLine = LineFromPosition(nCaret);
+      int iLine = LineFromPosition(lPosition);
       CHAR szText[256] = { 0 };
-      if( GetLineLength(iLine) >= sizeof(szText) ) return;
+      if( GetLineLength(iLine) >= sizeof(szText) - 1 ) return;
       GetLine(iLine, szText);
       CString sText = szText;
       sText.TrimLeft();
@@ -1232,27 +1327,29 @@ void CScintillaView::_MaintainTags(CHAR ch)
       if( sText == _T("{") ) {
          BeginUndoAction();
          ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n\r\n}" : "\n\n}");
-         SetSel(nCaret, nCaret);
+         SetSel(lPosition, lPosition);
          _SetLineIndentation(iLine + 1, GetLineIndentation(iLine) + GetIndent());
          _SetLineIndentation(iLine + 2, GetLineIndentation(iLine));
-         LineDown();
+         LineUp();
          LineEnd();
          EndUndoAction();
       }
       else if( sText.Right(1) == _T("{") ) {
          BeginUndoAction();
          ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n}" : "\n}");
-         SetSel(nCaret, nCaret);
+         SetSel(lPosition, lPosition);
          _SetLineIndentation(iLine + 1, GetLineIndentation(iLine));
          EndUndoAction();
       }
    }
-   else if( ch == '[' && m_sLanguage == _T("cpp") ) {
+   else if( ch == '[' && m_sLanguage == _T("cpp") 
+            || ch == '[' && m_sLanguage == _T("php") ) 
+   {
       //
       // Insert hard-braces for C++ arrays
       //
       ReplaceSel("]");
-      SetSel(nCaret, nCaret);
+      SetSel(lPosition, lPosition);
    }
 }
 
@@ -1286,10 +1383,11 @@ void CScintillaView::_SetLineIndentation(int iLine, int iIndent)
    SetLineIndentation(iLine, iIndent);
    int posAfter = GetLineIndentPosition(iLine);
    int posDifference = posAfter - posBefore;
-   if( posAfter > posBefore ) {
-      // Move selection on
+   if( posAfter >= posBefore ) {
+      // Move selection forward
       if( cr.cpMin >= posBefore ) cr.cpMin += posDifference;
       if( cr.cpMax >= posBefore ) cr.cpMax += posDifference;
+      if( cr.cpMin < posBefore && cr.cpMax < posBefore && cr.cpMin == cr.cpMax ) cr.cpMin = cr.cpMax = posAfter;
    } 
    else if( posAfter < posBefore ) {
       // Move selection back
@@ -1402,10 +1500,11 @@ CString CScintillaView::_GetNearText(long lPosition)
    if( GetLineLength(iLine) >= sizeof(szText) ) return _T("");
    GetLine(iLine, szText);
    int iStart = lPosition - PositionFromLine(iLine);
-   while( iStart > 0 && isalpha(szText[iStart - 1]) ) iStart--;
-   if( !isalpha(szText[iStart]) ) return _T("");
+   while( iStart > 0 && _iseditchar(szText[iStart - 1]) ) iStart--;
+   if( !_iseditchar(szText[iStart]) ) return _T("");
+   if( isdigit(szText[iStart]) ) return _T("");
    int iEnd = iStart;
-   while( szText[iEnd] && isalpha(szText[iEnd + 1]) ) iEnd++;
+   while( szText[iEnd] && _iseditchar(szText[iEnd + 1]) ) iEnd++;
    szText[iEnd + 1] = '\0';
    return szText + iStart;
 }
@@ -1426,8 +1525,6 @@ void CScintillaView::_GetSyntaxStyle(LPCTSTR pstrName, SYNTAXCOLOR& syntax)
    syntax.clrBack = ::GetSysColor(COLOR_WINDOW);
    syntax.bBold = FALSE;
    syntax.bItalic = FALSE;
-
-#define RGR2RGB(x) RGB((x >> 16) & 0xFF, (x >> 8) & 0xFF, x & 0xFF)
 
    CString sKey = pstrName;
    LPTSTR p = NULL;
@@ -1459,22 +1556,36 @@ bool CScintillaView::_AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) 
 
 bool CScintillaView::_IsValidInsertPos(long lPos) const
 {
-   // Don't do it inside comments and literals
-   switch( GetStyleAt(lPos) ) {
-   case SCE_C_STRING:
-   case SCE_C_STRINGEOL:
-   case SCE_C_COMMENT:
-   case SCE_C_COMMENTDOC:
-   case SCE_C_COMMENTLINE:
-   case SCE_HJ_COMMENT:
-   case SCE_HJ_STRINGEOL:
-   case SCE_HPHP_COMMENT:
-   case SCE_HPHP_SIMPLESTRING:
-      return false;
+   struct 
+   {
+      int iStyle; 
+      LPCTSTR pstrLanguage;
+   } Types[] =
+   {
+      { SCE_C_STRING,          _T("cpp") },
+      { SCE_C_STRINGEOL,       _T("cpp") },
+      { SCE_C_COMMENT,         _T("cpp") },
+      { SCE_C_COMMENTDOC,      _T("cpp") },
+      { SCE_C_COMMENTLINE,     _T("cpp") },
+      { SCE_HJ_COMMENT,        _T("java") },
+      { SCE_HJ_STRINGEOL,      _T("java") },
+      { SCE_HJ_COMMENT,        _T("java") },
+      { SCE_HJ_STRINGEOL,      _T("java") },
+      { SCE_HBA_STRING,        _T("basic") },
+      { SCE_HBA_COMMENTLINE,   _T("basic") },
+      { SCE_HPA_STRING,        _T("pascal") },
+      { SCE_HPA_COMMENTLINE,   _T("pascal") },
+      { SCE_HPHP_COMMENT,      _T("php") },
+      { SCE_HPHP_COMMENTLINE,  _T("php") },
+      { SCE_HPHP_HSTRING,      _T("php") },
+      { SCE_HPHP_SIMPLESTRING, _T("php") },
+   };
+   int iStyle = GetStyleAt(lPos);
+   for( int i = 0; i < sizeof(Types)/sizeof(Types[0]); i++ ) {
+      if( iStyle == Types[i].iStyle && m_sLanguage == Types[i].pstrLanguage ) return false;
    }
    return true;
 }
-
 
 bool CScintillaView::_iseditchar(char ch) const
 {

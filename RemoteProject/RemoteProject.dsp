@@ -118,6 +118,10 @@ SOURCE=.\RegisterView.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\RemoteDirView.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ScintillaView.cpp
 # End Source File
 # Begin Source File
@@ -401,6 +405,10 @@ SOURCE=.\MemoryView.h
 # Begin Source File
 
 SOURCE=.\RegisterView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\RemoteDirView.h
 # End Source File
 # Begin Source File
 

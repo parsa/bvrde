@@ -8,7 +8,7 @@
 #include "View.h"
  
 
-class CEventMonitor : public IAppListener
+class CEventMonitor : public IAppMessageListener
 {
 public:
    CStartPageView m_wndStartPage;
