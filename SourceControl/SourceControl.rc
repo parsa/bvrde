@@ -1,0 +1,346 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Danish resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)
+#ifdef _WIN32
+LANGUAGE LANG_DANISH, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040604b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "viksoe.dk\0"
+            VALUE "FileDescription", "BVRDE Add-In Source Control\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "SourceControl\0"
+            VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksøe\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "FindFiles.pkg\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "viksoe.dk Source Control\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x406, 1200
+    END
+END
+
+#endif    // !_MAC
+
+#endif    // Danish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CHECKIN DIALOG DISCARDABLE  30, 73, 288, 146
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Check In"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Comment:",-1,9,7,41,8
+    EDITTEXT        IDC_COMMENT,53,7,152,23,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL
+    CONTROL         "&Keep files checked out",IDC_KEEPOUT,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,9,35,120,10
+    DEFPUSHBUTTON   "&Check In",IDOK,212,7,65,14,WS_DISABLED | WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,212,24,65,14
+    EDITTEXT        IDC_FILES,9,89,268,47,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
+    CONTROL         "&Reset sticky tag",IDC_RESETSTICKS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,9,48,120,10
+END
+
+IDD_OPTIONS_COMMANDS DIALOG DISCARDABLE  0, 0, 256, 179
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_LIST,0,21,255,156,LBS_OWNERDRAWVARIABLE | 
+                    LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Type:",IDC_STATIC,2,3,27,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_TYPE,30,3,140,85,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
+IDD_CVS_LOGIN DIALOG DISCARDABLE  30, 73, 288, 110
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "CVS Login"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "&User: ",-1,9,7,41,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_USERNAME,53,7,152,12,ES_AUTOHSCROLL
+    LTEXT           "&Password:",-1,9,22,41,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_PASSWORD,53,22,152,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "&Server: ",-1,9,38,41,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_SERVER,53,38,152,12,ES_AUTOHSCROLL
+    LTEXT           "&Type: ",-1,9,55,41,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_CTYPE,53,55,163,74,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "&Login",IDOK,212,7,65,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,212,24,65,14
+    LTEXT           "CVS Root:",-1,9,88,41,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_CONNECT,53,88,200,12,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "P&ath: ",-1,9,71,41,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_PATH,53,71,152,12,ES_AUTOHSCROLL
+END
+
+IDD_ADDFILE DIALOG DISCARDABLE  30, 73, 288, 110
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Add File"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Comment:",-1,9,7,41,8
+    EDITTEXT        IDC_COMMENT,53,7,152,23,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "&Add Files",IDOK,212,7,65,14,WS_DISABLED | WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,212,24,65,14
+    EDITTEXT        IDC_FILES,9,52,268,47,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
+END
+
+IDD_UPDATE DIALOG DISCARDABLE  30, 73, 288, 134
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Update Files"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "Update &directories",IDC_DIRS,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,9,7,120,10
+    CONTROL         "&Reset sticky tag",IDC_RESETSTICKS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,9,20,120,10
+    CONTROL         "Branch",IDC_BRANCH,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,34,40,11
+    EDITTEXT        IDC_BRANCHTEXT,52,34,152,12,ES_MULTILINE | 
+                    ES_AUTOVSCROLL | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "&Update",IDOK,212,7,65,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,212,24,65,14
+    EDITTEXT        IDC_FILES,9,77,268,47,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_CHECKIN, DIALOG
+    BEGIN
+        LEFTMARGIN, 9
+        RIGHTMARGIN, 277
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 136
+    END
+
+    IDD_OPTIONS_COMMANDS, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 177
+    END
+
+    IDD_CVS_LOGIN, DIALOG
+    BEGIN
+        LEFTMARGIN, 9
+        RIGHTMARGIN, 277
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_ADDFILE, DIALOG
+    BEGIN
+        LEFTMARGIN, 9
+        RIGHTMARGIN, 277
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_UPDATE, DIALOG
+    BEGIN
+        LEFTMARGIN, 9
+        RIGHTMARGIN, 277
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 124
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_SOURCECONTROL MENU DISCARDABLE 
+BEGIN
+    MENUITEM SEPARATOR
+    POPUP "Source Control"
+    BEGIN
+        MENUITEM "Check &Out",                  ID_SC_CHECKOUT
+        MENUITEM "Check In",                    ID_SC_CHECKIN
+        MENUITEM "&Update",                     ID_SC_UPDATE
+        MENUITEM SEPARATOR
+        MENUITEM "Status",                      ID_SC_STATUS
+        MENUITEM "Diff. File",                  ID_SC_DIFFVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "Add File",                    ID_SC_ADDFILE
+        MENUITEM "Remove File",                 ID_SC_REMOVEFILE
+        MENUITEM SEPARATOR
+        MENUITEM "Login",                       ID_SC_LOGIN
+        MENUITEM "Log out",                     ID_SC_LOGOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TITLE               "Source Control"
+    IDS_CAPTION             "Source Control"
+    IDS_REPOSITORY          "Source Repository"
+    IDS_GROUP_PROGRAM       "Program"
+    IDS_GROUP_COMMANDS      "Commands"
+    IDS_GROUP_OPTIONS       "Options"
+    IDS_PROGRAM_APP         "Application"
+    IDS_COMMAND_CHECKIN     "Check In"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_COMMAND_CHECKOUT    "Check Out"
+    IDS_COMMAND_UPDATE      "Update"
+    IDS_COMMAND_LOGIN       "Log In"
+    IDS_COMMAND_LOGOUT      "Log Out"
+    IDS_COMMAND_STATUS      "Status"
+    IDS_COMMAND_DIFF        "Diff."
+    IDS_COMMAND_ADDFILE     "Add File(s)"
+    IDS_COMMAND_REMOVEFILE  "Remove File(s)"
+    IDS_SYSTEM_CVS          "CVS"
+    IDS_SYSTEM_SOURCESAFE   "MS SourceSafe"
+    IDS_TREE_SOURCECONTROL  "Source Control"
+    IDS_TREE_COMMANDS       "Configuration"
+    IDS_TREE_ROOT           "Environment"
+    IDS_OPTIONS_STICKYTAG   "Reset Sticky Tag"
+    IDS_OPTIONS_OVERWRITE   "Overwrite modified files"
+    IDS_OPTIONS_MESSAGE     "Add Message"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_OPTIONS_RECURSIVE   "Recursive"
+    IDS_SYSTEM_NONE         "None"
+    IDS_OPTION_MESSAGE      "Message"
+    IDS_OPTION_RECURSIVE    "Recurive Directories"
+    IDS_OPTION_STICKYTAGS   "Reset Sticky Tags"
+    IDS_MISC_OUTPUT         "Output"
+    IDS_GROUP_MISC          "Misc"
+    IDS_SYSTEM_CUSTOM       "Custom"
+    IDS_TYPE_LOCAL          "local"
+    IDS_TYPE_EXT            "ext"
+    IDS_TYPE_PSERVER        "pserver"
+    IDS_TYPE_SERVER         "server"
+    IDS_OPTION_UPDATEDIRS   "Update Dirs"
+    IDS_OPTION_BRANCH       "Branch"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
