@@ -218,7 +218,9 @@ BOOL CTextFile::Save()
    {
       // File is remote so we must use a file transfer protocol
       if( !m_pCppProject->m_FileManager.SaveFile(m_sFilename, true, (LPBYTE) pstrText, strlen(pstrText)) ) {
+         DWORD dwErr = ::GetLastError();
          free(pstrText);
+         ::SetLastError(dwErr);
          return FALSE;
       }
    }

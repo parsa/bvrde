@@ -74,6 +74,8 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          // We mark resolved address names with grey text.
          sDisasm = info.GetSubItem(_T("inst"));
          sDisasm.Replace(_T("\\"), _T("\\\\ "));
+         sDisasm.Replace(_T("{"), _T("\\{ "));
+         sDisasm.Replace(_T("}"), _T("\\} "));
          if( sDisasm.Find('<') > 0 ) {
             sDisasm.Replace(_T("<"), _T("\\cf2  <"));
             sDisasm += _T("\\cf0 ");

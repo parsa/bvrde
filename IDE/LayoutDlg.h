@@ -55,14 +55,18 @@ public:
             rbi.fMask = RBBIM_CHILD;
             Rebar.GetBandInfo(i, &rbi);
             if( rbi.hwndChild == tbi.hWnd ) {              
-               // Hide the toolbar now
-               Rebar.ShowBand(i, m_ctrlTree.GetCheckState(hItem));
                // Recreate with large buttons?
                if( m_ctrlLarge.GetCheck() == BST_CHECKED ) {
                   CToolBarCtrl tb = tbi.hWnd;
-                  tb.SetButtonSize(32, 32);
+                  tb.SetButtonSize(24, 24);
                   tb.AutoSize();
+                  RECT rcItem = { 0 };
+                  tb.GetItemRect(0, &rcItem);
+                  rbi.cyMinChild = rcItem.bottom - rcItem.top;
+                  Rebar.SetBandInfo(i, &rbi);
                }
+               // Hide the toolbar now
+               Rebar.ShowBand(i, m_ctrlTree.GetCheckState(hItem));
                break;
             }
          }

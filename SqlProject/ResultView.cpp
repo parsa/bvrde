@@ -11,7 +11,7 @@
 #include "atldataobj.h"
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 void CResultListCtrl::OnFinalMessage(HWND hWnd)
@@ -20,7 +20,7 @@ void CResultListCtrl::OnFinalMessage(HWND hWnd)
 }
 
 
-///////////////////////////////////////////////////////7
+////////////////////////////////////////////////////////
 //
 
 CResultView::CResultView() :
@@ -116,11 +116,12 @@ LRESULT CResultView::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BO
 
 LRESULT CResultView::OnContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-   if( m_pCurProcessingList == NULL ) return 0;
-   if( m_pCurProcessingList->GetSelectedCount() == 0 ) return 0;
+   bHandled = FALSE;
+   int iSel = m_ctrlTab.GetCurSel();
+   if( iSel == m_ctrlTab.GetItemCount() - 1 ) return 0;
+   CListViewCtrl ctrlList = m_aLists[iSel]->m_hWnd;
+   if( ctrlList.GetSelectedCount() == 0 ) return 0;
 
-   CResultListCtrl& ctrlList = *m_pCurProcessingList;
-   
    CMenu menu;
    menu.LoadMenu(IDR_EDIT_LIST);
    CMenuHandle submenu = menu.GetSubMenu(0);
@@ -141,6 +142,8 @@ LRESULT CResultView::OnContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
       iIndex = ctrlList.GetNextItem(iIndex, LVNI_SELECTED);
    }
    AtlSetClipboardText(ctrlList, sText);
+
+   bHandled = TRUE;
    return 0;
 }
 
@@ -190,7 +193,7 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
 
          CClientDC dc = ctrlList;
          HFONT hOldFont = dc.SelectFont(ctrlList.GetFont());
-         TEXTMETRIC tm;
+         TEXTMETRIC tm = { 0 };
          dc.GetTextMetrics(&tm);
 
          // Adjust column widths to last-known size or
@@ -285,7 +288,7 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
          }
          else {
             sText.Format(pPacket->iRows == 1 ? IDS_ROW_AFFECTED : IDS_ROWS_AFFECTED, pPacket->iRows);
-            if( pPacket->iRows == 0 ) sText.LoadString(IDS_NO_ROWS_AFFECTED);
+            if( pPacket->iRows <= 0 ) sText.LoadString(IDS_NO_ROWS_AFFECTED);
          }
          sText += _T("\r\n\r\n");
          m_ctrlEdit.SetSel(-1, -1);

@@ -14,6 +14,7 @@ public:
 
    CFont m_font;
    CStatic m_ctrlTitle;
+   CStatic m_ctrlSubNote;
    CButton m_ctrlOK;
    CEdit m_ctrlPassword;
    CString m_sPassword;
@@ -42,17 +43,24 @@ public:
       m_ctrlTitle.SetFont(m_font);
       m_ctrlPassword = GetDlgItem(IDC_PASSWORD);
       m_ctrlPassword.SetLimitText(99);
+      m_ctrlSubNote = GetDlgItem(IDC_SUBNOTE);
       return TRUE;
    }
    LRESULT OnCtlColorStatic(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {
-      if( (HWND) lParam != m_ctrlTitle ) {
-         bHandled = FALSE;
-         return 0;
+      if( (HWND) lParam == m_ctrlTitle ) {
+         CDCHandle dc( (HDC) wParam );
+         dc.SetBkMode(TRANSPARENT);
+         return (LRESULT) (HBRUSH) ( AtlGetStockBrush(WHITE_BRUSH) );
       }
-      CDCHandle dc( (HDC) wParam );
-      dc.SetBkMode(TRANSPARENT);
-      return (LRESULT) (HBRUSH) ( AtlGetStockBrush(WHITE_BRUSH) );
+      if( (HWND) lParam == m_ctrlSubNote ) {
+         CDCHandle dc( (HDC) wParam );
+         dc.SetBkMode(TRANSPARENT);
+         dc.SetTextColor(::GetSysColor(COLOR_3DDKSHADOW));
+         return (LRESULT) (HBRUSH) ::GetSysColorBrush(COLOR_BTNFACE);
+      }
+      bHandled = FALSE;
+      return 0;
    }
    LRESULT OnClose(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {

@@ -213,7 +213,6 @@ public:
 
    void UpdateLayout()
    {
-      if( !IsWindowVisible() ) return;
       RECT rc;
       GetClientRect(&rc);
       // Place tab control in frame if populated

@@ -470,7 +470,7 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
 
    // Prevent save of an empty file
    if( dwSize == 0 ) {
-      ::SetLastError(ERROR_SOURCE_ELEMENT_EMPTY);
+      ::SetLastError(ERROR_EMPTY);
       return false;
    }
 

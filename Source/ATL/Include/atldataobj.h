@@ -4,7 +4,7 @@
 #pragma once
 
 /////////////////////////////////////////////////////////////////////////////
-// IDataObjet and OLE clipboard wrappers
+// IDataObject and OLE clipboard wrappers
 //
 // Written by Bjarke Viksoe (bjarke@viksoe.dk)
 // Copyright (c) 2004 Bjarke Viksoe.

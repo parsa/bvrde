@@ -40,6 +40,7 @@ void CMemoryView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       CString sMemory;
       CString sAscii;
       CString sText;
+      CString sTemp;
       int iStep = 0;
       CString sValue = info.GetItem(_T("addr"), _T("memory"));
       while( !sValue.IsEmpty() ) {
@@ -47,12 +48,8 @@ void CMemoryView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          sMemory += info.FindNext(_T("data")) + _T(" ");
          sAscii += info.FindNext(_T("ascii"));
          if( (++iStep % 4) == 0 ) {
-            sText += sAddress;
-            sText += _T("  ");
-            sText += sMemory;
-            sText += _T("   ");
-            sText += sAscii;
-            sText += _T("\r\n");
+            sTemp.Format(_T("%s  %s   %s\r\n"), sAddress, sMemory, sAscii);
+            sText += sTemp;
             sAddress = sMemory = sAscii = _T("");
          }
          sValue = info.FindNext(_T("addr"), _T("memory"));
@@ -88,7 +85,7 @@ LRESULT CMemoryView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 LRESULT CMemoryView::OnEditChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
-   if( wParam == '\n' ) return 0;
+   if( wParam == '\n' ) return 0;  // We hate the BEEP sound
    bHandled = FALSE;
    return 0;
 }

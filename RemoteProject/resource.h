@@ -238,6 +238,7 @@
 #define IDC_TITLE                       1019
 #define IDC_LINK                        1020
 #define IDC_NOCONNECTION                1023
+#define IDC_SUBNOTE                     1024
 #define IDC_NOAUTOCOMPLETE              1039
 #define IDC_AUTOCOMPLETE                1039
 #define IDC_NOCLASSBROWSER              1040
@@ -355,7 +356,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        124
 #define _APS_NEXT_COMMAND_VALUE         40117
-#define _APS_NEXT_CONTROL_VALUE         1024
+#define _APS_NEXT_CONTROL_VALUE         1025
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

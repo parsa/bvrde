@@ -16,8 +16,8 @@ public:
    CClassView();
 
    bool m_bLoaded;
+   bool m_bLocked;
    CRemoteProject* m_pProject;
-   int m_iScrollPos;
    CSimpleArray<CString> m_aExpandedNames;
 
    CImageListCtrl m_Images;
@@ -28,6 +28,8 @@ public:
    void Init(CRemoteProject* pProject);
    void Close();
    void Clear();
+   void Lock();
+   void Unlock();
    void Rebuild();
    void Populate();
    

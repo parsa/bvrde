@@ -151,6 +151,8 @@ static int yyread(char *buf,int max_size)
 
 <NextSemi>[;,]				{ BEGIN( FindMembers ) ; }
 
+<NextSemi>[ \t]*\"[^\n"]*\"		{ BEGIN( FindMembers ) ; }
+
 <FindMembers>[ \t]*"public:"[ \t\r\n]*	{ 
 					  current->protection = protection = PUBL ;
 					  lineCount() ;
@@ -360,7 +362,7 @@ static int yyread(char *buf,int max_size)
 
 <FindMembers>"<"			{ 
 					  addType( current ) ;
-					  current->type += yytext ;
+					  current->type += *yytext ;
 					  sharpCount=1;
 					  BEGIN( Sharp ) ;
 					}
@@ -377,7 +379,7 @@ static int yyread(char *buf,int max_size)
 
 <Curly>[^\n{}"/]*			{ current->program += yytext ; }
 <Curly>"//".*				{ current->program += yytext ; }
-<Curly>\"[^\n"]*]\"			{ current->program += yytext ; }
+<Curly>\"[^\n"]*\"			{ current->program += yytext ; }
 <Curly>"/*"\**[ \t]*			{ 
 					  current->program += yytext ;
 					  lastContext = Curly ;

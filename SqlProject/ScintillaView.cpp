@@ -44,7 +44,7 @@ LRESULT CScintillaView::OnQueryEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
       TCHAR szBuffer[32] = { 0 };
       _pDevEnv->GetProperty(_T("editors.general.savePrompt"), szBuffer, 31);
       if( _tcscmp(szBuffer, _T("true")) == 0 ) {
-         if( IDNO == _pDevEnv->ShowMessageBox(m_hWnd, CString(MAKEINTRESOURCE(IDS_SAVEFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), MB_ICONINFORMATION | MB_YESNO) ) return TRUE;
+         if( IDNO == _pDevEnv->ShowMessageBox(m_hWnd, CString(MAKEINTRESOURCE(IDS_SAVEFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), MB_ICONQUESTION | MB_YESNO) ) return TRUE;
       }
       if( SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE, 0)) != 0 ) return FALSE;
    }
@@ -162,6 +162,49 @@ LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
       break;
    }
    bHandled = FALSE;
+   return 0;
+}
+
+LRESULT CScintillaView::OnHistoryNew(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+{
+   SetText("");
+   SetSavePoint();
+   return 0;
+}
+
+LRESULT CScintillaView::OnHistoryDelete(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+{
+   int iPos = m_pView->GetHistoryPos();
+   SendMessage(WM_COMMAND, MAKEWPARAM(ID_HISTORY_LEFT, 0));
+   m_pView->DeleteHistory(iPos);
+   return 0;
+}
+
+LRESULT CScintillaView::OnHistoryLeft(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+{
+   int iPos = m_pView->GetHistoryPos();
+   if( iPos == 0 ) return 0;
+   CString sText = m_pView->SetHistoryPos(iPos - 1);
+   LPSTR pstr = (LPSTR) malloc(sText.GetLength() * 2);
+   if( pstr == NULL ) return 0;
+   AtlW2AHelper(pstr, sText, sText.GetLength() + 1);
+   SetText(pstr);
+   free(pstr);
+   SetSavePoint();
+   return 0;
+}
+
+LRESULT CScintillaView::OnHistoryRight(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+{
+   int iPos = m_pView->GetHistoryPos();
+   if( iPos >= m_pView->GetHistoryCount() ) return 0;
+   CString sText = m_pView->SetHistoryPos(iPos + 1);
+   LPSTR pstr = (LPSTR) malloc(sText.GetLength() * 2);
+   if( pstr == NULL ) return 0;
+   AtlW2AHelper(pstr, sText, sText.GetLength() + 1);
+   SetText(pstr);
+   free(pstr);
+   SetSavePoint();
    return 0;
 }
 
@@ -333,6 +376,11 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info)
    CString sKeyword;
    LPSTR p = szText;
    while( *p ) {
+
+      // Skip comment
+      if( *p == '-' && *(p + 1) == '-' ) while( *p && *p != '\n' ) p++;
+      if( *p == '/' && *(p + 1) == '*' ) while( *p && !(*p == '*' && *(p + 1) == '/') ) p++;
+
       if( isalpha(*p) || *p == '_' ) {
          sKeyword += *p; 
       }

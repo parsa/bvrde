@@ -471,7 +471,6 @@ BOOL COledbRecordset::IsOpen() const
 
 DWORD COledbRecordset::GetRowCount() const
 {
-   if( !IsOpen() ) return 0;
    return m_nRowsAffected;
 }
 
@@ -906,18 +905,18 @@ BOOL COledbRecordset::_BindColumns()
 #else
          b.wType = DBTYPE_STR;
 #endif
-         b.cbMaxLen = (rgColumnInfo[iCol].ulColumnSize + 1) * sizeof(TCHAR);
+         b.cbMaxLen = max(min((rgColumnInfo[iCol].ulColumnSize + 1UL) * sizeof(TCHAR), 1024UL), 0UL);
          break;
       default:
          b.wType = wType;
-         b.cbMaxLen = rgColumnInfo[iCol].ulColumnSize;
+         b.cbMaxLen = max(min(rgColumnInfo[iCol].ulColumnSize, 1024UL), 0UL);
       }
 
 // ROUNDUP on all platforms pointers must be aligned properly
 #define ROUNDUP_AMOUNT 8
 #define ROUNDUP_(size,amount) (((ULONG)(size)+((amount)-1))&~((amount)-1))
 #define ROUNDUP(size)         ROUNDUP_(size, ROUNDUP_AMOUNT)
-    
+
       // Update the offset past the end of this column's data
       dwOffset = b.cbMaxLen + b.obValue;
       dwOffset = ROUNDUP(dwOffset);
@@ -1045,11 +1044,6 @@ BOOL COledbCommand::Execute(CDbRecordset* pRecordset /*= NULL*/)
    _ASSERTE(m_spText);
    HRESULT Hr;
 
-   //CComQIPtr<ICommandWithParameters> spParams = m_spRowset;
-   //_ASSERTE(spParams);
-   //if( spParams==NULL ) return FALSE;
-   //spParams->SetParameterInfo(m_nParams, ...);
-
    m_nRowsAffected = 0;
 
    // Create accessor
@@ -1089,7 +1083,6 @@ BOOL COledbCommand::IsOpen() const
 
 DWORD COledbCommand::GetRowCount() const
 {
-   if( !IsOpen() ) return 0;
    return m_nRowsAffected;
 }
 

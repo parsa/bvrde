@@ -33,7 +33,7 @@ class McString : public std::string
 public:
    McString() { };
    McString(const char* p) { append(p); };
-   inline void clear() { empty(); };
+   inline void clear() { assign(""); };
    inline operator const char*() const { return c_str(); }
    inline void operator +=(char ch) { char x[] = { ch, '\0' }; append(x); };
    inline void operator +=(const char* p) { append(p); };

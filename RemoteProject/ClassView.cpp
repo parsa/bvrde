@@ -60,7 +60,7 @@ public:
 // Constructor/destructor
 
 CClassView::CClassView() :
-   m_pProject(NULL)
+   m_pProject(NULL), m_bLoaded(false), m_bLocked(false)
 {
 }
 
@@ -72,6 +72,8 @@ void CClassView::Init(CRemoteProject* pProject)
 {
    Close();
    
+   m_bLoaded = false;
+   m_bLocked = false;
    m_pProject = pProject;
   
    if( IsWindow() 
@@ -92,18 +94,15 @@ void CClassView::Init(CRemoteProject* pProject)
 void CClassView::Close()
 {
    if( m_ctrlTree.IsWindow() ) m_ctrlTree.DeleteAllItems();
-   m_aExpandedNames.RemoveAll();
    m_pProject = NULL;
-   m_iScrollPos = 0;
    m_bLoaded = false;
+   m_bLocked = false;
 }
 
-void CClassView::Clear()
+void CClassView::Lock()
 {
-   if( !m_ctrlTree.IsWindow() ) return;
-   // Remember which braches were expanded when we try to
-   // recreate the list the next time...
-   m_iScrollPos = 0;
+   // Remember which branches was expanded, so we can
+   // expand them when we recreate the tree later...
    m_aExpandedNames.RemoveAll();
    HTREEITEM hItem = m_ctrlTree.GetRootItem();
    while( hItem != NULL ) {
@@ -115,10 +114,23 @@ void CClassView::Clear()
       }
       hItem = m_ctrlTree.GetNextSiblingItem(hItem);
    }
-   m_iScrollPos = m_ctrlTree.GetScrollPos(SB_VERT);
-   // Delete all items
+
+   m_bLocked = true;
+}
+
+void CClassView::Unlock()
+{
+   m_bLocked = false;
+}
+
+void CClassView::Clear()
+{
+   if( !m_ctrlTree.IsWindow() ) return;
+   // Delete all items and reset
    m_ctrlTree.DeleteAllItems();
+   m_aExpandedNames.RemoveAll();
    m_bLoaded = false;
+   m_bLocked = false;
 }
 
 void CClassView::Populate()
@@ -151,8 +163,15 @@ void CClassView::_PopulateTree()
    {
       m_ctrlTree.SetRedraw(FALSE);
 
+      // Remember the scroll position
+      int iScrollPos = m_ctrlTree.GetScrollPos(SB_VERT);
+
+      // Clear tree
       m_ctrlTree.DeleteAllItems();  
 
+      // Not locked anymore; tree is clean!
+      m_bLocked = false;
+   
       // Insert classes and expand previously expanded branches...
       HTREEITEM hFirstVisible = NULL;
       TV_INSERTSTRUCT tvis = { 0 };
@@ -188,10 +207,12 @@ void CClassView::_PopulateTree()
       m_ctrlTree.SetRedraw(TRUE);
 
       // FIX: Scrolling must be done outside WM_SETREDRAW section
-      m_ctrlTree.SetScrollPos(SB_VERT, m_iScrollPos, TRUE);
+      m_ctrlTree.SetScrollPos(SB_VERT, iScrollPos, TRUE);
    }
 
    m_bLoaded = true;
+   m_bLocked = false;
+   m_aExpandedNames.RemoveAll();
 }
 
 void CClassView::_GoToDefinition(TAGINFO* pTag)
@@ -248,7 +269,7 @@ LRESULT CClassView::OnPopulate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
    //       has been activated! So Populate() should be able to handle
    //       being called with the tree already populated.
    Populate();
-   bHandled = FALSE; // Don't eat
+   bHandled = FALSE; // Don't eat!
    return 0;
 }
 
@@ -370,6 +391,8 @@ LRESULT CClassView::OnGetDisplayInfo(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 {
    LPNMTVDISPINFO lpNMTVDI = (LPNMTVDISPINFO) pnmh;
    if( (lpNMTVDI->item.mask & TVIF_TEXT) == 0 ) return 0;
+   if( m_bLocked ) 
+      return 0;
    TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(lpNMTVDI->item.hItem);
    lpNMTVDI->item.pszText = (LPTSTR) pTag->pstrName;
    return 0;

@@ -59,11 +59,12 @@ void CContainerWindow::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_HISTORY_NEW, TRUE);
    pUIBase->UIEnable(ID_QUERY_STOP, bIsRunning);
 
-   //int iHistoryPos = m_pView->GetHistoryPos();
-   //int nHistoryCount = m_pView->GetHistoryCount() > 0;
-   //pUIBase->UIEnable(ID_HISTORY_DELETE, nHistoryCount > 0);
-   //pUIBase->UIEnable(ID_HISTORY_LEFT, iHistoryPos > 0);
-   //pUIBase->UIEnable(ID_HISTORY_RIGHT, iHistoryPos < nHistoryCount - 1);
+   int iHistoryPos = m_pView->GetHistoryPos();
+   int nHistoryCount = m_pView->GetHistoryCount();
+   pUIBase->UIEnable(ID_HISTORY_NEW, TRUE);
+   pUIBase->UIEnable(ID_HISTORY_DELETE, nHistoryCount > 1);
+   pUIBase->UIEnable(ID_HISTORY_LEFT, iHistoryPos > 0);
+   pUIBase->UIEnable(ID_HISTORY_RIGHT, iHistoryPos < nHistoryCount - 1);
 
    int iCurSel = GetCurSel();
 
@@ -208,21 +209,24 @@ LRESULT CContainerWindow::OnQueryStop(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
    return 0;
 }
 
-LRESULT CContainerWindow::OnViewTab1(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT CContainerWindow::OnViewTab1(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    SetCurFocus(0);
+   bHandled = FALSE;
    return 0;
 }
 
-LRESULT CContainerWindow::OnViewTab2(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT CContainerWindow::OnViewTab2(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    SetCurFocus(1);
+   bHandled = FALSE;
    return 0;
 }
 
-LRESULT CContainerWindow::OnViewTab3(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT CContainerWindow::OnViewTab3(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    SetCurFocus(2);
+   bHandled = FALSE;
    return 0;
 }
 
@@ -259,3 +263,4 @@ LRESULT CContainerWindow::OnTabChange(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*
    m_hWndClient.SetFocus();
    return 0;
 }
+

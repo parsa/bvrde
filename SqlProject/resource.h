@@ -167,13 +167,14 @@
 #define ID_VIEW_TAB2                    40418
 #define ID_VIEW_TAB3                    40419
 #define ID_VIEW_SETLINE                 40420
+#define ID_HISTORY_LEFT                 40421
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
-#define _APS_NEXT_COMMAND_VALUE         40421
+#define _APS_NEXT_COMMAND_VALUE         40423
 #define _APS_NEXT_CONTROL_VALUE         1008
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

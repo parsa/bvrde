@@ -22,6 +22,7 @@ CView::CView(CSqlProject* pProject,
    m_sName(pstrName),
    m_sConnectString(pstrConnectionString == NULL ? _T("") : pstrConnectionString),
    m_sType(pstrType),
+   m_iHistoryPos(0),
    m_bDirty(FALSE)
 {
 }
@@ -258,6 +259,9 @@ BOOL CView::Run(BOOL bSelectedTextOnly)
       sText = pstrText;
       free(pstrText);
       iLineNo = 1;
+      // Save the whole text in history.
+      // The function will determine if we're re-issuing an old item...
+      SaveHistory(sText);
    }
 
    BOOL bDummy;
@@ -284,5 +288,51 @@ BOOL CView::Abort()
 {
    if( IsQueryRunning() ) m_thread.Abort();
    return TRUE;
+}
+
+int CView::GetHistoryPos() const
+{
+   return m_iHistoryPos;
+}
+
+int CView::GetHistoryCount() const
+{
+   return m_aHistory.GetSize();
+}
+
+CString CView::SetHistoryPos(int iPos)
+{
+   if( iPos < 0 || iPos >= m_aHistory.GetSize() ) return _T("");
+   // Change history marker
+   CString sText = m_aHistory[iPos];
+   m_iHistoryPos = iPos;
+   // Make sure to change to SQL view
+   // Return the SQL text for this history position
+   return sText;
+}
+
+void CView::DeleteHistory(int iPos)
+{
+   if( iPos < 0 || iPos >= m_aHistory.GetSize() ) return;
+   m_aHistory.RemoveAt(iPos);
+   if( iPos >= m_aHistory.GetSize() ) iPos--;
+}
+
+void CView::SaveHistory(CString& sText)
+{
+   sText.TrimRight();
+   // See if it's an old SQL statement
+   for( int i = 0; i < m_aHistory.GetSize(); i++ ) {
+      if( m_aHistory[i] == sText ) {
+         m_iHistoryPos = i;
+         return;
+      }
+   }
+   // No, a new one! Let's add it...
+   m_aHistory.Add(sText);
+   // History is limited in size
+   const int MAX_HISTORY = 20;
+   if( m_aHistory.GetSize() > MAX_HISTORY ) m_aHistory.RemoveAt(0);
+   m_iHistoryPos = m_aHistory.GetSize() - 1;
 }
 

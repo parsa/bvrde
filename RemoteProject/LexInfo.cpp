@@ -53,9 +53,9 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
    if( s_hInst == NULL ) return false;
 
    // Lex the file.
-   // It's not unlikely that the parse fails since it should stop at
-   // normals syntax errors and less obvious LALR failures! In
-   // this case we just ignore the contents...
+   // It's not unlikely that the parse fails since it could stop at
+   // normal syntax errors and less obvious LALR failures! In
+   // this case we'll just ignore the contents...
    typedef BOOL (APIENTRY* LPFNPARSE)(LPCWSTR, LPCSTR);
    LPFNPARSE fnParse = (LPFNPARSE) ::GetProcAddress(s_hInst, "CppLexer_Parse");
    ATLASSERT(fnParse);
@@ -70,7 +70,9 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
       return false;
    }
 
-   m_pProject->GetClassView()->Clear();
+   // Since we're changing the file data, and the ClassView references
+   // this data, we must 'lock' it down so it doesn't use the old pointers...
+   m_pProject->GetClassView()->Lock();
 
    // Replace the old entry in the file list
    bool bFound = false;
@@ -86,8 +88,8 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
    if( !bFound ) m_aFiles.Add(pFile);
 
    // Signal the tree to rebuild itself!
-   // This important since we're removed some of the TAGINFO pointers
-   // from the list and they're referenced from this control.
+   // This is important since we've removed some of the TAGINFO pointers
+   // from the list and we need to unlock the data
    m_pProject->GetClassView()->Rebuild();
 
    return true;
@@ -142,6 +144,7 @@ int CLexInfo::FindItem(int iStart, LPCTSTR pstrName)
    {
       ATLASSERT(m_iFile>=0 && m_iFile<m_aFiles.GetSize());
       // Scan rest of list sequentially
+      // NOTE: We limit the search to the known file only!
       const LEXFILE& file = *m_aFiles[m_iFile];
       int nCount = file.aTags.GetSize();
       for( int iIndex = iStart; iIndex < nCount; iIndex++ ) {

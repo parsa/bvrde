@@ -534,7 +534,7 @@ IDD_QUICKWATCH DIALOGEX 0, 0, 280, 177
 STYLE DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | 
     WS_THICKFRAME
 CAPTION "Quick Watch"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Expression:",IDC_STATIC,7,7,100,9,0,WS_EX_TRANSPARENT
     COMBOBOX        IDC_LINE,7,19,199,63,CBS_DROPDOWN | WS_VSCROLL | 
@@ -568,7 +568,7 @@ IDD_PASSWORD DIALOGEX 0, 0, 218, 135
 STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Password"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     EDITTEXT        IDC_PASSWORD,18,92,181,15,ES_PASSWORD | ES_AUTOHSCROLL,
                     WS_EX_STATICEDGE
@@ -577,8 +577,10 @@ BEGIN
     ICON            IDI_KEY,IDC_STATIC,15,15,20,20
     LTEXT           "Enter connect password",IDC_TITLE,52,13,159,24,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
-    CTEXT           "Enter the password for connecting to the remote server.\nThis password will be used to connect on all connections which was configured with a blank password.",
-                    IDC_STATIC,10,54,198,34
+    CTEXT           "Enter the password for connecting to the remote server.",
+                    IDC_STATIC,10,54,198,10,0,WS_EX_TRANSPARENT
+    CTEXT           "This password will be used to connect on all connections which was configured with a blank password.",
+                    IDC_SUBNOTE,7,67,204,20,SS_NOPREFIX,WS_EX_TRANSPARENT
 END
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
@@ -929,7 +931,7 @@ BEGIN
     IDS_CAPTION_BUILD       "Build"
     IDS_CAPTION_DEBUG       "Debug"
     IDS_STACKLINE           "%s,  file='%s', line=%ld"
-    IDS_ERR_FILESAVE        "Save Failed\nSave of file '%s' failed.\nIf the file is a remote file, it may have been a timeout error, so try again."
+    IDS_ERR_FILESAVE        "Save Failed\nSave of file '%s' failed.\nThe server returned error: %s\n\nIf the file is a remote file, it may have been a timeout error, so try again."
     IDS_STOPPED             "Stopped"
     IDS_SIGNAL              "%s\n%s\nAddress: %s\nFunction: %s"
     IDS_DIRECTIVES          "Compiler Directives"

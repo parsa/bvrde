@@ -142,6 +142,7 @@ CString GetFileTypeFromFilename(LPCTSTR pstrFilename)
       _T(".C++"),  _T("cpp"),
       _T(".CXX"),  _T("cpp"),
       _T(".C"),    _T("cpp"),
+      _T(".CC"),   _T("cpp"),
       _T(".EC"),   _T("cpp"),
       _T(".PC"),   _T("cpp"),
       _T(".H"),    _T("header"),

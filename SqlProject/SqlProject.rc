@@ -360,7 +360,7 @@ BEGIN
     BUTTON      ID_HISTORY_NEW
     BUTTON      ID_HISTORY_DELETE
     SEPARATOR
-    BUTTON      ID_HISTORIK_LEFT
+    BUTTON      ID_HISTORY_LEFT
     BUTTON      ID_HISTORY_RIGHT
 END
 
@@ -510,7 +510,7 @@ BEGIN
     IDS_TREE_SQL            "SQL"
     IDS_FILTER_SQL          "SQL files|*.sql|All Files|*.*|"
     IDS_CAPTION_QUESTION    "BVRDE"
-    IDS_NO_ROWS_AFFECTED    "This command did not return data, and it did not return any rows."
+    IDS_NO_ROWS_AFFECTED    "The command did not return data, and it did not return any rows."
 END
 
 #endif    // English (U.S.) resources

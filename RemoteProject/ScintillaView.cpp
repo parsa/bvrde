@@ -203,13 +203,14 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    CWaitCursor cursor;
    _pDevEnv->PlayAnimation(TRUE, ANIM_SAVE);
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_SAVEFILE)));
-   
+
    // Just save the file...
    if( !m_pView->Save() ) {
+      DWORD dwErr = ::GetLastError();
       TCHAR szName[128] = { 0 };
       m_pView->GetName(szName, 127);
       CString sMsg;
-      sMsg.Format(IDS_ERR_FILESAVE, szName);
+      sMsg.Format(IDS_ERR_FILESAVE, szName, GetSystemErrorText(dwErr));
       _pDevEnv->ShowMessageBox(m_hWnd, sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONEXCLAMATION);
       _pDevEnv->PlayAnimation(FALSE, 0);
       return 1; // Return ERROR indication
@@ -450,6 +451,7 @@ LRESULT CScintillaView::OnMarginClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
    SCNotification* pSCN = (SCNotification*) pnmh;
+
    // HACK: Bug in Scintilla which tries to start a hover tip
    //       while the window has no focus.
    if( ::GetFocus() != m_ctrlEdit ) return 0;

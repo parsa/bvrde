@@ -198,7 +198,7 @@ BOOL CXmlSerializer::ReadItem(LPCTSTR pstrName)
 BOOL CXmlSerializer::Read(LPCTSTR pstrName, LPTSTR pstrValue, UINT cchMax)
 {
    ATLASSERT(!::IsBadStringPtr(pstrName,-1));
-   ATLASSERT(!::IsBadWritePtr(pstrValue,cchMax));
+   ATLASSERT(!::IsBadWritePtr(pstrValue,cchMax*sizeof(WCHAR)));
    ATLASSERT(cchMax>0);
    ATLASSERT(m_spAttribs);
    USES_CONVERSION;
@@ -206,7 +206,7 @@ BOOL CXmlSerializer::Read(LPCTSTR pstrName, LPTSTR pstrValue, UINT cchMax)
    if( m_spAttribs == NULL ) return FALSE;
    // Get the attribute
    CComPtr<IXMLDOMNode> spNode;
-   HRESULT Hr = m_spAttribs->getNamedItem(T2W(const_cast<LPTSTR>(pstrName)), &spNode);
+   HRESULT Hr = m_spAttribs->getNamedItem(T2OLE(const_cast<LPTSTR>(pstrName)), &spNode);
    if( Hr != S_OK ) return FALSE;
    // Read the value
    CComBSTR bstr;
@@ -240,7 +240,7 @@ BOOL CXmlSerializer::Read(LPCTSTR pstrName, SYSTEMTIME& stValue)
 
 BOOL CXmlSerializer::Read(LPCTSTR pstrName, long& lValue)
 {
-   TCHAR szValue[32] = { 0 };
+   TCHAR szValue[20] = { 0 };
    if( !Read(pstrName, szValue, (sizeof(szValue) / sizeof(TCHAR)) - 1) ) {
       lValue = 0;
       return FALSE;

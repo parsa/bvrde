@@ -40,6 +40,9 @@ public:
    CString m_sServer;
    BOOL m_bDirty;
 
+   int m_iHistoryPos;
+   CSimpleArray<CString> m_aHistory;
+
    // IView
 
    BOOL GetName(LPTSTR pstrName, UINT cchMax) const;
@@ -76,6 +79,16 @@ public:
    BOOL Abort();
    BOOL IsQueryRunning() const;
    BOOL ChangeProperties(HWND hWnd);
+
+   int GetHistoryPos() const;
+   int GetHistoryCount() const;
+   CString SetHistoryPos(int iPos);
+   void DeleteHistory(int iPos);
+   void CleanupHistory();
+
+   // Implementation
+
+   void SaveHistory(CString& sText);
 };
 
 

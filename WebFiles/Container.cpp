@@ -224,7 +224,7 @@ LRESULT CContainerWindow::OnTabChange(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*
          int nLen = m_sText.GetLength();
          LPSTR pstrData = (LPSTR) malloc(nLen + 1);
          if( pstrData == NULL ) return 0;
-         AtlW2AHelper(pstrData, m_sText, nLen);
+         AtlW2AHelper(pstrData, m_sText, nLen + 1);
          pstrData[nLen] = '\0';
          m_wndSource.SetText(pstrData);
          m_wndSource.SendMessage(WM_SETTINGCHANGE);

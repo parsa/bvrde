@@ -33,25 +33,19 @@
   #error This control requires my atldib.h header to be included first
 #endif
 
-
-// From Platform SDK (Win2000 and above only)
-#ifndef CS_DROPSHADOW
-   #define CS_DROPSHADOW 0x00020000
-#endif // CS_DROPSHADOW
-
 // Size of the shadow (be carefull when changing)
 #ifndef SHADOW_SIZE
    #define SHADOW_SIZE 5
 #endif // SHADOW_SIZE
 
 
-typedef CWinTraits<WS_VISIBLE|WS_OVERLAPPED|WS_POPUP, 0> CShadowWinTraits;
+typedef CWinTraits<WS_OVERLAPPED | WS_POPUP | WS_DISABLED, 0> CShadowWinTraits;
 
 class CShadowWindow :
    public CWindowImpl< CShadowWindow, CWindow, CShadowWinTraits >
 {
 public:
-   DECLARE_WND_CLASS(_T("WTL_MenuShadow"))
+   DECLARE_WND_CLASS_EX(_T("WTL_MenuShadow"), CS_HREDRAW|CS_VREDRAW|CS_SAVEBITS, NULL)
 
    CDib24 m_dib;
 
@@ -62,7 +56,7 @@ public:
    LRESULT OnPaint(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( wParam != 0 ) return 0; // No printing support
-      CPaintDC dc(m_hWnd);
+      CPaintDC dc = m_hWnd;
       ATLASSERT(!m_dib.IsEmpty());
       m_dib.Draw(dc, 0,0);
       return 0;
@@ -77,7 +71,7 @@ public:
       const int cxWin = rcWin.right - rcWin.left;
       const int cyWin = rcWin.bottom - rcWin.top;
 
-      CWindowDC dcWin(HWND_DESKTOP);
+      CWindowDC dcWin = HWND_DESKTOP;
       CDC dcMem;
       dcMem.CreateCompatibleDC(dcWin);
       CBitmap bmp;
@@ -98,7 +92,6 @@ public:
          for( x = 0; x < SHADOW_SIZE; x++ ) {
             LPBYTE p = pStream;
             for( y = 0; y < SHADOW_SIZE; y++ ) {
-               //int iScale = 16 + ((8 - x*2) / (y+1));
                int iScale = 16 + (((SHADOW_SIZE - x) * 2) / (y + 1));
                *p++ = (BYTE) ((*p << 4) / iScale);
                *p++ = (BYTE) ((*p << 4) / iScale);
@@ -128,7 +121,7 @@ public:
          for( y = 0; y < SHADOW_SIZE; y++ ) {
             LPBYTE p = pStream;
             for( int x = 0; x < SHADOW_SIZE; x++ ) {
-               int iScale = 16 + (y*4 / (SHADOW_SIZE - x + 1));
+               int iScale = 16 + (y * 4 / (SHADOW_SIZE - x + 1));
                *p++ = (BYTE) ((*p << 4) / iScale);
                *p++ = (BYTE) ((*p << 4) / iScale);
                *p++ = (BYTE) ((*p << 4) / iScale);
@@ -139,7 +132,7 @@ public:
          pStream = m_dib.GetBits() + (SHADOW_SIZE * nPixel);
          for( y = 0; y < SHADOW_SIZE; y++ ) {
             LPBYTE p = pStream;
-            int iScale = 16 + y*2;
+            int iScale = 16 + y * 2;
             for( x = 0; x < cxWin - (SHADOW_SIZE * 2) - 1; x++ ) {
                *p++ = (BYTE) ((*p << 4) / iScale);
                *p++ = (BYTE) ((*p << 4) / iScale);
@@ -163,10 +156,10 @@ public:
    }
 };
 
-template< class T, class TWin=CShadowWindow >
+template< class T, class TWin = CShadowWindow >
 class CDialogShadows
 {
-public:
+public: 
    BEGIN_MSG_MAP(CDialogShadows)
       MESSAGE_HANDLER(WM_PAINT, OnPaint)
    END_MSG_MAP()
@@ -183,9 +176,9 @@ public:
    RECT _GetShadowRect(bool bVertical) const
    {
       const T* pT = static_cast<const T*>(this);
-      RECT rc;
+      RECT rc = { 0 };
+      RECT rcWin = { 0 };
       pT->GetWindowRect(&rc);
-      RECT rcWin;
       if( bVertical ) {
          ::SetRect(&rcWin, rc.right, rc.top + SHADOW_SIZE, rc.right + SHADOW_SIZE, rc.bottom);
       }
@@ -200,33 +193,28 @@ public:
       T* pT = static_cast<T*>(this);
 
       // Test if it already has shadows enabled
+#ifndef CS_DROPSHADOW
+      const DWORD CS_DROPSHADOW = 0x00020000;  // From Platform SDK (Win2000 and above only)
+#endif // CS_DROPSHADOW
       DWORD dwStyle = ::GetClassLong(pT->m_hWnd, GCL_STYLE);
-      if( dwStyle & CS_DROPSHADOW ) return;
+      if( (dwStyle & CS_DROPSHADOW) != 0 ) return;
 
-      RECT rc;
+      RECT rc = { 0 };
       pT->GetWindowRect(&rc);
 
       if( !m_wndRight.IsWindow() && !m_wndBottom.IsWindow() ) {
          // Create the shadow bitmaps
-         CWindowDC dcDesktop(HWND_DESKTOP);
+         CWindowDC dcDesktop = HWND_DESKTOP;
+         UpdateWindow(HWND_DESKTOP);
          // Create the 2 shadow windows (they are created as seperate windows).
          // We don't create them visible since this forces them to take focus...
-         RECT rcWin;
-         rcWin = _GetShadowRect(true);
+         RECT rcWin = _GetShadowRect(true);
          m_wndRight.CreateShadowBitmap( (HDC) dcDesktop, rcWin, true );
-         m_wndRight.Create(pT->m_hWnd, 
-            CWindow::rcDefault, 
-            NULL, 
-            WS_OVERLAPPED | WS_POPUP | WS_DISABLED,
-            0);
+         m_wndRight.Create(pT->m_hWnd, CWindow::rcDefault);
          m_wndRight.SetWindowPos(pT->m_hWnd, &rcWin, SWP_NOACTIVATE | SWP_SHOWWINDOW);
          rcWin = _GetShadowRect(false);
          m_wndBottom.CreateShadowBitmap( (HDC) dcDesktop, rcWin, false );
-         m_wndBottom.Create(pT->m_hWnd, 
-            CWindow::rcDefault, 
-            NULL, 
-            WS_OVERLAPPED | WS_POPUP | WS_DISABLED,
-            0);
+         m_wndBottom.Create(pT->m_hWnd, CWindow::rcDefault);
          m_wndBottom.SetWindowPos(pT->m_hWnd, &rcWin, SWP_NOACTIVATE | SWP_SHOWWINDOW);
       }
    }

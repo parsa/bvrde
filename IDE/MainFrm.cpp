@@ -1,4 +1,4 @@
-O// MainFrm.cpp : implmentation of the CMainFrame class
+// MainFrm.cpp : implmentation of the CMainFrame class
 //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -139,8 +139,8 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    AddAutoHideView(m_viewCommand, IDE_DOCK_BOTTOM, 6);
 
    m_viewOutput.SetUndoLimit(0);
-   m_viewOutput.Clear();
    m_viewCommand.SetUndoLimit(0);
+   m_viewOutput.Clear();
    m_viewCommand.Clear();
 
    // Set up MRU stuff
@@ -194,8 +194,7 @@ LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
    CLockWindowUpdate lock = m_hWnd;
 
    // Don't leave as fullscreen
-   BOOL bDummy;
-   if( m_bFullScreen ) OnViewFullScreen(0, 0, NULL, bDummy);
+   if( m_bFullScreen ) SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_FULLSCREEN, 0));
 
    // FIX: Removing the additional ReBars help keep the
    //      original workspace size when saving/restoring settings.
@@ -246,9 +245,7 @@ LRESULT CMainFrame::OnCopyData(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
          // Parse command line
          CCommandLine cmd;
          SendMessage(WM_APP_COMMANDLINE, 0, (LPARAM) pCDS->lpData);
-         // Bring focus back to main app
-         SetFocus();
-         ::SetForegroundWindow(m_hWnd);
+         if( IsIconic() ) ShowWindow(SW_RESTORE);
       }
       break;
    default:
@@ -786,9 +783,10 @@ LRESULT CMainFrame::OnHelpSearch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 
 LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {  
+   SendMessage(WM_APP_VIEWCHANGE);
+
    // Add and arrange toolbars
    _ArrangeToolBars();
-   SendMessage(WM_APP_VIEWCHANGE);
 
    // Interpret commandline
    CCommandLine cmdline;
@@ -817,7 +815,8 @@ LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
    OnIdle();
 
    // Display main window now
-   if( !LoadWindowPos() ) ShowWindow(SW_SHOW);
+   if( !LoadWindowPos() ) ShowWindow(SW_SHOW);  
+   m_MDIContainer.UpdateLayout();
 
    ::SetForegroundWindow(m_hWnd);
    return 0;
@@ -944,7 +943,7 @@ LRESULT CMainFrame::OnUserProjectChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 LRESULT CMainFrame::OnUserCommandLine(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {
    CCommandLine cmdline;
-   cmdline.Parse((LPCTSTR) lParam);
+   cmdline.Parse( (LPCTSTR) lParam );
    for( int i = 1; i < cmdline.GetSize(); i++ ) {
       CString sFilename = cmdline.GetItem(i);
       if( ::PathMatchSpec(sFilename, _T("*.sln")) ) {
@@ -955,6 +954,8 @@ LRESULT CMainFrame::OnUserCommandLine(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
          if( pView ) ATLTRY( pView->OpenView(1) );
       }
    }
+   // Bring focus back to main app
+   ::SetForegroundWindow(m_hWnd);
    return 0;
 }
 

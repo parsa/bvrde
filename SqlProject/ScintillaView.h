@@ -62,7 +62,11 @@ public:
       MESSAGE_HANDLER(WM_QUERYENDSESSION, OnQueryEndSession)
       MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSettingChange)
       COMMAND_ID_HANDLER(ID_FILE_OPEN, OnFileOpen)
-      COMMAND_ID_HANDLER(ID_FILE_SAVE, OnFileSave)
+      COMMAND_ID_HANDLER(ID_FILE_SAVE, OnFileSave)      
+      COMMAND_ID_HANDLER(ID_HISTORY_NEW, OnHistoryNew)
+      COMMAND_ID_HANDLER(ID_HISTORY_DELETE, OnHistoryDelete)
+      COMMAND_ID_HANDLER(ID_HISTORY_LEFT, OnHistoryLeft)
+      COMMAND_ID_HANDLER(ID_HISTORY_RIGHT, OnHistoryRight)
       REFLECTED_NOTIFY_CODE_HANDLER(SCN_CHARADDED, OnCharAdded)
    END_MSG_MAP()
 
@@ -74,6 +78,10 @@ public:
    LRESULT OnFileOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
    LRESULT OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
    LRESULT OnCharAdded(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/);
+   LRESULT OnHistoryNew(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnHistoryDelete(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnHistoryLeft(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnHistoryRight(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 
    // IIdleListener
 
