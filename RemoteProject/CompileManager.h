@@ -15,7 +15,7 @@
 // Forward declare
 class CCompileManager;
 
-class CCompileThread : public CThreadImpl
+class CCompileThread : public CThreadImpl<CCompileThread>
 {
 public:
    DWORD Run();

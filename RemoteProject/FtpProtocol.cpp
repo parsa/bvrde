@@ -12,10 +12,11 @@
 ////////////////////////////////////////////////////////
 //
 
-class CFtpCancelThread : public CThreadImpl
+class CFtpCancelThread : public CThreadImpl<CFtpCancelThread>
 {
 public:
-   CFtpCancelThread(HINTERNET hInternet, DWORD dwTimeout) : m_hInternet(hInternet), m_dwTimeout(dwTimeout)
+   CFtpCancelThread(HINTERNET hInternet, DWORD dwTimeout) : 
+      m_hInternet(hInternet), m_dwTimeout(dwTimeout)
    {
       m_event.Create();
       Start();
@@ -78,6 +79,7 @@ DWORD CFtpThread::Run()
       bPassive ? INTERNET_FLAG_PASSIVE : 0);
 
    cancel.SetEvent();
+   cancel.WaitForThread();
 
    m_pManager->m_dwErrorCode = ::GetLastError();
 

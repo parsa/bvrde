@@ -86,7 +86,7 @@ enum
 class CTelnetProtocol;
 
 
-class CTelnetThread : public CThreadImpl
+class CTelnetThread : public CThreadImpl<CTelnetThread>
 {
 protected:
    enum

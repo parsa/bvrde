@@ -17,7 +17,7 @@ class CSshProtocol;
 ///////////////////////////////////////////////////////
 //
 
-class CSshThread : public CThreadImpl
+class CSshThread : public CThreadImpl<CSshThread>
 {
 public:
    DWORD Run();

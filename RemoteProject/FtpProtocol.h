@@ -14,7 +14,7 @@ class CFtpProtocol;
 ////////////////////////////////////////////////////////
 //
 
-class CFtpThread : public CThreadImpl
+class CFtpThread : public CThreadImpl<CFtpThread>
 {
 public:
    DWORD Run();

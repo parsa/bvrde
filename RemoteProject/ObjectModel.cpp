@@ -333,7 +333,7 @@ BSTR CTextFileOM::GetSelection()
 {
    if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0);
    CharacterRange cr = m_pOwner->m_view.m_ctrlEdit.GetSelection();
-   LPSTR pstrBuffer = (LPSTR) malloc((cr.cpMax - cr.cpMin) + 1);
+   LPSTR pstrBuffer = (LPSTR) malloc(cr.cpMax - cr.cpMin + 1);
    if( pstrBuffer == NULL ) return NULL;
    m_pOwner->m_view.m_ctrlEdit.GetSelText(pstrBuffer);
    CComBSTR bstr = pstrBuffer;

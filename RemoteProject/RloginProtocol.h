@@ -12,7 +12,7 @@
 class CRloginProtocol;
 
 
-class CRloginThread : public CThreadImpl
+class CRloginThread : public CThreadImpl<CRloginThread>
 {
 public:
    DWORD Run();

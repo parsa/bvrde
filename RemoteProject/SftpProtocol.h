@@ -18,7 +18,7 @@ class CSftpProtocol;
 ////////////////////////////////////////////////////////
 //
 
-class CSftpThread : public CThreadImpl
+class CSftpThread : public CThreadImpl<CSftpThread>
 {
 public:
    DWORD Run();
