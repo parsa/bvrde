@@ -161,6 +161,7 @@ public:
       MESSAGE_HANDLER(WM_DROPFILES, OnDropFiles)
       MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSettingChange)
       MESSAGE_HANDLER(WM_TIMER, OnTimer)
+      MESSAGE_HANDLER(WM_HELP, OnHelp)
       MESSAGE_HANDLER(WM_DRAWITEM, OnDrawItem)
       COMMAND_ID_HANDLER(ID_APP_EXIT, OnFileExit)
       COMMAND_ID_HANDLER(ID_FILE_OPEN, OnFileOpen)
@@ -196,6 +197,9 @@ public:
       COMMAND_ID_HANDLER(ID_WINDOW_CLOSE_ALL, OnWindowCloseAll)
       COMMAND_ID_HANDLER(ID_WINDOW_NEXT, OnWindowNext)
       COMMAND_ID_HANDLER(ID_WINDOW_PREVIOUS, OnWindowPrevious)
+      COMMAND_ID_HANDLER(ID_HELP_CONTENTS, OnHelpContents)
+      COMMAND_ID_HANDLER(ID_HELP_SEARCH, OnHelpSearch)
+      COMMAND_ID_HANDLER(ID_HELP_INDEX, OnHelpIndex)      
       COMMAND_ID_HANDLER(ID_APP_ABOUT, OnAppAbout)
       COMMAND_RANGE_HANDLER(ID_FILE_MRU_FILE1, ID_FILE_MRU_FILE4, OnFileRecent)
       COMMAND_RANGE_HANDLER(ID_TOOLS_TOOL1, ID_TOOLS_TOOL8, OnToolsRun)
@@ -228,6 +232,7 @@ public:
    LRESULT OnSettingChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnDrawItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnHelp(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnFileOpen(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
@@ -266,6 +271,9 @@ public:
    LRESULT OnWindowCloseAll(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnWindowNext(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnWindowPrevious(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnHelpContents(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnHelpIndex(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnHelpSearch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnAppAbout(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnToolBarDropDown(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnRebarLayoutChanged(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);

@@ -30,6 +30,9 @@ The folllowing links are needed or useful for compiling the projects:
  Microsoft Platform SDK
  http://msdn.microsoft.com/developer/sdk/platform.htm
 
+ Microsoft Html Help Workshop
+ http://msdn.microsoft.com/library/default.asp?url=/library/en-us/htmlhelp/html/vsconHH1Start.asp
+
  The Scintilla Editor
  http://www.scintilla.org
 
@@ -52,6 +55,10 @@ as described in the comments.
 
 Compile errors complaining about ambiguous symbols in ATL can be resolved 
 by following the instructions in the WTL ReadMe file.
+
+Missing the "HtmlHelp.lib" or "HtmlHelp.h" files? Then you forgot to
+install and add the "Microsoft HTML Help Workshop" include/lib paths
+to your development environment.
 
 The code depends on the Microsoft version of the STL library. If you
 have installed a different STL library, temporarily revert to the

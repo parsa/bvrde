@@ -11,6 +11,10 @@
 // Shell helper functions (IE4)
 #pragma comment(lib, "shlwapi.lib")
 
+// HtmlHelp lib (requires HTML Help Workshop)
+#pragma comment(lib, "htmlhelp.lib")
+
+
 #ifndef _DEBUG
    #if _MSC_VER < 1300
       // Setting this linker switch causes segment size to be set to 512 bytes

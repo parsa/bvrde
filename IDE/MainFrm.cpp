@@ -14,6 +14,8 @@ O// MainFrm.cpp : implmentation of the CMainFrame class
 #include "atlcmdline.h"
 #include "Macro.h"
 
+#include <htmlhelp.h>
+
 
 CMainFrame::CMainFrame() :
    m_Dispatch(this),
@@ -170,6 +172,8 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
+   g_pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_CLOSING)), TRUE);
+
    // Not accepting file drops anymore
    ::DragAcceptFiles(m_hWnd, FALSE);
 
@@ -190,8 +194,8 @@ LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
    BOOL bDummy;
    if( m_bFullScreen ) OnViewFullScreen(0, 0, NULL, bDummy);
 
-   // HACK: Removing the additional ReBars helps keep the
-   //       original workspace size when saving/restoring settings.
+   // FIX: Removing the additional ReBars help keep the
+   //      original workspace size when saving/restoring settings.
    while( m_Rebar.DeleteBand(2) ) /* */;
 
    _SaveUIState();   
@@ -278,7 +282,13 @@ LRESULT CMainFrame::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOO
    return 0;
 }
 
-LRESULT CMainFrame::OnDrawItem(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CMainFrame::OnHelp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
+   SendMessage(WM_COMMAND, MAKEWPARAM(ID_HELP_CONTENTS, 0));
+   return 0;
+}
+
+LRESULT CMainFrame::OnDrawItem(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
 {
    bHandled = FALSE;
    LPDRAWITEMSTRUCT lpDIS = (LPDRAWITEMSTRUCT) lParam;
@@ -739,6 +749,32 @@ LRESULT CMainFrame::OnWindowPrevious(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
    return 0;
 }
 
+LRESULT CMainFrame::OnHelpContents(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   CString sFilename;
+   sFilename.Format(_T("%sBVRDE.chm"), CModulePath());
+   ::HtmlHelp(m_hWnd, sFilename, HH_DISPLAY_TOC, 0);
+   return 0;
+}
+
+LRESULT CMainFrame::OnHelpIndex(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   CString sFilename;
+   sFilename.Format(_T("%sBVRDE.chm"), CModulePath());
+   ::HtmlHelp(m_hWnd, sFilename, HH_DISPLAY_INDEX, 0);
+   return 0;
+}
+
+LRESULT CMainFrame::OnHelpSearch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   CString sFilename;
+   sFilename.Format(_T("%sBVRDE.chm"), CModulePath());
+   HH_FTS_QUERY q = { 0 };
+   q.cbStruct = sizeof(q);
+   ::HtmlHelp(m_hWnd, sFilename, HH_DISPLAY_SEARCH, (DWORD) &q);
+   return 0;
+}
+
 LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {  
    // Add and arrange toolbars
@@ -845,7 +881,7 @@ LRESULT CMainFrame::OnUserViewChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 
    // Deactivate old view if needed
    // NOTE: Both members below are 'static' and could potentially
-   //       have been destoyed by now, so this is slightly unsafe code.
+   //       have been destroyed by now, so this is slightly unsafe code.
    //       Code inside MDIContainer.h has been added to make it mostly 
    //       safe.
    static IProject* s_pOldProject = NULL;
