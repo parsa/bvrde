@@ -20,6 +20,8 @@ DWORD CRloginThread::Run()
    USES_CONVERSION;
    CSocket& socket = m_pManager->m_socket;
 
+   // Get connect parameters
+   // TODO: Protect these guys with thread-lock
    CString sHost = m_pManager->GetParam(_T("Host"));
    CString sUsername = m_pManager->GetParam(_T("Username"));
    CString sPassword = m_pManager->GetParam(_T("Password"));
@@ -27,14 +29,15 @@ DWORD CRloginThread::Run()
    long lSpeed = _ttol( m_pManager->GetParam(_T("Speed")) );
    CString sExtraCommands = m_pManager->GetParam(_T("Extra"));
    
-   if( iPort == 0 ) iPort = 513; // default rlogin port
-   if( lSpeed == 0 ) lSpeed = 38600L; // default terminal speed
+   if( iPort == 0 ) iPort = 513;         // default rlogin port
+   if( lSpeed == 0 ) lSpeed = 38600L;    // default terminal speed
    if( sPassword.IsEmpty() ) sPassword = SecGetPassword();
 
    m_pManager->m_dwErrorCode = 0;
 
    // Open socket - but we need to bind to a port below 1024, since this
    // is what UNIX will require from a rlogin session...
+   // See http://www.ietf.org/rfc/rfc1282.txt?number=1282
    socket.Attach( ::socket(AF_INET, SOCK_STREAM, IPPROTO_IP) );
 
    // Tune the socket connection
@@ -104,13 +107,17 @@ DWORD CRloginThread::Run()
    // Send login/terminal information
    CHAR szBuffer[400];
    int nLen = ::wsprintfA(szBuffer, "%ls|%ls|%ls|%ls/%ld|", 
-      _T(""), 
-      sUsername, 
-      sUsername, 
-      _T("vt100"),
-      lSpeed);
+      _T(""),       // NULL
+      sUsername,    // <client-user-name>
+      sUsername,    // <server-user-name>
+      _T("vt100"),  // <terminal-type>
+      lSpeed);      // <terminal-speed>
    for( LPSTR p = szBuffer; *p; p++ ) if( *p == '|' ) *p = '\0';
    int nSent = ::send(socket, szBuffer, nLen, 0); nSent;
+
+   // TODO: We are in "cooked" mode and should probably
+   //       be concerned about it until told otherwise...
+   //       At least we should process "urgent" TCP packets.
 
    bool bNextIsPrompt = false;         // Next line is likely to be prompt/command line prefix
    VT100COLOR nColor = VT100_DEFAULT;  // Color code from terminal
@@ -223,6 +230,7 @@ DWORD CRloginThread::Run()
             case '\0x0':
             case '\0x1':
             case '\0x2':
+            case '\0x10':
                // TODO: Handle flow-control and other Rlogin features!
                break;
             case '\r':
@@ -246,7 +254,7 @@ DWORD CRloginThread::Run()
                      // Parse OSC
                      while( true ) {
                         b = _GetByte(socket, bReadBuffer, dwRead, iPos);
-                        if( b == 94 || b == 7 ) break;
+                        if( b == 94 || b == 7 || b == 0 ) break;
                      }
                      bNextIsPrompt = true;
                   }
@@ -457,6 +465,7 @@ CString CRloginProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Port") ) return ToString(m_lPort);
    if( sName == _T("Speed") ) return ToString(m_lSpeed);
    if( sName == _T("Extra") ) return m_sExtraCommands;
+   if( sName == _T("Type") ) return _T("RLogin");
    return "";
 }
 

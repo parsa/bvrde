@@ -35,6 +35,7 @@ DWORD CSshThread::Run()
    }
 
    // Get connect parameters
+   // TODO: Protect these guys with thread-lock
    CString sHost = m_pManager->GetParam(_T("Host"));
    CString sUsername = m_pManager->GetParam(_T("Username"));
    CString sPassword = m_pManager->GetParam(_T("Password"));
@@ -118,10 +119,6 @@ DWORD CSshThread::Run()
    DWORD iStartLinePos = 0;
    DWORD dwBufferSize = INITIAL_BUFFER_SIZE;
 
-   CEvent event;
-   event.Create();
-   HANDLE aHandles[] = { event, m_pManager->m_event };
-
    VT100COLOR nColor = VT100_DEFAULT;
    bool bNextIsPrompt = false;
 
@@ -200,7 +197,7 @@ DWORD CSshThread::Run()
                   // Parse OSC
                   while( true ) {
                      b = _GetByte(cryptSession, bReadBuffer, iRead, iPos);
-                     if( b == 94 || b == 7 ) break;
+                     if( b == 94 || b == 7 || b == 0 ) break;
                   }
                   bNextIsPrompt = true;
                }
@@ -253,16 +250,16 @@ DWORD CSshThread::Run()
    return 0;
 }
 
-CHAR CSshThread::_GetByte(CRYPT_SESSION cryptSession, const LPBYTE pBuffer, int iRead, int& iPos) const
+CHAR CSshThread::_GetByte(CRYPT_SESSION cryptSession, const LPBYTE pBuffer, int iLength, int& iPos) const
 {
    ATLASSERT(pBuffer);
    // First check if the buffer contains enough data
-   if( iPos < iRead ) return pBuffer[iPos++];
+   if( iPos < iLength ) return pBuffer[iPos++];
    // Ok, we need to receive more data...
    CHAR b = 0;
-   int iReadNow = 0;
-   clib.cryptPopData(cryptSession, &b, 1, &iReadNow);
-   ATLASSERT(iReadNow==1); iReadNow;
+   int iRead = 0;
+   clib.cryptPopData(cryptSession, &b, 1, &iRead);
+   ATLASSERT(iRead==1); iRead;
    return b;
 }
 
@@ -401,6 +398,7 @@ CString CSshProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Password") ) return m_sPassword;
    if( sName == _T("Extra") ) return m_sExtraCommands;
    if( sName == _T("Port") ) return ToString(m_lPort);
+   if( sName == _T("Type") ) return _T("SSH");
    return "";
 }
 

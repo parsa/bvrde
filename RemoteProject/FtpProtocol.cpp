@@ -43,6 +43,8 @@ DWORD CFtpThread::Run()
 {
    ATLASSERT(m_pManager);
 
+   // Get connect parameters
+   // TODO: Protect these guys with thread-lock
    CString sHost = m_pManager->m_sHost;
    CString sUsername = m_pManager->m_sUsername;
    CString sPassword = m_pManager->m_sPassword;
@@ -237,6 +239,7 @@ CString CFtpProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Passive") ) return m_bPassive ? _T("true") : _T("false");
    if( sName == _T("Proxy") ) return m_sProxy;
    if( sName == _T("Separator") ) return _T("/");
+   if( sName == _T("Type") ) return _T("FTP");
    return "";
 }
 

@@ -20,6 +20,7 @@ DWORD CTelnetThread::Run()
    CSocket& socket = m_pManager->m_socket;
    
    // Get connect parameters
+   // TODO: Protect these guys with thread-lock
    CString sHost = m_pManager->GetParam(_T("Host"));
    CString sUsername = m_pManager->GetParam(_T("Username"));
    CString sPassword = m_pManager->GetParam(_T("Password"));
@@ -141,6 +142,7 @@ DWORD CTelnetThread::Run()
             CString s = _GetLine(bReadBuffer, 0, dwRead);
             s.MakeUpper();
             // Did authorization fail?
+            // BUG: Localization!!!
             static LPCTSTR pstrFailed[] =
             {
                _T("AUTHORIZATION FAILED"),
@@ -199,7 +201,7 @@ DWORD CTelnetThread::Run()
                      // Skip OSC
                      while( true ) {
                         b = _GetByte(socket, bReadBuffer, dwRead, iPos);
-                        if( b == 94 || b == 7 ) break;
+                        if( b == 94 || b == 7 || b == 0 ) break;
                      }
                      bNextIsPrompt = true;
                   }
@@ -274,7 +276,7 @@ DWORD CTelnetThread::Run()
                            aSend.Add( (BYTE)(24 & 0xFF) );
                            aSend.Add( (BYTE) TELNET_IAC );
                            aSend.Add( (BYTE) TELNET_SE );
-                           m_pManager->m_bCanWindowSize;
+                           m_pManager->m_bCanWindowSize = true;
                         }
                      }
                   }
@@ -306,13 +308,12 @@ DWORD CTelnetThread::Run()
                            aSend.Add( (BYTE) TELNET_SB );
                            aSend.Add( bType );
                            aSend.Add( 0 );
-                           /*
-                           aSend.Add('V');
-                           aSend.Add('T');
-                           aSend.Add('1');
-                           aSend.Add('0');
-                           aSend.Add('0');
-                           */
+                           // NOTE: We could send "VT100" here because even the most
+                           //       crappy TELNET server will understand this. Actually
+                           //       the DUMB termial is mentioned in the original RFC
+                           //       docs and should be good enough for all servers!
+                           // RANT: No, not for LINUX - it still sends its stupid
+                           //       ANSI escape codes....
                            aSend.Add('D');
                            aSend.Add('U');
                            aSend.Add('M');
@@ -416,7 +417,7 @@ void CTelnetThread::_NegotiateOption(LPBYTE pList, CSimpleValArray<BYTE>& aSend,
    aSend.Add( (BYTE) TELNET_IAC );
    aSend.Add( bAction );
    aSend.Add( nCmd );
-   pList[nCmd] |= TELNET_DO ? NEGOTIATED_DO : NEGOTIATED_WILL;
+   pList[nCmd] |= bAction == TELNET_DO ? NEGOTIATED_DO : NEGOTIATED_WILL;
 }
 
 
@@ -536,6 +537,7 @@ CString CTelnetProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Password") ) return m_sPassword;
    if( sName == _T("Extra") ) return m_sExtraCommands;
    if( sName == _T("Port") ) return ToString(m_lPort);
+   if( sName == _T("Type") ) return _T("Telnet");
    return "";
 }
 
