@@ -368,6 +368,8 @@ bool CDebugManager::RunDebug()
    aList.Add(sCommand);   
    if( !_AttachProcess(aList) ) return false;
    // Start debugging session
+   sCommand.Format(_T("-exec-arguments %s"), m_sAppArgs);
+   DoDebugCommand(sCommand);
    return DoDebugCommand(_T("-exec-run"));
 }
 
@@ -682,9 +684,9 @@ void CDebugManager::_ParseNewFrame(CMiInfo& info)
 
 /**
  * Update internal breakpoint structures.
- * This method gets called when the GDB debugger deliver an updated
- * debug list and tells us which internal breakpoint-nr it assigned
- * out new breakpoint.
+ * This method gets called when the GDB debugger delivers an updated
+ * debug list and tells us which internal breakpoint-nr it assigned to 
+ * our new breakpoint.
  */
 void CDebugManager::_UpdateBreakpoint(CMiInfo& info)
 {   
@@ -879,15 +881,24 @@ void CDebugManager::_ParseTargetOutput(LPCTSTR /*pstrText*/)
 {
 }
 
-void CDebugManager::_ParseLogOutput(LPCTSTR /*pstrText*/)
+void CDebugManager::_ParseLogOutput(LPCTSTR pstrText)
 {
+   CString sLine = pstrText;
+   // Project name is not the executable name
+   if( sLine.Find(_T("No executable file specified")) >= 0 
+       || sLine.Find(_T("No executable specified, use")) >= 0 ) 
+   {
+      m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NOEXECUTABLE)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
+      SignalStop();
+   }
 }
 
 void CDebugManager::_ParseKeyPrompt(LPCTSTR pstrText)
 {
    // FIX: How "Machine Interface" is it really, when GDB from time to time
    //      prompts me to hit return to continue?!!
-   if( _tcsncmp(pstrText, _T("---Type <return>"), 16) == 0 ) DoDebugCommand(_T("\r\n"));
+   CString sLine = pstrText;
+   if( sLine.Find(_T("---Type <return>")) >= 0 ) DoDebugCommand(_T("\r\n"));
 }
 
 /**

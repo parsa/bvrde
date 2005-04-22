@@ -58,8 +58,9 @@ public:
    CString GetParam(LPCTSTR pstrName) const;
    void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue);
 
+   bool WaitForConnection();
+
 protected:
-   bool _WaitForConnection();
    DWORD _SendInit();
    CString _ResolvePath(LPCTSTR pstrPath);
    int _ReadData(CRYPT_SESSION cryptSession, LPVOID pData, int iMaxSize);
@@ -74,6 +75,7 @@ protected:
    CString m_sProxy;
    CString m_sSearchPath;
    bool m_bPassive;
+   long m_lConnectTimeout;
    //
    CSftpThread m_thread;
    CString m_sCurDir;

@@ -250,9 +250,9 @@ public:
 
       // Make it sound like a Windows MessageBox
       ::MessageBeep(m_uType & MB_ICONMASK);
-      
+
       CenterWindow(GetParent());
-      
+
       // Handle default-button change
       if( (m_uType & MB_TYPEMASK) == MB_OK 
           || ((m_ctrlOK.GetStyle() & WS_VISIBLE) != 0 

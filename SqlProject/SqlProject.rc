@@ -537,12 +537,13 @@ BEGIN
     ID_QUERY_RUN            "Run query\nRun Query"
     ID_QUERY_STOP           "Stop running query\nStop Query"
     ID_QUERY_RUNSELECTED    "Run selected text\nRun Selected Text"
-    ID_ADD_DATABASE         "Create a new databasen entry\nAdd New Link"
+    ID_ADD_DATABASE         "Create a new database entry\nAdd New Link"
     ID_DATABASE_DISCONNECT  "Disconnect database\nDisconnect"
     ID_FILE_PROPERTIES      "Show Properties\nProperties"
-    ID_HISTORY_DELETE       "Delete history entry\nDelete SQL"
+    ID_HISTORY_DELETE       "Delete history entry\nDelete history"
     ID_HISTORY_NEW          "Create blank page and push text to history\nNew SQL"
     ID_HISTORY_RIGHT        "Go forward in SQL history\nForward in history"
+    ID_HISTORY_LEFT         "Go back in SQL history\nBack in history"
     ID_QUERY_INSPECT        "Inspect\nInspect"
 END
 
@@ -556,12 +557,24 @@ BEGIN
     ID_VIEW_TAB1            "Go to SQL view\nSQL View"
     ID_VIEW_TAB2            "Go to Result view\nResult View"
     ID_VIEW_TAB3            "Go to SQL Result View\nResult View"
-    ID_HISTORY_LEFT         "Go back in SQL history\nBack in history"
+    ID_EDIT_AUTOCOMPLETE    "Autocomplete the word at the cursor\nAutocomplete"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_FILE_SAVE            "Save as SQL file\nSave SQL"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_UPPERCASE       "Make selection uppercase\nUppercase"
+    ID_EDIT_LOWERCASE       "Make selection lowercase\nLowercase"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_ZOOM_IN         "Zoom In\nZoom In"
+    ID_EDIT_ZOOM_OUT        "Zoom Out\nZoom Out"
 END
 
 #endif    // English (U.S.) resources

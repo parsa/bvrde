@@ -475,6 +475,7 @@ LRESULT CMainFrame::OnFileSaveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    // TODO: Don't rely on messages
    CWindow(m_hWndMDIClient).SendMessageToDescendants(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE, 0));
    if( g_pSolution->IsLoaded() ) g_pSolution->SaveSolution(NULL);
+   m_MDIContainer.RefreshItems();
    PlayAnimation(FALSE, 0);
    return 0;
 }

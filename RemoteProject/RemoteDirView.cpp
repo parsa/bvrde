@@ -23,7 +23,7 @@ void CRemoteDirView::Init(CRemoteProject* pProject)
    ATLASSERT(!m_sSeparator.IsEmpty());
 }
 
-void CRemoteDirView::Release()
+void CRemoteDirView::Detach()
 {
    m_pProject = NULL;
    m_pFileManager = NULL;
@@ -93,6 +93,29 @@ LRESULT CRemoteDirView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
    return 0;
 }
 
+LRESULT CRemoteDirView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
+   int iItem = m_ctrlFiles.GetSelectedIndex();
+   if( iItem < 0 ) return 0;
+   // Load and show menu
+   DWORD dwPos = ::GetMessagePos();
+   POINT ptPos = { GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos) };
+   CMenu menu;
+   menu.LoadMenu(IDR_REMOTEDIR);
+   CMenuHandle submenu = menu.GetSubMenu(0);
+   UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, ptPos, FALSE, this);
+   // Handle result locally
+   switch( nCmd ) {
+   case ID_REMOTEDIR_OPEN:
+      {
+         m_ctrlFiles.SelectItem(iItem);
+         OnItemOpen(0, NULL, bHandled);
+      }
+      break;
+   }
+   return 0;
+}
+
 LRESULT CRemoteDirView::OnCtlColorStatic(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
    if( (HWND) lParam != m_ctrlNoConnection ) {
@@ -141,9 +164,21 @@ LRESULT CRemoteDirView::OnSelChanged(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
    return 0;
 }
 
-
 LRESULT CRemoteDirView::OnBeginDrag(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
+   if( m_ctrlFiles.GetSelectedCount() != 1 ) return 0;
+   int iItem = m_ctrlFiles.GetSelectedIndex();
+   CString sFilename;
+   m_ctrlFiles.GetItemText(iItem, 0, sFilename);
+   if( sFilename.GetLength() == 0 ) return 0;
+   DWORD dwAttribs = m_ctrlFiles.GetItemData(iItem);
+   if( (dwAttribs & FILE_ATTRIBUTE_DIRECTORY) != 0 ) return 0;
+   USES_CONVERSION;
+   CComObject<CSimpleDataObj>* pObj = NULL;
+   if( FAILED( CComObject<CSimpleDataObj>::CreateInstance(&pObj) ) ) return 0;
+   if( FAILED( pObj->SetHDropData(T2CA(m_sPath + sFilename)) ) ) return 0;
+   DWORD dwEffect = 0;
+   ::DoDragDrop(pObj, this, DROPEFFECT_COPY, &dwEffect);
    return 0;
 }
 
@@ -310,3 +345,21 @@ int CALLBACK CRemoteDirView::_ListSortProc(LPARAM lParam1, LPARAM lParam2, LPARA
    if( lRes != 0 ) return lRes;
    return ::lstrcmp(lvi1.pszText, lvi2.pszText);
 }
+
+// IIdleListener
+
+void CRemoteDirView::OnIdle(IUpdateUI* pUIBase)
+{   
+   BOOL bEnabled = FALSE;
+   int iItem = m_ctrlFiles.GetSelectedIndex();
+   if( iItem >= 0 ) {
+      DWORD dwAttribs = m_ctrlFiles.GetItemData(iItem);
+      bEnabled = ((dwAttribs & FILE_ATTRIBUTE_DIRECTORY) == 0);
+   }
+   pUIBase->UIEnable(ID_REMOTEDIR_OPEN, bEnabled);
+}
+
+void CRemoteDirView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+{
+}
+

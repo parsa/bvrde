@@ -1099,7 +1099,7 @@ BEGIN
     ID_WINDOW_VIEW          "Choose among active windows\nWindows"
     ID_WINDOW_CLOSE         "Close active window\nClose window"
     ID_WINDOW_CLOSE_ALL     "Close all open windows\nClose all"
-    ID_TOOLS_OPTIONS        "Show solution options\nOptions"
+    ID_TOOLS_OPTIONS        "Show Solution Options\nOptions"
     ID_TOOLS_CUSTOMIZE      "Customize application settings\nCustomize"
     ID_TOOLS_EXTERNAL       "Manage external tools\nExternal Tools"
 END
@@ -1109,9 +1109,12 @@ BEGIN
     ID_VIEW_PROPERTIES      "Show Properties\nProperties"
     ID_VIEW_OUTPUT          "Show/Hide the Output window\nOutput"
     ID_VIEW_COMMAND         "Show/Hide Command window\nCommand"
-    ID_VIEW_OPEN            "Open the document\\Open"
+    ID_VIEW_OPEN            "Opens the document\\Open"
     ID_HELP_STARTPAGE       "Show Start Page\nStart Page"
     ID_HELP_SEARCH          "Search for items in documentation\nSearch"
+    ID_HELP_CONTENTS        "Displays the table of contents of the online documentation\nContents"
+    ID_MACRO_RECORD         "Record a Macro\nRecord Macro"
+    ID_MACRO_CANCEL         "Stop recording a Macro\nStop Recording"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1239,6 +1242,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_VIEW_PROPERTYBAR     "Show/Hide the Property View\nProperty View"
     ID_TAB_CLOSE            "Close current document\nClose"
     ID_TAB_CLOSEALL         "Ckose all documents\nClose all"
 END
@@ -1258,6 +1262,20 @@ BEGIN
     IDS_CUSTOMIZE           "Customize"
     IDS_TOOLTYPE_DEBUGGER   "Debugger"
     IDS_EXTERNALTOOL        "Launches an external tool\nRun Tool"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_WINDOW_NEXT          "Activate the next document\nNext"
+    ID_WINDOW_PREVIOUS      "Activate the previous document\nPrevious"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_TOOLS_ADDIN_MANAGER  "Display the Add-In Manager\nAdd-In Manager"
+    ID_MACRO_SAVE           "Save a Macro to disk\nSave Macro"
+    ID_MACRO_PLAY           "Replay a macro\nPlay Macro"
+    ID_MACRO_MANAGER        "Display the Macro Manager\nMacro Manager"
 END
 
 #endif    // English (U.S.) resources

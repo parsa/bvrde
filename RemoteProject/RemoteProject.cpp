@@ -139,6 +139,9 @@ BOOL WINAPI Plugin_DestroyProject(IProject* pProject)
 EXTERN_C
 UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR pstrFilename)
 {
+   // If a filename looks like it's from a remote server (UNIX syntax)
+   // we'll try to snag it at any cost...
+   if( pstrFilename[0] == '/' ) return 80;
    // We support all file types!!!
    return 20;
 }
@@ -148,10 +151,15 @@ IView* WINAPI Plugin_CreateView(LPCTSTR pstrFilename, IProject* pProject, IEleme
 {
    if( pstrFilename == NULL ) return NULL;
 
+   BOOL bRemoteFile = pstrFilename[0] == '/';
+
    CRemoteProject* pCppProject = NULL;
    // Only accept IProject attachment if it comes from another
    // "Remote C++" plugin. Otherwise we don't know how to handle
    // internal messaging (eg. debugging).
+   if( bRemoteFile && pProject == NULL ) {
+      pProject = _pDevEnv->GetSolution()->GetActiveProject();
+   }
    if( pProject ) {
       TCHAR szType[64] = { 0 };
       pProject->GetClass(szType, 63);
@@ -169,7 +177,7 @@ IView* WINAPI Plugin_CreateView(LPCTSTR pstrFilename, IProject* pProject, IEleme
    CViewSerializer arc;
    arc.Add(_T("name"), ::PathFindFileName(pstrFilename));
    arc.Add(_T("filename"), pstrFilename);
-   arc.Add(_T("location"), _T("local"));
+   arc.Add(_T("location"), bRemoteFile ? _T("remote") : _T("local"));
    pView->Load(&arc);
 
    return pView;

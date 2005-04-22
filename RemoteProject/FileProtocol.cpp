@@ -235,3 +235,7 @@ CString CFileProtocol::FindFile(LPCTSTR pstrFilename)
    return _T("");
 }
 
+bool CFileProtocol::WaitForConnection()
+{
+   return true;
+}

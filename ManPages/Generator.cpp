@@ -148,7 +148,7 @@ HRESULT CManPageGenerator::OnIncomingLine(BSTR bstr)
 HRESULT CManPageGenerator::QueryInterface(REFIID riid, void** ppvObject)
 {
    if( riid == __uuidof(ILineCallback) || riid == IID_IUnknown ) {
-      *ppvObject = (ILineCallback*) this;
+      *ppvObject = static_cast<ILineCallback*>(this);
       return S_OK;
    }
    return E_NOINTERFACE;

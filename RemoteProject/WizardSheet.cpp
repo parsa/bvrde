@@ -164,10 +164,12 @@ LRESULT CFileTransferPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    fm.SetParam(_T("Password"), sPassword);
    fm.SetParam(_T("Port"), ToString(lPort));
    fm.SetParam(_T("Path"), sPath);
-   fm.Start();
+   fm.SetParam(_T("Proxy"), m_pProject->m_FileManager.GetParam(_T("Proxy")));
+   fm.SetParam(_T("Passive"), m_pProject->m_FileManager.GetParam(_T("Passive")));
+   fm.SetParam(_T("ConnectionTimeout"), m_pProject->m_FileManager.GetParam(_T("ConnectionTimeout")));
    // The actual test of how we got connected, is to try to set the current path.
    // The file protocol should set a meaningful error code.
-   if( !fm.SetCurPath(sPath) ) {
+   if( !fm.Start() || !fm.WaitForConnection() || !fm.SetCurPath(sPath) ) {
       DWORD dwErr = ::GetLastError();
       fm.SignalStop();
       GenerateError(_pDevEnv, IDS_ERR_NOCONNECTION, dwErr);
@@ -251,11 +253,17 @@ LRESULT CFileOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
    sValue = m_pProject->m_FileManager.GetParam(_T("Proxy"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 2));
 
-   sName.LoadString(IDS_MORE);
+   sName.LoadString(IDS_PATHS);
    m_ctrlList.AddItem(PropCreateCategory(sName));
    sName.LoadString(IDS_COMMAND_SEARCHPATH);
    sValue = m_pProject->m_FileManager.GetParam(_T("SearchPath"));
-   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 3));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 10));
+
+   sName.LoadString(IDS_MISC);
+   m_ctrlList.AddItem(PropCreateCategory(sName));
+   sName.LoadString(IDS_MISC_CONNECTTIMEOUT);
+   sValue = m_pProject->m_FileManager.GetParam(_T("ConnectTimeout"));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 20));
 
    return 0;
 }
@@ -264,6 +272,7 @@ int CFileOptionsPage::OnSetActive()
 {
    m_ctrlList.SetItemEnabled(m_ctrlList.FindProperty(1), g_data.iType == FILETRANSFER_FTP);
    m_ctrlList.SetItemEnabled(m_ctrlList.FindProperty(2), g_data.iType == FILETRANSFER_FTP);
+   m_ctrlList.SetItemEnabled(m_ctrlList.FindProperty(20), g_data.iType != FILETRANSFER_NETWORK);
    return 0;
 }
 
@@ -278,9 +287,14 @@ int CFileOptionsPage::OnApply()
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(2), &v);
    m_pProject->m_FileManager.SetParam(_T("Proxy"), CString(v.bstrVal));
+
    v.Clear();
-   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(3), &v);
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(10), &v);
    m_pProject->m_FileManager.SetParam(_T("SearchPath"), CString(v.bstrVal));
+
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(20), &v);
+   m_pProject->m_FileManager.SetParam(_T("ConnectTimeout"), CString(v.bstrVal));
 
    return PSNRET_NOERROR;
 }
@@ -358,8 +372,8 @@ LRESULT CCompilerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    sm.SetParam(_T("Port"), ToString(lPort));
    sm.SetParam(_T("Path"), sPath);
    sm.SetParam(_T("Extra"), sExtra);
-   sm.Start();
-   if( !sm.WaitForConnection() ) {
+   sm.SetParam(_T("ConnectionTimeout"), m_pProject->m_CompileManager.GetParam(_T("ConnectionTimeout")));
+   if( !sm.Start() || !sm.WaitForConnection() ) {
       DWORD dwErr = ::GetLastError();
       sm.SignalStop();
       GenerateError(_pDevEnv, IDS_ERR_NOCONNECTION, dwErr);
@@ -499,7 +513,7 @@ LRESULT CCompilerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    sValue = m_pProject->m_CompileManager.GetParam(_T("ReleaseExport"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 11));
 
-   sName.LoadString(IDS_MISC);
+   sName.LoadString(IDS_FLAGS);
    m_ctrlList.AddItem(PropCreateCategory(sName));
    sName.LoadString(IDS_COMMAND_BUILDCTAGS);
    sValue = m_pProject->m_CompileManager.GetParam(_T("BuildTags"));
@@ -510,6 +524,12 @@ LRESULT CCompilerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    sName.LoadString(IDS_COMMAND_LINKFLAGS);
    sValue = m_pProject->m_CompileManager.GetParam(_T("LinkFlags"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 22));
+
+   sName.LoadString(IDS_MISC);
+   m_ctrlList.AddItem(PropCreateCategory(sName));
+   sName.LoadString(IDS_MISC_CONNECTTIMEOUT);
+   sValue = m_pProject->m_FileManager.GetParam(_T("ConnectTimeout"));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 30));
 
    return 0;
 }
@@ -559,6 +579,10 @@ int CCompilerCommandsPage::OnApply()
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(22), &v);
    m_pProject->m_CompileManager.SetParam(_T("LinkFlags"), CString(v.bstrVal));
+
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(30), &v);
+   m_pProject->m_CompileManager.SetParam(_T("ConnectTimeout"), CString(v.bstrVal));
 
    return PSNRET_NOERROR;
 }
@@ -664,8 +688,9 @@ LRESULT CDebuggerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    sm.SetParam(_T("Port"), ToString(lPort));
    sm.SetParam(_T("Path"), sPath);
    sm.SetParam(_T("Extra"), sExtra);
-   sm.Start();
-   if( !sm.WaitForConnection() ) {
+   sm.SetParam(_T("StartTimeout"), m_pProject->m_DebugManager.GetParam(_T("StartTimeout")));
+   sm.SetParam(_T("ConnectionTimeout"), m_pProject->m_DebugManager.GetParam(_T("ConnectionTimeout")));
+   if( !sm.Start() || !sm.WaitForConnection() ) {
       DWORD dwErr = ::GetLastError();
       sm.SignalStop();
       GenerateError(_pDevEnv, IDS_ERR_NOCONNECTION, dwErr);
@@ -749,19 +774,22 @@ LRESULT CDebuggerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    m_ctrlList.AddItem(PropCreateCategory(sName));
    sName.LoadString(IDS_COMMAND_EXECUTE);
    sValue = m_pProject->m_DebugManager.GetParam(_T("Debugger"));
-   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 4));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 10));
    sName.LoadString(IDS_COMMAND_PARAMS);
    sValue = m_pProject->m_DebugManager.GetParam(_T("DebuggerArgs"));
-   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 5));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 11));
    sName.LoadString(IDS_COMMAND_MAIN);
    sValue = m_pProject->m_DebugManager.GetParam(_T("DebugMain"));
-   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 6));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 12));
 
    sName.LoadString(IDS_MISC);
    m_ctrlList.AddItem(PropCreateCategory(sName));
-   sName.LoadString(IDS_COMMAND_STARTTIMEOUT);
+   sName.LoadString(IDS_MISC_STARTTIMEOUT);
    sValue = m_pProject->m_DebugManager.GetParam(_T("StartTimeout"));
-   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 7));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 20));
+   sName.LoadString(IDS_MISC_CONNECTTIMEOUT);
+   sValue = m_pProject->m_FileManager.GetParam(_T("ConnectTimeout"));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 21));
 
    return 0;
 }
@@ -785,18 +813,23 @@ int CDebuggerCommandsPage::OnApply()
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(3), &v);
    m_pProject->m_DebugManager.SetParam(_T("AppArgs"), CString(v.bstrVal));
+
    v.Clear();
-   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(4), &v);
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(10), &v);
    m_pProject->m_DebugManager.SetParam(_T("Debugger"), CString(v.bstrVal));
    v.Clear();
-   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(5), &v);
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(11), &v);
    m_pProject->m_DebugManager.SetParam(_T("DebuggerArgs"), CString(v.bstrVal));
    v.Clear();
-   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(6), &v);
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(12), &v);
    m_pProject->m_DebugManager.SetParam(_T("DebugMain"), CString(v.bstrVal));
+
    v.Clear();
-   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(7), &v);
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(20), &v);
    m_pProject->m_DebugManager.SetParam(_T("StartTimeout"), CString(v.bstrVal));
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(21), &v);
+   m_pProject->m_DebugManager.SetParam(_T("ConnectTimeout"), CString(v.bstrVal));
 
    return PSNRET_NOERROR;
 }

@@ -37,7 +37,7 @@ bool CDisasmView::WantsData()
 void CDisasmView::PopulateView(CSimpleArray<CString>& aDbgCmd)
 {
    // Estimate instruction count needed to fill screen
-   const long AVG_INST_SIZE = 5;
+   const long AVG_INST_SIZE = 4;
    CClientRect rcClient = m_hWnd;
    long lRows = (rcClient.bottom - rcClient.top) / m_tm.tmHeight * AVG_INST_SIZE;
    // Execute command
@@ -46,7 +46,7 @@ void CDisasmView::PopulateView(CSimpleArray<CString>& aDbgCmd)
    aDbgCmd.Add(sCommand);
    sCommand.Format(_T("-data-disassemble -s $pc -e \"$pc + %ld\" -- %ld"), 
       lRows,
-      m_bShowSource ? 1 : 0);
+      m_bShowSource ? 1L : 0L);
    aDbgCmd.Add(sCommand);
 }
 

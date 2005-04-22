@@ -106,14 +106,15 @@ DWORD CSftpThread::Run()
 
    // Get connect parameters
    // TODO: Protect these guys with thread-lock
-   CString sHost = m_pManager->m_sHost;
-   CString sUsername = m_pManager->m_sUsername;
-   CString sPassword = m_pManager->m_sPassword;
-   long lPort = m_pManager->m_lPort;
+   CString sHost = m_pManager->GetParam(_T("Host"));
+   CString sUsername = m_pManager->GetParam(_T("Username"));
+   CString sPassword = m_pManager->GetParam(_T("Password"));
+   long lPort = _ttol(m_pManager->GetParam(_T("Port")));
    CString sCertificate = m_pManager->GetParam(_T("Certificate"));
-   CString sPath = m_pManager->m_sPath;
-   CString sProxy = m_pManager->m_sProxy;
-   bool bPassive = m_pManager->m_bPassive;
+   CString sPath = m_pManager->GetParam(_T("Path"));
+   CString sProxy = m_pManager->GetParam(_T("Proxy"));
+   bool bPassive = m_pManager->GetParam(_T("Passive")) == _T("true");
+   long lConnectTimeout = _ttol(m_pManager->GetParam(_T("ConnectTimeout")));
 
    // Check for the presence of a private key
    if( sCertificate.IsEmpty() ) {
@@ -165,7 +166,13 @@ DWORD CSftpThread::Run()
       status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_VERSION, 2);
    }
    if( cryptStatusOK(status) ) {
-      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_SSH_SUBSYSTEM, "sftp", 4);
+      status = clib.cryptSetAttribute( cryptSession, CRYPT_SESSINFO_SSH_CHANNEL, CRYPT_UNUSED );
+   }
+   if( cryptStatusOK( status ) ) {
+      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_SSH_CHANNEL_TYPE, "subsystem", strlen("subsystem"));
+   }
+   if( cryptStatusOK( status ) ) {
+      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_SSH_CHANNEL_ARG1, "sftp", strlen("sftp"));
    }
    if( cryptStatusError(status) ) {
       m_pManager->m_dwErrorCode = ERROR_REQUEST_REFUSED;
@@ -177,15 +184,23 @@ DWORD CSftpThread::Run()
    }
 
    // Set timeout values
-   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_CONNECTTIMEOUT, 10 - 1);
-   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_TIMEOUT, 10);
+   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_CONNECTTIMEOUT, lConnectTimeout - 2);
+   //clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_TIMEOUT, lConnectTimeout);
+   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_READTIMEOUT, lConnectTimeout);
+   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_WRITETIMEOUT, lConnectTimeout);
 
    // Start connection
    status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_ACTIVE, TRUE);
    if( cryptStatusError(status) ) {
-      m_pManager->m_dwErrorCode = WSASERVICE_NOT_FOUND;
+      m_pManager->m_dwErrorCode = WSAEPROVIDERFAILEDINIT;
+      if( status == CRYPT_ERROR_OPEN ) m_pManager->m_dwErrorCode = WSASERVICE_NOT_FOUND;
+      if( status == CRYPT_ERROR_MEMORY ) m_pManager->m_dwErrorCode = ERROR_OUTOFMEMORY;
       if( status == CRYPT_ERROR_TIMEOUT ) m_pManager->m_dwErrorCode = ERROR_TIMEOUT;
+      if( status == CRYPT_ERROR_BADDATA ) m_pManager->m_dwErrorCode = WSAEPROTOTYPE;
+      if( status == CRYPT_ERROR_INVALID ) m_pManager->m_dwErrorCode = DIGSIG_E_CRYPTO;
       if( status == CRYPT_ERROR_WRONGKEY ) m_pManager->m_dwErrorCode = ERROR_NOT_AUTHENTICATED;
+      if( status == CRYPT_ERROR_OVERFLOW ) m_pManager->m_dwErrorCode = WSA_QOS_ADMISSION_FAILURE;
+      if( status == CRYPT_ERROR_SIGNALLED ) m_pManager->m_dwErrorCode = WSAECONNRESET;
       if( cryptSession != 0 ) {
          clib.cryptDestroySession(cryptSession);
          cryptSession = 0;
@@ -222,6 +237,7 @@ DWORD CSftpThread::Run()
 CSftpProtocol::CSftpProtocol() :
    m_cryptSession(0),
    m_lPort(22),
+   m_lConnectTimeout(0),
    m_dwErrorCode(0L),
    m_bConnected(false)
 {
@@ -242,6 +258,7 @@ void CSftpProtocol::Clear()
    m_sPath.Empty();
    m_sProxy.Empty();
    m_bPassive = false;
+   m_lConnectTimeout = 10;
 }
 
 bool CSftpProtocol::Load(ISerializable* pArc)
@@ -258,9 +275,12 @@ bool CSftpProtocol::Load(ISerializable* pArc)
    m_sPassword.ReleaseBuffer();
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
-   if( m_sPath.IsEmpty() ) m_sPath = _T("/");
    pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(128), 128);
    m_sSearchPath.ReleaseBuffer();
+   pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
+
+   if( m_sPath.IsEmpty() ) m_sPath = _T("/");
+   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 10;
 
    return true;
 }
@@ -274,6 +294,7 @@ bool CSftpProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("password"), m_sPassword);
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("searchPath"), m_sSearchPath);
+   pArc->Write(_T("connectTimeout"), m_lConnectTimeout);
    return true;
 }
 
@@ -322,7 +343,9 @@ CString CSftpProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Port") ) return ToString(m_lPort);
    if( sName == _T("Proxy") ) return m_sProxy;
    if( sName == _T("Separator") ) return _T("/");
+   if( sName == _T("Passive") ) return m_bPassive ? _T("true") : _T("false");
    if( sName == _T("Type") ) return _T("SFTP");
+   if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
    return "";
 }
 
@@ -337,6 +360,7 @@ void CSftpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Port") ) m_lPort = _ttol(pstrValue);
    if( sName == _T("Passive") ) m_bPassive = _tcscmp(pstrValue, _T("true")) == 0;
    if( sName == _T("Proxy") ) m_sProxy = pstrValue;
+   if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
 }
 
 bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, DWORD* pdwSize /* = NULL*/)
@@ -350,7 +374,7 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
    if( pdwSize ) *pdwSize = 0;
 
    // Connected?
-   if( !_WaitForConnection() ) return false;
+   if( !WaitForConnection() ) return false;
    // Need a valid session
    if( m_cryptSession == 0 ) return false;
 
@@ -482,7 +506,7 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
    }
 
    // Connected?
-   if( !_WaitForConnection() ) return false;
+   if( !WaitForConnection() ) return false;
    // Need a valid session
    if( m_cryptSession == 0 ) return false;
 
@@ -617,7 +641,7 @@ bool CSftpProtocol::SetCurPath(LPCTSTR pstrPath)
    ATLASSERT(pstrPath);
 
    // Wait for connection
-   if( !_WaitForConnection() ) return false;
+   if( !WaitForConnection() ) return false;
    // Need a valid session
    if( m_cryptSession == 0 ) return false;
 
@@ -639,7 +663,7 @@ CString CSftpProtocol::GetCurPath()
 bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
 {
    // Wait for connection
-   if( !_WaitForConnection() ) return false;
+   if( !WaitForConnection() ) return false;
    // Need a valid session
    if( m_cryptSession == 0 ) return false;
 
@@ -801,6 +825,53 @@ bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
    return bSuccess;
 }
 
+bool CSftpProtocol::WaitForConnection()
+{
+   // Wait for the thread to connect to the SFTP host.
+   const DWORD SPAWNTIMEOUT = 2UL;
+   DWORD dwTickStart = ::GetTickCount();
+   BOOL bHasRun = FALSE;
+   while( !m_bConnected ) {
+
+      // Idle wait a bit
+      ::Sleep(200L);
+
+      DWORD dwTick = ::GetTickCount();
+
+      // Did the server return some kind of error?
+      if( m_dwErrorCode != 0 ) {
+         ::SetLastError(m_dwErrorCode);
+         return false;
+      }
+
+      // Timeout after 10 sec.
+      if( dwTick - dwTickStart > (DWORD) m_lConnectTimeout * 1000UL ) {
+         if( m_dwErrorCode == 0 ) ::Sleep(2000L);
+         ::SetLastError(m_dwErrorCode == 0 ? ERROR_TIMEOUT : m_dwErrorCode);
+         return false;
+      }
+
+      bHasRun |= m_thread.IsRunning();
+      
+      // If the connect thread hasn't run after 2 secs, we might
+      // as well assume it failed or didn't run at all...
+      if( !bHasRun          
+          && dwTick - dwTickStart > SPAWNTIMEOUT * 1000UL ) 
+      {
+         // Attempt to reconnect to the remote host.
+         Start();
+         ::SetLastError(m_dwErrorCode == 0 ? ERROR_NOT_CONNECTED : m_dwErrorCode);
+         return false;
+      }
+
+      PumpIdleMessages();
+   }
+   ATLASSERT(m_cryptSession!=0);
+   return true;
+}
+
+// Implementation
+
 DWORD CSftpProtocol::_SendInit()
 {
    // Send INIT package
@@ -915,50 +986,6 @@ bool CSftpProtocol::_WriteData(CRYPT_SESSION cryptSession, LPCVOID pData, int iS
       ::SetLastError(ERROR_WRITE_FAULT);
       return false;
    }
-   return true;
-}
-
-bool CSftpProtocol::_WaitForConnection()
-{
-   // Wait for the thread to connect to the SFTP host.
-   const DWORD TIMEOUT = 10UL;
-   const DWORD SPAWNTIMEOUT = 2UL;
-   DWORD dwTickStart = ::GetTickCount();
-   BOOL bHasRun = FALSE;
-   int iCount = 0;
-   while( !m_bConnected ) {
-
-      // Did the server return some kind of error?
-      if( m_dwErrorCode != 0 ) {
-         ::SetLastError(m_dwErrorCode);
-         return false;
-      }
-
-      // Idle wait a bit
-      ::Sleep(200L);
-
-      // Timeout after 10 sec.
-      if( ::GetTickCount() - dwTickStart > TIMEOUT * 1000L ) {
-         ::SetLastError(ERROR_TIMEOUT);
-         return false;
-      }
-
-      bHasRun |= m_thread.IsRunning();
-      
-      // If the connect thread hasn't run after 2 secs, we might
-      // as well assume it failed or didn't run at all...
-      if( !bHasRun          
-          && ::GetTickCount() - dwTickStart > SPAWNTIMEOUT * 1000L ) 
-      {
-         // Attempt to reconnect to the remote host.
-         Start();
-         ::SetLastError(m_dwErrorCode == 0 ? ERROR_NOT_CONNECTED : m_dwErrorCode);
-         return false;
-      }
-
-      PumpIdleMessages();
-   }
-   ATLASSERT(m_cryptSession!=0);
    return true;
 }
 

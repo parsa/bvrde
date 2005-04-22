@@ -302,15 +302,18 @@ LRESULT CClassView::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
 
 LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
-   HTREEITEM hItem = m_ctrlTree.GetDropHilightItem();
+   // Determine click-point and tree-item below it
+   DWORD dwPos = ::GetMessagePos();
+   POINT ptPos = { GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos) };
+   POINT ptClient = ptPos;
+   ScreenToClient(&ptClient);
+   HTREEITEM hItem = m_ctrlTree.HitTest(ptClient, NULL);
    m_pCurrentTag = hItem == NULL ? NULL : (TAGINFO*) m_ctrlTree.GetItemData(hItem);
    // Load and show menu
    CMenu menu;
    menu.LoadMenu(hItem != NULL ? IDR_CLASSTREE_ITEM : IDR_CLASSTREE);
    CMenuHandle submenu = menu.GetSubMenu(0);
-   DWORD dwPos = ::GetMessagePos();
-   POINT pt = { GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos) };
-   UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, pt, FALSE, this);
+   UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, ptPos, FALSE, this);
    // Handle result locally
    switch( nCmd ) {
    case ID_CLASSVIEW_SORT:

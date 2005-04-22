@@ -25,10 +25,10 @@ DWORD CRloginThread::Run()
    CString sHost = m_pManager->GetParam(_T("Host"));
    CString sUsername = m_pManager->GetParam(_T("Username"));
    CString sPassword = m_pManager->GetParam(_T("Password"));
-   short iPort = (short) _ttol( m_pManager->GetParam(_T("Port")) );
+   short iPort = (short) _ttoi( m_pManager->GetParam(_T("Port")) );
    long lSpeed = _ttol( m_pManager->GetParam(_T("Speed")) );
    CString sExtraCommands = m_pManager->GetParam(_T("Extra"));
-   
+
    if( iPort == 0 ) iPort = 513;         // default rlogin port
    if( lSpeed == 0 ) lSpeed = 38600L;    // default terminal speed
    if( sPassword.IsEmpty() ) sPassword = SecGetPassword();
@@ -179,19 +179,21 @@ DWORD CRloginThread::Run()
                   // Skip the 0-answer
                   BYTE b = _GetByte(socket, bReadBuffer, dwRead, dwPos);
                   if( b == 0 ) {
-                     // Negotiate window size may be initiated
-                     b = _GetByte(socket, bReadBuffer, dwRead, dwPos);
-                     if( b == 0x80 ) {
-                        CLockStaticDataInit lock;
-                        int iTermWidth = 80;
-                        int iTermHeight = 24;
-                        BYTE b[12] = { 0xFF, 0xFF, 0x73, 0x73, 0, 0, 0, 0, 0, 0, 0, 0 };
-                        b[4] = (BYTE) ((iTermHeight >> 8) & 0xFF);
-                        b[5] = (BYTE) (iTermHeight & 0xFF);
-                        b[6] = (BYTE) ((iTermWidth >> 8) & 0xFF);
-                        b[7] = (BYTE) (iTermWidth & 0xFF);
-                        socket.Write(b, sizeof(b));
-                        m_pManager->m_bCanWindowSize = true;
+                     if( dwRead > 1 ) {
+                        // Negotiate window size may be initiated
+                        b = _GetByte(socket, bReadBuffer, dwRead, dwPos);
+                        if( b == 0x80 ) {
+                           CLockStaticDataInit lock;
+                           int iTermWidth = 80;
+                           int iTermHeight = 24;
+                           BYTE b[12] = { 0xFF, 0xFF, 0x73, 0x73, 0, 0, 0, 0, 0, 0, 0, 0 };
+                           b[4] = (BYTE) ((iTermHeight >> 8) & 0xFF);
+                           b[5] = (BYTE) (iTermHeight & 0xFF);
+                           b[6] = (BYTE) ((iTermWidth >> 8) & 0xFF);
+                           b[7] = (BYTE) (iTermWidth & 0xFF);
+                           socket.Write(b, sizeof(b));
+                           m_pManager->m_bCanWindowSize = true;
+                        }
                      }
                      bInitialized = true;
                   }
@@ -226,14 +228,14 @@ DWORD CRloginThread::Run()
             if( sLine.Find(_T("LOGIN:")) >= 0 ) {
                CLockStaticDataInit lock;
                CHAR szBuffer[200];
-               ::wsprintfA(szBuffer, "%ls\n", sUsername);
+               ::wsprintfA(szBuffer, "%ls\r\n", sUsername);
                ::send(socket, szBuffer, strlen(szBuffer), 0);
                ::Sleep(500L);
             }
             else if( sLine.Find(_T("PASSWORD:")) >= 0 ) {
                CLockStaticDataInit lock;
                CHAR szBuffer[200];
-               ::wsprintfA(szBuffer, "%ls\n", sPassword);
+               ::wsprintfA(szBuffer, "%ls\r\n", sPassword);
                ::send(socket, szBuffer, strlen(szBuffer), 0);
             }
             else if( *ppstr == NULL ) {
@@ -243,7 +245,7 @@ DWORD CRloginThread::Run()
                if( !sExtraCommands.IsEmpty() ) {
                   CLockStaticDataInit lock;
                   CHAR szBuffer[1024];
-                  ::wsprintfA(szBuffer, "%ls\n", sExtraCommands);
+                  ::wsprintfA(szBuffer, "%ls\r\n", sExtraCommands);
                   ::send(socket, szBuffer, strlen(szBuffer), 0);
                }
                m_pManager->m_bConnected = true;
@@ -377,6 +379,7 @@ CRloginProtocol::CRloginProtocol() :
    m_dwErrorCode(0),   
    m_bConnected(false),
    m_lSpeed(38400L),
+   m_lConnectTimeout(0),
    m_lPort(0)
 {
    Clear();
@@ -405,6 +408,7 @@ void CRloginProtocol::Clear()
    m_lSpeed = 38400L;
    m_sPath.Empty();
    m_sExtraCommands.Empty();
+   m_lConnectTimeout = 8;
    m_bCanWindowSize = false;
 }
 
@@ -425,7 +429,10 @@ bool CRloginProtocol::Load(ISerializable* pArc)
    m_sPath.ReleaseBuffer();
    pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(200), 200);
    m_sExtraCommands.ReleaseBuffer();
+   pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
+
    m_sExtraCommands.Replace(_T("\\n"), _T("\r\n"));
+   if( m_lConnectTimeout == 0 ) m_lConnectTimeout = 8;
    
    return true;
 }
@@ -444,6 +451,7 @@ bool CRloginProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("password"), m_sPassword);
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("extra"), sExtras);
+   pArc->Write(_T("connectTimeout"), m_lConnectTimeout);
 
    return true;
 }
@@ -494,6 +502,7 @@ CString CRloginProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Speed") ) return ToString(m_lSpeed);
    if( sName == _T("Extra") ) return m_sExtraCommands;
    if( sName == _T("Type") ) return _T("RLogin");
+   if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
    return "";
 }
 
@@ -507,6 +516,7 @@ void CRloginProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Port") ) m_lPort = _ttol(pstrValue);
    if( sName == _T("Speed") ) m_lSpeed = _ttol(pstrValue);
    if( sName == _T("Extra") ) m_sExtraCommands = pstrValue;
+   if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
 }
 
 bool CRloginProtocol::ReadData(CString& s, DWORD dwTimeout /*= 0*/)
@@ -529,7 +539,7 @@ bool CRloginProtocol::WriteData(LPCTSTR pstrData)
    LPSTR pstr = (LPSTR) _alloca(nLen + 2);
    ATLASSERT(pstr);
    AtlW2AHelper(pstr, pstrData, nLen + 1);
-   strcpy(pstr + nLen, "\n");
+   strcpy(pstr + nLen, "\r\n");
    CLockStaticDataInit lock;
    if( !m_socket.Write(pstr, nLen + 1) ) {
       m_pCallback->BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_LOG_SENDERROR)));
@@ -578,7 +588,6 @@ bool CRloginProtocol::WriteScreenSize(int w, int h)
 bool CRloginProtocol::WaitForConnection()
 {
    // Wait for the thread to connect to the Rlogin host.
-   const DWORD TIMEOUT = 8;
    const DWORD SPAWNTIMEOUT = 2;
    DWORD dwTickStart = ::GetTickCount();
    BOOL bHasRun = FALSE;
@@ -594,8 +603,10 @@ bool CRloginProtocol::WaitForConnection()
       // Idle wait a bit
       ::Sleep(200L);
 
+      DWORD dwTick = ::GetTickCount();
+
       // Timeout after 8 sec.
-      if( ::GetTickCount() - dwTickStart > TIMEOUT * 1000L ) {
+      if( dwTick - dwTickStart > (DWORD) m_lConnectTimeout * 1000UL ) {
          ::SetLastError(ERROR_TIMEOUT);
          return false;
       }
@@ -605,7 +616,7 @@ bool CRloginProtocol::WaitForConnection()
       // If the connect thread hasn't run after 2 secs, we might
       // as well assume it failed or didn't run at all...
       if( !bHasRun
-          && ::GetTickCount() - dwTickStart > SPAWNTIMEOUT * 1000L ) 
+          && dwTick - dwTickStart > SPAWNTIMEOUT * 1000UL ) 
       {
          // Attempt to reconnect to the remote host.
          // This will allow a periodically downed server to recover the connection.

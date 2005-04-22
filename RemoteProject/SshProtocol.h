@@ -75,6 +75,7 @@ protected:
    CString m_sPassword;
    CString m_sPath;
    CString m_sExtraCommands;
+   long m_lConnectTimeout;
    //
    CSshThread m_thread;
    CEvent m_event;

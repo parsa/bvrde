@@ -151,6 +151,7 @@ protected:
    CString m_sPassword;
    CString m_sPath;
    CString m_sExtraCommands;
+   long m_lConnectTimeout;
    //
    CTelnetThread m_thread;
    CSocket m_socket;

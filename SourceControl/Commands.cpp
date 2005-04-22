@@ -319,11 +319,13 @@ bool CScCommands::RemoveFile(CSimpleArray<CString>& aFiles)
 
 bool CScCommands::LogIn(CSimpleArray<CString>& aFiles)
 {
-   CLoginCvsDlg dlg;
    CString sCmd;
+   CString sPassword;
    sCmd.Format(_T("%s %s %s"), sProgram, sOptCommon, sCmdLogIn);
    if( sType == _T("cvs") ) {
+      CLoginCvsDlg dlg;
       if( dlg.DoModal() != IDOK ) return false;
+      sPassword = dlg.m_sPassword;
       sCmd += dlg.m_sOptions;
       // Hmm, the cvs server blocks the input through
       // the Telnet shell. We'll not send the password right
@@ -337,7 +339,7 @@ bool CScCommands::LogIn(CSimpleArray<CString>& aFiles)
    m_thread.Start();
    if( sType == _T("cvs") ) {
       m_thread.Stop();
-      sCmd = dlg.m_sPassword;
+      sCmd = sPassword;
       sCmd += _T("\n");
       m_thread.SetCommand(ID_SC_LOGIN, sCmd, 1000);
       m_thread.Start();

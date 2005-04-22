@@ -41,7 +41,8 @@ DWORD CSshThread::Run()
    CString sUsername = m_pManager->GetParam(_T("Username"));
    CString sPassword = m_pManager->GetParam(_T("Password"));
    CString sExtraCommands = m_pManager->GetParam(_T("Extra"));
-   long lPort = m_pManager->m_lPort;
+   long lPort = _ttol(m_pManager->GetParam(_T("Port")));
+   long lConnectTimeout = _ttol(m_pManager->GetParam(_T("ConnectTimeout")));
    CString sCertificate = m_pManager->GetParam(_T("Certificate"));
 
    // Check for the presence of a private key
@@ -103,21 +104,28 @@ DWORD CSshThread::Run()
    }
 
    // Set timeout values
-   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_CONNECTTIMEOUT, 10 - 1);
-   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_TIMEOUT, 5);
+   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_CONNECTTIMEOUT, lConnectTimeout - 2);
+   //clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_TIMEOUT, lConnectTimeout);
+   //clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_READTIMEOUT, lConnectTimeout);
+   //clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_WRITETIMEOUT, lConnectTimeout);
 
    // Start connection
    status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_ACTIVE, TRUE);
    if( cryptStatusError(status) ) {
-      m_pManager->m_dwErrorCode = WSASERVICE_NOT_FOUND;
+      m_pManager->m_dwErrorCode = WSAEPROVIDERFAILEDINIT;
+      if( status == CRYPT_ERROR_OPEN ) m_pManager->m_dwErrorCode = WSASERVICE_NOT_FOUND;
       if( status == CRYPT_ERROR_MEMORY ) m_pManager->m_dwErrorCode = ERROR_OUTOFMEMORY;
+      if( status == CRYPT_ERROR_BADDATA ) m_pManager->m_dwErrorCode = WSAEPROTOTYPE;
       if( status == CRYPT_ERROR_INVALID ) m_pManager->m_dwErrorCode = DIGSIG_E_CRYPTO;
       if( status == CRYPT_ERROR_TIMEOUT )  m_pManager->m_dwErrorCode = ERROR_TIMEOUT;
       if( status == CRYPT_ERROR_WRONGKEY ) m_pManager->m_dwErrorCode = ERROR_NOT_AUTHENTICATED;
+      if( status == CRYPT_ERROR_OVERFLOW ) m_pManager->m_dwErrorCode = WSA_QOS_ADMISSION_FAILURE;
+      if( status == CRYPT_ERROR_SIGNALLED ) m_pManager->m_dwErrorCode = WSAECONNRESET;
       CHAR szError[200] = { 0 };
       int ccbSize = sizeof(szError) - 1;
       clib.cryptGetAttributeString(cryptSession, CRYPT_ATTRIBUTE_INT_ERRORMESSAGE, szError, &ccbSize);
       m_pCallback->BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_LOG_SSHHOST)));
+      m_pCallback->BroadcastLine(VT100_RED, GetSystemErrorText(m_pManager->m_dwErrorCode));      
       m_pCallback->BroadcastLine(VT100_RED, A2CT(szError));
       if( cryptSession != 0 ) {
          clib.cryptDestroySession(cryptSession);
@@ -311,6 +319,7 @@ CSshProtocol::CSshProtocol() :
    m_cryptSession(0),
    m_dwErrorCode(0),
    m_bConnected(false),
+   m_lConnectTimeout(10),
    m_lPort(0)
 {
    Clear();
@@ -338,6 +347,7 @@ void CSshProtocol::Clear()
    m_lPort = 0;
    m_sPath.Empty();
    m_sExtraCommands.Empty();
+   m_lConnectTimeout = 10;
 }
 
 bool CSshProtocol::Load(ISerializable* pArc)
@@ -356,7 +366,10 @@ bool CSshProtocol::Load(ISerializable* pArc)
    m_sPath.ReleaseBuffer();
    pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(200), 200);
    m_sExtraCommands.ReleaseBuffer();
+   pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
+
    m_sExtraCommands.Replace(_T("\\n"), _T("\r\n"));
+   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 10;
 
    return true;
 }
@@ -374,6 +387,8 @@ bool CSshProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("password"), m_sPassword);
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("extra"), sExtras);
+   pArc->Write(_T("connectTimeout"), m_lConnectTimeout);
+
    return true;
 }
 
@@ -426,6 +441,7 @@ CString CSshProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Extra") ) return m_sExtraCommands;
    if( sName == _T("Port") ) return ToString(m_lPort);
    if( sName == _T("Type") ) return _T("SSH");
+   if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
    return "";
 }
 
@@ -438,6 +454,7 @@ void CSshProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Password") ) m_sPassword = pstrValue;
    if( sName == _T("Port") ) m_lPort = _ttol(pstrValue);
    if( sName == _T("Extra") ) m_sExtraCommands = pstrValue;
+   if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
 }
 
 bool CSshProtocol::ReadData(CString& s, DWORD dwTimeout /*= 0*/)
@@ -510,12 +527,15 @@ bool CSshProtocol::WriteScreenSize(int w, int h)
 bool CSshProtocol::WaitForConnection()
 {
    // Wait for the thread to connect to the SSH host.
-   const DWORD TIMEOUT = 10UL;
    const DWORD SPAWNTIMEOUT = 2UL;
    DWORD dwTickStart = ::GetTickCount();
    BOOL bHasRun = FALSE;
-   int iCount = 0;
    while( !m_bConnected ) {
+
+      // Idle wait a bit
+      ::Sleep(200L);
+
+      DWORD dwTick = ::GetTickCount();
 
       // Did the server return some kind of error?
       if( m_dwErrorCode != 0 ) {
@@ -523,12 +543,10 @@ bool CSshProtocol::WaitForConnection()
          return false;
       }
 
-      // Idle wait a bit
-      ::Sleep(200L);
-
       // Timeout after 10 sec.
-      if( ::GetTickCount() - dwTickStart > TIMEOUT * 1000L ) {
-         ::SetLastError(ERROR_TIMEOUT);
+      if( dwTick - dwTickStart > (DWORD) m_lConnectTimeout * 1000UL ) {
+         if( m_dwErrorCode == 0 ) ::Sleep(2000L);
+         ::SetLastError(m_dwErrorCode == 0 ? ERROR_TIMEOUT : m_dwErrorCode);
          return false;
       }
 
@@ -537,7 +555,7 @@ bool CSshProtocol::WaitForConnection()
       // If the connect thread hasn't run after 2 secs, we might
       // as well assume it failed or didn't run at all...
       if( !bHasRun
-          && ::GetTickCount() - dwTickStart > SPAWNTIMEOUT * 1000L ) 
+          && dwTick - dwTickStart > SPAWNTIMEOUT * 1000UL ) 
       {
          // Attempt to reconnect to the remote host.
          // This will allow a periodically downed server to recover the connection.

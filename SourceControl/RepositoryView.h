@@ -27,6 +27,7 @@ public:
    HWND m_hWnd;
    long m_lTimeout;
    CString m_sCommand;
+   CString m_sSourceType;
    CSimpleArray<FILEINFO> m_aResult;
    FILEINFO m_Info;
 
@@ -56,6 +57,7 @@ public:
    CStatic m_ctrlBuilding;
    CFileEnumThread m_thread;
    CString m_sSelPath;
+   COLORREF m_clrWarning;
 
    BEGIN_MSG_MAP(CRepositoryView)
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
@@ -81,8 +83,8 @@ public:
 
    // Implementation
 
-	void _ShowWaitingMessage(UINT nRes);
    CString _GetItemPath(HTREEITEM hItem) const;
+	void _ShowWaitingMessage(UINT nRes, COLORREF clrText);
    HTREEITEM _FindItemInTree(HTREEITEM hItem, LPCTSTR pstrName) const;
    bool _AddShellIcon(CImageListHandle& iml, LPCTSTR pstrExtension, DWORD dwFileAttribs, DWORD dwMoreFlags = 0) const;
 };

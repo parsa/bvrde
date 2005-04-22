@@ -151,10 +151,11 @@ public:
    virtual bool WriteData(LPCTSTR pstrData) = 0;
    virtual bool WriteSignal(BYTE bCmd) = 0;
    virtual bool WriteScreenSize(int w, int h) = 0;
-   virtual bool WaitForConnection() = 0;
    //
    virtual CString GetParam(LPCTSTR pstrName) const = 0;
    virtual void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue) = 0;
+   //
+   virtual bool WaitForConnection() = 0;
 };
 
 class IRemoteFileProtocol
@@ -177,6 +178,8 @@ public:
    //
    virtual CString GetParam(LPCTSTR pstrName) const = 0;
    virtual void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue) = 0;
+   //
+   virtual bool WaitForConnection() = 0;
 };
 
 class ITagHandler

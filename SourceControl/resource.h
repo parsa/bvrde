@@ -68,6 +68,7 @@
 #define IDS_BROWSER_SINGLE              1042
 #define IDS_BUILDING                    1043
 #define IDS_NOTCONFIGURED               1044
+#define IDS_SYSTEM_SUBVERSION           1045
 #define IDC_FINDTEXT                    1137
 #define IDC_WHOLEWORD                   1138
 #define IDC_KEEPOUT                     1138

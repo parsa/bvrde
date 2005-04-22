@@ -189,39 +189,6 @@ LRESULT CScintillaView::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
 
 LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
 {   
-/*
-   SetFocus();
-
-   long lPos = m_ctrlEdit.GetCurrentPos();
-   POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-
-   UINT nRes = IDR_EDIT_TEXT;
-   if( m_pCppProject 
-       && m_sLanguage == _T("cpp") ) 
-   {
-      nRes = IDR_EDIT_CPP;
-      if( m_pCppProject->m_DebugManager.IsDebugging() ) nRes = IDR_EDIT_DEBUG;
-   }
-
-   // Get the cursor position
-   POINT ptLocal = pt;
-   ScreenToClient(&ptLocal);
-   if( lParam == (LPARAM) -1 ) {
-      pt.x = m_ctrlEdit.PointXFromPosition(lPos);
-      pt.y = m_ctrlEdit.PointYFromPosition(lPos);
-   }
-
-   // Place cursor at mouse if not clicked inside a selection
-   lPos = m_ctrlEdit.PositionFromPoint(ptLocal.x, ptLocal.y);
-   CharacterRange cr = m_ctrlEdit.GetSelection();
-   if( lPos < cr.cpMin || lPos > cr.cpMax ) m_ctrlEdit.GotoPos(lPos);
-
-   CMenu menu;
-   menu.LoadMenu(nRes);
-   ATLASSERT(menu.IsMenu());
-   CMenuHandle submenu = menu.GetSubMenu(0);
-   _pDevEnv->ShowPopupMenu(NULL, submenu, pt);
-*/
    // Debugger has its own context menu
    bHandled = FALSE;
    if( m_pCppProject == NULL ) return 0;
@@ -702,7 +669,7 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    if( iMatchPos == 0 ) {
       iMatchPos = lLinePos;
       iMatchLength = m_ctrlEdit.GetLineLength(iLineNo);
-      // Let's trim the string if it contains leading spaces (look strupid)
+      // Let's trim the string if it contains leading spaces (looks strupid)
       LPCTSTR p = sLine;
       while( *p && _istspace(*p++) && iMatchLength > 0 ) {
          iMatchPos++;
@@ -757,7 +724,7 @@ int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings)
    m_ctrlEdit.SetTargetEnd(endPosition);
    m_ctrlEdit.SetSearchFlags(iFlags);
    int iFindPos = m_ctrlEdit.SearchInTarget(iLength, pstrText);
-   if( iFindPos == -1 && (iFlags & FR_WRAP) ) {
+   if( iFindPos == -1 && (iFlags & FR_WRAP) != 0 ) {
       // Failed to find in indicated direction,
       // so search from the beginning (forward) or from the end (reverse) unless wrap is false
       if( !bDirectionDown ) {
@@ -846,7 +813,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
    // the type of this variable
    int iLenEntered = 0;
    if( lBack == 0 ) {
-      // Trying to autocomplete an partial function-name. We'll have to
+      // Trying to autocomplete a partial function-name. We'll have to
       // look for the parent further back
       iLenEntered = sName.GetLength();
       sName = _GetNearText(lPos - iLenEntered - 3);

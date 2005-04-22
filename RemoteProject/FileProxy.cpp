@@ -165,3 +165,11 @@ CString CFileManager::FindFile(LPCTSTR pstrFilename)
    if( m_pProtocol == NULL ) return _T("");
    return m_pProtocol->FindFile(pstrFilename);
 }
+
+bool CFileManager::WaitForConnection()
+{
+   ATLASSERT(m_pProtocol);
+   if( m_pProtocol == NULL ) return FALSE;
+   return m_pProtocol->WaitForConnection();
+}
+

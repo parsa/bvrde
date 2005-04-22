@@ -188,6 +188,7 @@ public:
       COMMAND_ID_HANDLER(ID_DEBUG_CLEAR_BREAKPOINTS, OnDebugClearBreakpoints)     
       COMMAND_ID_HANDLER(ID_DEBUG_QUICKWATCH, OnDebugQuickWatch)
       COMMAND_ID_HANDLER(ID_DEBUG_PROCESSES, OnDebugProcesses)
+      COMMAND_ID_HANDLER(ID_DEBUG_ARGUMENTS, OnDebugArguments)
       COMMAND_ID_HANDLER(ID_BUILD_CLEAN, OnBuildClean)
       COMMAND_ID_HANDLER(ID_BUILD_PROJECT, OnBuildProject)
       COMMAND_ID_HANDLER(ID_BUILD_REBUILD, OnBuildRebuild)
@@ -237,6 +238,7 @@ public:
    LRESULT OnDebugClearBreakpoints(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugQuickWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugProcesses(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugArguments(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnBuildClean(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnBuildProject(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnBuildRebuild(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

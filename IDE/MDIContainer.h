@@ -59,6 +59,7 @@ public:
 
    void ChangeDirtyState(HWND hWnd)
    {
+      ATLASSERT(::IsWindow(hWnd));
       TCITEM tci = { 0 };
       tci.mask = TCIF_PARAM;
       tci.lParam = (LPARAM) hWnd;
@@ -70,6 +71,21 @@ public:
       tci.mask = TCIF_TEXT;
       tci.pszText = (LPTSTR) (LPCTSTR) sName;
       m_ctrlTab.SetItem(iIndex, &tci);
+   }
+   void RefreshItems()
+   {
+      int nCount = m_ctrlTab.GetItemCount();
+      for( int i = 0; i < nCount; i++ ) {
+         TCITEM tci = { 0 };
+         tci.mask = TCIF_PARAM;
+         m_ctrlTab.GetItem(i, &tci);
+         CString sName;
+         CString sFileName;
+         _LookupViewNames((HWND) tci.lParam, sName, sFileName);
+         tci.mask = TCIF_TEXT;
+         tci.pszText = (LPTSTR) (LPCTSTR) sName;
+         m_ctrlTab.SetItem(i, &tci);
+      }
    }
 
    // Message map and handler

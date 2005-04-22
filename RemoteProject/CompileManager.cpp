@@ -493,7 +493,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    CString sStatus;
    sStatus.Format(IDS_STATUS_STARTED, m_sProcessName);
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, TRUE);  
-   _pDevEnv->PlayAnimation(TRUE, ANIM_BUILD);
+   _pDevEnv->PlayAnimation(TRUE, (Flags & (COMPFLAG_IGNOREOUTPUT | COMPFLAG_COMMANDMODE)) == 0 ? ANIM_BUILD : ANIM_TRANSFER);
 
    m_ShellManager.AddLineListener(this);
 

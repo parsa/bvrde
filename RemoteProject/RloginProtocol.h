@@ -70,6 +70,7 @@ protected:
    CString m_sPath;
    CString m_sExtraCommands;
    long m_lSpeed;
+   long m_lConnectTimeout;
    //
    CRloginThread m_thread;
    CSocket m_socket;

@@ -264,6 +264,7 @@ BEGIN
             MENUITEM "&Break\tCtrl+Break",          ID_DEBUG_BREAK
             MENUITEM SEPARATOR
             MENUITEM "&Attach to Process",          ID_DEBUG_PROCESSES
+            MENUITEM "Set Program Arguments",       ID_DEBUG_ARGUMENTS
             MENUITEM SEPARATOR
             MENUITEM "Step &Into\tF11",             ID_DEBUG_STEP_INTO
             MENUITEM "Step &Over\tF10",             ID_DEBUG_STEP_OVER
@@ -398,6 +399,14 @@ BEGIN
         MENUITEM "Display as &DWORD",           ID_MEMORY_SIZE_DWORD
         MENUITEM "Display as &WORD",            ID_MEMORY_SIZE_WORD
         MENUITEM "Display as &BYTE",            ID_MEMORY_SIZE_BYTE
+    END
+END
+
+IDR_REMOTEDIR MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Open",                       ID_REMOTEDIR_OPEN
     END
 END
 
@@ -635,6 +644,18 @@ BEGIN
                     WS_TABSTOP
 END
 
+IDD_RUNARGUMENTS DIALOG DISCARDABLE  0, 0, 273, 68
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Progam Arguments"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Set the arguments to run the file with.",IDC_STATIC,7,7,
+                    207,11
+    EDITTEXT        IDC_ARGUMENTS,21,24,229,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,162,47,50,14,WS_DISABLED
+    PUSHBUTTON      "Cancel",IDCANCEL,216,47,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -712,6 +733,14 @@ BEGIN
         RIGHTMARGIN, 316
         TOPMARGIN, 7
         BOTTOMMARGIN, 154
+    END
+
+    IDD_RUNARGUMENTS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 266
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 61
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1092,7 +1121,7 @@ BEGIN
     IDS_ERR_DEBUGUNSTABLE   "Debugging unstable\nThe GDB Debugger is in an unstable state.\nThe Debugger reported an internal error and further debugging may be unreliable. Debug session is shutting down."
     IDS_STACKSUBSTR         ",  file"
     IDS_NETWORKDRIVE        "Network Drive"
-    IDS_COMMAND_STARTTIMEOUT "Start Timeout"
+    IDS_MISC_STARTTIMEOUT   "Start Timeout"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1147,6 +1176,10 @@ BEGIN
     IDS_NOCONNECTION        "No connection to the remote host at the moment."
     IDS_FILES               "Files"
     IDS_FILEMANAGER         "Remote Files"
+    IDS_MISC_CONNECTTIMEOUT "Connect Timeout"
+    IDS_FLAGS               "Link Flags"
+    IDS_PATHS               "Paths"
+    IDS_ERR_NOEXECUTABLE    "No executable\nNo executable was found to debug.\nMake sure the compile executable has debug information included or use the Debug Log to examine potential GDB errors."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1222,6 +1255,11 @@ BEGIN
     ID_EDIT_ZOOM_IN         "Zoom text in\nZoom In"
     ID_EDIT_ZOOM_OUT        "Zoom text out\nZoom out"
     ID_EDIT_DELLINE         "Delete line at cursor\nDelete Line"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_REMOTEDIR_OPEN       "Open selected file\nOpen"
 END
 
 #endif    // English (U.S.) resources

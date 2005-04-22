@@ -602,9 +602,10 @@ public:
       _Init();
       return lRes;
    }
-   LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+   LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {      
       DeleteAllItems(); // Make sure we clean up all items...
+      bHandled = FALSE;
       return 0;
    }
    LRESULT OnFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

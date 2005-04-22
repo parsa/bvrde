@@ -19,6 +19,14 @@ class COptionsPage : public CPropertyPageImpl<COptionsPage>
 public:
    enum { IDD = IDD_OPTIONS_COMMANDS };
 
+   enum
+   {
+      SC_SYSTEM_NONE = 0,
+      SC_SYSTEM_CVS,
+      SC_SYSTEM_SUBVERSION,
+      SC_SYSTEM_CUSTOM,
+   };
+
    CComboBox m_ctrlType;
    CPropertyListCtrl m_ctrlList;
    ISerializable* m_pArc;

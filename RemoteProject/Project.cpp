@@ -4,6 +4,7 @@
 
 #include "Project.h"
 
+#include "ArgumentsDlg.h"
 #include "RemoteFileDlg.h"
 #include "AttachProcessDlg.h"
 
@@ -253,7 +254,7 @@ void CRemoteProject::DeactivateProject()
    // Need to remove the classbrowser view because
    // activating a new project should display new items
    m_viewClassTree.Clear();
-   m_viewRemoteDir.Release();
+   m_viewRemoteDir.Detach();
 
    // Don't keep dependencies around
    for( int i = 0; i < m_aDependencies.GetSize(); i++ ) m_aDependencies[i]->CloseView();
@@ -370,6 +371,7 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_DEBUG_CLEAR_BREAKPOINTS, TRUE);
    pUIBase->UIEnable(ID_DEBUG_QUICKWATCH, FALSE);
    pUIBase->UIEnable(ID_DEBUG_PROCESSES, !bBusy);
+   pUIBase->UIEnable(ID_DEBUG_ARGUMENTS, !bDebugging);
 
    pUIBase->UIEnable(ID_VIEW_COMPILE_LOG, TRUE);
    pUIBase->UIEnable(ID_VIEW_DEBUG_LOG, TRUE);
@@ -1244,6 +1246,19 @@ LRESULT CRemoteProject::OnDebugProcesses(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
    if( dlg.DoModal() != IDOK ) return 0;
 
    return m_DebugManager.AttachProcess(dlg.GetPid());
+}
+
+LRESULT CRemoteProject::OnDebugArguments(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+
+   if( m_DebugManager.IsDebugging() ) return 0;
+
+   CRunArgumentsDlg dlg;
+   dlg.Init(this);
+   dlg.DoModal();
+
+   return 0;
 }
 
 LRESULT CRemoteProject::OnBuildClean(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)

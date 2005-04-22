@@ -372,7 +372,7 @@ DWORD CTelnetThread::Run()
 
    // HACK: Some telnet servers will not abort properly when connection
    //       is killed, so we send a stream of logoff bytes:
-   //       exit - TELNET_ABORT - TELNET_XEOF - TELNET_IAC DO TELOPT_LOGO
+   //       exit - TELNET_IAC DO TELOPT_LOGO - TELNET_ABORT - TELNET_XEOF
    LPSTR pstrExit = "exit\0x0FF\x0FD\x012\x0FF\x0EE\x0FF\x0EC\x004\r\n";
    socket.Write(pstrExit, sizeof(pstrExit));
    //       hurry - TELNET_DM
@@ -427,6 +427,7 @@ void CTelnetThread::_NegotiateOption(LPBYTE pList, CSimpleValArray<BYTE>& aSend,
 
 CTelnetProtocol::CTelnetProtocol() :
    m_bConnected(false),
+   m_lConnectTimeout(0),
    m_lPort(0)
 {
    Clear();
@@ -454,6 +455,7 @@ void CTelnetProtocol::Clear()
    m_lPort = 0;
    m_sPath.Empty();
    m_sExtraCommands.Empty();
+   m_lConnectTimeout = 8;
    m_bCanWindowSize = false;
 }
 
@@ -472,8 +474,11 @@ bool CTelnetProtocol::Load(ISerializable* pArc)
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
    pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(200), 200);
+   pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
    m_sExtraCommands.ReleaseBuffer();
+   
    m_sExtraCommands.Replace(_T("\\n"), _T("\r\n"));
+   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
    
    return true;
 }
@@ -491,6 +496,8 @@ bool CTelnetProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("password"), m_sPassword);
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("extra"), sExtras);
+   pArc->Write(_T("connectTimeout"), m_lConnectTimeout);
+
    return true;
 }
 
@@ -539,6 +546,7 @@ CString CTelnetProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Extra") ) return m_sExtraCommands;
    if( sName == _T("Port") ) return ToString(m_lPort);
    if( sName == _T("Type") ) return _T("Telnet");
+   if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
    return "";
 }
 
@@ -551,6 +559,7 @@ void CTelnetProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Password") ) m_sPassword = pstrValue;
    if( sName == _T("Port") ) m_lPort = _ttol(pstrValue);
    if( sName == _T("Extra") ) m_sExtraCommands = pstrValue;
+   if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
 }
 
 bool CTelnetProtocol::ReadData(CString& s, DWORD dwTimeout /*= 0*/)
@@ -641,7 +650,6 @@ bool CTelnetProtocol::WriteScreenSize(int w, int h)
 bool CTelnetProtocol::WaitForConnection()
 {
    // Wait for the thread to connect to the TELNET host.
-   const DWORD TIMEOUT = 8;
    const DWORD SPAWNTIMEOUT = 2;
    DWORD dwTickStart = ::GetTickCount();
    BOOL bHasRun = FALSE;
@@ -657,8 +665,10 @@ bool CTelnetProtocol::WaitForConnection()
       // Wait a little while
       ::Sleep(200L);
 
+      DWORD dwTick = ::GetTickCount();
+
       // Timeout after 8 sec.
-      if( ::GetTickCount() - dwTickStart > TIMEOUT * 1000L ) {
+      if( dwTick - dwTickStart > (DWORD) m_lConnectTimeout * 1000UL ) {
          ::SetLastError(ERROR_TIMEOUT);
          return false;
       }
@@ -668,7 +678,7 @@ bool CTelnetProtocol::WaitForConnection()
       // If the connect thread hasn't run after 2 secs, we might
       // as well assume it failed or didn't run at all...
       if( !bHasRun
-          && ::GetTickCount() - dwTickStart > SPAWNTIMEOUT * 1000L ) 
+          && dwTick - dwTickStart > SPAWNTIMEOUT * 1000UL ) 
       {
          // Attempt to reconnect to the remote host.
          // This will allow a periodically downed server to recover the connection.

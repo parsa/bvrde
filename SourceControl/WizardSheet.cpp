@@ -15,11 +15,13 @@ LRESULT COptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
    m_ctrlType = GetDlgItem(IDC_TYPE);
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_SYSTEM_NONE)));
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_SYSTEM_CVS)));
+   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_SYSTEM_SUBVERSION)));
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_SYSTEM_CUSTOM)));
 
    long iIndex = 0;
-   if( _Commands.sType == _T("cvs") ) iIndex = 1;
-   if( _Commands.sType == _T("custom") ) iIndex = 2;
+   if( _Commands.sType == _T("cvs") ) iIndex = SC_SYSTEM_CVS;
+   if( _Commands.sType == _T("subversion") ) iIndex = SC_SYSTEM_SUBVERSION;
+   if( _Commands.sType == _T("custom") ) iIndex = SC_SYSTEM_CUSTOM;
    m_ctrlType.SetCurSel(iIndex);
 
    m_ctrlList.SubclassWindow(GetDlgItem(IDC_LIST));
@@ -58,7 +60,7 @@ LRESULT COptionsPage::OnTypeChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOO
    _Commands.sBrowseSingle  = _T("");
 
    switch( iIndex ) {
-   case 1:
+   case SC_SYSTEM_CVS:
       _Commands.sProgram = _T("cvs");
       _Commands.sOutput = "cvs server: ";
       _Commands.sCmdUpdate = _T("update");
@@ -79,6 +81,27 @@ LRESULT COptionsPage::OnTypeChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOO
       _Commands.sBrowseAll = _T("cvs -q status");
       _Commands.sBrowseSingle = _T("cvs -l status $PATH$");
       break;
+   case SC_SYSTEM_SUBVERSION:
+      _Commands.sProgram = _T("svn");
+      _Commands.sOutput = "svn: ";
+      _Commands.sCmdUpdate = _T("update");
+      _Commands.sCmdCheckIn = _T("commit");
+      _Commands.sCmdCheckOut = _T("checkout");
+      _Commands.sCmdAddFile = _T("add");
+      _Commands.sCmdRemoveFile = _T("delete");
+      _Commands.sCmdLogIn = _T("");
+      _Commands.sCmdLogOut = _T("");
+      _Commands.sCmdDiff = _T("diff");
+      _Commands.sCmdStatus = _T("status -v");
+      _Commands.sOptRecursive = _T("");
+      _Commands.sOptStickyTag = _T("");
+      _Commands.sOptMessage = _T("-m");
+      _Commands.sOptUpdateDirs = _T("--non-recursive");
+      _Commands.sOptBranch = _T("");
+      _Commands.sOptCommon = _T("--non-interactive");
+      _Commands.sBrowseAll = _T("svn --non-interactive --show-updates ");
+      _Commands.sBrowseSingle = _T("svn -N --non-interactive --show-updates $PATH$");
+      break;
    }
 
    _Commands.bEnabled = iIndex > 0;
@@ -95,8 +118,9 @@ int COptionsPage::OnApply()
 {
    int iIndex = m_ctrlType.GetCurSel();
    _Commands.sType = _T("none");
-   if( iIndex == 1 ) _Commands.sType = _T("cvs");
-   if( iIndex == 2 ) _Commands.sType = _T("custom");
+   if( iIndex == SC_SYSTEM_CVS ) _Commands.sType = _T("cvs");
+   if( iIndex == SC_SYSTEM_SUBVERSION ) _Commands.sType = _T("subversion");
+   if( iIndex == SC_SYSTEM_CUSTOM ) _Commands.sType = _T("custom");
    _Commands.bEnabled = iIndex > 0;
 
    CComVariant v;

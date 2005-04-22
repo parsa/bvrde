@@ -134,6 +134,7 @@ CFtpProtocol::CFtpProtocol() :
    m_hFTP(NULL),
    m_lPort(INTERNET_DEFAULT_FTP_PORT),
    m_dwErrorCode(0L),
+   m_lConnectTimeout(0),
    m_dwLastCheck(0L),
    m_bCancel(false),
    m_bConnected(false)
@@ -155,6 +156,7 @@ void CFtpProtocol::Clear()
    m_sPath.Empty();
    m_sProxy.Empty();
    m_bPassive = FALSE;
+   m_lConnectTimeout = 8;
 }
 
 bool CFtpProtocol::Load(ISerializable* pArc)
@@ -177,6 +179,9 @@ bool CFtpProtocol::Load(ISerializable* pArc)
    pArc->Read(_T("proxy"), m_sProxy.GetBufferSetLength(128), 128);
    m_sProxy.ReleaseBuffer();
    pArc->Read(_T("passive"), m_bPassive);
+   pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
+
+   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
 
    return true;
 }
@@ -192,6 +197,7 @@ bool CFtpProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("searchPath"), m_sSearchPath);
    pArc->Write(_T("proxy"), m_sProxy);
    pArc->Write(_T("passive"), m_bPassive);
+   pArc->Write(_T("connectTimeout"), m_lConnectTimeout);
    return true;
 }
 
@@ -245,6 +251,7 @@ CString CFtpProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Proxy") ) return m_sProxy;
    if( sName == _T("Separator") ) return _T("/");
    if( sName == _T("Type") ) return _T("FTP");
+   if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
    return "";
 }
 
@@ -259,6 +266,7 @@ void CFtpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Port") ) m_lPort = _ttol(pstrValue);
    if( sName == _T("Passive") ) m_bPassive = ::lstrcmp(pstrValue, _T("true")) == 0;
    if( sName == _T("Proxy") ) m_sProxy = pstrValue;
+   if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
 }
 
 bool CFtpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, DWORD* pdwSize /* = NULL*/)
@@ -270,7 +278,7 @@ bool CFtpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, D
    if( pdwSize ) *pdwSize = 0;
    
    // Connected?
-   if( !_WaitForConnection() ) return false;
+   if( !WaitForConnection() ) return false;
 
    // Open file and read it
    DWORD dwFlags = INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_RELOAD;
@@ -332,7 +340,7 @@ bool CFtpProtocol::SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE pData, DW
    }
 
    // Connected?
-   if( !_WaitForConnection() ) return false;
+   if( !WaitForConnection() ) return false;
 
    // Remove file first (to avoid FTP complaining about existing file)
    ::FtpDeleteFile(m_hFTP, pstrFilename);
@@ -365,7 +373,7 @@ bool CFtpProtocol::SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE pData, DW
 bool CFtpProtocol::SetCurPath(LPCTSTR pstrPath)
 {
    ATLASSERT(pstrPath);
-   if( !_WaitForConnection() ) return false;
+   if( !WaitForConnection() ) return false;
    return ::FtpSetCurrentDirectory(m_hFTP, pstrPath) == TRUE;
 }
 
@@ -373,7 +381,7 @@ CString CFtpProtocol::GetCurPath()
 {
    CString sPath;
    sPath.Empty();
-   if( !_WaitForConnection() ) return _T("");
+   if( !WaitForConnection() ) return _T("");
    TCHAR szPath[MAX_PATH] = { 0 };
    DWORD dwSize = MAX_PATH;
    BOOL bRes = ::FtpGetCurrentDirectory(m_hFTP, szPath, &dwSize);
@@ -383,7 +391,7 @@ CString CFtpProtocol::GetCurPath()
 
 bool CFtpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
 {
-   if( !_WaitForConnection() ) return false;
+   if( !WaitForConnection() ) return false;
    WIN32_FIND_DATA fd = { 0 };
    DWORD dwFlags = INTERNET_FLAG_DONT_CACHE;
    HINTERNET hFind = ::FtpFindFirstFile(m_hFTP, NULL, &fd, dwFlags, 0);
@@ -401,7 +409,7 @@ bool CFtpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
 CString CFtpProtocol::FindFile(LPCTSTR pstrFilename)
 {
    // Connected?
-   if( !_WaitForConnection() ) return _T("");
+   if( !WaitForConnection() ) return _T("");
    // Get file information
    WIN32_FIND_DATA fd = { 0 };
    DWORD dwFlags = INTERNET_FLAG_DONT_CACHE;
@@ -433,12 +441,11 @@ CString CFtpProtocol::FindFile(LPCTSTR pstrFilename)
    return _T("");
 }
 
-bool CFtpProtocol::_WaitForConnection()
+bool CFtpProtocol::WaitForConnection()
 {
    // Wait for the thread to start and begin connecting to the FTP server.
    // Timeout after a few seconds. The thread is only a connect thread,
    // so when it stops, it either because of connect success or error.
-   const DWORD TIMEOUT = 10;
    const DWORD SPAWNTIMEOUT = 5;
    DWORD dwTickStart = ::GetTickCount();
    while( m_thread.IsRunning() ) {
@@ -462,7 +469,9 @@ bool CFtpProtocol::_WaitForConnection()
       ::Sleep(200L);
       while( m_thread.IsRunning() ) {
          ::Sleep(200L);
-         if( m_bCancel || ::GetTickCount() - dwTickStart > TIMEOUT * 1000L ) {
+         if( m_bCancel 
+             || ::GetTickCount() - dwTickStart > (DWORD) m_lConnectTimeout * 1000UL ) 
+         {
             ::SetLastError(ERROR_TIMEOUT);
             return false;
          }
@@ -494,7 +503,7 @@ bool CFtpProtocol::_WaitForConnection()
          // Ooops, looks like a standard timeout reset.
          // Let's silently try to reconnect...
          Start();
-         if( !_WaitForConnection() ) return false;
+         if( !WaitForConnection() ) return false;
       }
    }
 

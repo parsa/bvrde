@@ -36,6 +36,8 @@ public:
    CString GetParam(LPCTSTR pstrName) const;
    void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue);
 
+   bool WaitForConnection();
+
 protected:
    CString m_sPath;
    CString m_sSearchPath;

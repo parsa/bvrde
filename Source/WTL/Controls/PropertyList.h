@@ -595,9 +595,10 @@ public:
       _Init();
       return lRes;
    }
-   LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+   LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       ResetContent(); // Make sure to delete editor and item-data memory
+      bHandled = FALSE;
       return 0;
    }
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

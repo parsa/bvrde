@@ -338,6 +338,7 @@ BEGIN
     IDS_BROWSER_SINGLE      "Scan single"
     IDS_BUILDING            "Please wait while the Repository structures are being built..."
     IDS_NOTCONFIGURED       "No Source Control system is currently configured."
+    IDS_SYSTEM_SUBVERSION   "Subversion"
 END
 
 STRINGTABLE DISCARDABLE 

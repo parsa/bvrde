@@ -55,8 +55,7 @@ public:
    CString GetParam(LPCTSTR pstrName) const;
    void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue);
 
-protected:
-   bool _WaitForConnection();
+   bool WaitForConnection();
 
 protected:
    CString m_sHost;
@@ -67,6 +66,7 @@ protected:
    CString m_sProxy;
    CString m_sSearchPath;
    BOOL m_bPassive;
+   long m_lConnectTimeout;
    //
    CFtpThread m_thread;
    HINTERNET m_hInternet;
