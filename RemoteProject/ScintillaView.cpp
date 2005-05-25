@@ -624,6 +624,7 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 
    // This part assumes that the compiler output is formatted as
    //   <filename>:<line>
+   // The variable 'm_sOutputToken' contains the editor's filename.
    if( _tcsncmp(pstrText, m_sOutputToken, m_sOutputToken.GetLength() ) != 0 ) return;
    int iLineNo = _ttol(pstrText + m_sOutputToken.GetLength());
    if( iLineNo == 0 ) return;
@@ -631,13 +632,13 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 
    // If several errors are reported on the same line we assume
    // that the first entry contained the most useful error. Otherwise
-   // we easily end up hightlighting the entire line always.
+   // we easily end up highlighting the entire line always.
    if( iLineNo <= m_iOutputLine ) return;
 
    // Get the line so we can analyze where the error occoured.
-   // The GNU compilers rarely output which column (position) the error
-   // occured at so we'll have to try to match a substring or message
-   // with the content of the line.
+   // The GNU compilers rarely output at which column (position) the error
+   // occured so we'll have to try to match a substring or message
+   // with the content of the reported line.
    CHAR szLine[256] = { 0 };
    if( m_ctrlEdit.GetLineLength(iLineNo) >= sizeof(szLine) - 1 ) return;
    m_ctrlEdit.GetLine(iLineNo, szLine);
@@ -665,11 +666,11 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       }
    }
 
-   // If no match was found, hightlight the entire line
+   // If no match was found, highlight the entire line
    if( iMatchPos == 0 ) {
       iMatchPos = lLinePos;
       iMatchLength = m_ctrlEdit.GetLineLength(iLineNo);
-      // Let's trim the string if it contains leading spaces (looks strupid)
+      // Let's trim the string if it contains leading spaces (looks stupid)
       LPCTSTR p = sLine;
       while( *p && _istspace(*p++) && iMatchLength > 0 ) {
          iMatchPos++;
@@ -996,8 +997,7 @@ CString CScintillaView::_FindBlockType(long lPosition)
       // and its formatted like:
       //    TYPE Foo()
       // Skip leading return type first...
-      p = strchr(szBuffer, ' ');
-      if( p == NULL ) p = strchr(szBuffer, '\t');
+      p = strpbrk(szBuffer, " \t");
       lOffset = 2;
    }
    if( p == NULL ) return _T("");
@@ -1227,7 +1227,7 @@ CString CScintillaView::_GetSelectedText()
 
 /**
  * Return the text near the position.
- * This function extract the text that is currently located at the position requested.
+ * This function extracts the text that is currently located at the position requested.
  * Only text that resembles C++ identifiers is returned, and the function
  * will "search" in the near-by editor content for a valid text string.
  * If no "valid" text is found, an empty string is returned.
@@ -1274,7 +1274,6 @@ CString CScintillaView::_GetNearText(long lPosition, bool bExcludeKeywords /*= t
 bool CScintillaView::_IsRealCppEditPos(long lPos) const
 {
    if( lPos <= 0 ) return false;
-   int iStyle = m_ctrlEdit.GetStyleAt(lPos); iStyle;
    switch( m_ctrlEdit.GetStyleAt(lPos) ) {
    case SCE_C_STRING:
    case SCE_C_STRINGEOL:

@@ -238,6 +238,7 @@
 #define IDS_FLAGS                       277
 #define IDS_PATHS                       278
 #define IDS_ERR_NOEXECUTABLE            279
+#define IDS_STATUS_ENUMFILES            280
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003

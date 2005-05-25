@@ -657,6 +657,10 @@ bool CDebugManager::_CheckStatus()
    return true;
 }
 
+/**
+/* Parse stack frame information from debugger.
+ * Spread the word about debugger going to to "halted" state.
+/*/
 void CDebugManager::_ParseNewFrame(CMiInfo& info)
 {
    CString sFilename = info.GetItem(_T("file"), _T("frame"));

@@ -5,6 +5,9 @@
 #include "Frame.h"
 #include "Generator.h"
 
+#include <initguid.h>
+DEFINE_GUID(CGID_IWebBrowserPriv,0xED016940L,0xBD5B,0x11cf,0xBA,0x4E,0x00,0xC0,0x4F,0xD7, 0x08,0x16);
+
 
 ////////////////////////////////////////////////////////
 // Operations
@@ -84,13 +87,26 @@ void CFrameWindow::OnFinalMessage(HWND /*hWnd*/)
    delete this;
 }
 
+LRESULT CFrameWindow::OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+   if( !IsWindowVisible() || uMsg != WM_COMMAND || !::IsChild(m_hWnd, ::GetFocus()) ) {
+      bHandled = FALSE;
+      return 0;
+   }
+   LRESULT lResult = 0;
+   bHandled = ProcessWindowMessage(hWnd, uMsg, wParam, lParam, lResult);
+   return lResult;
+}
+
 BOOL CFrameWindow::PreTranslateMessage(MSG* pMsg)
 {
    if( ::GetFocus() != m_hWnd ) return FALSE;
 
    if((pMsg->message < WM_KEYFIRST || pMsg->message > WM_KEYLAST) &&
       (pMsg->message < WM_MOUSEFIRST || pMsg->message > WM_MOUSELAST))
+   {
       return FALSE;
+   }
 
    // Give OCX a chance to translate this message
    return (BOOL) m_wndBrowser.SendMessage(WM_FORWARDMSG, 0, (LPARAM) pMsg);
@@ -141,6 +157,8 @@ void CFrameWindow::_UpdateButtons()
 LRESULT CFrameWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
    LRESULT lRes = DefWindowProc(uMsg, wParam, lParam);
+
+   _pDevEnv->AddAppListener(this);
 
    // Create child windows
    DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE | CCS_TOP | TBSTYLE_LIST;
@@ -199,7 +217,7 @@ LRESULT CFrameWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*
    // Prepare web-browser
    HRESULT Hr;
    m_spBrowser.Release();
-   Hr = m_wndBrowser.QueryControl(IID_IWebBrowser2, (LPVOID *) &m_spBrowser);
+   Hr = m_wndBrowser.QueryControl(IID_IWebBrowser2, (LPVOID*) &m_spBrowser);
    if( FAILED(Hr) ) return 1;
 
    m_spBrowser->put_RegisterAsBrowser(VARIANT_FALSE);
@@ -225,6 +243,7 @@ LRESULT CFrameWindow::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
       DispEventUnadvise(m_spBrowser, &DIID_DWebBrowserEvents2);
       m_spBrowser.Release();
    }
+   _pDevEnv->RemoveAppListener(this);
    bHandled = FALSE;
    return 0;
 }
@@ -257,6 +276,14 @@ LRESULT CFrameWindow::OnFilePrint(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 LRESULT CFrameWindow::OnFileClose(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    PostMessage(WM_CLOSE);
+   return 0;
+}
+
+LRESULT CFrameWindow::OnEditFind(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   const DWORD HTMLID_FIND = 1;
+   CComQIPtr<IOleCommandTarget> spOleTarget = m_spBrowser;
+   spOleTarget->Exec(&CGID_IWebBrowserPriv, HTMLID_FIND, MSOCMDEXECOPT_DODEFAULT, NULL, NULL);
    return 0;
 }
 
@@ -363,8 +390,8 @@ void __stdcall CFrameWindow::__BeforeNavigate2(
 }
 
 void __stdcall CFrameWindow::__DocumentComplete(
-   /*[in]*/ IDispatch* pDisp, 
-   /*[in]*/ BSTR bstrText)
+   /*[in]*/ IDispatch* /*pDisp*/, 
+   /*[in]*/ BSTR /*bstrText*/)
 {
    m_wndBrowser.SetFocus();
 }

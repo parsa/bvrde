@@ -173,7 +173,6 @@ bool CFtpProtocol::Load(ISerializable* pArc)
    m_sPassword.ReleaseBuffer();
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
-   if( m_sPath.IsEmpty() ) m_sPath = _T("/");
    pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(128), 128);
    m_sSearchPath.ReleaseBuffer();
    pArc->Read(_T("proxy"), m_sProxy.GetBufferSetLength(128), 128);
@@ -181,6 +180,8 @@ bool CFtpProtocol::Load(ISerializable* pArc)
    pArc->Read(_T("passive"), m_bPassive);
    pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
 
+   m_sPath.TrimRight(_T("/"));
+   if( m_sPath.IsEmpty() ) m_sPath = _T("/");
    if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
 
    return true;
@@ -267,6 +268,7 @@ void CFtpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Passive") ) m_bPassive = ::lstrcmp(pstrValue, _T("true")) == 0;
    if( sName == _T("Proxy") ) m_sProxy = pstrValue;
    if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
+   m_sPath.TrimRight(_T("/"));
 }
 
 bool CFtpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, DWORD* pdwSize /* = NULL*/)

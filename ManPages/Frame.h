@@ -15,7 +15,7 @@ public:
    static _ATL_FUNC_INFO DocumentCompleteInfo;
 };
 __declspec(selectany) _ATL_FUNC_INFO IWebBrowserEvents2Base::BeforeNavigate2Info = { CC_STDCALL, VT_EMPTY, 7, {VT_DISPATCH,VT_BYREF|VT_VARIANT,VT_BYREF|VT_VARIANT,VT_BYREF|VT_VARIANT,VT_BYREF|VT_VARIANT,VT_BYREF|VT_VARIANT,VT_BYREF|VT_BOOL} };
-__declspec(selectany) _ATL_FUNC_INFO IWebBrowserEvents2Base::DocumentCompleteInfo = {CC_STDCALL, VT_EMPTY, 2, {VT_DISPATCH,VT_BSTR}};
+__declspec(selectany) _ATL_FUNC_INFO IWebBrowserEvents2Base::DocumentCompleteInfo = { CC_STDCALL, VT_EMPTY, 2, {VT_DISPATCH,VT_BSTR} };
 
 
 typedef CWinTraits<WS_POPUPWINDOW 
@@ -31,7 +31,8 @@ typedef CWinTraits<WS_POPUPWINDOW
 class CFrameWindow : 
    public CWindowImpl<CFrameWindow, CWindow, CPopupWinTraits>,
    public IDispEventSimpleImpl<1, CFrameWindow, &DIID_DWebBrowserEvents2>,
-   public IWebBrowserEvents2Base
+   public IWebBrowserEvents2Base,
+   public IAppMessageListener
 {
 public:
    DECLARE_WND_CLASS_EX(_T("BVRDE_ManPage"), 0, COLOR_BTNFACE)
@@ -53,8 +54,10 @@ public:
    long m_nMatchCount;
 
    BOOL SetPage(LPCTSTR pstrKeyword, LPCTSTR pstrLanguage, long lPos);
-   BOOL PreTranslateMessage(MSG* pMsg);
    void OnFinalMessage(HWND hWnd);
+
+   LRESULT OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   BOOL PreTranslateMessage(MSG* pMsg);
 
    BOOL _LoadHtml(IUnknown* pUnk, LPCWSTR pstrHTML);
    void _UpdateButtons();
@@ -85,6 +88,7 @@ public:
       MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus)
       COMMAND_ID_HANDLER(ID_FILE_PRINT, OnFilePrint)
       COMMAND_ID_HANDLER(ID_FILE_CLOSE, OnFileClose)
+      COMMAND_ID_HANDLER(ID_EDIT_FIND, OnEditFind)
       COMMAND_ID_HANDLER(ID_VIEW_PREVIOUS, OnViewPrevious)
       COMMAND_ID_HANDLER(ID_VIEW_NEXT, OnViewNext)
       COMMAND_ID_HANDLER(ID_VIEW_BACK, OnViewBack)
@@ -96,6 +100,7 @@ public:
    LRESULT OnSetFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnFilePrint(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnFileClose(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnEditFind(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewPrevious(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewNext(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewBack(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

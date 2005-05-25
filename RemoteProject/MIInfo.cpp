@@ -44,7 +44,6 @@ bool CMiInfo::Parse(LPCTSTR pstrInput)
    Release();
    ATLASSERT(m_pstrData==NULL);
    if( *pstrInput == ',' ) pstrInput++;
-   if( *pstrInput == '\0' ) return true;
    // We're using a slightly complicated buffer/reference-counting scheme
    // to keep the data alive as long as its being used.
    DWORD dwLength = (_tcslen(pstrInput) + 1) * sizeof(TCHAR);
@@ -62,6 +61,7 @@ bool CMiInfo::Parse(LPCTSTR pstrInput)
    ::OutputDebugString(pstrInput);
    ::OutputDebugString(_T("\n"));
 #endif
+   if( *pstrInput == '\0' ) return true;
    return _ParseString(m_pstrData, 0, _T(""), _T(""), 0);
 }
 
@@ -118,6 +118,8 @@ CString CMiInfo::FindNext(LPCTSTR pstrKey,
 void CMiInfo::Copy(const CMiInfo& src)
 {
    Release();
+   ATLASSERT(src.m_pstrData);
+   ATLASSERT(src.m_pdwRefCount);
    m_pstrData = src.m_pstrData;
    m_pdwRefCount = src.m_pdwRefCount;
    for( int i = 0; i < src.m_aItems.GetSize(); i++ ) {

@@ -40,6 +40,8 @@ bool CFileProtocol::Load(ISerializable* pArc)
    pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(128), 128);
    m_sSearchPath.ReleaseBuffer();
 
+   m_sPath.TrimRight(_T("\\"));
+
    return true;
 }
 
@@ -91,6 +93,7 @@ void CFileProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    CString sName = pstrName;
    if( sName == _T("Path") ) m_sPath = pstrValue;
    if( sName == _T("SearchPath") ) m_sSearchPath = pstrValue;
+   m_sPath.TrimRight(_T("\\"));
 }
 
 bool CFileProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, DWORD* pdwSize /* = NULL*/)
@@ -102,7 +105,7 @@ bool CFileProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
    if( pdwSize ) *pdwSize = 0;
 
    CString sFilename;
-   sFilename.Format(_T("%s%s"), m_sPath, pstrFilename);
+   sFilename.Format(_T("%s\\%s"), m_sPath, pstrFilename);
 
    CFile f;
    if( !f.Open(sFilename) ) return false;
@@ -150,7 +153,7 @@ bool CFileProtocol::SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE pData, D
    }
 
    CString sFilename;
-   sFilename.Format(_T("%s%s"), m_sPath, pstrFilename);
+   sFilename.Format(_T("%s\\%s"), m_sPath, pstrFilename);
 
    CFile f;
    if( !f.Create(sFilename) ) return false;
@@ -187,7 +190,6 @@ bool CFileProtocol::SetCurPath(LPCTSTR pstrPath)
       return false;
    }
    if( !::PathIsDirectory(szPath) ) return false;
-   ::PathAddBackslash(szPath);
    m_sPath = szPath;
    return true;
 }
@@ -201,14 +203,17 @@ bool CFileProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
 {
    WIN32_FIND_DATA fd = { 0 };
    CString sPattern;
-   sPattern.Format(_T("%s*.*"), m_sPath);
+   sPattern.Format(_T("%s\\*.*"), m_sPath);
    HINTERNET hFind = ::FindFirstFile(sPattern, &fd);
    if( hFind == NULL && ::GetLastError() == ERROR_NO_MORE_FILES ) return true;
    if( hFind == NULL ) return false;
    while( true ) {
-      aFiles.Add(fd);
-      BOOL bRes = ::FindNextFile(hFind, &fd);
-      if( !bRes ) break;
+      if( _tcscmp(fd.cFileName, _T(".")) != 0 
+          && _tcscmp(fd.cFileName, _T("..")) != 0 )
+      {
+         aFiles.Add(fd);
+      }
+      if( !::FindNextFile(hFind, &fd) ) break;
    }   
    ::FindClose(hFind);
    return true;
@@ -239,3 +244,4 @@ bool CFileProtocol::WaitForConnection()
 {
    return true;
 }
+

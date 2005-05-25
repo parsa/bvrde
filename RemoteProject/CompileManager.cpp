@@ -635,20 +635,29 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    // Style the text depending on certain search-strings, prompt-prefixes etc
    CHARFORMAT cf;
    cf.cbSize = sizeof(CHARFORMAT);
-   cf.dwMask = CFM_COLOR | CFM_BOLD;
+   cf.dwMask = CFM_COLOR | CFM_BOLD | CFM_ITALIC;
    cf.dwEffects = 0;
    cf.crTextColor = ::GetSysColor(COLOR_WINDOWTEXT);
    if( nColor == VT100_RED ) cf.crTextColor = RGB(200,0,0);
-   if( _tcsstr(pstrText, _T("error:")) != NULL ) {
+   if( _tcsstr(pstrText, _T("error:")) != NULL 
+       || _tcsstr(pstrText, _T("Error ")) != NULL ) 
+   {
       cf.crTextColor = RGB(150,70,0);
-      if( !m_bWarningPlayed ) ::PlaySound(_T("BVRDE_OutputError"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT | SND_NOSTOP);
-      m_bWarningPlayed = true;
+      if( !m_bWarningPlayed ) {
+         ::PlaySound(_T("BVRDE_OutputError"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT | SND_NOSTOP);
+         m_bWarningPlayed = true;
+      }
    }
-   if( _tcsstr(pstrText, _T("warning:")) != NULL ) {
+   if( _tcsstr(pstrText, _T("warning:")) != NULL 
+       || _tcsstr(pstrText, _T("not found")) != NULL ) 
+   {
       cf.crTextColor = RGB(70,70,0);
-      if( !m_bWarningPlayed ) ::PlaySound(_T("BVRDE_OutputWarning"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT | SND_NOSTOP);
-      m_bWarningPlayed = true;
+      if( !m_bWarningPlayed ) {
+         ::PlaySound(_T("BVRDE_OutputWarning"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT | SND_NOSTOP);
+         m_bWarningPlayed = true;
+      }
    }
+   if( _tcsncmp(pstrText, _T("make["), 5) == 0 ) cf.dwEffects |= CFE_ITALIC;
    if( _tcschr(m_sPromptPrefix, *pstrText) != NULL ) cf.dwEffects |= CFE_BOLD;
    if( *pstrText == '/' && _tcschr(pstrText, ':') != NULL ) cf.dwEffects &= ~CFE_BOLD;
 

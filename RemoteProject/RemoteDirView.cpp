@@ -216,6 +216,7 @@ LRESULT CRemoteDirView::OnListKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
 {
    CWaitCursor cursor;
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_ENUMFILES)));
 
    if( m_pFileManager == NULL ) {
       m_ctrlFolders.ResetContent();

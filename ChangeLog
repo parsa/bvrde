@@ -1,0 +1,17 @@
+Version 0.8
+* New "Set Parameters" dialog
+* Timeout settings configurable
+* CryptLib now version 3.2
+* Started Subversion support
+
+Version 0.7
+* Sound events
+* Tooltips and menutext for alle menuitems
+* Improved speed for C++ lexer due to removal of forward-looking scan
+* Ability to run external tools from menu on remote server
+* External tools can prompt for argument changes
+* Improved syntax highlighting of PHP files
+* Source Control Repository browser now showing files
+* New Remote Dir browser
+* Files Dirty marker in tab-strip
+* RLogin protocol revised

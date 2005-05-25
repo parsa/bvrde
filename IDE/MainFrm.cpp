@@ -766,6 +766,7 @@ LRESULT CMainFrame::OnViewFullScreen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
    m_Dock.ShowWindow(m_bFullScreen ? SW_HIDE : SW_SHOWNOACTIVATE);
    m_AutoHide.ShowWindow(m_bFullScreen ? SW_HIDE : SW_SHOWNOACTIVATE);
    // Go fullscreen
+   // NOTE: We only go as fullscreen as to the taskbar...
    ShowWindow(m_bFullScreen ? SW_MAXIMIZE : SW_RESTORE);
    // Hide statusbar
    m_StatusBar.ShowWindow(m_bFullScreen ? SW_HIDE : SW_SHOWNOACTIVATE);

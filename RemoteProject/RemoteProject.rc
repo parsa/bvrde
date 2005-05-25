@@ -1180,6 +1180,7 @@ BEGIN
     IDS_FLAGS               "Link Flags"
     IDS_PATHS               "Paths"
     IDS_ERR_NOEXECUTABLE    "No executable\nNo executable was found to debug.\nMake sure the compile executable has debug information included or use the Debug Log to examine potential GDB errors."
+    IDS_STATUS_ENUMFILES    " Enumerating files..."
 END
 
 STRINGTABLE DISCARDABLE 
