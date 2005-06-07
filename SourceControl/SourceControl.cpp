@@ -113,6 +113,7 @@ LONG WINAPI Plugin_GetType()
 EXTERN_C
 VOID WINAPI Plugin_SetMenu(HMENU hMenu)
 {
+   // Here we customize the standard application menu
    hMenu = ::GetSubMenu(hMenu, 2);
    hMenu = ::GetSubMenu(hMenu, 2);
    TCHAR szTitle[128] = { 0 };
@@ -123,6 +124,8 @@ VOID WINAPI Plugin_SetMenu(HMENU hMenu)
 EXTERN_C
 VOID WINAPI Plugin_SetPopupMenu(IElement* pElement, HMENU hMenu)
 {
+   // Here we customize the popup menu for a popup-element of the "Folder"-type or
+   // for a project or project file.
    if( pElement == NULL ) return;
    bool bFound = false;
    // We'll accept everything that identifies itself as a folder

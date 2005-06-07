@@ -48,7 +48,7 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv = pDevEnv;
    _pDevEnv->AddAppListener(&_Monitor);
    _pDevEnv->AddIdleListener(&_Monitor);
-   _pDevEnv->ReserveUIRange(41000, 41001);
+   _pDevEnv->ReserveUIRange(ID_EDIT_FINDFILES, ID_EDIT_FINDFILES + 1);
    return TRUE;
 }
 

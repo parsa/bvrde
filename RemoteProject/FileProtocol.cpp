@@ -85,7 +85,7 @@ CString CFileProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Separator") ) return _T("\\");
    if( sName == _T("Certificate") ) return _T("Windows Network Drive");
    if( sName == _T("Type") ) return _T("network");
-   return "";
+   return _T("");
 }
 
 void CFileProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
@@ -102,55 +102,40 @@ bool CFileProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
    ATLASSERT(ppOut);
 
    *ppOut = NULL;
-   if( pdwSize ) *pdwSize = 0;
+   if( pdwSize != NULL ) *pdwSize = 0;
 
    CString sFilename;
    sFilename.Format(_T("%s\\%s"), m_sPath, pstrFilename);
 
    CFile f;
-   if( !f.Open(sFilename) ) return false;
-  
-   const DWORD BUFFER_SIZE = 4096;
-   LPBYTE pBuffer = (LPBYTE) malloc(BUFFER_SIZE);
-   DWORD dwPos = 0;
-   DWORD dwSize = BUFFER_SIZE;
-   BYTE bBuffer[BUFFER_SIZE];
-   while( true ) {
-      DWORD dwRead = 0;
-      BOOL bRes = f.Read(bBuffer, BUFFER_SIZE, &dwRead);
-      if( !bRes ) {
-         DWORD dwErr = ::GetLastError();
-         f.Close();
-         ::SetLastError(dwErr);
-         return false;
-      }
-      if( bRes && dwRead == 0 ) break;
-      if( dwPos + dwRead > dwSize ) {
-         pBuffer = (LPBYTE) realloc(pBuffer, dwSize + BUFFER_SIZE);
-         dwSize += BUFFER_SIZE;
-      }
-      memcpy(pBuffer + dwPos, bBuffer, dwRead);
-      dwPos += dwRead;
+   if( !f.Open(sFilename) ) return false; 
+   DWORD dwRead = 0;
+   DWORD dwSize = f.GetSize();
+   *ppOut = (LPBYTE) malloc(dwSize);
+   if( *ppOut == NULL ) {
+      f.Close();
+      ::SetLastError(ERROR_OUTOFMEMORY);
+      return false;
    }
-
+   BOOL bRes = f.Read(*ppOut, dwSize, &dwRead);
+   DWORD dwErr = ::GetLastError();
+   if( !bRes ) {
+      free(*ppOut);
+      dwSize = 0;
+      *ppOut = NULL;
+   }
    f.Close();
+   ::SetLastError(dwErr);
 
-   *ppOut = pBuffer;
-   if( pdwSize ) *pdwSize = dwPos;
+   if( pdwSize != NULL ) *pdwSize = dwSize;
 
-   return true;
+   return bRes == TRUE;
 }
 
 bool CFileProtocol::SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE pData, DWORD dwSize)
 {
    ATLASSERT(pstrFilename);
    ATLASSERT(pData);
-
-   // Prevent save of an empty file
-   if( dwSize == 0 ) {
-      ::SetLastError(ERROR_EMPTY);
-      return false;
-   }
 
    CString sFilename;
    sFilename.Format(_T("%s\\%s"), m_sPath, pstrFilename);
@@ -172,10 +157,18 @@ bool CFileProtocol::SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE pData, D
       dwPos += dwWritten;
       dwSize -= dwWritten;
    }
-   
+
    f.Close();
 
    return true;
+}
+
+bool CFileProtocol::DeleteFile(LPCTSTR pstrFilename)
+{
+   ATLASSERT(pstrFilename);
+   CString sFilename;
+   sFilename.Format(_T("%s\\%s"), m_sPath, pstrFilename);
+   return CFile::Delete(sFilename) == TRUE;
 }
 
 bool CFileProtocol::SetCurPath(LPCTSTR pstrPath)

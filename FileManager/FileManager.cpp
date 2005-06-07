@@ -27,11 +27,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
    {
       _Module.Init(NULL, hInstance);
       ::DisableThreadLibraryCalls(hInstance);
-     AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES);
+      AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES);
    }
    else if( dwReason == DLL_PROCESS_DETACH ) 
    {
-     _Module.Term();
+      _Module.Term();
    }
    return TRUE;
 }
@@ -46,7 +46,7 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv = pDevEnv;
    _pDevEnv->AddAppListener(&_Monitor);
    _pDevEnv->AddIdleListener(&_Monitor);
-   _pDevEnv->ReserveUIRange(40900, 40901);
+   _pDevEnv->ReserveUIRange(ID_VIEW_FILEMANAGER, ID_VIEW_FILEMANAGER + 1);
    return TRUE;
 }
 

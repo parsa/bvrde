@@ -34,6 +34,19 @@ IDispatch* CGlobalsOM::get_ActiveProject()
    return m_pOwner->get_ActiveProject();
 }
 
+IDispatch* CGlobalsOM::CreateObject(BSTR bstrProgId)
+{
+   CComPtr<IDispatch> spDisp;
+   if( FAILED(spDisp.CoCreateInstance(bstrProgId)) ) return NULL;
+   return spDisp.Detach();
+}
+
+VOID CGlobalsOM::Sleep(LONG lPeriod)
+{
+   if( lPeriod < 0 ) lPeriod = 0;
+   ::Sleep(lPeriod);
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CApplicationOM

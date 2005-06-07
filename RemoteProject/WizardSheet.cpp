@@ -264,6 +264,9 @@ LRESULT CFileOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
    sName.LoadString(IDS_MISC_CONNECTTIMEOUT);
    sValue = m_pProject->m_FileManager.GetParam(_T("ConnectTimeout"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 20));
+   sName.LoadString(IDS_MISC_COMPATIBILITY);
+   bValue = m_pProject->m_FileManager.GetParam(_T("CompatibilityMode")) == _T("true");
+   m_ctrlList.AddItem(PropCreateSimple(sName, bValue, 21));
 
    return 0;
 }
@@ -283,7 +286,7 @@ int CFileOptionsPage::OnApply()
    CComVariant v;
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(1), &v);
-   m_pProject->m_FileManager.SetParam(_T("Passive"), CString(v.bstrVal));
+   m_pProject->m_FileManager.SetParam(_T("Passive"), v.lVal != 0 ? _T("true") : _T("false"));
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(2), &v);
    m_pProject->m_FileManager.SetParam(_T("Proxy"), CString(v.bstrVal));
@@ -295,6 +298,9 @@ int CFileOptionsPage::OnApply()
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(20), &v);
    m_pProject->m_FileManager.SetParam(_T("ConnectTimeout"), CString(v.bstrVal));
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(21), &v);
+   m_pProject->m_FileManager.SetParam(_T("CompatibilityMode"), v.lVal != 0 ? _T("true") : _T("false"));
 
    return PSNRET_NOERROR;
 }

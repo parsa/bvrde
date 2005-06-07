@@ -295,6 +295,7 @@ BEGIN
             MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
             MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
             MENUITEM "View &White Space",           ID_EDIT_VIEWWS
+            MENUITEM "View Indentation &Guides",    ID_EDIT_VIEWTABS
         END
         POPUP "Bookmarks"
         BEGIN
@@ -554,7 +555,7 @@ BEGIN
     LISTBOX         IDC_LIST,7,47,200,123,LBS_OWNERDRAWVARIABLE | 
                     LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     DEFPUSHBUTTON   "&Recalculate",IDOK,217,7,56,14
-    PUSHBUTTON      "&Add Watch",IDC_ADD_WATCH,217,24,56,14,WS_DISABLED
+    PUSHBUTTON      "&Add Watch",IDC_ADD_WATCH,217,24,56,14
     PUSHBUTTON      "Close",IDCANCEL,217,42,56,14
 END
 
@@ -888,7 +889,7 @@ BEGIN
     IDS_CAPTION_COMMAND     "Command Window"
     IDS_LOG_TELNETHOST      "Unable to connect to Telnet server."
     IDS_ERR_OPENVIEW        "Open File Error\nUnable to open the file in a new view."
-    IDS_ERR_LASTERROR       "\nSystem Error Message:\n"
+    IDS_ERR_LASTERROR       "\nSystem Error Message: "
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1154,13 +1155,13 @@ STRINGTABLE DISCARDABLE
 BEGIN
     ID_BUILD_CLEAN          "Clean the Project for temporary files\nClean"
     ID_BUILD_PROJECT        "Build the active project\nBuild"
-    ID_BUILD_COMPILE        "Compiles the selected file\nCompile"
+    ID_BUILD_COMPILE        "Compile the selected file\nCompile"
     ID_DEBUG_START          "Run Process\nRun"
     ID_DEBUG_DEBUG          "Start Debugging\nStart Debugging"
     ID_DEBUG_PROCESSES      "Attach to a running process\nAttach To Process"
     ID_DEBUG_STEP_INTO      "Step Into\nStep Into"
     ID_DEBUG_STEP_OVER      "Step Over\nStep Over"
-    ID_DEBUG_BREAKPOINT     "Insert Breakpoint\nInsert Breakpoint"
+    ID_DEBUG_BREAKPOINT     "Inserts a Breakpoint\nInsert Breakpoint"
     ID_DEBUG_CLEAR_BREAKPOINTS "Removes all Breakpoints\nRemove Breakpoints"
     ID_VIEW_WATCH           "View watches\nWatches"
     ID_VIEW_CALLSTACK       "View the Call Stack\nCallstack"
@@ -1181,13 +1182,15 @@ BEGIN
     IDS_PATHS               "Paths"
     IDS_ERR_NOEXECUTABLE    "No executable\nNo executable was found to debug.\nMake sure the compile executable has debug information included or use the Debug Log to examine potential GDB errors."
     IDS_STATUS_ENUMFILES    " Enumerating files..."
+    IDS_MISC_COMPATIBILITY  "Compatibility Mode"
+    IDS_STATUS_STARTING     " %s running..."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_BOOKMARK_PREVIOUS    "Go to previous Bookmark\nPrevious Bookmark"
     ID_VIEW_COMPILE_LOG     "View Compile Log\nCompile Log"
-    ID_DEBUG_STOP           "Stops the debug session\nStop Debugger"
+    ID_DEBUG_STOP           "Stop the debug session\nStop Debugger"
     ID_DEBUG_THREADS        "Show threads\nThreads"
     ID_DEBUG_QUICKWATCH     "Show quickwatch dialog\nQuickwatch"
     ID_EDIT_AUTOCOMPLETE    "Autocomplete selected text\nAutocomplete"
@@ -1222,6 +1225,7 @@ BEGIN
     ID_VIEW_THREADS         "View Thread Summery View\nThreads"
     ID_VIEW_REGISTERS       "View Registers\nRegisters"
     ID_EDIT_VIEWWS          "View White space markers\nView White Space"
+    ID_EDIT_VIEWTABS        "View Indentation Guides\nTab Guides"
     ID_EDIT_VIEWEOL         "View Eof Of Line markers\nView EOL"
     ID_EDIT_TABIFY          "Tabify selected text\nTabify"
     ID_EDIT_UNTABIFY        "Untabify selected text\nUntabify"
@@ -1261,6 +1265,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_REMOTEDIR_OPEN       "Open selected file\nOpen"
+    ID_DEBUG_ARGUMENTS      "Set program launch arguments\nArguments"
 END
 
 #endif    // English (U.S.) resources

@@ -101,7 +101,7 @@ bool CFileManager::IsConnected() const
 CString CFileManager::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
-   if( sName == "Type" ) return m_sType;
+   if( sName == _T("Type") ) return m_sType;
    if( m_pProtocol == NULL ) return _T("");
    return m_pProtocol->GetParam(pstrName);
 }
@@ -110,7 +110,7 @@ void CFileManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
 {
    CString sName = pstrName;
    // Changing connection type?
-   if( sName == "Type" ) {
+   if( sName == _T("Type") ) {
       if( m_pProtocol ) delete m_pProtocol;
       m_pProtocol = NULL;
       m_sType = pstrValue;
@@ -135,7 +135,22 @@ bool CFileManager::SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE pData, DW
 {
    ATLASSERT(m_pProtocol);
    if( m_pProtocol == NULL ) return false;
+   // Should we attempt to delete the file first (overwrite read-only file)?
+   bool bDeleteFirst = false;
+   TCHAR szBuffer[20] = { 0 };
+   _pDevEnv->GetProperty(_T("gui.document.protectReadOnly"), szBuffer, 19);
+   if( _tcscmp(szBuffer, _T("false")) == 0 ) bDeleteFirst = true;
+   if( GetParam(_T("CompatibilityMode")) == _T("true") ) bDeleteFirst = true;
+   if( bDeleteFirst ) DeleteFile(pstrFilename);
+   // Finally write the file
    return m_pProtocol->SaveFile(pstrFilename, bBinary, pData, dwSize);
+}
+
+bool CFileManager::DeleteFile(LPCTSTR pstrFilename)
+{
+   ATLASSERT(m_pProtocol);
+   if( m_pProtocol == NULL ) return false;
+   return m_pProtocol->DeleteFile(pstrFilename);
 }
 
 bool CFileManager::SetCurPath(LPCTSTR pstrPath)

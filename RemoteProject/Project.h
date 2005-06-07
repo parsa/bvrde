@@ -27,8 +27,11 @@
 #include "DisasmView.h"
 #include "ThreadView.h"
 #include "RemoteDirView.h"
-#include "WizardSheet.h"
 #include "QuickWatchDlg.h"
+
+#include "Commands.h"
+
+#include "WizardSheet.h"
 
 
 class CRemoteProject : 
@@ -62,6 +65,7 @@ private:
    CSimpleValArray<IView*> m_aFiles;
    CSimpleValArray<IView*> m_aDependencies;
    CQuickWatchDlg* m_pQuickWatchDlg;
+   CBuildSolutionThread m_BuildSolutionThread;
    bool m_bIsDirty;
    //
    static CAccelerator m_accel;
@@ -142,7 +146,8 @@ public:
    CString GetBuildMode() const;
    BOOL SetName(LPCTSTR pstrName);
    BOOL GetPath(LPTSTR pstrPath, UINT cchMax) const;
-   CString GetTagInfo(LPCTSTR pstrValue, LPCTSTR pstrOwner = NULL);
+   bool GetTagInfo(LPCTSTR pstrValue, bool bAskDebugger, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/);
+   //
    void DelayedStatusBar(LPCTSTR pstrText);
    void DelayedOpenView(LPCTSTR pstrFilename, long lLineNum);
    void DelayedDebugCommand(LPCTSTR pstrCommand);
@@ -153,6 +158,7 @@ public:
    void DelayedDebugBreakpoint(LPCTSTR pstrFilename, long lLineNum);
    void DelayedDebugEvent(LAZYACTION event = LAZY_DEBUG_BREAK_EVENT);
    void DelayedDebugInfo(LPCTSTR pstrCommand, CMiInfo& info);
+   //
    static void InitializeToolBars();
 
 // Message map and handlers
@@ -293,6 +299,8 @@ protected:
 
    static int CALLBACK _SortTreeCB(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 };
+
+EXTERN_C IView* WINAPI Plugin_CreateView(LPCTSTR, IProject*, IElement*);
 
 
 #endif // !defined(AFX_REMOTEPROJECT_H__20030307_E777_9147_A664_0080AD509054__INCLUDED_)

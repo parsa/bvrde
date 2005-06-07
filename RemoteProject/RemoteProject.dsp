@@ -199,6 +199,10 @@ SOURCE=.\TagInfo.cpp
 # End Group
 # Begin Source File
 
+SOURCE=.\Commands.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CompileManager.cpp
 # End Source File
 # Begin Source File
@@ -297,6 +301,10 @@ SOURCE=..\Source\ATL\Include\atlwfile.h
 # Begin Source File
 
 SOURCE=..\Source\WTL\Include\atlwinmisc.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cryptlib_wrapper.h
 # End Source File
 # Begin Source File
 
@@ -485,11 +493,11 @@ SOURCE=..\IDE\BVRDE_SDK.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\CompileManager.h
+SOURCE=.\Commands.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\cryptlib_wrapper.h
+SOURCE=.\CompileManager.h
 # End Source File
 # Begin Source File
 

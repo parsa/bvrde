@@ -138,6 +138,11 @@ VARIANT_BOOL CProjectOM::get_IsConnected()
    return m_pOwner->m_CompileManager.IsConnected() ? VARIANT_TRUE : VARIANT_FALSE;
 }
 
+VARIANT_BOOL CProjectOM::get_IsBusy()
+{
+   return m_pOwner->m_CompileManager.IsBusy() || m_pOwner->m_DebugManager.IsDebugging() ? VARIANT_TRUE : VARIANT_FALSE;
+}
+
 IDispatch* CProjectOM::get_Files()
 {
    return &m_Files;
@@ -145,32 +150,32 @@ IDispatch* CProjectOM::get_Files()
 
 VOID CProjectOM::Clean()
 {
-   BOOL bDummy;
-   m_pOwner->OnBuildClean(0, 0, NULL, bDummy);
+   _StartCompiler();
+   m_pOwner->m_CompileManager.DoAction(_T("Clean"));
 }
 
 VOID CProjectOM::Build()
 {
-   BOOL bDummy;
-   m_pOwner->OnBuildProject(0, 0, NULL, bDummy);
+   _StartCompiler();
+   m_pOwner->m_CompileManager.DoAction(_T("Build"));
 }
 
 VOID CProjectOM::Rebuild()
 {
-   BOOL bDummy;
-   m_pOwner->OnBuildRebuild(0, 0, NULL, bDummy);
+   // Start build (silently; see CBuildSolutionThread)
+   _StartCompiler();
+   m_pOwner->m_CompileManager.DoAction(_T("Rebuild"), NULL, COMPFLAG_SILENT);
 }
 
 VOID CProjectOM::StartApp()
 {
-   BOOL bDummy;
-   m_pOwner->OnDebugStart(0, 0, NULL, bDummy);
+   if( m_pOwner->m_DebugManager.IsDebugging() ) m_pOwner->m_DebugManager.RunContinue(); 
+   else m_pOwner->m_DebugManager.RunNormal();
 }
 
 VOID CProjectOM::DebugApp()
 {
-   BOOL bDummy;
-   m_pOwner->OnDebugDebug(0, 0, NULL, bDummy);
+   m_pOwner->m_DebugManager.RunDebug();
 }
 
 VOID CProjectOM::ExecCommand(BSTR Command, IUnknown* pUnk, LONG lTimeout)
@@ -180,6 +185,20 @@ VOID CProjectOM::ExecCommand(BSTR Command, IUnknown* pUnk, LONG lTimeout)
    USES_CONVERSION;
    CCommandExecute cmd;
    cmd.Run(&m_pOwner->m_CompileManager, OLE2CT(Command), spCallback, lTimeout);
+}
+
+void CProjectOM::_StartCompiler()
+{
+   // Silently attempt to connect to server
+   if( !m_pOwner->m_CompileManager.IsConnected() ) {
+      m_pOwner->m_CompileManager.Start();
+      long lTimeout = _ttol(m_pOwner->m_CompileManager.GetParam(_T("ConnectTimeout")));
+      if( lTimeout <= 0 ) lTimeout = 3L;
+      while( lTimeout-- > 0 ) {
+         if( m_pOwner->m_CompileManager.IsConnected() ) break;
+         ::Sleep(1000L);
+      }
+   }
 }
 
 

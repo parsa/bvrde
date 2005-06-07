@@ -239,6 +239,15 @@
 #define ID_CLASSVIEW_GOTO               1200
 #define ID_CLASSVIEW_PROPERTIES         1201
 #define IDD_OPTIONS_ADVANCED            32009
+#define ID_EDIT_VIEWWS                  40052
+#define ID_EDIT_VIEWTABS                40053
+#define ID_EDIT_VIEWEOL                 40060
+#define ID_EDIT_TABIFY                  40061
+#define ID_EDIT_UNTABIFY                40062
+#define ID_EDIT_INDENT                  40063
+#define ID_EDIT_UNINDENT                40064
+#define ID_EDIT_COMMENT                 40067
+#define ID_EDIT_UNCOMMENT               40068
 #define ID_VIEW_OPENWITH                40069
 #define ID_EDIT_DELLINE                 40088
 #define ID_FILE_OPEN_WITH               43001
@@ -259,14 +268,6 @@
 #define ID_VIEW_DEBUG_LOG               43042
 #define ID_BOOKMARK_TOGGLE              43043
 #define ID_BUILD_STOP                   43044
-#define ID_EDIT_VIEWWS                  43052
-#define ID_EDIT_VIEWEOL                 43060
-#define ID_EDIT_TABIFY                  43061
-#define ID_EDIT_UNTABIFY                43062
-#define ID_EDIT_INDENT                  43063
-#define ID_EDIT_UNINDENT                43064
-#define ID_EDIT_COMMENT                 43067
-#define ID_EDIT_UNCOMMENT               43068
 #define ID_VIEW_OPEN_WITH               43069
 #define ID_EDIT_VIEWWORDWRAP            43082
 

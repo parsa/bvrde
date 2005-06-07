@@ -11,8 +11,7 @@
 
 CWatchView::CWatchView() :
    m_wndCatch(this, 1),
-   m_pProject(NULL),
-   m_dwIndex(0)
+   m_pProject(NULL)
 {
 }
 
@@ -26,9 +25,7 @@ void CWatchView::Init(CRemoteProject* pProject)
 {
    m_pProject = pProject;
    // Remove previous items
-   if( m_ctrlGrid.IsWindow() ) {
-      while( m_ctrlGrid.GetItemCount() > 0 ) m_ctrlGrid.DeleteItem(0);
-   }
+   if( m_ctrlGrid.IsWindow() ) while( m_ctrlGrid.GetItemCount() > 0 ) m_ctrlGrid.DeleteItem(0);
 }
 
 bool CWatchView::WantsData() 
@@ -50,9 +47,9 @@ void CWatchView::ActivateWatches()
       m_ctrlGrid.GetItemValue(hProp, &vName);
       ATLASSERT(vName.vt==VT_BSTR);
       CString sName = vName.bstrVal;
-      DWORD iIndex = m_ctrlGrid.GetItemData(hProp);
+      LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
       CString sCommand;
-      sCommand.Format(_T("-var-create watch%ld * \"%s\""), iIndex, sName);
+      sCommand.Format(_T("-var-create watch%ld * \"%s\""), lKey, sName);
       m_pProject->DelayedDebugCommand(sCommand);
    }
 }
@@ -65,17 +62,38 @@ void CWatchView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       if( sName.IsEmpty() ) return;
       if( sName.Find(_T("watch")) != 0 ) return;
       CString sValue = info.GetItem(_T("value"));
-      DWORD iWatch = (DWORD) _ttol( ((LPCTSTR) sName) + 5);
+      LPARAM lWatch = (LPARAM) _ttol( ((LPCTSTR) sName) + 5);  // formatted as "watch1234"
       int nCount = m_ctrlGrid.GetItemCount();
       for( int i = 0; i < nCount; i++ ) {
          HPROPERTY hProp = m_ctrlGrid.GetProperty(i, 0);
-         DWORD iIndex = m_ctrlGrid.GetItemData(hProp);
-         if( iIndex == iWatch ) {
+         LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
+         if( lKey == lWatch ) {
             HPROPERTY hProp = m_ctrlGrid.GetProperty(i, 1);
             CComVariant vValue = sValue;
             m_ctrlGrid.SetItemValue(hProp, &vValue);
             break;
          }
+      }
+   }
+   if( _tcscmp(pstrType, _T("name")) == 0 )
+   {
+      CString sName = info.GetItem(_T("name"));
+      while( !sName.IsEmpty() ) {
+         if( _tcsncmp(sName, _T("watch"), 5) == 0 ) {
+            LPARAM lWatch = (LPARAM) _ttol( ((LPCTSTR) sName) + 5);  // formatted as "watch1234"
+            int nCount = m_ctrlGrid.GetItemCount();
+            bool bFound = false;
+            for( int i = 0; !bFound && i < nCount; i++ ) {
+               HPROPERTY hProp = m_ctrlGrid.GetProperty(i, 0);
+               LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
+               if( lKey == lWatch ) bFound = true;
+            }
+            if( !bFound ) {
+               int iItem = m_ctrlGrid.InsertItem(-1, PropCreateSimple(_T(""), sName, lWatch));
+               m_ctrlGrid.SetSubItem(iItem, 1, PropCreateSimple(_T(""), _T("")));
+            }
+         }
+         sName = info.FindNext(_T("name"));
       }
    }
 }
@@ -91,8 +109,8 @@ void CWatchView::EvaluateValues(CSimpleArray<CString>& aDbgCmd)
    int nCount = m_ctrlGrid.GetItemCount();
    for( int i = 0; i < nCount; i++ ) {
       HPROPERTY hProp = m_ctrlGrid.GetProperty(i, 0);
-      DWORD iIndex = m_ctrlGrid.GetItemData(hProp);
-      sCommand.Format(_T("-var-evaluate-expression watch%ld"), iIndex);
+      LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
+      sCommand.Format(_T("-var-evaluate-expression watch%ld"), lKey);
       aDbgCmd.Add(sCommand);
    }
 }
@@ -104,25 +122,22 @@ void CWatchView::EvaluateValues(CSimpleArray<CString>& aDbgCmd)
 void CWatchView::_CreateWatch(HPROPERTY hProp, LPCTSTR pstrName)
 {
    ATLASSERT(hProp);
-   DWORD iIndex = m_ctrlGrid.GetItemData(hProp);
-
+   LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
    CString sCommand;
-   sCommand.Format(_T("-var-delete watch%ld"), iIndex);
+   sCommand.Format(_T("-var-delete watch%ld"), lKey);
    m_pProject->DelayedDebugCommand(sCommand);
-   sCommand.Format(_T("-var-create watch%ld * \"%s\""), iIndex, pstrName);
+   sCommand.Format(_T("-var-create watch%ld * \"%s\""), lKey, pstrName);
    m_pProject->DelayedDebugCommand(sCommand);
 }
 
 void CWatchView::_DeleteWatch(HPROPERTY hProp)
 {
    ATLASSERT(hProp);
-   DWORD iIndex = m_ctrlGrid.GetItemData(hProp);
-
    int iItem, iCol;
    m_ctrlGrid.FindProperty(hProp, iItem, iCol);
-
+   LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
    CString sCommand;
-   sCommand.Format(_T("-var-delete watch%ld"), iIndex);
+   sCommand.Format(_T("-var-delete watch%ld"), lKey);
    m_pProject->DelayedDebugCommand(sCommand);
    m_ctrlGrid.DeleteItem(iItem);
 }
@@ -178,13 +193,12 @@ LRESULT CWatchView::OnDropFiles(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
    ::CloseClipboard();
 
    // Add item
-   int iIndex = m_dwIndex++;
-   int iItem = m_ctrlGrid.InsertItem(-1, PropCreateSimple(_T(""), sText, iIndex));
+   LPARAM lKey = (LPARAM) ::GetTickCount();
+   int iItem = m_ctrlGrid.InsertItem(-1, PropCreateSimple(_T(""), sText, lKey));
    m_ctrlGrid.SetSubItem(iItem, 1, PropCreateSimple(_T(""), _T("")));
    m_ctrlGrid.SelectItem(iItem);
-
    CString sCommand;
-   sCommand.Format(_T("-var-create watch%ld * \"%s\""), iIndex, _T("0"));
+   sCommand.Format(_T("-var-create watch%ld * \"%s\""), lKey, _T("0"));
    m_pProject->DelayedDebugCommand(sCommand);
 
    SetFocus();
@@ -193,15 +207,13 @@ LRESULT CWatchView::OnDropFiles(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
 
 LRESULT CWatchView::OnAddItem(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
-   int iIndex = m_dwIndex++;
-   int iItem = m_ctrlGrid.InsertItem(-1, PropCreateSimple(_T(""), _T(""), iIndex));
+   LPARAM lKey = ::GetTickCount();
+   int iItem = m_ctrlGrid.InsertItem(-1, PropCreateSimple(_T(""), _T(""), lKey));
    m_ctrlGrid.SetSubItem(iItem, 1, PropCreateSimple(_T(""), _T("")));
    m_ctrlGrid.SelectItem(iItem);
-
    CString sCommand;
-   sCommand.Format(_T("-var-create watch%ld * \"%s\""), iIndex, _T("0"));
+   sCommand.Format(_T("-var-create watch%ld * \"%s\""), lKey, _T("0"));
    m_pProject->DelayedDebugCommand(sCommand);
-
    return 0;
 }
 
@@ -230,10 +242,9 @@ LRESULT CWatchView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
       m_ctrlGrid.GetItemValue(hProp, &vValue);
       CString sValue = CString(vValue.bstrVal);
       hProp = m_ctrlGrid.GetProperty(iItem, 0);
-      DWORD iIndex = m_ctrlGrid.GetItemData(hProp);
-
+      LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
       CString sCommand;
-      sCommand.Format(_T("-var-assign watch%ld \"%s\""), iIndex, sValue);
+      sCommand.Format(_T("-var-assign watch%ld \"%s\""), lKey, sValue);
       m_pProject->DelayedDebugCommand(sCommand);
    }
 
@@ -261,3 +272,4 @@ LRESULT CWatchView::OnGridKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL&
    bHandled = FALSE;
    return 0;
 }
+

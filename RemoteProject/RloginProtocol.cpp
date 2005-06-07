@@ -503,7 +503,7 @@ CString CRloginProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Extra") ) return m_sExtraCommands;
    if( sName == _T("Type") ) return _T("RLogin");
    if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
-   return "";
+   return _T("");
 }
 
 void CRloginProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)

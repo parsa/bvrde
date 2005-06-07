@@ -127,7 +127,7 @@ bool CShellManager::IsBusy() const
 CString CShellManager::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
-   if( sName == "Type" ) return m_sType;
+   if( sName == _T("Type") ) return m_sType;
    if( m_pProtocol == NULL ) return _T("");
    return m_pProtocol->GetParam(pstrName);
 }
@@ -136,7 +136,7 @@ void CShellManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
 {
    CString sName = pstrName;
    // Changing connection type?
-   if( sName == "Type" ) {
+   if( sName == _T("Type") ) {
       if( m_pProtocol ) delete m_pProtocol;
       m_pProtocol = NULL;
       m_sType = pstrValue;

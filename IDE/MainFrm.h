@@ -226,6 +226,7 @@ public:
       MESSAGE_HANDLER(WM_APP_UPDATELAYOUT, OnUserUpdateLayout)
       MESSAGE_HANDLER(WM_APP_PROJECTCHANGE, OnUserProjectChange)
       MESSAGE_HANDLER(WM_APP_COMMANDLINE, OnUserCommandLine)
+      MESSAGE_HANDLER(WM_APP_CLOSESTARTPAGE, OnUserCloseStartPage)
       // Views automatically gets WM_COMMAND messages
       CHAIN_MDI_CHILD_COMMANDS()
       // Default handling
@@ -299,6 +300,7 @@ public:
    LRESULT OnUserUpdateLayout(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnUserProjectChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnUserCommandLine(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnUserCloseStartPage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
    // IDevEnv
 

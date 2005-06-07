@@ -22,7 +22,7 @@ CQueryThread::CQueryThread(CDbOperations* pDbData) :
 
 DWORD CQueryThread::Run()
 {
-   ::CoInitialize(NULL);
+   CCoInitialize cominit(COINIT_MULTITHREADED);
 
    ::SetMessageQueue(100);  // HACK: For the sake of any OLE DB dependencies
 
@@ -281,7 +281,6 @@ DWORD CQueryThread::Run()
    m_pDbCmd = NULL;
    Db.Close();
 
-   ::CoUninitialize();
    return 0;
 }
 

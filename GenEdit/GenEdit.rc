@@ -213,6 +213,7 @@ BEGIN
             MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
             MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
             MENUITEM "View &White Space",           ID_EDIT_VIEWWS
+            MENUITEM "View Indentation Guides",     ID_EDIT_VIEWTABS
         END
         POPUP "Bookmarks"
         BEGIN
@@ -256,6 +257,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_EDIT_VIEWWS          "View Whitespace markers\nView Whitespace"
+    ID_EDIT_VIEWTABS        "View Indentation Guides\nTab Guides"
     ID_EDIT_VIEWEOL         "View End-Of-Line markers\nView EOL"
     ID_EDIT_TABIFY          "Tabify selected text\nTabify"
     ID_EDIT_UNTABIFY        "Untabify selected text\nUntabify"

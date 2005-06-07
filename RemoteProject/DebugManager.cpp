@@ -396,11 +396,11 @@ bool CDebugManager::RunContinue()
    return DoDebugCommand(_T("-exec-continue"));
 }
 
-CString CDebugManager::GetTagInfo(LPCTSTR pstrValue)
+bool CDebugManager::GetTagInfo(LPCTSTR pstrValue)
 {
    ATLASSERT(!::IsBadStringPtr(pstrValue,-1));
    // We must be debugging to talk to the debugger
-   if( !IsDebugging() ) return _T("");
+   if( !IsDebugging() ) return false;
    // Send query to GDB debugger about the data value.
    CString sValue = pstrValue;
    sValue.Replace(_T("\\"), _T("\\\\"));
@@ -410,7 +410,7 @@ CString CDebugManager::GetTagInfo(LPCTSTR pstrValue)
    CString sCommand;
    sCommand.Format(_T("-data-evaluate-expression \"%s\""), sValue);
    DoDebugCommand(sCommand);
-   return _T("");  // We don't have an answer right now!
+   return true;  // We don't know if there will be data available!!
 }
 
 bool CDebugManager::DoDebugCommand(LPCTSTR pstrText)
@@ -447,28 +447,28 @@ bool CDebugManager::DoSignal(BYTE bCmd)
 CString CDebugManager::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
-   if( sName == "ChangeDir" ) return m_sCommandCD;
-   if( sName == "App" ) return m_sAppExecutable;
-   if( sName == "AppArgs" ) return m_sAppArgs;
-   if( sName == "Debugger" ) return m_sDebuggerExecutable;
-   if( sName == "DebuggerArgs" ) return m_sDebuggerArgs;
-   if( sName == "DebugMain" ) return m_sDebugMain;
-   if( sName == "StartTimeout" ) return ToString(m_lStartTimeout);
-   if( sName == "InCommand" ) return m_bCommandMode ? _T("true") : _T("false");
+   if( sName == _T("ChangeDir") ) return m_sCommandCD;
+   if( sName == _T("App") ) return m_sAppExecutable;
+   if( sName == _T("AppArgs") ) return m_sAppArgs;
+   if( sName == _T("Debugger") ) return m_sDebuggerExecutable;
+   if( sName == _T("DebuggerArgs") ) return m_sDebuggerArgs;
+   if( sName == _T("DebugMain") ) return m_sDebugMain;
+   if( sName == _T("StartTimeout") ) return ToString(m_lStartTimeout);
+   if( sName == _T("InCommand") ) return m_bCommandMode ? _T("true") : _T("false");
    return m_ShellManager.GetParam(pstrName);
 }
 
 void CDebugManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
 {
    CString sName = pstrName;
-   if( sName == "ChangeDir" ) m_sCommandCD = pstrValue;
-   if( sName == "App" ) m_sAppExecutable = pstrValue;
-   if( sName == "AppArgs" ) m_sAppArgs = pstrValue;
-   if( sName == "Debugger" ) m_sDebuggerExecutable = pstrValue;
-   if( sName == "DebuggerArgs" ) m_sDebuggerArgs = pstrValue;
-   if( sName == "DebugMain" ) m_sDebugMain = pstrValue;
-   if( sName == "StartTimeout" ) m_lStartTimeout = _ttol(pstrValue);
-   if( sName == "InCommand" ) m_bCommandMode = _tcscmp(pstrValue, _T("true")) == 0;
+   if( sName == _T("ChangeDir") ) m_sCommandCD = pstrValue;
+   if( sName == _T("App") ) m_sAppExecutable = pstrValue;
+   if( sName == _T("AppArgs") ) m_sAppArgs = pstrValue;
+   if( sName == _T("Debugger") ) m_sDebuggerExecutable = pstrValue;
+   if( sName == _T("DebuggerArgs") ) m_sDebuggerArgs = pstrValue;
+   if( sName == _T("DebugMain") ) m_sDebugMain = pstrValue;
+   if( sName == _T("StartTimeout") ) m_lStartTimeout = _ttol(pstrValue);
+   if( sName == _T("InCommand") ) m_bCommandMode = _tcscmp(pstrValue, _T("true")) == 0;
    m_ShellManager.SetParam(pstrName, pstrValue);
 }
 
@@ -786,6 +786,8 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
    if( sCommand == _T("done") ) 
    {
       sLine.TrimLeft(_T(","));
+      // This is the list of GDB MI results that we wish to have a closer look
+      // at. Each view may get a change to interpret the data.
       static LPCTSTR pstrList[] = 
       {
          _T("BreakpointTable"),

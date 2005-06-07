@@ -21,7 +21,6 @@ public:
    CRemoteProject* m_pProject;
    CPropertyGridCtrl m_ctrlGrid;
    CContainedWindow m_wndCatch;
-   DWORD m_dwIndex;
 
    // Operations
 

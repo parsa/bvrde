@@ -3,7 +3,10 @@
 
 #include "atldib.h"
 #include "MenuShadows.h"
- 
+
+#include <version.h>
+#pragma comment(lib, "version.lib")
+
 
 class CAboutDlg : 
    public CDialogImpl<CAboutDlg>,
@@ -33,7 +36,7 @@ public:
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
-      // Resize window to size of bitmap (prevent scaleing from Large Font
+      // Resize dialog to size of bitmap (prevent scaling from Large Font
       // settings or other oddities)
       CWindowRect rcWin = GetDlgItem(IDC_SPLASH);
       ResizeClient(rcWin.right - rcWin.left, rcWin.bottom - rcWin.top, FALSE);
@@ -48,8 +51,13 @@ public:
       HFONT hOldFont = dc.SelectFont(m_SmallFont);
       dc.GetTextMetrics(&m_tm);
       dc.SelectFont(hOldFont);
+      // Get the product version
+      TCHAR szModule[MAX_PATH] = { 0 };
+      ::GetModuleFileName(NULL, szModule, MAX_PATH);
+      CString sVersion = _GetFileVersion(szModule);
       // Split the text into lines
       CString sText(MAKEINTRESOURCE(IDS_CREDITS));
+      sText.Replace(_T("$VER$"), sVersion);
       int iPos;
       while( (iPos = sText.Find(_T("\n"))) >= 0 ) {
          CString s = sText.Left(iPos);
@@ -111,6 +119,24 @@ public:
    {
       EndDialog(wID);
       return 0;
+   }
+   CString _GetFileVersion(LPCTSTR pstrFilename) const
+   {
+      DWORD dwHandle = 0;
+      DWORD cchVer = ::GetFileVersionInfoSize(pstrFilename, &dwHandle);
+      if( cchVer == 0 ) return _T("");
+      LPVOID pVer = _alloca(cchVer);
+      BOOL bRet = ::GetFileVersionInfo(pstrFilename, dwHandle, cchVer, pVer);
+      if( !bRet ) return _T("");
+      UINT uLen = 0;
+      LPVOID pBuf = NULL;
+      bRet = ::VerQueryValue(pVer, _T("\\"), &pBuf, &uLen);
+      if( !bRet ) return _T("");
+      VS_FIXEDFILEINFO vsfi = { 0 };
+      memcpy(&vsfi, pBuf, sizeof(VS_FIXEDFILEINFO));
+      CString sResult;
+      sResult.Format(_T("%ld.%ld"), vsfi.dwProductVersionLS, vsfi.dwProductVersionMS);
+      return sResult;
    }
 };
 

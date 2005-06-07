@@ -25,7 +25,7 @@ LRESULT COutputView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
    LRESULT lRes = DefWindowProc();
    SetFont(AtlGetDefaultGuiFont());
    SetBackgroundColor(::GetSysColor(COLOR_WINDOW));
-   LimitText(20000);
+   LimitText(120000);
    SetUndoLimit(0);
    SetSel(0, 0);
    return lRes;

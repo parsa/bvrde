@@ -25,7 +25,7 @@ class CStartPageView :
    public IView
 {
 public:
-   DECLARE_WND_SUPERCLASS(NULL, CAxWindow::GetWndClassName())
+   DECLARE_WND_SUPERCLASS(_T("BVRDE_StartPage"), CAxWindow::GetWndClassName())
 
    CComQIPtr<IWebBrowser2> m_spBrowser;
    CWindow m_wndFrame;

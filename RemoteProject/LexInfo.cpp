@@ -158,34 +158,56 @@ int CLexInfo::FindItem(int iStart, LPCTSTR pstrName)
    return -1;
 }
 
-CString CLexInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NULL*/)
+bool CLexInfo::GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/)
 {
    if( !m_bLoaded ) _LoadTags();
-   if( m_aFiles.GetSize() == 0 ) return _T("");
+   if( m_aFiles.GetSize() == 0 ) return false;
 
    // Now, let's look up information about the member
    CString sResult;
-   int iIndex = FindItem(0, pstrName);
-   while( iIndex >= 0 ) {
-      const TAGINFO& info = m_aFiles[m_iFile]->aTags[iIndex];
-      switch( info.Type ) {
-      case TAGTYPE_ENUM:
-      case TAGTYPE_CLASS:
-      case TAGTYPE_STRUCT:
-      case TAGTYPE_MEMBER:
-      case TAGTYPE_TYPEDEF:
-      case TAGTYPE_FUNCTION:
-         // Owner has to match...
-         if( pstrOwner != NULL && _tcscmp(pstrOwner, info.pstrFields[0]) != 0 ) break;
-         // Did we already find an entry? Cannot handle duplicates!
-         if( !sResult.IsEmpty() ) return _T("");
-         // So this is our function signature...
-         sResult = info.pstrToken;
+   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
+      const LEXFILE& file = *m_aFiles[i];
+      // Binary search on sorted list
+      int nCount = file.aTags.GetSize();
+      int min = 0;
+      int max = nCount;
+      int n = max / 2; 
+      while( min < max ) { 
+         int cmp = _tcscmp(pstrName, file.aTags[n].pstrName); 
+         if( cmp == 0 ) break;
+         if( cmp < 0 ) max = n; else min = n + 1;
+         n = (min + max) / 2;
       }
-      iIndex = FindItem(iIndex + 1, pstrName);
+      // Find first instance of the particular string
+      if( min >= max ) continue;
+      if( _tcscmp(pstrName, file.aTags[n].pstrName) != 0 ) continue;
+      while( n > 0 && _tcscmp(pstrName, file.aTags[n - 1].pstrName) == 0 ) n--;
+      // Scan this file for occurances
+      while( true ) {
+         const TAGINFO& info = m_aFiles[i]->aTags[n];
+         switch( info.Type ) {
+         case TAGTYPE_ENUM:
+         case TAGTYPE_CLASS:
+         case TAGTYPE_STRUCT:
+         case TAGTYPE_MEMBER:
+         case TAGTYPE_TYPEDEF:
+         case TAGTYPE_FUNCTION:
+            // Owner has to match...
+            if( pstrOwner != NULL && _tcscmp(pstrOwner, info.pstrFields[0]) != 0 ) break;
+            // So this is our function signature...
+            sResult = info.pstrToken;
+            aResult.Add(sResult);
+         }
+         for( n++; n < nCount; n++ ) {
+            int cmp = _tcscmp(file.aTags[n].pstrName, pstrName);
+            if( cmp == 0 ) break;
+            if( cmp > 0 ) n = nCount;
+         }
+         if( n >= nCount ) break;
+      }
    }
 
-   return sResult;
+   return aResult.GetSize() > 0;
 }
 
 bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aList)

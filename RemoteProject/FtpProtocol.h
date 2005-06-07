@@ -47,6 +47,7 @@ public:
 
    bool LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, DWORD* pdwSize = NULL);
    bool SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE ppOut, DWORD dwSize);
+   bool DeleteFile(LPCTSTR pstrFilename);
    bool SetCurPath(LPCTSTR pstrPath);
    CString GetCurPath();
    CString FindFile(LPCTSTR pstrFilename);
@@ -57,6 +58,8 @@ public:
 
    bool WaitForConnection();
 
+   bool _TranslateError();
+
 protected:
    CString m_sHost;
    CString m_sUsername;
@@ -66,6 +69,7 @@ protected:
    CString m_sProxy;
    CString m_sSearchPath;
    BOOL m_bPassive;
+   BOOL m_bCompatibilityMode;
    long m_lConnectTimeout;
    //
    CFtpThread m_thread;

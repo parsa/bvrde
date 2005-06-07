@@ -61,6 +61,8 @@ typedef enum LAZYACTION
 typedef enum GUIACTION
 {
    GUI_ACTION_ACTIVATEVIEW = 1,
+   GUI_ACTION_CLEARVIEW,
+   GUI_ACTION_PLAY_ANIMATION,
    GUI_ACTION_STOP_ANIMATION,
 	GUI_ACTION_FILE_RELOAD,
 };
@@ -171,6 +173,7 @@ public:
    //
    virtual bool LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, DWORD* pdwSize = NULL) = 0;
    virtual bool SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE ppOut, DWORD dwSize) = 0;  
+   virtual bool DeleteFile(LPCTSTR pstrFilename) = 0;
    virtual bool SetCurPath(LPCTSTR pstrPath) = 0;
    virtual CString GetCurPath() = 0;
    virtual bool EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles) = 0;
@@ -193,8 +196,8 @@ public:
    virtual int FindItem(int iStart, LPCTSTR pstrName) = 0;
    virtual bool GetOuterList(CSimpleValArray<TAGINFO*>& aList) = 0;
    virtual bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList) = 0;
-   virtual CString GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner = NULL) = 0;
    virtual bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance) = 0;
+   virtual bool GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner = NULL) = 0;
 };
 
 

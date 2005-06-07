@@ -54,11 +54,10 @@ BEGIN
                     SS_NOPREFIX | SS_CENTERIMAGE | WS_GROUP,7,144,39,12,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_PATH,51,144,184,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "",IDC_BROWSE_PATH,238,144,14,12,BS_ICON | NOT 
-                    WS_TABSTOP
+    PUSHBUTTON      "...",IDC_BROWSE_PATH,238,144,14,12,NOT WS_TABSTOP
     CONTROL         "Type: ",IDC_STATIC,"Static",SS_SIMPLE | SS_NOPREFIX | 
                     SS_CENTERIMAGE | WS_GROUP,7,161,39,12,WS_EX_TRANSPARENT
-    COMBOBOX        IDC_TYPE,51,159,104,12,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_TYPE,51,159,104,46,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     CONTROL         "Use Output Window",IDC_USE_OUTPUT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,178,84,10,
@@ -144,9 +143,11 @@ BEGIN
     GROUPBOX        "",IDC_STATIC,7,74,284,142
     ICON            IDI_LOAD3,IDC_STATIC,25,84,20,20,SS_REALSIZEIMAGE
     CONTROL         "Load an existing solution...",IDC_RADIO3,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,56,90,114,10
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,56,90,108,10
+    PUSHBUTTON      "&Browse",IDC_BROWSE,166,88,46,12
     CONTROL         "List1",IDC_LIST,"SysListView32",LVS_SINGLESEL | 
                     LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
+                    LVS_SHAREIMAGELISTS | LVS_AUTOARRANGE | 
                     LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,19,111,257,
                     93
 END
@@ -641,7 +642,7 @@ IDI_PROJECT             ICON    DISCARDABLE     "res\\project.ico"
 
 IDB_FOLDERS             BITMAP  DISCARDABLE     "res\\folders.bmp"
 IDB_EXPLORER            BITMAP  DISCARDABLE     "res\\explorer.bmp"
-IDB_PROJECTS            BITMAP  DISCARDABLE     "res\\projects.bmp"
+IDB_PROJECTS32          BITMAP  DISCARDABLE     "res\\projects32.bmp"
 IDB_SPLASH              BITMAP  DISCARDABLE     "res\\splash.bmp"
 IDB_BANNER              BITMAP  DISCARDABLE     "res\\banner.bmp"
 IDB_WATERMARK           BITMAP  DISCARDABLE     "res\\watermark.bmp"
@@ -651,6 +652,7 @@ IDB_PRINTANIM           BITMAP  DISCARDABLE     "res\\printanim.bmp"
 IDB_TRANSFERANIM        BITMAP  DISCARDABLE     "res\\transferanim.bmp"
 IDB_SAVEANIM            BITMAP  DISCARDABLE     "res\\saveanim.bmp"
 IDR_FULLSCREEN          BITMAP  DISCARDABLE     "res\\fullscreen.bmp"
+IDB_PROJECTS16          BITMAP  DISCARDABLE     "res\\projects16.bmp"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -841,6 +843,27 @@ BEGIN
     END
 END
 
+IDM_TOOL_PATH MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "$PROJECTNAME$",               ID_TOOLTOKEN_PROJECTNAME
+        MENUITEM "$PROJECTPATH$",               ID_TOOLTOKEN_PROJECTPATH
+    END
+END
+
+IDM_TOOL_ARGS MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "$FILENAME$",                  ID_TOOLTOKEN_FILENAME
+        MENUITEM "$PROJECTNAME$",               ID_TOOLTOKEN_PROJECTNAME
+        MENUITEM "$PROJECTPATH$",               ID_TOOLTOKEN_PROJECTPATH
+        MENUITEM "$SELECTION$",                 ID_TOOLTOKEN_SELECTION
+        MENUITEM "$HOSTNAME$",                  ID_TOOLTOKEN_HOSTNAME
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -877,8 +900,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,2
- PRODUCTVERSION 1,0,0,2
+ FILEVERSION 0,9,0,0
+ PRODUCTVERSION 0,9,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -896,14 +919,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Viksoe.dk\0"
             VALUE "FileDescription", "BVRDE - Bjarke Viksoe's Remote Development Environment\0"
-            VALUE "FileVersion", "1, 0, 0, 2\0"
+            VALUE "FileVersion", "0, 9, 0, 0\0"
             VALUE "InternalName", "BVRDE\0"
-            VALUE "LegalCopyright", "Copyright 2003 Bjarke Viksoe\0"
+            VALUE "LegalCopyright", "Copyright 2003 - 2005 Bjarke Viksoe\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "BVRDE.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "BVRDE\0"
-            VALUE "ProductVersion", "1, 0, 0, 2\0"
+            VALUE "ProductVersion", "0, 9, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -1193,7 +1216,7 @@ BEGIN
     IDS_TYPE_EXTENSION      "Enhancement"
     IDS_TYPE                "Type"
     IDS_TREE_BASIC          "BASIC"
-    IDS_CREDITS             "\n\n\n\n\n\nProgramming by\nBjarke Viksøe\n\n3rd Party Components\n\nScintilla Editor\nby Neil Hodgson\n\nCryptlib\nby Peter Gutmann\n\n\n"
+    IDS_CREDITS             "\n\n\n\n\n\nBVRDE\nVersion $VER$\n\nProgramming by\nBjarke Viksøe\n\n3rd Party Components\n\nScintilla Editor\nby Neil Hodgson\n\nCryptlib\nby Peter Gutmann\n\n\n"
     IDS_NEWTOOL             "<New Tool>"
     IDS_FILTER_EXE          "Executables|*.exe;*.lnk|All Files|*.*|"
     IDS_FILTER_ALL          "All Files|*.*|Source Files|*.c*;*.h*;*.jav*;*.vb*;*.bas*|Executables|*.exe;*.lnk|"
@@ -1253,6 +1276,11 @@ BEGIN
     ID_TAB_ACTIVATE         "Activate this document\nActivate"
     ID_VIEW_FULLSCREEN      "Show document in Full Screen\nFull Screen"
     ID_EDIT_CLEARVIEW       "Clear all text in the view\nClear"
+    ID_TOOLTOKEN_NAME       "Replaced with the project name\nName"
+    ID_TOOLTOKEN_PROJECTPATH "Replaced with the project path\nProject Path"
+    ID_TOOLTOKEN_SELECTION  "Replaced with editor's selection\nEditor's Selection"
+    ID_TOOLTOKEN_HOSTNAME   "Replaced with the name of the host\nHost Name"
+    ID_TOOLTOKEN_FILENAME   "Replaced with the active filename\nFilename"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1349,34 +1377,6 @@ END
 IDR_PROJECT TOOLBAR DISCARDABLE  16, 15
 BEGIN
     BUTTON      ID_FILE_NEW
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    ID_FILE_OPEN            "Opens the selected file\nOpen"
-    ID_FILE_SAVE            "Save the active file\nSave"
-    ID_FILE_PRINT           "Prints the active document\nPrint"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    ID_EDIT_COPY            "Copy the selection and move it to the clipboard\nCopy"
-    ID_EDIT_CUT             "Cut the selection and move it to the clipboard\nCut"
-    ID_EDIT_PASTE           "Inserts the clipboard contents in the document\nPaste"
-    ID_EDIT_UNDO            "Undoes the previous action\nUndo"
-    ID_EDIT_REDO            "Redoes what was undone\nRedo"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    ID_POPUP_NEW            "Create a new Solution or Project\nCreate Solution"
-    ID_POPUP_ADD            "Add a project or file to the Solution\nAdd to Solution"
 END
 
 #endif    // English (U.K.) resources

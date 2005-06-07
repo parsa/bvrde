@@ -996,6 +996,23 @@ public:
 
 
 /////////////////////////////////////////////////////////////////////////////
+// CCoInitialize
+
+struct CCoInitialize
+{
+   CCoInitialize(DWORD dwCoInit = COINIT_APARTMENTTHREADED)
+   {
+      HRESULT Hr = ::CoInitializeEx(NULL, dwCoInit);
+      ATLASSERT(SUCCEEDED(Hr)); Hr;
+   }
+   ~CCoInitialize()
+   {
+      ::CoUninitialize();
+   }
+};
+
+
+/////////////////////////////////////////////////////////////////////////////
 // CIniFile
 
 class CIniFile

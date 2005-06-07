@@ -14,10 +14,11 @@
 // Forward declare
 class CCompileManager;
 
-#define COMPFLAG_COMMANDMODE    1
-#define COMPFLAG_IGNOREOUTPUT   2
-#define COMPFLAG_BUILDSESSION   4
-#define COMPFLAG_RELOADFILE     8
+#define COMPFLAG_COMMANDMODE    0x00000001
+#define COMPFLAG_IGNOREOUTPUT   0x00000002
+#define COMPFLAG_BUILDSESSION   0x00000004
+#define COMPFLAG_RELOADFILE     0x00000008
+#define COMPFLAG_SILENT         0x00000010
 
 
 class CCompileThread : public CThreadImpl<CCompileThread>
@@ -66,7 +67,7 @@ public:
    bool IsCompiling() const;
    bool IsConnected() const;
 
-   bool DoAction(LPCTSTR pstrName, LPCTSTR pstrParams = NULL);
+   bool DoAction(LPCTSTR pstrName, LPCTSTR pstrParams = NULL, UINT Flags = 0);
    CString GetParam(LPCTSTR pstrName) const;
    void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue);
 

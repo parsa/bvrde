@@ -92,6 +92,7 @@ public:
       COMMAND_ID_HANDLER(ID_EDIT_DELLINE, OnDeleteLine)
       COMMAND_ID_HANDLER(ID_EDIT_VIEWWS, OnViewWhiteSpace)
       COMMAND_ID_HANDLER(ID_EDIT_VIEWEOL, OnViewEOL)
+      COMMAND_ID_HANDLER(ID_EDIT_VIEWTABS, OnViewIndentGuides)
       COMMAND_ID_HANDLER(ID_EDIT_VIEWWORDWRAP, OnViewWordWrap)
       COMMAND_ID_HANDLER(ID_BOOKMARK_TOGGLE, OnMarkerToggle)
       COMMAND_ID_HANDLER(ID_BOOKMARK_CLEAR, OnMarkerClear)
@@ -131,6 +132,7 @@ public:
    LRESULT OnDeleteLine(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewWhiteSpace(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewEOL(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewIndentGuides(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewWordWrap(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMarkerToggle(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMarkerClear(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

@@ -272,7 +272,7 @@ LRESULT CCommandView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
    SetFont(AtlGetDefaultGuiFont());
    SetBackgroundColor(::GetSysColor(COLOR_WINDOW));
-   LimitText(60000);
+   LimitText(160000);
    SetUndoLimit(1);
    SetSel(-1, -1);
 
@@ -441,7 +441,7 @@ void CCommandView::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
    }
    else if( _tcsnicmp(pstrCommand, _T("? "), 2) == 0 ) 
    {
-      ::CoInitialize(NULL);
+      CCoInitialize cominit;
       CComObjectGlobal<CMacro> macro;
       macro.Init(m_pMainFrame, &m_pMainFrame->m_Dispatch);
       CComVariant vRes;
@@ -454,7 +454,6 @@ void CCommandView::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
       else {
          AppendRtfText(m_hWnd, CString(e.bstrDescription) + _T("\r\n"), CFM_COLOR, 0, COLOR_RED);
       }
-      ::CoUninitialize();
       bHandled = TRUE;
    }
    else if( _tcsicmp(pstrCommand, _T("help")) == 0 )

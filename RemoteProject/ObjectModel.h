@@ -45,6 +45,7 @@ public:
       DISP_PROPGET(Username, VT_BSTR)
       DISP_PROPGET(Password, VT_BSTR)
       DISP_PROPGET(IsConnected, VT_BOOL)
+      DISP_PROPGET(IsBusy, VT_BOOL)
       DISP_PROP(CompileFlags, VT_BSTR)
       DISP_PROP(LinkFlags, VT_BSTR)
       DISP_METHOD0(Clean, VT_EMPTY)
@@ -67,6 +68,7 @@ public:
    BSTR __stdcall get_LinkFlags();
    VOID __stdcall put_LinkFlags(BSTR bstr);
    VARIANT_BOOL __stdcall get_IsConnected();
+   VARIANT_BOOL __stdcall get_IsBusy();
    IDispatch* __stdcall get_Files();
    VOID __stdcall Clean();
    VOID __stdcall Build();
@@ -74,6 +76,8 @@ public:
    VOID __stdcall StartApp();
    VOID __stdcall DebugApp();
    VOID __stdcall ExecCommand(BSTR Command, IUnknown* pUnk, LONG lTimeout);
+
+   void _StartCompiler();
 };
 
 

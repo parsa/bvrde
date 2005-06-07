@@ -37,6 +37,7 @@
 #define ID_EDIT_AUTOCOMPLETE            40039
 #define ID_BOOKMARK_TOGGLE              40043
 #define ID_EDIT_VIEWWS                  40052
+#define ID_EDIT_VIEWTABS                40053
 #define ID_EDIT_VIEWEOL                 40060
 #define ID_EDIT_TABIFY                  40061
 #define ID_EDIT_UNTABIFY                40062

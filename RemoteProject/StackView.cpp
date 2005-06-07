@@ -124,6 +124,12 @@ LRESULT CStackView::OnListDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    ATLASSERT(m_pProject);
    int iIndex = m_ctrlStack.GetCurSel();
    if( iIndex < 0 ) return 0;
+   // Select the stack frame
+   CString sCommand;
+   sCommand.Format(_T("-stack-select-frame %ld"), iIndex);
+   m_pProject->DelayedDebugCommand(sCommand);
+   m_pProject->DelayedDebugEvent();
+   // Attempt to open the source file
    CString sLine;
    m_ctrlStack.GetText(iIndex, sLine);
    int iFilePos = sLine.Find(_T("file='"));
@@ -141,8 +147,7 @@ LRESULT CStackView::OnThreadSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
    CString sCommand;
    sCommand.Format(_T("-thread-select %ld"), (long) m_ctrlThreads.GetItemData(m_ctrlThreads.GetCurSel()));
    m_pProject->DelayedDebugCommand(sCommand);
-   sCommand = _T("-stack-list-frames");
-   m_pProject->DelayedDebugCommand(sCommand);
+   m_pProject->DelayedDebugEvent();
    return 0;
 }
 

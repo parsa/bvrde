@@ -99,6 +99,7 @@
 #define IDS_ERR_FILELOCKED              209
 #define IDB_PROJECTS                    210
 #define IDS_ERR_FILEOPEN                210
+#define IDB_PROJECTS32                  210
 #define IDI_LOAD1                       211
 #define IDS_ERR_VBSCRIPT                211
 #define IDI_LOAD2                       212
@@ -149,6 +150,7 @@
 #define IDR_FULLSCREEN                  234
 #define IDS_FILTER_MACRO                234
 #define IDS_MACROBIND                   235
+#define IDB_PROJECTS16                  235
 #define IDI_PROJECT                     236
 #define IDS_KEYDUPLICATE                236
 #define IDR_OUTPUTVIEW                  237
@@ -159,7 +161,9 @@
 #define IDD_ARGUMENTPROMPT              239
 #define IDS_TOOLTYPE_COMPILER           239
 #define IDS_TOOLTYPE_SQL                240
+#define IDM_TOOL_PATH                   240
 #define IDS_SOUNDS                      241
+#define IDM_TOOL_ARGS                   241
 #define IDS_CUSTOMIZE                   242
 #define IDS_TOOLTYPE_DEBUGGER           243
 #define IDS_EXTERNALTOOL                244
@@ -253,6 +257,7 @@
 #define IDC_HOTKEY                      1082
 #define IDC_TYPE                        1085
 #define IDC_LAUNCH                      1087
+#define IDC_BROWSE                      1088
 #define IDC_TEXT                        1148
 #define IDC_DONT_SHOW                   1197
 #define IDC_DESCRIPTION                 1198
@@ -297,11 +302,17 @@
 #define ID_MACROS_KEY1                  32867
 #define ID_EDIT_CLEARVIEW               32867
 #define ID_MACROS_KEY2                  32868
+#define ID_TOOLTOKEN_NAME               32868
 #define ID_MACROS_KEY3                  32869
+#define ID_TOOLTOKEN_PROJECTPATH        32869
 #define ID_MACROS_KEY4                  32870
+#define ID_TOOLTOKEN_SELECTION          32870
 #define ID_MACROS_KEY5                  32871
+#define ID_TOOLTOKEN_HOSTNAME           32871
 #define ID_MACROS_KEY6                  32872
+#define ID_TOOLTOKEN_PROJECTNAME        32872
 #define ID_MACROS_KEY7                  32873
+#define ID_TOOLTOKEN_FILENAME           32873
 #define ID_MACROS_KEY8                  32874
 #define ID_MACROS_KEY9                  32875
 #define ID_MACROS_KEY10                 32876
@@ -317,9 +328,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        240
-#define _APS_NEXT_COMMAND_VALUE         32868
-#define _APS_NEXT_CONTROL_VALUE         1088
+#define _APS_NEXT_RESOURCE_VALUE        241
+#define _APS_NEXT_COMMAND_VALUE         32874
+#define _APS_NEXT_CONTROL_VALUE         1089
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

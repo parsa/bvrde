@@ -87,12 +87,16 @@ public:
       DISP_PROPGET(Solution, VT_DISPATCH)
       DISP_PROPGET(ActiveWindow, VT_DISPATCH)
       DISP_PROPGET(ActiveProject, VT_DISPATCH)
+      DISP_METHOD1(CreateObject, VT_DISPATCH, VT_BSTR)
+      DISP_METHOD1(Sleep, VT_EMPTY, VT_I4)
    END_DISPATCH_MAP()
 
    IDispatch* __stdcall get_App();
    IDispatch* __stdcall get_Solution();
    IDispatch* __stdcall get_ActiveWindow();
    IDispatch* __stdcall get_ActiveProject();
+   IDispatch* __stdcall CreateObject(BSTR bstrProgId);
+   VOID __stdcall Sleep(LONG lPeriod);
 };
 
 

@@ -47,11 +47,11 @@ void CStartPageView::_AttachRecentProjectList()
             CComQIPtr<IHTMLElement> spElement = spDisp;
             // 
             //  <SCRIPT language=JavaScript>
-             //      var oProjects = window.external.RecentProjects;
-            //      var i = 0;
-            //      for( i = 1; i <= oProjects.Count; i++ ) {
-            //         document.write('<' + 'A TABINDEX=' + i + ' href="project://' + oProjects.Item(i) + '">' + oProjects.Item(i) + '<' + '/A><BR>');
-            //    }
+            //     var oProjects = window.external.RecentProjects;
+            //     var i = 0;
+            //     for( i = 1; i <= oProjects.Count; i++ ) {
+            //       document.write('<' + 'A TABINDEX=' + i + ' href="project://' + oProjects.Item(i) + '">' + oProjects.Item(i) + '<' + '/A><BR>');
+            //     }
             //  </SCRIPT>
             //
             IDispatch* pProject = _pDevEnv->GetDispatch();
@@ -125,7 +125,7 @@ void CStartPageView::DeactivateUI()
 {
 }
 
-void CStartPageView::EnableModeless(BOOL bEnable)
+void CStartPageView::EnableModeless(BOOL /*bEnable*/)
 {
 }
 
@@ -134,7 +134,7 @@ IElement* CStartPageView::GetParent() const
    return NULL;
 }
 
-BOOL CStartPageView::SetName(LPCTSTR pstrName)
+BOOL CStartPageView::SetName(LPCTSTR /*pstrName*/)
 {
    return FALSE;
 }
@@ -151,7 +151,7 @@ BOOL CStartPageView::Reload()
    return FALSE;
 }
 
-BOOL CStartPageView::OpenView(long lLineNum)
+BOOL CStartPageView::OpenView(long /*lLineNum*/)
 {
    if( IsWindow() ) {
       ShowWindow(SW_SHOW);
@@ -180,7 +180,7 @@ BOOL CStartPageView::OpenView(long lLineNum)
 
 void CStartPageView::CloseView()
 {
-   if( m_wndFrame.IsWindow() ) _pDevEnv->DestroyClient(m_hWnd);
+   if( m_wndFrame.IsWindow() ) _pDevEnv->DestroyClient(m_wndFrame);
 }
 
 BOOL CStartPageView::GetText(BSTR* /*pbstrText*/)
@@ -307,9 +307,7 @@ void __stdcall CStartPageView::__BeforeNavigate2(/*[in]*/ IDispatch* pDisp,
       // Send private message instead of calling LoadSolution() directly because
       // it doesn't update the MRU history...
       enum { WM_APP_LOADSOLUTION = WM_APP + 1000 };
-      if( wndMain.SendMessage(WM_APP_LOADSOLUTION, 0, (LPARAM) (LPCTSTR) sFilename) ) {
-         m_wndFrame.PostMessage(WM_CLOSE);
-      }
+      wndMain.SendMessage(WM_APP_LOADSOLUTION, 0, (LPARAM) (LPCTSTR) sFilename);
       bCancel = true;
    }
 

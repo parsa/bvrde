@@ -256,8 +256,6 @@ BEGIN
             MENUITEM "Uncomment Selection",         ID_EDIT_UNCOMMENT
             MENUITEM SEPARATOR
             MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
-            MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
-            MENUITEM "View &White Space",           ID_EDIT_VIEWWS
         END
         POPUP "Zoom"
         BEGIN

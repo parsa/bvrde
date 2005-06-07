@@ -32,15 +32,18 @@ public:
    TCHAR m_szPattern[128];
    TCHAR m_szFolder[MAX_PATH];
    TCHAR m_szLastFile[MAX_PATH];
+   LONG m_nMatches;
    UINT m_iFlags;
 
    DWORD Run()
    {
       ATLASSERT(m_ctrlEdit.IsWindow());
+      CCoInitialize cominit(COINIT_MULTITHREADED);
+      m_nMatches = 0;
       // Title
-      TCHAR szText[100];
+      TCHAR szText[100] = { 0 };
       ::LoadString(_Module.GetResourceInstance(), IDS_SEARCHING, szText, 99);
-      TCHAR szTitle[250];
+      TCHAR szTitle[250] = { 0 };
       ::wsprintf(szTitle, szText, m_szPattern);
       _AppendRtfText(szTitle, CFM_COLOR, 0, ::GetSysColor(COLOR_HIGHLIGHT));
       // Need to postfix with pattern-match for folder
@@ -67,6 +70,11 @@ public:
       aParams[1] = static_cast<IUnknown*>(this);
       aParams[0] = 0L;
       dd.InvokeN(OLESTR("ExecCommand"), aParams, 3);
+      if( m_nMatches == 0 ) {
+         TCHAR szNoMatches[100] = { 0 };
+         ::LoadString(_Module.GetResourceInstance(), IDS_NOMATCHES, szNoMatches, 99);
+         _AppendRtfText(szNoMatches, CFM_ITALIC, CFM_ITALIC);
+      }
       return 0;
    }
 
@@ -100,6 +108,7 @@ public:
       _AppendRtfText(p1 + 1, CFM_COLOR, 0, ::GetSysColor(COLOR_GRAYTEXT));
       _AppendRtfText(szLine, CFM_COLOR, 0, ::GetSysColor(COLOR_WINDOWTEXT));
       _AppendRtfText(_T("\r\n"));
+      m_nMatches++;
       return S_OK;
    }
 

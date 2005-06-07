@@ -50,6 +50,7 @@ public:
 
    bool LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, DWORD* pdwSize = NULL);
    bool SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE ppOut, DWORD dwSize);
+   bool DeleteFile(LPCTSTR pstrFilename);
    bool SetCurPath(LPCTSTR pstrPath);
    CString GetCurPath();
    CString FindFile(LPCTSTR pstrFilename);
@@ -74,7 +75,8 @@ protected:
    CString m_sPath;
    CString m_sProxy;
    CString m_sSearchPath;
-   bool m_bPassive;
+   BOOL m_bPassive;
+   BOOL m_bCompatibilityMode;
    long m_lConnectTimeout;
    //
    CSftpThread m_thread;

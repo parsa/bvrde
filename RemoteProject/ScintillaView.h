@@ -21,6 +21,20 @@ public:
 
    CScintillaView();
 
+   typedef struct
+   {
+      long lPos;
+      long lCurTip;
+      bool bExpand;
+      CString sMemberName;
+      CString sMemberType;
+      CString sMemberScope;
+      COLORREF clrBack;
+      COLORREF clrText;
+      CString sText;
+      CSimpleArray<CString> aDecl;
+   } TOOLTIPINFO;
+
    IProject* m_pProject;            // Reference to the project
    CRemoteProject* m_pCppProject;   // Reference to the Remote CPP project (if attached)
    IView* m_pView;                  // Reference to the view
@@ -37,7 +51,7 @@ public:
    bool m_bAutoComplete;            // Use auto-complete?
    bool m_bMarkErrors;              // Mark errors with squiggly lines?
    bool m_bMouseDwell;              // Awaiting mouse-hover information?
-   long m_lDwellPos;                // Position where mouse-hover occoured
+   TOOLTIPINFO m_TipInfo;           // Information about displayed tooltip
 
    // Operations
 
@@ -64,6 +78,7 @@ public:
       COMMAND_ID_HANDLER(ID_DEBUG_EDIT_LINK, OnDebugLink)
       NOTIFY_CODE_HANDLER(SCN_CHARADDED, OnCharAdded)
       NOTIFY_CODE_HANDLER(SCN_MARGINCLICK, OnMarginClick)
+      NOTIFY_CODE_HANDLER(SCN_CALLTIPCLICK, OnCallTipClick)
       NOTIFY_CODE_HANDLER(SCN_DWELLSTART, OnDwellStart)
       NOTIFY_CODE_HANDLER(SCN_DWELLEND, OnDwellEnd)
       CHAIN_COMMANDS_HWND( m_ctrlEdit )
@@ -92,6 +107,7 @@ public:
    LRESULT OnDebugLink(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnCharAdded(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnMarginClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnCallTipClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnDwellStart(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnDwellEnd(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 
@@ -106,6 +122,14 @@ public:
 
    // Implementation
 
+   typedef struct 
+   {
+      CString sName;
+      CString sType;
+      CString sScope;
+      CSimpleArray<CString> aDecl;
+   } MEMBERINFO;
+
    void _AutoComplete(CHAR ch);
    void _FunctionTip(CHAR ch);
    void _ClearSquigglyLines();
@@ -114,8 +138,11 @@ public:
    void _RegisterListImages();
    bool _HasSelection() const;
    bool _IsRealCppEditPos(long lPos) const;
+   int _CountCommas(LPCTSTR pstrText) const;
    int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings);
-   void _ShowToolTip(long lPos, CString& sText, COLORREF clrBack, COLORREF clrText);
+   void _ShowToolTip(long lPos, CString& sText, bool bAdjustPos, COLORREF clrText, COLORREF clrBack);
+   void _ShowMemberToolTip(long lPos, MEMBERINFO* pInfo, long lCurTip, bool bExpand, COLORREF clrBack, COLORREF clrText);
+   bool _GetMemberInfo(long lPos, MEMBERINFO& info);
    CString _FindBlockType(long lPosition);
    CString _FindTagType(const CString& sName, long lPosition);
    CString _GetSelectedText();

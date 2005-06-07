@@ -246,23 +246,22 @@ bool CCompileManager::IsCompiling() const
    return IsBusy() && m_bCompiling;
 }
 
-bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
+bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, UINT Flags /*= 0*/)
 {
    // Translate named actions into real prompt commands.
    // We usually start off by changing to the project folder
    // to make sure everything run from the correct path.
    // Then we submit the actual command (user configurable).
    CString sTitle;
-   UINT Flags = 0;
    CString sName = pstrName;
    CSimpleArray<CString> aCommands;
-   if( sName == "Clean" ) {
+   if( sName == _T("Clean") ) {
       if( !_PrepareProcess(pstrName) ) return false;
       sTitle.LoadString(IDS_CLEAN);
       aCommands.Add(m_sCommandCD);
       aCommands.Add(m_sCommandClean);
    }
-   if( sName == "Build" ) {
+   if( sName == _T("Build") ) {
       if( !_PrepareProcess(pstrName) ) return false;
       sTitle.LoadString(IDS_BUILD);
       aCommands.Add(m_sCommandCD);
@@ -270,7 +269,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       aCommands.Add(m_sCommandBuild);
       Flags |= COMPFLAG_BUILDSESSION;
    }
-   if( sName == "Rebuild" ) {
+   if( sName == _T("Rebuild") ) {
       if( !_PrepareProcess(pstrName) ) return false;
       sTitle.LoadString(IDS_REBUILD);
       aCommands.Add(m_sCommandCD);
@@ -279,7 +278,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       aCommands.Add(m_sCommandRebuild);
       Flags |= COMPFLAG_BUILDSESSION;
    }
-   if( sName == "Compile" ) {
+   if( sName == _T("Compile") ) {
       if( !_PrepareProcess(pstrName) ) return false;
       sTitle.LoadString(IDS_COMPILE);
       aCommands.Add(m_sCommandCD);
@@ -287,21 +286,21 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       aCommands.Add(m_sCommandCompile);
       Flags |= COMPFLAG_BUILDSESSION;
    }
-   if( sName == "CheckSyntax" ) {
+   if( sName == _T("CheckSyntax") ) {
       if( !_PrepareProcess(pstrName) ) return false;
       sTitle.LoadString(IDS_CHECKSYNTAX);
       aCommands.Add(m_sCommandCD);
       aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandCheckSyntax);
    }
-   if( sName == "BuildTags" ) {
+   if( sName == _T("BuildTags") ) {
       if( !_PrepareProcess(pstrName) ) return false;
       sTitle.LoadString(IDS_BUILD);
       aCommands.Add(m_sCommandCD);
       aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandBuildTags);
    }
-   if( sName == "Stop" ) {
+   if( sName == _T("Stop") ) {
       SignalStop();
       // Update statusbar now
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_STOPPED)));
@@ -330,7 +329,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
       if( pView != NULL ) pView->Save();
       Flags |= COMPFLAG_RELOADFILE;
    }
-   
+
    // Run the commands on the remote server...
    return _StartProcess(sTitle, aCommands, Flags);
 }
@@ -338,38 +337,38 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/)
 CString CCompileManager::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
-   if( sName == "ChangeDir" ) return m_sCommandCD;
-   if( sName == "Build" ) return m_sCommandBuild;
-   if( sName == "Rebuild" ) return m_sCommandRebuild;
-   if( sName == "Compile" ) return m_sCommandCompile;
-   if( sName == "Clean" ) return m_sCommandClean;
-   if( sName == "CheckSyntax" ) return m_sCommandCheckSyntax;
-   if( sName == "BuildTags" ) return m_sCommandBuildTags;
-   if( sName == "DebugExport" ) return m_sCommandDebug;
-   if( sName == "ReleaseExport" ) return m_sCommandRelease;
-   if( sName == "CompileFlags" ) return m_sCompileFlags;
-   if( sName == "LinkFlags" ) return m_sLinkFlags;
-   if( sName == "Mode" ) return m_bReleaseMode ? _T("Release") : _T("Debug");
-   if( sName == "InCommand" ) return (m_Flags & COMPFLAG_COMMANDMODE) != 0 ? _T("true") : _T("false");
+   if( sName == _T("ChangeDir") ) return m_sCommandCD;
+   if( sName == _T("Build") ) return m_sCommandBuild;
+   if( sName == _T("Rebuild") ) return m_sCommandRebuild;
+   if( sName == _T("Compile") ) return m_sCommandCompile;
+   if( sName == _T("Clean") ) return m_sCommandClean;
+   if( sName == _T("CheckSyntax") ) return m_sCommandCheckSyntax;
+   if( sName == _T("BuildTags") ) return m_sCommandBuildTags;
+   if( sName == _T("DebugExport") ) return m_sCommandDebug;
+   if( sName == _T("ReleaseExport") ) return m_sCommandRelease;
+   if( sName == _T("CompileFlags") ) return m_sCompileFlags;
+   if( sName == _T("LinkFlags") ) return m_sLinkFlags;
+   if( sName == _T("Mode") ) return m_bReleaseMode ? _T("Release") : _T("Debug");
+   if( sName == _T("InCommand") ) return (m_Flags & COMPFLAG_COMMANDMODE) != 0 ? _T("true") : _T("false");
    return m_ShellManager.GetParam(pstrName);
 }
 
 void CCompileManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
 {
    CString sName = pstrName;
-   if( sName == "ChangeDir" ) m_sCommandCD = pstrValue;
-   if( sName == "Build" ) m_sCommandBuild = pstrValue;
-   if( sName == "Rebuild" ) m_sCommandRebuild = pstrValue;
-   if( sName == "Compile" ) m_sCommandCompile = pstrValue;
-   if( sName == "Clean" ) m_sCommandClean = pstrValue;
-   if( sName == "CheckSyntax" ) m_sCommandCheckSyntax = pstrValue;
-   if( sName == "BuildTags" ) m_sCommandBuildTags = pstrValue;
-   if( sName == "DebugExport" ) m_sCommandDebug = pstrValue;
-   if( sName == "ReleaseExport" ) m_sCommandRelease = pstrValue;
-   if( sName == "CompileFlags" ) m_sCompileFlags = pstrValue;
-   if( sName == "LinkFlags" ) m_sLinkFlags = pstrValue;
-   if( sName == "Mode" ) m_bReleaseMode = _tcscmp(pstrValue, _T("Release")) == 0;
-   if( sName == "InCommand" ) m_Flags |= _tcscmp(pstrValue, _T("true")) == 0 ? COMPFLAG_COMMANDMODE : 0;
+   if( sName == _T("ChangeDir") ) m_sCommandCD = pstrValue;
+   if( sName == _T("Build") ) m_sCommandBuild = pstrValue;
+   if( sName == _T("Rebuild") ) m_sCommandRebuild = pstrValue;
+   if( sName == _T("Compile") ) m_sCommandCompile = pstrValue;
+   if( sName == _T("Clean") ) m_sCommandClean = pstrValue;
+   if( sName == _T("CheckSyntax") ) m_sCommandCheckSyntax = pstrValue;
+   if( sName == _T("BuildTags") ) m_sCommandBuildTags = pstrValue;
+   if( sName == _T("DebugExport") ) m_sCommandDebug = pstrValue;
+   if( sName == _T("ReleaseExport") ) m_sCommandRelease = pstrValue;
+   if( sName == _T("CompileFlags") ) m_sCompileFlags = pstrValue;
+   if( sName == _T("LinkFlags") ) m_sLinkFlags = pstrValue;
+   if( sName == _T("Mode") ) m_bReleaseMode = _tcscmp(pstrValue, _T("Release")) == 0;
+   if( sName == _T("InCommand") ) m_Flags |= _tcscmp(pstrValue, _T("true")) == 0 ? COMPFLAG_COMMANDMODE : 0;
    m_ShellManager.SetParam(pstrName, pstrValue);
 }
 
@@ -492,8 +491,9 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    // Change statusbar and idle animation
    CString sStatus;
    sStatus.Format(IDS_STATUS_STARTED, m_sProcessName);
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, TRUE);  
-   _pDevEnv->PlayAnimation(TRUE, (Flags & (COMPFLAG_IGNOREOUTPUT | COMPFLAG_COMMANDMODE)) == 0 ? ANIM_BUILD : ANIM_TRANSFER);
+   long lAnim = (Flags & (COMPFLAG_IGNOREOUTPUT | COMPFLAG_COMMANDMODE)) == 0 ? ANIM_BUILD : ANIM_TRANSFER;
+   m_pProject->DelayedStatusBar(sStatus);
+   m_pProject->DelayedGuiAction(GUI_ACTION_PLAY_ANIMATION, NULL, lAnim);
 
    m_ShellManager.AddLineListener(this);
 
@@ -519,10 +519,12 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    // If this is a regular compile command (not user-entered or scripting prompt)
    // let's pop up the compile window...
    if( (Flags & (COMPFLAG_IGNOREOUTPUT | COMPFLAG_COMMANDMODE)) == 0 ) {
-      // Clear the compile window now (before output begins)
-      ctrlEdit.SetWindowText(_T(""));
-      // Send delayed message to view so it opens
-      m_pProject->DelayedGuiAction(GUI_ACTION_ACTIVATEVIEW, ctrlEdit);
+      // We should clean the compile output panel and bring it up
+      if( (Flags & COMPFLAG_SILENT) == 0 ) {
+         m_pProject->DelayedGuiAction(GUI_ACTION_CLEARVIEW, ctrlEdit);
+         m_pProject->DelayedGuiAction(GUI_ACTION_ACTIVATEVIEW, ctrlEdit);
+      }
+      // Notify views that is a compile session is starting
       m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_START);
       m_bCompiling = true;
    }
@@ -578,9 +580,11 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
                               //       Avoid halting on echo.
       m_ShellManager.RemoveLineListener(this);
       // Notify the rest of the environment
-      CString sStatus;
-      sStatus.Format(IDS_STATUS_FINISHED, m_sProcessName);
-      m_pProject->DelayedStatusBar(sStatus);
+      if( (m_Flags & COMPFLAG_SILENT) == 0 ) {
+         CString sStatus;
+         sStatus.Format(IDS_STATUS_FINISHED, m_sProcessName);
+         m_pProject->DelayedStatusBar(sStatus);
+      }
       m_pProject->DelayedGuiAction(GUI_ACTION_STOP_ANIMATION);
       m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_STOP);
       // Play annoying build sound

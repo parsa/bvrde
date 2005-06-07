@@ -27,7 +27,8 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    // and executes a series of commands in a queue/list. This makes sure that all
    // GUI changes are called from the main thread only.
 
-   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+   bHandled = FALSE;
+   if( m_aLazyData.GetSize() == 0 ) return 0;
 
    // For displaying a message-box asynchroniously
    CSimpleArray<CString> aDbgCmd;
@@ -53,10 +54,21 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
       case LAZY_GUI_ACTION:
          {
             switch( data.wParam ) {
+            case GUI_ACTION_CLEARVIEW:
+               {
+                  CRichEditCtrl ctrlEdit = data.hWnd;
+                  ctrlEdit.SetWindowText(_T(""));
+               }
+               break;
             case GUI_ACTION_ACTIVATEVIEW:
                {
                   CRichEditCtrl ctrlEdit = data.hWnd;
                   _pDevEnv->ActivateAutoHideView(ctrlEdit);
+               }
+               break;
+            case GUI_ACTION_PLAY_ANIMATION:
+               {
+                  _pDevEnv->PlayAnimation(TRUE, data.lLineNum);
                }
                break;
             case GUI_ACTION_STOP_ANIMATION:

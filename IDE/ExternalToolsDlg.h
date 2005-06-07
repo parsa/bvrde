@@ -37,6 +37,14 @@ public:
    CIcon m_iconDown;
    CIcon m_iconArrow;
 
+   enum
+   {
+      TYPE_LOCAL = 0,
+      TYPE_COMPILER,
+      TYPE_DEBUGGER,
+      TYPE_SQL,
+   };
+
    typedef struct 
    {
       CString sTitle;
@@ -46,6 +54,7 @@ public:
       CString sType;
       long lFlags;
    } TOOL;
+
    TOOL m_aTools[30];
    int m_nTools;
 
@@ -66,6 +75,13 @@ public:
       COMMAND_ID_HANDLER(IDC_UP, OnUp)
       COMMAND_ID_HANDLER(IDC_DOWN, OnDown)
       COMMAND_ID_HANDLER(IDC_BROWSE_FILE, OnBrowseFile)      
+      COMMAND_ID_HANDLER(IDC_BROWSE_ARGUMENTS, OnBrowseArgs)
+      COMMAND_ID_HANDLER(IDC_BROWSE_PATH, OnBrowsePath)
+      COMMAND_ID_HANDLER(ID_TOOLTOKEN_PROJECTNAME, OnToolToken)
+      COMMAND_ID_HANDLER(ID_TOOLTOKEN_PROJECTPATH, OnToolToken)
+      COMMAND_ID_HANDLER(ID_TOOLTOKEN_HOSTNAME, OnToolToken)
+      COMMAND_ID_HANDLER(ID_TOOLTOKEN_FILENAME, OnToolToken)
+      COMMAND_ID_HANDLER(ID_TOOLTOKEN_SELECTION, OnToolToken)
       COMMAND_CODE_HANDLER(EN_CHANGE, OnChange)
       NOTIFY_CODE_HANDLER(LVN_ITEMCHANGED, OnSelChanged)
    END_MSG_MAP()
@@ -119,7 +135,6 @@ public:
       m_ctrlUp.SetIcon(m_iconUp);
       m_ctrlDown.SetIcon(m_iconDown);
       m_ctrlBrowseArguments.SetIcon(m_iconArrow);
-      m_ctrlBrowsePath.SetIcon(m_iconArrow);
 
       _LoadItems();
       m_ctrlList.SelectItem(0);
@@ -143,8 +158,10 @@ public:
    LRESULT OnNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {    
       CString sNewTool(MAKEINTRESOURCE(IDS_NEWTOOL));
-      m_aTools[m_nTools].sTitle = sNewTool;
-      m_aTools[m_nTools].sType = _T("local");
+      TOOL& tool = m_aTools[m_nTools];
+      tool.sTitle = sNewTool;
+      tool.sType = _T("local");
+      tool.lFlags = 0;
       int iItem = m_ctrlList.InsertItem(m_ctrlList.GetItemCount(), sNewTool);
       m_ctrlList.SetItemData(iItem, (LPARAM) &m_aTools[m_nTools]);
       m_ctrlList.SelectItem(iItem);
@@ -206,6 +223,40 @@ public:
       m_ctrlBrowseFile.SetButtonStyle(BS_PUSHBUTTON);
       return 0;
    }
+   LRESULT OnBrowseArgs(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+   {
+      CMenu menu;
+      menu.LoadMenu(IDM_TOOL_ARGS);
+      CMenuHandle submenu = menu.GetSubMenu(0);
+      RECT rcWindow;
+      m_ctrlBrowseArguments.GetWindowRect(&rcWindow);
+      POINT pt = { rcWindow.right, rcWindow.top };
+      UINT nCmd = g_pDevEnv->ShowPopupMenu(NULL, submenu, pt, FALSE);
+      m_ctrlArguments.SetFocus();
+      PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0));
+      return 0;
+   }
+   LRESULT OnBrowsePath(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+   {
+      CFolderDialog dlg;
+      if( dlg.DoModal() != IDOK ) return 0;
+      m_ctrlPath.SetWindowText(dlg.m_szFolderPath);
+      return 0;
+   }
+   LRESULT OnToolToken(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+   {
+      CEdit ctrlEdit = ::GetFocus();
+      CString sText;
+      switch( wID ) {
+      case ID_TOOLTOKEN_HOSTNAME: sText = _T("$HOSTNAME$"); break;
+      case ID_TOOLTOKEN_FILENAME: sText = _T("$FILENAME$"); break;
+      case ID_TOOLTOKEN_SELECTION: sText = _T("$SELECTION$"); break;
+      case ID_TOOLTOKEN_PROJECTNAME: sText = _T("$PROJECTNAME$"); break;
+      case ID_TOOLTOKEN_PROJECTPATH: sText = _T("$PROJECTPATH$"); break;
+      }
+      ctrlEdit.ReplaceSel(sText);
+      return 0;
+   }
 
    LRESULT OnChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
@@ -233,10 +284,10 @@ public:
          m_ctrlCommand.SetWindowText(pTool->sCommand);
          m_ctrlArguments.SetWindowText(pTool->sArguments);
          m_ctrlPath.SetWindowText(pTool->sPath);
-         if( pTool->sType == _T("local") ) m_ctrlType.SetCurSel(0);
-         if( pTool->sType == _T("compiler") ) m_ctrlType.SetCurSel(1);
-         if( pTool->sType == _T("debugger") ) m_ctrlType.SetCurSel(2);
-         if( pTool->sType == _T("sql") ) m_ctrlType.SetCurSel(3);
+         if( pTool->sType == _T("local") ) m_ctrlType.SetCurSel(TYPE_LOCAL);
+         if( pTool->sType == _T("compiler") ) m_ctrlType.SetCurSel(TYPE_COMPILER);
+         if( pTool->sType == _T("debugger") ) m_ctrlType.SetCurSel(TYPE_DEBUGGER);
+         if( pTool->sType == _T("sql") ) m_ctrlType.SetCurSel(TYPE_SQL);
          m_ctrlPromptArgs.SetCheck( (pTool->lFlags & TOOLFLAGS_PROMPTARGS) != 0 ? BST_CHECKED : BST_UNCHECKED);
          m_ctrlConsoleOutput.SetCheck( (pTool->lFlags & TOOLFLAGS_CONSOLEOUTPUT) != 0 ? BST_CHECKED : BST_UNCHECKED);
       }
@@ -325,10 +376,10 @@ public:
       if( m_ctrlConsoleOutput.GetCheck() == BST_CHECKED ) lFlags |= TOOLFLAGS_CONSOLEOUTPUT;
       CString sType;
       switch( m_ctrlType.GetCurSel() ) {
-      case 0: sType = _T("local"); break;
-      case 1: sType = _T("compiler"); break;
-      case 2: sType = _T("debugger"); break;
-      case 3: sType = _T("sql"); break;
+      case TYPE_LOCAL: sType = _T("local"); break;
+      case TYPE_COMPILER: sType = _T("compiler"); break;
+      case TYPE_DEBUGGER: sType = _T("debugger"); break;
+      case TYPE_SQL: sType = _T("sql"); break;
       }
       pTool->sTitle = CWindowText(m_ctrlTitle);
       pTool->sCommand = CWindowText(m_ctrlCommand);
@@ -343,6 +394,7 @@ public:
       int nCount = m_ctrlList.GetItemCount();
       int iSelIndex = m_ctrlList.GetSelectedIndex();
       int nSelCount = m_ctrlList.GetSelectedCount();
+      int iType = m_ctrlType.GetCurSel();
       m_ctrlNew.EnableWindow(nCount < 8 && m_nTools < sizeof(m_aTools)/sizeof(TOOL));
       m_ctrlDelete.EnableWindow(nSelCount > 0);
       m_ctrlUp.EnableWindow(nCount > 1 && nSelCount > 0 && iSelIndex > 0);
@@ -351,9 +403,9 @@ public:
       m_ctrlCommand.EnableWindow(nSelCount > 0);
       m_ctrlArguments.EnableWindow(nSelCount > 0);
       m_ctrlPath.EnableWindow(nSelCount > 0);
-      m_ctrlBrowseFile.EnableWindow(nSelCount > 0);
       m_ctrlBrowseArguments.EnableWindow(nSelCount > 0);
-      m_ctrlBrowsePath.EnableWindow(nSelCount > 0);
+      m_ctrlBrowseFile.EnableWindow(iType == TYPE_LOCAL && nSelCount > 0);
+      m_ctrlBrowsePath.EnableWindow(iType == TYPE_LOCAL && nSelCount > 0);
       m_ctrlType.EnableWindow(nSelCount > 0);
       m_ctrlConsoleOutput.EnableWindow(nSelCount > 0);
       m_ctrlPromptArgs.EnableWindow(nSelCount > 0);

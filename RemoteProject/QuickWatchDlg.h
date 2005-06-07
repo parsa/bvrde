@@ -67,6 +67,7 @@ public:
       COMMAND_HANDLER(IDC_LIST, LBN_SELCHANGE, OnSelChange)
       COMMAND_ID_HANDLER(IDOK, OnOK)
       COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
+      COMMAND_ID_HANDLER(IDC_ADD_WATCH, OnAddWatch) 
       CHAIN_MSG_MAP( COwnerDraw<CQuickWatchDlg> )
       CHAIN_MSG_MAP( CDialogResize<CQuickWatchDlg> )
   ALT_MSG_MAP(1)
@@ -85,6 +86,7 @@ public:
    LRESULT OnSelChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnOK(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnCancel(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnAddWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 
    void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
    void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);

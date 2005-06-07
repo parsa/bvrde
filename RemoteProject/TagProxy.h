@@ -18,10 +18,10 @@ public:
    void Clear();
    TAGTYPE GetItemType(int iIndex);
    int FindItem(int iStart, LPCTSTR pstrName);
-   CString GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner = NULL);
    bool GetOuterList(CSimpleValArray<TAGINFO*>& aList);
    bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList);
    bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance);
+   bool GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner = NULL);
 
 public:
    enum

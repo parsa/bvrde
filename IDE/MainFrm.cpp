@@ -507,15 +507,18 @@ LRESULT CMainFrame::OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 LRESULT CMainFrame::OnFileOpenSolution(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    CChooseSolutionDlg dlg;
+   dlg.Init(this);
    if( dlg.DoModal() != IDOK ) return 0;
-   switch( dlg.m_iType ) {
-   case 0:
+   // Launch the solution
+   switch( dlg.m_SelectType ) {
+   case CChooseSolutionDlg::SOLUTION_BLANK:
+      PostMessage(WM_APP_CLOSESTARTPAGE);
       PostMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_CLOSESOLUTION, 0));
       break;
-   case 1:
+   case CChooseSolutionDlg::SOLUTION_WIZARD:
       PostMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_STARTWIZARD, 0));
       break;
-   case 2:
+   case CChooseSolutionDlg::SOLUTION_FILE:
       SendMessage(WM_APP_LOADSOLUTION, 0, (LPARAM) (LPCTSTR) dlg.m_sFilename);
       break;
    }
@@ -524,6 +527,7 @@ LRESULT CMainFrame::OnFileOpenSolution(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 
 LRESULT CMainFrame::OnFileCloseSolution(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
+   // Should we need to save the project first?
    if( g_pSolution->IsDirty() ) {
       if( IDYES == _ShowMessageBox(m_hWnd, IDS_SAVE_DIRTY, IDS_CAPTION_QUESTION, MB_ICONQUESTION | MB_YESNO) ) {
          SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE_ALL, 0));
@@ -544,6 +548,7 @@ LRESULT CMainFrame::OnFileStartWizard(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
 {
    IProject* pProject = _CreateSolutionWizard();
    if( pProject == NULL ) return 0;
+   SendMessage(WM_APP_CLOSESTARTPAGE);
    SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_CLOSESOLUTION, 0));
    g_pSolution->AddProject(pProject);
    g_pSolution->SetActiveProject(g_pSolution->GetItem(0));
@@ -643,12 +648,14 @@ LRESULT CMainFrame::OnToolsRun(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
       CComVariant vRet;
       vRet.Clear();
       dd.GetPropertyByName(L"Name", &vRet);
+      if( vRet.vt == VT_BSTR ) sPath.Replace(_T("$PROJECTNAME$"), CString(vRet.bstrVal));
       if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$PROJECTNAME$"), CString(vRet.bstrVal));
       vRet.Clear();
       dd.GetPropertyByName(L"Filename", &vRet);
-      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$PROJECTFILE$"), CString(vRet.bstrVal));
+      if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$FILENAME$"), CString(vRet.bstrVal));
       vRet.Clear();
       dd.GetPropertyByName(L"CurDir", &vRet);
+      if( vRet.vt == VT_BSTR ) sPath.Replace(_T("$PROJECTPATH$"), CString(vRet.bstrVal));
       if( vRet.vt == VT_BSTR ) sArguments.Replace(_T("$PROJECTPATH$"), CString(vRet.bstrVal));
       vRet.Clear();
       dd.GetPropertyByName(L"Server", &vRet);
@@ -990,6 +997,7 @@ LRESULT CMainFrame::OnUserLoadSolution(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
    if( pstrFilename == NULL ) return 0;
    m_mru.AddToList(pstrFilename);
    m_mru.WriteToRegistry(REG_BVRDE _T("\\Mru"));
+   SendMessage(WM_APP_CLOSESTARTPAGE);
    SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_CLOSESOLUTION, 0));
    return (LRESULT) g_pSolution->LoadSolution(pstrFilename);
 }
@@ -1110,6 +1118,26 @@ LRESULT CMainFrame::OnUserCommandLine(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    }
    // Bring focus back to main app
    ::SetForegroundWindow(m_hWnd);
+   return 0;
+}
+
+LRESULT CMainFrame::OnUserCloseStartPage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+{
+   HWND hWnd  = ::GetWindow(m_hWndMDIClient, GW_CHILD);
+   while( hWnd != NULL ) {
+      IView* pView = NULL;
+      CWinProp prop = hWnd;
+      prop.GetProperty(_T("View"), pView);
+      if( pView != NULL ) {
+         TCHAR szType[40] = { 0 };
+         pView->GetType(szType, (sizeof(szType) / sizeof(TCHAR)) - 1);
+         if( _tcscmp(szType, _T("Start Page")) == 0 ) {
+            pView->CloseView();
+            return 0;
+         }
+      }     
+      hWnd = ::GetWindow(hWnd, GW_HWNDNEXT);
+   }
    return 0;
 }
 

@@ -19,7 +19,6 @@ CScintillaView::CScintillaView() :
    m_ctrlEdit(this, 1),
    m_pCppProject(NULL),
    m_pView(NULL),
-   m_lDwellPos(0),
    m_bMouseDwell(false)
 {
 }
@@ -234,6 +233,7 @@ LRESULT CScintillaView::OnKillEditFocus(UINT /*uMsg*/, WPARAM wParam, LPARAM /*l
 {
    _pDevEnv->RemoveIdleListener(this);      
    m_ctrlEdit.CallTipCancel();   // FIX: Scintilla doesn't always remove the tooltip
+   m_bMouseDwell = false;
    bHandled = FALSE;
    return 0;
 }
@@ -423,11 +423,10 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
       {
          // Debugger delivers delayed debug/tooltip information
          if( !m_bMouseDwell ) return 0;
-         CString sValue = m_sDwellText;
+         CString sValue = m_TipInfo.sText;
          if( !sValue.IsEmpty() ) sValue += _T(" = ");
          sValue += pData->MiInfo.GetItem(_T("value"));
-         _ShowToolTip(m_lDwellPos, sValue, ::GetSysColor(COLOR_INFOBK), ::GetSysColor(COLOR_INFOTEXT));
-         m_bMouseDwell = false;
+         _ShowToolTip(m_TipInfo.lPos, sValue, true, ::GetSysColor(COLOR_INFOTEXT), ::GetSysColor(COLOR_INFOBK));
       }
       break;
    case DEBUG_CMD_DEBUG_START:
@@ -453,7 +452,9 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
       break;
    case DEBUG_CMD_COMPILE_STOP:
       {
-         if( m_pCppProject != NULL ) m_pCppProject->m_CompileManager.m_ShellManager.RemoveLineListener(this);
+         if( m_pCppProject != NULL ) {
+            m_pCppProject->m_CompileManager.m_ShellManager.RemoveLineListener(this);
+         }
       }
       break;
    case DEBUG_CMD_FINDTEXT:
@@ -512,6 +513,17 @@ LRESULT CScintillaView::OnMarginClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
    return 0;
 }
 
+LRESULT CScintillaView::OnCallTipClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
+{
+   SCNotification* pSCN = (SCNotification*) pnmh;
+   long lCurTip = m_TipInfo.lCurTip;
+   if( pSCN->position == 1 ) lCurTip--;
+   if( pSCN->position == 2 ) lCurTip++;
+   _ShowMemberToolTip(0, NULL, lCurTip, false, RGB(0,0,0), RGB(0,0,0));
+   bHandled = FALSE;
+   return 0;
+}
+
 LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
    SCNotification* pSCN = (SCNotification*) pnmh;
@@ -519,6 +531,7 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    if( m_bMouseDwell ) return 0;
    if( m_pCppProject == NULL ) return 0;
    if( m_sLanguage != _T("cpp") ) return 0;
+   if( m_ctrlEdit.AutoCActive() ) return 0;
 
    // HACK: Bug in Scintilla which tries to start a hover tip
    //       while the window has no focus.
@@ -536,56 +549,21 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    if( lPos >= cr.cpMin && lPos <= cr.cpMax ) sText = _GetSelectedText();
    else sText = _GetNearText(lPos);
    if( sText.IsEmpty() ) return 0;        
-   // Find raw declaration in TAG file or from debugger
-   CString sParent;
-   CString sValue = m_pCppProject->GetTagInfo(sText);
-   if( sValue.IsEmpty() ) {
-      // Try to locate the function/parent name instead to derive its type
-      long lStartPos = lPos;
-      while( lStartPos > 0 ) {
-         CHAR ch = m_ctrlEdit.GetCharAt(--lStartPos);
-         switch( ch ) {
-         case '.':
-         case ':':
-         case '>':
-            {
-               CString sMember = _GetNearText(lStartPos - (ch == '.' ? 1L : 2L));
-               sParent = _FindTagType(sMember, lStartPos);
-               if( !sParent.IsEmpty() ) sValue = m_pCppProject->GetTagInfo(sText, sParent);
-            }
-            break;
-         default:
-            if( !_iscppchar(ch) ) lStartPos = 0;
-         }
-      }
-   }
-   if( sValue.IsEmpty() ) {
-      // It could be a class-scope member
-      sParent = _FindBlockType(lPos);
-      sValue = m_pCppProject->GetTagInfo(sText, sParent);
-   }
-   if( sValue.IsEmpty() ) {
-      // Just see if we can match up a type directly for the name
-      CString sType = _FindTagType(sText, lPos);
-      if( !sType.IsEmpty() ) sValue.Format(_T("%s %s"), sType, sText);
-   }
-   // We always flag the MouseDwell start because the debugger
-   // might want to deliver delayed type information.
-   // The SCN_DWELLEND should reset this state.
-   m_lDwellPos = lPos;
+   // Allow the debugger to speak up
+   CSimpleArray<CString> aRes;
+   if( m_pCppProject->GetTagInfo(sText, true, aRes, NULL) ) m_bMouseDwell = true;
+   // Ask lexer to deliver info also
+   MEMBERINFO info;
+   if( !_GetMemberInfo(lPos, info) ) return 0;
+   // Show tooltip
+   _ShowMemberToolTip(lPos, &info, 0, true, ::GetSysColor(COLOR_INFOTEXT), ::GetSysColor(COLOR_INFOBK));
    m_bMouseDwell = true;
-   m_sDwellText = sValue;
-   // The call may not return any tag information at all - or it
-   // may return delayed information. In any case, we might not need
-   // to show any information now!
-   if( sValue.IsEmpty() ) return 0;
-   _ShowToolTip(lPos, sValue, ::GetSysColor(COLOR_INFOBK), ::GetSysColor(COLOR_INFOTEXT));
    return 0;
 }
 
 LRESULT CScintillaView::OnDwellEnd(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
 {
-   m_ctrlEdit.CallTipCancel();
+   if( m_bMouseDwell ) m_ctrlEdit.CallTipCancel();
    m_bMouseDwell = false;
    bHandled = FALSE;
    return 0;
@@ -597,17 +575,15 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
 {
    if( m_sLanguage != _T("cpp") ) return;
 
+   BOOL bDebugging = m_pCppProject && m_pCppProject->m_DebugManager.IsDebugging();
+
    pUIBase->UIEnable(ID_EDIT_COMMENT, TRUE);
    pUIBase->UIEnable(ID_EDIT_UNCOMMENT, TRUE);
    pUIBase->UIEnable(ID_EDIT_AUTOCOMPLETE, TRUE);
-   pUIBase->UIEnable(ID_DEBUG_BREAKPOINT, TRUE); 
-
-   if( m_pCppProject && m_pCppProject->m_DebugManager.IsDebugging() ) 
-   {
-      pUIBase->UIEnable(ID_DEBUG_STEP_RUN, TRUE); 
-      pUIBase->UIEnable(ID_DEBUG_STEP_SET, TRUE); 
-      pUIBase->UIEnable(ID_DEBUG_QUICKWATCH, TRUE); 
-   }
+   pUIBase->UIEnable(ID_DEBUG_BREAKPOINT, TRUE);
+   pUIBase->UIEnable(ID_DEBUG_STEP_RUN, bDebugging); 
+   pUIBase->UIEnable(ID_DEBUG_STEP_SET, bDebugging); 
+   pUIBase->UIEnable(ID_DEBUG_QUICKWATCH, bDebugging); 
 }
 
 void CScintillaView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
@@ -804,60 +780,17 @@ void CScintillaView::_AutoComplete(CHAR ch)
    // So?
    if( !bShow ) return;
 
-   // Find the name of the variable right before
-   // the character was pressed...
-   long lBack = 0;
-   if( ch == '.' ) lBack = 1;
-   if( ch == '>' || ch == ':' ) lBack = 2;
-   CString sName = _GetNearText(lPos - lBack);
-   // We can only show auto-completion if we can determine
-   // the type of this variable
-   int iLenEntered = 0;
-   if( lBack == 0 ) {
-      // Trying to autocomplete a partial function-name. We'll have to
-      // look for the parent further back
-      iLenEntered = sName.GetLength();
-      sName = _GetNearText(lPos - iLenEntered - 3);
-   }
-   CString sType = _FindTagType(sName, lPos);
-   if( sType.IsEmpty() ) {
-      // No leading class/struct type...
-      // We don't have a type. It could be a member of the class/struct function
-      // we're currently implementing...
-      sType = _FindBlockType(lPos);
-      if( !sType.IsEmpty() && iLenEntered == 0 ) {
-         // Keep looking for a member that matches in this class...
-         CSimpleValArray<TAGINFO*> aList;
-         m_pCppProject->m_TagManager.GetMemberList(sType, aList, true);
-         sType = _T("");
-         for( int i = 0; i < aList.GetSize(); i++ ) {
-            if( sName == aList[i]->pstrName ) {
-               // What good fortune we have! Here's a member match.
-               // HACK: We don't really have the type, but we might be able
-               //       to extract it from the TAG search pattern!!
-               //       So we break up the function signature:
-               //          const TYPE Foo();
-               CString sToken = aList[i]->pstrToken;
-               sToken.Replace(_T("const "), _T(""));
-               sToken.Replace(_T("inline "), _T(""));
-               sToken.Replace(_T("extern "), _T(""));
-               sToken.Replace(_T("virtual "), _T(""));
-               sToken.TrimLeft(_T("/^$ \t"));
-               sToken.TrimRight(_T("/^$ \t"));
-               int iPos = sToken.FindOneOf(_T(" \t<("));
-               if( iPos < 0 ) continue;
-               sType = sToken.Left(iPos);
-               break;
-            }
-         }
-      }
-   }
+   MEMBERINFO info;
+   long lStartPos = lPos;
+   if( !_iscppchar(ch) ) lStartPos--;
+   _GetMemberInfo(lStartPos, info);
 
-   if( sType.IsEmpty() ) return;
+   if( info.sType.IsEmpty() ) info.sType = info.sScope;
+   if( info.sType.IsEmpty() ) return;
 
    // Yippie, we found one!!!
    CSimpleValArray<TAGINFO*> aList;
-   m_pCppProject->m_TagManager.GetMemberList(sType, aList, true);
+   m_pCppProject->m_TagManager.GetMemberList(info.sType, aList, true);
    int nCount = aList.GetSize();
    if( nCount == 0 || nCount > 300 ) return;
 
@@ -877,19 +810,23 @@ void CScintillaView::_AutoComplete(CHAR ch)
    // Right, Scintilla requires a list of space-separated tokens
    // so let's build one...
    CString sList;
+   TCHAR szText[200] = { 0 };
    for( int i = 0; i < nCount; i++ ) {
-      if( _iscppchar(aList[i]->pstrName[0]) ) {
-         sList += aList[i]->pstrName;
-         sList += aList[i]->Type == TAGTYPE_MEMBER ? _T("?0") : _T("?1");
-         sList += _T(" ");
-      }
+      // Avoid duplciated names in list
+      if( i > 0 && _tcscmp(aList[i]->pstrName, aList[i - 1]->pstrName) == 0 ) continue;
+      // Don't include operator overloads
+      if( !_iscppchar(aList[i]->pstrName[0]) ) continue;
+      // Add this baby...
+      _tcsncpy(szText, aList[i]->pstrName, (sizeof(szText) / sizeof(TCHAR)) - 3);
+      _tcscat(szText, aList[i]->Type == TAGTYPE_MEMBER ? _T("?0 ") : _T("?1 "));
+      sList += szText;
    }
    sList.TrimRight();
 
    // Display auto-completion popup
    _RegisterListImages();
    m_ctrlEdit.AutoCSetIgnoreCase(FALSE);
-   m_ctrlEdit.AutoCShow(iLenEntered, T2CA(sList));
+   m_ctrlEdit.AutoCShow(info.sName.GetLength(), T2CA(sList));
 }
 
 /**
@@ -902,39 +839,23 @@ void CScintillaView::_FunctionTip(CHAR ch)
 {
    if( m_pCppProject == NULL ) return;
    if( !m_bAutoComplete ) return;
-
+   // Closing the function? Remove the tip.
    if( ch == ')' ) {
       if( m_ctrlEdit.CallTipActive() ) m_ctrlEdit.CallTipCancel();
       return;
    }
-
-   // Find the name of the variable right before
-   // the character was pressed...
-   long lPos = m_ctrlEdit.GetCurrentPos();
-   int iLine = m_ctrlEdit.LineFromPosition(lPos);
-   if( lPos < 10 ) return;
-   // Get the function name
-   CString sName = _GetNearText(lPos - 2);
-   if( sName.IsEmpty() ) return;
-   // Find the member
-   CString sType;
-   ch = m_ctrlEdit.GetCharAt(lPos - 2 - sName.GetLength());
-   switch( ch ) {
-   case ':':
-   case '.':
-   case '>':
-      CString sMember = _GetNearText(lPos - 3 - sName.GetLength());
-      if( !sMember.IsEmpty() ) sType = _FindTagType(sMember, lPos);
+   ATLASSERT(ch=='(');
+   // Get information about the function below
+   MEMBERINFO info;
+   long lPos = m_ctrlEdit.GetCurrentPos() - 2;
+   if( !_GetMemberInfo(lPos, info) ) return;
+   // Remove all non-functions if we're currently asking to see a function
+   // signature
+   for( int i = info.aDecl.GetSize() - 1; i >= 0; i-- ) {
+      if( info.aDecl[i].Find('(') < 0 ) info.aDecl.RemoveAt(i);
    }
-   // Make sure we can recognize the class type
-   if( sType.IsEmpty() ) sType = _FindBlockType(lPos); 
-   // Finally get the function text
-   CString sValue = m_pCppProject->GetTagInfo(sName, sType);
-   if( sValue.IsEmpty() && !sType.IsEmpty() ) sValue = m_pCppProject->GetTagInfo(sName, _T(""));
-   if( sValue.IsEmpty() ) return;
-   sValue.Remove('\r');
-   // Display tip
-   _ShowToolTip(lPos, sValue, RGB(255,255,255), RGB(0,0,0));
+   // Show tooltip
+   _ShowMemberToolTip(lPos, &info, 0, false, RGB(0,0,0), RGB(255,255,255));
 }
 
 /**
@@ -950,6 +871,107 @@ void CScintillaView::_ClearSquigglyLines()
    // FIX: Need this because next char will not get
    //      coloured properly in Scintilla.
    m_ctrlEdit.Colourise(0, -1);
+}
+
+/**
+ * Extract information about a C++ member at a editor position.
+ */
+bool CScintillaView::_GetMemberInfo(long lPos, MEMBERINFO& info)
+{
+   // There are some limitations to our capabilities...
+   if( lPos < 10 ) return false;
+   // Find the starting position of the name below the cursor
+   CSimpleArray<CString> aRes;
+   long lStartPos = lPos;
+   while( _iscppchar( (char) m_ctrlEdit.GetCharAt(lStartPos) ) ) lStartPos--;
+   // Determine the scope of the function/member
+   info.sScope = _FindBlockType(lPos);
+   // Try to figure out if we're just starting to type a new member
+   CHAR chDelim = m_ctrlEdit.GetCharAt(lStartPos);
+   if( chDelim == '.' || chDelim == '>' || chDelim == ':' ) {
+      // Oh, it's a member of another type
+      info.sName = _GetNearText(lStartPos + 1);
+      long lOffset = chDelim == '.' ? 0 : 1;
+      CString sParent = _GetNearText(lStartPos - lOffset);
+      if( !sParent.IsEmpty() ) {
+         info.sType = _FindTagType(sParent, lStartPos);
+         if( info.sType.IsEmpty() ) {
+            CSimpleArray<CString> aLocalType;
+            m_pCppProject->GetTagInfo(sParent, false, aLocalType, info.sScope);
+            if( aLocalType.GetSize() == 1 ) {
+               info.sType = aLocalType[0];
+               info.sType.Replace(_T("const "), _T(""));
+               info.sType.Replace(_T("inline "), _T(""));
+               info.sType.Replace(_T("extern "), _T(""));
+               info.sType.Replace(_T("virtual "), _T(""));
+               int iPos = info.sType.FindOneOf(_T(" \t(*&"));
+               if( iPos > 0 ) info.sType = info.sType.Left(iPos);
+               // This is a complex type; let's set the new scope...
+               info.sScope = info.sType;
+            }
+         }
+         else {
+            // Local type found; let's investigate if this is a complex type
+            CSimpleArray<CString> aLocalType;
+            if( m_pCppProject->GetTagInfo(info.sType, false, aLocalType, NULL) ) {
+               info.sScope = info.sType;
+            }
+         }
+      }
+      if( chDelim != ':' && info.sType.IsEmpty() ) {
+         info.sType = _FindTagType(info.sName, lStartPos);
+         if( !info.sType.IsEmpty() ) info.sScope = info.sType;
+      }
+   }
+   else {
+      // It's just a regular function or variable
+      info.sName = _GetNearText(lPos);
+      if( m_ctrlEdit.GetCharAt(lStartPos + info.sName.GetLength() + 1) == ':' ) info.sScope.Empty();
+      CSimpleArray<CString> aLocalType;
+      m_pCppProject->GetTagInfo(info.sName, false, aLocalType, info.sScope);
+      if( aLocalType.GetSize() != 1 ) {
+         info.sType = _FindTagType(info.sName, lPos);
+         CSimpleArray<CString> aLocalType;
+         if( m_pCppProject->GetTagInfo(info.sType, false, aLocalType, NULL) ) {
+            info.sScope = info.sType;
+         }
+      }
+   }
+   // Didn't catch the type yet? Let's examine for a local type
+   if( !info.sName.IsEmpty() && info.sType.IsEmpty() ) {
+      CSimpleArray<CString> aLocalType;
+      m_pCppProject->GetTagInfo(info.sName, false, aLocalType, info.sScope);
+      if( aLocalType.GetSize() == 1 ) {
+         info.sType = aLocalType[0];
+         info.sType.Replace(_T("const "), _T(""));
+         info.sType.Replace(_T("inline "), _T(""));
+         info.sType.Replace(_T("extern "), _T(""));
+         info.sType.Replace(_T("virtual "), _T(""));
+         int iPos = info.sType.FindOneOf(_T(" \t(*&"));
+         if( iPos > 0 ) info.sType = info.sType.Left(iPos);
+      }
+   }
+   // Is it a global function?
+   if( info.sName.IsEmpty() ) return false;
+   // Now it's time to test our theory...
+   if( !m_pCppProject->GetTagInfo(info.sName, false, aRes, info.sScope) ) {
+      if( !m_pCppProject->GetTagInfo(info.sName, false, aRes, NULL) ) {
+         if( !m_pCppProject->GetTagInfo(info.sName, false, aRes, info.sType) ) {
+            if( info.sName.IsEmpty() || info.sType.IsEmpty() ) return false;
+            // We still have a valid name and type; let's just return that...
+            CString sType;
+            sType.Format(_T("%s %s"), info.sType, info.sName);
+            aRes.Add(sType);
+            info.sScope.Empty();
+         }
+      }
+      else {
+         info.sScope.Empty();
+      }
+   }
+   if( aRes.GetSize() == 0 ) return false;
+   for( int i = 0; i < aRes.GetSize(); i++ ) info.aDecl.Add(aRes[i]);
+   return true;
 }
 
 /**
@@ -997,8 +1019,11 @@ CString CScintillaView::_FindBlockType(long lPosition)
       // and its formatted like:
       //    TYPE Foo()
       // Skip leading return type first...
-      p = strpbrk(szBuffer, " \t");
-      lOffset = 2;
+      if( p != NULL ) *p = '\0';
+      if( p != NULL ) p = strrchr(szBuffer, ' ');
+      if( p == NULL ) p = strpbrk(szBuffer, " \t");
+      if( p == NULL ) p = szBuffer;
+      lOffset = 1;
    }
    if( p == NULL ) return _T("");
 
@@ -1072,7 +1097,7 @@ CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
          //    a = b->
          //    a = (CASTTYPE) b->
          TCHAR ch = sLine[iEndPos];
-         if( ch == ';' || ch == ')' || ch == '=' ) continue;
+         if( ch == ';' || ch == ')' || ch == '=' || ch == '<' ) continue;
          // Special case of:
          //    MYTYPE a, b;
          if( iEndPos > 0 && sLine[iEndPos - 1] == ',' ) {
@@ -1084,6 +1109,7 @@ CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
          // We'll return the text directly from the editor as the matched type.
          int iLinePos = m_ctrlEdit.PositionFromLine(iStartLine);
          CString sType = _GetNearText(iLinePos + iEndPos, false);
+         if( sType.IsEmpty() ) continue;
          
          // First look up among ordinary C++ types.
          // They are likely not to be defined in any header file.
@@ -1134,7 +1160,7 @@ CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
  * adjusts the position of the Scintilla tool, most notably because it tends 
  * to be placed too close to the cursor.
  */
-void CScintillaView::_ShowToolTip(long lPos, CString& sText, COLORREF clrBack, COLORREF clrText)
+void CScintillaView::_ShowToolTip(long lPos, CString& sText, bool bAdjustPos, COLORREF clrText, COLORREF clrBack)
 {
    const int MAX_LINE_WIDTH = 90;         // in chars
    const int SUGGESTED_LINE_WIDTH = 60;
@@ -1154,7 +1180,7 @@ void CScintillaView::_ShowToolTip(long lPos, CString& sText, COLORREF clrBack, C
       {
          CString sTemp = sText.Left(i + 1);
          sTemp += _T("\n    ");
-         while( _istspace(sText[i + 1]) ) i++;
+         while( isspace(sText[i + 1]) ) i++;
          sTemp += sText.Mid(i + 1);
          sText = sTemp;
          nLength = sText.GetLength();
@@ -1168,6 +1194,7 @@ void CScintillaView::_ShowToolTip(long lPos, CString& sText, COLORREF clrBack, C
    m_ctrlEdit.CallTipShow(lPos, T2CA(sText));
 
    // Locate the new tip window and move it around...
+   if( !bAdjustPos ) return;
    CToolTipCtrl ctrlTip = ::FindWindow(NULL, _T("ACallTip"));
    if( !ctrlTip.IsWindow() ) return;
    if( !ctrlTip.IsWindowVisible() ) return;
@@ -1179,6 +1206,81 @@ void CScintillaView::_ShowToolTip(long lPos, CString& sText, COLORREF clrBack, C
    if( ::GetCursor() == hArrow ) ::OffsetRect(&rcWindow, 0, 15);
    ::InflateRect(&rcWindow, 2, 0);
    ctrlTip.SetWindowPos(HWND_TOPMOST, &rcWindow, SWP_NOACTIVATE);
+}
+
+/**
+ * Show and adjust the Scintilla tooltip control.
+ * This helper function splits a long tooltip text in muliple lines and 
+ * adjusts the position of the Scintilla tool, most notably because it tends 
+ * to be placed too close to the cursor.
+ */
+void CScintillaView::_ShowMemberToolTip(long lPos, MEMBERINFO* pInfo, long lCurTip, bool bExpand, COLORREF clrText, COLORREF clrBack)
+{
+   USES_CONVERSION;
+
+   // Providing new tip information?
+   if( pInfo != NULL ) 
+   {
+      m_TipInfo.lPos = lPos;
+      m_TipInfo.lCurTip = lCurTip;
+      m_TipInfo.clrBack = clrBack;
+      m_TipInfo.clrText = clrText;
+      m_TipInfo.sMemberName = pInfo->sName;
+      m_TipInfo.sMemberType = pInfo->sScope;
+      m_TipInfo.sMemberScope = pInfo->sScope;
+      m_TipInfo.bExpand = bExpand;
+      m_TipInfo.aDecl.RemoveAll();
+      for( int i = 0; i < pInfo->aDecl.GetSize(); i++ ) m_TipInfo.aDecl.Add(pInfo->aDecl[i]);
+   }
+
+   if( m_TipInfo.aDecl.GetSize() == 0 ) return;
+
+   // Find best signature match 
+   if( m_TipInfo.bExpand && pInfo != NULL && m_TipInfo.aDecl.GetSize() > 1 ) {
+      CHAR szLine[256] = { 0 };
+      int iLineNo = m_ctrlEdit.LineFromPosition(lPos);
+      if( m_ctrlEdit.GetLineLength(iLineNo) < sizeof(szLine) - 1 ) {
+         m_ctrlEdit.GetLine(iLineNo, szLine);
+         int nCommas = _CountCommas(A2CT(szLine));
+         for( int i = 0; i < m_TipInfo.aDecl.GetSize(); i++ ) {
+            if( _CountCommas(m_TipInfo.aDecl[i]) == nCommas ) lCurTip = i;
+         }
+      }
+   }
+
+   // Which tip to display
+   m_TipInfo.lCurTip = lCurTip % m_TipInfo.aDecl.GetSize();
+
+   CString sText = m_TipInfo.aDecl[m_TipInfo.lCurTip];
+   // Multiple entries? Let's allow browsing the tip texts
+   if( !m_TipInfo.bExpand 
+       && m_TipInfo.aDecl.GetSize() > 1 ) 
+   {
+      if( m_TipInfo.lCurTip > 0 ) {
+         CString sTemp = sText;
+         sText.Format(_T("\001 %s"), sTemp);
+      }
+      if( m_TipInfo.lCurTip < m_TipInfo.aDecl.GetSize() - 1 ) {
+         CString sTemp = sText;
+         sText.Format(_T("\002 %s"), sTemp);
+      }
+   }
+   // Expand function names with scope-type?
+   if( m_TipInfo.bExpand 
+       && !m_TipInfo.sMemberType.IsEmpty() 
+       && !m_TipInfo.sMemberScope.IsEmpty() 
+       && sText.FindOneOf(_T("{<")) < 0
+       && sText.Find(_T(" : ")) < 0 ) 
+   {
+      CString sFind;
+      sFind.Format(_T(" %s"), m_TipInfo.sMemberName);
+      CString sReplace;
+      sReplace.Format(_T(" %s::%s"), m_TipInfo.sMemberScope, m_TipInfo.sMemberName);
+      sText.Replace(sFind, sReplace);
+   }
+   m_TipInfo.sText = sText;
+
+   _ShowToolTip(m_TipInfo.lPos, sText, true, m_TipInfo.clrText, m_TipInfo.clrBack);
 }
 
 void CScintillaView::_SetLineIndentation(int iLine, int iIndent) 
@@ -1291,6 +1393,18 @@ bool CScintillaView::_HasSelection() const
    long nMin = m_ctrlEdit.GetSelectionStart();
    long nMax = m_ctrlEdit.GetSelectionEnd();
    return nMin != nMax;
+}
+
+int CScintillaView::_CountCommas(LPCTSTR pstrText) const
+{
+   int nCount = 0;
+   while( *pstrText != '\0' ) {
+      if( *pstrText == ',' ) nCount++;
+      if( *pstrText == '(' ) nCount = 0;
+      if( *pstrText == ')' ) break;
+      pstrText = ::CharNext(pstrText);
+   }
+   return nCount;
 }
 
 bool CScintillaView::_iscppchar(CHAR ch) const

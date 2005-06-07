@@ -547,7 +547,7 @@ CString CTelnetProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Port") ) return ToString(m_lPort);
    if( sName == _T("Type") ) return _T("Telnet");
    if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
-   return "";
+   return _T("");
 }
 
 void CTelnetProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)

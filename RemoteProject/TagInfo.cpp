@@ -101,12 +101,12 @@ int CTagInfo::FindItem(int iStart, LPCTSTR pstrName)
    return -1;
 }
 
-CString CTagInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NULL*/)
+bool CTagInfo::GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/)
 {
    ATLASSERT(!::IsBadStringPtr(pstrName,-1));
    
    if( !m_bLoaded ) _LoadTags();
-   if( m_aTags.GetSize() == 0 ) return _T("");
+   if( m_aTags.GetSize() == 0 ) return false;
 
    // If an 'owner' is supplied, we look for a member within a specific
    // class/struct. The 'owner' searchstring must then be found in the TAG extension
@@ -117,7 +117,7 @@ CString CTagInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NUL
       bool bFound = false;
       int iIndex = FindItem(0, pstrOwner);
       while( !bFound ) {
-         if( iIndex < 0 ) return _T("");
+         if( iIndex < 0 ) return false;
          const TAGINFO& info = m_aTags[iIndex];
          switch( info.Type ) {
          case TAGTYPE_CLASS:
@@ -172,8 +172,6 @@ CString CTagInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NUL
          }
       }
       if( bAccept ) {
-         // Did we already find an entry? Cannot handle duplicates!
-         if( !sResult.IsEmpty() ) return _T("");
          // Create information.
          // Default is the stripped version of the search-expression
          CString sValue = info.pstrToken;
@@ -188,12 +186,12 @@ CString CTagInfo::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NUL
                break;
             }
          }
-         sResult = sValue;
+         aResult.Add(sValue);
       }
       iIndex = FindItem(iIndex + 1, pstrName);
    }
 
-   return sResult;
+   return aResult.GetSize() > 0;
 }
 
 TAGTYPE CTagInfo::GetItemType(int iIndex)
@@ -213,8 +211,8 @@ bool CTagInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aList)
       TAGINFO& info = m_aTags[iIndex];
       switch( info.Type ) {
       case TAGTYPE_CLASS:
-      case TAGTYPE_TYPEDEF:
       case TAGTYPE_STRUCT:
+      case TAGTYPE_TYPEDEF:
          TAGINFO* pTag = &m_aTags[iIndex];
          aList.Add(pTag);
          break;
@@ -350,8 +348,7 @@ bool CTagInfo::_LoadTags()
 {
    ATLASSERT(m_aFiles.GetSize()==0);
 
-   CString sStatus(MAKEINTRESOURCE(IDS_STATUS_LOADTAG));
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus);
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_LOADTAG)));
 
    Clear();
 
@@ -393,6 +390,8 @@ bool CTagInfo::_LoadTags()
    // Check if list is sorted.
    // NOTE: When multiple files are encountered we cannot rely
    //       on the list being sorted because we don't merge the files.
+   //       This will significantly slow down the processing!!
+   // BUG: This is a lame attempt to detect if the list is sorted.
    // TODO: Base this on CTAG meta/header-information instead.
    m_bSorted = m_aFiles.GetSize() == 1;
    for( i = 0; m_bSorted && i < m_aTags.GetSize() - 51; i += 50 ) {

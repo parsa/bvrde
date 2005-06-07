@@ -540,6 +540,10 @@ SOURCE=.\res\Projects.bmp
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\projects16.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\question.ico
 # End Source File
 # Begin Source File

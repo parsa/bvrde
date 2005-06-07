@@ -156,6 +156,7 @@ void CFtpProtocol::Clear()
    m_sPath.Empty();
    m_sProxy.Empty();
    m_bPassive = FALSE;
+   m_bCompatibilityMode = FALSE;
    m_lConnectTimeout = 8;
 }
 
@@ -178,6 +179,7 @@ bool CFtpProtocol::Load(ISerializable* pArc)
    pArc->Read(_T("proxy"), m_sProxy.GetBufferSetLength(128), 128);
    m_sProxy.ReleaseBuffer();
    pArc->Read(_T("passive"), m_bPassive);
+   pArc->Read(_T("compatibility"), m_bCompatibilityMode);
    pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
 
    m_sPath.TrimRight(_T("/"));
@@ -198,6 +200,7 @@ bool CFtpProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("searchPath"), m_sSearchPath);
    pArc->Write(_T("proxy"), m_sProxy);
    pArc->Write(_T("passive"), m_bPassive);
+   pArc->Write(_T("compatibility"), m_bCompatibilityMode);
    pArc->Write(_T("connectTimeout"), m_lConnectTimeout);
    return true;
 }
@@ -249,11 +252,12 @@ CString CFtpProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Password") ) return m_sPassword;
    if( sName == _T("Port") ) return ToString(m_lPort);
    if( sName == _T("Passive") ) return m_bPassive ? _T("true") : _T("false");
+   if( sName == _T("CompatibilityMode") ) return m_bCompatibilityMode ? _T("true") : _T("false");
    if( sName == _T("Proxy") ) return m_sProxy;
    if( sName == _T("Separator") ) return _T("/");
    if( sName == _T("Type") ) return _T("FTP");
    if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
-   return "";
+   return _T("");
 }
 
 void CFtpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
@@ -265,7 +269,8 @@ void CFtpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Username") ) m_sUsername = pstrValue;
    if( sName == _T("Password") ) m_sPassword = pstrValue;
    if( sName == _T("Port") ) m_lPort = _ttol(pstrValue);
-   if( sName == _T("Passive") ) m_bPassive = ::lstrcmp(pstrValue, _T("true")) == 0;
+   if( sName == _T("Passive") ) m_bPassive = _tcscmp(pstrValue, _T("true")) == 0;
+   if( sName == _T("CompatibilityMode") ) m_bCompatibilityMode = _tcscmp(pstrValue, _T("true")) == 0;
    if( sName == _T("Proxy") ) m_sProxy = pstrValue;
    if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
    m_sPath.TrimRight(_T("/"));
@@ -277,7 +282,7 @@ bool CFtpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, D
    ATLASSERT(ppOut);
 
    *ppOut = NULL;
-   if( pdwSize ) *pdwSize = 0;
+   if( pdwSize != NULL ) *pdwSize = 0;
    
    // Connected?
    if( !WaitForConnection() ) return false;
@@ -286,19 +291,7 @@ bool CFtpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, D
    DWORD dwFlags = INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_RELOAD;
    dwFlags |= bBinary ? FTP_TRANSFER_TYPE_BINARY : FTP_TRANSFER_TYPE_ASCII;
    HINTERNET hFile = ::FtpOpenFile(m_hFTP, pstrFilename, GENERIC_READ, dwFlags, 0);
-   if( hFile == NULL ) {
-      if( ::GetLastError() == ERROR_INTERNET_EXTENDED_ERROR ) {
-         // Rats! MS Wininet usually just claims the server returned extended
-         // error information, not trying to properly translate the error.
-         // We'll convert basic FTP error codes ourselves...
-         DWORD dwErr = 0;
-         TCHAR szMessage[200] = { 0 };
-         DWORD cchMax = 199;
-         ::InternetGetLastResponseInfo(&dwErr, szMessage, &cchMax);
-         if( _tcsstr(szMessage, _T("550 ")) != NULL ) ::SetLastError(ERROR_FILE_NOT_FOUND);
-      }
-      return false;
-   }
+   if( hFile == NULL ) return _TranslateError();
 
    const DWORD BUFFER_SIZE = 4096;
    LPBYTE pBuffer = (LPBYTE) malloc(BUFFER_SIZE);
@@ -326,7 +319,7 @@ bool CFtpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, D
    ::InternetCloseHandle(hFile);
 
    *ppOut = pBuffer;
-   if( pdwSize ) *pdwSize = dwPos;
+   if( pdwSize != NULL ) *pdwSize = dwPos;
    return true;
 }
 
@@ -344,14 +337,11 @@ bool CFtpProtocol::SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE pData, DW
    // Connected?
    if( !WaitForConnection() ) return false;
 
-   // Remove file first (to avoid FTP complaining about existing file)
-   ::FtpDeleteFile(m_hFTP, pstrFilename);
-
-   // Open and write file...
+   // Create and write file...
    DWORD dwFlags = INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_RELOAD;
    dwFlags |= bBinary ? FTP_TRANSFER_TYPE_BINARY : FTP_TRANSFER_TYPE_ASCII;
    HINTERNET hFile = ::FtpOpenFile(m_hFTP, pstrFilename, GENERIC_WRITE, dwFlags, 0);
-   if( hFile == NULL ) return false;
+   if( hFile == NULL ) return _TranslateError();
 
    DWORD dwPos = 0;
    while( dwSize > 0 ) {
@@ -372,6 +362,15 @@ bool CFtpProtocol::SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE pData, DW
    return true;
 }
 
+bool CFtpProtocol::DeleteFile(LPCTSTR pstrFilename)
+{
+   ATLASSERT(pstrFilename);
+   // Connected?
+   if( !WaitForConnection() ) return false;
+   // Remove the file
+   return ::FtpDeleteFile(m_hFTP, pstrFilename) == TRUE;
+}
+
 bool CFtpProtocol::SetCurPath(LPCTSTR pstrPath)
 {
    ATLASSERT(pstrPath);
@@ -387,7 +386,7 @@ CString CFtpProtocol::GetCurPath()
    TCHAR szPath[MAX_PATH] = { 0 };
    DWORD dwSize = MAX_PATH;
    BOOL bRes = ::FtpGetCurrentDirectory(m_hFTP, szPath, &dwSize);
-   if( !bRes ) return "";
+   if( !bRes ) return _T("");
    return szPath;
 }
 
@@ -512,3 +511,21 @@ bool CFtpProtocol::WaitForConnection()
    return true;
 }
 
+bool CFtpProtocol::_TranslateError()
+{
+   if( ::GetLastError() == ERROR_INTERNET_EXTENDED_ERROR ) {
+      // Rats! MS Wininet usually just claims the server returned extended
+      // error information, not trying to properly translate the error.
+      // We'll convert basic FTP error codes ourselves...
+      DWORD dwErr = 0;
+      TCHAR szMessage[300] = { 0 };
+      DWORD cchMax = 299;
+      ::InternetGetLastResponseInfo(&dwErr, szMessage, &cchMax);
+      if( _tcsstr(szMessage, _T("450 ")) != NULL ) ::SetLastError(ERROR_BUSY);
+      if( _tcsstr(szMessage, _T("452 ")) != NULL ) ::SetLastError(ERROR_DISK_FULL);
+      if( _tcsstr(szMessage, _T("550 ")) != NULL ) ::SetLastError(ERROR_FILE_NOT_FOUND);
+      if( _tcsstr(szMessage, _T("552 ")) != NULL ) ::SetLastError(ERROR_DISK_FULL);
+      if( _tcsstr(szMessage, _T("553 ")) != NULL ) ::SetLastError(ERROR_ACCESS_DENIED);
+   }
+   return false;
+}

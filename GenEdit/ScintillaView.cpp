@@ -110,6 +110,8 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UISetCheck(ID_EDIT_VIEWEOL, GetViewEOL());
    pUIBase->UIEnable(ID_EDIT_VIEWWORDWRAP, TRUE);
    pUIBase->UISetCheck(ID_EDIT_VIEWWORDWRAP, GetWrapMode() == SC_WRAP_WORD);
+   pUIBase->UIEnable(ID_EDIT_VIEWTABS, TRUE);
+   pUIBase->UISetCheck(ID_EDIT_VIEWTABS, GetIndentationGuides());
 
    pUIBase->UIEnable(ID_BOOKMARKS_TOGGLE, TRUE);
    pUIBase->UIEnable(ID_BOOKMARKS_GOTO, TRUE);  

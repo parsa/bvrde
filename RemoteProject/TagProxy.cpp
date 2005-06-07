@@ -37,6 +37,8 @@ TAGTYPE CTagManager::GetItemType(int iIndex)
 
 int CTagManager::FindItem(int iStart, LPCTSTR pstrName)
 {
+   if( pstrName == NULL ) return -1;
+   if( _tcslen(pstrName) == 0 ) return -1;
    // HACK: 'm_LexType' is a stupid hack to remember what type of 
    //       tag-handler we used for FindItem() to allow GetItemType() 
    //       to return the correct type...
@@ -57,11 +59,13 @@ int CTagManager::FindItem(int iStart, LPCTSTR pstrName)
    return -1;
 }
 
-CString CTagManager::GetItemDeclaration(LPCTSTR pstrName, LPCTSTR pstrOwner /*= NULL*/)
+bool CTagManager::GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/)
 {
-   CString sItem = m_LexInfo.GetItemDeclaration(pstrName, pstrOwner);
-   if( sItem.IsEmpty() && pstrOwner != NULL ) sItem = m_TagInfo.GetItemDeclaration(pstrName, NULL);
-   return sItem;
+   if( pstrName == NULL ) return false;
+   if( _tcslen(pstrName) == 0 ) return false;
+   bool bRes = m_LexInfo.GetItemDeclaration(pstrName, aResult, pstrOwner);
+   if( !bRes ) bRes = m_TagInfo.GetItemDeclaration(pstrName, aResult, pstrOwner);
+   return bRes;
 }
 
 bool CTagManager::GetOuterList(CSimpleValArray<TAGINFO*>& aList)
@@ -80,6 +84,8 @@ bool CTagManager::GetGlobalList(CSimpleValArray<TAGINFO*>& aList)
 
 bool CTagManager::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance)
 {
+   if( pstrType == NULL ) return false;
+   if( _tcslen(pstrType) == 0 ) return false;
    m_LexInfo.GetMemberList(pstrType, aList, bInheritance);
    if( aList.GetSize() == 0 ) m_TagInfo.GetMemberList(pstrType, aList, bInheritance);
    return true;

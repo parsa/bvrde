@@ -33,7 +33,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
-   BOOL PreTranslateMessage(MSG* pMsg)
+   BOOL PreTranslateMessage(MSG* /*pMsg*/)
    {
       return FALSE;
    }
@@ -45,9 +45,9 @@ public:
    void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
    {
 #if (_ATL_VER >= 0x0700)
-   	::LoadString(ATL::_AtlBaseModule.GetResourceInstance(), wID, pstrText, cchMax);
+      ::LoadString(ATL::_AtlBaseModule.GetResourceInstance(), wID, pstrText, cchMax);
 #else //!(_ATL_VER >= 0x0700)
-	   ::LoadString(_Module.GetResourceInstance(), wID, pstrText, cchMax);
+      ::LoadString(_Module.GetResourceInstance(), wID, pstrText, cchMax);
 #endif //!(_ATL_VER >= 0x0700)
    }
 };

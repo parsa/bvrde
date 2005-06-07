@@ -5,6 +5,7 @@
 #define IDD_FINDFILES                   105
 #define IDS_TITLE                       1000
 #define IDS_SEARCHING                   1001
+#define IDS_NOMATCHES                   1002
 #define IDC_FINDTEXT                    1137
 #define IDC_WHOLEWORD                   1138
 #define IDC_MATCHCASE                   1139

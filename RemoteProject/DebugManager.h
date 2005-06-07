@@ -74,7 +74,7 @@ public:
    bool RunTo(LPCTSTR pstrFilename, long lLineNum);
    bool SetNextStatement(LPCTSTR pstrFilename, long lLineNum);
 
-   CString GetTagInfo(LPCTSTR pstrValue);
+   bool GetTagInfo(LPCTSTR pstrValue);
 
    CString GetParam(LPCTSTR pstrName) const;
    void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue);

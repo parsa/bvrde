@@ -99,6 +99,7 @@ LRESULT CThreadView::OnDblClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
       CString sCommand;
       sCommand.Format(_T("-thread-select %ld"), dwThreadId);
       m_pProject->DelayedDebugCommand(sCommand);
+      m_pProject->DelayedDebugEvent();
    }
    return lRes;
 }

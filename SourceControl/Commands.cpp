@@ -28,7 +28,7 @@ CString CCommandThread::GetResult() const
 
 DWORD CCommandThread::Run()
 {
-   ::CoInitialize(NULL);
+   CCoInitialize cominit(COINIT_MULTITHREADED);
 
    // Build prompt and execute commands through the
    // project's scripting mode.
@@ -65,7 +65,6 @@ DWORD CCommandThread::Run()
    // Bring up the Command View so we can see it all...
    _pDevEnv->ActivateAutoHideView(ctrlEdit);
 
-   ::CoUninitialize();
    return 0;
 }
 

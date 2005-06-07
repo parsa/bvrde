@@ -1,3 +1,10 @@
+Version 0.9
+* Improved Function Tooltips
+* Now handles overloaded methods better in tooltip and function tip
+* Ability to view indentation guides
+* Fixed problem with switching threads and debugger context
+* Fixed problem with "Rebuild Solution" action
+
 Version 0.8
 * New "Set Parameters" dialog
 * Timeout settings configurable
@@ -6,7 +13,7 @@ Version 0.8
 
 Version 0.7
 * Sound events
-* Tooltips and menutext for alle menuitems
+* Tooltips and menutext for all menuitems
 * Improved speed for C++ lexer due to removal of forward-looking scan
 * Ability to run external tools from menu on remote server
 * External tools can prompt for argument changes

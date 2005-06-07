@@ -239,6 +239,8 @@
 #define IDS_PATHS                       278
 #define IDS_ERR_NOEXECUTABLE            279
 #define IDS_STATUS_ENUMFILES            280
+#define IDS_MISC_COMPATIBILITY          281
+#define IDS_STATUS_STARTING             282
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -342,6 +344,7 @@
 #define ID_VIEW_THREADS                 40050
 #define ID_VIEW_REGISTERS               40051
 #define ID_EDIT_VIEWWS                  40052
+#define ID_EDIT_VIEWTABS                40053
 #define ID_EDIT_VIEWEOL                 40060
 #define ID_EDIT_TABIFY                  40061
 #define ID_EDIT_UNTABIFY                40062

@@ -31,56 +31,63 @@ static CCryptLib clib;
 
 enum
 {
-   SSH_FXP_INIT = 1,
-   SSH_FXP_VERSION =   2,
-   SSH_FXP_OPEN = 3,
-   SSH_FXP_CLOSE = 4,
-   SSH_FXP_READ = 5,
-   SSH_FXP_WRITE = 6,
-   SSH_FXP_LSTAT = 7,
-   SSH_FXP_FSTAT = 8,
-   SSH_FXP_SETSTAT = 9,
-   SSH_FXP_FSETSTAT = 10,
-   SSH_FXP_OPENDIR = 11,
-   SSH_FXP_READDIR = 12,
-   SSH_FXP_REMOVE = 13,
-   SSH_FXP_MKDIR = 14,
-   SSH_FXP_RMDIR = 15,
-   SSH_FXP_REALPATH = 16,
-   SSH_FXP_STAT = 17,
-   SSH_FXP_RENAME = 18,
-   SSH_FXP_READLINK = 19,
-   SSH_FXP_SYMLINK = 20,
-   SSH_FXP_STATUS = 101,
-   SSH_FXP_HANDLE = 102,
-   SSH_FXP_DATA = 103,
-   SSH_FXP_NAME = 104,
-   SSH_FXP_ATTRS = 105,
+   SSH_FXP_INIT      = 1,
+   SSH_FXP_VERSION   = 2,
+   SSH_FXP_OPEN      = 3,
+   SSH_FXP_CLOSE     = 4,
+   SSH_FXP_READ      = 5,
+   SSH_FXP_WRITE     = 6,
+   SSH_FXP_LSTAT     = 7,
+   SSH_FXP_FSTAT     = 8,
+   SSH_FXP_SETSTAT   = 9,
+   SSH_FXP_FSETSTAT  = 10,
+   SSH_FXP_OPENDIR   = 11,
+   SSH_FXP_READDIR   = 12,
+   SSH_FXP_REMOVE    = 13,
+   SSH_FXP_MKDIR     = 14,
+   SSH_FXP_RMDIR     = 15,
+   SSH_FXP_REALPATH  = 16,
+   SSH_FXP_STAT      = 17,
+   SSH_FXP_RENAME    = 18,
+   SSH_FXP_READLINK  = 19,
+   SSH_FXP_SYMLINK   = 20,
+   SSH_FXP_STATUS    = 101,
+   SSH_FXP_HANDLE    = 102,
+   SSH_FXP_DATA      = 103,
+   SSH_FXP_NAME      = 104,
+   SSH_FXP_ATTRS     = 105,
 };
 
 enum
 {
-   SSH_FX_OK = 0,
-   SSH_FX_EOF = 1,
+  SSH_FX_OK                = 0,
+  SSH_FX_EOF               = 1,
+  SSH_FX_NO_SUCH_FILE      = 2,
+  SSH_FX_PERMISSION_DENIED = 3,
+  SSH_FX_FAILURE           = 4,
+  SSH_FX_BAD_MESSAGE       = 5,
+  SSH_FX_NO_CONNECTION     = 6,
+  SSH_FX_CONNECTION_LOST   = 7,
+  SSH_FX_OP_UNSUPPORTED    = 8,
 };
 
 enum
 {
-   SSH_FXF_READ = 0x00000001,
-   SSH_FXF_WRITE = 0x00000002,
-   SSH_FXF_APPEND = 0x00000004,
-   SSH_FXF_CREAT = 0x00000008,
-   SSH_FXF_TRUNC = 0x00000010,
-   SSH_FXF_EXCL = 0x00000020,
+   SSH_FXF_READ    = 0x00000001,
+   SSH_FXF_WRITE   = 0x00000002,
+   SSH_FXF_APPEND  = 0x00000004,
+   SSH_FXF_CREAT   = 0x00000008,
+   SSH_FXF_TRUNC   = 0x00000010,
+   SSH_FXF_EXCL    = 0x00000020,
 };
 
 enum
 {
-   SSH_FILEXFER_ATTR_SIZE = 0x00000001,
-   SSH_FILEXFER_ATTR_UIDGID = 0x00000002,
-   SSH_FILEXFER_ATTR_PERMISSIONS = 0x00000004,
-   SSH_FILEXFER_ATTR_ACMODTIME = 0x00000008,
-   SSH_FILEXFER_ATTR_EXTENDED = 0x80000000 ,
+   SSH_FILEXFER_ATTR_SIZE         = 0x00000001,
+   SSH_FILEXFER_ATTR_UIDGID       = 0x00000002,
+   SSH_FILEXFER_ATTR_PERMISSIONS  = 0x00000004,
+   SSH_FILEXFER_ATTR_ACMODTIME    = 0x00000008,
+   SSH_FILEXFER_ATTR_EXTENDED     = 0x80000000 ,
 };
 
 
@@ -137,6 +144,7 @@ DWORD CSftpThread::Run()
    int status = clib.cryptCreateSession(&cryptSession, CRYPT_UNUSED, CRYPT_SESSION_SSH);
    if( cryptStatusError(status) ) {
       m_pManager->m_dwErrorCode = NTE_BAD_VER;
+      if( status == CRYPT_ERROR_NOTINITED ) m_pManager->m_dwErrorCode = ERROR_SHARING_PAUSED;
       if( status == CRYPT_ERROR_PARAM3 ) m_pManager->m_dwErrorCode = ERROR_MEDIA_NOT_AVAILABLE;
       return 0;
    }
@@ -257,7 +265,8 @@ void CSftpProtocol::Clear()
    m_lPort = 22;
    m_sPath.Empty();
    m_sProxy.Empty();
-   m_bPassive = false;
+   m_bPassive = FALSE;
+   m_bCompatibilityMode = FALSE;
    m_lConnectTimeout = 10;
 }
 
@@ -278,6 +287,7 @@ bool CSftpProtocol::Load(ISerializable* pArc)
    pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(128), 128);
    m_sSearchPath.ReleaseBuffer();
    pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
+   pArc->Read(_T("compatibility"), m_bCompatibilityMode);
 
    m_sPath.TrimRight(_T("/"));
    if( m_sPath.IsEmpty() ) m_sPath = _T("/");
@@ -296,6 +306,7 @@ bool CSftpProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("searchPath"), m_sSearchPath);
    pArc->Write(_T("connectTimeout"), m_lConnectTimeout);
+   pArc->Write(_T("compatibility"), m_bCompatibilityMode ? _T("true") : _T("false"));
    return true;
 }
 
@@ -347,7 +358,8 @@ CString CSftpProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Passive") ) return m_bPassive ? _T("true") : _T("false");
    if( sName == _T("Type") ) return _T("SFTP");
    if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
-   return "";
+   if( sName == _T("CompatibilityMode") ) return m_bCompatibilityMode ? _T("true") : _T("false");
+   return _T("");
 }
 
 void CSftpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
@@ -360,6 +372,7 @@ void CSftpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Password") ) m_sPassword = pstrValue;
    if( sName == _T("Port") ) m_lPort = _ttol(pstrValue);
    if( sName == _T("Passive") ) m_bPassive = _tcscmp(pstrValue, _T("true")) == 0;
+   if( sName == _T("CompatibilityMode") ) m_bCompatibilityMode = _tcscmp(pstrValue, _T("true")) == 0;
    if( sName == _T("Proxy") ) m_sProxy = pstrValue;
    if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
    m_sPath.TrimRight(_T("/"));
@@ -373,7 +386,7 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
    USES_CONVERSION;
 
    *ppOut = NULL;
-   if( pdwSize ) *pdwSize = 0;
+   if( pdwSize != NULL ) *pdwSize = 0;
 
    // Connected?
    if( !WaitForConnection() ) return false;
@@ -438,14 +451,14 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
       DWORD cbSize   = SSH_READ_LONG(p);
       BYTE id        = SSH_READ_BYTE(p);
       DWORD msgid    = SSH_READ_LONG(p);
-      DWORD dwStatus = SSH_READ_LONG(p);
       ATLASSERT(msgid==m_dwMsgId);
 
       if( id == SSH_FXP_STATUS )
       {
          // Done?
+         DWORD dwStatus = SSH_READ_LONG(p);
          if( dwStatus == SSH_FX_EOF ) {
-            if( pdwSize ) *pdwSize = dwOffset;
+            if( pdwSize != NULL ) *pdwSize = dwOffset;
             break;
          }
          bSuccess = false;
@@ -454,7 +467,7 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
       else if( id == SSH_FXP_DATA )
       {
          // More data to us
-         DWORD dwRead = dwStatus;
+         DWORD dwRead = SSH_READ_LONG(p);
          LPBYTE pData = p;
          if( *ppOut == NULL ) *ppOut = (LPBYTE) malloc(dwRead); else *ppOut = (LPBYTE) realloc(*ppOut, dwOffset + dwRead);
          memcpy(*ppOut + dwOffset, pData, dwRead);
@@ -517,27 +530,10 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
    if( pstrFilename[0] != '/' ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
    sFilename.Replace(_T('\\'), _T('/'));
 
-   // Let's remove the file first
-   BYTE buffer[600] = { 0 };
-   LPBYTE p = buffer;
-   SSH_WRITE_LONG(p, 1 + 4 + 4 + sFilename.GetLength());
-   SSH_WRITE_BYTE(p, SSH_FXP_REMOVE);
-   SSH_WRITE_LONG(p, ++m_dwMsgId);
-   SSH_WRITE_LONG(p, sFilename.GetLength());
-   SSH_WRITE_STR(p, sFilename);
-   if( !_WriteData(m_cryptSession, buffer, p - buffer) ) return false;
-
-   if( _ReadData(m_cryptSession, buffer, sizeof(buffer)) == 0 ) return false;
-   p = buffer;
-   DWORD cbSize   = SSH_READ_LONG(p);
-   BYTE id        = SSH_READ_BYTE(p);
-   DWORD msgid    = SSH_READ_LONG(p);
-   DWORD dwStatus = SSH_READ_LONG(p);
-   ATLASSERT(msgid==m_dwMsgId);
-
    // Open file
    enum { _IFREG = 0100000 };  // UNIX regular file
-   p = buffer;
+   BYTE buffer[600] = { 0 };
+   LPBYTE p = buffer;
    SSH_WRITE_LONG(p, 1 + 4 + 4 + sFilename.GetLength() + 4 + 4 + 4 + 4 + 4);
    SSH_WRITE_BYTE(p, SSH_FXP_OPEN);
    SSH_WRITE_LONG(p, ++m_dwMsgId);
@@ -554,18 +550,24 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
    BYTE bHandle[100];
    if( _ReadData(m_cryptSession, bHandle, sizeof(bHandle)) == 0 ) return false;
    p = bHandle;
-   cbSize          = SSH_READ_LONG(p);
-   id              = SSH_READ_BYTE(p);
-   msgid           = SSH_READ_LONG(p);
-   DWORD cchHandle = SSH_READ_LONG(p);
-   LPBYTE pHandle = p;
+   DWORD cbSize         = SSH_READ_LONG(p);
+   BYTE id              = SSH_READ_BYTE(p);
+   DWORD msgid          = SSH_READ_LONG(p);
 
-   if( cchHandle > 64 ) {
-      ::SetLastError(ERROR_INVALID_TARGET_HANDLE);
-      return false;
-   }
+   // Didn't return a valid handle?
    if( id != SSH_FXP_HANDLE ) {
       ::SetLastError(ERROR_CANNOT_MAKE);
+      if( id == SSH_FXP_STATUS ) {
+         DWORD dwStatus = SSH_READ_LONG(p);
+         if( dwStatus == SSH_FX_PERMISSION_DENIED ) ::SetLastError(ERROR_ACCESS_DENIED);
+      }
+      return false;
+   }
+
+   DWORD cchHandle = SSH_READ_LONG(p);
+   LPBYTE pHandle = p;
+   if( cchHandle > 64 ) {
+      ::SetLastError(ERROR_INVALID_TARGET_HANDLE);
       return false;
    }
 
@@ -573,6 +575,7 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
    const DWORD CHUNK_SIZE = sizeof(buffer) - 100UL;
    bool bSuccess = true;
    DWORD dwOffset = 0;
+   DWORD dwStatus = 0;
    while( true ) 
    {
       // Write new data to remote file
@@ -636,6 +639,42 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
    if( !bSuccess ) ::SetLastError(ERROR_WRITE_FAULT);
 
    return bSuccess;
+}
+
+bool CSftpProtocol::DeleteFile(LPCTSTR pstrFilename)
+{
+   ATLASSERT(pstrFilename);
+   
+   USES_CONVERSION;
+
+   // Connected?
+   if( !WaitForConnection() ) return false;
+   // Need a valid session
+   if( m_cryptSession == 0 ) return false;
+
+   // Construct remote filename
+   CString sFilename = pstrFilename; 
+   if( pstrFilename[0] != '/' ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
+   sFilename.Replace(_T('\\'), _T('/'));
+
+   BYTE buffer[600] = { 0 };
+   LPBYTE p = buffer;
+   SSH_WRITE_LONG(p, 1 + 4 + 4 + sFilename.GetLength());
+   SSH_WRITE_BYTE(p, SSH_FXP_REMOVE);
+   SSH_WRITE_LONG(p, ++m_dwMsgId);
+   SSH_WRITE_LONG(p, sFilename.GetLength());
+   SSH_WRITE_STR(p, sFilename);
+   if( !_WriteData(m_cryptSession, buffer, p - buffer) ) return false;
+
+   if( _ReadData(m_cryptSession, buffer, sizeof(buffer)) == 0 ) return false;
+   p = buffer;
+   DWORD cbSize   = SSH_READ_LONG(p);
+   BYTE id        = SSH_READ_BYTE(p);
+   DWORD msgid    = SSH_READ_LONG(p);
+   DWORD dwStatus = SSH_READ_LONG(p);
+   ATLASSERT(msgid==m_dwMsgId);
+
+   return dwStatus == SSH_FX_OK;
 }
 
 bool CSftpProtocol::SetCurPath(LPCTSTR pstrPath)

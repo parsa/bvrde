@@ -66,6 +66,7 @@ DWORD CSshThread::Run()
    int status = clib.cryptCreateSession(&cryptSession, CRYPT_UNUSED, CRYPT_SESSION_SSH);
    if( cryptStatusError(status) ) {
       m_pManager->m_dwErrorCode = NTE_BAD_VER;
+      if( status == CRYPT_ERROR_NOTINITED ) m_pManager->m_dwErrorCode = ERROR_SHARING_PAUSED;
       if( status == CRYPT_ERROR_PARAM3 ) m_pManager->m_dwErrorCode = ERROR_MEDIA_NOT_AVAILABLE;
       return 0;
    }
@@ -442,7 +443,7 @@ CString CSshProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Port") ) return ToString(m_lPort);
    if( sName == _T("Type") ) return _T("SSH");
    if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
-   return "";
+   return _T("");
 }
 
 void CSshProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)

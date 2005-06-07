@@ -236,6 +236,10 @@ LRESULT CScintillaView::OnBoxComment(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 {
    LPSTR pstrStartComment = "/* ";
    LPSTR pstrEndComment = " */";
+   if( m_sLanguage == _T("html") || m_sLanguage == _T("php") || m_sLanguage == _T("asp") ) {
+      pstrStartComment = "<!-- ";
+      pstrEndComment = " -->";
+   }
    long iStart = GetSelectionStart();
    long iEnd = GetSelectionEnd();
    int caretPosition = GetCurrentPos();
@@ -293,6 +297,12 @@ LRESULT CScintillaView::OnViewWhiteSpace(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 LRESULT CScintillaView::OnViewEOL(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    SetViewEOL(!GetViewEOL());
+   return 0;
+}
+
+LRESULT CScintillaView::OnViewIndentGuides(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   SetIndentationGuides(!GetIndentationGuides());
    return 0;
 }
 

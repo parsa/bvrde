@@ -182,6 +182,23 @@ LRESULT CQuickWatchDlg::OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
    return 0;
 }
 
+LRESULT CQuickWatchDlg::OnAddWatch(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   BOOL bDummy;
+   m_pProject->OnViewWatch(0, 0, NULL, bDummy);
+   //
+   CString sCommand;
+   LPARAM lKey = (LPARAM) ::GetTickCount();
+   sCommand.Format(_T("-var-create watch%ld * \"%s\""), lKey, CWindowText(m_ctrlLine));
+   m_pProject->DelayedDebugCommand(sCommand);
+   sCommand = _T("-var-update *");
+   m_pProject->DelayedDebugCommand(sCommand);
+   //
+   m_pDevEnv->EnableModeless(TRUE);
+   DestroyWindow();
+   return 0;
+}
+
 LRESULT CQuickWatchDlg::OnSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    int iIndex = m_ctrlList.GetCurSel();
@@ -418,5 +435,6 @@ void CQuickWatchDlg::_CalcColumnWidth()
 void CQuickWatchDlg::_UpdateButtons()
 {
    CWindow(GetDlgItem(IDOK)).EnableWindow(m_ctrlLine.GetWindowTextLength() > 0);
+   CWindow(GetDlgItem(IDC_ADD_WATCH)).EnableWindow(m_ctrlLine.GetWindowTextLength() > 0);
    CButton(GetDlgItem(IDOK)).SetButtonStyle(m_ctrlLine.GetWindowTextLength() > 0 ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
 }
