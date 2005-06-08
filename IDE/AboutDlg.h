@@ -16,6 +16,7 @@ public:
    enum { IDD = IDD_ABOUTBOX };
 
    enum { SCROLL_TIMERID = 48 };
+   enum { SCROLL_SPEED = 100 };
 
    CFont m_SmallFont;
    TEXTMETRIC m_tm;
@@ -69,7 +70,7 @@ public:
       ::SetRect(&m_rcWindow, 260, 124, 260 + 120, 180);
       m_rgn.CreateRectRgnIndirect(&m_rcWindow);
       // Start the show
-      SetTimer(SCROLL_TIMERID, 100L);
+      SetTimer(SCROLL_TIMERID, SCROLL_SPEED);
       return TRUE;
    }
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

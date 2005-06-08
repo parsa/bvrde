@@ -84,6 +84,7 @@ public:
       for( int i = 0; i < m_ranges.GetSize(); i++ ) {
          for( int j = m_ranges[i].cx; j <= m_ranges[i].cy; j++ ) {
             UIEnable(j, FALSE, TRUE);
+            UISetCheck(j, FALSE, TRUE);
          }
       }
    }

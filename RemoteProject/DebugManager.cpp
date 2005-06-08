@@ -113,8 +113,8 @@ void CDebugManager::SignalStop()
    m_ShellManager.SignalStop();
 
    m_pProject->DelayedDebugEvent(LAZY_DEBUG_KILL_EVENT);
-   m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUG_STOPPED)));
    m_pProject->DelayedViewMessage(DEBUG_CMD_SET_CURLINE);
+   m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUG_STOPPED)));
 
    m_bDebugging = false;
    m_bBreaked = false;
@@ -150,7 +150,7 @@ bool CDebugManager::IsBreaked() const
 
 bool CDebugManager::IsDebugging() const
 {
-   return IsBusy() && m_bDebugging;
+   return m_bDebugging;
 }
 
 bool CDebugManager::Break()

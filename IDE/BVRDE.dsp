@@ -536,11 +536,11 @@ SOURCE=.\res\project1.bmp
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\Projects.bmp
+SOURCE=.\res\projects16.bmp
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\projects16.bmp
+SOURCE=.\res\projects32.bmp
 # End Source File
 # Begin Source File
 
@@ -583,6 +583,10 @@ SOURCE=.\res\warning.ico
 SOURCE=.\res\watermark.bmp
 # End Source File
 # End Group
+# Begin Source File
+
+SOURCE=..\ChangeLog
+# End Source File
 # Begin Source File
 
 SOURCE=..\Copyright

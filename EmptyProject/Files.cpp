@@ -220,8 +220,15 @@ BOOL CTextFile::Save()
    LPSTR pstrText = NULL;
    if( !m_view.GetText(pstrText) ) return FALSE;
 
+   CString sFilename = _GetRealFilename();
+
+   // Protect Read Only files
+   TCHAR szBuffer[32] = { 0 };
+   _pDevEnv->GetProperty(_T("gui.document.protectReadOnly"), szBuffer, 31);
+   if( _tcscmp(szBuffer, _T("false")) == 0 ) CFile::Delete(sFilename);
+
    CFile f;
-   if( !f.Create(_GetRealFilename()) ) {
+   if( !f.Create(sFilename) ) {
       DWORD dwErr = ::GetLastError();
       free(pstrText);
       ::SetLastError(dwErr);
@@ -233,7 +240,6 @@ BOOL CTextFile::Save()
    m_view.m_ctrlEdit.SetSavePoint();
 
    // Save Clears Undo stack?
-   TCHAR szBuffer[32] = { 0 };
    _pDevEnv->GetProperty(_T("gui.document.clearUndo"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("true")) == 0 ) m_view.m_ctrlEdit.EmptyUndoBuffer();
 

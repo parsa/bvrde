@@ -163,6 +163,7 @@ BEGIN
             MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
             MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
             MENUITEM "View &White Space",           ID_EDIT_VIEWWS
+            MENUITEM "View Indentation &Guides",    ID_EDIT_VIEWTABS
         END
         POPUP "Bookmarks"
         BEGIN
@@ -294,6 +295,7 @@ BEGIN
     IDS_CAPTION_OUTPUT      "Output"
     IDS_LOG_SENDERROR       "An error occoured while sending data."
     IDS_STATUS_LOADING      " Loading project '%s'..."
+    IDS_FILECHANGES         "File Changed\nThe file was changed outside this view. Reload file?\nSomeone changed the file while it was inactive. You can reload the file content."
     IDS_BUILD               "Build"
     IDS_CAPTION_QUESTION    "BVRDE"
     IDS_WIZARD_TITLE_MESSAGE "The Empty Project"
@@ -393,6 +395,11 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_FILE_SAVE            "Save the entry\nSave"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_VIEWTABS        "View Indentation Guides\nTab Guides"
 END
 
 #endif    // English (U.S.) resources

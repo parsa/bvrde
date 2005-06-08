@@ -17,6 +17,7 @@ CViewImpl::CViewImpl(CRemoteProject* pCppProject, IProject* pProject, IElement* 
    m_pParent(pParent),
    m_bIsDirty(false)
 {
+   ::ZeroMemory(&m_ftCurrent, sizeof(FILETIME));
 }
 
 BOOL CViewImpl::GetName(LPTSTR pstrName, UINT cchMax) const
@@ -74,6 +75,7 @@ BOOL CViewImpl::Save(ISerializable* pArc)
 
 BOOL CViewImpl::Save()
 {
+   ::ZeroMemory(&m_ftCurrent, sizeof(FILETIME));
    m_bIsDirty = false;
    return TRUE;
 }
@@ -117,6 +119,7 @@ LRESULT CViewImpl::SendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 CString CViewImpl::_GetRealFilename() const
 {
    // Resolve filename if it has a relative path
+   // TODO: Call Shell function to expand to full path
    CString sPath;
    if( m_pCppProject != NULL && m_sFilename.Left(1) == _T(".") ) {
       m_pCppProject->GetPath(sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
@@ -213,12 +216,6 @@ BOOL CTextFile::Save(ISerializable* pArc)
    pArc->Write(_T("filename"), m_sFilename);
    pArc->Write(_T("location"), m_sLocation);
 
-   if( pArc->WriteExternal(_T("text")) ) {
-      if( IsDirty() ) {
-         if( !Save() ) return FALSE;
-      }
-   }
-
    return TRUE;
 }
 
@@ -262,7 +259,7 @@ BOOL CTextFile::Save()
    if( _tcscmp(szBuffer, _T("true")) == 0 ) m_view.m_ctrlEdit.EmptyUndoBuffer();
 
    free(pstrText);
-   return TRUE;
+   return CViewImpl::Save();
 }
 
 BOOL CTextFile::Reload()
@@ -271,8 +268,37 @@ BOOL CTextFile::Reload()
    return OpenView(0);
 }
 
+void CTextFile::ActivateUI()
+{
+   if( m_sLocation == _T("local") ) 
+   {
+      // Check if file changed outside view?
+      TCHAR szBuffer[32] = { 0 };;
+      _pDevEnv->GetProperty(_T("gui.document.detectChange"), szBuffer, 31);
+      if( _tcscmp(szBuffer, _T("true")) == 0 ) {
+         // Detect if filetime has changed
+         CFile f;
+         if( f.Open(_GetRealFilename()) ) {
+            FILETIME ft = { 0 };
+            ::GetFileTime(f, NULL, NULL, &ft);
+            if( m_ftCurrent.dwLowDateTime == 0 ) m_ftCurrent = ft;
+            if( ::CompareFileTime(&m_ftCurrent, &ft) != 0 ) {
+               _pDevEnv->GetProperty(_T("gui.document.autoLoad"), szBuffer, 31);           
+               if( _tcscmp(szBuffer, _T("true")) == 0 || IDYES == _pDevEnv->ShowMessageBox(m_view, CString(MAKEINTRESOURCE(IDS_FILECHANGES)), CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), MB_YESNO | MB_ICONQUESTION) ) {
+                  Reload();
+               }
+            }
+            m_ftCurrent = ft;
+            f.Close();
+         }
+      }
+   }
+   CViewImpl::ActivateUI();
+}
+
 BOOL CTextFile::IsDirty() const
 {
+   if( CViewImpl::IsDirty() ) return TRUE;
    if( ::IsWindow(m_wndFrame) ) return m_view.m_ctrlEdit.GetModify();
    return FALSE;
 }
@@ -411,7 +437,7 @@ BOOL CTextFile::OpenView(long lLineNum)
       free(pstrData);
 
       // Uphold the read-only rule
-      if( m_sLocation != _T("remote") )
+      if( m_sLocation == _T("local") )
       {
          DWORD dwAttribs = ::GetFileAttributes(_GetRealFilename());
          if( dwAttribs != (DWORD) -1 && (dwAttribs & FILE_ATTRIBUTE_READONLY) != 0 ) {

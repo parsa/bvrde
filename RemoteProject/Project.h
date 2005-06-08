@@ -65,7 +65,6 @@ private:
    CSimpleValArray<IView*> m_aFiles;
    CSimpleValArray<IView*> m_aDependencies;
    CQuickWatchDlg* m_pQuickWatchDlg;
-   CBuildSolutionThread m_BuildSolutionThread;
    bool m_bIsDirty;
    //
    static CAccelerator m_accel;
@@ -143,7 +142,6 @@ public:
    void SendViewMessage(UINT nCmd, LAZYDATA* pData);
    CClassView* GetClassView() const;
    CTelnetView* GetDebugView() const;
-   CString GetBuildMode() const;
    BOOL SetName(LPCTSTR pstrName);
    BOOL GetPath(LPTSTR pstrPath, UINT cchMax) const;
    bool GetTagInfo(LPCTSTR pstrValue, bool bAskDebugger, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/);

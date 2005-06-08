@@ -30,6 +30,10 @@ DWORD CCommandThread::Run()
 {
    CCoInitialize cominit(COINIT_MULTITHREADED);
 
+   // Bring up the Command View so we can see it all...
+   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
+   _pDevEnv->ActivateAutoHideView(ctrlEdit);
+
    // Build prompt and execute commands through the
    // project's scripting mode.
    m_sResult.Empty();
@@ -57,13 +61,10 @@ DWORD CCommandThread::Run()
    }
 
    // Output it to the Command View
-   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
    ctrlEdit.SetReadOnly(TRUE);
    AppendRtfText(ctrlEdit, sMessage, CFM_BOLD, 0);
    AppendRtfText(ctrlEdit, _T("\r\n> "), CFM_BOLD, CFE_BOLD);
    ctrlEdit.SetReadOnly(FALSE);
-   // Bring up the Command View so we can see it all...
-   _pDevEnv->ActivateAutoHideView(ctrlEdit);
 
    return 0;
 }

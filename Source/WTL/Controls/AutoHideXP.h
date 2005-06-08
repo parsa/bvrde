@@ -351,7 +351,7 @@ public:
    {
       const AUTOPANE* pPane = FindPane(hWnd);
       if( pPane == NULL ) return FALSE;
-      SendMessage(WM_LBUTTONDOWN, 0, MAKELPARAM(pPane->rc.left, pPane->rc.top));
+      PostMessage(WM_LBUTTONDOWN, 0, MAKELPARAM(pPane->rc.left, pPane->rc.top));
       return TRUE;
    }
    void SetImageList(HIMAGELIST hImageList)

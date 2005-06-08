@@ -24,6 +24,7 @@ public:
    CString m_sFilename;
    CString m_sLocation;
    CString m_sLanguage;
+   FILETIME m_ftCurrent;
    BOOL m_bIsDirty;
 
 public:
@@ -100,6 +101,7 @@ public:
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const;  
    BOOL GetText(BSTR* pbstrText);
    BOOL GetFileName(LPTSTR pstrName, UINT cchMax) const;
+   void ActivateUI();
    void EnableModeless(BOOL bEnable);
    void CloseView();
    IDispatch* GetDispatch();

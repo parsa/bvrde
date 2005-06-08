@@ -13,6 +13,59 @@
 ////////////////////////////////////////////////////////
 //
 
+DWORD CRebuildThread::Run()
+{
+   CCoInitialize cominit(COINIT_MULTITHREADED);
+
+   // Build the projects
+   ISolution* pSolution = _pDevEnv->GetSolution();
+   INT nProjects = pSolution->GetItemCount();
+   for( INT i = 0; i < nProjects; i++ ) {
+      // Useless status message
+      CString sStatus;
+      sStatus.Format(IDS_STATUS_STARTING, CString(MAKEINTRESOURCE(IDS_REBUILD)));
+      m_pProject->DelayedStatusBar(sStatus);
+      // Get the next project and see if it supports a
+      // "Rebuild" and "IsBusy" command...
+      IProject* pProject = pSolution->GetItem(i);
+      if( pProject == NULL ) break;
+      CComDispatchDriver dd = pProject->GetDispatch();
+      DISPID dispid = 0;
+      if( dd.GetIDOfName(L"Rebuild", &dispid) != S_OK ) continue;
+      if( dd.GetIDOfName(L"IsBusy", &dispid) != S_OK ) continue;
+      // Start the build process
+      dd.Invoke0(L"Rebuild");
+      ::Sleep(100L);
+      // Allow the build action to get started for 3 seconds
+      for( int x = 0; x < 3; x++ ) {
+         // See if it started by itself
+         CComVariant vRet;
+         dd.GetPropertyByName(L"IsBusy", &vRet);
+         if( vRet.boolVal == VARIANT_TRUE ) break;
+         ::Sleep(1000L);
+         if( ShouldStop() ) break;
+      }
+      // ...then monitor it until it stops
+      while( !ShouldStop() ) {
+         CComVariant vRet;
+         dd.GetPropertyByName(L"IsBusy", &vRet);
+         if( vRet.boolVal != VARIANT_TRUE ) break;
+         ::Sleep(1000L);
+      }
+      if( ShouldStop() ) break;
+   }
+
+   CString sStatus;
+   sStatus.Format(IDS_STATUS_FINISHED, CString(MAKEINTRESOURCE(IDS_REBUILD)));
+   m_pProject->DelayedStatusBar(sStatus);
+
+   return 0;
+}
+
+
+////////////////////////////////////////////////////////
+//
+
 CCompileThread::CCompileThread()
 {
    m_szWindow.cx = 0;
@@ -77,7 +130,7 @@ DWORD CCompileThread::Run()
       }
 
       // Idle wait for completion before accepting new prompt commands...
-      while( m_pManager->IsBusy() && m_aCommands.GetSize() == 0 ) ::Sleep(200L);     
+      while( m_pManager->IsBusy() && m_aCommands.GetSize() == 0 ) ::Sleep(200L);
    }
 
    return 0;
@@ -89,15 +142,14 @@ DWORD CCompileThread::Run()
 
 // This flag is a 'static' because we want all projects
 // in a Solution to be aware of this state.
+// It signals that some project is currently compiling.
 bool volatile CCompileManager::s_bBusy = false;
 
 
 CCompileManager::CCompileManager() :
    m_Flags(0),
    m_pProject(NULL),
-   m_bCompiling(false),
-   m_bReleaseMode(true),
-   m_bWarningPlayed(false)
+   m_bCompiling(false)
 {
    m_event.Create();
    Clear();
@@ -110,8 +162,8 @@ void CCompileManager::Init(CRemoteProject* pProject)
 
    m_ShellManager.Init(pProject);
 
-   m_thread.m_pProject = pProject;
-   m_thread.m_pManager = this;
+   m_CompileThread.m_pProject = pProject;
+   m_CompileThread.m_pManager = this;
 }
 
 void CCompileManager::Clear()
@@ -129,9 +181,9 @@ void CCompileManager::Clear()
    m_sPromptPrefix = _T("$~[/");
    m_sCompileFlags = _T("");
    m_sLinkFlags = _T("");
-   m_bReleaseMode = false;
+   m_sBuildMode = _T("debug");
    m_bWarningPlayed = false;
-   m_thread.m_Flags = m_Flags = 0;
+   m_CompileThread.m_Flags = m_Flags = 0;
 }
 
 bool CCompileManager::Load(ISerializable* pArc)
@@ -203,7 +255,7 @@ bool CCompileManager::Start()
 {
    Stop();
    m_ShellManager.Start();
-   m_thread.Start();
+   m_CompileThread.Start();
    return true;
 }
 
@@ -212,7 +264,7 @@ bool CCompileManager::Stop()
    SignalStop();
    m_ShellManager.RemoveLineListener(this);
    m_ShellManager.Stop();
-   m_thread.Stop();
+   m_CompileThread.Stop();
    // Reset variables
    m_bCompiling = false;
    s_bBusy = false;
@@ -225,7 +277,7 @@ void CCompileManager::SignalStop()
    m_pProject->DelayedGuiAction(GUI_ACTION_STOP_ANIMATION);
    m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_STOP);
    m_ShellManager.SignalStop();
-   m_thread.SignalStop();
+   m_CompileThread.SignalStop();
    m_event.SetEvent();
    s_bBusy = false;
    m_Flags = 0;
@@ -233,21 +285,38 @@ void CCompileManager::SignalStop()
 
 bool CCompileManager::IsBusy() const
 {
-   return s_bBusy && IsConnected();
+   return s_bBusy;
 }
 
 bool CCompileManager::IsConnected() const
 {
-   return m_thread.IsRunning() && m_ShellManager.IsConnected();
+   return m_CompileThread.IsRunning() && m_ShellManager.IsConnected();
 }
 
 bool CCompileManager::IsCompiling() const
 {
-   return IsBusy() && m_bCompiling;
+   return m_bCompiling || m_RebuildThread.IsRunning() == TRUE;
+}
+
+bool CCompileManager::DoRebuild()
+{
+   if( m_RebuildThread.IsRunning() ) return false;
+   // Clear the compile output window
+   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_OUTPUTVIEW);
+   m_pProject->DelayedGuiAction(GUI_ACTION_CLEARVIEW, ctrlEdit);
+   m_pProject->DelayedGuiAction(GUI_ACTION_ACTIVATEVIEW, ctrlEdit);
+   // Start thread
+   m_RebuildThread.Stop();
+   m_RebuildThread.m_pProject = m_pProject;
+   m_RebuildThread.m_pManager = this;
+   m_RebuildThread.Start();
+   return true;
 }
 
 bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, UINT Flags /*= 0*/)
 {
+   // Should we compile in Release or Debug mode?
+   BOOL bReleaseMode = m_sBuildMode == _T("release");
    // Translate named actions into real prompt commands.
    // We usually start off by changing to the project folder
    // to make sure everything run from the correct path.
@@ -265,7 +334,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, 
       if( !_PrepareProcess(pstrName) ) return false;
       sTitle.LoadString(IDS_BUILD);
       aCommands.Add(m_sCommandCD);
-      aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
+      aCommands.Add(bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandBuild);
       Flags |= COMPFLAG_BUILDSESSION;
    }
@@ -274,7 +343,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, 
       sTitle.LoadString(IDS_REBUILD);
       aCommands.Add(m_sCommandCD);
       aCommands.Add(m_sCommandClean);
-      aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
+      aCommands.Add(bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandRebuild);
       Flags |= COMPFLAG_BUILDSESSION;
    }
@@ -282,7 +351,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, 
       if( !_PrepareProcess(pstrName) ) return false;
       sTitle.LoadString(IDS_COMPILE);
       aCommands.Add(m_sCommandCD);
-      aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
+      aCommands.Add(bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandCompile);
       Flags |= COMPFLAG_BUILDSESSION;
    }
@@ -290,18 +359,19 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, 
       if( !_PrepareProcess(pstrName) ) return false;
       sTitle.LoadString(IDS_CHECKSYNTAX);
       aCommands.Add(m_sCommandCD);
-      aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
+      aCommands.Add(bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandCheckSyntax);
    }
    if( sName == _T("BuildTags") ) {
       if( !_PrepareProcess(pstrName) ) return false;
       sTitle.LoadString(IDS_BUILD);
       aCommands.Add(m_sCommandCD);
-      aCommands.Add(m_bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
+      aCommands.Add(bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandBuildTags);
    }
    if( sName == _T("Stop") ) {
       SignalStop();
+      m_RebuildThread.SignalStop();
       // Update statusbar now
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_STOPPED)));
       ::PlaySound(_T("BVRDE_BuildCancelled"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT);
@@ -348,7 +418,7 @@ CString CCompileManager::GetParam(LPCTSTR pstrName) const
    if( sName == _T("ReleaseExport") ) return m_sCommandRelease;
    if( sName == _T("CompileFlags") ) return m_sCompileFlags;
    if( sName == _T("LinkFlags") ) return m_sLinkFlags;
-   if( sName == _T("Mode") ) return m_bReleaseMode ? _T("Release") : _T("Debug");
+   if( sName == _T("BuildMode") ) return m_sBuildMode;
    if( sName == _T("InCommand") ) return (m_Flags & COMPFLAG_COMMANDMODE) != 0 ? _T("true") : _T("false");
    return m_ShellManager.GetParam(pstrName);
 }
@@ -367,8 +437,8 @@ void CCompileManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("ReleaseExport") ) m_sCommandRelease = pstrValue;
    if( sName == _T("CompileFlags") ) m_sCompileFlags = pstrValue;
    if( sName == _T("LinkFlags") ) m_sLinkFlags = pstrValue;
-   if( sName == _T("Mode") ) m_bReleaseMode = _tcscmp(pstrValue, _T("Release")) == 0;
    if( sName == _T("InCommand") ) m_Flags |= _tcscmp(pstrValue, _T("true")) == 0 ? COMPFLAG_COMMANDMODE : 0;
+   if( sName == _T("BuildMode") ) m_sBuildMode = pstrValue;
    m_ShellManager.SetParam(pstrName, pstrValue);
 }
 
@@ -415,9 +485,6 @@ CString CCompileManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrPara
 
 bool CCompileManager::_PrepareProcess(LPCTSTR /*pstrName*/)
 {
-   // Detect if we're in "release" mode
-   m_bReleaseMode = m_pProject->GetBuildMode() == _T("Release");
-
    // Does project need save before it can run?
    // Let's warn user about this!
    if( m_pProject->IsDirty() ) {
@@ -500,20 +567,21 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    // Update execute thread
    // Add new commands to command list.
    // and add marker that will end the compile session
-   m_thread.m_cs.Lock();
-   m_thread.m_szWindow = _GetViewWindowSize();
-   m_thread.m_Flags = Flags;
+   m_CompileThread.m_cs.Lock();
+   m_CompileThread.m_szWindow = _GetViewWindowSize();
+   m_CompileThread.m_Flags = Flags;
    for( int i = 0; i < aCommands.GetSize(); i++ ) {
       CString sCommand = aCommands[i];
-      m_thread.m_aCommands.Add(sCommand);
+      m_CompileThread.m_aCommands.Add(sCommand);
    }
    CString sCommand = TERM_MARKER;
-   m_thread.m_aCommands.Add(sCommand);
-   m_thread.m_cs.Unlock();
+   m_CompileThread.m_aCommands.Add(sCommand);
+   m_CompileThread.m_cs.Unlock();
 
    // Finally signal that we have new data
    s_bBusy = true;
    m_bCompiling = false;
+   m_bWarningPlayed = false;
    m_event.SetEvent();
 
    // If this is a regular compile command (not user-entered or scripting prompt)
@@ -533,7 +601,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    // actually be submitted to the remote server before we continue...
    if( (Flags & COMPFLAG_COMMANDMODE) != 0 ) {
       DWORD dwStartTick = ::GetTickCount();
-      while( m_thread.m_aCommands.GetSize() > 0 ) {
+      while( m_CompileThread.m_aCommands.GetSize() > 0 ) {
          ::Sleep(50L);
          if( ::GetTickCount() - dwStartTick > 800UL ) break;
       }

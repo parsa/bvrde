@@ -69,6 +69,7 @@ BOOL CScintillaView::SetText(LPCSTR pstrText)
    int iWidth = m_ctrlEdit.GetMarginWidthN(0);
    if( iWidth > 0 && m_ctrlEdit.GetLineCount() > 9999 ) m_ctrlEdit.SetMarginWidthN(0, m_ctrlEdit.TextWidth(STYLE_LINENUMBER, "_99999"));  
 
+   ::ZeroMemory(&m_ftCurrent, sizeof(FILETIME));
    SendMessage(WM_SETTINGCHANGE);
    return TRUE;
 }
@@ -81,6 +82,7 @@ LRESULT CScintillaView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
    m_ctrlEdit.SubclassWindow( Bvrde_CreateScintillaView(m_hWnd, _pDevEnv, m_sFilename, m_sLanguage) );
    ATLASSERT(m_ctrlEdit.IsWindow());
    m_ctrlEdit.ShowWindow(SW_SHOW);
+   ::ZeroMemory(&m_ftCurrent, sizeof(FILETIME));
    return 0;
 }
 
@@ -114,6 +116,30 @@ LRESULT CScintillaView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 LRESULT CScintillaView::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {   
    ::SetFocus(m_ctrlEdit);
+   // Check if file changed outside view
+   TCHAR szBuffer[32] = { 0 };;
+   _pDevEnv->GetProperty(_T("gui.document.detectChange"), szBuffer, 31);
+   if( _tcscmp(szBuffer, _T("true")) == 0 ) {
+      FILETIME ft = { 0 };
+      CFile f;
+      if( f.Open(m_sFilename) ) {
+         ::GetFileTime(f, NULL, NULL, &ft);
+         if( m_ftCurrent.dwLowDateTime == 0 ) m_ftCurrent = ft;
+         if( ::CompareFileTime(&m_ftCurrent, &ft) != 0 ) {
+            _pDevEnv->GetProperty(_T("gui.document.autoLoad"), szBuffer, 31);           
+            if( _tcscmp(szBuffer, _T("true")) == 0 || IDYES == _pDevEnv->ShowMessageBox(m_hWnd, CString(MAKEINTRESOURCE(IDS_FILECHANGES)), CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), MB_YESNO | MB_ICONQUESTION) ) {
+               DWORD dwSize = f.GetSize();
+               LPSTR pstr = (LPSTR) malloc(dwSize + 1);
+               f.Read(pstr, dwSize);
+               pstr[dwSize] = '\0';
+               SetText(pstr);
+               free(pstr);
+            }
+         }
+         m_ftCurrent = ft;
+         f.Close();
+      }
+   }
    return 0;
 }
 
@@ -146,6 +172,8 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
       _pDevEnv->ShowMessageBox(m_hWnd, sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONEXCLAMATION);
       return 1; // Return ERROR indication
    }
+
+   ::ZeroMemory(&m_ftCurrent, sizeof(FILETIME));
 
    m_ctrlEdit.EmptyUndoBuffer();
    return 0;

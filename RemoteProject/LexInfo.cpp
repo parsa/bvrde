@@ -55,7 +55,7 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
    // Lex the file.
    // It's not unlikely that the parse fails since it could stop at
    // normal syntax errors and less obvious LALR failures! In
-   // this case we'll just ignore the contents...
+   // this case we'll just ignore the content...
    typedef BOOL (APIENTRY* LPFNPARSE)(LPCWSTR, LPCSTR);
    LPFNPARSE fnParse = (LPFNPARSE) ::GetProcAddress(s_hInst, "CppLexer_Parse");
    ATLASSERT(fnParse);

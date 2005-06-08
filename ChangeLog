@@ -4,6 +4,7 @@ Version 0.9
 * Ability to view indentation guides
 * Fixed problem with switching threads and debugger context
 * Fixed problem with "Rebuild Solution" action
+* Macro scripting now supports ActiveX components
 
 Version 0.8
 * New "Set Parameters" dialog

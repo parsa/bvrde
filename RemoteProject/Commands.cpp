@@ -12,54 +12,6 @@
 #include "ViewSerializer.h"
 
 
-// BuildSolution thread
-
-DWORD CBuildSolutionThread::Run()
-{
-   CCoInitialize cominit(COINIT_MULTITHREADED);
-
-   // Build the projects
-   ISolution* pSolution = _pDevEnv->GetSolution();
-   INT nProjects = pSolution->GetItemCount();
-   for( INT i = 0; i < nProjects; i++ ) {
-      // Get the next project and see if it supports a
-      // "Rebuild" command...
-      IProject* pProject = pSolution->GetItem(i);
-      if( pProject == NULL ) return 0;
-      CComDispatchDriver dd = pProject->GetDispatch();
-      DISPID dispid = 0;
-      if( dd.GetIDOfName(L"Rebuild", &dispid) != S_OK ) continue;
-      if( dd.GetIDOfName(L"IsBusy", &dispid) != S_OK ) continue;
-      // Start the build process
-      dd.Invoke0(L"Rebuild");
-      ::Sleep(100L);
-      // Allow the build action to get started for 3 seconds
-      for( int x = 0; x < 3; x++ ) {
-         // See if it started by itself
-         CComVariant vRet;
-         dd.GetPropertyByName(L"IsBusy", &vRet);
-         if( vRet.boolVal == VARIANT_TRUE ) break;
-         ::Sleep(1000L);
-         if( ShouldStop() ) break;
-      }
-      // ...then monitor it until it stops
-      while( !ShouldStop() ) {
-         CComVariant vRet;
-         dd.GetPropertyByName(L"IsBusy", &vRet);
-         if( vRet.boolVal != VARIANT_TRUE ) break;
-         ::Sleep(1000L);
-      }
-      if( ShouldStop() ) break;
-   }
-
-   CString sStatus;
-   sStatus.Format(IDS_STATUS_FINISHED, CString(MAKEINTRESOURCE(IDS_REBUILD)));
-   m_pProject->DelayedStatusBar(sStatus);
-
-   return 0;
-}
-
-
 // Message handlers
 
 LRESULT CRemoteProject::OnFileRemove(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
@@ -300,9 +252,8 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
 LRESULT CRemoteProject::OnEditBreak(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
-   if( m_BuildSolutionThread.IsRunning() ) m_BuildSolutionThread.SignalStop();
-   if( m_DebugManager.IsDebugging() ) OnDebugBreak(0, 0, NULL, bHandled);
    if( m_CompileManager.IsBusy() ) OnBuildStop(0, 0, NULL, bHandled);
+   if( m_DebugManager.IsDebugging() ) OnDebugBreak(0, 0, NULL, bHandled);
    return 0;
 }
 
@@ -638,9 +589,10 @@ LRESULT CRemoteProject::OnProjectSetDefault(WORD /*wNotifyCode*/, WORD /*wID*/, 
    IElement* pElement = _GetSelectedTreeElement();
    if( pElement == NULL ) { bHandled = FALSE; return 0; };
    // The selected element must be a project type
-   TCHAR szType[64] = { 0 };
-   pElement->GetType(szType, (sizeof(szType) / sizeof(TCHAR)) - 1);
-   if( _tcscmp(szType, _T("Project")) != 0 ) return 0;
+   CString sType;
+   pElement->GetType(sType.GetBufferSetLength(64), 64);
+   sType.ReleaseBuffer();
+   if( sType != _T("Project") ) return 0;
    // Cast it back and mark as active
    IProject* pProject = static_cast<IProject*>(pElement);
    _pDevEnv->GetSolution()->SetActiveProject(pProject);
@@ -725,45 +677,39 @@ LRESULT CRemoteProject::OnDebugQuickWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 LRESULT CRemoteProject::OnDebugProcesses(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
-
    if( m_DebugManager.IsDebugging() ) return 0;
-
    CAttachProcessDlg dlg;
    dlg.Init(this, m_DebugManager.GetParam(L"App"));
    if( dlg.DoModal() != IDOK ) return 0;
-
    return m_DebugManager.AttachProcess(dlg.GetPid());
 }
 
 LRESULT CRemoteProject::OnDebugArguments(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
-
    if( m_DebugManager.IsDebugging() ) return 0;
-
    CRunArgumentsDlg dlg;
    dlg.Init(this);
    dlg.DoModal();
-
    return 0;
 }
 
 LRESULT CRemoteProject::OnBuildClean(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
-   return m_CompileManager.DoAction(_T("Clean"));
+   return (LRESULT) m_CompileManager.DoAction(_T("Clean"));
 }
 
 LRESULT CRemoteProject::OnBuildProject(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
-   return m_CompileManager.DoAction(_T("Build"));
+   return (LRESULT) m_CompileManager.DoAction(_T("Build"));
 }
 
 LRESULT CRemoteProject::OnBuildRebuild(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
-   return m_CompileManager.DoAction(_T("Rebuild"));
+   return (LRESULT) m_CompileManager.DoAction(_T("Rebuild"));
 }
 
 LRESULT CRemoteProject::OnBuildSolution(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
@@ -772,16 +718,8 @@ LRESULT CRemoteProject::OnBuildSolution(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
    // command. The trick is to start the command in a separate thread which will iterate all projects
    // and call the "Rebuild" scripting command (if avaiable). We eat the message here, because we (the
    // first handler) is responsible for calling Rebuild on all other projects!
-   if( m_BuildSolutionThread.IsRunning() ) return 0;
-   m_BuildSolutionThread.Stop();
    // Open and clear the compile output view
-   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_OUTPUTVIEW);
-   DelayedGuiAction(GUI_ACTION_CLEARVIEW, ctrlEdit);
-   DelayedGuiAction(GUI_ACTION_ACTIVATEVIEW, ctrlEdit);
-   // Start thread
-   m_BuildSolutionThread.m_pProject = this;
-   m_BuildSolutionThread.Start();
-   return 0;
+   return (LRESULT) m_CompileManager.DoRebuild();
 }
 
 LRESULT CRemoteProject::OnBuildCompile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)

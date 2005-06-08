@@ -1184,6 +1184,7 @@ BEGIN
     IDS_STATUS_ENUMFILES    " Enumerating files..."
     IDS_MISC_COMPATIBILITY  "Compatibility Mode"
     IDS_STATUS_STARTING     " %s running..."
+    IDS_FILECHANGES         "File Changed\nThe file was changed outside this view. Reload file?\nSomeone changed the file while it was inactive. You can reload the file content now."
 END
 
 STRINGTABLE DISCARDABLE 

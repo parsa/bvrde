@@ -60,7 +60,6 @@ BOOL CRemoteProject::Close()
    m_FileManager.SignalStop();
    m_DebugManager.SignalStop();
    m_CompileManager.SignalStop();
-   m_BuildSolutionThread.SignalStop();
 
    m_viewDebugLog.Close();
    m_viewClassTree.Close();
@@ -94,7 +93,6 @@ BOOL CRemoteProject::Close()
    m_FileManager.Stop();
    m_DebugManager.Stop();
    m_CompileManager.Stop();
-   m_BuildSolutionThread.Stop();
 
    if( m_pQuickWatchDlg ) delete m_pQuickWatchDlg;
    m_pQuickWatchDlg = NULL;
@@ -315,7 +313,10 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
       sFileType.ReleaseBuffer();
    }
 
-   BOOL bCompiling = m_CompileManager.IsBusy();
+   int iMode = m_ctrlMode.GetCurSel();
+   m_CompileManager.SetParam(_T("BuildMode"), iMode == 0 ? _T("release") : _T("debug"));
+
+   BOOL bCompiling = m_CompileManager.IsCompiling();
    BOOL bProcessStarted = m_DebugManager.IsBusy();
    BOOL bDebugging = m_DebugManager.IsDebugging();
    BOOL bBusy = bCompiling || bProcessStarted;
@@ -338,7 +339,7 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_FILE_RENAME, pElement != NULL && !bBusy);
    pUIBase->UIEnable(ID_FILE_DELETE, !bBusy);
 
-   pUIBase->UIEnable(ID_EDIT_BREAK, bCompiling | bDebugging | m_BuildSolutionThread.IsRunning());
+   pUIBase->UIEnable(ID_EDIT_BREAK, bCompiling | bDebugging);
 
    pUIBase->UIEnable(ID_VIEW_OPEN, pElement != NULL && !bIsFolder);
    pUIBase->UIEnable(ID_VIEW_PROPERTIES, pElement != NULL);
@@ -590,11 +591,6 @@ CTelnetView* CRemoteProject::GetDebugView() const
 CClassView* CRemoteProject::GetClassView() const
 {
    return &m_viewClassTree;
-}
-
-CString CRemoteProject::GetBuildMode() const
-{
-   return m_ctrlMode.GetCurSel() == 0 ? _T("Release") : _T("Debug");
 }
 
 void CRemoteProject::SendViewMessage(UINT nCmd, LAZYDATA* pData)

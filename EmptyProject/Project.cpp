@@ -304,7 +304,7 @@ LRESULT CEmptyProject::OnFileRemove(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
       ISolution* pSolution = _pDevEnv->GetSolution();
       pSolution->RemoveProject(this);
       // NOTE: Never use class-scope variables from this point
-      //       since the object has been nuked!
+      //       since this instance has been nuked!
    }
    else {
       // BUG: Leaks all the child views.

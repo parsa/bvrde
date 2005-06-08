@@ -241,6 +241,7 @@
 #define IDS_STATUS_ENUMFILES            280
 #define IDS_MISC_COMPATIBILITY          281
 #define IDS_STATUS_STARTING             282
+#define IDS_FILECHANGES                 283
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003

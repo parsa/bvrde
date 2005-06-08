@@ -21,6 +21,22 @@ class CCompileManager;
 #define COMPFLAG_SILENT         0x00000010
 
 
+////////////////////////////////////////////////////////
+//
+
+class CRebuildThread : public CThreadImpl<CRebuildThread>
+{
+public:
+   DWORD Run();
+
+   CRemoteProject* m_pProject;
+   CCompileManager* m_pManager;
+};
+
+
+////////////////////////////////////////////////////////
+//
+
 class CCompileThread : public CThreadImpl<CCompileThread>
 {
 public:
@@ -68,6 +84,8 @@ public:
    bool IsConnected() const;
 
    bool DoAction(LPCTSTR pstrName, LPCTSTR pstrParams = NULL, UINT Flags = 0);
+   bool DoRebuild();
+
    CString GetParam(LPCTSTR pstrName) const;
    void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue);
 
@@ -85,13 +103,14 @@ public:
 public:
    CRemoteProject* m_pProject;             // Reference to project
    CShellManager m_ShellManager;           // Command Prompt connection (protocol specific)
-   CCompileThread m_thread;                // Thread that pumps commands
+   CCompileThread m_CompileThread;         // Thread that pumps Compile commands
+   CRebuildThread m_RebuildThread;         // Thread that controls a Solution Rebuild
    CString m_sProcessName;                 // Name of program (Compile, Rebuild etc)
    CEvent m_event;                         // Event that triggers command/batch execution
    static volatile bool s_bBusy;           // Flag signals thread busy state
-   bool m_bReleaseMode;                    // Project is in Release (combobox on toolbar)
    bool m_bCompiling;                      // Are we currently compiling?
    bool m_bWarningPlayed;                  // Error warning sound played once?
+   CString m_sBuildMode;                   // Currently set to Debug or Release?
    UINT m_Flags;                           // Various state flags for current compile batch
    //
    CString m_sCommandCD;

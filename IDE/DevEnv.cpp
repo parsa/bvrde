@@ -272,7 +272,6 @@ BOOL CMainFrame::ActivateAutoHideView(HWND hWnd)
 {
    ATLASSERT(m_AutoHide.IsWindow());
    if( !::IsWindow(hWnd) ) return FALSE;
-   CLockStaticDataInit lock;
    BOOL bRes = m_AutoHide.ActivateView(hWnd);
    ::RedrawWindow(hWnd, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
    return bRes;
@@ -282,7 +281,6 @@ BOOL CMainFrame::AddCommandBarImage(UINT nCmd, HICON hIcon)
 {
    ATLASSERT(m_CmdBar.IsWindow());
    ATLASSERT(nCmd>=0 && nCmd<ID_CMD_FIRST);
-   CLockStaticDataInit lock;
    if( nCmd == 0 ) return TRUE;
    if( !m_CmdBar.ReplaceIcon(hIcon, nCmd) ) m_CmdBar.AddIcon(hIcon, nCmd);
    return TRUE;

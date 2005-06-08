@@ -250,8 +250,11 @@ void CMiInfo::_ConvertToPlainText(LPTSTR pstrSrc)
    LPCTSTR pstrText = pstrSrc;
    LPTSTR pstrDest = pstrSrc;
    while( *pstrSrc != '\0' ) {
-      if( *pstrSrc == '\\' ) pstrSrc++;
-      // TODO: Handle escaped (\t) chars...
+      if( *pstrSrc == '\\' ) {
+         pstrSrc++;
+         // We translate cursor-chars (\r\n\t) to spaces
+         if( *pstrSrc == 'r' || *pstrSrc == 'n' || *pstrSrc == 't' ) *pstrSrc = ' ';
+      }
       *pstrDest++ = *pstrSrc++;
    }
    *pstrDest = '\0';

@@ -25,6 +25,7 @@ public:
    CContainedWindowT<CScintillaCtrl> m_ctrlEdit;
    CString m_sFilename;
    CString m_sLanguage;
+   FILETIME m_ftCurrent;
 
    // Operations
 

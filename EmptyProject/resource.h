@@ -39,6 +39,7 @@
 #define IDS_STATUS_LOADING              114
 #define IDR_DEBUG                       114
 #define IDS_STATUS_STARTED              115
+#define IDS_FILECHANGES                 115
 #define IDS_STATUS_FINISHED             116
 #define IDD_QUICKWATCH                  116
 #define IDS_COMPILEBUSY                 117
@@ -239,6 +240,12 @@
 #define ID_CLASSVIEW_GOTO               1200
 #define ID_CLASSVIEW_PROPERTIES         1201
 #define IDD_OPTIONS_ADVANCED            32009
+#define ID_EDIT_UPPERCASE               40029
+#define ID_EDIT_LOWERCASE               40030
+#define ID_BOOKMARK_NEXT                40031
+#define ID_BOOKMARK_PREVIOUS            40032
+#define ID_BOOKMARK_CLEAR               40033
+#define ID_BOOKMARK_TOGGLE              40043
 #define ID_EDIT_VIEWWS                  40052
 #define ID_EDIT_VIEWTABS                40053
 #define ID_EDIT_VIEWEOL                 40060
@@ -249,6 +256,8 @@
 #define ID_EDIT_COMMENT                 40067
 #define ID_EDIT_UNCOMMENT               40068
 #define ID_VIEW_OPENWITH                40069
+#define ID_EDIT_ZOOM_IN                 40086
+#define ID_EDIT_ZOOM_OUT                40087
 #define ID_EDIT_DELLINE                 40088
 #define ID_FILE_OPEN_WITH               43001
 #define ID_FILE_COMPILE                 43002
@@ -259,14 +268,8 @@
 #define ID_FILE_ADD_FOLDER              43008
 #define ID_PROJECT_SET_DEFAULT          43012
 #define ID_PROJECT_SAVE                 43013
-#define ID_EDIT_UPPERCASE               43029
-#define ID_EDIT_LOWERCASE               43030
-#define ID_BOOKMARK_NEXT                43031
-#define ID_BOOKMARK_PREVIOUS            43032
-#define ID_BOOKMARK_CLEAR               43033
 #define ID_EDIT_AUTOCOMPLETE            43039
 #define ID_VIEW_DEBUG_LOG               43042
-#define ID_BOOKMARK_TOGGLE              43043
 #define ID_BUILD_STOP                   43044
 #define ID_VIEW_OPEN_WITH               43069
 #define ID_EDIT_VIEWWORDWRAP            43082

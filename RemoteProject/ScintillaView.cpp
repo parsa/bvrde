@@ -1169,7 +1169,7 @@ void CScintillaView::_ShowToolTip(long lPos, CString& sText, bool bAdjustPos, CO
    m_ctrlEdit.CallTipSetFore(clrText);
    m_ctrlEdit.CallTipSetBack(clrBack);
 
-   // Make tooltip multiline if a line exceeds 60 chars
+   // Make tooltip multi-line if a line exceeds 60 chars
    int cxWidth = 0;
    int nLength = sText.GetLength();
    for( int i = 0; i < nLength; i++ ) {
@@ -1199,8 +1199,11 @@ void CScintillaView::_ShowToolTip(long lPos, CString& sText, bool bAdjustPos, CO
    if( !ctrlTip.IsWindow() ) return;
    if( !ctrlTip.IsWindowVisible() ) return;
    // Move tip window a bit down so the cursor doesn't block its view
+   POINT ptCursor = { 0 };
+   ::GetCursorPos(&ptCursor);
    RECT rcWindow;
    ctrlTip.GetWindowRect(&rcWindow);
+   if( ptCursor.y > rcWindow.bottom ) return;
    ::OffsetRect(&rcWindow, 3, 5);
    static HCURSOR hArrow = ::LoadCursor(NULL, IDC_ARROW);
    if( ::GetCursor() == hArrow ) ::OffsetRect(&rcWindow, 0, 15);
