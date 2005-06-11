@@ -26,7 +26,7 @@ public:
    CButton m_ctrlInSelection;
    CButton m_ctrlWholeFile;
 
-   CReplaceDlg(IDevEnv* /*pDevEnv*/, HWND /*hWndScintilla*/, FINDREPLACEA& /*fr*/);
+   CReplaceDlg(IDevEnv* pDevEnv, HWND hWndScintilla, FINDREPLACEA& fr);
 
    BEGIN_MSG_MAP(CReplaceDlg)
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
@@ -38,15 +38,14 @@ public:
       COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
    END_MSG_MAP()
 
-   LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-   LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-   LRESULT OnChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-   LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
-   LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
+   LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnOK(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnCancel(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 
    void _UpdateButtons();
 };
 
 
 #endif // !defined(AFX_REPLACEDLG_H__20030315_B179_BB41_9076_0080AD509054__INCLUDED_)
-

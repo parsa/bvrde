@@ -47,8 +47,8 @@ public:
    CRemoteProject* m_pProject;
    CCompileManager* m_pManager;
    CComAutoCriticalSection m_cs;           // Thread synch lock
-   SIZE m_szWindow;                        // Initial size of output window
    CSimpleArray<CString> m_aCommands;      // List of commands waiting for execution
+   SIZE m_szWindow;                        // Initial size of output window
    UINT m_Flags;                           // Various COMPFLAG_xxx flags
 };
 
@@ -108,7 +108,7 @@ public:
    CString m_sProcessName;                 // Name of program (Compile, Rebuild etc)
    CEvent m_event;                         // Event that triggers command/batch execution
    static volatile bool s_bBusy;           // Flag signals thread busy state
-   bool m_bCompiling;                      // Are we currently compiling?
+   volatile bool m_bCompiling;             // Are we currently compiling?
    bool m_bWarningPlayed;                  // Error warning sound played once?
    CString m_sBuildMode;                   // Currently set to Debug or Release?
    UINT m_Flags;                           // Various state flags for current compile batch

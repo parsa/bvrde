@@ -21,7 +21,7 @@ BOOL AddCommandBarImages(UINT nRes)
    ATLASSERT(hGlobal);
    if( hGlobal == NULL ) return FALSE;
 
-   struct _ToolBarData   // toolbar resource data
+   struct _ToolBarData   // Toolbar resource data
    {
       WORD wVersion;
       WORD wWidth;

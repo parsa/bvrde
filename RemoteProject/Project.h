@@ -277,6 +277,7 @@ protected:
    };
 
    void _InitializeData();
+   bool _ShouldProcessMessage() const;
    bool _LoadSettings(ISerializable* pArc);
    bool _SaveSettings(ISerializable* pArc);
    bool _LoadFiles(ISerializable* pArc, IElement* pParent);

@@ -10,7 +10,7 @@
  * @class CMiInfo
  * Parse a formatted GDB Debugger output. Will take any
  * GDB debugger output in "Machine Interface" format and parse
- * it into manegable structures.
+ * it into manageable structures.
  * The MI information will be split up into a Key/Group/Frame 
  * hierarchy. MI is slightly more flexible than this but rarely 
  * expands more than 2 nested groups.
@@ -41,7 +41,7 @@ private:
       short iIndex;
    };
    LPTSTR m_pstrData;
-   DWORD* m_pdwRefCount;
+   LONG* m_plRefCount;
    CSimpleValArray<MIINFO> m_aItems;
    int m_iSearchIndex;
 

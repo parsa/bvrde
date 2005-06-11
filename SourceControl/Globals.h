@@ -14,7 +14,7 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, D
 // Stripped copy of WTL sources.
 class CWaitCursor
 {
-public:
+public: 
    HCURSOR m_hWaitCursor;
    HCURSOR m_hOldCursor;
    CWaitCursor() : m_hOldCursor(NULL)
@@ -30,6 +30,4 @@ public:
 };
 
 
-
 #endif // !defined(AFX_GLOBALS_H__20031227_B212_6032_9D6F_0080AD509054__INCLUDED_)
-

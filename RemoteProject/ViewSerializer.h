@@ -6,6 +6,11 @@
 #endif // _MSC_VER > 1000
 
 
+/**
+ * @class CViewSerializer
+ * A serializer implementation for transferring information
+ * about a view.
+ */
 class CViewSerializer : public ISerializable
 {
 public:

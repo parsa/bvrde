@@ -122,8 +122,8 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             DelayedViewMessage(DEBUG_CMD_DEBUG_START);
 
             // Open up all debugger view requested
-            if( m_DockManager.IsAutoShown(m_viewStack, _T("showStack")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
             if( m_DockManager.IsAutoShown(m_viewWatch, _T("showWatch")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
+            if( m_DockManager.IsAutoShown(m_viewStack, _T("showStack")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
             if( m_DockManager.IsAutoShown(m_viewThread, _T("showThread")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
             if( m_DockManager.IsAutoShown(m_viewRegister, _T("showRegister")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
             if( m_DockManager.IsAutoShown(m_viewMemory, _T("showMemory")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
@@ -140,8 +140,8 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             // If we're closing the debug session, then dispose
             // all debug views as well...
 
-            m_DockManager.SetInfo(m_viewStack, _T("showStack"));
             m_DockManager.SetInfo(m_viewWatch, _T("showWatch"));
+            m_DockManager.SetInfo(m_viewStack, _T("showStack"));
             m_DockManager.SetInfo(m_viewThread, _T("showThread"));
             m_DockManager.SetInfo(m_viewRegister, _T("showRegister"));
             m_DockManager.SetInfo(m_viewMemory, _T("showMemory"));
@@ -149,8 +149,8 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             m_DockManager.SetInfo(m_viewVariable, _T("showVariable"));
             m_DockManager.SetInfo(m_viewBreakpoint, _T("showBreakpoint"));
 
-            if( m_viewStack.IsWindow() && m_viewStack.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
             if( m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
+            if( m_viewStack.IsWindow() && m_viewStack.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
             if( m_viewThread.IsWindow() && m_viewThread.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
             if( m_viewRegister.IsWindow() && m_viewRegister.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
             if( m_viewMemory.IsWindow() && m_viewMemory.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));

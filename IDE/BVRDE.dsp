@@ -267,6 +267,10 @@ SOURCE=..\Source\WTL\Include\MenuShadows.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\Source\WTL\Controls\PropertyGrid.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\Source\WTL\Controls\PropertyItem.h
 # End Source File
 # Begin Source File

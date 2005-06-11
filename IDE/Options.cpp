@@ -23,6 +23,7 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    static CGeneralOptionsPage s_pageGeneral;
    static CDocumentsOptionsPage s_pageDocuments;
    static CAssociationsOptionsPage s_pageAssociations;
+   static CMappingsOptionsPage s_pageMappings;
    static CAutoTextOptionsPage s_pageAutoText;
    static CEditorsOptionsPage s_pageEditors;
    static CColorsOptionsPage s_pageCppColors;
@@ -55,6 +56,7 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
 
    static CString sGeneral(MAKEINTRESOURCE(IDS_TREE_GENERAL));
    static CString sAssociations(MAKEINTRESOURCE(IDS_TREE_ASSOCIATIONS));
+   static CString sMappings(MAKEINTRESOURCE(IDS_TREE_MAPPINGS));
    static CString sAutoText(MAKEINTRESOURCE(IDS_TREE_AUTOTEXT));
    static CString sDocuments(MAKEINTRESOURCE(IDS_TREE_DOCUMENTS));
    static CString sColors(MAKEINTRESOURCE(IDS_TREE_COLORS));
@@ -72,6 +74,9 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    s_pageAssociations.SetTitle((LPCTSTR)sAssociations);
    s_pageAssociations.m_pDevEnv = this;
    s_pageAssociations.m_pArc = pArc;
+   s_pageMappings.SetTitle((LPCTSTR)sMappings);
+   s_pageMappings.m_pDevEnv = this;
+   s_pageMappings.m_pArc = pArc;
    s_pageEditors.SetTitle((LPCTSTR)sGeneral);
    s_pageEditors.m_pDevEnv = this;
    s_pageEditors.m_pArc = pArc;
@@ -189,6 +194,7 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    pManager->AddWizardPage(s_pageDocuments.IDD, s_pageDocuments);
    pManager->AddWizardPage(s_pageAutoText.IDD, s_pageAutoText);
    pManager->AddWizardPage(s_pageAssociations.IDD, s_pageAssociations);
+   pManager->AddWizardPage(s_pageMappings.IDD, s_pageMappings);
 
    CString sEditors(MAKEINTRESOURCE(IDS_TREE_EDITORS));
    pManager->AddWizardGroup(sRoot, sEditors);

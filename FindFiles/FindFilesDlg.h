@@ -141,4 +141,3 @@ UINT __declspec(selectany) CFindFilesDlg::m_iFlags = 0;
 
 
 #endif // !defined(AFX_FINDFILESDLG_H__20031225_6EB7_455C_FCAA_0080AD509054__INCLUDED_)
-

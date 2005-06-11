@@ -98,7 +98,7 @@ public:
 #endif
       CDCHandle dc(di.hDC);
       dc.SetBkMode(TRANSPARENT);
-      dc.SetTextColor(di.state & ODS_DISABLED ? di.clrDisabled : di.clrText);
+      dc.SetTextColor(di.state & ODS_DISABLED ? di.clrDisabled : ::GetSysColor(COLOR_GRAYTEXT));
       dc.SetBkColor(di.clrBack);
       RECT rcText = di.rcItem;
       rcText.left += PROP_TEXT_INDENT;
@@ -255,7 +255,7 @@ public:
    }
    int GetItemCount() const
    {
-      if( (m_di.dwExtStyle & PGS_EX_ADDITEMATEND) != 0 ) return TBase::GetItemCount() - 1;
+      if( (m_di.dwExtStyle & PGS_EX_ADDITEMATEND) != 0 ) return max(0, TBase::GetItemCount() - 1);
       return TBase::GetItemCount();
    }
    int InsertItem(int nItem, HPROPERTY hProp)

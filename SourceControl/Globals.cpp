@@ -77,7 +77,7 @@ BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition)
       else if( (state & MF_SEPARATOR) != 0 ) {
          ::InsertMenu(hMenu, nPosition++, state | MF_STRING | MF_BYPOSITION, 0, _T(""));
       }
-      else if( nLen > 0 ) {
+      else if( nLen > 0 ) { 
          // Only non-empty items should be added
          ATLASSERT(szItemText[0]!=_T('\0'));
          // Here the state does not contain a count in the HIBYTE
@@ -86,3 +86,4 @@ BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition)
    }
    return TRUE;
 }
+

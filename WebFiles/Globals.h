@@ -25,4 +25,3 @@ BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition);
 
 
 #endif // !defined(AFX_GLOBALS_H__20030608_52E2_BB06_E526_0080AD509054__INCLUDED_)
-

@@ -5,6 +5,7 @@
 #define IDR_MAINFRAME                   200
 #define IDS_TITLE                       1000
 #define IDS_FILES                       1001
+#define IDS_LOADING                     1002
 
 // Next default values for new objects
 // 
@@ -16,3 +17,5 @@
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
+
+

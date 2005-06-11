@@ -251,9 +251,9 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
 
 LRESULT CRemoteProject::OnEditBreak(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
-   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
-   if( m_CompileManager.IsBusy() ) OnBuildStop(0, 0, NULL, bHandled);
-   if( m_DebugManager.IsDebugging() ) OnDebugBreak(0, 0, NULL, bHandled);
+   if( m_DebugManager.IsDebugging() ) m_DebugManager.Break();
+   if( m_CompileManager.IsCompiling() ) m_CompileManager.DoAction(_T("Stop"));
+   bHandled = FALSE;
    return 0;
 }
 
@@ -319,8 +319,6 @@ LRESULT CRemoteProject::OnViewBreakpoints(WORD /*wNotifyCode*/, WORD wID, HWND /
       m_viewBreakpoint.Init(this);
       m_viewBreakpoint.Create(m_wndMain, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewBreakpoint, IDE_DOCK_HIDE, CWindow::rcDefault);
-      RECT rcDefault = { 420, 40, 780, 300 };
-      m_DockManager.SetInfo(m_viewBreakpoint, IDE_DOCK_FLOAT, rcDefault);
    }
    
    // Position the view
@@ -329,8 +327,13 @@ LRESULT CRemoteProject::OnViewBreakpoints(WORD /*wNotifyCode*/, WORD wID, HWND /
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewBreakpoint, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewBreakpoint, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
+      else {
+         RECT rcDefault = { 420, 40, 780, 300 };
+         m_DockManager.SetInfo(m_viewBreakpoint, IDE_DOCK_FLOAT, rcDefault);
+         _pDevEnv->AddDockView(m_viewBreakpoint, IDE_DOCK_FLOAT, rcDefault);
+      }
+      DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    }
    else {
       _pDevEnv->AddDockView(m_viewBreakpoint, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -350,8 +353,6 @@ LRESULT CRemoteProject::OnViewRegisters(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
       m_viewRegister.Init(this);
       m_viewRegister.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewRegister, IDE_DOCK_HIDE, CWindow::rcDefault);
-      RECT rcDefault = { 420, 40, 640, 300 };
-      m_DockManager.SetInfo(m_viewRegister, IDE_DOCK_FLOAT, rcDefault);
    }
 
    // Position the view
@@ -360,8 +361,13 @@ LRESULT CRemoteProject::OnViewRegisters(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewRegister, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewRegister, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
+      else {
+         RECT rcDefault = { 420, 40, 640, 300 };
+         m_DockManager.SetInfo(m_viewRegister, IDE_DOCK_FLOAT, rcDefault);
+         _pDevEnv->AddDockView(m_viewRegister, IDE_DOCK_FLOAT, rcDefault);
+      }
+      DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    }
    else {
       _pDevEnv->AddDockView(m_viewRegister, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -381,8 +387,6 @@ LRESULT CRemoteProject::OnViewMemory(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
       m_viewMemory.Init(this);
       m_viewMemory.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_HIDE, CWindow::rcDefault);
-      RECT rcDefault = { 60, 140, 780, 400 };
-      m_DockManager.SetInfo(m_viewMemory, IDE_DOCK_FLOAT, rcDefault);
    }
 
    // Position the view
@@ -391,8 +395,13 @@ LRESULT CRemoteProject::OnViewMemory(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewMemory, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewMemory, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
+      else {
+         RECT rcDefault = { 60, 140, 780, 400 };
+         m_DockManager.SetInfo(m_viewMemory, IDE_DOCK_FLOAT, rcDefault);
+         _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_FLOAT, rcDefault);
+      }
+      DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    }
    else {
       _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -412,8 +421,6 @@ LRESULT CRemoteProject::OnViewDisassembly(WORD /*wNotifyCode*/, WORD /*wID*/, HW
       m_viewDisassembly.Init(this);
       m_viewDisassembly.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_HIDE, CWindow::rcDefault);
-      RECT rcDefault = { 320, 50, 690, 400 };
-      m_DockManager.SetInfo(m_viewDisassembly, IDE_DOCK_FLOAT, rcDefault);
    }
 
    // Position the view
@@ -422,8 +429,13 @@ LRESULT CRemoteProject::OnViewDisassembly(WORD /*wNotifyCode*/, WORD /*wID*/, HW
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewDisassembly, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewDisassembly, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
+      else {
+         RECT rcDefault = { 320, 50, 690, 400 };
+         m_DockManager.SetInfo(m_viewDisassembly, IDE_DOCK_FLOAT, rcDefault);
+         _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_FLOAT, rcDefault);
+      }
+      DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    }
    else {
       _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -443,8 +455,6 @@ LRESULT CRemoteProject::OnViewThreads(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
       m_viewThread.Init(this);
       m_viewThread.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewThread, IDE_DOCK_HIDE, CWindow::rcDefault);
-      RECT rcDefault = { 420, 220, 600, 450 };
-      m_DockManager.SetInfo(m_viewThread, IDE_DOCK_BOTTOM, rcDefault);
    }
 
    // Position the view
@@ -453,8 +463,13 @@ LRESULT CRemoteProject::OnViewThreads(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewThread, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewThread, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
+      else {
+         RECT rcDefault = { 420, 220, 600, 450 };
+         m_DockManager.SetInfo(m_viewThread, IDE_DOCK_BOTTOM, rcDefault);
+         _pDevEnv->AddDockView(m_viewThread, IDE_DOCK_BOTTOM, rcDefault);
+      }
+      DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    }
    else {
       _pDevEnv->AddDockView(m_viewThread, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -474,8 +489,6 @@ LRESULT CRemoteProject::OnViewStack(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
       m_viewStack.Init(this);
       m_viewStack.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, 0);
       _pDevEnv->AddDockView(m_viewStack, IDE_DOCK_HIDE, CWindow::rcDefault);
-      RECT rcDefault = { 420, 520, 780, 650 };
-      m_DockManager.SetInfo(m_viewStack, IDE_DOCK_BOTTOM, rcDefault);
    }
 
    // Position the view
@@ -484,8 +497,13 @@ LRESULT CRemoteProject::OnViewStack(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewStack, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewStack, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
+      else {
+         RECT rcDefault = { 420, 520, 780, 650 };
+         m_DockManager.SetInfo(m_viewStack, IDE_DOCK_BOTTOM, rcDefault);
+         _pDevEnv->AddDockView(m_viewStack, IDE_DOCK_BOTTOM, rcDefault);
+      }
+      DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    }
    else {
       _pDevEnv->AddDockView(m_viewStack, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -505,8 +523,6 @@ LRESULT CRemoteProject::OnViewVariables(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
       m_viewVariable.Init(this);
       m_viewVariable.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewVariable, IDE_DOCK_HIDE, CWindow::rcDefault);
-      RECT rcDefault = { 450, 520, 760, 750 };
-      m_DockManager.SetInfo(m_viewVariable, IDE_DOCK_BOTTOM, rcDefault);
    }
 
    // Position the view
@@ -515,8 +531,13 @@ LRESULT CRemoteProject::OnViewVariables(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewVariable, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewVariable, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
       }
+      else {
+         RECT rcDefault = { 450, 520, 760, 750 };
+         m_DockManager.SetInfo(m_viewVariable, IDE_DOCK_BOTTOM, rcDefault);
+         _pDevEnv->AddDockView(m_viewVariable, IDE_DOCK_BOTTOM, rcDefault);
+      }
+      DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    }
    else {
       _pDevEnv->AddDockView(m_viewVariable, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -536,8 +557,6 @@ LRESULT CRemoteProject::OnViewWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
       m_viewWatch.Init(this);
       m_viewWatch.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
       _pDevEnv->AddDockView(m_viewWatch, IDE_DOCK_HIDE, CWindow::rcDefault);
-      RECT rcDefault = { 320, 180, 750, 450 };
-      m_DockManager.SetInfo(m_viewWatch, IDE_DOCK_FLOAT, rcDefault);
    }
 
    // Position the view
@@ -546,9 +565,19 @@ LRESULT CRemoteProject::OnViewWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
       RECT rcWindow = { 0 };
       if( m_DockManager.GetInfo(m_viewWatch, DockType, rcWindow) ) {
          _pDevEnv->AddDockView(m_viewWatch, DockType, rcWindow);
-         DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
-         m_viewWatch.ActivateWatches();
       }
+      else {
+         RECT rcDefault = { 320, 180, 750, 450 };
+         m_DockManager.SetInfo(m_viewWatch, IDE_DOCK_FLOAT, rcDefault);
+         _pDevEnv->AddDockView(m_viewWatch, IDE_DOCK_FLOAT, rcDefault);
+      }
+      // We'll need to add the watches again.
+      // This should be the first this we do, because otherwise the debugger views
+      // will try to evaluate the watches before they have been created.
+      // BUG: GDB doesn't allow us to add "delayed" watches in this version, so
+      //      we'll get errors complaining about undefined variables.
+      m_viewWatch.ActivateWatches();
+      DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
    }
    else {
       _pDevEnv->AddDockView(m_viewWatch, IDE_DOCK_HIDE, CWindow::rcDefault);
@@ -696,19 +725,19 @@ LRESULT CRemoteProject::OnDebugArguments(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
 
 LRESULT CRemoteProject::OnBuildClean(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
-   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+   if( !_ShouldProcessMessage() ) { bHandled = FALSE; return 0; }
    return (LRESULT) m_CompileManager.DoAction(_T("Clean"));
 }
 
 LRESULT CRemoteProject::OnBuildProject(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
-   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+   if( !_ShouldProcessMessage() ) { bHandled = FALSE; return 0; }
    return (LRESULT) m_CompileManager.DoAction(_T("Build"));
 }
 
 LRESULT CRemoteProject::OnBuildRebuild(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
-   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+   if( !_ShouldProcessMessage() ) { bHandled = FALSE; return 0; }
    return (LRESULT) m_CompileManager.DoAction(_T("Rebuild"));
 }
 

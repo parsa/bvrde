@@ -49,3 +49,4 @@ extern IDevEnv* _pDevEnv;
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 
 #endif // !defined(AFX_STDAFX_H__7E722C37_7E96_4A31_908D_697F4A60C393__INCLUDED_)
+

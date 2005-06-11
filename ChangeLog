@@ -5,6 +5,7 @@ Version 0.9
 * Fixed problem with switching threads and debugger context
 * Fixed problem with "Rebuild Solution" action
 * Macro scripting now supports ActiveX components
+* Dialog to configure how the editors interpret file-extensions
 
 Version 0.8
 * New "Set Parameters" dialog

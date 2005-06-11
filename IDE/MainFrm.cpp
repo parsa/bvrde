@@ -44,7 +44,7 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    m_CmdBar.LoadImages(IDR_TOOLIMAGES);
    SetMenu(NULL);
 
-   // Create default ToolBar
+   // Create default toolbar
    m_DefaultToolBar = CreateSimpleToolBarCtrl(m_hWnd, IDR_MAINFRAME, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE | TBSTYLE_LIST & ~TBSTYLE_TOOLTIPS);
    _AddDropDownButton(m_DefaultToolBar, ID_POPUP_NEW);
    _AddDropDownButton(m_DefaultToolBar, ID_POPUP_ADD);

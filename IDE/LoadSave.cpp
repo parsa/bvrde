@@ -269,6 +269,22 @@ bool CMainFrame::_LoadGeneralSettings(CXmlSerializer& arc)
       arc.ReadGroupEnd();
    }
 
+   // Load File Extension mappings
+   if( arc.ReadGroupBegin(_T("FileMappings")) ) 
+   {
+      CString sKey;
+      CString sType;
+      CString sExt;
+      while( arc.ReadGroupBegin(_T("FileMapping")) ) {
+         arc.Read(_T("ext"), sExt);
+         arc.Read(_T("type"), sType);
+         sKey.Format(_T("file.mappings.%s"), sExt);
+         SetProperty(sKey, sType);
+         arc.ReadGroupEnd();
+      }
+      arc.ReadGroupEnd();
+   }
+
    // Load printing settings
    if( arc.ReadGroupBegin(_T("Printing")) ) 
    {

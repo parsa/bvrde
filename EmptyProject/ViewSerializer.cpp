@@ -31,7 +31,7 @@ BOOL CViewSerializer::ReadItem(LPCTSTR pstrName)
 
 BOOL CViewSerializer::Read(LPCTSTR pstrName, LPTSTR szValue, UINT cchMax)
 {
-   szValue[0] = _T('\0');
+   szValue[0] = '\0';
    CString sKey = pstrName;
    int iIndex = m_aItems.FindKey(sKey);
    if( iIndex < 0 ) return FALSE;

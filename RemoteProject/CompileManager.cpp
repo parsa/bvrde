@@ -173,7 +173,7 @@ void CCompileManager::Clear()
    m_sCommandBuild = _T("make all");
    m_sCommandRebuild = _T("make all");
    m_sCommandCompile = _T("make $FILENAME$");
-   m_sCommandCheckSyntax = _T("g++ -gnatc $FILENAME$");
+   m_sCommandCheckSyntax = _T("g++ -gnatc $FILEPATH$");
    m_sCommandClean = _T("make clean");
    m_sCommandBuildTags = _T("ctags *");
    m_sCommandDebug = _T("export DEBUG_OPTIONS=\"-g -D_DEBUG\"");
@@ -279,6 +279,8 @@ void CCompileManager::SignalStop()
    m_ShellManager.SignalStop();
    m_CompileThread.SignalStop();
    m_event.SetEvent();
+   // Reset variables
+   m_bCompiling = false;
    s_bBusy = false;
    m_Flags = 0;
 }
@@ -446,11 +448,7 @@ void CCompileManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
 
 CString CCompileManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam /*= NULL*/) const
 {
-   CString sName = pstrCommand;
-   TCHAR szProjectName[128] = { 0 };
-   m_pProject->GetName(szProjectName, 127);
-   TCHAR szProjectPath[MAX_PATH] = { 0 };
-   m_pProject->GetName(szProjectPath, MAX_PATH);
+   if( _tcschr(pstrCommand, '$') == NULL ) return pstrCommand;
 
    // Replace meta-tokens:
    //   $PROJECTNAME$  = name of project
@@ -459,6 +457,12 @@ CString CCompileManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrPara
    //   $FILEPATH$     = path of active view
    //   $FILENAME$     = filename of active view
    //   $NAME$         = namepart of filename of active view
+
+   CString sName = pstrCommand;
+   TCHAR szProjectName[128] = { 0 };
+   m_pProject->GetName(szProjectName, 127);
+   TCHAR szProjectPath[MAX_PATH] = { 0 };
+   m_pProject->GetName(szProjectPath, MAX_PATH);
 
    sName.Replace(_T("$PROJECTNAME$"), szProjectName);
    sName.Replace(_T("$PROJECTPATH$"), szProjectPath);
@@ -508,6 +512,8 @@ bool CCompileManager::_PrepareProcess(LPCTSTR /*pstrName*/)
    }
    return true;
 }
+
+#pragma optimize( "", off )
 
 bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCommands, UINT Flags)
 {
@@ -578,12 +584,6 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    m_CompileThread.m_aCommands.Add(sCommand);
    m_CompileThread.m_cs.Unlock();
 
-   // Finally signal that we have new data
-   s_bBusy = true;
-   m_bCompiling = false;
-   m_bWarningPlayed = false;
-   m_event.SetEvent();
-
    // If this is a regular compile command (not user-entered or scripting prompt)
    // let's pop up the compile window...
    if( (Flags & (COMPFLAG_IGNOREOUTPUT | COMPFLAG_COMMANDMODE)) == 0 ) {
@@ -594,8 +594,13 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
       }
       // Notify views that is a compile session is starting
       m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_START);
-      m_bCompiling = true;
    }
+
+   // Finally signal that we have new data
+   s_bBusy = true;
+   m_bCompiling = true;
+   m_bWarningPlayed = false;
+   m_event.SetEvent();
 
    // If this is in command mode, we'll be polite and wait for the command to
    // actually be submitted to the remote server before we continue...
@@ -603,12 +608,14 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
       DWORD dwStartTick = ::GetTickCount();
       while( m_CompileThread.m_aCommands.GetSize() > 0 ) {
          ::Sleep(50L);
-         if( ::GetTickCount() - dwStartTick > 800UL ) break;
+         if( ::GetTickCount() - dwStartTick > 800UL ) break;         
       }
    }
 
    return true;
 }
+
+#pragma optimize( "", on )
 
 SIZE CCompileManager::_GetViewWindowSize() const
 {
@@ -660,9 +667,9 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       else ::PlaySound(_T("BVRDE_CommandComplete"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
       // Reset state
       m_Flags = 0;
+      s_bBusy = false;
       m_bCompiling = false;
       m_bWarningPlayed = false;
-      s_bBusy = false;
       return;
    }
 

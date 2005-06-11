@@ -6,6 +6,11 @@
 #endif // _MSC_VER > 1000
 
 
+/**
+ * @class CViewSerializer
+ * A serializer implementation for transferring information
+ * about a view.
+ */
 class CViewSerializer : public ISerializable
 {
 public:
@@ -35,4 +40,3 @@ public:
 
 
 #endif // !defined(AFX_VIEWSERIALIZER_H__20030605_A520_3F08_D8EC_0080AD509054__INCLUDED_)
-

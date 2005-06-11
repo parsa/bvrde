@@ -12,9 +12,9 @@
 
 /**
  * @class CShellManager
- * A proxy class for Command Prompt protocols (telnet, SSH, etc).
+ * A proxy class for Command Prompt protocols (telnet, RLogin, SSH, etc).
  */
-class CShellManager : 
+class CShellManager :  
    public IShellCallback,
    public IRemoteCommandProtocol
 {

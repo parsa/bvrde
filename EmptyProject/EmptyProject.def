@@ -9,3 +9,4 @@ EXPORTS
   Plugin_DestroyProject
   Plugin_QueryAcceptFile
   Plugin_CreateView
+

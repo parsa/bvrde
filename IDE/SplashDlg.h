@@ -26,12 +26,12 @@ public:
    }
    ~CSplashWindow()
    {
-      // Safety!
+      // HACK: Safety!
       while( IsWindow() ) ::Sleep(500L);
    }
 
    // Operations
-   
+
    BOOL ShowSplash()
    {
       ATLTRACE("CSplash::ShowSplash()\n");

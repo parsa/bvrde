@@ -52,42 +52,18 @@ BOOL CRemoteProject::Close()
    if( !m_bLoaded ) return TRUE;
    m_bLoaded = false;
 
+   m_FileManager.SignalStop();
+   m_DebugManager.SignalStop();
+   m_CompileManager.SignalStop();
+
    _pDevEnv->RemoveAppListener(this);
    _pDevEnv->RemoveTreeListener(this);
    _pDevEnv->RemoveIdleListener(this);
    _pDevEnv->RemoveWizardListener(this);
 
-   m_FileManager.SignalStop();
-   m_DebugManager.SignalStop();
-   m_CompileManager.SignalStop();
-
    m_viewDebugLog.Close();
    m_viewClassTree.Close();
    m_viewCompileLog.Close();
-
-   /*
-   _pDevEnv->RemoveDockView(m_viewStack);
-   _pDevEnv->RemoveDockView(m_viewVariable);
-   _pDevEnv->RemoveDockView(m_viewRegister);
-   _pDevEnv->RemoveDockView(m_viewMemory);
-   _pDevEnv->RemoveDockView(m_viewDisassembly);
-   _pDevEnv->RemoveDockView(m_viewWatch);
-   _pDevEnv->RemoveDockView(m_viewThread);
-   _pDevEnv->RemoveDockView(m_viewBreakpoint);
-   _pDevEnv->RemoveDockView(m_viewDebugLog);
-   _pDevEnv->RemoveDockView(m_viewCompileLog);
-
-   if( m_viewStack.IsWindow() ) m_viewStack.DestroyWindow();
-   if( m_viewVariable.IsWindow() ) m_viewVariable.DestroyWindow();
-   if( m_viewRegister.IsWindow() ) m_viewRegister.DestroyWindow();
-   if( m_viewMemory.IsWindow() ) m_viewMemory.DestroyWindow();
-   if( m_viewDisassembly.IsWindow() ) m_viewDisassembly.DestroyWindow();
-   if( m_viewWatch.IsWindow() ) m_viewWatch.DestroyWindow();
-   if( m_viewThread.IsWindow() ) m_viewThread.DestroyWindow();
-   if( m_viewBreakpoint.IsWindow() ) m_viewBreakpoint.DestroyWindow();
-   if( m_viewDebugLog.IsWindow() ) m_viewDebugLog.DestroyWindow();
-   if( m_viewCompileLog.IsWindow() ) m_viewCompileLog.DestroyWindow();
-   */
 
    Reset();
    m_FileManager.Stop();
@@ -865,6 +841,24 @@ int CRemoteProject::_GetElementImage(IElement* pElement) const
    return IMAGE_TEXT;
 }
 
+bool CRemoteProject::_ShouldProcessMessage() const
+{
+   // If there's a right-click highlight on the tree, we'll
+   // accept the tree-item's owner, otherwise we'll accept
+   // the active project only as owner.
+   IProject* pThis = (IProject*) this;
+   CTreeViewCtrl ctrlTree = _pDevEnv->GetHwnd(IDE_HWND_EXPLORER_TREE);
+   HTREEITEM hItem = ctrlTree.GetDropHilightItem();
+   if( hItem == NULL ) return _pDevEnv->GetSolution()->GetActiveProject() == pThis;
+   while( true ) {
+      IProject* lParam = (IProject*) ctrlTree.GetItemData(hItem);
+      if( lParam == NULL ) return false;
+      if( lParam == pThis ) return true;
+      hItem = ctrlTree.GetParentItem(hItem);
+      if( hItem == NULL ) return false;
+   }
+}
+
 IElement* CRemoteProject::_GetSelectedTreeElement(HTREEITEM* phItem /*= NULL*/) const
 {
    // Get the active/selected tree-item
@@ -880,8 +874,7 @@ IElement* CRemoteProject::_GetSelectedTreeElement(HTREEITEM* phItem /*= NULL*/) 
    bool bLocal = false;
    if( lParam == (LPARAM) this ) bLocal = true;
    for( int i = 0; !bLocal && i < m_aFiles.GetSize(); i++ ) if( (LPARAM) m_aFiles[i] == lParam ) bLocal = true;
-   if( !bLocal ) return NULL;
-   return (IElement*) lParam;
+   return bLocal ? (IElement*) lParam : NULL;
 }
 
 IElement* CRemoteProject::_GetDropTreeElement(HTREEITEM* phItem /*= NULL*/) const

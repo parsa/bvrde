@@ -111,8 +111,8 @@ END
 //
 
 IDD_OPTIONS_HEXEDITOR DIALOGEX 0, 0, 263, 153
-STYLE WS_CHILD
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+STYLE DS_SHELLFONT | WS_CHILD
+FONT 8, "MS Shell Dialog", 0, 0, 0x1
 BEGIN
     LTEXT           "Editor Support",-1,0,0,52,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,59,4,197,1

@@ -750,6 +750,8 @@ LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
    case '>':
    case '{':
    case '[':
+   case '?':
+   case '%':
    case '\n':
       _MaintainTags(pSCN->ch);
       break;
@@ -863,12 +865,15 @@ void CScintillaView::_AutoText(CHAR ch)
          BeginUndoAction();
          SetSel(s_lSuggestPos, lPos);
          ReplaceSel(T2CA(sText));
-         if( iCaretPos >= 0 ) SetSel(s_lSuggestPos + iCaretPos, s_lSuggestPos + iCaretPos);
          while( nLines > 0 ) {
-            iLine++;
-            nLines--;
+            iLine++; nLines--;
             _SetLineIndentation(iLine, iIndent);
          }
+         // Place the caret
+         // BUG: Because of the indent reposition above we have some difficulty
+         //      in finding the correct position. It will work if the caret is set
+         //      in the first line, but probably not on other lines
+         if( iCaretPos >= 0 ) SetSel(s_lSuggestPos + iCaretPos, s_lSuggestPos + iCaretPos);
          EndUndoAction();
       }
       CallTipCancel();
@@ -1151,7 +1156,7 @@ void CScintillaView::_MaintainIndent(CHAR ch)
          sLine.TrimLeft();
          if( ch == '}' && sLine == _T("}") ) iIndentAmount -= iIndentWidth;
       }
-      else if( m_sLanguage == _T("xml") ) 
+      if( m_sLanguage == _T("xml") ) 
       {
          if( ch == '\n' ) {
             CHAR szText[256] = { 0 };
@@ -1167,7 +1172,7 @@ void CScintillaView::_MaintainIndent(CHAR ch)
             }
          }
       }
-      else if( m_sLanguage == _T("html") )
+      if( m_sLanguage == _T("html") || m_sLanguage == _T("asp") || m_sLanguage == _T("php") )
       {
          if( ch == '\n' && GetCharAt(iCurPos - (GetEOLMode() == SC_EOL_CRLF ? 3 : 2)) == '>' ) {
             CHAR szLine1[256] = { 0 };
@@ -1285,10 +1290,10 @@ void CScintillaView::_MaintainTags(CHAR ch)
 
    // Standard auto-complete rules
 
-   int iStyle = GetStyleAt(lPosition);
+   CHAR chPrev = GetCharAt(lPosition - 2);
+   int iStylePrev = GetStyleAt(lPosition - 2);
 
-   if( ch == '>'
-       && (m_sLanguage == _T("html") || m_sLanguage == _T("xml")) )
+   if( ch == '>' && (m_sLanguage == _T("html") || m_sLanguage == _T("xml") || m_sLanguage == _T("php") || m_sLanguage == _T("asp")) )
    {
       //
       // Close HTML and XML tags
@@ -1301,6 +1306,7 @@ void CScintillaView::_MaintainTags(CHAR ch)
       GetTextRange(nMin, lPosition, szText);
 
       if( szText[lPosition - nMin - 2] == '/' ) return;
+      if( iStylePrev != SCE_H_TAGUNKNOWN && iStylePrev != SCE_H_TAG ) return;
 
       CString sFound = _FindOpenXmlTag(szText, lPosition - nMin);
       if( sFound.IsEmpty() ) return;
@@ -1318,8 +1324,7 @@ void CScintillaView::_MaintainTags(CHAR ch)
       SetSel(lPosition, lPosition);
       EndUndoAction();
    }
-   else if( ch == '{' 
-            && (m_sLanguage == _T("cpp") || m_sLanguage == _T("java") || m_sLanguage == _T("php")) )
+   if( ch == '{' && (m_sLanguage == _T("cpp") || m_sLanguage == _T("java") || m_sLanguage == _T("php")) )
    {
       //
       // Auto-close braces in C-like languages
@@ -1351,13 +1356,28 @@ void CScintillaView::_MaintainTags(CHAR ch)
          EndUndoAction();
       }
    }
-   else if( ch == '[' && m_sLanguage == _T("cpp") 
-            || ch == '[' && m_sLanguage == _T("php") ) 
+   if( ch == '[' && (m_sLanguage == _T("cpp") || m_sLanguage == _T("php") || m_sLanguage == _T("java")) ) 
    {
       //
       // Insert hard-braces for C++ arrays
       //
       ReplaceSel("]");
+      SetSel(lPosition, lPosition);
+   }
+   if( ch == '?' && chPrev == '<' && m_sLanguage == _T("php") )
+   {
+      //
+      // Autoclose PHP preprocessor
+      //
+      ReplaceSel("?>");
+      SetSel(lPosition, lPosition);
+   }
+   if( ch == '%' && chPrev == '<' && m_sLanguage == _T("asp") )
+   {
+      //
+      // Autoclose ASP preprocessor
+      //
+      ReplaceSel("%>");
       SetSel(lPosition, lPosition);
    }
 }

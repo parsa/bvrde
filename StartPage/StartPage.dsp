@@ -126,6 +126,10 @@ SOURCE=.\EventMonitor.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\resource.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.h
 # End Source File
 # Begin Source File
@@ -228,10 +232,10 @@ SOURCE=".\res\spacer(1).gif"
 
 SOURCE=.\res\spacer.gif
 # End Source File
-# End Group
 # Begin Source File
 
 SOURCE=.\res\style.css
 # End Source File
+# End Group
 # End Target
 # End Project

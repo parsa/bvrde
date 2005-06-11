@@ -167,6 +167,10 @@
 #define IDS_CUSTOMIZE                   242
 #define IDS_TOOLTYPE_DEBUGGER           243
 #define IDS_EXTERNALTOOL                244
+#define IDS_TREE_MAPPINGS               245
+#define IDS_LASTVALUE                   246
+#define IDS_MAPPING_COL1                247
+#define IDS_MAPPING_COL2                248
 #define IDD_MSGBOX                      263
 #define IDI_MSG_INFORMATION             264
 #define IDI_MSG_WARNING                 265
@@ -277,6 +281,7 @@
 #define IDD_OPTIONS_AUTOTEXT            32012
 #define IDD_MACROBIND                   32013
 #define IDD_CONFIG_SOUNDS               32014
+#define IDD_OPTIONS_MAPPINGS            32015
 #define ID_WINDOW_NEXT                  32796
 #define ID_WINDOW_PREVIOUS              32797
 #define ID_TOOLS_ADDIN_MANAGER          32803

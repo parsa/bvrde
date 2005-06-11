@@ -12,7 +12,7 @@
 CMiInfo::CMiInfo(LPCTSTR pstrInput /*= NULL*/) :
    m_iSearchIndex(-1),
    m_pstrData(NULL),
-   m_pdwRefCount(NULL)
+   m_plRefCount(NULL)
 {
    if( pstrInput != NULL ) Parse(pstrInput);
 }
@@ -27,14 +27,14 @@ CMiInfo::~CMiInfo()
 void CMiInfo::Release()
 {
    if( m_pstrData == NULL ) return;
-   // TODO: Really need to protect the reference-counting members
+   // TODO: Really need to protect the data members
    //       with a thread-lock.
-   if( --(*m_pdwRefCount) == 0 ) {
+   if( ::InterlockedDecrement(m_plRefCount) == 0 ) {
       free(m_pstrData);
-      free(m_pdwRefCount);
+      free(m_plRefCount);
    }
    m_pstrData = NULL;
-   m_pdwRefCount = NULL;
+   m_plRefCount = NULL;
    m_aItems.RemoveAll();
 }
 
@@ -48,13 +48,13 @@ bool CMiInfo::Parse(LPCTSTR pstrInput)
    // to keep the data alive as long as its being used.
    DWORD dwLength = (_tcslen(pstrInput) + 1) * sizeof(TCHAR);
    m_pstrData = (LPTSTR) malloc(dwLength);
-   m_pdwRefCount = (LPDWORD) malloc(sizeof(DWORD));
+   m_plRefCount = (LONG*) malloc(sizeof(LONG));
    ATLASSERT(m_pstrData);
-   ATLASSERT(m_pdwRefCount);
-   if( m_pstrData == NULL || m_pdwRefCount == NULL ) return false;
+   ATLASSERT(m_plRefCount);
+   if( m_pstrData == NULL || m_plRefCount == NULL ) return false;
    //
    memcpy(m_pstrData, pstrInput, dwLength);
-   *m_pdwRefCount = 1;
+   *m_plRefCount = 1L;
    //
 #ifdef _DEBUG
    ::OutputDebugString(_T("GDB: "));
@@ -119,14 +119,14 @@ void CMiInfo::Copy(const CMiInfo& src)
 {
    Release();
    ATLASSERT(src.m_pstrData);
-   ATLASSERT(src.m_pdwRefCount);
+   ATLASSERT(src.m_plRefCount);
    m_pstrData = src.m_pstrData;
-   m_pdwRefCount = src.m_pdwRefCount;
+   m_plRefCount = src.m_plRefCount;
    for( int i = 0; i < src.m_aItems.GetSize(); i++ ) {
       MIINFO mi = src.m_aItems[i];
       m_aItems.Add(mi);
    }
-   (*m_pdwRefCount)++;
+   ::InterlockedIncrement(m_plRefCount);
 }
 
 // Implementation

@@ -9,8 +9,9 @@
 
 #include "FontCombo.h"
 #include "ColorCombo.h"
+#include "PropertyGrid.h"
 
-class CPlugin;
+class CPlugin;  // Forward declare
 
 
 ///////////////////////////////////////////////////////////////
@@ -164,6 +165,40 @@ public:
    END_MSG_MAP()
 
    LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+};
+
+
+////////////////////////////////////////////////////////////////////////
+//
+
+class CMappingsOptionsPage : public CPropertyPageImpl<CMappingsOptionsPage>
+{
+public:
+   enum { IDD = IDD_OPTIONS_MAPPINGS };
+
+   IDevEnv* m_pDevEnv;
+   ISerializable* m_pArc;
+
+   CPropertyGridCtrl m_ctrlList;
+
+   // Overloads
+
+   int OnApply();
+   int OnSetActive();
+
+   // Message map and handlers
+
+   BEGIN_MSG_MAP(CMappingsOptionsPage)
+      MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+      NOTIFY_CODE_HANDLER(PIN_ADDITEM, OnAddItem);
+      CHAIN_MSG_MAP( CPropertyPageImpl<CMappingsOptionsPage> )
+      REFLECT_NOTIFICATIONS()
+   END_MSG_MAP()
+
+   LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnAddItem(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+
+   static int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 };
 
 

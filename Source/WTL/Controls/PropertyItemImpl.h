@@ -299,11 +299,13 @@ class CPropertyEditItem : public CPropertyItem
 {
 protected:
    HWND m_hwndEdit;
+   UINT m_uStyle;
 
 public:
    CPropertyEditItem(LPCTSTR pstrName, LPARAM lParam) : 
       CPropertyItem(pstrName, lParam), 
-      m_hwndEdit(NULL)
+      m_hwndEdit(NULL),
+      m_uStyle(0)
    {
    }
    BYTE GetKind() const 
@@ -321,7 +323,7 @@ public:
       CPropertyEditWindow* win = new CPropertyEditWindow();
       ATLASSERT(win);
       RECT rcWin = rc;
-      m_hwndEdit = win->Create(hWnd, rcWin, pszText, WS_VISIBLE | WS_CHILD | ES_LEFT | ES_AUTOHSCROLL);
+      m_hwndEdit = win->Create(hWnd, rcWin, pszText, WS_VISIBLE | WS_CHILD | ES_LEFT | ES_AUTOHSCROLL | m_uStyle);
       ATLASSERT(::IsWindow(m_hwndEdit));
       // Simple hack to validate numbers
       switch( m_val.vt ) {
@@ -349,6 +351,10 @@ public:
       }
       CComVariant v = pstr;
       return SetValue(v);
+   }
+   void SetEditStyle(UINT uStyle)
+   {
+      m_uStyle = uStyle;
    }
    BOOL Activate(UINT action, LPARAM /*lParam*/)
    {

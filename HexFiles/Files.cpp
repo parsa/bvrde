@@ -30,7 +30,7 @@ BOOL CView::GetName(LPTSTR pstrName, UINT cchMax) const
 
 BOOL CView::GetType(LPTSTR pstrType, UINT cchMax) const
 {
-   return _tcsncpy(pstrType, _T("Binary Files"), cchMax) >= 0;
+   return _tcsncpy(pstrType, _T("Binary"), cchMax) >= 0;
 }
 
 IDispatch* CView::GetDispatch()

@@ -135,59 +135,19 @@ BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition)
 
 
 CString GetFileTypeFromFilename(LPCTSTR pstrFilename)
-{
-   static LPCTSTR pstrMatches[] =
-   {
-      _T(".CPP"),  _T("cpp"),
-      _T(".C++"),  _T("cpp"),
-      _T(".CXX"),  _T("cpp"),
-      _T(".C"),    _T("cpp"),
-      _T(".CC"),   _T("cpp"),
-      _T(".EC"),   _T("cpp"),
-      _T(".PC"),   _T("cpp"),
-      _T(".H"),    _T("header"),
-      _T(".H++"),  _T("header"),
-      _T(".HXX"),  _T("header"),
-      _T(".HPP"),  _T("header"),
-      _T(".INC"),  _T("header"),
-      _T(".JAVA"), _T("java"),
-      _T(".JS"),   _T("java"),
-      _T(".VB"),   _T("basic"),
-      _T(".BAS"),  _T("basic"),
-      _T(".VBS"),  _T("basic"),
-      _T(".PAS"),  _T("pascal"),
-      _T(".PY"),   _T("python"),
-      _T(".P"),    _T("perl"),
-      _T(".PL"),   _T("perl"),
-      _T(".PERL"), _T("perl"),
-      _T(".ASP"),  _T("html"),
-      _T(".ASPX"), _T("html"),
-      _T(".PHP"),  _T("html"),
-      _T(".TPL"),  _T("html"),
-      _T(".HTM"),  _T("html"),
-      _T(".HTML"), _T("html"),
-      _T(".XML"),  _T("xml"),
-      _T(".XLS"),  _T("xml"),
-      _T("."),     _T("makefile"),
-      _T(".MAK"),  _T("makefile"),
-      _T(".TXT"),  _T("text"),
-      _T(".ME"),   _T("text"),
-      NULL, NULL,
-   };
-   
+{  
    CString sFilename = pstrFilename;
-   sFilename.MakeUpper();
+   sFilename.MakeLower();
    TCHAR szExtension[MAX_PATH];
    _tcscpy(szExtension, sFilename);
-   CString sExtension = ::PathFindExtension(szExtension);
-   
-   LPCTSTR* ppstrMatches = pstrMatches;
-   while( *ppstrMatches ) {
-      if( sExtension == *ppstrMatches ) return *(ppstrMatches + 1);
-      ppstrMatches += 2;
-   }
-   if( sFilename.Find(_T("MAKE")) >= 0 ) return _T("makefile");
-   if( sFilename.Find(_T(".MAK")) >= 0 ) return _T("makefile");
+   CString sExtension = ::PathFindExtension(szExtension);  
+   CString sKey;
+   sKey.Format(_T("file.mappings%s"), sExtension);
+   TCHAR szValue[200] = { 0 };
+   if( _pDevEnv->GetProperty(sKey, szValue, 199) ) return szValue;  
+   if( sExtension == _T(".") ) return _T("makefile");
+   if( sFilename.Find(_T("make")) >= 0 ) return _T("makefile");
+   if( sFilename.Find(_T(".make")) >= 0 ) return _T("makefile");
    return _T("text");
 }
 

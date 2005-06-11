@@ -385,6 +385,7 @@ int CAssociationsOptionsPage::OnSetActive()
 {
    if( m_ctrlList.GetItemCount() > 0 ) return 0;
 
+   while( m_ctrlList.GetHeader().GetItemCount() > 0 ) m_ctrlList.DeleteColumn(0);
    m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_ASSOC_COL1)), 0);
    m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_ASSOC_COL2)), 1);
 
@@ -498,6 +499,106 @@ int CAssociationsOptionsPage::OnApply()
    return PSNRET_NOERROR;
 }
 
+
+////////////////////////////////////////////////////////////////////////
+//
+
+LRESULT CMappingsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   m_ctrlList.SubclassWindow(GetDlgItem(IDC_LIST));
+   return 0;
+}
+
+LRESULT CMappingsOptionsPage::OnAddItem(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+{
+   int iItem = m_ctrlList.InsertItem(-1, PropCreateSimple(_T(""), _T("")));
+   m_ctrlList.SetSubItem(iItem, 1, PropCreateSimple(_T(""), _T("")));
+   ((CPropertyEditItem*)m_ctrlList.GetProperty(iItem, 0))->SetEditStyle(ES_LOWERCASE);
+   ((CPropertyEditItem*)m_ctrlList.GetProperty(iItem, 1))->SetEditStyle(ES_LOWERCASE);
+   m_ctrlList.SelectItem(iItem);
+   m_ctrlList.SetColumnWidth(1, LVSCW_AUTOSIZE_USEHEADER);
+   return 0;
+}
+
+int CMappingsOptionsPage::OnSetActive()
+{
+   if( m_ctrlList.GetItemCount() > 0 ) return 0;
+
+   while( m_ctrlList.GetHeader().GetItemCount() > 0 ) m_ctrlList.DeleteColumn(0);
+   m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_MAPPING_COL1)), 0);
+   m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_MAPPING_COL2)), 1);
+   m_ctrlList.SetExtendedGridStyle(PGS_EX_SINGLECLICKEDIT | PGS_EX_ADDITEMATEND);
+
+   int iStart = 0;
+   TCHAR szKey[200];
+   TCHAR szValue[200];
+   while( g_pDevEnv->EnumProperties(iStart, _T("file.mappings.*"), szKey, szValue) ) 
+   {
+      int iItem = m_ctrlList.InsertItem(-1, PropCreateSimple(_T(""), _tcsrchr(szKey, '.') + 1));
+      m_ctrlList.SetSubItem(iItem, 1, PropCreateSimple(_T(""), szValue));
+   }
+   m_ctrlList.SortItems(CompareFunc, (LPARAM) &m_ctrlList);
+   m_ctrlList.SetColumnWidth(1, LVSCW_AUTOSIZE_USEHEADER);
+
+   return 0;
+}
+
+int CMappingsOptionsPage::OnApply()
+{
+   USES_CONVERSION;
+
+   // Transfer list items to properties
+   int nCount = m_ctrlList.GetItemCount();
+   for( int i = 0; i < nCount; i++ ) {
+      CComVariant vExt;
+      CComVariant vType;
+      m_ctrlList.GetItemValue(m_ctrlList.GetProperty(i, 0), &vExt);
+      m_ctrlList.GetItemValue(m_ctrlList.GetProperty(i, 1), &vType);
+      if( ::SysStringLen(vExt.bstrVal) > 0 ) {
+         CString sKey;
+         sKey.Format(_T("file.mappings.%s"), OLE2CT(vExt.bstrVal));
+         g_pDevEnv->SetProperty(sKey, OLE2CT(vType.bstrVal));
+      }
+   }
+
+   // Write out settings file
+   if( m_pArc->ReadGroupBegin(_T("FileMappings")) ) 
+   {  
+      while( m_pArc->Delete(_T("FileMapping")) ) /* */;
+
+      for( int i = 0; i < nCount; i++ ) {
+         CComVariant vExt;
+         CComVariant vType;
+         m_ctrlList.GetItemValue(m_ctrlList.GetProperty(i, 0), &vExt);
+         m_ctrlList.GetItemValue(m_ctrlList.GetProperty(i, 1), &vType);
+         if( ::SysStringLen(vExt.bstrVal) > 0 ) {
+            if( m_pArc->WriteGroupBegin(_T("FileMapping")) ) {
+               m_pArc->Write(_T("ext"), OLE2CT(vExt.bstrVal));
+               m_pArc->Write(_T("type"), OLE2CT(vType.bstrVal));
+               m_pArc->WriteGroupEnd();
+            }
+         }
+      }
+      m_pArc->ReadGroupEnd();
+   }
+
+   // HACK: To clear the iterator cache
+   m_pArc->ReadGroupEnd();
+
+   return PSNRET_NOERROR;
+}
+
+int CALLBACK CMappingsOptionsPage::CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+{
+   CPropertyGridCtrl* pGrid = (CPropertyGridCtrl*) lParamSort;
+   HPROPERTY hProp1 = ((IProperty**)lParam1)[0];
+   HPROPERTY hProp2 = ((IProperty**)lParam2)[0];
+   TCHAR szValue1[200];
+   TCHAR szValue2[200];
+   pGrid->GetItemText(hProp1, szValue1, 199);
+   pGrid->GetItemText(hProp2, szValue2, 199);
+   return _tcscmp(szValue1, szValue2);
+}
 
 ////////////////////////////////////////////////////////////////////////
 //

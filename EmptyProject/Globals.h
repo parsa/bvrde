@@ -23,11 +23,11 @@ class CEmptyProject;
 //////////////////////////////////////////////////////////////
 //
 
-void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, DWORD dwEffects = 0, COLORREF clrText = 0);
-void GenerateError(IDevEnv* pDevEnv, UINT nErr);
-CString GetSystemErrorText(DWORD dwErr);
-BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition);
 CString ToString(long lValue);
+CString GetSystemErrorText(DWORD dwErr);
+void GenerateError(IDevEnv* pDevEnv, UINT nErr);
+void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, DWORD dwEffects = 0, COLORREF clrText = 0);
+BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition);
 
 CString GetFileTypeFromFilename(LPCTSTR pstrFilename);
 CTextFile* CreateViewFromFilename(LPCTSTR pstrFilename, CEmptyProject* pLocalProject, IProject* pProject, IElement* pParent);
