@@ -211,7 +211,10 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, D
 void GenerateError(IDevEnv* pDevEnv, UINT nErr, DWORD dwErr = (DWORD)-1);
 CString GetSystemErrorText(DWORD dwErr);
 BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition);
+
 CString ToString(long lValue);
+void ConvertToCrLf(CString& s);
+CString ConvertFromCrLf(const CString& s);
 
 CString GetFileTypeFromFilename(LPCTSTR pstrFilename);
 CTextFile* CreateViewFromFilename(IDevEnv* pDevEnv, LPCTSTR pstrFilename, CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);

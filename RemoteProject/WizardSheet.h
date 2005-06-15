@@ -140,7 +140,6 @@ public:
 
    // Overloads
 
-   int OnSetActive();
    int OnApply();
 
    // Message map and handlers
@@ -148,6 +147,35 @@ public:
    BEGIN_MSG_MAP(CCompilerCommandsPage)
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
       CHAIN_MSG_MAP( CPropertyPageImpl<CCompilerCommandsPage> )
+      REFLECT_NOTIFICATIONS()
+   END_MSG_MAP()
+
+   LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+};
+
+
+///////////////////////////////////////////////////////////////
+//
+
+class CCompilerStepsPage : public CPropertyPageImpl<CCompilerStepsPage>
+{
+public:
+   enum { IDD = IDD_WIZARD_STEPS };
+
+   CRemoteProject* m_pProject;
+
+   CEdit m_ctrlPreStep;
+   CEdit m_ctrlPostStep;
+
+   // Overloads
+
+   int OnApply();
+
+   // Message map and handlers
+
+   BEGIN_MSG_MAP(CCompilerStepsPage)
+      MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+      CHAIN_MSG_MAP( CPropertyPageImpl<CCompilerStepsPage> )
       REFLECT_NOTIFICATIONS()
    END_MSG_MAP()
 
@@ -211,7 +239,6 @@ public:
 
    // Overloads
 
-   int OnSetActive();
    int OnApply();
 
    // Message map and handlers

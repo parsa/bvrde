@@ -166,7 +166,7 @@ LRESULT CFileTransferPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    fm.SetParam(_T("Path"), sPath);
    fm.SetParam(_T("Proxy"), m_pProject->m_FileManager.GetParam(_T("Proxy")));
    fm.SetParam(_T("Passive"), m_pProject->m_FileManager.GetParam(_T("Passive")));
-   fm.SetParam(_T("ConnectionTimeout"), m_pProject->m_FileManager.GetParam(_T("ConnectionTimeout")));
+   fm.SetParam(_T("ConnectTimeout"), m_pProject->m_FileManager.GetParam(_T("ConnectTimeout")));
    // The actual test of how we got connected, is to try to set the current path.
    // The file protocol should set a meaningful error code.
    if( !fm.Start() || !fm.WaitForConnection() || !fm.SetCurPath(sPath) ) {
@@ -378,7 +378,7 @@ LRESULT CCompilerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    sm.SetParam(_T("Port"), ToString(lPort));
    sm.SetParam(_T("Path"), sPath);
    sm.SetParam(_T("Extra"), sExtra);
-   sm.SetParam(_T("ConnectionTimeout"), m_pProject->m_CompileManager.GetParam(_T("ConnectionTimeout")));
+   sm.SetParam(_T("ConnectTimeout"), m_pProject->m_CompileManager.GetParam(_T("ConnectTimeout")));
    if( !sm.Start() || !sm.WaitForConnection() ) {
       DWORD dwErr = ::GetLastError();
       sm.SignalStop();
@@ -534,14 +534,9 @@ LRESULT CCompilerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    sName.LoadString(IDS_MISC);
    m_ctrlList.AddItem(PropCreateCategory(sName));
    sName.LoadString(IDS_MISC_CONNECTTIMEOUT);
-   sValue = m_pProject->m_FileManager.GetParam(_T("ConnectTimeout"));
+   sValue = m_pProject->m_CompileManager.GetParam(_T("ConnectTimeout"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 30));
 
-   return 0;
-}
-
-int CCompilerCommandsPage::OnSetActive()
-{
    return 0;
 }
 
@@ -590,6 +585,27 @@ int CCompilerCommandsPage::OnApply()
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(30), &v);
    m_pProject->m_CompileManager.SetParam(_T("ConnectTimeout"), CString(v.bstrVal));
 
+   return PSNRET_NOERROR;
+}
+
+
+///////////////////////////////////////////////////////////////
+//
+
+LRESULT CCompilerStepsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   m_ctrlPreStep = GetDlgItem(IDC_PRESTEP);
+   m_ctrlPostStep = GetDlgItem(IDC_POSTSTEP);
+   m_ctrlPreStep.SetWindowText(m_pProject->m_CompileManager.GetParam(_T("PreStep")));
+   m_ctrlPostStep.SetWindowText(m_pProject->m_CompileManager.GetParam(_T("PostStep")));
+   return 0;
+}
+
+int CCompilerStepsPage::OnApply()
+{
+   ATLASSERT(m_pProject);
+   m_pProject->m_CompileManager.SetParam(_T("PreStep"), CWindowText(m_ctrlPreStep));
+   m_pProject->m_CompileManager.SetParam(_T("PostStep"), CWindowText(m_ctrlPostStep));
    return PSNRET_NOERROR;
 }
 
@@ -695,7 +711,7 @@ LRESULT CDebuggerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    sm.SetParam(_T("Path"), sPath);
    sm.SetParam(_T("Extra"), sExtra);
    sm.SetParam(_T("StartTimeout"), m_pProject->m_DebugManager.GetParam(_T("StartTimeout")));
-   sm.SetParam(_T("ConnectionTimeout"), m_pProject->m_DebugManager.GetParam(_T("ConnectionTimeout")));
+   sm.SetParam(_T("ConnectTimeout"), m_pProject->m_DebugManager.GetParam(_T("ConnectTimeout")));
    if( !sm.Start() || !sm.WaitForConnection() ) {
       DWORD dwErr = ::GetLastError();
       sm.SignalStop();
@@ -794,14 +810,9 @@ LRESULT CDebuggerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    sValue = m_pProject->m_DebugManager.GetParam(_T("StartTimeout"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 20));
    sName.LoadString(IDS_MISC_CONNECTTIMEOUT);
-   sValue = m_pProject->m_FileManager.GetParam(_T("ConnectTimeout"));
+   sValue = m_pProject->m_DebugManager.GetParam(_T("ConnectTimeout"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 21));
 
-   return 0;
-}
-
-int CDebuggerCommandsPage::OnSetActive()
-{
    return 0;
 }
 

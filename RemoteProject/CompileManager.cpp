@@ -179,6 +179,8 @@ void CCompileManager::Clear()
    m_sCommandDebug = _T("export DEBUG_OPTIONS=\"-g -D_DEBUG\"");
    m_sCommandRelease = _T("export DEBUG_OPTIONS=");
    m_sPromptPrefix = _T("$~[/");
+   m_sCommandPreStep = _T("");
+   m_sCommandPostStep = _T("");
    m_sCompileFlags = _T("");
    m_sLinkFlags = _T("");
    m_sBuildMode = _T("debug");
@@ -193,33 +195,44 @@ bool CCompileManager::Load(ISerializable* pArc)
 
    if( !m_ShellManager.Load(pArc) ) return false;
 
-   if( !pArc->ReadItem(_T("Prompt")) ) return false;
-   pArc->Read(_T("prefixes"), m_sPromptPrefix.GetBufferSetLength(32), 32);
-   m_sPromptPrefix.ReleaseBuffer();
-   pArc->Read(_T("compileFlags"), m_sCompileFlags.GetBufferSetLength(100), 100);
-   m_sCompileFlags.ReleaseBuffer();
-   pArc->Read(_T("linkFlags"), m_sLinkFlags.GetBufferSetLength(100), 100);
-   m_sLinkFlags.ReleaseBuffer();
+   if( pArc->ReadItem(_T("Prompt")) ) {
+      pArc->Read(_T("prefixes"), m_sPromptPrefix.GetBufferSetLength(32), 32);
+      m_sPromptPrefix.ReleaseBuffer();
+      pArc->Read(_T("compileFlags"), m_sCompileFlags.GetBufferSetLength(100), 100);
+      m_sCompileFlags.ReleaseBuffer();
+      pArc->Read(_T("linkFlags"), m_sLinkFlags.GetBufferSetLength(100), 100);
+      m_sLinkFlags.ReleaseBuffer();
+   }
 
-   if( !pArc->ReadItem(_T("Commands")) ) return false;
-   pArc->Read(_T("changeDir"), m_sCommandCD.GetBufferSetLength(200), 200);
-   m_sCommandCD.ReleaseBuffer();
-   pArc->Read(_T("build"), m_sCommandBuild.GetBufferSetLength(200), 200);
-   m_sCommandBuild.ReleaseBuffer();
-   pArc->Read(_T("rebuild"), m_sCommandRebuild.GetBufferSetLength(200), 200);
-   m_sCommandRebuild.ReleaseBuffer();
-   pArc->Read(_T("compile"), m_sCommandCompile.GetBufferSetLength(200), 200);
-   m_sCommandCompile.ReleaseBuffer();
-   pArc->Read(_T("clean"), m_sCommandClean.GetBufferSetLength(200), 200);
-   m_sCommandClean.ReleaseBuffer();
-   pArc->Read(_T("checkSyntax"), m_sCommandCheckSyntax.GetBufferSetLength(200), 200);
-   m_sCommandCheckSyntax.ReleaseBuffer();
-   pArc->Read(_T("buildTags"), m_sCommandBuildTags.GetBufferSetLength(200), 200);
-   m_sCommandBuildTags.ReleaseBuffer();
-   pArc->Read(_T("debugExport"), m_sCommandDebug.GetBufferSetLength(200), 200);
-   m_sCommandDebug.ReleaseBuffer();
-   pArc->Read(_T("releaseExport"), m_sCommandRelease.GetBufferSetLength(200), 200);
-   m_sCommandRelease.ReleaseBuffer();
+   if( pArc->ReadItem(_T("Commands")) ) {
+      pArc->Read(_T("changeDir"), m_sCommandCD.GetBufferSetLength(200), 200);
+      m_sCommandCD.ReleaseBuffer();
+      pArc->Read(_T("build"), m_sCommandBuild.GetBufferSetLength(200), 200);
+      m_sCommandBuild.ReleaseBuffer();
+      pArc->Read(_T("rebuild"), m_sCommandRebuild.GetBufferSetLength(200), 200);
+      m_sCommandRebuild.ReleaseBuffer();
+      pArc->Read(_T("compile"), m_sCommandCompile.GetBufferSetLength(200), 200);
+      m_sCommandCompile.ReleaseBuffer();
+      pArc->Read(_T("clean"), m_sCommandClean.GetBufferSetLength(200), 200);
+      m_sCommandClean.ReleaseBuffer();
+      pArc->Read(_T("checkSyntax"), m_sCommandCheckSyntax.GetBufferSetLength(200), 200);
+      m_sCommandCheckSyntax.ReleaseBuffer();
+      pArc->Read(_T("buildTags"), m_sCommandBuildTags.GetBufferSetLength(200), 200);
+      m_sCommandBuildTags.ReleaseBuffer();
+      pArc->Read(_T("debugExport"), m_sCommandDebug.GetBufferSetLength(200), 200);
+      m_sCommandDebug.ReleaseBuffer();
+      pArc->Read(_T("releaseExport"), m_sCommandRelease.GetBufferSetLength(200), 200);
+      m_sCommandRelease.ReleaseBuffer();
+   }
+
+   if( pArc->ReadItem(_T("Steps")) ) {
+      pArc->Read(_T("pre"), m_sCommandPreStep.GetBufferSetLength(300), 300);
+      m_sCommandPreStep.ReleaseBuffer();
+      pArc->Read(_T("post"), m_sCommandPostStep.GetBufferSetLength(300), 300);
+      m_sCommandPostStep.ReleaseBuffer();
+      ConvertToCrLf(m_sCommandPreStep);
+      ConvertToCrLf(m_sCommandPostStep);
+   }
 
    if( !pArc->ReadGroupEnd() ) return false;
    return true;
@@ -246,6 +259,10 @@ bool CCompileManager::Save(ISerializable* pArc)
    pArc->Write(_T("buildTags"), m_sCommandBuildTags);
    pArc->Write(_T("debugExport"), m_sCommandDebug);
    pArc->Write(_T("releaseExport"), m_sCommandRelease);
+
+   if( !pArc->WriteItem(_T("Steps")) ) return false;
+   pArc->Write(_T("pre"), ConvertFromCrLf(m_sCommandPreStep));
+   pArc->Write(_T("post"), ConvertFromCrLf(m_sCommandPostStep));
 
    if( !pArc->WriteGroupEnd() ) return false;
    return true;
@@ -336,17 +353,21 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, 
       if( !_PrepareProcess(pstrName) ) return false;
       sTitle.LoadString(IDS_BUILD);
       aCommands.Add(m_sCommandCD);
+      aCommands.Add(m_sCommandPreStep);
       aCommands.Add(bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandBuild);
+      aCommands.Add(m_sCommandPostStep);
       Flags |= COMPFLAG_BUILDSESSION;
    }
    if( sName == _T("Rebuild") ) {
       if( !_PrepareProcess(pstrName) ) return false;
       sTitle.LoadString(IDS_REBUILD);
       aCommands.Add(m_sCommandCD);
+      aCommands.Add(m_sCommandPreStep);
       aCommands.Add(m_sCommandClean);
       aCommands.Add(bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandRebuild);
+      aCommands.Add(m_sCommandPostStep);
       Flags |= COMPFLAG_BUILDSESSION;
    }
    if( sName == _T("Compile") ) {
@@ -416,6 +437,8 @@ CString CCompileManager::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Clean") ) return m_sCommandClean;
    if( sName == _T("CheckSyntax") ) return m_sCommandCheckSyntax;
    if( sName == _T("BuildTags") ) return m_sCommandBuildTags;
+   if( sName == _T("PreStep") ) return m_sCommandPreStep;
+   if( sName == _T("PostStep") ) return m_sCommandPostStep;
    if( sName == _T("DebugExport") ) return m_sCommandDebug;
    if( sName == _T("ReleaseExport") ) return m_sCommandRelease;
    if( sName == _T("CompileFlags") ) return m_sCompileFlags;
@@ -435,6 +458,8 @@ void CCompileManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Clean") ) m_sCommandClean = pstrValue;
    if( sName == _T("CheckSyntax") ) m_sCommandCheckSyntax = pstrValue;
    if( sName == _T("BuildTags") ) m_sCommandBuildTags = pstrValue;
+   if( sName == _T("PreStep") ) m_sCommandPreStep = pstrValue;
+   if( sName == _T("PostStep") ) m_sCommandPostStep = pstrValue;
    if( sName == _T("DebugExport") ) m_sCommandDebug = pstrValue;
    if( sName == _T("ReleaseExport") ) m_sCommandRelease = pstrValue;
    if( sName == _T("CompileFlags") ) m_sCompileFlags = pstrValue;
@@ -578,7 +603,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    m_CompileThread.m_Flags = Flags;
    for( int i = 0; i < aCommands.GetSize(); i++ ) {
       CString sCommand = aCommands[i];
-      m_CompileThread.m_aCommands.Add(sCommand);
+      if( !sCommand.IsEmpty() ) m_CompileThread.m_aCommands.Add(sCommand);
    }
    CString sCommand = TERM_MARKER;
    m_CompileThread.m_aCommands.Add(sCommand);

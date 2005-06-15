@@ -242,6 +242,10 @@
 #define IDS_MISC_COMPATIBILITY          281
 #define IDS_STATUS_STARTING             282
 #define IDS_FILECHANGES                 283
+#define IDS_STEPS                       284
+#define IDS_COMMAND_PRESTEP             285
+#define IDS_COMMAND_POSTSTEP            286
+#define IDS_CONFIG_STEPS                287
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -266,6 +270,8 @@
 #define IDC_NOCONNECTION                1023
 #define IDC_SUBNOTE                     1024
 #define IDC_ARGUMENTS                   1027
+#define IDC_PRESTEP                     1028
+#define IDC_POSTSTEP                    1029
 #define IDC_NOAUTOCOMPLETE              1039
 #define IDC_AUTOCOMPLETE                1039
 #define IDC_NOCLASSBROWSER              1040
@@ -299,6 +305,7 @@
 #define ID_CLASSVIEW_PROPERTIES         1201
 #define ID_CLASSVIEW_COPY               1202
 #define IDD_OPTIONS_ADVANCED            32009
+#define IDD_WIZARD_STEPS                32010
 #define ID_FILE_OPEN_WITH               40001
 #define ID_FILE_COMPILE                 40002
 #define ID_FILE_DELETE                  40003
@@ -398,7 +405,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        127
 #define _APS_NEXT_COMMAND_VALUE         40131
-#define _APS_NEXT_CONTROL_VALUE         1028
+#define _APS_NEXT_CONTROL_VALUE         1029
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

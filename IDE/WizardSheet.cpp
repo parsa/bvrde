@@ -527,7 +527,6 @@ int CMappingsOptionsPage::OnSetActive()
    while( m_ctrlList.GetHeader().GetItemCount() > 0 ) m_ctrlList.DeleteColumn(0);
    m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_MAPPING_COL1)), 0);
    m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_MAPPING_COL2)), 1);
-   m_ctrlList.SetExtendedGridStyle(PGS_EX_SINGLECLICKEDIT | PGS_EX_ADDITEMATEND);
 
    int iStart = 0;
    TCHAR szKey[200];
@@ -539,6 +538,8 @@ int CMappingsOptionsPage::OnSetActive()
    }
    m_ctrlList.SortItems(CompareFunc, (LPARAM) &m_ctrlList);
    m_ctrlList.SetColumnWidth(1, LVSCW_AUTOSIZE_USEHEADER);
+   // Finally we can add the "<< Click Here >>" item after sorting...
+   m_ctrlList.SetExtendedGridStyle(PGS_EX_SINGLECLICKEDIT | PGS_EX_ADDITEMATEND);
 
    return 0;
 }

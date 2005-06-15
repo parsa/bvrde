@@ -65,7 +65,11 @@ public:
    {
       ATLASSERT(m_pMainFrame);
       ATLASSERT(m_ctrlEdit.IsWindow());
+      // NOTE: Cannot initialize as multi-threaded; see Q287087
+      CCoInitialize cominit;
+      // Lock view before executing
       m_ctrlEdit.SetReadOnly(TRUE);
+      // Allow plugins to respond
       if( !_BroadcastCommand(m_sCommandLine) 
           && m_sCommandLine.CompareNoCase(_T("help")) != 0
           && !m_sCommandLine.IsEmpty() )
@@ -76,6 +80,7 @@ public:
          static int s_nErrors = 0;
          if( ++s_nErrors == 1 ) AppendRtfText(m_ctrlEdit, CString(MAKEINTRESOURCE(IDS_TYPEHELP)), CFM_COLOR, 0, COLOR_RED);
       }
+      // Print prompt and unlock
       AppendRtfText(m_ctrlEdit, _T("\r\n> "), CFM_BOLD, CFE_BOLD);
       m_ctrlEdit.SetReadOnly(FALSE);
       return 0;
@@ -421,7 +426,7 @@ void CCommandView::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
       TCHAR szBuffer[500] = { 0 };
       _tcscpy(szBuffer, pstrCommand + 4);
       LPTSTR pstrArgs = ::PathGetArgs(szBuffer);
-      if( pstrArgs && *pstrArgs != '\0' ) *(pstrArgs - 1) = '\0';
+      if( pstrArgs != NULL && *pstrArgs != '\0' ) *(pstrArgs - 1) = '\0';
       ::PathUnquoteSpaces(szBuffer);
       DWORD dwRes = (DWORD) ::ShellExecute(m_hWnd, _T("open"), szBuffer, pstrArgs, NULL, SW_SHOW);
       if( dwRes <= 32 ) AppendRtfText(m_hWnd, _GetSystemErrorText(dwRes), CFM_COLOR, 0, COLOR_RED);
@@ -441,7 +446,6 @@ void CCommandView::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
    }
    else if( _tcsnicmp(pstrCommand, _T("? "), 2) == 0 ) 
    {
-      CCoInitialize cominit;
       CComObjectGlobal<CMacro> macro;
       macro.Init(m_pMainFrame, &m_pMainFrame->m_Dispatch);
       CComVariant vRes;

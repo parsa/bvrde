@@ -431,7 +431,7 @@ bool CRloginProtocol::Load(ISerializable* pArc)
    m_sExtraCommands.ReleaseBuffer();
    pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
 
-   m_sExtraCommands.Replace(_T("\\n"), _T("\r\n"));
+   ConvertToCrLf(m_sExtraCommands);
    if( m_lConnectTimeout == 0 ) m_lConnectTimeout = 8;
    
    return true;
@@ -439,10 +439,6 @@ bool CRloginProtocol::Load(ISerializable* pArc)
 
 bool CRloginProtocol::Save(ISerializable* pArc)
 {
-   CString sExtras = m_sExtraCommands;
-   sExtras.Remove(_T('\r'));
-   sExtras.Replace(_T("\n"), _T("\\n"));
-
    if( !pArc->WriteItem(_T("Rlogin")) ) return false;
    pArc->Write(_T("host"), m_sHost);
    pArc->Write(_T("port"), m_lPort);
@@ -450,9 +446,8 @@ bool CRloginProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("user"), m_sUsername);
    pArc->Write(_T("password"), m_sPassword);
    pArc->Write(_T("path"), m_sPath);
-   pArc->Write(_T("extra"), sExtras);
+   pArc->Write(_T("extra"), ConvertFromCrLf(m_sExtraCommands));
    pArc->Write(_T("connectTimeout"), m_lConnectTimeout);
-
    return true;
 }
 

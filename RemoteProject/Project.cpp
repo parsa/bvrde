@@ -426,6 +426,7 @@ BOOL CRemoteProject::OnInitProperties(IWizardManager* pManager, IElement* pEleme
    static CFileOptionsPage s_pageTransferOptions;
    static CCompilerPage s_pageCompiler;
    static CCompilerCommandsPage s_pageCompilerCommands;
+   static CCompilerStepsPage s_pageCompilerSteps;
    static CDebuggerPage s_pageDebugger;
    static CDebuggerCommandsPage s_pageDebuggerCommands;
 
@@ -433,6 +434,7 @@ BOOL CRemoteProject::OnInitProperties(IWizardManager* pManager, IElement* pEleme
    static CString sTransferOptionsTitle(MAKEINTRESOURCE(IDS_CONFIG_OPTIONS));
    static CString sStartTitle(MAKEINTRESOURCE(IDS_CONFIG_SETTINGS));
    static CString sCompilerCommandsTitle(MAKEINTRESOURCE(IDS_CONFIG_COMMANDS));
+   static CString sCompilerStepsTitle(MAKEINTRESOURCE(IDS_CONFIG_STEPS));
    static CString sDebuggerTitle(MAKEINTRESOURCE(IDS_CONFIG_SETTINGS));
    static CString sDebuggerCommandsTitle(MAKEINTRESOURCE(IDS_CONFIG_COMMANDS));
 
@@ -444,6 +446,8 @@ BOOL CRemoteProject::OnInitProperties(IWizardManager* pManager, IElement* pEleme
    s_pageCompiler.SetTitle((LPCTSTR)sStartTitle);
    s_pageCompilerCommands.m_pProject = this;
    s_pageCompilerCommands.SetTitle((LPCTSTR)sCompilerCommandsTitle);
+   s_pageCompilerSteps.m_pProject = this;
+   s_pageCompilerSteps.SetTitle((LPCTSTR)sCompilerStepsTitle);
    s_pageDebugger.m_pProject = this;
    s_pageDebugger.SetTitle((LPCTSTR)sDebuggerTitle);
    s_pageDebuggerCommands.m_pProject = this;
@@ -457,6 +461,7 @@ BOOL CRemoteProject::OnInitProperties(IWizardManager* pManager, IElement* pEleme
    pManager->AddWizardGroup(sConfiguration, CString(MAKEINTRESOURCE(IDS_CONFIG_COMPILER)));
    pManager->AddWizardPage(s_pageCompiler.IDD, s_pageCompiler);
    pManager->AddWizardPage(s_pageCompilerCommands.IDD, s_pageCompilerCommands);
+   pManager->AddWizardPage(s_pageCompilerSteps.IDD, s_pageCompilerSteps);
    //
    pManager->AddWizardGroup(sConfiguration, CString(MAKEINTRESOURCE(IDS_CONFIG_DEBUGGER)));
    pManager->AddWizardPage(s_pageDebugger.IDD, s_pageDebugger);

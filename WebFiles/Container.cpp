@@ -54,16 +54,41 @@ void CContainerWindow::SetLanguage(CString& sLanguage)
    m_wndDesign.SetLanguage(m_sLanguage);
 }
 
-void CContainerWindow::SetFilename(CString& sFilename)
+void CContainerWindow::SetFilename(CString& /*sFilename*/)
 {
-   //m_wndSource.SetFilename(sFilename);
 }
 
 CString CContainerWindow::GetViewText()
 {
-   BOOL bDummy;
-   OnTabChanging(0, NULL, bDummy);
-   return m_sText;
+   CString sText;
+   int iCurSel = m_ctrlTab.GetCurSel();
+   switch( iCurSel ) {
+   case 0:
+      {
+         // This view does not change the content!
+         sText = m_sText;
+      }
+      break;
+   case 1:
+      {
+         // Grab text from editor
+         int nLen = m_wndSource.GetTextLength();
+         LPSTR pstrText = (LPSTR) malloc(nLen + 1);
+         if( pstrText == NULL ) return _T("");
+         m_wndSource.GetText(nLen + 1, pstrText);
+         pstrText[nLen] = '\0';
+         sText = pstrText;
+         free(pstrText);         
+      }
+      break;
+   case 2:
+      {
+         // Get html/xml source from web-browser
+         sText = m_wndDesign.GetViewText();
+      }
+      break;
+   }
+   return sText;
 }
 
 void CContainerWindow::SetViewText(LPCTSTR pstrText)
@@ -181,27 +206,7 @@ LRESULT CContainerWindow::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 
 LRESULT CContainerWindow::OnTabChanging(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
-   int iCurSel = m_ctrlTab.GetCurSel();
-   switch( iCurSel ) {
-   case 0:
-      // Does not change the text!
-      break;
-   case 1:
-      {
-         int nLen = m_wndSource.GetTextLength();
-         PCHAR pstrText = (PCHAR) malloc(nLen + 1);
-         if( pstrText == NULL ) return 0;
-         m_wndSource.GetText(nLen + 1, pstrText);
-         pstrText[nLen] = '\0';
-         m_sText = pstrText;
-         free(pstrText);
-         //m_sText = m_wndSource.GetViewText();
-      }
-      break;
-   case 2:
-      m_sText = m_wndDesign.GetViewText();
-      break;
-   }
+   m_sText = GetViewText();
    return 0;
 }
 
@@ -224,22 +229,30 @@ LRESULT CContainerWindow::OnTabChange(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*
    case 1:
       {
          m_hWndClient = m_wndSource;
-
-         m_wndSource.BeginUndoAction();
-
+         // Convert new editor text to ANSI
          int nLen = m_sText.GetLength();
-         LPSTR pstrData = (LPSTR) malloc(nLen + 1);
-         if( pstrData == NULL ) return 0;
-         AtlW2AHelper(pstrData, m_sText, nLen + 1);
-         pstrData[nLen] = '\0';
-         m_wndSource.SetText(pstrData);
-         m_wndSource.SendMessage(WM_SETTINGCHANGE);
-  
-         // TODO: Compare previous contents with new contents (might have
-         //       been modified in design-editor) and determine if we should
-         //       reset/repaint the text-editor!
-
-         m_wndSource.EndUndoAction();
+         LPSTR pstrTarget = (LPSTR) malloc(nLen + 1);
+         if( pstrTarget == NULL ) return 0;
+         AtlW2AHelper(pstrTarget, m_sText, nLen + 1);
+         pstrTarget[nLen] = '\0';
+         // Get current editor text
+         nLen = m_wndSource.GetWindowTextLength();
+         LPSTR pstrSource = (LPSTR) malloc(nLen + 1);
+         if( pstrSource == NULL ) return 0;
+         m_wndSource.GetText(nLen + 1, pstrSource);
+         pstrSource[nLen] = '\0';
+         // Since the DesignView and SourceView are disjoint
+         // we need to manually compare if any changes took place
+         // and update the editor. This will keep better track
+         // of the undo/redo stack.
+         if( strcmp(pstrSource, pstrTarget) != 0 ) {
+            // Update text and syntax highlighting
+            m_wndSource.SetText(pstrTarget);
+            m_wndSource.SendMessage(WM_SETTINGCHANGE); 
+         }
+         // Free the memory
+         free(pstrSource);
+         free(pstrTarget);        
       }
       break;
    case 2:
@@ -254,3 +267,4 @@ LRESULT CContainerWindow::OnTabChange(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*
    m_hWndClient.SetFocus();
    return 0;
 }
+

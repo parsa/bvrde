@@ -21,6 +21,20 @@ CString ToString(long lValue)
    return szBuffer;
 }
 
+void ConvertToCrLf(CString& s)
+{
+   s.Replace(_T("\\n"), _T("\r\n"));
+}
+
+CString ConvertFromCrLf(const CString& s)
+{
+   CString sRes = s;
+   sRes.Remove(_T('\r'));
+   sRes.Replace(_T("\n"), _T("\\n"));
+   return sRes;
+}
+
+
 
 void SecClearPassword()
 {
