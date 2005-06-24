@@ -253,6 +253,7 @@
 #define ID_EDIT_UNTABIFY                40062
 #define ID_EDIT_INDENT                  40063
 #define ID_EDIT_UNINDENT                40064
+#define ID_EDIT_RECTSELECTION           40065
 #define ID_EDIT_COMMENT                 40067
 #define ID_EDIT_UNCOMMENT               40068
 #define ID_VIEW_OPENWITH                40069

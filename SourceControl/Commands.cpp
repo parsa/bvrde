@@ -15,9 +15,16 @@
 //
 //
 
-void CCommandThread::SetCommand(UINT /*nCmd*/, LPCTSTR pstrCommand, LONG lTimeout/* = 4000L*/)
+void CCommandThread::ChangePath()
 {
-   m_sCommand = pstrCommand;
+   CString sCommand = _T("cd $PATH$");
+   m_aCommands.Add(sCommand);
+}
+
+void CCommandThread::AddCommand(UINT /*nCmd*/, LPCTSTR pstrCommand, LONG lTimeout /*= 4000L*/)
+{
+   CString sCommand = pstrCommand;
+   m_aCommands.Add(sCommand);
    m_lTimeout = lTimeout;
 }
 
@@ -28,39 +35,53 @@ CString CCommandThread::GetResult() const
 
 DWORD CCommandThread::Run()
 {
-   CCoInitialize cominit(COINIT_MULTITHREADED);
+   CCoInitialize cominit;
 
    // Bring up the Command View so we can see it all...
    CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
    _pDevEnv->ActivateAutoHideView(ctrlEdit);
 
-   // Build prompt and execute commands through the
+   // Construct and execute commands through the
    // project's scripting mode.
    m_sResult.Empty();
-   ISolution* pSolution = _pDevEnv->GetSolution();
-   if( pSolution == NULL ) return 0;
-   IProject* pProject = pSolution->GetActiveProject();
-   if( pProject == NULL ) return 0;
-   IDispatch* pDisp = pProject->GetDispatch();
-   CComDispatchDriver dd = pDisp;
-   CComBSTR bstrCommand = L"cd $PATH$\n";
-   bstrCommand += CComBSTR(m_sCommand);
-   CComVariant aParams[3];
-   aParams[2] = bstrCommand;
-   aParams[1] = static_cast<IUnknown*>(this);
-   aParams[0] = m_lTimeout;
-   dd.InvokeN(OLESTR("ExecCommand"), aParams, 3);
+
+   int i;
+   CSimpleArray<CString> aCommands;
+   for( i = 0; i < m_aCommands.GetSize(); i++ ) {
+      CString sCommand = m_aCommands[i];
+      aCommands.Add(sCommand);
+   }
+   m_aCommands.RemoveAll();
+   
+   for( i = 0; i < aCommands.GetSize(); i++ ) {
+      if( i >= 2 ) ::Sleep(1000L);
+      CString sCommand = aCommands[i];
+      ISolution* pSolution = _pDevEnv->GetSolution();
+      if( pSolution == NULL ) return 0;
+      IProject* pProject = pSolution->GetActiveProject();
+      if( pProject == NULL ) return 0;
+      IDispatch* pDisp = pProject->GetDispatch();
+      if( pDisp == NULL ) return 0;
+      CComDispatchDriver dd = pDisp;
+      CComBSTR bstrCommand = sCommand;
+      CComVariant aParams[3];
+      aParams[2] = bstrCommand;
+      aParams[1] = static_cast<IUnknown*>(this);
+      aParams[0] = m_lTimeout;
+      dd.InvokeN(OLESTR("ExecCommand"), aParams, 3);
+   }
 
    // Let's look at the result
    CSimpleArray<CString> aLines;
    _SplitResult(m_sResult, aLines);
+
    CString sMessage = _T("\r\n");
-   for( int i = 0; i < aLines.GetSize(); i++ ) {
+   for( i = 0; i < aLines.GetSize(); i++ ) {
       sMessage += aLines[i];
       sMessage += _T("\r\n");
    }
 
-   // Output it to the Command View
+   // Output it to the Command View; end with new prompt
    ctrlEdit.SetReadOnly(TRUE);
    AppendRtfText(ctrlEdit, sMessage, CFM_BOLD, 0);
    AppendRtfText(ctrlEdit, _T("\r\n> "), CFM_BOLD, CFE_BOLD);
@@ -108,12 +129,12 @@ HRESULT CCommandThread::QueryInterface(REFIID riid, void** ppvObject)
    return E_NOINTERFACE;
 }
 
-ULONG CCommandThread::AddRef(void)
+ULONG CCommandThread::AddRef()
 {
    return 1;
 }
 
-ULONG CCommandThread::Release(void)
+ULONG CCommandThread::Release()
 {
    return 1;
 }
@@ -191,8 +212,11 @@ bool CScCommands::CollectFiles(CSimpleArray<CString>& aFiles)
    if( dd == NULL ) return false;
 
    // Does it have a collection of files?
+   DISPID dispItem = NULL;
+   HRESULT HrHasItem = dd.GetIDOfName(L"Item", &dispItem);
    CComVariant vFiles;
    dd.GetPropertyByName(OLESTR("Files"), &vFiles);
+   if( vFiles.vt == VT_EMPTY && HrHasItem == S_OK ) vFiles = dd;
    if( vFiles.vt == VT_DISPATCH ) {
       dd = vFiles.pdispVal;
       // It's a folder with a files collection
@@ -240,9 +264,9 @@ bool CScCommands::CheckIn(CSimpleArray<CString>& aFiles)
       sCmd += _T(" ");
       sCmd += aFiles[i];
    }
-   sCmd += _T("\n");
    m_thread.Stop();
-   m_thread.SetCommand(ID_SC_CHECKIN, sCmd);
+   m_thread.ChangePath();
+   m_thread.AddCommand(ID_SC_CHECKIN, sCmd);
    m_thread.Start();
    return true;
 }
@@ -255,9 +279,9 @@ bool CScCommands::CheckOut(CSimpleArray<CString>& aFiles)
       sCmd += _T(" ");
       sCmd += aFiles[i];
    }
-   sCmd += _T("\n");
    m_thread.Stop();
-   m_thread.SetCommand(ID_SC_CHECKOUT, sCmd);
+   m_thread.ChangePath();
+   m_thread.AddCommand(ID_SC_CHECKOUT, sCmd);
    m_thread.Start();
    return true;
 }
@@ -275,9 +299,9 @@ bool CScCommands::Update(CSimpleArray<CString>& aFiles)
       sCmd += _T(" ");
       sCmd += aFiles[i];
    }
-   sCmd += _T("\n");
    m_thread.Stop();
-   m_thread.SetCommand(ID_SC_UPDATE, sCmd);
+   m_thread.ChangePath();
+   m_thread.AddCommand(ID_SC_UPDATE, sCmd);
    m_thread.Start();
    return true;
 }
@@ -295,9 +319,9 @@ bool CScCommands::AddFile(CSimpleArray<CString>& aFiles)
       sCmd += _T(" ");
       sCmd += aFiles[i];
    }
-   sCmd += _T("\n");
    m_thread.Stop();
-   m_thread.SetCommand(ID_SC_ADDFILE, sCmd);
+   m_thread.ChangePath();
+   m_thread.AddCommand(ID_SC_ADDFILE, sCmd);
    m_thread.Start();
    return true;
 }
@@ -310,9 +334,9 @@ bool CScCommands::RemoveFile(CSimpleArray<CString>& aFiles)
       sCmd += _T(" ");
       sCmd += aFiles[i];
    }
-   sCmd += _T("\n");
    m_thread.Stop();
-   m_thread.SetCommand(ID_SC_REMOVEFILE, sCmd);
+   m_thread.ChangePath();
+   m_thread.AddCommand(ID_SC_REMOVEFILE, sCmd);
    m_thread.Start();
    return true;
 }
@@ -327,23 +351,20 @@ bool CScCommands::LogIn(CSimpleArray<CString>& aFiles)
       if( dlg.DoModal() != IDOK ) return false;
       sPassword = dlg.m_sPassword;
       sCmd += dlg.m_sOptions;
+   }
+   m_thread.Stop();
+   m_thread.ChangePath();
+   m_thread.AddCommand(ID_SC_LOGIN, sCmd, 1000);
+   if( sType == _T("cvs") ) {
+      // Send password in stream as well
       // Hmm, the cvs server blocks the input through
       // the Telnet shell. We'll not send the password right
-      // away and do it in two steps.
+      // away and do it in two steps (automatic delay in thread).
       // BUG: This is very non-portable! What if there's no telnet; or a different cvs impl????
       // BUG: FIX THIS!!!
+      m_thread.AddCommand(ID_SC_LOGIN, sPassword, 2000);
    }
-   sCmd += _T("\n");
-   m_thread.Stop();
-   m_thread.SetCommand(ID_SC_LOGIN, sCmd, 1000);
    m_thread.Start();
-   if( sType == _T("cvs") ) {
-      m_thread.Stop();
-      sCmd = sPassword;
-      sCmd += _T("\n");
-      m_thread.SetCommand(ID_SC_LOGIN, sCmd, 1000);
-      m_thread.Start();
-   }
    return true;
 }
 
@@ -351,9 +372,9 @@ bool CScCommands::LogOut(CSimpleArray<CString>& aFiles)
 {
    CString sCmd;
    sCmd.Format(_T("%s %s %s"), sProgram, sOptCommon, sCmdLogOut);
-   sCmd += _T("\n");
    m_thread.Stop();
-   m_thread.SetCommand(ID_SC_LOGOUT, sCmd);
+   m_thread.ChangePath();
+   m_thread.AddCommand(ID_SC_LOGOUT, sCmd);
    m_thread.Start();
    return true;
 }
@@ -366,9 +387,9 @@ bool CScCommands::StatusFile(CSimpleArray<CString>& aFiles)
       sCmd += _T(" ");
       sCmd += aFiles[i];
    }
-   sCmd += _T("\n");
    m_thread.Stop();
-   m_thread.SetCommand(ID_SC_DIFFVIEW, sCmd);
+   m_thread.ChangePath();
+   m_thread.AddCommand(ID_SC_DIFFVIEW, sCmd);
    m_thread.Start();
    return true;
 }
@@ -381,9 +402,9 @@ bool CScCommands::DiffFile(CSimpleArray<CString>& aFiles)
       sCmd += _T(" ");
       sCmd += aFiles[i];
    }
-   sCmd += _T("\n");
    m_thread.Stop();
-   m_thread.SetCommand(ID_SC_STATUS, sCmd);
+   m_thread.ChangePath();
+   m_thread.AddCommand(ID_SC_STATUS, sCmd);
    m_thread.Start();
    return true;
 }

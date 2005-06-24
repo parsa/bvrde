@@ -344,10 +344,6 @@
 #define ID_EDIT_AUTOCOMPLETE            40039
 #define ID_VIEW_DEBUG_LOG               40042
 #define ID_BOOKMARK_TOGGLE              40043
-#define ID_BUILD_STOP                   40044
-#define ID_DEBUG_STEP_OUT               40046
-#define ID_DEBUG_STEP_RUN               40047
-#define ID_DEBUG_EDIT_LINK              40048
 #define ID_VIEW_VARIABLES               40049
 #define ID_VIEW_THREADS                 40050
 #define ID_VIEW_REGISTERS               40051
@@ -358,17 +354,13 @@
 #define ID_EDIT_UNTABIFY                40062
 #define ID_EDIT_INDENT                  40063
 #define ID_EDIT_UNINDENT                40064
-#define ID_DEBUG_STEP_SET               40065
+#define ID_EDIT_RECTSELECTION           40065
 #define ID_EDIT_COMMENT                 40067
 #define ID_EDIT_UNCOMMENT               40068
-#define ID_VIEW_OPEN_WITH               40069
-#define ID_DEBUG_BREAK                  40079
 #define ID_EDIT_VIEWWORDWRAP            40082
-#define ID_EDIT_BREAK                   40083
 #define ID_EDIT_ZOOM_IN                 40086
 #define ID_EDIT_ZOOM_OUT                40087
 #define ID_EDIT_DELLINE                 40088
-#define ID_SEARCH_GO                    40092
 #define ID_BOOKMARKS_TOGGLE             40099
 #define ID_BOOKMARKS_GOTO               40100
 #define ID_BOOKMARKS_GOTO1              40101
@@ -398,6 +390,15 @@
 #define ID_VIEW_FILEMANAGER             40128
 #define ID_REMOTEDIR_OPEN               40129
 #define ID_DEBUG_ARGUMENTS              40130
+#define ID_DEBUG_BREAK                  40132
+#define ID_DEBUG_STEP_SET               40133
+#define ID_BUILD_STOP                   40144
+#define ID_DEBUG_STEP_OUT               40146
+#define ID_DEBUG_STEP_RUN               40147
+#define ID_DEBUG_EDIT_LINK              40148
+#define ID_VIEW_OPEN_WITH               40149
+#define ID_EDIT_BREAK                   40183
+#define ID_SEARCH_GO                    40192
 
 // Next default values for new objects
 // 

@@ -14,7 +14,7 @@ class CTagElement : public IElement
 {
 public:
    TAGINFO* m_pTag;
-   
+
    CTagElement(TAGINFO* pTag) : m_pTag(pTag) 
    {
    }
@@ -42,6 +42,7 @@ public:
    }
    BOOL GetName(LPTSTR pstrName, UINT cchMax) const
    {
+      if( m_pTag == NULL ) return FALSE;
       return _tcsncpy(pstrName, m_pTag->pstrName, cchMax) > 0;
    }
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const
@@ -300,6 +301,17 @@ LRESULT CClassView::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
    return 0;
 }
 
+LRESULT CClassView::OnTreeSelChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
+{
+   LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
+   if( lpNMTV->itemNew.hItem == NULL ) return 0;
+   TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(lpNMTV->itemNew.hItem);
+   if( pTag == NULL ) return 0;
+   CTagElement prop = pTag;
+   _pDevEnv->ShowProperties(&prop, FALSE);
+   return 0;
+}
+
 LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
    // Determine click-point and tree-item below it
@@ -422,7 +434,7 @@ LRESULT CClassView::OnGetDisplayInfo(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    // NOTE: We use a callback for populating the tree text. This saves
    //       memory when keeping a large parse tree, but certainly makes it
    //       more difficult to maintain the tree. Since we modify classes
-   //       on the fly, we need to repopulate/clear the tree often.
+   //       on the fly, we need to re-populate/clear the tree often.
    TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(lpNMTVDI->item.hItem);
    ATLASSERT(!::IsBadReadPtr(pTag, sizeof(TAGINFO)));
    lpNMTVDI->item.pszText = (LPTSTR) pTag->pstrName;

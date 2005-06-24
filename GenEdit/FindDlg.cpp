@@ -49,12 +49,12 @@ LRESULT CFindDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
    }
    m_ctrlFindText.LimitText(m_fr.wFindWhatLen);
 
-   if( m_fr.Flags & FR_DOWN ) m_ctrlDown.SetCheck(BST_CHECKED); else m_ctrlUp.SetCheck(BST_CHECKED);
-   if( m_fr.Flags & FR_WHOLEWORD ) m_ctrlMatchWholeWord.SetCheck(BST_CHECKED);
-   if( m_fr.Flags & FR_MATCHCASE ) m_ctrlMatchCase.SetCheck(BST_CHECKED);
-   if( m_fr.Flags & SCFIND_REGEXP ) m_ctrlRegExp.SetCheck(BST_CHECKED);
-   if( m_fr.Flags & FR_WRAP ) m_ctrlWrap.SetCheck(BST_CHECKED);
-   
+   if( (m_fr.Flags & FR_DOWN) != 0 ) m_ctrlDown.SetCheck(BST_CHECKED); else m_ctrlUp.SetCheck(BST_CHECKED);
+   if( (m_fr.Flags & FR_WHOLEWORD) != 0 ) m_ctrlMatchWholeWord.SetCheck(BST_CHECKED);
+   if( (m_fr.Flags & FR_MATCHCASE) != 0 ) m_ctrlMatchCase.SetCheck(BST_CHECKED);
+   if( (m_fr.Flags & SCFIND_REGEXP) != 0 ) m_ctrlRegExp.SetCheck(BST_CHECKED);
+   if( (m_fr.Flags & FR_WRAP) != 0 ) m_ctrlWrap.SetCheck(BST_CHECKED);
+
    _UpdateButtons();
    return 0;
 }

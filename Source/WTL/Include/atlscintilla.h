@@ -747,6 +747,26 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_AUTOCSETTYPESEPARATOR, (WPARAM) iSeparatorCharacter, 0L);
    }
+   void AutoCSetMaxWidth(int iCharacterCount)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_AUTOCSETMAXWIDTH, (WPARAM) iCharacterCount, 0L);
+   }
+   int AutoCGetMaxWidth() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_AUTOCGETMAXWIDTH, 0, 0L);
+   }
+   void AutoCSetMaxHeight(int iRowCount)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_AUTOCSETMAXHEIGHT, (WPARAM) iRowCount, 0L);
+   }
+   int AutoCGetMaxHeight() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_AUTOCGETMAXHEIGHT, 0, 0L);
+   }
    void SetIndent(int iIndentSize)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -1192,6 +1212,11 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       return (int) ::SendMessage(m_hWnd, SCI_DOCLINEFROMVISIBLE, (WPARAM) iLineDisplay, 0L);
    }
+   int WrapCount(int iLine)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_WRAPCOUNT, (WPARAM) iLine, 0L);
+   }
    void SetFoldLevel(int iLine, int iLevel)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -1307,6 +1332,36 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       return (int) ::SendMessage(m_hWnd, SCI_GETWRAPMODE, 0, 0L);
    }
+   void SetWrapVisualFlags(int iWrapVisualFlags)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETWRAPVISUALFLAGS, (WPARAM) iWrapVisualFlags, 0L);
+   }
+   int GetWrapVisualFlags() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_GETWRAPVISUALFLAGS, 0, 0L);
+   }
+   void SetWrapVisualFlagsLocation(int iWrapVisualFlagsLocation)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETWRAPVISUALFLAGSLOCATION, (WPARAM) iWrapVisualFlagsLocation, 0L);
+   }
+   int GetWrapVisualFlagsLocation() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_GETWRAPVISUALFLAGSLOCATION, 0, 0L);
+   }
+   void SetWrapStartIndent(int iIndent)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETWRAPSTARTINDENT, (WPARAM) iIndent, 0L);
+   }
+   int GetWrapStartIndent() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_GETWRAPSTARTINDENT, 0, 0L);
+   }
    void SetLayoutCache(int iMode)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -1338,10 +1393,10 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_SETENDATLASTLINE, (WPARAM) bEndAtLastLine, 0L);
    }
-   int GetEndAtLastLine() const
+   BOOL GetEndAtLastLine() const
    {
       ATLASSERT(::IsWindow(m_hWnd));
-      return (int) ::SendMessage(m_hWnd, SCI_GETENDATLASTLINE, 0, 0L);
+      return (BOOL) ::SendMessage(m_hWnd, SCI_GETENDATLASTLINE, 0, 0L);
    }
    int TextHeight(int iLine) const
    {
@@ -2128,6 +2183,54 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_SETCHARSDEFAULT, 0, 0L);
    }
+   int AutoCGetCurrent()
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_AUTOCGETCURRENT, 0, 0L);
+   }
+   void Allocate(int iBytes)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_ALLOCATE, (WPARAM) iBytes, 0L);
+   }
+   int TargetAsUTF8(LPSTR pstrS)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ATLASSERT(pstrS);
+      return (int) ::SendMessage(m_hWnd, SCI_TARGETASUTF8, 0, (LPARAM) pstrS);
+   }
+   void SetLengthForEncode(int iBytes)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETLENGTHFORENCODE, (WPARAM) iBytes, 0L);
+   }
+   int EncodedFromUTF8(LPCSTR pstrUtf8, LPSTR pstrEncoded)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ATLASSERT(pstrUtf8);
+      ATLASSERT(pstrEncoded);
+      return (int) ::SendMessage(m_hWnd, SCI_ENCODEDFROMUTF8, (WPARAM) pstrUtf8, (LPARAM) pstrEncoded);
+   }
+   int FindColumn(int iLine, int iColumn)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_FINDCOLUMN, (WPARAM) iLine, (LPARAM) iColumn);
+   }
+   BOOL GetCaretSticky() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_GETCARETSTICKY, 0, 0L);
+   }
+   void SetCaretSticky(BOOL bUseCaretStickyBehaviour)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETCARETSTICKY, (WPARAM) bUseCaretStickyBehaviour, 0L);
+   }
+   void ToggleCaretSticky()
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_TOGGLECARETSTICKY, 0, 0L);
+   }
    void StartRecord()
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -2177,6 +2280,26 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ATLASSERT(pstrPath);
       ::SendMessage(m_hWnd, SCI_LOADLEXERLIBRARY, 0, (LPARAM) pstrPath);
+   }
+   int GetProperty(LPCSTR pstrKey, LPSTR pstrBuf)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ATLASSERT(pstrKey);
+      ATLASSERT(pstrBuf);
+      return (int) ::SendMessage(m_hWnd, SCI_GETPROPERTY, (WPARAM) pstrKey, (LPARAM) pstrBuf);
+   }
+   int GetPropertyExpanded(LPCSTR pstrKey, LPSTR pstrBuf)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ATLASSERT(pstrKey);
+      ATLASSERT(pstrBuf);
+      return (int) ::SendMessage(m_hWnd, SCI_GETPROPERTYEXPANDED, (WPARAM) pstrKey, (LPARAM) pstrBuf);
+   }
+   int GetPropertyInt(LPCSTR pstrKey) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ATLASSERT(pstrKey);
+      return (int) ::SendMessage(m_hWnd, SCI_GETPROPERTYINT, (WPARAM) pstrKey, 0L);
    }
    void SetCaretPolicy(int iCaretPolicy, int iCaretSlop)
    {

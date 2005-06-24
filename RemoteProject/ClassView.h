@@ -54,6 +54,7 @@ public:
       NOTIFY_CODE_HANDLER(NM_DBLCLK, OnTreeDblClick)
       NOTIFY_CODE_HANDLER(NM_RCLICK, OnTreeRightClick)
       NOTIFY_CODE_HANDLER(TVN_BEGINDRAG, OnTreeBeginDrag)
+      NOTIFY_CODE_HANDLER(TVN_SELCHANGED, OnTreeSelChanged)
       NOTIFY_CODE_HANDLER(TVN_ITEMEXPANDING, OnTreeExpanding)
       NOTIFY_CODE_HANDLER(TVN_ITEMEXPANDED, OnTreeExpanded)
       NOTIFY_CODE_HANDLER(TVN_GETDISPINFO, OnGetDisplayInfo)
@@ -63,6 +64,7 @@ public:
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnPopulate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnTreeDblClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnTreeSelChanged(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeRightClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeBeginDrag(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeExpanding(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);

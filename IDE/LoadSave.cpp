@@ -169,6 +169,7 @@ bool CMainFrame::_LoadGeneralSettings(CXmlSerializer& arc)
             sKey.Format(_T("editors.%s."), sLanguage);
             _AddProperty(&arc, _T("showMargins"), sKey + _T("showMargins"));
             _AddProperty(&arc, _T("showFolding"), sKey + _T("showFolding"));
+            _AddProperty(&arc, _T("showIndents"), sKey + _T("showIndents"));
             _AddProperty(&arc, _T("showLines"), sKey + _T("showLines"));
             _AddProperty(&arc, _T("wordWrap"), sKey + _T("wordWrap"));
             _AddProperty(&arc, _T("backUnindent"), sKey + _T("backUnindent"));
@@ -348,7 +349,6 @@ bool CMainFrame::_LoadGeneralSettings(CXmlSerializer& arc)
    // Load AutoText
    if( arc.ReadGroupBegin(_T("AutoText")) ) 
    {
-      _AddProperty(&arc, _T("hotkey"), _T("autotext.hotkey"));
       long i = 1;
       while( arc.ReadGroupBegin(_T("Text")) ) {
          sKey.Format(_T("autotext.entry%ld."), i++);

@@ -214,7 +214,6 @@ public:
    ISerializable* m_pArc;
 
    CListBox m_ctrlList;
-   CHotKeyCtrl m_ctrlHotkey;
    CEdit m_ctrlName;
    CEdit m_ctrlText;
    CButton m_ctrlNew;

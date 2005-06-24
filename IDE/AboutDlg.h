@@ -136,7 +136,8 @@ public:
       VS_FIXEDFILEINFO vsfi = { 0 };
       memcpy(&vsfi, pBuf, sizeof(VS_FIXEDFILEINFO));
       CString sResult;
-      sResult.Format(_T("%ld.%ld"), vsfi.dwProductVersionLS, vsfi.dwProductVersionMS);
+      sResult.Format(_T("%ld.%ld"), HIWORD(vsfi.dwProductVersionMS), LOWORD(vsfi.dwProductVersionMS));
+      if( LOWORD(vsfi.dwProductVersionLS) > 0 ) sResult += (TCHAR) (LOWORD(vsfi.dwProductVersionLS) + 'a');
       return sResult;
    }
 };

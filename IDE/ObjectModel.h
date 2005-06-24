@@ -46,6 +46,8 @@ public:
       DISP_PROPGET(ActiveProject, VT_DISPATCH)
       DISP_METHOD(SendRawMessage, VT_EMPTY, 3, VTS_I4 VTS_I4 VTS_I4)
       DISP_METHOD0(Quit, VT_EMPTY)
+      DISP_METHOD1(GetProperty, VT_BSTR, VT_BSTR)
+      DISP_METHOD(SetProperty, VT_EMPTY, 2, VTS_BSTR VTS_BSTR)
    END_DISPATCH_MAP()
 
    BSTR __stdcall get_Version();
@@ -55,6 +57,8 @@ public:
    IDispatch* __stdcall get_RecentProjects();
    VOID __stdcall SendRawMessage(long uMsg, long wParam, long lParam);
    VOID __stdcall Quit();
+   BSTR __stdcall GetProperty(BSTR Name);
+   VOID __stdcall SetProperty(BSTR Name, BSTR Value);
 };
 
 

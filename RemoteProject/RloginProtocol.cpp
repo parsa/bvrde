@@ -512,6 +512,7 @@ void CRloginProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Speed") ) m_lSpeed = _ttol(pstrValue);
    if( sName == _T("Extra") ) m_sExtraCommands = pstrValue;
    if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
+   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
 }
 
 bool CRloginProtocol::ReadData(CString& s, DWORD dwTimeout /*= 0*/)

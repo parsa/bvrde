@@ -70,6 +70,7 @@ protected:
    CString m_sSearchPath;
    BOOL m_bPassive;
    BOOL m_bCompatibilityMode;
+   DWORD m_dwCacheFlags;
    long m_lConnectTimeout;
    //
    CFtpThread m_thread;

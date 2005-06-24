@@ -1,3 +1,9 @@
+Version 0.9b
+* Timeout problems during Test Connection fixed
+* Hanging CVS login problem fixed
+* Fixed nasty problem where File Mappings would be lost in config file
+* Added Rectangular Selection support in editor
+
 Version 0.9
 * Improved Function Tooltips
 * Now handles overloaded methods better in tooltip and function tip

@@ -112,6 +112,8 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UISetCheck(ID_EDIT_VIEWWORDWRAP, GetWrapMode() == SC_WRAP_WORD);
    pUIBase->UIEnable(ID_EDIT_VIEWTABS, TRUE);
    pUIBase->UISetCheck(ID_EDIT_VIEWTABS, GetIndentationGuides());
+   pUIBase->UIEnable(ID_EDIT_RECTSELECTION, TRUE);
+   pUIBase->UISetCheck(ID_EDIT_RECTSELECTION, GetSelectionMode() == SC_SEL_RECTANGLE);
 
    pUIBase->UIEnable(ID_BOOKMARKS_TOGGLE, TRUE);
    pUIBase->UIEnable(ID_BOOKMARKS_GOTO, TRUE);  
@@ -251,21 +253,21 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
       static int aCppStyles[] = 
       {
-         STYLE_DEFAULT,        0,
-         SCE_C_IDENTIFIER,     0,
-         SCE_C_WORD,           1,
-         SCE_C_DEFAULT,        1,
-         SCE_C_COMMENT,        2,
-         SCE_C_COMMENTLINE,    2,
-         SCE_C_COMMENTDOC,     2,
-         SCE_C_COMMENTLINEDOC, 2,
-         SCE_C_NUMBER,         3,
-         SCE_C_OPERATOR,       3,
-         SCE_C_STRING,         4,
-         SCE_C_STRINGEOL,      4,
-         SCE_C_CHARACTER,      4,
-         SCE_C_PREPROCESSOR,   5,
-         SCE_C_WORD2,          6,
+         STYLE_DEFAULT,                0,
+         SCE_C_IDENTIFIER,             0,
+         SCE_C_WORD,                   1,
+         SCE_C_DEFAULT,                1,
+         SCE_C_COMMENT,                2,
+         SCE_C_COMMENTLINE,            2,
+         SCE_C_COMMENTDOC,             2,
+         SCE_C_COMMENTLINEDOC,         2,
+         SCE_C_NUMBER,                 3,
+         SCE_C_OPERATOR,               3,
+         SCE_C_STRING,                 4,
+         SCE_C_STRINGEOL,              4,
+         SCE_C_CHARACTER,              4,
+         SCE_C_PREPROCESSOR,           5,
+         SCE_C_WORD2,                  6,
          STYLE_BRACELIGHT,             7,
          STYLE_BRACEBAD,               8,
          SCE_C_COMMENTDOCKEYWORD,      9,
@@ -624,11 +626,13 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    bValue = false;
    if( m_pDevEnv->GetProperty(sKey + _T("showLines"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetMarginWidthN(0, bValue ? TextWidth(STYLE_LINENUMBER, "_9999") : 0);
+
    bValue = true;
    if( m_pDevEnv->GetProperty(sKey + _T("showMargin"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetMarginWidthN(1, bValue ? 16 : 0);
    SetMarginMaskN(1, bValue ? ~SC_MASK_FOLDERS : 0);
    SetMarginSensitiveN(1, TRUE);
+
    m_bFolding = false;
    if( m_pDevEnv->GetProperty(sKey + _T("showFolding"), szBuffer, 63) ) m_bFolding = _tcscmp(szBuffer, _T("true")) == 0;
    SetMarginWidthN(2, m_bFolding ? 16 : 0);
@@ -647,39 +651,60 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    _DefineMarker(SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED, clrMarkerFore, clrMarkerBack);
    _DefineMarker(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER, clrMarkerFore, clrMarkerBack);
    SetFoldFlags(4);
+
+   bValue = false;
+   if( m_pDevEnv->GetProperty(sKey + _T("showIndents"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   SetIndentationGuides(bValue == true);
+
    bValue = false;
    if( m_pDevEnv->GetProperty(sKey + _T("wordWrap"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetWrapMode(bValue ? SC_WRAP_WORD : SC_WRAP_NONE);
+
    bValue = true;
    if( m_pDevEnv->GetProperty(sKey + _T("useTabs"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetUseTabs(bValue == true);
+
    bValue = true;
    if( m_pDevEnv->GetProperty(sKey + _T("tabIndent"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetTabIndents(bValue == true);
+
    bValue = true;
    if( m_pDevEnv->GetProperty(sKey + _T("backUnindent"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetBackSpaceUnIndents(bValue == true);
+
+   bValue = true;
+   if( m_pDevEnv->GetProperty(sKey + _T("rectSelection"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   SetSelectionMode(bValue ? SC_SEL_RECTANGLE : SC_SEL_STREAM);
+
    iValue = 8;
    if( m_pDevEnv->GetProperty(sKey + _T("tabWidth"), szBuffer, 63) ) iValue = _ttol(szBuffer);
    SetTabWidth(max(iValue, 1));
+
    iValue = 0;
    if( m_pDevEnv->GetProperty(sKey + _T("indentWidth"), szBuffer, 63) ) iValue = _ttol(szBuffer);
    SetIndent(iValue);
+   
    m_bAutoIndent = false;
    m_bSmartIndent = false;
    m_bAutoSuggest = false;
    if( m_pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, 63) ) m_bAutoIndent = _tcscmp(szBuffer, _T("auto")) == 0;
    if( m_pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, 63) ) m_bSmartIndent = _tcscmp(szBuffer, _T("smart")) == 0;
+   
    m_bMatchBraces = false;
    if( m_pDevEnv->GetProperty(sKey + _T("matchBraces"), szBuffer, 63) ) m_bMatchBraces = _tcscmp(szBuffer, _T("true")) == 0;
+
    m_bProtectDebugged = false;
    if( m_pDevEnv->GetProperty(sKey + _T("protectDebugged"), szBuffer, 63) ) m_bProtectDebugged = _tcscmp(szBuffer, _T("true")) == 0;
+
    m_bAutoComplete = false;
    if( m_pDevEnv->GetProperty(sKey + _T("autoComplete"), szBuffer, 63) ) m_bAutoComplete = _tcscmp(szBuffer, _T("true")) == 0;
+
    m_bAutoClose = false;
    if( m_pDevEnv->GetProperty(sKey + _T("autoClose"), szBuffer, 63) ) m_bAutoClose = _tcscmp(szBuffer, _T("true")) == 0;
+
    m_bAutoCase = false;
    if( m_pDevEnv->GetProperty(sKey + _T("autoCase"), szBuffer, 63) ) m_bAutoCase = _tcscmp(szBuffer, _T("true")) == 0;
+
    m_bAutoSuggest = false;
    if( m_pDevEnv->GetProperty(sKey + _T("autoSuggest"), szBuffer, 63) ) m_bAutoSuggest = _tcscmp(szBuffer, _T("true")) == 0;
 
@@ -688,11 +713,14 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    iValue = 1;
    if( m_pDevEnv->GetProperty(sKey + _T("caretWidth"), szBuffer, 63) ) iValue = _ttol(szBuffer);
    SetCaretWidth(max(iValue, 1));
+   
    bValue = false;
    if( m_pDevEnv->GetProperty(sKey + _T("showEdge"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetEdgeMode(bValue ? EDGE_LINE : EDGE_NONE);
+   
    bValue = false;
    if( m_pDevEnv->GetProperty(sKey + _T("bottomless"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   
    bValue = false;
    if( m_pDevEnv->GetProperty(sKey + _T("markCaretLine"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetCaretLineVisible(bValue);
@@ -881,16 +909,16 @@ void CScintillaView::_AutoText(CHAR ch)
       return;
    }
 
-   // Display new tip at all?
-   if( AutoCActive() ) return;
-   if( CallTipActive() ) return;
-
    // Display tip only after 3 characters has been entered
    // and avoid displaying unnessecarily...
    if( _iseditchar(ch) || ch == '(' ) s_iSuggestWord = max(1, s_iSuggestWord + 1); 
    else if( isspace(ch) ) s_iSuggestWord = 0;
    else s_iSuggestWord = -999;
    if( s_iSuggestWord < AUTOTEXT_AFTER_TYPED_CHARS ) return;
+
+   // Can we display new tooltip at all?
+   if( AutoCActive() ) return;
+   if( CallTipActive() ) return;
 
    // Get the typed identifier
    long lPos = GetCurrentPos();

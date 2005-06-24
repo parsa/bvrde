@@ -257,6 +257,7 @@
 #define IDC_LOADTAGS3                   1075
 #define IDC_MARGINS                     1076
 #define IDC_EDIT                        1078
+#define IDC_INDENTS                     1078
 #define IDC_EDIT2                       1079
 #define IDC_HOTKEY                      1082
 #define IDC_TYPE                        1085

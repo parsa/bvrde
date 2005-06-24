@@ -38,7 +38,7 @@ public:
    DWORD Run()
    {
       ATLASSERT(m_ctrlEdit.IsWindow());
-      CCoInitialize cominit(COINIT_MULTITHREADED);
+      CCoInitialize cominit;
       m_nMatches = 0;
       // Title
       TCHAR szText[100] = { 0 };

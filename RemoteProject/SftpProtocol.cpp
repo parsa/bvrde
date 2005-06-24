@@ -376,6 +376,7 @@ void CSftpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Proxy") ) m_sProxy = pstrValue;
    if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
    m_sPath.TrimRight(_T("/"));
+   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 10;
 }
 
 bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, DWORD* pdwSize /* = NULL*/)

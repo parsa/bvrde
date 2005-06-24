@@ -276,7 +276,7 @@ int CSolutionFinishPage::OnWizardFinish()
 
 #define SET_CHECK(id, prop) \
    { TCHAR szBuf[32] = { 0 }; g_pDevEnv->GetProperty(prop, szBuf, 31); \
-     if( _tcscmp(szBuf, _T("false"))!=0 ) CButton(GetDlgItem(id)).Click(); }
+     if( _tcscmp(szBuf, _T("true"))==0 ) CButton(GetDlgItem(id)).Click(); }
 
 #define GET_CHECK(id, prop) \
    g_pDevEnv->SetProperty(prop, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"))
@@ -548,6 +548,9 @@ int CMappingsOptionsPage::OnApply()
 {
    USES_CONVERSION;
 
+   // Make sure list was populated before we store data back!!!
+   OnSetActive();
+
    // Transfer list items to properties
    int nCount = m_ctrlList.GetItemCount();
    for( int i = 0; i < nCount; i++ ) {
@@ -555,7 +558,7 @@ int CMappingsOptionsPage::OnApply()
       CComVariant vType;
       m_ctrlList.GetItemValue(m_ctrlList.GetProperty(i, 0), &vExt);
       m_ctrlList.GetItemValue(m_ctrlList.GetProperty(i, 1), &vType);
-      if( ::SysStringLen(vExt.bstrVal) > 0 ) {
+      if( vExt.vt == VT_BSTR && ::SysStringLen(vExt.bstrVal) > 0 ) {
          CString sKey;
          sKey.Format(_T("file.mappings.%s"), OLE2CT(vExt.bstrVal));
          g_pDevEnv->SetProperty(sKey, OLE2CT(vType.bstrVal));
@@ -572,7 +575,7 @@ int CMappingsOptionsPage::OnApply()
          CComVariant vType;
          m_ctrlList.GetItemValue(m_ctrlList.GetProperty(i, 0), &vExt);
          m_ctrlList.GetItemValue(m_ctrlList.GetProperty(i, 1), &vType);
-         if( ::SysStringLen(vExt.bstrVal) > 0 ) {
+         if( vExt.vt == VT_BSTR && ::SysStringLen(vExt.bstrVal) > 0 ) {
             if( m_pArc->WriteGroupBegin(_T("FileMapping")) ) {
                m_pArc->Write(_T("ext"), OLE2CT(vExt.bstrVal));
                m_pArc->Write(_T("type"), OLE2CT(vType.bstrVal));
@@ -601,13 +604,13 @@ int CALLBACK CMappingsOptionsPage::CompareFunc(LPARAM lParam1, LPARAM lParam2, L
    return _tcscmp(szValue1, szValue2);
 }
 
+
 ////////////////////////////////////////////////////////////////////////
 //
 
 LRESULT CAutoTextOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    m_ctrlList = GetDlgItem(IDC_LIST);
-   m_ctrlHotkey = GetDlgItem(IDC_HOTKEY);
    m_ctrlName = GetDlgItem(IDC_NAME);
    m_ctrlText = GetDlgItem(IDC_TEXT);
    m_ctrlNew = GetDlgItem(IDC_NEW);
@@ -675,11 +678,6 @@ int CAutoTextOptionsPage::OnSetActive()
    BOOL bDummy;
    OnItemSelect(0, 0, NULL, bDummy);
 
-   TCHAR szHotkey[32] = { 0 };
-   g_pDevEnv->GetProperty(_T("autotext.hotkey"), szHotkey, (sizeof(szHotkey) / sizeof(TCHAR)) - 1);
-   WORD wKey = (WORD) _ttol(szHotkey);
-   m_ctrlHotkey.SetHotKey(LOBYTE(wKey), HIBYTE(wKey));
-
    return 0;
 }
 
@@ -689,10 +687,6 @@ int CAutoTextOptionsPage::OnApply()
 
    // Make sure list was populated before we store data back!!!
    OnSetActive();
-
-   TCHAR szBuffer[32];
-   ::wsprintf(szBuffer, _T("%ld"), (long) m_ctrlHotkey.GetHotKey());
-   g_pDevEnv->SetProperty(_T("autotext.hotkey"), szBuffer);
 
    for( int i = 0; i < m_ctrlList.GetCount(); i++ ) {
       CString sName;
@@ -712,8 +706,6 @@ int CAutoTextOptionsPage::OnApply()
 
    if( m_pArc->ReadGroupBegin(_T("AutoText")) ) 
    {
-      TRANSFER_PROP(_T("hotkey"), _T("autotext.hotkey"));
-   
       while( m_pArc->Delete(_T("Text")) ) /* */;
 
       for( long i = 0; i < m_ctrlList.GetCount(); i++ ) {
@@ -1155,8 +1147,8 @@ LRESULT CFormattingOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, L
 {
    ATLASSERT(!m_sLanguage.IsEmpty());
 
-   m_ctrlIndentMode = GetDlgItem(IDC_INDENTATION);
    m_ctrlTabWidth = GetDlgItem(IDC_TABWIDTH);
+   m_ctrlIndentMode = GetDlgItem(IDC_INDENTATION);
    m_ctrlIndentWidth = GetDlgItem(IDC_INDENTWIDTH);
 
    m_ctrlTabWidth.SetLimitText(2);
@@ -1175,6 +1167,7 @@ LRESULT CFormattingOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, L
    SET_CHECK(IDC_BACKUNINDENT, sKey + _T("backUnindent"));
    SET_CHECK(IDC_TABINDENT, sKey + _T("tabIndent"));
    SET_CHECK(IDC_USETABS, sKey + _T("useTabs"));
+   SET_CHECK(IDC_INDENTS, sKey + _T("showIndents"));
 
    TCHAR szBuffer[32];
    g_pDevEnv->GetProperty(sKey + _T("tabWidth"), szBuffer, 31);
@@ -1196,6 +1189,7 @@ int CFormattingOptionsPage::OnApply()
    sKey.Format(_T("editors.%s."), m_sLanguage);
    GET_CHECK(IDC_MARGINS, sKey + _T("showMargins"));
    GET_CHECK(IDC_FOLDING, sKey + _T("showFolding"));
+   GET_CHECK(IDC_INDENTS, sKey + _T("showIndents"));
    GET_CHECK(IDC_LINENUMBERS, sKey + _T("showLines"));
    GET_CHECK(IDC_WORDWRAP, sKey + _T("wordWrap"));
    GET_CHECK(IDC_BACKUNINDENT, sKey + _T("backUnindent"));
@@ -1221,6 +1215,7 @@ int CFormattingOptionsPage::OnApply()
             m_pArc->WriteItem(_T("Visuals"));
             TRANSFER_PROP(_T("showMargins"), sKey + _T("showMargins"));
             TRANSFER_PROP(_T("showFolding"), sKey + _T("showFolding"));
+            TRANSFER_PROP(_T("showIndents"), sKey + _T("showIndents"));
             TRANSFER_PROP(_T("showLines"), sKey + _T("showLines"));
             TRANSFER_PROP(_T("wordWrap"), sKey + _T("wordWrap"));
             TRANSFER_PROP(_T("backUnindent"), sKey + _T("backUnindent"));

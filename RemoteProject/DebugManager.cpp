@@ -470,6 +470,7 @@ void CDebugManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("StartTimeout") ) m_lStartTimeout = _ttol(pstrValue);
    if( sName == _T("InCommand") ) m_bCommandMode = _tcscmp(pstrValue, _T("true")) == 0;
    m_ShellManager.SetParam(pstrName, pstrValue);
+   if( m_lStartTimeout <= 0 ) m_lStartTimeout = 4;
 }
 
 // Implementation

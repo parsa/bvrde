@@ -22,7 +22,7 @@ CQueryThread::CQueryThread(CDbOperations* pDbData) :
 
 DWORD CQueryThread::Run()
 {
-   CCoInitialize cominit(COINIT_MULTITHREADED);
+   CCoInitialize cominit;
 
    ::SetMessageQueue(100);  // HACK: For the sake of any OLE DB dependencies
 

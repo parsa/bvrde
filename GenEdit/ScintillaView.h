@@ -90,6 +90,7 @@ public:
       COMMAND_ID_HANDLER(ID_EDIT_ZOOM_IN, OnZoomIn)
       COMMAND_ID_HANDLER(ID_EDIT_ZOOM_OUT, OnZoomOut)
       COMMAND_ID_HANDLER(ID_EDIT_DELLINE, OnDeleteLine)
+      COMMAND_ID_HANDLER(ID_EDIT_RECTSELECTION, OnRectSelection)
       COMMAND_ID_HANDLER(ID_EDIT_VIEWWS, OnViewWhiteSpace)
       COMMAND_ID_HANDLER(ID_EDIT_VIEWEOL, OnViewEOL)
       COMMAND_ID_HANDLER(ID_EDIT_VIEWTABS, OnViewIndentGuides)
@@ -130,6 +131,7 @@ public:
    LRESULT OnZoomIn(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnZoomOut(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDeleteLine(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnRectSelection(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewWhiteSpace(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewEOL(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewIndentGuides(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

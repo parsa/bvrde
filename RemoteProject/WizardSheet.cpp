@@ -313,15 +313,16 @@ LRESULT CCompilerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 {
    m_ctrlTest = GetDlgItem(IDC_TEST);
    m_ctrlType = GetDlgItem(IDC_TYPE);
-   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TELNET)));
-   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_RLOGIN)));
-   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_SSH)));
    m_ctrlHost = GetDlgItem(IDC_HOST);
    m_ctrlPort = GetDlgItem(IDC_PORT);
    m_ctrlUsername = GetDlgItem(IDC_USERNAME);
    m_ctrlPassword = GetDlgItem(IDC_PASSWORD);
    m_ctrlPath = GetDlgItem(IDC_PATH);
    m_ctrlExtra = GetDlgItem(IDC_EXTRA);
+
+   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TELNET)));
+   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_RLOGIN)));
+   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_SSH)));
 
    m_ctrlHost.SetWindowText(m_pProject->m_CompileManager.GetParam(_T("Host")));
    m_ctrlUsername.SetWindowText(m_pProject->m_CompileManager.GetParam(_T("Username")));

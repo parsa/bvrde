@@ -96,6 +96,8 @@ IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
 
 IDR_ACCELERATOR ACCELERATORS DISCARDABLE 
 BEGIN
+    "B",            ID_EDIT_RECTSELECTION,  VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
     VK_F4,          ID_VIEW_PROPERTIES,     VIRTKEY, NOINVERT
 END
 
@@ -159,6 +161,9 @@ BEGIN
             MENUITEM "Delete Line\tCtrl+L",         ID_EDIT_DELLINE
             MENUITEM "Comment Selection",           ID_EDIT_COMMENT
             MENUITEM "Uncomment Selection",         ID_EDIT_UNCOMMENT
+            MENUITEM SEPARATOR
+            MENUITEM "Rectangular Selection\tCtrl+Shift+B", 
+                                                    ID_EDIT_RECTSELECTION
             MENUITEM SEPARATOR
             MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
             MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
@@ -247,7 +252,7 @@ END
 //
 
 IDD_WIZARD_MESSAGE DIALOGEX 0, 0, 255, 179
-STYLE DS_SHELLFONT | DS_FIXEDSYS | WS_CHILD
+STYLE DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "The Empty Project is used as a container for files - rather than a project for compilation and debugging. The Empty Project does not offer the ability to issue compile commands.\n\nUse a Remote C++ Project to attach files from a remote server.",
@@ -376,6 +381,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_EDIT_RECTSELECTION   "Use Rectangular Selection\nRect Selection"
     ID_VIEW_OPENWITH        "Open file with external editor\nOpen with"
 END
 

@@ -28,7 +28,7 @@ void CFileEnumThread::RunCommand(HWND hWnd, LPCTSTR pstrCommand, LONG lTimeout)
 
 DWORD CFileEnumThread::Run()
 {
-   CCoInitialize cominit(COINIT_MULTITHREADED);
+   CCoInitialize cominit;
 
    // Execute prompt through the project's scripting mode
    ISolution* pSolution = _pDevEnv->GetSolution();

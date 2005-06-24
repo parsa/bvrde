@@ -43,6 +43,7 @@
 #define ID_EDIT_UNTABIFY                40062
 #define ID_EDIT_INDENT                  40063
 #define ID_EDIT_UNINDENT                40064
+#define ID_EDIT_RECTSELECTION           40065
 #define ID_EDIT_VIEWWORDWRAP            40082
 #define ID_EDIT_ZOOM_IN                 40086
 #define ID_EDIT_ZOOM_OUT                40087

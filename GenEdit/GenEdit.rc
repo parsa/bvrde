@@ -111,10 +111,10 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 IDD_REPLACE DIALOGEX 36, 44, 292, 109
-STYLE DS_SHELLFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | 
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Replace"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Fi&nd what:",-1,11,12,55,8
     COMBOBOX        IDC_FINDTEXT,66,10,125,86,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
@@ -142,7 +142,7 @@ BEGIN
 END
 
 IDD_GOTO DIALOGEX 0, 0, 218, 79
-STYLE DS_SHELLFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Goto Line"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
@@ -162,10 +162,10 @@ BEGIN
 END
 
 IDD_FIND DIALOGEX 30, 73, 288, 87
-STYLE DS_SHELLFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | 
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Find"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Fi&nd what:",-1,9,11,45,8
     COMBOBOX        IDC_FINDTEXT,54,9,145,72,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
@@ -209,6 +209,9 @@ BEGIN
             MENUITEM "Delete Line\tCtrl+L",         ID_EDIT_DELLINE
             MENUITEM "Comment Selection",           ID_EDIT_COMMENT
             MENUITEM "Uncomment Selection",         ID_EDIT_UNCOMMENT
+            MENUITEM SEPARATOR
+            MENUITEM "Rectangular Selection\tCtrl+Shift+B", 
+                                                    ID_EDIT_RECTSELECTION
             MENUITEM SEPARATOR
             MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
             MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
@@ -267,6 +270,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_EDIT_UNINDENT        "Decrease indent of selected text\nUnindent"
+    ID_EDIT_RECTSELECTION   "Use Rectangular Selection\nRect Selection"
     ID_EDIT_COMMENT         "Put comments around the selected text\nComment"
     ID_EDIT_UNCOMMENT       "Remove comments around selected text\nUncomment"
 END

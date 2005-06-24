@@ -122,6 +122,12 @@ LRESULT CScintillaView::OnDeleteLine(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
    return 0;
 }
 
+LRESULT CScintillaView::OnRectSelection(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   SetSelectionMode(GetSelectionMode() == SC_SEL_RECTANGLE ? SC_SEL_STREAM : SC_SEL_RECTANGLE);
+   return 0;
+}
+
 LRESULT CScintillaView::OnIndent(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    int iStart = GetSelectionStart();

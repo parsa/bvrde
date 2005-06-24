@@ -43,6 +43,7 @@
 #define ID_EDIT_UNTABIFY                40062
 #define ID_EDIT_INDENT                  40063
 #define ID_EDIT_UNINDENT                40064
+#define ID_EDIT_RECTSELECTION           40065
 #define ID_EDIT_COMMENT                 40067
 #define ID_EDIT_UNCOMMENT               40068
 #define ID_EDIT_VIEWWORDWRAP            40082
@@ -65,7 +66,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        101
-#define _APS_NEXT_COMMAND_VALUE         40002
+#define _APS_NEXT_COMMAND_VALUE         40003
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

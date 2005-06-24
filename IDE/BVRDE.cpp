@@ -111,8 +111,8 @@ static void PreloadLibraries()
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
-   // Need single-threaded COM because of Active Scripting
-   // and OLE drag'n'drop below...
+   // NOTE: We need single-threaded COM because of Active Scripting
+   //       and OLE drag'n'drop below...
    HRESULT hRes = ::CoInitialize(NULL);
    ATLASSERT(SUCCEEDED(hRes));
    hRes = ::OleInitialize(NULL);

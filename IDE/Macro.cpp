@@ -51,8 +51,7 @@ bool CMacro::RunMacroFromScript(CComBSTR bstrData,
 {
    // Create the Active Scripting Engine.
    CComPtr<IActiveScript> spScript;
-   HRESULT Hr;
-   Hr = spScript.CoCreateInstance(SCRIPT_PROGID);
+   HRESULT Hr = spScript.CoCreateInstance(SCRIPT_PROGID);
    if( FAILED(Hr) ) {
       // No VB Script?
       m_pMainFrame->_ShowMessageBox(m_hWnd, IDS_ERR_VBSCRIPT, IDS_CAPTION_ERROR, MB_ICONERROR);

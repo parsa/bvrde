@@ -53,16 +53,16 @@ LRESULT CReplaceDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    ::SetWindowTextA(m_ctrlReplaceText, m_fr.lpstrReplaceWith);
    m_ctrlReplaceText.LimitText(m_fr.wReplaceWithLen);
 
-   if( m_fr.Flags & FR_WHOLEWORD ) m_ctrlMatchWholeWord.SetCheck(BST_CHECKED);
-   if( m_fr.Flags & FR_MATCHCASE ) m_ctrlMatchCase.SetCheck(BST_CHECKED);
-   if( m_fr.Flags & SCFIND_REGEXP ) m_ctrlRegExp.SetCheck(BST_CHECKED);
-   if( m_fr.Flags & FR_WRAP ) m_ctrlWrap.SetCheck(BST_CHECKED);
+   if( (m_fr.Flags & FR_WHOLEWORD) != 0 ) m_ctrlMatchWholeWord.SetCheck(BST_CHECKED);
+   if( (m_fr.Flags & FR_MATCHCASE) != 0 ) m_ctrlMatchCase.SetCheck(BST_CHECKED);
+   if( (m_fr.Flags & SCFIND_REGEXP) != 0 ) m_ctrlRegExp.SetCheck(BST_CHECKED);
+   if( (m_fr.Flags & FR_WRAP) != 0 ) m_ctrlWrap.SetCheck(BST_CHECKED);
 
    if( tr.chrg.cpMin == tr.chrg.cpMax ) {
       m_ctrlWholeFile.SetCheck(BST_CHECKED);
    }
    else {
-      if( m_fr.Flags & FR_INSEL) {
+      if( (m_fr.Flags & FR_INSEL) != 0 ) {
          m_ctrlInSelection.SetCheck(BST_CHECKED); 
       }
       else {
@@ -123,5 +123,5 @@ void CReplaceDlg::_UpdateButtons()
    CWindow(GetDlgItem(IDC_REPLACE)).EnableWindow(bOK);
    CWindow(GetDlgItem(IDC_REPLACEALL)).EnableWindow(bOK);
    CharacterRange cr = m_ctrlScintilla.GetSelection();
-   m_ctrlInSelection.EnableWindow(bOK && cr.cpMin != cr.cpMax);
+   m_ctrlInSelection.EnableWindow(bOK && cr.cpMin != cr.cpMax && m_ctrlScintilla.GetSelectionMode() == SC_SEL_STREAM);
 }

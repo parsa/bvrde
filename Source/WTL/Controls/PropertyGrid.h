@@ -191,17 +191,6 @@ public:
    int m_iSelectedRow;
    int m_iSelectedCol;
 
-   CPropertyGridImpl() : 
-      m_hwndInplace(NULL), 
-      m_iInplaceRow(-1), 
-      m_iInplaceCol(-1), 
-      m_nColumns(0), 
-      m_iSelectedRow(-1), 
-      m_iSelectedCol(-1)
-   {
-      m_di.dwExtStyle = 0;
-   }
-
    // Operations
 
    BOOL SubclassWindow(HWND hWnd)
@@ -220,7 +209,7 @@ public:
           && (dwExtStyle & PGS_EX_ADDITEMATEND) == 0 ) 
       {
          // Remove last item
-         DeleteItem(TBase::GetItemCount()-1);
+         DeleteItem(TBase::GetItemCount() - 1);
       } 
       else if( (dwExtStyle & PGS_EX_ADDITEMATEND) != 0 ) {
          // Add last item
@@ -471,6 +460,14 @@ public:
       // We need the LVS_SINGLESEL style
       ATLASSERT((GetStyle() & (LVS_SINGLESEL))==(LVS_SINGLESEL));
       ATLASSERT((GetStyle() & (LVS_EDITLABELS|LVS_OWNERDRAWFIXED|LVS_OWNERDATA))==0);
+      // Reset variables
+      m_nColumns = 0;
+      m_hwndInplace = NULL;
+      m_iInplaceRow = -1;
+      m_iInplaceCol = -1;
+      m_iSelectedRow = -1;
+      m_iSelectedCol = -1;
+      m_di.dwExtStyle = 0;
       // Prepare ListView control
       TBase::SetViewType(LVS_REPORT);
       SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);

@@ -586,8 +586,9 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_DEBUG_QUICKWATCH, bDebugging); 
 }
 
-void CScintillaView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+void CScintillaView::OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
 {
+   AtlLoadString(wID, pstrText, cchMax);
 }
 
 

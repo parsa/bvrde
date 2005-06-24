@@ -15,7 +15,7 @@
 
 DWORD CRebuildThread::Run()
 {
-   CCoInitialize cominit(COINIT_MULTITHREADED);
+   CCoInitialize cominit;
 
    // Build the projects
    ISolution* pSolution = _pDevEnv->GetSolution();

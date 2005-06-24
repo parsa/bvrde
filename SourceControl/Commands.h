@@ -11,12 +11,13 @@ class CCommandThread :
    public ILineCallback
 {
 public:
-   CString m_sCommand;
+   CSimpleArray<CString> m_aCommands;
    CString m_sResult;
    long m_lTimeout;
 
    CString GetResult() const;
-   void SetCommand(UINT nCmd, LPCTSTR pstrCommand, LONG lTimeout = 4000L);
+   void ChangePath();
+   void AddCommand(UINT nCmd, LPCTSTR pstrCommand, LONG lTimeout = 4000L);
 
    DWORD Run();
 
@@ -29,8 +30,8 @@ public:
    // IUnknown
 
    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject);
-   ULONG STDMETHODCALLTYPE AddRef(void);
-   ULONG STDMETHODCALLTYPE Release(void);
+   ULONG STDMETHODCALLTYPE AddRef();
+   ULONG STDMETHODCALLTYPE Release();
 };
 
 

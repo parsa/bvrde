@@ -61,8 +61,7 @@ BSTR CApplicationOM::get_Version()
    DWORD dwVersion = m_pOwner->GetVersion();
    WCHAR wszVersion[32];
    ::wsprintfW(wszVersion, _T("%ld.%ld"), (long)(LOWORD(dwVersion)), (long)(HIWORD(dwVersion)));
-   BSTR bstrVersion = ::SysAllocString(wszVersion);
-   return bstrVersion;
+   return ::SysAllocString(wszVersion);
 }
 
 IDispatch* CApplicationOM::get_Solution()
@@ -98,7 +97,7 @@ IDispatch* CApplicationOM::get_RecentProjects()
    return new CRecentProjectsOM(m_pOwner);
 }
 
-VOID __stdcall CApplicationOM::SendRawMessage(long uMsg, long wParam, long lParam)
+VOID __stdcall CApplicationOM::SendRawMessage(LONG uMsg, LONG wParam, LONG lParam)
 {
    m_pOwner->SendMessage((UINT) uMsg, (WPARAM) wParam, (LPARAM) lParam);
 }
@@ -106,6 +105,19 @@ VOID __stdcall CApplicationOM::SendRawMessage(long uMsg, long wParam, long lPara
 VOID CApplicationOM::Quit()
 {
    m_pOwner->PostMessage(WM_CLOSE);
+}
+
+BSTR CApplicationOM::GetProperty(BSTR Name)
+{
+   CString sValue;
+   m_pOwner->GetProperty(CString(Name), sValue.GetBufferSetLength(256), 256);
+   sValue.ReleaseBuffer();
+   return sValue.AllocSysString();
+}
+
+VOID CApplicationOM::SetProperty(BSTR Name, BSTR Value)
+{
+   m_pOwner->SetProperty(CString(Name), CString(Value));
 }
 
 
@@ -141,24 +153,21 @@ BSTR CSolutionOM::get_Name()
 {
    TCHAR szName[128] = { 0 };
    m_pOwner->GetName(szName, 127);
-   BSTR bstrName = ::SysAllocString(szName);
-   return bstrName;
+   return ::SysAllocString(szName);
 }
 
 BSTR CSolutionOM::get_Type()
 {
    TCHAR szType[64] = { 0 };
    m_pOwner->GetType(szType, 63);
-   BSTR bstrType = ::SysAllocString(szType);
-   return bstrType;
+   return ::SysAllocString(szType);
 }
 
 BSTR CSolutionOM::get_Filename()
 {
    TCHAR szFilename[MAX_PATH] = { 0 };
    m_pOwner->GetFileName(szFilename, MAX_PATH);
-   BSTR bstrType = ::SysAllocString(szFilename);
-   return bstrType;
+   return ::SysAllocString(szFilename);
 }
 
 IDispatch* CSolutionOM::get_Projects()
@@ -168,8 +177,7 @@ IDispatch* CSolutionOM::get_Projects()
 
 VARIANT_BOOL CSolutionOM::Open(BSTR Filename)
 {
-   USES_CONVERSION;
-   return m_pOwner->LoadSolution(OLE2CT(Filename)) ? VARIANT_TRUE : VARIANT_FALSE;
+   return m_pOwner->LoadSolution(CString(Filename)) ? VARIANT_TRUE : VARIANT_FALSE;
 }
 
 VOID CSolutionOM::Close()
@@ -179,8 +187,7 @@ VOID CSolutionOM::Close()
 
 VARIANT_BOOL CSolutionOM::Save(BSTR Filename)
 {
-   CString sFilename = Filename;
-   return m_pOwner->SaveSolution(sFilename) ? VARIANT_TRUE : VARIANT_FALSE;
+   return m_pOwner->SaveSolution(CString(Filename)) ? VARIANT_TRUE : VARIANT_FALSE;
 }
 
 
@@ -219,24 +226,21 @@ BSTR CProjectOM::get_Name()
 {
    TCHAR szName[128] = { 0 };
    m_pOwner->GetName(szName, 127);
-   BSTR bstrName = ::SysAllocString(szName);
-   return bstrName;
+   return ::SysAllocString(szName);
 }
 
 BSTR CProjectOM::get_Type()
 {
    TCHAR szType[64] = { 0 };
    m_pOwner->GetType(szType, 63);
-   BSTR bstrType = ::SysAllocString(szType);
-   return bstrType;
+   return ::SysAllocString(szType);
 }
 
 BSTR CProjectOM::get_Class()
 {
    TCHAR szClass[64] = { 0 };
    m_pOwner->GetClass(szClass, 63);
-   BSTR bstrClass = ::SysAllocString(szClass);
-   return bstrClass;
+   return ::SysAllocString(szClass);
 }
 
 IDispatch* CProjectOM::get_Files()
@@ -280,24 +284,21 @@ BSTR CFileOM::get_Name()
 {
    TCHAR szName[128] = { 0 };
    m_pOwner->GetName(szName, 127);
-   BSTR bstrName = ::SysAllocString(szName);
-   return bstrName;
+   return ::SysAllocString(szName);
 }
 
 BSTR CFileOM::get_Type()
 {
    TCHAR szType[64] = { 0 };
    m_pOwner->GetType(szType, 63);
-   BSTR bstrType = ::SysAllocString(szType);
-   return bstrType;
+   return ::SysAllocString(szType);
 }
 
 BSTR CFileOM::get_Filename()
 {
    TCHAR szFilename[MAX_PATH] = { 0 };
    m_pOwner->GetFileName(szFilename, MAX_PATH);
-   BSTR bstrType = ::SysAllocString(szFilename);
-   return bstrType;
+   return ::SysAllocString(szFilename);
 }
 
 BSTR CFileOM::get_Text()

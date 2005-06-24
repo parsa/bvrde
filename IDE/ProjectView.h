@@ -24,7 +24,7 @@ public:
       NOTIFY_HANDLER(IDC_TREE, TVN_ITEMEXPANDED, OnItemExpanded)      
       NOTIFY_HANDLER(IDC_TREE, NM_RCLICK, OnRClick)
       NOTIFY_ID_HANDLER(IDC_TREE, OnTreeMessage)
-      // Not entirely sure why this filter is needed...
+      // FIX: Not entirely sure why this filter is needed...
       if( uMsg == WM_NOTIFY && ((LPNMHDR)lParam)->hwndFrom == m_ctrlToolbar ) REFLECT_NOTIFICATIONS()
    END_MSG_MAP()
 
@@ -36,6 +36,7 @@ public:
       DWORD dwStyle = WS_BORDER | WS_CHILD | WS_VISIBLE | TVS_HASBUTTONS | TVS_HASLINES | TVS_SHOWSELALWAYS | TVS_EDITLABELS;
       m_ctrlTree.Create(m_hWnd, rcDefault, NULL, dwStyle, 0, IDC_TREE);
       m_ctrlTree.SetImageList(m_Images, TVSIL_NORMAL);
+
       Clear();
 
       return 0;

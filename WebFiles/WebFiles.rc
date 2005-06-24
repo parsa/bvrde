@@ -118,8 +118,8 @@ IDR_XML                 HTML    DISCARDABLE     "res\\xmltrans.htm"
 //
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
-STYLE WS_CHILD
-FONT 8, "MS Sans Serif"
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Tag Support",-1,0,0,43,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,4,207,1
@@ -156,6 +156,8 @@ BEGIN
             MENUITEM "Increase Line Indent\tTab",   ID_EDIT_INDENT
             MENUITEM "Decrease Line Indent  \tShift+Tab", ID_EDIT_UNINDENT
             MENUITEM "Delete Line\tCtrl+L",         ID_EDIT_DELLINE
+            MENUITEM SEPARATOR
+            MENUITEM "Rectangular Selection",       ID_EDIT_RECTSELECTION
             MENUITEM SEPARATOR
             MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
             MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
@@ -262,6 +264,11 @@ STRINGTABLE DISCARDABLE
 BEGIN
     ID_EDIT_TABIFY          "Tabify selected text\nTabify"
     ID_EDIT_UNTABIFY        "Untabify selected text\nUntabify"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_RECTSELECTION   "Use Rectangular Selection\nRect Selection"
 END
 
 #endif    // English (U.S.) resources

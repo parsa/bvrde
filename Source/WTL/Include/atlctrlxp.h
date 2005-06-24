@@ -99,9 +99,8 @@ public:
 
    LRESULT OnNcPaint(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
-      //CDCHandle dc = GetDCEx( (HRGN) wParam, DCX_WINDOW | DCX_INTERSECTRGN | 0x10000 );
-      CWindowDC dc(m_hWnd);
-      if( wParam > 1 ) dc.SelectClipRgn( (HRGN)wParam );
+      CDC dc = ::GetDCEx(m_hWnd, (HRGN) wParam, DCX_WINDOW | DCX_INTERSECTRGN | 0x10000);
+      if( dc.IsNull() ) dc = ::GetWindowDC(m_hWnd);
       RECT rcWin;
       GetWindowRect(&rcWin);
       ::OffsetRect(&rcWin, -rcWin.left, -rcWin.top);

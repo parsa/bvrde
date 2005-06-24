@@ -158,6 +158,7 @@ void CFtpProtocol::Clear()
    m_bPassive = FALSE;
    m_bCompatibilityMode = FALSE;
    m_lConnectTimeout = 8;
+   m_dwCacheFlags = INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD;
 }
 
 bool CFtpProtocol::Load(ISerializable* pArc)
@@ -274,6 +275,7 @@ void CFtpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Proxy") ) m_sProxy = pstrValue;
    if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
    m_sPath.TrimRight(_T("/"));
+   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
 }
 
 bool CFtpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, DWORD* pdwSize /* = NULL*/)
@@ -394,7 +396,7 @@ bool CFtpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
 {
    if( !WaitForConnection() ) return false;
    WIN32_FIND_DATA fd = { 0 };
-   DWORD dwFlags = INTERNET_FLAG_DONT_CACHE;
+   DWORD dwFlags = INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD;
    HINTERNET hFind = ::FtpFindFirstFile(m_hFTP, NULL, &fd, dwFlags, 0);
    if( hFind == NULL && ::GetLastError() == ERROR_NO_MORE_FILES ) return true;
    if( hFind == NULL ) return false;
@@ -412,6 +414,8 @@ CString CFtpProtocol::FindFile(LPCTSTR pstrFilename)
    // Connected?
    if( !WaitForConnection() ) return _T("");
    // Get file information
+   // NOTE: We don't add the INTERNET_FLAG_RELOAD flag here because
+   //       it's likely to search the static file pool.
    WIN32_FIND_DATA fd = { 0 };
    DWORD dwFlags = INTERNET_FLAG_DONT_CACHE;
    if( pstrFilename[0] == '/' ) {
@@ -529,3 +533,4 @@ bool CFtpProtocol::_TranslateError()
    }
    return false;
 }
+

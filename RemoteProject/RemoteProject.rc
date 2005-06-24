@@ -116,6 +116,8 @@ BEGIN
     "6",            ID_BOOKMARKS_GOTO6,     VIRTKEY, CONTROL, NOINVERT
     "7",            ID_BOOKMARKS_GOTO7,     VIRTKEY, CONTROL, NOINVERT
     "8",            ID_BOOKMARKS_GOTO8,     VIRTKEY, CONTROL, NOINVERT
+    "B",            ID_EDIT_RECTSELECTION,  VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
     VK_CANCEL,      ID_EDIT_BREAK,          VIRTKEY, CONTROL, NOINVERT
     VK_F10,         ID_DEBUG_STEP_OVER,     VIRTKEY, NOINVERT
     VK_F11,         ID_DEBUG_STEP_INTO,     VIRTKEY, NOINVERT
@@ -291,6 +293,9 @@ BEGIN
             MENUITEM "Delete Line\tCtrl+L",         ID_EDIT_DELLINE
             MENUITEM "Comment Selection",           ID_EDIT_COMMENT
             MENUITEM "Uncomment Selection",         ID_EDIT_UNCOMMENT
+            MENUITEM SEPARATOR
+            MENUITEM "Rectangular Selection\tCtrl+Shift+B", 
+                                                    ID_EDIT_RECTSELECTION
             MENUITEM SEPARATOR
             MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
             MENUITEM "View &EOL",                   ID_EDIT_VIEWEOL
@@ -645,10 +650,10 @@ BEGIN
                     WS_TABSTOP
 END
 
-IDD_RUNARGUMENTS DIALOGEX 0, 0, 273, 68
+IDD_RUNARGUMENTS DIALOG DISCARDABLE  0, 0, 273, 68
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Progam Arguments"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "Set the arguments to run the file with.",IDC_STATIC,7,7,
                     207,11
@@ -659,7 +664,7 @@ END
 
 IDD_WIZARD_STEPS DIALOGEX 0, 0, 266, 169
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Pre-Build:",IDC_STATIC,11,24,33,12,0,WS_EX_TRANSPARENT
     EDITTEXT        IDC_PRESTEP,48,24,211,47,ES_MULTILINE | ES_AUTOHSCROLL | 
@@ -1150,10 +1155,17 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_EDIT_UNINDENT        "Decrease indent for selected text\nUnindent"
-    ID_DEBUG_STEP_SET       "Sets the next statement\nSet Next"
+    ID_EDIT_RECTSELECTION   "Use Rectangular Selection\nRect Selection"
     ID_EDIT_COMMENT         "Add comments around selected text\nComment"
     ID_EDIT_UNCOMMENT       "Remove comments from selected text\nUncomment"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_REMOTEDIR_OPEN       "Open selected file\nOpen"
+    ID_DEBUG_ARGUMENTS      "Set program launch arguments\nArguments"
     ID_DEBUG_BREAK          "Break Debugger\nBreak"
+    ID_DEBUG_STEP_SET       "Sets the next statement\nSet Next"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1223,6 +1235,10 @@ BEGIN
     ID_EDIT_AUTOCOMPLETE    "Autocomplete selected text\nAutocomplete"
     ID_VIEW_DEBUG_LOG       "View Debug log\nDebug Log"
     ID_BOOKMARK_TOGGLE      "Toogles bookmarks at the current line\nToggle Bookmark"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     ID_BUILD_STOP           "Stop Build\nStop Build"
     ID_DEBUG_STEP_OUT       "Step Out\nStep Out"
     ID_DEBUG_STEP_RUN       "Debug until this line is hit\nRun To Here"
@@ -1287,12 +1303,6 @@ BEGIN
     ID_EDIT_ZOOM_IN         "Zoom text in\nZoom In"
     ID_EDIT_ZOOM_OUT        "Zoom text out\nZoom out"
     ID_EDIT_DELLINE         "Delete line at cursor\nDelete Line"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    ID_REMOTEDIR_OPEN       "Open selected file\nOpen"
-    ID_DEBUG_ARGUMENTS      "Set program launch arguments\nArguments"
 END
 
 #endif    // English (U.S.) resources

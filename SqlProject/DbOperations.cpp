@@ -318,9 +318,10 @@ CComVariant CDbOperations::GetProperty(const GUID& guid, DBPROPID propid) const
    ULONG lCount = 0;
    DBPROPSET* pPropSet = NULL;
    spProperties->GetProperties(1, &PropIdSet, &lCount, &pPropSet);
-   CComVariant vRes = pPropSet->rgProperties->vValue;
-   // Free memory
-   if( pPropSet ) {
+   CComVariant vRes;
+   if( pPropSet != NULL ) {
+      vRes = pPropSet->rgProperties->vValue;
+      // Free memory
       ::VariantClear(&pPropSet->rgProperties[0].vValue);
       ::CoTaskMemFree(pPropSet->rgProperties);
       ::CoTaskMemFree(pPropSet);

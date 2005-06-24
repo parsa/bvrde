@@ -320,7 +320,7 @@ CSshProtocol::CSshProtocol() :
    m_cryptSession(0),
    m_dwErrorCode(0),
    m_bConnected(false),
-   m_lConnectTimeout(10),
+   m_lConnectTimeout(0),
    m_lPort(0)
 {
    Clear();
@@ -451,6 +451,7 @@ void CSshProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Port") ) m_lPort = _ttol(pstrValue);
    if( sName == _T("Extra") ) m_sExtraCommands = pstrValue;
    if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
+   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 10;
 }
 
 bool CSshProtocol::ReadData(CString& s, DWORD dwTimeout /*= 0*/)

@@ -53,6 +53,7 @@ typedef struct
 
 #define WM_AUTOHIDE_SETPANE    WM_USER + 360
 #define WM_AUTOHIDE_VIEWCLOSE  WM_USER + 361
+#define WM_AUTOHIDE_VIEWOPEN   WM_USER + 362
 
 
 ///////////////////////////////////////////////////////
@@ -182,6 +183,7 @@ public:
          GetWindowRect(&rc);
          WPARAM iSize = m_pane.iDirection == AUTOHIDE_LEFT ? rc.right - rc.left : rc.bottom - rc.top;
          ::SendMessage(m_hwndOwner, WM_AUTOHIDE_VIEWCLOSE, iSize, 0L);
+         ::PostMessage(m_hwndOwner, WM_AUTOHIDE_VIEWCLOSE, 0, 1L);
       }
       bHandled = FALSE;
       return 0;
@@ -291,6 +293,7 @@ public:
       MESSAGE_HANDLER(WM_MOUSELEAVE, OnMouseLeave)
       MESSAGE_HANDLER(WM_LBUTTONDOWN, OnButtonClick)
       MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSettingChange)
+      MESSAGE_HANDLER(WM_AUTOHIDE_VIEWOPEN, OnOpenView)
       MESSAGE_HANDLER(WM_AUTOHIDE_VIEWCLOSE, OnCloseView)
    END_MSG_MAP()
 
@@ -306,15 +309,16 @@ public:
    CAutoFloatWindow m_wndFloat;
    int m_cxy;
    int m_iCurPaneShown;
-   int m_iDirection;
-   //
-   bool m_bMouseTracked;
    int m_iPaneTracked;
+   int m_iDirection;
+   bool m_bCancelClick;
+   bool m_bMouseTracked;
 
    CAutoPaneWindowImpl() : 
       m_bMouseTracked(false), 
-      m_iPaneTracked(0), 
-      m_iCurPaneShown(-1), 
+      m_bCancelClick(false),
+      m_iCurPaneShown(-1),
+      m_iPaneTracked(-1),
       m_iDirection(AUTOHIDE_LEFT),
       m_cxy(DEFAULT_AUTOHIDE_SIZE)
    {
@@ -342,7 +346,7 @@ public:
       pT->UpdateLayout();
       Invalidate();
    }
-   AUTOPANE* FindPane(HWND hWnd)
+   AUTOPANE* FindPane(HWND hWnd) const
    {
       for( int i = 0; i < m_panes.GetSize(); i++ ) if( m_panes[i].hWnd == hWnd ) return &m_panes[i];
       return NULL;
@@ -351,7 +355,8 @@ public:
    {
       const AUTOPANE* pPane = FindPane(hWnd);
       if( pPane == NULL ) return FALSE;
-      PostMessage(WM_LBUTTONDOWN, 0, MAKELPARAM(pPane->rc.left, pPane->rc.top));
+      // FIX: Use PostMessage() because of thread-problems
+      PostMessage(WM_AUTOHIDE_VIEWOPEN, 0, MAKELPARAM(pPane->rc.left, pPane->rc.top));
       return TRUE;
    }
    void SetImageList(HIMAGELIST hImageList)
@@ -505,65 +510,74 @@ public:
    }
    LRESULT OnMouseMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
+      if( m_bMouseTracked ) return 0;
       POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-      if( !m_bMouseTracked ) {
-         int iHit = _HitTest(pt);
-         if( iHit != -1 ) {
-            TRACKMOUSEEVENT tme = { 0 };
-            tme.cbSize = sizeof(tme);
-            tme.hwndTrack = m_hWnd;
-            tme.dwFlags = TME_HOVER|TME_LEAVE;
-            tme.dwHoverTime = HOVER_DEFAULT;
-            ::_TrackMouseEvent(&tme);
-            //
-            m_iPaneTracked = iHit;
-            m_bMouseTracked = true;
-         }
-      }
+      int iHit = _HitTest(pt);
+      if( iHit == -1 ) return 0;
+      if( iHit == m_iPaneTracked ) return 0;
+      TRACKMOUSEEVENT tme = { 0 };
+      tme.cbSize = sizeof(tme);
+      tme.hwndTrack = m_hWnd;
+      tme.dwFlags = TME_HOVER|TME_LEAVE;
+      tme.dwHoverTime = HOVER_DEFAULT;
+      _TrackMouseEvent(&tme);
+      m_bMouseTracked = true;
+      m_iPaneTracked = iHit;
       return 0;
    }
    LRESULT OnMouseHover(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
-      BOOL bDummy;
-      OnButtonClick(WM_LBUTTONDOWN, wParam, lParam, bDummy);
       m_bMouseTracked = false;
+      SendMessage(WM_AUTOHIDE_VIEWOPEN, wParam, lParam);
       return 0;
    }
    LRESULT OnMouseLeave(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      m_iPaneTracked = -1;
       m_bMouseTracked = false;
       return 0;
    }
-   LRESULT OnButtonClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+   LRESULT OnButtonClick(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+   {
+      // HACK: Because the floating pane closes itself on WM_NCACTIVATE which
+      //       is fired before the click event, we never see that the pane was visible.
+      //       So we risk to re-open the same pane unless we somehow cancel this event.
+      if( m_bCancelClick ) return 0;
+      SendMessage(WM_AUTOHIDE_VIEWOPEN, wParam, lParam);
+      return 0;
+   }
+   LRESULT OnOpenView(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
       int iHit = _HitTest(pt);
-      if( iHit != -1 && iHit != m_iCurPaneShown ) {
-         m_wndFloat.ShowWindow(SW_HIDE);
-         RECT rc;
-         GetWindowRect(&rc);
-         if( !IsWindowVisible() ) {
-            ::GetWindowRect(GetTopLevelParent(), &rc);
-            m_iDirection == AUTOHIDE_LEFT ? rc.right = rc.left : rc.top = rc.bottom;
-         }
-         if( m_iDirection == AUTOHIDE_LEFT ) {
-            rc.left = rc.right;
-            rc.right = rc.left + m_cxy;
-         }
-         else {
-            rc.bottom = rc.top;
-            rc.top = rc.top - m_cxy;
-         }
-         m_wndFloat.MoveWindow(&rc);
-         m_wndFloat.SendMessage(WM_AUTOHIDE_SETPANE, (WPARAM) m_hWnd, (LPARAM) &m_panes[iHit]);
-         m_iCurPaneShown = iHit;
+      if( iHit == -1 || iHit == m_iCurPaneShown ) return 0;
+      m_wndFloat.ShowWindow(SW_HIDE);
+      RECT rc;
+      GetWindowRect(&rc);
+      if( !IsWindowVisible() ) {
+         ::GetWindowRect(GetTopLevelParent(), &rc);
+         m_iDirection == AUTOHIDE_LEFT ? rc.right = rc.left : rc.top = rc.bottom;
       }
+      if( m_iDirection == AUTOHIDE_LEFT ) {
+         rc.left = rc.right;
+         rc.right = rc.left + m_cxy;
+      }
+      else {
+         rc.bottom = rc.top;
+         rc.top = rc.top - m_cxy;
+      }
+      m_wndFloat.MoveWindow(&rc);
+      m_wndFloat.SendMessage(WM_AUTOHIDE_SETPANE, (WPARAM) m_hWnd, (LPARAM) &m_panes[iHit]);
+      m_iCurPaneShown = iHit;
       return 0;
    }
-   LRESULT OnCloseView(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+   LRESULT OnCloseView(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
-      m_iCurPaneShown = -1;
-      m_cxy = wParam;
+      if( lParam == 0 ) {
+         m_iCurPaneShown = -1;
+         m_cxy = wParam;
+      }
+      m_bCancelClick = lParam == 0;
       return 0;
    }
 };
