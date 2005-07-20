@@ -11,7 +11,8 @@ class CRemoteProject;
 
 
 class CWatchView : 
-   public CWindowImpl<CWatchView>
+   public CWindowImpl<CWatchView>,
+   public IRawDropTarget<CWatchView>
 {
 public:
    DECLARE_WND_CLASS(_T("BVRDE_WatchView"))
@@ -30,6 +31,8 @@ public:
    void ActivateWatches();
    void SetInfo(LPCTSTR pstrType, CMiInfo& info);
 
+   bool DoDrop(LPDATAOBJECT pDataObj);
+
    // Implementation
 
    void _CreateWatch(HPROPERTY hProp, LPCTSTR pstrName);
@@ -41,7 +44,6 @@ public:
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
       MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
       MESSAGE_HANDLER(WM_SIZE, OnSize)
-      MESSAGE_HANDLER(WM_DROPFILES, OnDropFiles)
       NOTIFY_CODE_HANDLER(PIN_ADDITEM, OnAddItem);
       NOTIFY_CODE_HANDLER(PIN_ITEMCHANGED, OnItemChanged);
       REFLECT_NOTIFICATIONS()
@@ -52,7 +54,6 @@ public:
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-   LRESULT OnDropFiles(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnAddItem(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnItemChanged(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    //

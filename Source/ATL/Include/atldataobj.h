@@ -66,9 +66,9 @@ public:
    {
       return 1;
    }
-   
+
    // IDropSource
-   
+
    STDMETHOD(QueryContinueDrag)(BOOL bEsc, DWORD dwKeyState)
    {
       if( bEsc ) return ResultFromScode(DRAGDROP_S_CANCEL);
@@ -78,6 +78,131 @@ public:
    STDMETHOD(GiveFeedback)(DWORD)
    {
       return ResultFromScode(DRAGDROP_S_USEDEFAULTCURSORS);
+   }
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+// IRawDropTarget
+
+template< class T >
+class ATL_NO_VTABLE IRawDropTarget : public IDropTarget
+{
+public:
+   IRawDropTarget() : m_hwndTarget(NULL), m_fAcceptFmt(false), nFormats(0)
+   { 
+   }
+
+   HRESULT RegisterDropTarget(HWND hWnd)
+   {
+      m_hwndTarget = hWnd;
+      ::RegisterDragDrop(m_hwndTarget, this);
+      return S_OK;
+   }
+   void RevokeDropTarget()
+   {
+      ::RevokeDragDrop(m_hwndTarget);
+   }
+   void AddDropFormat(FORMATETC fe)
+   {
+      if( nFormats >= sizeof(m_Formats) / sizeof(FORMATETC) ) return;
+      m_Formats[nFormats++] = fe;
+   }
+   FORMATETC GetDropFormat(int iIndex) const
+   {
+      FORMATETC fe = { 0 };
+      if( iIndex < 0 || iIndex >= nFormats) return fe;
+      return m_Formats[iIndex];
+   }
+
+   // Attributes
+
+   HWND m_hwndTarget;
+   bool m_fAcceptFmt;
+   FORMATETC m_Formats[8];
+   int nFormats;
+
+   // IUnknown
+
+   STDMETHOD(QueryInterface)(REFIID riid, LPVOID *ppvObject)
+   {
+      if( riid == __uuidof(IDropTarget) || riid == IID_IUnknown ) {
+         *ppvObject = this;
+         return S_OK;
+      }
+      return E_NOINTERFACE;
+   }
+   ULONG STDMETHODCALLTYPE AddRef()
+   {
+      return 1;
+   }
+   ULONG STDMETHODCALLTYPE Release()
+   {
+      return 1;
+   }
+
+   // IDropTarget
+
+   STDMETHOD(DragEnter)(LPDATAOBJECT pDataObj, 
+                        DWORD dwKeyState, 
+                        POINTL, 
+                        LPDWORD pdwEffect)
+   {
+      // Does the drag source provide our CF types?
+      m_fAcceptFmt = false;
+      for( int i = 0; !m_fAcceptFmt && i < nFormats; i++ ) {
+         FORMATETC fe = m_Formats[i];
+         m_fAcceptFmt = (S_OK == pDataObj->QueryGetData(&fe));
+      }
+      *pdwEffect = _QueryDrop(dwKeyState, *pdwEffect);
+      return S_OK;
+   }
+   STDMETHOD(DragOver)(DWORD dwKeyState, POINTL /*pt*/, LPDWORD pdwEffect)
+   {
+      *pdwEffect = _QueryDrop(dwKeyState, *pdwEffect);
+      return S_OK;
+   } 
+   STDMETHOD(DragLeave)(VOID)
+   {
+      m_fAcceptFmt = false;
+      return S_OK;
+   }
+   STDMETHOD(Drop)(LPDATAOBJECT pDataObj,
+                   DWORD dwKeyState,
+                   POINTL /*pt*/,
+                   LPDWORD pdwEffect)
+   {
+      // Determine drop effect...
+      DWORD dwDropEffect = _QueryDrop(dwKeyState, *pdwEffect);
+      *pdwEffect = DROPEFFECT_NONE; // Default to failed/cancelled
+      // Did we accept this drop effect?
+      if( dwDropEffect == DROPEFFECT_NONE ) return S_OK;
+      // Do the drop...
+      T* pT = static_cast<T*>(this);
+      BOOL bRes = pT->DoDrop(pDataObj);
+      *pdwEffect = bRes ? dwDropEffect : DROPEFFECT_NONE;
+      return bRes ? S_OK : E_FAIL;
+   }
+
+   // Implementation
+
+   DWORD _QueryDrop(DWORD dwKeyState, DWORD dwEffect) const
+   {
+      if( !m_fAcceptFmt ) return DROPEFFECT_NONE;
+      // Test key-state
+      DWORD dwMask = _GetDropEffectFromKeyState(dwKeyState);
+      if( (dwEffect & dwMask) != 0 ) return dwEffect & dwMask;
+      // Map common alternatives
+      if( (dwEffect & DROPEFFECT_COPY) != 0 ) return DROPEFFECT_COPY;
+      // Drop-effect is determined by keys or default
+      return dwMask;
+   }
+   DWORD _GetDropEffectFromKeyState(DWORD dwKeyState) const
+   {
+      // We don't support DROPEFFECT_LINK or DROPEFFECT_MOVE operations
+      DWORD dwDropEffect = DROPEFFECT_COPY;
+      if( (dwKeyState & MK_CONTROL) != 0 ) dwDropEffect = DROPEFFECT_COPY;
+      return dwDropEffect;
    }
 };
 

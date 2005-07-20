@@ -301,7 +301,7 @@ END
 
 IDD_OPTIONS_FORMATTING DIALOGEX 0, 0, 257, 168
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Visuals",IDC_STATIC,0,0,26,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,31,4,226,1
@@ -1241,7 +1241,7 @@ BEGIN
     IDS_ERR_FILELOCKED      "File Locked\nCannot acces file. It is locked?!"
     IDS_ERR_FILEOPEN        "File Open Error\nFile was not found or could not be opened.\nTry another file."
     IDS_ERR_VBSCRIPT        "Script Component missing\nUnable to create VBScript component.\nWhat a strange Windows installation you have?!"
-    IDS_COMMAND_HELP        "The following syntax is accepted:\r\n  help - this text.\r\n  ? <expr> - evaluate expression.\r\n  run <file> - execute program.\r\n  exec <file> - execute program and capture output.\r\n  print <file> - send contents to printer.\r\n"
+    IDS_COMMAND_HELP        "The following syntax is accepted:\r\n  help - this text.\r\n  ? <expr> - evaluate expression.\r\n  run <file> - execute program.\r\n  exec <file> - execute program and capture output.\r\n  print <file> - send contents to printer.\r\n  mode <prefix> - change console mode.\r\n"
     IDS_ERR_UNKNOWNCOMMAND  "Unknown command.\r\n"
     IDS_TYPEHELP            "Type ""help"" to see available commands.\r\n"
     IDS_ERR_SCRIPT          "An error occured while parsing the script:\nSource: %ls\nError: %08X\nDescription: %ls\nLine: %ld\n"

@@ -918,7 +918,6 @@ void CScintillaView::_AutoText(CHAR ch)
 
    // Can we display new tooltip at all?
    if( AutoCActive() ) return;
-   if( CallTipActive() ) return;
 
    // Get the typed identifier
    long lPos = GetCurrentPos();
@@ -944,6 +943,7 @@ void CScintillaView::_AutoText(CHAR ch)
    m_pDevEnv->GetProperty(sKey, szBuffer, (sizeof(szBuffer) / sizeof(TCHAR)) - 1);
 
    // Display suggestion-tip
+   CallTipCancel();
    CallTipSetFore(::GetSysColor(COLOR_INFOTEXT));
    CallTipSetBack(::GetSysColor(COLOR_INFOBK));
    CString sTipText = szBuffer;
@@ -1366,7 +1366,7 @@ void CScintillaView::_MaintainTags(CHAR ch)
       sText.TrimLeft();
       sText.TrimRight();
       // Add insertion text
-      if( sText == _T("{") ) {
+      if( sText == _T("{") || sText.Right(1) == _T("{") ) {
          BeginUndoAction();
          ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n\r\n}" : "\n\n}");
          SetSel(lPosition, lPosition);
@@ -1374,13 +1374,6 @@ void CScintillaView::_MaintainTags(CHAR ch)
          _SetLineIndentation(iLine + 2, GetLineIndentation(iLine));
          LineUp();
          LineEnd();
-         EndUndoAction();
-      }
-      else if( sText.Right(1) == _T("{") ) {
-         BeginUndoAction();
-         ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n}" : "\n}");
-         SetSel(lPosition, lPosition);
-         _SetLineIndentation(iLine + 1, GetLineIndentation(iLine));
          EndUndoAction();
       }
    }
@@ -1467,8 +1460,6 @@ CString CScintillaView::_GetProperty(CString sKey) const
 
 int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings)
 {
-   if( s_frFind.lStructSize == 0 ) return SendMessage(WM_COMMAND, MAKEWPARAM(ID_EDIT_FIND, 0));
-
    int iLength = strlen(pstrText);
    if( iLength == 0 ) return -1;
 

@@ -303,12 +303,21 @@ LRESULT CCommandView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
          SetModify(FALSE);
          CString sPrompt = _ParseLine();
          AppendRtfText(m_hWnd, _T("\r\n"));
-         // Ignite thread to broadcast the event...
-         s_thread.Stop();
-         s_thread.m_pMainFrame = m_pMainFrame;
-         s_thread.m_ctrlEdit = m_hWnd;
-         s_thread.m_sCommandLine = sPrompt;
-         s_thread.Start();
+         if( sPrompt == _T("mode") )
+         {
+            // Resetting console mode?
+            m_sMode.Empty();  
+            AppendRtfText(m_hWnd, _T("\r\n> "), CFM_BOLD, CFE_BOLD);
+         }
+         else
+         {
+            // Ignite thread to broadcast the event...
+            s_thread.Stop();
+            s_thread.m_pMainFrame = m_pMainFrame;
+            s_thread.m_ctrlEdit = m_hWnd;
+            s_thread.m_sCommandLine = m_sMode + sPrompt;
+            s_thread.Start();
+         }
       }
       return 0;
    }
@@ -419,6 +428,7 @@ void CCommandView::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
    //    run <filename>
    //    print <filename>
    //    exec <filename>
+   //    mode <prefix>
    //    ? <expression>
    //    help
    if( _tcsncmp(pstrCommand, _T("run "), 4) == 0 )
@@ -444,7 +454,14 @@ void CCommandView::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
       SetSel(-1, -1);
       bHandled = TRUE;
    }
-   else if( _tcsnicmp(pstrCommand, _T("? "), 2) == 0 ) 
+   else if( _tcsnicmp(pstrCommand, _T("mode "), 5) == 0 )
+   {
+      m_sMode = pstrCommand + 5;
+      m_sMode.TrimRight();
+      m_sMode += _T(" ");
+      bHandled = TRUE;
+   }
+   else if( _tcsnicmp(pstrCommand, _T("?"), 1) == 0 ) 
    {
       CComObjectGlobal<CMacro> macro;
       macro.Init(m_pMainFrame, &m_pMainFrame->m_Dispatch);

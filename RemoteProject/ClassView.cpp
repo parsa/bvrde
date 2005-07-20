@@ -105,10 +105,10 @@ void CClassView::Close()
 
 void CClassView::Lock()
 {
-   // Remember which branches was expanded, so we can
+   // Remember which branches were expanded, so we can
    // expand them when we recreate the tree later...
-   // NOTE: The caller is about the restructure the TAG pointers, so
-   //       we must do this process here while the names are still valid.
+   // NOTE: The caller is about to restructure the TAG pointers, so
+   //       we must do this here while the names are still valid.
    if( m_aExpandedNames.GetSize() == 0 ) 
    {
       HTREEITEM hItem = m_ctrlTree.GetRootItem();

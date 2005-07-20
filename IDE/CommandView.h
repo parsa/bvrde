@@ -20,6 +20,7 @@ public:
    // Attributes
 
    CMainFrame* m_pMainFrame;
+   CString m_sMode;
 
    // Operations
       

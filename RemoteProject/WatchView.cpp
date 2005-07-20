@@ -157,13 +157,15 @@ LRESULT CWatchView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    s.LoadString(IDS_COL_VALUE);
    m_ctrlGrid.InsertColumn(1, s, 0, 200, 0);
    m_ctrlGrid.SetExtendedGridStyle(PGS_EX_ADDITEMATEND);
-   ::DragAcceptFiles(m_hWnd, TRUE);
+   RegisterDropTarget(m_ctrlGrid);
+   FORMATETC fe = { CF_TEXT, NULL, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
+   AddDropFormat(fe);
    return 0;
 }
 
 LRESULT CWatchView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-   ::DragAcceptFiles(m_hWnd, FALSE);
+   RevokeDropTarget();
    bHandled = FALSE;
    return 0;
 }
@@ -176,21 +178,18 @@ LRESULT CWatchView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
    return 0;
 }
 
-LRESULT CWatchView::OnDropFiles(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+bool CWatchView::DoDrop(LPDATAOBJECT pDataObj)
 {
-   // Ok, get text from clipboard
-   // TODO: Should register as DropTarget and retrieve correct
-   //       IDataObject instead of clipboard.
-   if( !::IsClipboardFormatAvailable(CF_TEXT) ) return 0; 
-   if( !::OpenClipboard(m_hWnd) ) return 0; 
+   FORMATETC fe = GetDropFormat(0);
+   STGMEDIUM stgme = { 0 };
+   if( FAILED( pDataObj->GetData(&fe, &stgme) ) ) return false;
+   LPCSTR lpstr = (LPCSTR) ::GlobalLock(stgme.hGlobal); 
    CString sText;
-   HGLOBAL hglb = ::GetClipboardData(CF_TEXT); 
-   if( hglb != NULL ) { 
-      LPCSTR lpstr = (LPCSTR) ::GlobalLock(hglb); 
-      if( lpstr ) sText = lpstr;
-      ::GlobalUnlock(hglb); 
-   } 
-   ::CloseClipboard();
+   if( lpstr != NULL ) sText = lpstr;
+   ::GlobalUnlock(stgme.hGlobal); 
+   ::ReleaseStgMedium(&stgme);
+
+   if( sText.IsEmpty() ) return false;
 
    // Add item
    LPARAM lKey = (LPARAM) ::GetTickCount();
@@ -202,7 +201,7 @@ LRESULT CWatchView::OnDropFiles(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
    m_pProject->DelayedDebugCommand(sCommand);
 
    SetFocus();
-   return 0;
+   return true;
 }
 
 LRESULT CWatchView::OnAddItem(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)

@@ -131,6 +131,10 @@ BOOL CSolution::SaveSolution(LPCTSTR pstrFilename)
    }
    m_sFilename = sFilename;
 
+   // Store in Recent Used Files
+   m_pMainFrame->m_mru.AddToList(m_sFilename);
+   m_pMainFrame->m_mru.WriteToRegistry(REG_BVRDE _T("\\Mru"));
+
    // Make sure that all projects have filenames as well...
    for( int i = 0; i < m_aProjects.GetSize(); i++ ) {
       PROJECT& Project = m_aProjects[i];
@@ -272,7 +276,9 @@ BOOL CSolution::AddProject(LPCTSTR pstrFilename)
    m_bIsLoaded = TRUE;
    m_bIsDirty = TRUE;
 
+   // Ask project tree to refresh itself
    m_pMainFrame->PostMessage(WM_APP_BUILDSOLUTIONUI);
+
    return TRUE;
 }
 

@@ -1,3 +1,7 @@
+Version 0.9c
+* New 'mode' command in Console to switch interpreter mode
+* Autohide views now close when you click on the button if open
+
 Version 0.9b
 * Timeout problems during Test Connection fixed
 * Hanging CVS login problem fixed
