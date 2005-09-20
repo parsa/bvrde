@@ -13,6 +13,154 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// Deutsch (Deutschland) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Tag Support",-1,0,0,43,9
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,4,207,1
+    CONTROL         "Autovervollständigungs Feauture verwenden",
+                    IDC_AUTOCOMPLETE,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,14,15,192,10,WS_EX_TRANSPARENT
+    CONTROL         "Autocase Tags",IDC_AUTOCASE,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,14,25,64,10,WS_EX_TRANSPARENT
+    CONTROL         "Tags automatisch schließen",IDC_CLOSETAGS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,36,104,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Klammerblöcke anzeigen",IDC_MATCHBRACES,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,47,120,10,
+                    WS_EX_TRANSPARENT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAIN MENU DISCARDABLE 
+BEGIN
+    POPUP "Sub0"
+    BEGIN
+        POPUP "Erweitert"
+        BEGIN
+            MENUITEM "Autovervollständigung\tCtrl+Space", 
+                                                    ID_EDIT_AUTOCOMPLETE
+            MENUITEM SEPARATOR
+            MENUITEM "Erstelle Großb&uchstaben\tCtrl+Shift+U", 
+                                                    ID_EDIT_UPPERCASE
+            MENUITEM "Erstelle K&leinbuchstaben",   ID_EDIT_LOWERCASE
+            MENUITEM "&Selektion einrücken",        ID_EDIT_TABIFY
+            MENUITEM "Selektion ausrücken",         ID_EDIT_UNTABIFY
+            MENUITEM "Zeile einrücken\tTab",        ID_EDIT_INDENT
+            MENUITEM "Zeile ausrücken\tShift+Tab",  ID_EDIT_UNINDENT
+            MENUITEM "Zeile löschen\tCtrl+L",       ID_EDIT_DELLINE
+            MENUITEM SEPARATOR
+            MENUITEM "Rechteckige Selektion\tCtrl+Shift+B", 
+                                                    ID_EDIT_RECTSELECTION
+            MENUITEM SEPARATOR
+            MENUITEM "Wortumbruch",                 ID_EDIT_VIEWWORDWRAP
+            MENUITEM "&EOL anzeigen",               ID_EDIT_VIEWEOL
+            MENUITEM "Leerzeichen anzeigen",        ID_EDIT_VIEWWS
+        END
+        POPUP "Lesezeichen"
+        BEGIN
+            MENUITEM "Lesezeichen umschalten",      ID_BOOKMARK_TOGGLE
+            MENUITEM "Vorhergehendes Lesezeichen",  ID_BOOKMARK_PREVIOUS
+            MENUITEM "&Nächstes Lesezeichen",       ID_BOOKMARK_NEXT
+            MENUITEM "Lesezeichen entfernen",       ID_BOOKMARK_CLEAR
+        END
+        POPUP "Zoom"
+        BEGIN
+            MENUITEM "Hineinzoomen\tCtrl+Add",      ID_EDIT_ZOOM_IN
+            MENUITEM "Herauszoomen\tCtrl+Sub",      ID_EDIT_ZOOM_OUT
+        END
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SOURCE              "Quelle"
+    IDS_DESIGN              " Design "
+    IDS_PREVIEW             " Vorschau "
+    IDS_XML_ERR             "XML Parser Fehler:\r\nGrund: %s\r\nQuelle: %ls\r\nZeile: %ld, Pos: %ld\r\n"
+    IDS_ERR_DOCUMENT        "Druckfehler\nDrucken des Dokumentes nicht möglich."
+    IDS_CAPTION_ERROR       "Fehler"
+    IDS_CAPTION_WARNING     "Warnung"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_MESSAGE     "Nachricht"
+    IDS_CAPTION_TOOLBAR     "HTML"
+    IDS_TREE_PHP            "PHP"
+    IDS_TREE_ADVANCED       "Erweitert"
+    IDS_TREE_HTML           "HTML"
+    IDS_TREE_XML            "XML"
+    IDS_SAVEFILE            "Datei speichern\nDie Datei wurde modifiziert. Möchten Sie diese speichern ?"
+    IDS_CAPTION_QUESTION    "BVRDE"
+    IDS_TREE_ASP            "ASP"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_AUTOCOMPLETE    "Selektierten Text automatisch vervollständigen\nAutovervollständigen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_BOLD            "Dem selektierten Text Fett zuweisen\nFett"
+    ID_EDIT_ITALIC          "Dem selektierten Text kursiv zweisen\nKursiv"
+    ID_EDIT_ALIGN_LEFT      "Selektierten Text linksseitig ausrichten\nAusrichtung links"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_ALIGN_RIGHT     "Selektierten Text zentriert ausrichten\nAusrichtung zentriert"
+    ID_EDIT_ALIGN_MIDDLE    "Selektierten Text rechtsseitig ausrichten\nAusrichtung rechts"
+    ID_EDIT_UNDERLINE       "Den selektierten Text unterstreichen\nUnterstreichen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_UPPERCASE       "Markierten Text in Großbuchstaben konvertieren\nGroßbuchstaben"
+    ID_EDIT_LOWERCASE       "Markierten Text in Kleinbuchstaben konvertieren\nKleinbuchstaben"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_TABIFY          "Selektierten Text einrücken\nSelektion einrücken"
+    ID_EDIT_UNTABIFY        "Selektierten Text ausrücken\nSelektion ausrücken"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_RECTSELECTION   "Rechteckige Selektierung verwenden\nRechteckige Selektion"
+END
+
+#endif    // Deutsch (Deutschland) resources
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
 // Danish resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)

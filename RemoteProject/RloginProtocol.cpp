@@ -17,6 +17,8 @@ DWORD CRloginThread::Run()
    ATLASSERT(m_pManager);
    ATLASSERT(m_pCallback);
 
+   ::SetThreadLocale(_pDevEnv->GetLCID());
+
    USES_CONVERSION;
    CSocket& socket = m_pManager->m_socket;
 

@@ -22,9 +22,10 @@ CQueryThread::CQueryThread(CDbOperations* pDbData) :
 
 DWORD CQueryThread::Run()
 {
-   CCoInitialize cominit;
-
+   ::SetThreadLocale(_pDevEnv->GetLCID());
    ::SetMessageQueue(100);  // HACK: For the sake of any OLE DB dependencies
+
+   CCoInitialize cominit;
 
    COledbDatabase Db(&_DbSystem);
    COledbCommand* pDbCmd = NULL;

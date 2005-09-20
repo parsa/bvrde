@@ -46,15 +46,26 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
+#endif    // Danish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// GIF
+// HTML
 //
 
-ROW2_BACKANGLE.GIF      GIF     DISCARDABLE     "res\\row2_backangle.gif"
-BTN.GIF                 GIF     DISCARDABLE     "res\\btn.gif"
-#endif    // Danish resources
+INDEX.HTML              HTML    DISCARDABLE     "res\\index_de.html"
+#endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -69,9 +80,19 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// HTML
+//
+
+INDEX.HTML              HTML    DISCARDABLE     "res\\index.html"
+STYLE.CSS               HTML    DISCARDABLE     "res\\style.css"
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // GIF
 //
 
+ROW2_BACKANGLE.GIF      GIF     DISCARDABLE     "res\\row2_backangle.gif"
+BTN.GIF                 GIF     DISCARDABLE     "res\\btn.gif"
 BACKGROUND.GIF          GIF     DISCARDABLE     "res\\background.gif"
 BTM_BLACKBAR.GIF        GIF     DISCARDABLE     "res\\btm_blackbar.gif"
 BTM_BLACKBAR2.GIF       GIF     DISCARDABLE     "res\\btm_blackbar2.gif"
@@ -137,14 +158,6 @@ END
 
 #endif    // !_MAC
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// HTML
-//
-
-INDEX.HTML              HTML    DISCARDABLE     "res\\index.html"
-STYLE.CSS               HTML    DISCARDABLE     "res\\style.css"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

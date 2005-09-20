@@ -544,6 +544,7 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 
    // Get text around cursor
    long lPos = pSCN->position;
+   if( !_IsRealCppEditPos(lPos) ) return 0;
    CString sText;
    CharacterRange cr = m_ctrlEdit.GetSelection();
    if( lPos >= cr.cpMin && lPos <= cr.cpMax ) sText = _GetSelectedText();
@@ -566,6 +567,29 @@ LRESULT CScintillaView::OnDwellEnd(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHand
    if( m_bMouseDwell ) m_ctrlEdit.CallTipCancel();
    m_bMouseDwell = false;
    bHandled = FALSE;
+   return 0;
+}
+
+LRESULT CScintillaView::OnAutoExpand(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
+{
+   USES_CONVERSION;
+   bHandled = FALSE;
+   // We just expanded an item from the autocomplete list.
+   // Do we need to add the starting function brace?
+   SCNotification* pSCN = (SCNotification*) pnmh;
+   if( m_pCppProject == NULL ) return 0;
+   MEMBERINFO info;
+   _GetMemberInfo(pSCN->lParam - 3, info);
+   CSimpleArray<CString> aResult;
+   m_pCppProject->m_TagManager.GetItemDeclaration(A2CT(pSCN->text), aResult, info.sType);
+   if( aResult.GetSize() == 0 ) return 0;
+   CString sText;
+   if( aResult[0].Find('(') >= 0 ) sText = _T("(");
+   if( aResult[0].Find(_T("()")) >= 0 ) sText = _T("()");
+   // HACK: Insert text as delayed (SCN_AUTOCSELECTION is fored before the insertion)
+   for( int i = 0; i < sText.GetLength(); i++ ) {
+      m_ctrlEdit.PostMessage(WM_CHAR, sText.GetAt(i), 0);
+   }
    return 0;
 }
 
@@ -849,9 +873,10 @@ void CScintillaView::_FunctionTip(CHAR ch)
    // Get information about the function below
    MEMBERINFO info;
    long lPos = m_ctrlEdit.GetCurrentPos() - 2;
+   if( !_IsRealCppEditPos(lPos) ) return;
    if( !_GetMemberInfo(lPos, info) ) return;
-   // Remove all non-functions if we're currently asking to see a function
-   // signature
+   // Remove all non-functions since we're currently asking to see a function
+   // signature only
    for( int i = info.aDecl.GetSize() - 1; i >= 0; i-- ) {
       if( info.aDecl[i].Find('(') < 0 ) info.aDecl.RemoveAt(i);
    }

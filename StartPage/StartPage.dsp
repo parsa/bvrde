@@ -237,5 +237,9 @@ SOURCE=.\res\spacer.gif
 SOURCE=.\res\style.css
 # End Source File
 # End Group
+# Begin Source File
+
+SOURCE=.\res\index_de.html
+# End Source File
 # End Target
 # End Project

@@ -209,7 +209,7 @@ void CSqlProject::InitializeToolBars()
 
    m_ctrlToolbar = CFrameWindowImplBase<>::CreateSimpleToolBarCtrl(wndMain, IDR_TOOLBAR, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
 
-   _pDevEnv->AddToolBar(m_ctrlToolbar, CString(MAKEINTRESOURCE(IDS_CAPTION_TOOLBAR)));
+   _pDevEnv->AddToolBar(m_ctrlToolbar, _T("SQL"), CString(MAKEINTRESOURCE(IDS_CAPTION_TOOLBAR)));
 }
 
 // IAppMessageListener

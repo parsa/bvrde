@@ -52,7 +52,8 @@ public:
 
    typedef struct TOOLBAR
    {
-      TCHAR szName[100];    // Name of ttolbar
+      TCHAR szID[64];       // ID of toolbar
+      TCHAR szName[100];    // Name of toolbar
       int iPosition;        // Position of band in ReBar
       HWND hWnd;            // Handle to ToolBarCtrl window
       int nBand;            // Rebard insert index
@@ -95,7 +96,8 @@ public:
    BOOL m_bInitialized;                    // App fully initialized (all plugins loaded)?
    BOOL m_bFullScreen;                     // Running in full-screen mode?
    BOOL m_bRecordingMacro;                 // Currently recording a macro?
-   int m_iAnimatePos;                      // Frame position of statusbar animation.
+   int m_iAnimatePos;                      // Frame position of statusbar animation
+   LCID m_Locale;
 
    // UI Updates
 
@@ -308,6 +310,7 @@ public:
    ISolution* GetSolution() const;
    IView* GetActiveView() const;
    IDispatch* GetDispatch();
+   LCID GetLCID() const;
    //
    BOOL AddExplorerView(HWND hWnd, LPCTSTR pstrTitle, int iImage);
    BOOL RemoveExplorerView(HWND hWnd);
@@ -317,7 +320,7 @@ public:
    BOOL AddDockView(HWND hWnd, IDE_DOCK_TYPE Direction, RECT rcWin);
    BOOL RemoveDockView(HWND hWnd);
    BOOL GetDockState(HWND hWnd, int& iState, RECT& rcWin);
-   BOOL AddToolBar(HWND hWnd, LPCTSTR pstrTitle);
+   BOOL AddToolBar(HWND hWnd, LPCTSTR pstrID, LPCTSTR pstrTitle);
    BOOL RemoveToolBar(HWND hWnd);
    BOOL ShowToolBar(HWND hWnd, BOOL bShow = TRUE);
    IViewFrame* CreateClient(LPCTSTR pstrTitle, IProject* pProject, IView* pView);

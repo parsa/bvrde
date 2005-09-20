@@ -171,6 +171,9 @@
 #define IDS_LASTVALUE                   246
 #define IDS_MAPPING_COL1                247
 #define IDS_MAPPING_COL2                248
+#define IDS_LANG_DEFAULT                249
+#define IDS_LANG_ENGLISH                250
+#define IDS_LANG_GERMAN                 251
 #define IDD_MSGBOX                      263
 #define IDI_MSG_INFORMATION             264
 #define IDI_MSG_WARNING                 265
@@ -197,6 +200,7 @@
 #define IDC_LINK                        1020
 #define IDC_STARTUP                     1022
 #define IDC_READONLY                    1023
+#define IDC_LANGUAGE                    1023
 #define IDC_DETECT_CHANGE               1024
 #define IDC_AUTOLOAD                    1025
 #define IDC_SAMPLE                      1026

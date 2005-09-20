@@ -300,6 +300,7 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    m_ctrlTabbed = GetDlgItem(IDC_USE_TABBED);
    m_ctrlMdi = GetDlgItem(IDC_USE_MDI);
    m_ctrlStartup = GetDlgItem(IDC_STARTUP);
+   m_ctrlLanguage = GetDlgItem(IDC_LANGUAGE);
 
    TCHAR szBuffer[32] = { 0 };
    g_pDevEnv->GetProperty(_T("gui.main.client"), szBuffer, 31);
@@ -320,6 +321,14 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    else if( _tcscmp(szBuffer, _T("blank")) == 0 ) m_ctrlStartup.SetCurSel(3);
    else m_ctrlStartup.SetCurSel(0);
 
+   m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_DEFAULT)));
+   m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_ENGLISH)));
+   m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_GERMAN)));
+   g_pDevEnv->GetProperty(_T("gui.main.language"), szBuffer, 31);
+   if( _tcscmp(szBuffer, _T("en")) == 0 ) m_ctrlLanguage.SetCurSel(1);
+   if( _tcscmp(szBuffer, _T("de")) == 0 ) m_ctrlLanguage.SetCurSel(2);
+   else m_ctrlLanguage.SetCurSel(0);
+
    return 0;
 }
 
@@ -336,6 +345,11 @@ int CGeneralOptionsPage::OnApply()
    if( m_ctrlStartup.GetCurSel() == 2 ) _tcscpy(szBuffer, _T("openfile"));
    if( m_ctrlStartup.GetCurSel() == 3 ) _tcscpy(szBuffer, _T("blank"));
    g_pDevEnv->SetProperty(_T("gui.main.start"), szBuffer);
+
+   _tcscpy(szBuffer, _T("def"));
+   if( m_ctrlLanguage.GetCurSel() == 1 ) _tcscpy(szBuffer, _T("en"));
+   if( m_ctrlLanguage.GetCurSel() == 2 ) _tcscpy(szBuffer, _T("de"));
+   g_pDevEnv->SetProperty(_T("gui.main.language"), szBuffer);
 
    m_pArc->ReadItem(_T("Gui"));
    TRANSFER_PROP(_T("client"), _T("gui.main.client"));

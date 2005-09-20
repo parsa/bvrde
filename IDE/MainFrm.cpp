@@ -63,8 +63,8 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    AddSimpleReBarBand(m_CmdBar);
    m_CmdBar.AddToolbar(m_CmdBar);
 
-   AddToolBar(m_DefaultToolBar, CString(MAKEINTRESOURCE(IDS_MAIN_TOOLBAR)));
-   AddToolBar(m_FullScreenToolBar, CString(MAKEINTRESOURCE(IDS_FULLSCREEN_TOOLBAR)));
+   AddToolBar(m_DefaultToolBar, _T("Default"), CString(MAKEINTRESOURCE(IDS_MAIN_TOOLBAR)));
+   AddToolBar(m_FullScreenToolBar, _T("Fullscreen"), CString(MAKEINTRESOURCE(IDS_FULLSCREEN_TOOLBAR)));
 
    // Create MDI client
    CreateMDIClient();

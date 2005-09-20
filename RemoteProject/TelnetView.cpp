@@ -95,6 +95,7 @@ void CTelnetView::DoPaint(CDCHandle dc)
       const LINE& line = m_aLines[i];
       dc.SetTextColor(m_clrText);
       if( line.nColor == VT100_RED ) dc.SetTextColor(RGB(180,60,50));
+      if( line.nColor == VT100_GREEN ) dc.SetTextColor(RGB(50,120,50));
       dc.DrawText(line.szText, min(_tcslen(line.szText), MAX_CHARS), &rcPage, DT_SINGLELINE | DT_LEFT | DT_TOP | DT_NOPREFIX | DT_NOCLIP);
       rcPage.top += m_tm.tmHeight;
    }

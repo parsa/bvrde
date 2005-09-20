@@ -14,6 +14,1151 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 267, 139
+STYLE DS_FIXEDSYS | WS_POPUP
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CONTROL         IDI_LOAD2,IDC_SPLASH,"Static",SS_BITMAP | 
+                    SS_REALSIZEIMAGE,0,0,267,139
+END
+
+IDD_ADDIN_MANAGER DIALOGEX 0, 0, 295, 161
+STYLE DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "Add-in Manager"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SORTASCENDING | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,7,7,281,84
+    GROUPBOX        " Beschreibung ",IDC_STATIC,7,94,281,40
+    LTEXT           "Static",IDC_DESCRIPTION,13,104,269,23,SS_NOPREFIX,
+                    WS_EX_TRANSPARENT
+    DEFPUSHBUTTON   "OK",IDOK,185,140,50,14,WS_DISABLED
+    PUSHBUTTON      "Abbrechen",IDCANCEL,238,140,50,14
+END
+
+IDD_ARGUMENTPROMPT DIALOG DISCARDABLE  0, 0, 282, 106
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "Tool Argumente"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    GROUPBOX        "",IDC_STATIC,7,7,268,68
+    LTEXT           "Argumente bearbeiten bevor das Tool ausgeführt wird :",
+                    IDC_STATIC,15,17,191,10
+    LTEXT           "Befehl :",IDC_STATIC,18,31,37,13,SS_NOPREFIX | 
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_COMMAND,59,31,204,13,ES_AUTOHSCROLL
+    LTEXT           "Argumente :",IDC_STATIC,18,48,40,13,SS_NOPREFIX | 
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_ARGUMENTS,59,48,204,13,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,171,85,50,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,225,85,50,14
+END
+
+IDD_CHOOSESOLUTION DIALOG DISCARDABLE  0, 0, 298, 245
+STYLE DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Bjarke Viksoe's Remote Development Environment"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,185,224,50,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,241,224,50,14
+    GROUPBOX        " Einen neuen Arbeitsbereich erstellen ",IDC_STATIC,7,7,
+                    284,66
+    ICON            IDI_LOAD1,IDC_STATIC,25,20,20,20,SS_REALSIZEIMAGE
+    CONTROL         "Leeren Arbeitsbereich erstellen",IDC_RADIO1,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,56,25,114,10
+    ICON            IDI_LOAD2,IDC_STATIC,25,46,20,20,SS_REALSIZEIMAGE
+    CONTROL         "Wizard...",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,56,52,114,10
+    GROUPBOX        "",IDC_STATIC,7,74,284,142
+    ICON            IDI_LOAD3,IDC_STATIC,25,84,20,20,SS_REALSIZEIMAGE
+    CONTROL         "Existierenden Arbeitsbereich laden",IDC_RADIO3,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,56,90,128,10
+    PUSHBUTTON      "&Durchsuchen",IDC_BROWSE,184,88,57,12
+    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_SINGLESEL | 
+                    LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
+                    LVS_SHAREIMAGELISTS | LVS_AUTOARRANGE | 
+                    LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,19,111,257,
+                    93
+END
+
+IDD_CONFIG_KEYBOARD DIALOGEX 0, 0, 284, 172
+STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST,7,7,90,155,LBS_OWNERDRAWVARIABLE | 
+                    LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Standartt Tastenkürzel :",IDC_STATIC,109,7,80,8,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "HotKey1",IDC_DEFAULT_KEY,"msctls_hotkey32",WS_BORDER,
+                    109,18,103,13
+    LTEXT           "Aktuelles Tastenkürzel :",IDC_STATIC,109,40,90,8,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "HotKey1",IDC_CURRENT_KEY,"msctls_hotkey32",WS_BORDER,
+                    109,50,103,13
+    LTEXT           "Neues Tastenkürzel eingeben  :",IDC_STATIC,109,74,98,8,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "HotKey1",IDC_NEW_KEY,"msctls_hotkey32",WS_BORDER | 
+                    WS_TABSTOP,109,86,103,13
+    PUSHBUTTON      "&Zuweisen",IDC_ASSIGN,223,8,50,14
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,223,26,50,14
+END
+
+IDD_CONFIG_LAYOUT DIALOGEX 0, 0, 210, 198
+STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD
+EXSTYLE WS_EX_TRANSPARENT
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Toolbar's:",IDC_STATIC,7,7,77,10
+    CONTROL         "Große Schaltflächen verwenden",IDC_LARGE_ICONS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,153,126,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Tree1",IDC_LIST,"SysTreeView32",WS_BORDER | WS_TABSTOP,
+                    7,17,166,128
+END
+
+IDD_CONFIG_MACROS DIALOG DISCARDABLE  0, 0, 223, 202
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Makros"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,166,7,50,14,WS_DISABLED
+    PUSHBUTTON      "Abbrechen",IDCANCEL,166,24,50,14
+    LTEXT           "Makros : ",IDC_STATIC,7,7,84,10
+    LISTBOX         IDC_LIST,7,19,149,113,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Makrodatei : ",IDC_STATIC,7,138,34,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_FILES,46,138,110,57,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Beschreibung :",IDC_STATIC,7,155,84,10
+    EDITTEXT        IDC_DESCRIPTION,7,166,149,29,ES_MULTILINE | 
+                    ES_AUTOVSCROLL | ES_READONLY
+END
+
+IDD_CONFIG_SOUNDS DIALOG DISCARDABLE  0, 0, 210, 198
+STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Klänge werden im Kontrollpanel 'Sounds und Multimedia' konfiguriert",
+                    IDC_STATIC,7,7,196,19
+    PUSHBUTTON      "Kontrollpanel öffnen",IDC_LAUNCH,84,34,108,14
+END
+
+IDD_FILEMISSING DIALOGEX 0, 0, 218, 135
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Datei fehlt ..."
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CTEXT           "MSXML4 fehlt",1019,7,13,204,24,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    CONTROL         "",IDC_STATIC,"Static",SS_WHITERECT,7,7,204,39
+    DEFPUSHBUTTON   "OK",IDOK,161,114,50,14
+    CTEXT           "Der Microsoft XML Parser (MSXML) Version 4 muß installiert sein um diese Anwendung nutzen zu können.\nBitte laden Sie diese Komponente mit dem nachfolgenden Link herunter und installieren Sie diese auf Ihrem Computer.",
+                    IDC_STATIC,7,54,204,34
+    CTEXT           "http://www.microsoft.com/downloads/",IDC_LINK,7,94,204,
+                    11,SS_CENTERIMAGE
+END
+
+IDD_MACROBIND DIALOGEX 0, 0, 284, 172
+STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST,7,7,90,155,LBS_OWNERDRAWVARIABLE | 
+                    LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Standart Tastenkürzel :",IDC_STATIC,109,7,74,8,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "HotKey1",IDC_DEFAULT_KEY,"msctls_hotkey32",WS_BORDER,
+                    109,18,103,13
+    LTEXT           "Aktuelles Tastenkürzel :",IDC_STATIC,109,40,63,8,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "HotKey1",IDC_CURRENT_KEY,"msctls_hotkey32",WS_BORDER,
+                    109,50,103,13
+    LTEXT           "Neues Tastenkürzel eingeben :",IDC_STATIC,109,74,102,8,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CONTROL         "HotKey1",IDC_NEW_KEY,"msctls_hotkey32",WS_BORDER | 
+                    WS_TABSTOP,109,86,103,13
+    PUSHBUTTON      "&Zuweisen",IDC_ASSIGN,223,8,50,14
+    PUSHBUTTON      "Entfernen",IDC_REMOVE,223,26,50,14
+END
+
+IDD_MSGBOX DIALOGEX 0, 0, 242, 126
+STYLE DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,148,104,44,14
+    PUSHBUTTON      "Annuller",IDCANCEL,198,104,38,14
+    CONTROL         "Diese Nachricht nicht nochmal anzeigen",IDC_DONT_SHOW,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,3,105,141,13
+    LTEXT           "",IDC_TEXT,0,0,242,43
+    LTEXT           "",IDC_DESCRIPTION,41,52,188,42,0,WS_EX_TRANSPARENT
+END
+
+IDD_OPTIONS DIALOGEX 0, 0, 387, 225
+STYLE DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "Optionen"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,222,204,50,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,276,204,50,14
+    PUSHBUTTON      "Zuweisen",IDC_APPLY,330,204,50,14
+    CONTROL         "Tree1",IDC_TREE,"SysTreeView32",TVS_DISABLEDRAGDROP | 
+                    TVS_SHOWSELALWAYS | TVS_TRACKSELECT | TVS_SINGLEEXPAND | 
+                    TVS_INFOTIP | WS_BORDER | WS_TABSTOP,7,7,102,178
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,194,373,1
+    LTEXT           "Static",IDC_PLACEHOLDER,117,7,263,178,SS_NOTIFY
+END
+
+IDD_OPTIONS_ALIAS DIALOG DISCARDABLE  0, 0, 261, 173
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Modifizieren Sie die Liste der Tastaturzuordnungen",
+                    IDC_STATIC,0,0,261,15
+    EDITTEXT        IDC_EDIT,49,36,210,136,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | WS_VSCROLL
+    EDITTEXT        IDC_EDIT2,49,19,132,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "",IDC_NEW,185,19,13,13,BS_BITMAP
+    PUSHBUTTON      "",IDC_DELETE,199,19,13,13,BS_BITMAP
+    LISTBOX         IDC_LIST,1,19,45,153,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_OPTIONS_ASSOCIATIONS DIALOG DISCARDABLE  0, 0, 261, 178
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SORTASCENDING | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,0,20,261,157
+    LTEXT           "Aktivieren Sie eine oder mehrere Dateiendunge, die mit der Anwendung \nverknüpft werden sollen.",
+                    IDC_STATIC,0,0,261,15
+END
+
+IDD_OPTIONS_AUTOTEXT DIALOG DISCARDABLE  0, 0, 261, 178
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Autotext Definitionen der Liste hinzufügen.",IDC_STATIC,
+                    0,0,261,15
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,217,26,40,1
+    LTEXT           "Kurzzeichen : ",IDC_STATIC,49,36,44,11,SS_CENTERIMAGE
+    EDITTEXT        IDC_NAME,100,36,121,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "IDI_LOAD1",IDC_NEW,225,36,13,13,BS_ICON
+    PUSHBUTTON      "IDI_LOAD1",IDC_DELETE,239,36,13,13,BS_ICON
+    EDITTEXT        IDC_TEXT,47,52,214,125,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | ES_WANTRETURN
+    LISTBOX         IDC_LIST,1,19,43,158,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Kurzzeichen müssen mindestens 4 Zeichen lang sein",
+                    IDC_STATIC,49,20,168,11,SS_CENTERIMAGE
+END
+
+IDD_OPTIONS_COLORS DIALOG DISCARDABLE  0, 0, 258, 178
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Farben",IDC_STATIC,0,0,26,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,23,4,235,1
+    LISTBOX         IDC_LIST,13,14,68,164,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Schriftart:",IDC_STATIC,88,23,31,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_FONT,119,22,136,76,CBS_DROPDOWN | 
+                    CBS_OWNERDRAWVARIABLE | CBS_SORT | CBS_HASSTRINGS | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Größe:",IDC_STATIC,88,40,15,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_FONTSIZE,119,40,41,60,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Vordergrund:",IDC_STATIC,88,60,41,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_FORE,132,60,76,65,CBS_DROPDOWNLIST | 
+                    CBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Anpassen",IDC_CUSTOM_FORE,211,60,41,14
+    LTEXT           "Hintergrund:",IDC_STATIC,88,77,40,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_BACK,132,77,76,66,CBS_DROPDOWNLIST | 
+                    CBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Anpassen",IDC_CUSTOM_BACK,211,77,41,14
+    CONTROL         "&Fett",IDC_BOLD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    89,97,45,10
+    CONTROL         "&Kursiv",IDC_ITALICS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,89,109,45,10
+    CTEXT           "   Beispiel",IDC_SAMPLE,87,146,171,32,SS_NOPREFIX | 
+                    SS_CENTERIMAGE | SS_SUNKEN
+END
+
+IDD_OPTIONS_DOCUMENTS DIALOGEX 0, 0, 259, 153
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Dokumenteneinstellungen",IDC_STATIC,0,0,61,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,67,4,191,1
+    CONTROL         "Schreibgeschützte Dateien schützen",IDC_READONLY,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,164,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Geänderte Dateien erkennen (Nur lokale Dateien)",
+                    IDC_DETECT_CHANGE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    14,26,231,10,WS_EX_TRANSPARENT
+    CONTROL         "Geänderte Dateien automatisch neu laden",IDC_AUTOLOAD,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,25,38,155,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Bereinigten 'Rückgängig Stack' speichern",IDC_CLEARUNDO,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,51,
+                    120,10,WS_EX_TRANSPARENT
+    LTEXT           "Suchen und ersetzen",IDC_STATIC,0,80,70,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,74,83,185,1
+    CONTROL         "Suchtext vom Editor initialisieren",IDC_FINDTEXT,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,96,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Nachrichtenfenster zeigen",IDC_FINDMESSAGES,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,108,120,10,
+                    WS_EX_TRANSPARENT
+END
+
+IDD_OPTIONS_EDITORS DIALOGEX 0, 0, 263, 153
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Einstellungen",IDC_STATIC,0,0,46,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,48,4,210,1
+    CONTROL         "Speichern bevor einTool ausgeführt wird",IDC_SAVETOOL,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,
+                    144,10,WS_EX_TRANSPARENT
+    CONTROL         "Vor dem Speichern von Dateien nachfragen",
+                    IDC_SAVEPROMPT,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,14,26,163,10,WS_EX_TRANSPARENT
+    CONTROL         "Rechte Kante anzeigen",IDC_SHOWEDGE,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,37,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Bodenloser Editor",IDC_BOTTOMLESS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,48,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Cursorzeile markieren",IDC_CARETLINE,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,59,120,10,
+                    WS_EX_TRANSPARENT
+    LTEXT           "Konfiguration",IDC_STATIC,0,83,43,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,49,87,208,1
+    LTEXT           "EOL Modus:",IDC_STATIC,14,99,42,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_EOL,60,99,93,51,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Caret Weite: ",IDC_STATIC,14,115,43,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_CARETWIDTH,60,115,21,12,ES_AUTOHSCROLL | ES_NUMBER
+END
+
+IDD_OPTIONS_FORMATTING DIALOGEX 0, 0, 257, 168
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Visuelle Ansicht",IDC_STATIC,0,0,52,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,55,4,202,1
+    CONTROL         "Ränder anzeigen",IDC_MARGINS,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,14,15,103,10,WS_EX_TRANSPARENT
+    CONTROL         "Aufklappbar anzeigen",IDC_FOLDING,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,26,103,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Zeilennummern anzeigen",IDC_LINENUMBERS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,37,103,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Wortumbruch in Zeilen",IDC_WORDWRAP,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,48,103,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Tab Tastenzeileneinzug",IDC_TABINDENT,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,59,103,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Delete Tastenzeileneinzug",IDC_BACKUNINDENT,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,70,103,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Tabs verwenden",IDC_USETABS,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,14,81,103,10,WS_EX_TRANSPARENT
+    CONTROL         "Zeige führenden Zeileneinzug",IDC_INDENTS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,123,15,120,10,
+                    WS_EX_TRANSPARENT
+    LTEXT           "Formatierung",IDC_STATIC,0,101,43,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,45,105,211,1
+    LTEXT           "Einrückung :",IDC_STATIC,14,117,40,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_INDENTATION,60,117,60,45,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Tab Weite : ",IDC_STATIC,14,133,40,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_TABWIDTH,60,133,29,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Einzugsweite: ",IDC_STATIC,14,148,44,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_INDENTWIDTH,60,148,29,12,ES_AUTOHSCROLL | ES_NUMBER
+END
+
+IDD_OPTIONS_GENERAL DIALOG DISCARDABLE  0, 0, 263, 153
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Einstellungen",IDC_STATIC,0,0,43,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,46,4,212,1
+    CONTROL         "Verwende Tab Dokumente",IDC_USE_TABBED,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,14,15,124,9
+    CONTROL         "Verwende MDI Dokumente",IDC_USE_MDI,"Button",
+                    BS_AUTORADIOBUTTON,14,26,124,9
+    LTEXT           "Beim Start : ",IDC_STATIC,14,45,35,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_STARTUP,52,45,111,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Sprache:",IDC_STATIC,14,130,35,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_LANGUAGE,53,129,111,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Sprache:",IDC_STATIC,0,113,32,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,34,118,224,1
+END
+
+IDD_OPTIONS_MAPPINGS DIALOG DISCARDABLE  0, 0, 261, 178
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,0,20,261,157
+    LTEXT           "Diese Liste definiert, welche Dateiendungen durch den Editor interpretiert werden. Fügen Sie benutzerdefinierte Dateiendungen der Liste hinzu.",
+                    IDC_STATIC,0,0,261,16
+END
+
+IDD_OPTIONS_PRINTING DIALOGEX 0, 0, 259, 153
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Drucken",-1,0,0,28,9
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,32,4,226,1
+    CONTROL         "Wortumbruch in Zeilen",IDC_WORDWRAP,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "In Farbe drucken",IDC_COLORS,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,14,27,120,10,WS_EX_TRANSPARENT
+END
+
+IDD_TOOLS DIALOGEX 0, 0, 259, 225
+STYLE DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Externe Tools"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Menüinhalt",IDC_STATIC,7,7,80,14,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOCOLUMNHEADER | 
+                    LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,21,245,69
+    CONTROL         "Titel: ",IDC_STATIC,"Static",SS_SIMPLE | SS_NOPREFIX | 
+                    SS_CENTERIMAGE | WS_GROUP,7,100,39,12,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_TITLE,51,100,201,12,ES_AUTOHSCROLL
+    CONTROL         "Befehl: ",IDC_STATIC,"Static",SS_SIMPLE | SS_NOPREFIX | 
+                    SS_CENTERIMAGE | WS_GROUP,7,115,39,12,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_COMMAND,51,115,184,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE_FILE,238,115,14,12,NOT WS_TABSTOP
+    CONTROL         "Argumente: ",IDC_STATIC,"Static",SS_SIMPLE | 
+                    SS_NOPREFIX | SS_CENTERIMAGE | WS_GROUP,7,129,39,12,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_ARGUMENTS,51,129,184,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "",IDC_BROWSE_ARGUMENTS,238,130,14,12,BS_ICON | NOT 
+                    WS_TABSTOP
+    CONTROL         "Initialer Pfad:",IDC_STATIC,"Static",SS_SIMPLE | 
+                    SS_NOPREFIX | SS_CENTERIMAGE | WS_GROUP,7,144,42,12,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PATH,51,144,184,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE_PATH,238,144,14,12,NOT WS_TABSTOP
+    CONTROL         "Typ : ",IDC_STATIC,"Static",SS_SIMPLE | SS_NOPREFIX | 
+                    SS_CENTERIMAGE | WS_GROUP,7,159,39,12,WS_EX_TRANSPARENT
+    COMBOBOX        IDC_TYPE,51,159,104,46,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Ausgabefenster verwenden",IDC_USE_OUTPUT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,178,104,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Für Argumente auffordern",IDC_PROMPT_ARGS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,191,102,10,
+                    WS_EX_TRANSPARENT
+    DEFPUSHBUTTON   "OK",IDOK,149,204,50,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,202,204,50,14
+    PUSHBUTTON      "IDI_LOAD1",IDC_NEW,198,7,13,13,BS_ICON
+    PUSHBUTTON      "IDI_LOAD1",IDC_DELETE,211,7,13,13,BS_ICON
+    PUSHBUTTON      "IDI_LOAD1",IDC_UP,225,7,13,13,BS_ICON
+    PUSHBUTTON      "IDI_LOAD1",IDC_DOWN,239,7,13,13,BS_ICON
+END
+
+IDD_WIZARD_SOLUTIONDONE DIALOGEX 0, 0, 330, 169
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Sie haben den 'Neuer Arbeitsbereich Wizard' erfolgreich abgeschlossen.\n\nDas von Ihnen gewählte Projekt wurde erfolgreich zum Arbeitsbereich hinzugefügt.\n\nKlicken Sie auf Beenden um die Änderungen zu speichern.",
+                    -1,125,13,194,76,0,WS_EX_TRANSPARENT
+END
+
+IDD_WIZARD_SOLUTIONTYPE DIALOGEX 0, 0, 329, 169
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Geben Sie den Namen des Projektes an :",IDC_STATIC,7,7,
+                    315,9,0,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_NAME,7,18,162,12,ES_AUTOHSCROLL
+    LTEXT           "Projekttyp :",IDC_STATIC,7,35,315,9,0,WS_EX_TRANSPARENT
+    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_SINGLESEL | 
+                    LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_AUTOARRANGE | 
+                    LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,7,47,257,114
+END
+
+IDD_WINDOWS DIALOG DISCARDABLE  0, 0, 283, 185
+STYLE DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Fenster"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,226,7,50,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,226,24,50,14
+    PUSHBUTTON      "&Aktivieren",IDC_ACTIVATE,226,46,50,14
+    PUSHBUTTON      "&Schließen",IDC_CLOSE,226,63,50,14
+    LTEXT           "Fenster selektieren :",IDC_STATIC,7,7,134,11,
+                    SS_CENTERIMAGE
+    CONTROL         "List2",IDC_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_NOCOLUMNHEADER | 
+                    LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,20,205,158
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ADDIN_MANAGER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 288
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 154
+    END
+
+    IDD_ARGUMENTPROMPT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 275
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 99
+    END
+
+    IDD_CHOOSESOLUTION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 291
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 238
+    END
+
+    IDD_CONFIG_KEYBOARD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 273
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
+    END
+
+    IDD_CONFIG_LAYOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 203
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 191
+    END
+
+    IDD_CONFIG_MACROS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 195
+    END
+
+    IDD_CONFIG_SOUNDS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 203
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 191
+    END
+
+    IDD_FILEMISSING, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 211
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 128
+    END
+
+    IDD_MACROBIND, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 273
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
+    END
+
+    IDD_MSGBOX, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 119
+    END
+
+    IDD_OPTIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 380
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 218
+    END
+
+    IDD_TOOLS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 252
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 218
+    END
+
+    IDD_WIZARD_SOLUTIONDONE, DIALOG
+    BEGIN
+        RIGHTMARGIN, 329
+    END
+
+    IDD_WINDOWS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 276
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 178
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDM_COOLTAB MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Aktivieren",                  ID_TAB_ACTIVATE
+        MENUITEM "&Speichern",                  ID_FILE_SAVE
+        MENUITEM SEPARATOR
+        MENUITEM "Schließen",                   ID_TAB_CLOSE
+        MENUITEM "Alle schließen",              ID_TAB_CLOSEALL
+        MENUITEM "Alle außer dieses Schließen", ID_TAB_CLOSEALLEXCEPT
+    END
+END
+
+IDM_TOOL_ARGS MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "$FILENAME$",                  ID_TOOLTOKEN_FILENAME
+        MENUITEM "$PROJECTNAME$",               ID_TOOLTOKEN_PROJECTNAME
+        MENUITEM "$PROJECTPATH$",               ID_TOOLTOKEN_PROJECTPATH
+        MENUITEM "$SELECTION$",                 ID_TOOLTOKEN_SELECTION
+        MENUITEM "$HOSTNAME$",                  ID_TOOLTOKEN_HOSTNAME
+    END
+END
+
+IDM_TOOL_PATH MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "$PROJECTNAME$",               ID_TOOLTOKEN_PROJECTNAME
+        MENUITEM "$PROJECTPATH$",               ID_TOOLTOKEN_PROJECTPATH
+    END
+END
+
+IDR_COMMANDVIEW MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Kopieren\tCtrl+C",            ID_EDIT_COPY
+    END
+END
+
+IDR_MAINFRAME MENU PRELOAD DISCARDABLE 
+BEGIN
+    POPUP "&Datei"
+    BEGIN
+        POPUP "&Neu"
+        BEGIN
+            MENUITEM "Arbeitsbereich...",           ID_NEW_SOLUTION
+        END
+        POPUP "Hinzufügen\tCtrl+A"
+        BEGIN
+            MENUITEM "Neues Projekt...",            ID_NEW_PROJECT
+            MENUITEM "Vorhandenes Projekt",         ID_ADD_PROJECT
+        END
+        MENUITEM "Datei öffnen\tCtrl+O",        ID_FILE_OPEN
+        MENUITEM "Schließen",                   ID_WINDOW_CLOSE
+        MENUITEM SEPARATOR
+        MENUITEM "Arbeitsbereich öffnen...",    ID_FILE_OPENSOLUTION
+        MENUITEM "Arbeitsbereich schließen",    ID_FILE_CLOSESOLUTION
+        MENUITEM SEPARATOR
+        MENUITEM "&Speichern\tCtrl+S",          ID_FILE_SAVE
+        MENUITEM "Alles speichern",             ID_FILE_SAVE_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "Drucker Einstellungen\tCtrl+R", ID_FILE_PRINT_SETUP
+        MENUITEM "Drucken...\tCtrl+P",          ID_FILE_PRINT
+        MENUITEM SEPARATOR
+        POPUP "Zuletzt geöffnete Dateien"
+        BEGIN
+            MENUITEM "(leer)",                      ID_FILE_MRU_FILE1
+            , GRAYED
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Beenden",                     ID_APP_EXIT
+    END
+    POPUP "&Bearbeiten"
+    BEGIN
+        MENUITEM "Rückgängig\tCtrl+Z",          ID_EDIT_UNDO
+        MENUITEM "Wiederherstellen\tCtrl+Y",    ID_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "Ausschneiden\tCtrl+X",        ID_EDIT_CUT
+        MENUITEM "Kopieren\tCtrl+C",            ID_EDIT_COPY
+        MENUITEM "Einfügen\tCtrl+V",            ID_EDIT_PASTE
+        MENUITEM "Löschen",                     ID_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "Alles markieren\tCtrl+A",     ID_EDIT_SELECT_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "Suchen...\tCtrl+F",           ID_EDIT_FIND
+        MENUITEM "Ersetzen...\tCtrl+R",         ID_EDIT_REPLACE
+        MENUITEM SEPARATOR
+        MENUITEM "&Gehe zu...\tCtrl+G",         ID_EDIT_GOTO
+    END
+    POPUP "&Ansicht"
+    BEGIN
+        MENUITEM "Öffnen",                      ID_VIEW_OPEN
+        MENUITEM SEPARATOR
+        POPUP "Ansichten"
+        BEGIN
+            MENUITEM "Arbeitsbereich Explorer",     ID_VIEW_EXPLORER
+            MENUITEM "Eigenschaftsfenster",         ID_VIEW_PROPERTYBAR
+        END
+        POPUP "Andere Fenster"
+        BEGIN
+            MENUITEM "Ausgabefenster",              ID_VIEW_OUTPUT
+            MENUITEM "Befehlsfenster",              ID_VIEW_COMMAND
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
+        MENUITEM "&Statusbar",                  ID_VIEW_STATUS_BAR
+        MENUITEM SEPARATOR
+        MENUITEM "Vollbild             \tF12",  ID_VIEW_FULLSCREEN
+        MENUITEM SEPARATOR
+        MENUITEM "Eigenschaften",               ID_VIEW_PROPERTIES
+    END
+    POPUP "&Tools"
+    BEGIN
+        POPUP "Makros"
+        BEGIN
+            MENUITEM "Abspielen",                   ID_MACRO_PLAY, GRAYED
+            MENUITEM SEPARATOR
+            MENUITEM "Makro aufzeichnen",           ID_MACRO_RECORD, GRAYED
+            MENUITEM "Aufzeichnung beenden",        ID_MACRO_CANCEL, GRAYED
+            MENUITEM "&Speichern",                  ID_MACRO_SAVE, GRAYED
+            MENUITEM SEPARATOR
+            MENUITEM "Makromanager...",             ID_MACRO_MANAGER
+        END
+        MENUITEM "Add-In Manager...",           ID_TOOLS_ADDIN_MANAGER
+        MENUITEM SEPARATOR
+        MENUITEM "&Externe Tools...",           ID_TOOLS_EXTERNAL
+        MENUITEM SEPARATOR
+        MENUITEM "&Optionen...",                ID_TOOLS_OPTIONS
+        MENUITEM "&Anpassen...",                ID_TOOLS_CUSTOMIZE
+    END
+    POPUP "&Fenster"
+    BEGIN
+        MENUITEM "Überlappend",                 ID_WINDOW_CASCADE
+        MENUITEM "Untereinander",               ID_WINDOW_TILE_HORZ
+        MENUITEM "Nebeneinander",               ID_WINDOW_TILE_VERT
+        MENUITEM "Symbole anordnen",            ID_WINDOW_ARRANGE
+        MENUITEM SEPARATOR
+        MENUITEM "&Nächstes",                   ID_WINDOW_NEXT
+        MENUITEM "&Vorhergehendes",             ID_WINDOW_PREVIOUS
+        MENUITEM SEPARATOR
+        MENUITEM "&Alle schließen",             ID_WINDOW_CLOSE_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "Fenster...",                  ID_WINDOW_VIEW
+    END
+    POPUP "&Hilfe"
+    BEGIN
+        MENUITEM "Inhalt...",                   ID_HELP_CONTENTS
+        MENUITEM "Index...",                    ID_HELP_INDEX
+        MENUITEM "&Suchen...",                  ID_HELP_SEARCH
+        MENUITEM SEPARATOR
+        MENUITEM "Startseite zeigen",           ID_HELP_STARTPAGE
+        MENUITEM SEPARATOR
+        MENUITEM "&Über BVRDE...",              ID_APP_ABOUT
+    END
+END
+
+IDR_OUTPUTVIEW MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Löschen",                     ID_EDIT_CLEARVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "Kopieren",                    ID_EDIT_COPY
+    END
+END
+
+IDR_SOLUTION MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Neues Projekt hinzufügen...", ID_NEW_PROJECT
+        MENUITEM "Existierendes Projekt hinzufügen...", ID_ADD_PROJECT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE PRELOAD DISCARDABLE 
+BEGIN
+    IDR_MAINFRAME           "BVRDE"
+    IDR_MDICHILD            "Dokument"
+    IDS_SOLUTION            "Arbeitsbereich"
+    IDS_SOULTIONEXPLORER    "Arbeitsbereich Explorer"
+    IDS_ERR_LOADPROJECT     "Fehler während des ladens\nWährend dem Laden des Projektes in den Arbeitsbereich ist ein Fehler aufgetreten.\nDas Projekt wird aus dem Arbeitsbereich entfernt."
+    IDS_ERR_CREATEPROJECT   "Fehler während des ladens\nWährend dem erzeugen eines neuen Projekttemplates ist ein Fehler aufgetreten.\nDas Projekt wird aus dem Arbeitsbereich entfernt.\n"
+    IDS_CAPTION_ERROR       "Fehler"
+    IDS_CAPTION_QUESTION    "Frage"
+    IDS_CAPTION_MESSAGE     "Nachricht"
+    IDS_ERR_PROJECTTYPE     "Fehler während des Ladens\nDas Projekt hat einen undefinierten Typ.\nDas Projekt '%s' hat den unbekannten Typ '%s'. Es wird aus dem Arbeitsbereich entfernt."
+    IDS_ERR_SAVEPROJECT     "Speicherfehler\nEin Fehler ist beim schreiben der Projektdatei aufgetreten."
+    IDS_SAVE_DIRTY          "Änderungen speichern\nEs wurden Änderungen im Arbeitsbereich vorgenommen. Möchten Sie die Änderungen zuerst speichern ?"
+    IDS_FILTER_PROJECT      "Projektdateien|*.prj|Alle Dateien|*.*|"
+    IDS_FILTER_SOLUTION     "Arbeitsbereich Dateien|*.sln|Alle Dateien|*.*|"
+END
+
+STRINGTABLE PRELOAD DISCARDABLE 
+BEGIN
+    ID_SB_PANE1             "              "
+    ID_SB_PANE2             "                 "
+    ID_SB_PANE3             "             "
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_NEW             "Ein neues Dokument erstellen\nNeu"
+    ID_FILE_OPEN            "Ein existierendes Dokument öffnen\\Öffnen"
+    ID_FILE_CLOSE           "Das aktive Dokument schließen\nSchließen"
+    ID_FILE_SAVE            "Das aktive Dokument speichern\nSpeichern"
+    ID_FILE_SAVE_AS         "Das aktive Dokument unter einem anderen Namen speichern\nSpeichern unter"
+    ID_FILE_PAGE_SETUP      "Ändern der Seiteneinstellungen\nSeiteneinstellungen"
+    ID_FILE_PRINT_SETUP     "Ändern der Drucker und Druckoptionen\nDruckereinstellungen"
+    ID_FILE_PRINT           "Print the active document\nPrint"
+    ID_FILE_PRINT_PREVIEW   "Display full pages\nPrint Preview"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_APP_ABOUT            "Programminformationen anzeigen, Versionsnummer und Copyright\nÜber"
+    ID_APP_EXIT             "Anwendung beenden; Fragen ob Dokumente gespeichert werden sollen\nBeenden"
+    ID_HELP_INDEX           "Dokumentationsindex anzeigen\nHilfe index"
+    ID_HELP                 "Anwendungsdokumentation anzeigen\nHilfe"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_NEXT_PANE            "Wechselt zum nächsten Fensterausschnitt.\nNächster Ausschnitt"
+    ID_PREV_PANE            "Springt zum vorherigen Fensterausschnitt zurück.\nVorheriger Ausschnitt"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_WINDOW_NEW           "Öffnet ein weiteres Fenster für das aktive Dokument.\nNeues Fenster"
+    ID_WINDOW_ARRANGE       "Ordnet die Symbole im unteren Bereich des Fensters an.\nSymbole anordnen"
+    ID_WINDOW_CASCADE       "Ordnet die Fenster überlappend an.\nÜberlappende Fenster"
+    ID_WINDOW_TILE_HORZ     "Ordnet die Fenster nebeneinander an.\nFenster nebeneinander"
+    ID_WINDOW_TILE_VERT     "Ordnet die Fenster nebeneinander an.\nFenster nebeneinander"
+    ID_WINDOW_SPLIT         "Teilt das aktive Fenster in Ausschnitte.\nTeilen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_CLEAR           "Löscht die Markierung.\nLöschen"
+    ID_EDIT_CLEAR_ALL       "Löscht alles.\nAlles löschen"
+    ID_EDIT_COPY            "Kopiert die Markierung und überträgt sie in die Zwischenablage.\nKopieren"
+    ID_EDIT_CUT             "Entfernt die Markierung und überträgt sie in die Zwischenablage.\nAusschneiden"
+    ID_EDIT_FIND            "Sucht den angegebenen Text.\nSuchen"
+    ID_EDIT_PASTE           "Fügt den Inhalt der Zwischenablage ein.\nEinfügen"
+    ID_EDIT_CLEAR2          "Die View bereinigen\nBereinigen"
+    ID_EDIT_COPY2           "Kopiert den selektierten Text\nKopieren"
+    ID_EDIT_REPEAT          "Wiederholt die letzte Aktion.\nWiederholen"
+    ID_EDIT_REPLACE         "Ersetzt einen bestimmten Text durch einen anderen.\nErsetzen"
+    ID_EDIT_SELECT_ALL      "Markiert das gesamte Dokument.\nAlles markieren"
+    ID_EDIT_UNDO            "Macht die letzte Aktion rückgängig.\nRückgängig"
+    ID_EDIT_REDO            "Wiederholt die vorher rückgängig gemachte Aktion.\nWiederherstellen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_TOOLBAR         "Blendet die Symbolleiste ein oder aus.\nSymbolleiste ein-/ausschalten"
+    ID_VIEW_STATUS_BAR      "Blendet die Statusleiste ein oder aus.\nStatusleiste ein-/ausschalten"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ATL_IDS_SCSIZE          "Ändert die Fenstergröße."
+    ATL_IDS_SCMOVE          "Ändert die Position des Fensters."
+    ATL_IDS_SCMINIMIZE      "Verkleinert das Fenster zu einem Symbol."
+    ATL_IDS_SCMAXIMIZE      "Vergrößert das Fenster zu voller Größe."
+    ATL_IDS_SCNEXTWINDOW    "Wechselt zum nächsten Dokumentfenster."
+    ATL_IDS_SCPREVWINDOW    "Wechselt zum vorherigen Dokumentfenster."
+    ATL_IDS_SCCLOSE         "Schließt das aktive Fenster und fordert zur Dokumentspeicherung auf."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ATL_IDS_SCRESTORE       "Stellt das Fenster in seiner normalen Größe wieder her."
+    ATL_IDS_SCTASKLIST      "Aktiviert die Task-Liste."
+    ATL_IDS_MDICHILD        "Aktiviert dieses Fenster."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ATL_IDS_IDLEMESSAGE     " Bereit"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ATL_IDS_MRU_FILE        "Dieses Dokument öffnen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_OPENSOLUTION    "Einen neuen Arbeitsbereich öffnen\nArbeitsbereich öffnen"
+    ID_FILE_CLOSESOLUTION   "Aktuellen Arbeitsbereich schließen\nArbeitsbereich schließen"
+    ID_FILE_SAVE_ALL        "Alle geänderten Dokumente speichern\nAlles speichern"
+    ID_NEW_SOLUTION         "Einen neuen leeren Arbeitsbereich hinzufügen\nNeuer Arbeitsbereich"
+    ID_NEW_PROJECT          "Ein neues Projekt dem Arbeitsbereich hinzufügen\nProjekt erstellen"
+    ID_ADD_PROJECT          "Ein existierendes Projekt dem Arbeitsbereich hinzufügen\nProjekt hinzufügen"
+    ID_EDIT_GOTO            "Gehe zu..."
+    ID_EDIT_DELETE          "Selektierten Eintrag löschen\nLöschen"
+    ID_VIEW_EXPLORER        "Arbeitsbereich Explorer anzeigen/verbergen\nExplorer"
+    ID_WINDOW_VIEW          "Untere aktiven Fenster schließen\nFenster"
+    ID_WINDOW_CLOSE         "Aktives Fenster schließen\nFenster schließen"
+    ID_WINDOW_CLOSE_ALL     "Alle offenen Fenster schließen\nAlle schließen"
+    ID_TOOLS_OPTIONS        "Arbeitsbereich Optionen anzeigen\nOptionen"
+    ID_TOOLS_CUSTOMIZE      "Anwendungseinstellungen anpassen\nAnpassen"
+    ID_TOOLS_EXTERNAL       "Externe Tool managen\nExterne Tools"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_PROPERTIES      "Eigenschaften anzeigen\nEigenschaften"
+    ID_VIEW_OUTPUT          "Ausgabefenster anzeigen/verbergen\nAusgabe"
+    ID_VIEW_COMMAND         "Befehlsfenster anzeigen/verbergen\nBefehl"
+    ID_VIEW_OPEN            "Ein Dokument öffnen\nÖffnen"
+    ID_HELP_STARTPAGE       "Startseite anzeigen\nStartseite"
+    ID_HELP_SEARCH          "Nach Einträgen in der Dokumentation suchen\nSuchen"
+    ID_HELP_CONTENTS        "Zeigt das Inhaltsverzeichnis der Onlinedokumentation\nInhalt"
+    ID_MACRO_RECORD         "Ein Makro aufzeichnen\nMakro aufzeichnen"
+    ID_MACRO_CANCEL         "Makroaufzeichnung stoppen\nAufzeichnung stoppen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SAVE_FIRST          "Arbeitsbereich speichern\nSie müssem zuerst den aktuellen Arbeitsbereich speichern.\nBitte wählen Sie einen Namen für den Arbeitsbereich im nachfolgenden Dialog..."
+    IDS_PROPERTIES          "Eigenschaften"
+    IDS_MISC                "Diverses"
+    IDS_TRUE                "True"
+    IDS_FALSE               "False"
+    IDS_PROPERTIES_NAME     "%s - %s Eigenschaften "
+    IDS_YES                 "&Ja"
+    IDS_NO                  "&Nein"
+    IDS_OK                  "&OK"
+    IDS_WIZARD_TITLE_SOLUTIONTYPE "Neues Projekt hinzufügen"
+    IDS_WIZARD_SUBTITLE_SOLUTIONTYPE 
+                            "Wählen Sie den Namen und den Typ des Projektes, welches Sie erstellen möchten."
+    IDS_PROJECTNAME         "Projekt%ld"
+    IDS_WIZARD_NEWPROJECT   "Projekt hinzufügen"
+    IDS_WIZARD_NEWSOLUTION  "Neuen Arbeitsbereich erstellen"
+    IDS_WIZARD_TITLE_FINISH "Arbeitsbereich beenden"
+    IDS_WIZARD_SUBTITLE_FINISH 
+                            "Sie haben den 'Neuer Arbeitsbereich Wizard' erfolgreich abgeschlossen.\n\nDas von Ihnen gewählte Projekt wurde erfolgreich zum Arbeitsbereich hinzugefügt."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_SAVESOLUTION "Arbeitsbereich speichern"
+    IDS_CAPTION_SAVEPROJECT "Projekt speichern"
+    IDS_CAPTION_OUTPUT      "Ausgabe"
+    IDS_CAPTION_COMMAND     "Befehl"
+    IDS_SOLUTIONNAME        "Arbeitsbereich"
+    IDS_TREE_ROOT           "Konfiguration"
+    IDS_TREE_ENVIRONMENT    "Umgebung"
+    IDS_TREE_GENERAL        "Generell"
+    IDS_TREE_DOCUMENTS      "Dokument"
+    IDS_TREE_EDITORS        "Texteditoren"
+    IDS_TREE_TABS           "Tabs"
+    IDS_TREE_FORMATTING     "Formatierung"
+    IDS_TREE_COLORS         "Farben"
+    IDS_TREE_PRINTING       "Drucken"
+    IDS_ADDIN               "Add-In"
+    IDS_KEYBOARD            "Tastatur"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_LAYOUT              "Layout"
+    IDS_MAIN_TOOLBAR        "Standart"
+    IDS_TOOLBARS            "Toolbar's"
+    IDS_TREE_CPP            "C/C++"
+    IDS_TREE_MAKEFILE       "Makefile"
+    IDS_TREE_TEXT           "Plain Text"
+    IDS_TREE_HTML           "HTML"
+    IDS_TREE_XML            "XML"
+    IDS_TREE_VB             "Basic"
+    IDS_TREE_JAVA           "Java"
+    IDS_TREE_CSS            "CSS"
+    IDS_TREE_PHP            "PHP"
+    IDS_TREE_PERL           "Perl"
+    IDS_STARTUP_BLANK       "Nichts"
+    IDS_STARTUP_OPENFILE    "'Datei öffnen' Dialog anzeigen"
+    IDS_STARTUP_STARTPAGE   "Startseite anzeigen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CUSTOM              "Anpassen"
+    IDS_CANCEL              "Abbrechen"
+    IDS_STARTUP_LAST        "Letzten Arbeitsbereich laden"
+    IDS_AUTOMATIC           "Automatisch erkennen"
+    IDS_NONE                "Keines"
+    IDS_AUTO                "Auto"
+    IDS_SMART               "Smart"
+    IDS_TYPE_PROJECT        "Projekt"
+    IDS_TYPE_FILETYPE       "Dateiendung"
+    IDS_TYPE_EXTENSION      "Enhancement"
+    IDS_TYPE                "Type"
+    IDS_TREE_BASIC          "BASIC"
+    IDS_CREDITS             "\n\n\n\n\n\nBVRDE\nVersion $VER$\n\nProgrammiert von \nBjarke Viksøe\n\nDeutsche Übersetzung\nDipl.-Ing. Torsten Albrecht\nE-Mail : info@AttNet.de\n\n3rd Party Komponenten\n\nScintilla Editor\nvon Neil Hodgson\n\nCryptlib\nvon Peter Gutmann\n\n\n"
+    IDS_NEWTOOL             "<Neues Tool>"
+    IDS_FILTER_EXE          "Ausführbare Dateien|*.exe;*.lnk|Alle Dateien|*.*|"
+    IDS_FILTER_ALL          "Alle Dateien|*.*|Quellcode Dateien|*.c*;*.h*;*.jav*;*.vb*;*.bas*|Ausführbare Dateien|*.exe;*.lnk|"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TREE_SQL            "SQL"
+    IDS_ERR_FILELOCKED      "Datei gesperrt\nAuf die Datei kann nicht zugegriffen werden. Ist sie gesperrt ?!"
+    IDS_ERR_FILEOPEN        "Datei öffnen Fehler\nDie Datei wurde nicht gefunden oder konnte nicht geöffnet werden.\nWählen Sie eine andere Datei."
+    IDS_ERR_VBSCRIPT        "Skript Komponente fehlt\nEs ist nicht möglich die VBSkript Komponente zu erstellen.\nHaben Sie eine fehlerhafte Windows Installation ?!"
+    IDS_COMMAND_HELP        "Die fologende Syntax ist erlaubt :\r\n  help - Dieser Text.\r\n  ? <expr> - Ausdruck überprüfen.\r\n  run <datei> - Ein Programm ausfrühren.\r\n  exec <datei> - Programm ausführen und die Ausgabe aufzeichnen.\r\n  print <datei> - Den Inhalt an den Drucker senden.\r\n"
+    IDS_ERR_UNKNOWNCOMMAND  "Unbekannter Befehl\r\n"
+    IDS_TYPEHELP            "Tippen Sie ""help"" um die verfügbaren Befehle zu sehen.\r\n"
+    IDS_ERR_SCRIPT          "Es ist ein Fehler während dem Parsen des Skriptes aufgetreten : \nQuelle: %ls\nFehler: %08X\nBeschreibung: %ls\nZeile: %ld\n"
+    IDS_TREE_ASSOCIATIONS   "Dateizuordnungen"
+    IDS_TREE_ABBREVIATIONS  "Abkürzungsverzeichnis"
+    IDS_ASSOC_COL1          "Dateiendung"
+    IDS_ASSOC_COL2          "Dateityp"
+    IDS_WIZARD_NEWFILE      "Neue Datei hinzufügen"
+    IDS_WIZARD_TITLE_FILEFINISH "Neuen Eintrag erstellen"
+    IDS_WIZARD_SUBTITLE_FILEFINISH 
+                            "Sie haben den 'Neuer Arbeitsbereich Wizard' erfolgreich abgeschlossen.\n\nDas von Ihnen gewählte Projekt wurde erfolgreich zum Arbeitsbereich hinzugefügt."
+    IDS_STATUS_LOADING      "lade ... %s..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_STATUS_CLOSING      " Schließe Arbeitsbereich..."
+    IDS_TREE_AUTOTEXT       "Autotext"
+    IDS_TREE_PASCAL         "Pascal"
+    IDS_TREE_PYTHON         "Python"
+    IDS_FULLSCREEN_TOOLBAR  "Vollbild"
+    IDS_FULLSCREEN          "Vollbild"
+    IDS_NEW                 "Neu"
+    IDS_ADD                 "Hinzufügen"
+    IDS_STOPRECORDING       "Aufzeichnung beenden ?\nMöchten Sie die Aufzeichnung des aktiven Makros beenden ?\nSie müssen das Aufzeichnen beenden bevor Sie es abspielen können."
+    IDS_CAPTION_SAVEMACRO   "Makro speichern"
+    IDS_FILTER_MACRO        "Makros|*.vbs|Alle Dateien|*.*|"
+    IDS_MACROBIND           "Makros"
+    IDS_KEYDUPLICATE        "Tastenkürzel duplizieren\nDieses Tastenkürzel wird bereits verwendet. Fortfahren ?\nDie Tastenkombination wird bereits für ein anderes Tastenkürzel verwendet."
+    IDS_TREE_ASP            "ASP"
+    IDS_TOOLTYPE_LOCAL      "Lokal"
+    IDS_TOOLTYPE_COMPILER   "Compiler"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_PROPERTYBAR     "Das Eigenschaftsfenster anzeigen/verbergen\nEigenschaftsfenster"
+    ID_TAB_CLOSE            "Das aktuelle Dokument schließen\nSchließen"
+    ID_TAB_CLOSEALL         "Alle Dokumente schließen\nAlle schließen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_TAB_CLOSEALLEXCEPT   "Alle Dokumente außer dieses schließen\nAlle schließen, ausgenommen dieses"
+    ID_TAB_ACTIVATE         "Dieses Dokument aktivieren\nAktivieren"
+    ID_VIEW_FULLSCREEN      "Zeig das Dokument im Vollbild\nVollbild"
+    ID_EDIT_CLEARVIEW       "Den Text in der Ansicht löschen\nLöschen"
+    ID_TOOLTOKEN_NAME       "Wird mit dem Projektnamen ersetzt\nName"
+    ID_TOOLTOKEN_PROJECTPATH "Wird mit dem Projektpfad ersetzt\nProjektpfad"
+    ID_TOOLTOKEN_SELECTION  "Wird mit dem selektierten Bereich ersetzt\nEditorselektion"
+    ID_TOOLTOKEN_HOSTNAME   "Wird mit dem Namen des Hostes ersetzt\nHostname"
+    ID_TOOLTOKEN_FILENAME   "Wird mit dem aktiven Dateinamen ersetzt\nDateiname"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TOOLTYPE_SQL        "SQL"
+    IDS_SOUNDS              "Klänge"
+    IDS_CUSTOMIZE           "Anpassen"
+    IDS_TOOLTYPE_DEBUGGER   "Debugger"
+    IDS_EXTERNALTOOL        "Ruft ein externes Tool auf\nTool Ausführen"
+    IDS_TREE_MAPPINGS       "Dateizuordnungen"
+    IDS_LASTVALUE           "<< Klicken Sie hier um einen neuen Eintrag hinzuzufügen >>"
+    IDS_MAPPING_COL1        "Endung"
+    IDS_MAPPING_COL2        "Editortyp"
+    IDS_LANG_DEFAULT        "Standart"
+    IDS_LANG_ENGLISH        "English"
+    IDS_LANG_GERMAN         "Deutch"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_WINDOW_NEXT          "Das nächste Dokument aktivieren\nNächstes"
+    ID_WINDOW_PREVIOUS      "Das vorhergehende Dokument aktivieren\nVorhergehendes"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_TOOLS_ADDIN_MANAGER  "Den Add-In Manager anzeigen\nAdd-In Manager"
+    ID_MACRO_SAVE           "Ein Makro auf die Festplatte speichern\nMakro speichern"
+    ID_MACRO_PLAY           "Spielt ein Makro ab\nMakro abspielen"
+    ID_MACRO_MANAGER        "Den Makromanager anzeigen\nMakromanager"
+END
+
+#endif    // German (Germany) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
@@ -214,9 +1359,9 @@ BEGIN
     PUSHBUTTON      "Remove",IDC_REMOVE,223,26,50,14
 END
 
-IDD_OPTIONS_GENERAL DIALOGEX 0, 0, 263, 153
+IDD_OPTIONS_GENERAL DIALOG DISCARDABLE  0, 0, 263, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Settings",IDC_STATIC,0,0,26,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,32,4,226,1
@@ -225,8 +1370,13 @@ BEGIN
     CONTROL         "Use MDI Documents",IDC_USE_MDI,"Button",
                     BS_AUTORADIOBUTTON,14,26,124,9
     LTEXT           "At startup: ",IDC_STATIC,14,45,35,12,SS_CENTERIMAGE
-    COMBOBOX        IDC_STARTUP,52,45,111,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_STARTUP,53,45,111,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
+    LTEXT           "Language:",IDC_STATIC,14,129,35,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_LANGUAGE,53,128,111,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Language",IDC_STATIC,0,113,32,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,41,118,217,1
 END
 
 IDD_OPTIONS_DOCUMENTS DIALOGEX 0, 0, 259, 153
@@ -337,7 +1487,7 @@ END
 
 IDD_OPTIONS_EDITORS DIALOGEX 0, 0, 263, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Settings",IDC_STATIC,0,0,26,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,33,4,225,1
@@ -629,73 +1779,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_MSG_WARNING         ICON    DISCARDABLE     "res\\warning.ico"
-IDI_MSG_QUESTION        ICON    DISCARDABLE     "res\\question.ico"
-IDI_MSG_INFORMATION     ICON    DISCARDABLE     "res\\information.ico"
-IDI_MSG_ERROR           ICON    DISCARDABLE     "res\\error.ico"
-IDI_LOAD1               ICON    DISCARDABLE     "res\\load1.ico"
-IDI_LOAD2               ICON    DISCARDABLE     "res\\load2.ico"
-IDI_LOAD3               ICON    DISCARDABLE     "res\\load3.ico"
-IDI_NEW                 ICON    DISCARDABLE     "res\\new.ico"
-IDI_DELETE              ICON    DISCARDABLE     "res\\delete.ico"
-IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
-IDI_DOWN                ICON    DISCARDABLE     "res\\down.ico"
-IDI_DROPARROW           ICON    DISCARDABLE     "res\\droparrow.ico"
-IDI_PROJECT             ICON    DISCARDABLE     "res\\project.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDB_FOLDERS             BITMAP  DISCARDABLE     "res\\folders.bmp"
-IDB_EXPLORER            BITMAP  DISCARDABLE     "res\\explorer.bmp"
-IDB_PROJECTS32          BITMAP  DISCARDABLE     "res\\projects32.bmp"
-IDB_SPLASH              BITMAP  DISCARDABLE     "res\\splash.bmp"
-IDB_BANNER              BITMAP  DISCARDABLE     "res\\banner.bmp"
-IDB_WATERMARK           BITMAP  DISCARDABLE     "res\\watermark.bmp"
-IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
-IDB_BUILDANIM           BITMAP  DISCARDABLE     "res\\buildanim.bmp"
-IDB_PRINTANIM           BITMAP  DISCARDABLE     "res\\printanim.bmp"
-IDB_TRANSFERANIM        BITMAP  DISCARDABLE     "res\\transferanim.bmp"
-IDB_SAVEANIM            BITMAP  DISCARDABLE     "res\\saveanim.bmp"
-IDR_FULLSCREEN          BITMAP  DISCARDABLE     "res\\fullscreen.bmp"
-IDB_PROJECTS16          BITMAP  DISCARDABLE     "res\\projects16.bmp"
-
-#ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
-1 TEXTINCLUDE DISCARDABLE 
-BEGIN
-    "resource.h\0"
-END
-
-2 TEXTINCLUDE DISCARDABLE 
-BEGIN
-    "#include ""atlres.h""\r\n"
-    "#include ""BVRDE_SDK.h""\r\n"
-    "\0"
-END
-
-3 TEXTINCLUDE DISCARDABLE 
-BEGIN
-    "CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST ""res\\\\BVRDE.exe.manifest""\r\n"
-    "\0"
-END
-
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Menu
 //
 
@@ -876,6 +1959,73 @@ BEGIN
         MENUITEM "$HOSTNAME$",                  ID_TOOLTOKEN_HOSTNAME
     END
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_MSG_WARNING         ICON    DISCARDABLE     "res\\warning.ico"
+IDI_MSG_QUESTION        ICON    DISCARDABLE     "res\\question.ico"
+IDI_MSG_INFORMATION     ICON    DISCARDABLE     "res\\information.ico"
+IDI_MSG_ERROR           ICON    DISCARDABLE     "res\\error.ico"
+IDI_LOAD1               ICON    DISCARDABLE     "res\\load1.ico"
+IDI_LOAD2               ICON    DISCARDABLE     "res\\load2.ico"
+IDI_LOAD3               ICON    DISCARDABLE     "res\\load3.ico"
+IDI_NEW                 ICON    DISCARDABLE     "res\\new.ico"
+IDI_DELETE              ICON    DISCARDABLE     "res\\delete.ico"
+IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
+IDI_DOWN                ICON    DISCARDABLE     "res\\down.ico"
+IDI_DROPARROW           ICON    DISCARDABLE     "res\\droparrow.ico"
+IDI_PROJECT             ICON    DISCARDABLE     "res\\project.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_FOLDERS             BITMAP  DISCARDABLE     "res\\folders.bmp"
+IDB_EXPLORER            BITMAP  DISCARDABLE     "res\\explorer.bmp"
+IDB_PROJECTS32          BITMAP  DISCARDABLE     "res\\projects32.bmp"
+IDB_SPLASH              BITMAP  DISCARDABLE     "res\\splash.bmp"
+IDB_BANNER              BITMAP  DISCARDABLE     "res\\banner.bmp"
+IDB_WATERMARK           BITMAP  DISCARDABLE     "res\\watermark.bmp"
+IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
+IDB_BUILDANIM           BITMAP  DISCARDABLE     "res\\buildanim.bmp"
+IDB_PRINTANIM           BITMAP  DISCARDABLE     "res\\printanim.bmp"
+IDB_TRANSFERANIM        BITMAP  DISCARDABLE     "res\\transferanim.bmp"
+IDB_SAVEANIM            BITMAP  DISCARDABLE     "res\\saveanim.bmp"
+IDR_FULLSCREEN          BITMAP  DISCARDABLE     "res\\fullscreen.bmp"
+IDB_PROJECTS16          BITMAP  DISCARDABLE     "res\\projects16.bmp"
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""atlres.h""\r\n"
+    "#include ""BVRDE_SDK.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST ""res\\\\BVRDE.exe.manifest""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1229,7 +2379,7 @@ BEGIN
     IDS_TYPE_EXTENSION      "Enhancement"
     IDS_TYPE                "Type"
     IDS_TREE_BASIC          "BASIC"
-    IDS_CREDITS             "\n\n\n\n\n\nBVRDE\nVersion $VER$\n\nProgramming by\nBjarke Viksøe\n\n3rd Party Components\n\nScintilla Editor\nby Neil Hodgson\n\nCryptlib\nby Peter Gutmann\n\n\n"
+    IDS_CREDITS             "\n\n\n\n\n\nBVRDE\nVersion $VER$\n\nProgramming by\nBjarke Viksøe\n\nTranslations\n\nGerman\nDipl.-Ing. Torsten Albrecht\n\n3rd Party Components\n\nScintilla Editor\nby Neil Hodgson\n\nCryptlib\nby Peter Gutmann\n\n\n"
     IDS_NEWTOOL             "<New Tool>"
     IDS_FILTER_EXE          "Executables|*.exe;*.lnk|All Files|*.*|"
     IDS_FILTER_ALL          "All Files|*.*|Source Files|*.c*;*.h*;*.jav*;*.vb*;*.bas*|Executables|*.exe;*.lnk|"
@@ -1307,6 +2457,9 @@ BEGIN
     IDS_LASTVALUE           "<< Click here to add a new item >>"
     IDS_MAPPING_COL1        "Extension"
     IDS_MAPPING_COL2        "Editor Type"
+    IDS_LANG_DEFAULT        "Default"
+    IDS_LANG_ENGLISH        "English"
+    IDS_LANG_GERMAN         "German"
 END
 
 STRINGTABLE DISCARDABLE 

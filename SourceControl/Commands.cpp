@@ -35,6 +35,8 @@ CString CCommandThread::GetResult() const
 
 DWORD CCommandThread::Run()
 {
+   ::SetThreadLocale(_pDevEnv->GetLCID());
+
    CCoInitialize cominit;
 
    // Bring up the Command View so we can see it all...

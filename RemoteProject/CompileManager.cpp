@@ -15,6 +15,8 @@
 
 DWORD CRebuildThread::Run()
 {
+   ::SetThreadLocale(_pDevEnv->GetLCID());
+
    CCoInitialize cominit;
 
    // Build the projects
@@ -37,16 +39,16 @@ DWORD CRebuildThread::Run()
       dd.Invoke0(L"Rebuild");
       ::Sleep(100L);
       // Allow the build action to get started for 3 seconds
-      for( int x = 0; x < 3; x++ ) {
+      for( int x = 0; x < 3 && !ShouldStop(); x++ ) {
          // See if it started by itself
          CComVariant vRet;
          dd.GetPropertyByName(L"IsBusy", &vRet);
          if( vRet.boolVal == VARIANT_TRUE ) break;
          ::Sleep(1000L);
-         if( ShouldStop() ) break;
       }
       // ...then monitor it until it stops
       while( !ShouldStop() ) {
+         // Just poll to see if it's done
          CComVariant vRet;
          dd.GetPropertyByName(L"IsBusy", &vRet);
          if( vRet.boolVal != VARIANT_TRUE ) break;
@@ -76,6 +78,8 @@ DWORD CCompileThread::Run()
 {
    ATLASSERT(m_pProject);
    ATLASSERT(m_pManager);
+
+   ::SetThreadLocale(_pDevEnv->GetLCID());
 
    while( !ShouldStop() ) 
    {

@@ -28,6 +28,8 @@ void CFileEnumThread::RunCommand(HWND hWnd, LPCTSTR pstrCommand, LONG lTimeout)
 
 DWORD CFileEnumThread::Run()
 {
+   ::SetThreadLocale(_pDevEnv->GetLCID());
+
    CCoInitialize cominit;
 
    // Execute prompt through the project's scripting mode

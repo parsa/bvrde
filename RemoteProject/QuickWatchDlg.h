@@ -75,12 +75,14 @@ public:
    ALT_MSG_MAP(2)
       MESSAGE_HANDLER(WM_CHAR, OnListChar)
       MESSAGE_HANDLER(WM_LBUTTONDOWN, OnListClick)
+      MESSAGE_HANDLER(WM_LBUTTONDBLCLK, OnListDblClick)
    END_MSG_MAP()
 
    LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnListChar(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnListClick(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnListDblClick(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnEditChar(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnEditChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnSelChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
@@ -96,6 +98,8 @@ public:
    void _CalcColumnWidth();
    void _UpdateButtons();
    int _GetItemHeight(int iIndex) const;
+   void _ExpandItem(int iItem);
+   void _CollapseItem(int iItem);
 };
 
 

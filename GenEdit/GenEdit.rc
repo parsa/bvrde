@@ -46,53 +46,204 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
+#endif    // Danish resources
+/////////////////////////////////////////////////////////////////////////////
 
-#ifndef _MAC
+
+/////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+
 /////////////////////////////////////////////////////////////////////////////
 //
-// Version
+// Dialog
 //
 
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
- FILEFLAGSMASK 0x3fL
-#ifdef _DEBUG
- FILEFLAGS 0x1L
-#else
- FILEFLAGS 0x0L
-#endif
- FILEOS 0x40004L
- FILETYPE 0x2L
- FILESUBTYPE 0x0L
+IDD_FIND DIALOG DISCARDABLE  30, 73, 288, 87
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Suchen"
+FONT 8, "MS Shell Dlg"
 BEGIN
-    BLOCK "StringFileInfo"
+    LTEXT           "Suchen nach:",-1,9,11,45,8
+    COMBOBOX        IDC_FINDTEXT,54,9,145,72,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Nur ganzes Wort suchen",IDC_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,9,26,120,10
+    CONTROL         "Groß-/Kleinschreibung beachten",IDC_MATCHCASE,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,9,38,130,10
+    CONTROL         "Regulärer Ausdruck",IDC_REGEXP,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,9,50,120,10
+    CONTROL         "Übertrag auf nächste Zeile",IDC_WRAP,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,9,62,120,10
+    GROUPBOX        "Richtung",-1,139,26,60,34,WS_GROUP
+    CONTROL         "Aufwärts",IDC_DIRECTIONUP,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,144,34,45,12
+    CONTROL         "Abwärts",IDC_DIRECTIONDOWN,"Button",BS_AUTORADIOBUTTON,
+                    144,46,45,12
+    DEFPUSHBUTTON   "Weitersuchen",IDOK,212,7,65,14,WS_DISABLED | WS_GROUP
+    PUSHBUTTON      "Alles markieren",IDC_MARKALL,212,24,65,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,212,41,65,14
+END
+
+IDD_GOTO DIALOGEX 0, 0, 218, 79
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Gehe zu Zeile"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Ziel Zeilennummer:",-1,9,11,85,8,0,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_GOLINE,100,9,36,12,ES_NUMBER
+    LTEXT           "Aktuelles Zeile:",-1,9,27,53,8,NOT WS_GROUP,
+                    WS_EX_TRANSPARENT
+    LTEXT           "0123456789",IDC_CURRLINE,100,27,40,8,NOT WS_GROUP,
+                    WS_EX_TRANSPARENT
+    LTEXT           "Letzte Zeile:",-1,9,42,56,8,NOT WS_GROUP,
+                    WS_EX_TRANSPARENT
+    LTEXT           "0123456789",IDC_LASTLINE,100,42,40,8,NOT WS_GROUP,
+                    WS_EX_TRANSPARENT
+    DEFPUSHBUTTON   "&Gehe zu",IDOK,158,7,50,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,158,24,50,14
+END
+
+IDD_REPLACE DIALOG DISCARDABLE  36, 44, 292, 109
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Ersetzen"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Suche nach:",-1,11,12,55,8
+    COMBOBOX        IDC_FINDTEXT,66,10,125,86,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Ersetze mit:",-1,11,28,55,8
+    COMBOBOX        IDC_REPLACETEXT,66,26,125,80,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_TABSTOP
+    CONTROL         "Nur ganzes Wort suchen",IDC_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,48,95,10
+    CONTROL         "Groß-/Kleinschreibung beachten",IDC_MATCHCASE,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,60,55,10
+    CONTROL         "Regulärer Ausdruck",IDC_REGEXP,"Button",BS_AUTOCHECKBOX | 
+                    WS_GROUP | WS_TABSTOP,11,72,77,10
+    CONTROL         "Übertrag auf nächste Zeile",IDC_WRAP,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,84,140,10
+    GROUPBOX        "Ersetzen in",-1,118,44,74,37,WS_GROUP
+    CONTROL         "Markierung",IDC_SELECTION,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,124,53,51,12
+    CONTROL         "Gesammte Datei",IDC_WHOLEFILE,"Button",
+                    BS_AUTORADIOBUTTON,124,66,65,12
+    DEFPUSHBUTTON   "Weitersuchen",IDOK,207,8,74,14,WS_DISABLED | WS_GROUP
+    PUSHBUTTON      "Ersetzen",IDC_REPLACE,207,25,74,14
+    PUSHBUTTON      "Alle ersetzen",IDC_REPLACEALL,207,42,74,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,207,59,74,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_POPUP MENU DISCARDABLE 
+BEGIN
+    POPUP "Sub"
     BEGIN
-        BLOCK "040604b0"
+        POPUP "Erweitert"
         BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "viksoe.dk\0"
-            VALUE "FileDescription", "GenEdit - Scintilla Editor Wrapper\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
-            VALUE "InternalName", "GenEdit\0"
-            VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksøe\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "GenEdit.dll\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "viksoe.dk GenEdit\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
-            VALUE "SpecialBuild", "\0"
+            MENUITEM "Erstelle Großb&uchstaben\tCtrl+Shift+U", 
+                                                    ID_EDIT_UPPERCASE
+            MENUITEM "Erstelle K&leinbuchstaben",   ID_EDIT_LOWERCASE
+            MENUITEM "&Selektion einrücken",        ID_EDIT_TABIFY
+            MENUITEM "Selektion ausrücken",         ID_EDIT_UNTABIFY
+            MENUITEM "Zeile einrücken\tTab",        ID_EDIT_INDENT
+            MENUITEM "Zeile ausrücken\tShift+Tab",  ID_EDIT_UNINDENT
+            MENUITEM "Zeile löschen\tCtrl+L",       ID_EDIT_DELLINE
+            MENUITEM "Selektion auskommentieren",   ID_EDIT_COMMENT
+            MENUITEM "Selektion einkommentieren",   ID_EDIT_UNCOMMENT
+            MENUITEM SEPARATOR
+            MENUITEM "Rechteckige Selektion\tCtrl+Shift+B", 
+                                                    ID_EDIT_RECTSELECTION
+            MENUITEM SEPARATOR
+            MENUITEM "Wortumbruch",                 ID_EDIT_VIEWWORDWRAP
+            MENUITEM "&EOL anzeigen",               ID_EDIT_VIEWEOL
+            MENUITEM "Leerzeichen anzeigen",        ID_EDIT_VIEWWS
+            MENUITEM "Führende Einrückung anzeigen", ID_EDIT_VIEWTABS
         END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x406, 1200
+        POPUP "Lesezeichen"
+        BEGIN
+            MENUITEM "Lesezeichen umschalten",      ID_BOOKMARK_TOGGLE
+            MENUITEM "Vorhergehendes Lesezeichen",  ID_BOOKMARK_PREVIOUS
+            MENUITEM "&Nächstes Lesezeichen",       ID_BOOKMARK_NEXT
+            MENUITEM "Lesezeichen entfernen",       ID_BOOKMARK_CLEAR
+        END
     END
 END
 
-#endif    // !_MAC
 
-#endif    // Danish resources
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SB_POSITION         "\t Zeile: %ld Spalte: %ld "
+    IDS_ERR_DOCUMENT        "Druckfehler\nDokument konnte nicht gedruckt werden."
+    IDS_CAPTION_ERROR       "Fehler"
+    IDS_CAPTION_WARNING     "Warnung"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_MESSAGE     "Nachricht"
+    IDS_STATUS_PRINTING     " Drucke Seite %ld..."
+    IDS_PRINT_TITLE         "BVRDE"
+    IDS_FINDFAILED          "Nicht gefunden\nDer String '%s' konnte nicht gefunden werden."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_UPPERCASE       "Erstellet Großbuchstaben aus selektiertem Text\nGroßbuchstaben"
+    ID_EDIT_LOWERCASE       "Erstellt Kleinbuchstaben aus selektiertem Text\nKleinbuchstaben"
+    ID_BOOKMARK_NEXT        "Gehe zum nächsten Lesezeichen\nNächstes Lesezeichen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_VIEWWS          "Leerzeichen anzeigen\nLeerzeichen anzeigen"
+    ID_EDIT_VIEWTABS        "Führende Einrückung anzeigen\nFührende Einrückung"
+    ID_EDIT_VIEWEOL         "End-Of-Line Markierung anzeigen\nEOL anzeigen"
+    ID_EDIT_TABIFY          "Selektierten Text einrücken\nEinrücken"
+    ID_EDIT_UNTABIFY        "Selektierten Text ausrücken\nAusrücken"
+    ID_EDIT_INDENT          "Zeile einrücken\nTab"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_UNINDENT        "Zeileneinzug verkleinern\nZeileneinzug verkleinern"
+    ID_EDIT_RECTSELECTION   "Verwende rechteckige Selektion\nRechteckige Selektion"
+    ID_EDIT_COMMENT         "Seletierten Text auskommentieren\nAuskommentieren"
+    ID_EDIT_UNCOMMENT       "Selektierten Text wieder einkommentieren\nEinkommentieren"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_VIEWWORDWRAP    "Zeige Wortumbruchmarkierungenb\nWortumbruch"
+    ID_EDIT_DELLINE         "Zeile an Cursorposition löschen\nZeile löschen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BOOKMARK_PREVIOUS    "Go to previous Bookmark\nPrevious Bookmark"
+    ID_BOOKMARK_CLEAR       "Remove all Bookmarks\nClear Bookmarks"
+    ID_BOOKMARK_TOGGLE      "Toggle Bookmarks\nToggle Bookmarks"
+END
+
+#endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -227,6 +378,52 @@ BEGIN
         END
     END
 END
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040604b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "viksoe.dk\0"
+            VALUE "FileDescription", "GenEdit - Scintilla Editor Wrapper\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "GenEdit\0"
+            VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksøe\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "GenEdit.dll\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "viksoe.dk GenEdit\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x406, 1200
+    END
+END
+
+#endif    // !_MAC
 
 
 /////////////////////////////////////////////////////////////////////////////

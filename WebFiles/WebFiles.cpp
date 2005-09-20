@@ -109,7 +109,7 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    // Create HTML Editor toolbar
    CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
    m_ctrlToolbar = CFrameWindowImplBase<>::CreateSimpleToolBarCtrl(wndMain, IDR_HTML, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
-   _pDevEnv->AddToolBar(m_ctrlToolbar, CString(MAKEINTRESOURCE(IDS_CAPTION_TOOLBAR)));
+   _pDevEnv->AddToolBar(m_ctrlToolbar, _T("Web"), CString(MAKEINTRESOURCE(IDS_CAPTION_TOOLBAR)));
    AddCommandBarImages(IDR_HTML);
 
    return TRUE;

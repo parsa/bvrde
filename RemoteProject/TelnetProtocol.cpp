@@ -17,6 +17,8 @@ DWORD CTelnetThread::Run()
    ATLASSERT(m_pManager);
    ATLASSERT(m_pCallback);
 
+   ::SetThreadLocale(_pDevEnv->GetLCID());
+
    CSocket& socket = m_pManager->m_socket;
 
    // Get connect parameters

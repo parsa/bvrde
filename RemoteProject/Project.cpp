@@ -672,10 +672,10 @@ void CRemoteProject::InitializeToolBars()
    _AddButtonText(m_ctrlBookmarks, ID_BOOKMARKS_TOGGLE, IDS_TOGGLE);
    _AddButtonText(m_ctrlBookmarks, ID_BOOKMARKS_GOTO, IDS_GOTO);
 
-   _pDevEnv->AddToolBar(m_ctrlBuild, CString(MAKEINTRESOURCE(IDS_CAPTION_BUILD)));
-   _pDevEnv->AddToolBar(m_ctrlDebug, CString(MAKEINTRESOURCE(IDS_CAPTION_DEBUG)));
-   _pDevEnv->AddToolBar(m_ctrlBookmarks, CString(MAKEINTRESOURCE(IDS_CAPTION_BOOKMARKS)));
-   //_pDevEnv->AddToolBar(m_ctrlSearch, CString(MAKEINTRESOURCE(IDS_CAPTION_SEARCH)));
+   _pDevEnv->AddToolBar(m_ctrlBuild, _T("CppBuild"), CString(MAKEINTRESOURCE(IDS_CAPTION_BUILD)));
+   _pDevEnv->AddToolBar(m_ctrlDebug, _T("CppDebug"), CString(MAKEINTRESOURCE(IDS_CAPTION_DEBUG)));
+   _pDevEnv->AddToolBar(m_ctrlBookmarks, _T("Bookmarks"), CString(MAKEINTRESOURCE(IDS_CAPTION_BOOKMARKS)));
+   //_pDevEnv->AddToolBar(m_ctrlSearch, _T("Search"), CString(MAKEINTRESOURCE(IDS_CAPTION_SEARCH)));
 }
 
 // Implementation

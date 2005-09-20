@@ -69,6 +69,1071 @@ IDI_ICON1               ICON    DISCARDABLE     "res\\icon1.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDM_BOOKMARKS MENU DISCARDABLE 
+BEGIN
+    POPUP "Gehe zu"
+    BEGIN
+        MENUITEM "Gehe zu Lesezeichen #1  \tCtrl+1", ID_BOOKMARKS_GOTO1
+        MENUITEM "Gehe zu Lesezeichen #2  \tCtrl+2", ID_BOOKMARKS_GOTO2
+        MENUITEM "Gehe zu Lesezeichen #3  \tCtrl+3", ID_BOOKMARKS_GOTO3
+        MENUITEM "Gehe zu Lesezeichen #4  \tCtrl+4", ID_BOOKMARKS_GOTO4
+        MENUITEM "Gehe zu Lesezeichen #5  \tCtrl+5", ID_BOOKMARKS_GOTO5
+        MENUITEM "Gehe zu Lesezeichen #6  \tCtrl+6", ID_BOOKMARKS_GOTO6
+        MENUITEM "Gehe zu Lesezeichen #7  \tCtrl+7", ID_BOOKMARKS_GOTO7
+        MENUITEM "Gehe zu Lesezeichen #8  \tCtrl+8", ID_BOOKMARKS_GOTO8
+    END
+END
+
+IDR_CLASSTREE MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Alphabetisch &sortieren",     ID_CLASSVIEW_SORT
+        MENUITEM "Nicht sortieren",             ID_CLASSVIEW_NOSORT
+    END
+END
+
+IDR_CLASSTREE_ITEM MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Gehe zu Definition",         ID_CLASSVIEW_GOTO
+        MENUITEM SEPARATOR
+        MENUITEM "&Kopieren",                   ID_CLASSVIEW_COPY
+        MENUITEM SEPARATOR
+        MENUITEM "&Eigenschaften",              ID_CLASSVIEW_PROPERTIES
+    END
+END
+
+IDR_CPP MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Öffnen",                     ID_VIEW_OPEN
+        MENUITEM "Öffnen mit...",               ID_VIEW_OPEN_WITH
+        MENUITEM SEPARATOR
+        MENUITEM "&Kompilieren",                ID_BUILD_COMPILE
+        MENUITEM SEPARATOR
+        MENUITEM "Entfe&rnen",                  ID_FILE_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "Eigenschaften",               ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_DISASSEMBLY MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Kopieren",                    ID_EDIT_COPY
+        MENUITEM SEPARATOR
+        MENUITEM "&Zeige im Intel Stil",        ID_DISASM_INTELSTYLE
+        MENUITEM "&Zeige Quelle",               ID_DISASM_SHOWSOURCE
+    END
+END
+
+IDR_EDIT_DEBUG MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&In Aufruf springen",         ID_DEBUG_STEP_INTO
+        MENUITEM "Aufruf als ein Schritt",      ID_DEBUG_STEP_OVER
+        MENUITEM "Ausführen bis Rücksprung",    ID_DEBUG_STEP_OUT
+        MENUITEM "Ausfüh&ren bis Cursor",       ID_DEBUG_STEP_RUN
+        MENUITEM SEPARATOR
+        MENUITEM "Nächstes Statement setzen",   ID_DEBUG_STEP_SET
+        MENUITEM SEPARATOR
+        MENUITEM "Quick Watch",                 ID_DEBUG_QUICKWATCH
+        MENUITEM SEPARATOR
+        MENUITEM "Ausschneiden",                ID_EDIT_CUT
+        MENUITEM "Kopieren",                    ID_EDIT_COPY
+        MENUITEM "Einfügen",                    ID_EDIT_PASTE
+        MENUITEM SEPARATOR
+        MENUITEM "Haltepunkt einfügen/löschen", ID_DEBUG_BREAKPOINT
+        MENUITEM SEPARATOR
+        MENUITEM "&Eigenschaften",              ID_FILE_PROPERTIES
+    END
+END
+
+IDR_FOLDER MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        POPUP "Hinzufügen"
+        BEGIN
+            MENUITEM "Verzeichnis hinzufügen",      ID_FILE_ADD_FOLDER
+            MENUITEM "Lokale Datei hinzufügen",     ID_FILE_ADD_LOCAL
+            MENUITEM "Entfernte Datei hinzufügen",  ID_FILE_ADD_REMOTE
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Enfe&rnen",                   ID_FILE_DELETE
+        MENUITEM "Umbenennen",                  ID_FILE_RENAME
+        MENUITEM SEPARATOR
+        MENUITEM "&Eigenschaften",              ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_MAIN MENU DISCARDABLE 
+BEGIN
+    POPUP "Sub0"
+    BEGIN
+        POPUP "&Erstellen"
+        BEGIN
+            MENUITEM "Projekt erstellen             \tF7", ID_BUILD_PROJECT
+            MENUITEM "Projekt neu erstellen",       ID_BUILD_REBUILD
+            MENUITEM "B&ereinigen",                 ID_BUILD_CLEAN
+            MENUITEM SEPARATOR
+            MENUITEM "Arbeitsbereich neu erstellen", ID_BUILD_SOLUTION
+            MENUITEM SEPARATOR
+            MENUITEM "Ko&mpilieren\tCtrl+F7",       ID_BUILD_COMPILE
+            MENUITEM "&Syntax prüfen",              ID_BUILD_CHECKSYNTAX
+            MENUITEM SEPARATOR
+            POPUP "Erweitert"
+            BEGIN
+                MENUITEM "&CTAGS erstellen",            ID_BUILD_BUILDTAGS
+                MENUITEM "&Makefile erstellen",         ID_BUILD_BUILDMAKEFILE
+
+                MENUITEM "Datei Wizard ausführen",      ID_BUILD_FILEWIZARD
+            END
+            MENUITEM SEPARATOR
+            MENUITEM "Erstellen anhalten\tCtrl+Break", ID_BUILD_STOP
+        END
+    END
+    POPUP "Sub1"
+    BEGIN
+        POPUP "&Debuggen"
+        BEGIN
+            MENUITEM "&Start\tF5",                  ID_DEBUG_START
+            MENUITEM "Start mit Debugger\tCtrl+F5", ID_DEBUG_DEBUG
+            MENUITEM "Stop Debuggen\tShift+F5",     ID_DEBUG_STOP
+            MENUITEM "&Unterbrechen\tCtrl+Break",   ID_DEBUG_BREAK
+            MENUITEM SEPARATOR
+            MENUITEM "&An Prozess anhängen",        ID_DEBUG_PROCESSES
+            MENUITEM "Programmargumente setzen         ", ID_DEBUG_ARGUMENTS
+            MENUITEM SEPARATOR
+            MENUITEM "&In Aufruf springen\tF11",    ID_DEBUG_STEP_INTO
+            MENUITEM "Aufruf als ein Schritt\tF10", ID_DEBUG_STEP_OVER
+            MENUITEM "Ausführen bis Rücksprung",    ID_DEBUG_STEP_OUT
+            MENUITEM "Ausführen bis Cursor",        ID_DEBUG_STEP_RUN
+            MENUITEM SEPARATOR
+            MENUITEM "Neuer Haltepunkt\tF8",        ID_DEBUG_BREAKPOINT
+            MENUITEM "Alle Haltepunkte entfernen",  ID_DEBUG_CLEAR_BREAKPOINTS
+
+        END
+    END
+    POPUP "Sub2"
+    BEGIN
+        POPUP "Erweitert"
+        BEGIN
+            MENUITEM "Autovervollständigung\tCtrl+Space", 
+                                                    ID_EDIT_AUTOCOMPLETE
+            MENUITEM SEPARATOR
+            MENUITEM "Erstelle Großb&uchstaben\tCtrl+Shift+U", 
+                                                    ID_EDIT_UPPERCASE
+            MENUITEM "Erstelle K&leinbuchstaben",   ID_EDIT_LOWERCASE
+            MENUITEM "&Selektion einrücken",        ID_EDIT_TABIFY
+            MENUITEM "Selektion ausrücken",         ID_EDIT_UNTABIFY
+            MENUITEM "Zeile einrücken\tTab",        ID_EDIT_INDENT
+            MENUITEM "Zeile ausrücken\tShift+Tab",  ID_EDIT_UNINDENT
+            MENUITEM "Zeile löschen\tCtrl+L",       ID_EDIT_DELLINE
+            MENUITEM "Selektion auskommentieren",   ID_EDIT_COMMENT
+            MENUITEM "Selektion einkommentieren",   ID_EDIT_UNCOMMENT
+            MENUITEM SEPARATOR
+            MENUITEM "Rechteckige Selektion\tCtrl+Shift+B", 
+                                                    ID_EDIT_RECTSELECTION
+            MENUITEM SEPARATOR
+            MENUITEM "Wortumbruch",                 ID_EDIT_VIEWWORDWRAP
+            MENUITEM "&EOL anzeigen",               ID_EDIT_VIEWEOL
+            MENUITEM "Leerzeichen anzeigen",        ID_EDIT_VIEWWS
+            MENUITEM "Führende Einrückung anzeigen", ID_EDIT_VIEWTABS
+        END
+        POPUP "Lesezeichen"
+        BEGIN
+            MENUITEM "Lesezeichen umschalten",      ID_BOOKMARK_TOGGLE
+            MENUITEM "Vorhergehendes Lesezeichen",  ID_BOOKMARK_PREVIOUS
+            MENUITEM "&Nächstes Lesezeichen",       ID_BOOKMARK_NEXT
+            MENUITEM "Lesezeichen entfernen",       ID_BOOKMARK_CLEAR
+        END
+        POPUP "Zoom"
+        BEGIN
+            MENUITEM "Hinein zoomen\tCtrl+Add",     ID_EDIT_ZOOM_IN
+            MENUITEM "Heraus zoomen\tCtrl+Sub",     ID_EDIT_ZOOM_OUT
+        END
+    END
+    POPUP "Sub3"
+    BEGIN
+        POPUP "Debugfenster"
+        BEGIN
+            MENUITEM "&Watch",                      ID_VIEW_WATCH
+            MENUITEM "Stack aufrufen",              ID_VIEW_CALLSTACK
+            MENUITEM "&Variablen",                  ID_VIEW_VARIABLES
+            MENUITEM "&Threads",                    ID_VIEW_THREADS
+            MENUITEM "Speicher",                    ID_VIEW_MEMORY
+            MENUITEM "&Register",                   ID_VIEW_REGISTERS
+            MENUITEM "Disassembler",                ID_VIEW_DISASM
+            MENUITEM SEPARATOR
+            MENUITEM "Haltepunkte",                 ID_VIEW_BREAKPOINTS
+        END
+    END
+    POPUP "Sub4"
+    BEGIN
+        MENUITEM "Kompilierungs Log",           ID_VIEW_COMPILE_LOG
+        MENUITEM "Debugger Log",                ID_VIEW_DEBUG_LOG
+    END
+    POPUP "Sub5"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "Verzeichnis hinzufügen",      ID_FILE_ADD_FOLDER
+        MENUITEM "Lokale Datei hinzufügen",     ID_FILE_ADD_LOCAL
+        MENUITEM "Entfernte Datei hinzufügen",  ID_FILE_ADD_REMOTE
+    END
+    POPUP "Sub6"
+    BEGIN
+        MENUITEM "Haltepunkt einfügen/entfernen", ID_DEBUG_BREAKPOINT
+        MENUITEM SEPARATOR
+    END
+END
+
+IDR_MEMORY MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Aktualisieren",              ID_MEMORY_REFRESH
+        MENUITEM SEPARATOR
+        MENUITEM "Zeige als &DWORD",            ID_MEMORY_SIZE_DWORD
+        MENUITEM "Zeige als &WORD",             ID_MEMORY_SIZE_WORD
+        MENUITEM "Zeige als &BYTE",             ID_MEMORY_SIZE_BYTE
+    END
+END
+
+IDR_PROJECT MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Erstellen",                  ID_BUILD_PROJECT
+        MENUITEM "Neu erstellen",               ID_BUILD_REBUILD
+        MENUITEM "Bereinigen",                  ID_BUILD_CLEAN
+        MENUITEM SEPARATOR
+        MENUITEM "Als Standartprojekt festlegen", ID_PROJECT_SET_DEFAULT
+        POPUP "Hinzufügen"
+        BEGIN
+            MENUITEM "Verzeichnis hinzufügen",      ID_FILE_ADD_FOLDER
+            MENUITEM "Lokale Datei hinzufügen",     ID_FILE_ADD_LOCAL
+            MENUITEM "Entfernte Datei hinzufügen",  ID_FILE_ADD_REMOTE
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Entfe&rnen",                  ID_FILE_DELETE
+        MENUITEM "Umbenennen",                  ID_FILE_RENAME
+        MENUITEM SEPARATOR
+        MENUITEM "&Speichern",                  ID_FILE_SAVE
+        MENUITEM SEPARATOR
+        MENUITEM "&Eigenschaften",              ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_REMOTEDIR MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Öffnen",                      ID_REMOTEDIR_OPEN
+    END
+END
+
+IDR_TEXT MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Öffnen",                      ID_VIEW_OPEN
+        MENUITEM "Öffnen mit..",                ID_VIEW_OPEN_WITH
+        MENUITEM SEPARATOR
+        MENUITEM "&Entfernen",                  ID_FILE_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&Eigenschaften",              ID_VIEW_PROPERTIES
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ATTACHPROCESS DIALOG DISCARDABLE  0, 0, 323, 161
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "An Prozess anhängen"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,266,7,50,14,WS_DISABLED
+    PUSHBUTTON      "Abbrechen",IDCANCEL,266,24,50,14
+    LISTBOX         IDC_LIST,7,7,253,147,LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | 
+                    WS_TABSTOP
+END
+
+IDD_CRYPTLIB DIALOGEX 0, 0, 218, 135
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Datei fehlt"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CTEXT           "CryptLib fehlt",IDC_TITLE,3,13,211,24,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    CONTROL         "",IDC_STATIC,"Static",SS_WHITERECT,3,7,211,39
+    DEFPUSHBUTTON   "OK",IDOK,164,114,50,14
+    CTEXT           "Die CryptLib Verschlüsselungsbibliothek wurde nicht installiert. Diese Bibliothek verwaltet die sichere SSH Verbindung. Laden Sie die Bibliothek unter dem nachfolgenden Link herunter und kopieren Sie die CL32.DLL Datei in das BVRDE Programmverzeichnis.",
+                    IDC_STATIC,3,54,211,36
+    CTEXT           "http://www.cs.auckland.ac.nz/~pgut001/cryptlib/",
+                    IDC_LINK,3,94,211,11,SS_CENTERIMAGE
+END
+
+IDD_FILEBROWSE DIALOGEX 0, 0, 310, 177
+STYLE DS_3DLOOK | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | 
+    WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Öffnen"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_LIST | 
+                    LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_AUTOARRANGE | 
+                    LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,4,22,298,107
+    LTEXT           "Datei&name:",IDC_FILENAME_LABEL,4,139,48,8,SS_NOTIFY
+    LTEXT           "Datei&typ:",IDC_TYPES_LABEL,4,157,48,8,SS_NOTIFY
+    EDITTEXT        IDC_FILENAME,53,138,189,12,ES_AUTOHSCROLL
+    COMBOBOX        IDC_TYPES,53,155,189,87,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "&Öffnen",IDOK,252,136,50,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,252,154,50,14
+    LTEXT           "Suchen &in :",1091,4,6,37,8,SS_NOTIFY
+    CONTROL         "",IDC_FOLDER,"ComboBoxEx32",CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP,44,4,142,98
+    PUSHBUTTON      "",IDC_BACK,190,3,15,15,BS_ICON | WS_DISABLED
+    PUSHBUTTON      "",IDC_UP,208,3,15,15,BS_ICON
+    LTEXT           "No Connection to Remote Machine",IDC_NOCONNECTION,23,36,
+                    146,14,NOT WS_VISIBLE,WS_EX_TRANSPARENT
+END
+
+IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Integration",-1,0,0,38,9
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,46,4,212,1
+    CONTROL         "Keine Datentips anzeigen",IDC_NOTIPS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,125,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Datein sind während dem Debuggen schreibgeschützt",
+                    IDC_PROTECTFILES,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,14,26,208,10,WS_EX_TRANSPARENT
+    CONTROL         "Klammerblock anzeigen",IDC_MATCHBRACES,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,37,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Verwende automatisches Vorschlagen",IDC_AUTOSUGGEST,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,48,
+                    153,10,WS_EX_TRANSPARENT
+    CONTROL         "Klammern automatisch schließen",IDC_AUTOCLOSE,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,59,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Fehler durch schnörkelige Zeilen markieren",
+                    IDC_MARKERRORS,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,14,70,159,10,WS_EX_TRANSPARENT
+    CONTROL         "Zeige Debugindikatoren durch farbige Zeilen",
+                    IDC_BREAKPOINTLINES,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,14,81,156,10,WS_EX_TRANSPARENT
+    LTEXT           "Tag Support",-1,0,98,43,9
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,102,208,1
+    CONTROL         "Verwende Autovervollständigungs Erweiterung",
+                    IDC_AUTOCOMPLETE,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,14,112,166,10,WS_EX_TRANSPARENT
+    CONTROL         "Klassenbrowser mit Tags publizieren",IDC_CLASSBROWSER,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,123,
+                    129,10,WS_EX_TRANSPARENT
+    CONTROL         "Verwende online Klassenscanner",IDC_ONLINESCANNER,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,134,
+                    120,10,WS_EX_TRANSPARENT
+END
+
+IDD_PASSWORD DIALOGEX 0, 0, 230, 135
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Passwort"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_PASSWORD,24,92,181,15,ES_PASSWORD | ES_AUTOHSCROLL,
+                    WS_EX_STATICEDGE
+    PUSHBUTTON      "OK",IDOK,176,114,50,14,WS_DISABLED
+    CONTROL         "",IDC_STATIC,"Static",SS_WHITERECT,3,7,223,39
+    ICON            IDI_KEY,IDC_STATIC,15,15,21,20
+    LTEXT           "Enter connect password",IDC_TITLE,67,13,159,24,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    CTEXT           "Geben Sie das Passwort für die Verbindung zum entfernten Server ein.",
+                    IDC_STATIC,3,54,223,10,0,WS_EX_TRANSPARENT
+    CTEXT           "Diese Passwort wird für alle Verbindungen verwendet, für die kein Passwort konfiguriert wurde.",
+                    IDC_SUBNOTE,3,67,223,20,SS_NOPREFIX,WS_EX_TRANSPARENT
+END
+
+IDD_QUICKWATCH DIALOGEX 0, 0, 280, 177
+STYLE DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | 
+    WS_THICKFRAME
+CAPTION "Quick Watch"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Ausdruck :",IDC_STATIC,7,7,100,9,0,WS_EX_TRANSPARENT
+    COMBOBOX        IDC_LINE,7,19,199,63,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Aktueller Wert :",IDC_STATIC,7,36,100,9,0,
+                    WS_EX_TRANSPARENT
+    LISTBOX         IDC_LIST,7,47,200,123,LBS_OWNERDRAWVARIABLE | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "Neube&rechnen",IDOK,214,7,62,14
+    PUSHBUTTON      "W&atch hinzufügen",IDC_ADD_WATCH,214,24,62,14
+    PUSHBUTTON      "Schließen",IDCANCEL,214,42,62,14
+END
+
+IDD_RUNARGUMENTS DIALOG DISCARDABLE  0, 0, 273, 68
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Programmargumente"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Setzen sie die Argumente mit welchen das Programm ausgeführt werden soll :",
+                    IDC_STATIC,7,7,247,11
+    EDITTEXT        IDC_ARGUMENTS,21,24,229,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,162,47,50,14,WS_DISABLED
+    PUSHBUTTON      "Abbrechen",IDCANCEL,216,47,50,14
+END
+
+IDD_WIZARD_COMMANDS DIALOGEX 0, 0, 255, 179
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST,0,0,255,177,LBS_OWNERDRAWVARIABLE | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_WIZARD_COMPILER DIALOGEX 0, 0, 330, 169
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    RTEXT           "Entfernter Host: ",IDC_STATIC,19,26,63,12,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_HOST,86,26,94,12,ES_AUTOHSCROLL
+    RTEXT           "Port: ",IDC_STATIC,36,41,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PORT,86,41,46,12,ES_AUTOHSCROLL | ES_NUMBER
+    RTEXT           "Benutzername : ",IDC_STATIC,19,56,63,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_USERNAME,86,56,94,12,ES_AUTOHSCROLL
+    RTEXT           "Passwort : ",IDC_STATIC,36,71,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PASSWORD,86,71,94,12,ES_PASSWORD | ES_AUTOHSCROLL
+    RTEXT           "Initiales Verzeichnis :",IDC_STATIC,7,86,75,12,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PATH,86,86,170,12,ES_AUTOHSCROLL
+    RTEXT           "Angepasst : ",IDC_STATIC,36,102,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_EXTRA,86,102,170,29,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    PUSHBUTTON      "&Verbindung &testen",IDC_TEST,87,137,79,14
+    RTEXT           "Linktyp: ",IDC_STATIC,46,7,36,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    COMBOBOX        IDC_TYPE,86,7,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
+IDD_WIZARD_DEBUGGER DIALOGEX 0, 0, 330, 184
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    RTEXT           "Debugger : ",IDC_STATIC,37,7,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    COMBOBOX        IDC_DEBUGGER,87,7,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "Linktyp : ",IDC_STATIC,37,22,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    COMBOBOX        IDC_TYPE,87,22,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "Entfernter Host : ",IDC_STATIC,13,42,70,12,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_HOST,87,42,94,12,ES_AUTOHSCROLL
+    RTEXT           "Port : ",IDC_STATIC,37,57,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PORT,87,57,46,12,ES_AUTOHSCROLL | ES_NUMBER
+    RTEXT           "Benutzername :",IDC_STATIC,20,72,63,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_USERNAME,87,72,94,12,ES_AUTOHSCROLL
+    RTEXT           "Passwort :",IDC_STATIC,7,87,76,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PASSWORD,87,87,94,12,ES_PASSWORD | ES_AUTOHSCROLL
+    RTEXT           "Initiales Verzeichnis :",IDC_STATIC,7,102,76,12,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PATH,87,102,170,12,ES_AUTOHSCROLL
+    RTEXT           "Angepasst :",IDC_STATIC,37,118,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_EXTRA,87,118,170,29,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    PUSHBUTTON      "Verbindung &testen",IDC_TEST,88,153,79,14
+END
+
+IDD_WIZARD_FILETRANSFER DIALOGEX 0, 0, 329, 169
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    RTEXT           "Entfernter Host :",IDC_STATIC,14,26,72,12,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_HOST,90,26,94,12,ES_AUTOHSCROLL
+    RTEXT           "Port : ",IDC_STATIC,40,41,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PORT,90,41,46,12,ES_AUTOHSCROLL | ES_NUMBER
+    RTEXT           "Benutzername :",IDC_STATIC,29,56,57,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_USERNAME,90,56,94,12,ES_AUTOHSCROLL
+    RTEXT           "Passwort :",IDC_STATIC,40,71,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PASSWORD,90,71,94,12,ES_PASSWORD | ES_AUTOHSCROLL
+    RTEXT           "Initiales Verzeichnis :",IDC_STATIC,16,86,70,12,
+                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PATH,90,86,170,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Verzeichnis &testen",IDC_TEST,91,104,79,14
+    RTEXT           "Linktyp :",IDC_STATIC,40,7,46,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
+    COMBOBOX        IDC_TYPE,90,7,81,57,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
+IDD_WIZARD_STEPS DIALOGEX 0, 0, 266, 169
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Pre-Build:",IDC_STATIC,14,24,31,12,0,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_PRESTEP,49,24,211,47,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    LTEXT           "Post-Build:",IDC_STATIC,11,78,34,12,0,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_POSTSTEP,49,78,211,47,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    LTEXT           "Die angepassten Erstellungsschritte werde vor und nach dem Erstellen ausgeführt.",
+                    IDC_STATIC,2,2,261,10
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,2,15,264,1
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ATTACHPROCESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 316
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 154
+    END
+
+    IDD_CRYPTLIB, DIALOG
+    BEGIN
+        LEFTMARGIN, 3
+        RIGHTMARGIN, 214
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 128
+    END
+
+    IDD_FILEBROWSE, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 302
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 168
+    END
+
+    IDD_PASSWORD, DIALOG
+    BEGIN
+        LEFTMARGIN, 3
+        RIGHTMARGIN, 226
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 128
+    END
+
+    IDD_QUICKWATCH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 276
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 170
+    END
+
+    IDD_RUNARGUMENTS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 266
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 61
+    END
+
+    IDD_WIZARD_COMMANDS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 251
+        BOTTOMMARGIN, 177
+    END
+
+    IDD_WIZARD_COMPILER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 323
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
+    END
+
+    IDD_WIZARD_DEBUGGER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 323
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 177
+    END
+
+    IDD_WIZARD_FILETRANSFER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 322
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
+    END
+
+    IDD_WIZARD_STEPS, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        BOTTOMMARGIN, 162
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_NEW_FOLDER          "Verzeichnis"
+    IDS_FILTER_FILES        "Quellcodedateien|*.c*;*.h*;*.?c;*.inc|Web Dateien|*.htm*;*.p*;*.asp;*.js*|Alle Dateien|*.*|"
+    IDS_FINDFAILED          "Nicht gefunden\nDer String '%s' konnte nicht gefunden werden."
+    IDS_CAPTION_ERROR       "Fehler"
+    IDS_CAPTION_WARNING     "Warnung"
+    IDS_CAPTION_MESSAGE     "Nachricht"
+    IDS_CAPTION_COMPILELOG  "Kompiler Log"
+    IDS_CAPTION_COMMAND     "Befehlsfenster"
+    IDS_LOG_TELNETHOST      "Keine Verbindung zum Telnet Server möglich."
+    IDS_ERR_OPENVIEW        "Datei öffnen Fehler\nDie Datei konnte nicht in einer neuen Ansicht geöffnet werden."
+    IDS_ERR_LASTERROR       "\nSystem Fehlermeldung:\n"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_OUTPUT      "Ausgabe"
+    IDS_LOG_SENDERROR       "Ein Fehler ist beim Senden der Daten aufgetreten."
+    IDS_STATUS_LOADING      " Lade Projekt '%s'..."
+    IDS_STATUS_STARTED      " %s started..."
+    IDS_STATUS_FINISHED     " %s beendet."
+    IDS_COMPILE_BUSY        "Kompiler beschäftigt\nKann jetzt nicht richtig kompilieren. Der Kompilierungsprozess ist beschäftigt.\nWarten Sie auf die Beendigung der aktuellen Session bis diese abgeschlossen ist um dann neu zu kompilieren."
+    IDS_ERR_COMPILE         "Starten des Prozesses fehlgeschlagen\nEs ist ein Fehler beim Starten des Kompilierungsprozesses aufgetreten."
+    IDS_CLEAN               "Prozess bereinigen"
+    IDS_REBUILD             "Alles neu erstellen"
+    IDS_COMPILE             "Kompilieren"
+    IDS_BUILDSOLUTION       "Arbeitsbereich neu erstellen"
+    IDS_LOG_CONNECTERROR    "Verbindung zum entfernten Host fehlgeschlagen."
+    IDS_BUILD               "Erstellen"
+    IDS_WAITCONNECTION      "Nicht verbunden\nDie Verbindung zum entfernten Host wurde nicht hergestellt. Möchten Sie darauf warten ?\nDie Anwendung ist dabei die Verbindung herzustellen, aber sie wurde bisher nicht akzeptiert."
+    IDS_CAPTION_QUESTION    "BVRDE"
+    IDS_WIZARD_TITLE_TRANSFER "Dateitransfertyp wählen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_WIZARD_SUBTITLE_TRANSFER 
+                            "Wählen Sie die Kommunikationsart, die für den Dateitransfer zum entfernten Host verwendet werden soll."
+    IDS_WIZARD_TITLE_STARTAPP "Wählen Sie den Anwendungscontroller"
+    IDS_WIZARD_SUBTITLE_STARTAPP 
+                            "Wählen Sie die Kommunikationsart, welche zum Starten und Kontrollieren der entfernten Anwendung verwendet werden soll."
+    IDS_WIZARD_TITLE_DEBUGGER "Wählen Sie den entfernten Debugger"
+    IDS_WIZARD_SUBTITLE_DEBUGGER 
+                            "Wählen Sie die Art von Debugger, mit dem kommuniziert werden solC."
+    IDS_FTP                 "FTP"
+    IDS_TELNET              "Telnet"
+    IDS_GDB                 "GDB"
+    IDS_ERR_NOCONNECTION    "Keine Verbindung\nMit den gewählten Parametern konnte keine Verbindung zum entfernten Host hergestellt werden."
+    IDS_CONNECTION_OK       "Verbindung OK\nEine Verbindung zum entfernten Host wurde hergestellt.\nDie Verbindungsparameter scheinen in Ordnung zu sein."
+    IDS_STATUS_CONNECT_WAIT " Warte auf Verbindung..."
+    IDS_CONFIG_TRANSFER     "Dateitransfer"
+    IDS_CONFIG_COMPILER     "Kompiler"
+    IDS_CONFIG_DEBUGGER     "Debugger"
+    IDS_CONFIG_SETTINGS     "Einstellungen"
+    IDS_COMMANDS            "Befehle"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_COMMAND_CD          "Verzeichnis wechseln"
+    IDS_COMMAND_BUILD       "Erstellen"
+    IDS_COMMAND_REBUILD     "Neu erstellen"
+    IDS_COMMAND_COMPILE     "Kompilieren"
+    IDS_COMMAND_CLEAN       "Bereinigen"
+    IDS_CONFIG_COMMANDS     "Befehle"
+    IDS_CAPTION_DEBUGLOG    "Debugfenster"
+    IDS_STATUS_RUNNING      " läuft..."
+    IDS_STATUS_OPENFILE     " Öffne Datei..."
+    IDS_NEEDS_RECOMPILE     "Das Prjekt muß neu erstellt werden\nEs wurden Änderungen am Projekt vorgenommen. Möchten Sie zuerst neu kompilieren ?\nKompilieren Sie neu damit die Änderungen wirksam werden."
+    IDS_COMMAND_PARAMS      "Parameter"
+    IDS_COMMAND_EXECUTE     "Ausführbar"
+    IDS_COMMAND_PROXY       "Proxy"
+    IDS_COMMAND_PASSIVE     "Passiv"
+    IDS_OPTIONS             "Optionen"
+    IDS_CONFIG_OPTIONS      "Optionen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_DEBUGGER            "Debugger"
+    IDS_TYPEDEF             "Typendefinition"
+    IDS_ERR_HOSTCONNECT     "Keine Verbindung möglich\nEs ist keine Verbindung zum entfernten Host möglich\nEs konnte keine Verbindung zum entfernten Host aufgebaut werden."
+    IDS_ERR_DATAWRITE       "Datenschreibfehler\nEs ist ein Fehler während dem senden der Daten zum entfernten Host aufgetreten.\nDer entfernte Host akzeptiert keine eingehenden Daten oder er hat die Verbindung geschlossen."
+    IDS_ERR_DEBUGGERSTART   "Debugger konnte nicht gestartet werden\nEs konnte keine Debugger Session gestartet werden.\nAnalysieren Sie das Debuuger Log Fenster um den Fehler zu erkennen."
+    IDS_STATUS_DEBUGGING    " Debugge..."
+    IDS_STATUS_STARTDEBUGGER " Debuggen staret..."
+    IDS_DEBUGGER_BUSY       "Debuggen stoppen\nDiese Aktion stoppt das Debuggen. Möchten Sie dies jetzt tun ?\nSie müssen eine Debugger Session bevor Sie erneut kompilieren können."
+    IDS_STATUS_DEBUG_STOPPED " Prozess beendet."
+    IDS_STATUS_DEBUG_BREAKPOINT " Gestoppt am Haltepunkt..."
+    IDS_ERR_DEBUG           "Debugfehler\n%s"
+    IDS_COMMAND_MAIN        "Einstiegsfunktion"
+    IDS_ERR_DEBUG_NOTAVAIL  "Nicht verfügbar\nDer Debugger ist nicht verfügbar.\nBitte konfigurieren Sie die Debuggereinstellungen in den Projekteigenschaften."
+    IDS_ERR_COMPILER_NOTAVAIL 
+                            "Nicht verfügbar\nDer Kompiler ist nicht verfügbar.\nBitte konfigurieren Sie die Kompilereinstellungen in den Projekteigenschaften."
+    IDS_STATUS_DEBUG_NOSOURCE " Außerhalb des Quellcodes gestoppt..."
+    IDS_CAPTION_CALLSTACK   "Stack aufrufen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_REGISTERS   "Register"
+    IDS_CAPTION_VARIABLES   "Variablen"
+    IDS_CAPTION_WATCH       "Watch"
+    IDS_CAPTION_BREAKPOINTS "Haltepunkte"
+    IDS_CAPTION_THREADS     "Threads"
+    IDS_THREAD              "%s - Thread %s"
+    IDS_REGISTER            "%s: %s"
+    IDS_LOCAL_VARS          "Lokale Variablen"
+    IDS_CAPTION_BUILD       "Erstellen"
+    IDS_CAPTION_DEBUG       "Debuggen"
+    IDS_STACKLINE           "%s,  Datei='%s', Zeile=%ld"
+    IDS_ERR_FILESAVE        "Speichern fehlgeschlagen\nDas Speichern der Datei '%s' ist fehlgeschlagen.\nDer Server gab folgenden Fehler zurück: %s\n\nWenn die Datei eine entfernte Datei ist, wird es ein Timeout Fehler sein. Dann erneut versuchen."
+    IDS_STOPPED             "Angehalten"
+    IDS_SIGNAL              "%s\n%s\nAddresse: %s\nFunktion: %s"
+    IDS_DIRECTIVES          "Kompilerdirektiven"
+    IDS_COMMAND_DEBUGEXPORT "Debug"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_CLEAR           "Löscht die Markierung.\nLöschen"
+    ID_EDIT_COPY            "Kopiert die Markierung und überträgt sie in die Zwischenablage.\nKopieren"
+    ID_EDIT_CUT             "Entfernt die Markierung und überträgt sie in die Zwischenablage.\nAusschneiden"
+    ID_EDIT_FIND            "Sucht den angegebenen Text.\nSuchen"
+    ID_EDIT_PASTE           "Fügt den Inhalt der Zwischenablage ein.\nEinfügen"
+    ID_EDIT_REPLACE         "Ersetzt einen bestimmten Text durch einen anderen.\nErsetzen"
+    ID_EDIT_SELECT_ALL      "Markiert das gesamte Dokument.\nAlles markieren"
+    ID_EDIT_UNDO            "Macht die letzte Aktion rückgängig.\nRückgängig"
+    ID_EDIT_REDO            "Wiederholt die vorher rückgängig gemachte Aktion.\nWiederherstellen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_GOTO            "Gehe zu..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_COMMAND_RELEASEEXPORT "Release"
+    IDS_RELEASE             "Release"
+    IDS_DEBUG               "Debug"
+    IDS_ERR_FILEINCLUDED    "Existiert bereits\nDie Datei existiert bereits im Projekt."
+    IDS_SAVECHANGES         "Änderungen speichern\nMöchten Sie die Änderungen zuerst im Projekt speichern ?"
+    IDS_STATUS_LOADTAG      " Lade TAG Dateien..."
+    IDS_ENUM                "Aufzählung"
+    IDS_ERR_NODEBUGFILE     "Keine ausführbare Datei\nDer Debugger ist nicht in der Lage eine ausführbare Datei zu finden."
+    IDS_BRKCOL1             "Typ"
+    IDS_LOCAL_ARGS          "Argumente"
+    IDS_COL_NAME            "Name"
+    IDS_COL_VALUE           "Wert"
+    IDS_LASTVALUE           "<< Hier klicken um eine neue Watch hinzuzufügen >>"
+    IDS_STATUS_NETWORKWRITE " Senden der Daten an den entfernten Host fehlgeschlagen..."
+    IDS_ERR_NODEBUGINFO     "Keine Debuginformationen\nEs wurden keinen Debugsymbole gefunden.\nKompilieren Sie das Projekt im ""Debug"" Modus, und stellen Sie sicher, daß die DEBUG_OPTIONS Environmentvariable im Erstellungsprozess hinzugefügt ist (-g Kompilerdirektive)."
+    IDS_STATUS_STOPPED      " Erstellungsprozess gestoppt."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_LOG_LOGIN_FAILED    "Login auf den entfernten Host fehlgeschlagen."
+    IDS_LOG_ABORTED         "Verbindung durch entfernten Host abgebrochen."
+    IDS_ERR_LOGIN_FAILED    "Login fehlgeschlagen\nLogin auf den entfernten Host fehlgeschlagen.\nMit den angegebenen Benutzerinformationen konnte kein Login auf den entfernten Host durchgeführt werden."
+    IDS_ERR_COMPILERBUSY    "Ausführung jetzt nicht möglich. Der Kompiler ist derzeit bereits beschäftigt.\r\n"
+    IDS_ERR_DEBUGGER_NOT_RUNNING 
+                            "Ausführung nicht möglich. Der Debugger läuft derzeit nicht.\r\n"
+    IDS_HELP                "  cc <command> - Befehl in Kompilersession ausführen.\r\n  gdb <command> - GDB Debugger Befehl ausführen.\r\n"
+    IDS_ERR_COMPILER_NOT_RUNNING 
+                            "Ausführung jetzt nicht möglich. Der Kompiler ist derzeit nicht kontaktiert.\r\n"
+    IDS_EXECUTING           "Ausführen"
+    IDS_LOG_RLOGINHOST      "Der entfernte Host konnte mittels Rlogin nicht kontaktiert werden."
+    IDS_RLOGIN              "Rlogin"
+    IDS_SSH                 "SSH (sicher)"
+    IDS_SCP                 "SCP (sicher)"
+    IDS_RCP                 "RCP (Remote CoPy)"
+    IDS_LOG_SSHHOST         "Der SSH Server konnte nicht kontaktiert werden."
+    IDS_CAPTION_CLASSVIEW   "Klassenansicht"
+    IDS_GLOBALS             "Global"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_UNKNOWN             "Unbekannt"
+    IDS_CLASS               "Klasse"
+    IDS_MEMBER              "Member"
+    IDS_FUNCTION            "Funktion"
+    IDS_STRUCT              "Struktur"
+    IDS_DEFINE              "Define"
+    IDS_ERR_KEY_EXPIRED     "Schlüssel abgelaufen !\nIhr sicherer privater Schlüssel ist abgelaufen.\nZertifikatbasierte Operationen werden fehlschlagen oder in einer Fehlermelung der entfernten Session enden."
+    IDS_ERR_KEY_EXPIRES_TODAY 
+                            "Schlüssel läuft ab !\nIhr sicherer privater Schlüssel läuft heute ab.\nZertifikatbasierte Operationen werden fehlschlagen oder in einer Fehlermelung der entfernten Session enden."
+    IDS_ERR_KEY_EXPIRES_SOON 
+                            "Schlüssel wird ablaufen !\nIhr sicherer privater Schlüssel wird in %ld Tagen ablaufen.\nZertifikatbasierte Operationen werden fehlschlagen oder in einer Fehlermelung der entfernten Session enden."
+    IDS_STACKLINE2          "%s  (%s)"
+    IDS_ERR_BREAKPOINTASYNC "Nichtunterstütze Aktion\nDer GDB Debugger unterstützt derzeit keine asynchronen Haltepunkte.\nDer GDB Debugger ist nicht in der Lage zur Laufzeit neue Haltepunkte zu setzen. Sie müssen auf einen angesprungenen Haltepunkt warten bevor Sie einen neuen setzen können."
+    IDS_STATUS_DEBUG_NOFILE "  Angehalten an Haltepunkt (Datei nicht im Projekt)..."
+    IDS_SFTP                "SFTP (sicher)"
+    IDS_TREE_CONFIGURATION  "Konfiguration"
+    IDS_CONFIG_CONFIGURATION "Konfiguration"
+    IDS_TREE_ADVANCED       "Erweitert"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TREE_CPP            "C/C++"
+    IDS_BRKCOL2             "Datei"
+    IDS_BRKCOL3             "Funktion"
+    IDS_BRKCOL4             "Adresse"
+    IDS_TOGGLE              "Lezeichen"
+    IDS_GOTO                "Gehe zu"
+    IDS_CAPTION_BOOKMARKS   "Lesezeichen"
+    IDS_CAPTION_SEARCH      "Suchen"
+    IDS_SAVEFILE            "Datei speichern\nDie Datei wurde modifiziert. Möchten Sie die Datei speichern ?"
+    IDS_STACKLINE3          "%s,  Datei='%s'  (%s)"
+    IDS_ERR_RELPATH         "Vollen Pfad verwenden\nEs ist besser einen kompletten Startpfad zu verwenden.\nEs ist nicht notwendig einen relativen Startpfad zu verwenden - verwenden Sie einen vollen (kompletten) stattdessen.\n\nFortfahren ?"
+    IDS_ERR_DEBUGVERSION    "Nicht unterstützt\nDiese Version des GDB wird nicht unterstützt.\nDer GDB Debugger muß mindestens die Version 5.3 haben, damit er mit dieser IDE funktioniert."
+    IDS_CHECKSYNTAX         "Syntax prüfen"
+    IDS_MISC                "Diverses"
+    IDS_COMMAND_BUILDCTAGS  "CTAGS erstellen"
+    IDS_COMMAND_CHECKSYNTAX "Syntax prüfen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_CLASSVIEW_GOTO       "Gehe zur Memberdefinition\nGehe zur Definition"
+    ID_CLASSVIEW_PROPERTIES "Eigenschaften anzeigen\nEigenschaften"
+    ID_CLASSVIEW_COPY       "Seletierten Text kopieren\nKopieren"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_STATUS_SAVEFILE     " Speichere Datei..."
+    IDS_CAPTION_DISASSEMBLY "Disassembliere"
+    IDS_CAPTION_MEMORY      "Speicher"
+    IDS_STATUS_ADDFILE      " Adding file(s)..."
+    IDS_COMMAND_SEARCHPATH  "Suchpfad"
+    IDS_MORE                "Mehr"
+    IDS_CREATEFILE          "Datei nicht gefunden\nMöchten Sie die Datei neu erstellen ?\nDie Projektdatei wurde auf dem entfernten Server nicht gefunden. Sie können stattdessen eine neue Datei erstellen."
+    IDS_CREATEMAKEFILE      "Makefile erstellen\nEs wurde kein Makefile gefunden. Möchten Sie ein neues erstellen ?\nEs wurde kein Makefile im aktuellen Projekt gefunden. Sie können ein neues erstellen."
+    IDS_ERR_NOFILEWIZARD    "Kein Dateiwizard\nFür diesen Projekttyp ist kein Dateiwizard definiert.\nEs sind keine Dateiwizard's für diese Dateiendung verfügbar."
+    IDS_ERR_FILEENCODING    "Nichtunterstützter Dateityp\nDer Dateityp wird nicht unterstützt.\nUnicode und UTF-8 Dateien werden derzeit durch diese Anwendung nicht unterstützt."
+    IDS_COMMAND_COMPILEFLAGS "Kompilierungsflags"
+    IDS_COMMAND_LINKFLAGS   "Linkerflags"
+    IDS_ERR_DEBUGUNSTABLE   "Debugging unstabil\nDer GDB GDB Debugger ist in einem unstabilen Zustand.\nDer Debugger hat einen internen Fehler gemeldet und ein weiteres Debuggen ist unzuverlässig. Die Debugsession wird geschlossen."
+    IDS_STACKSUBSTR         ",  Datei"
+    IDS_NETWORKDRIVE        "Netzlaufwerk"
+    IDS_MISC_STARTTIMEOUT   "Starttimeout"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_UNINDENT        "Reduzierung des Zeileneinzugs für den selektierten Text\nZeileneinzug mindern"
+    ID_EDIT_RECTSELECTION   "Rechteckicke Selektion verwenden\nRechteckige Selektion"
+    ID_EDIT_COMMENT         "Selektierten Text auskommentieren\nAuskommentieren"
+    ID_EDIT_UNCOMMENT       "Selektierten Text einkommentieren\nEinkommentieren"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_REMOTEDIR_OPEN       "Selektierte Datei öffnen\nÖffnen"
+    ID_DEBUG_ARGUMENTS      "Programmargumente setzen\nArgumente"
+    ID_DEBUG_BREAK          "Debugger unterbrechen\nUnterbrechen"
+    ID_DEBUG_STEP_SET       "Setzt das nächste Statement\nNächstes Statement setzen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BUILD_BUILDMAKEFILE  "Ein Makefile generieren\nMakefile erstellen"
+    ID_VIEW_MEMORY          "Speicheransicht anzeigen\nSpeicher"
+    ID_VIEW_DISASM          "Disassembleransicht anzeigen\nDisassembler"
+    ID_BUILD_FILEWIZARD     "Dateiwizard ausführen\nDateiwizard ausführen"
+    ID_DISASM_INTELSTYLE    "Disassembler im Intel Stil anzeigen\nIntel Stil"
+    ID_DISASM_SHOWSOURCE    "Disassember gemischt mit Quellcode anzeigen\nQuellcode anzeigen"
+    ID_CLASSVIEW_SORT       "Einträge alphabetisch sortieren\nSortieren"
+    ID_CLASSVIEW_NOSORT     "Einträge nicht sortieren\nNicht sortieren"
+    ID_MEMORY_EDIT          "Wert unter dem Cursor ändern\nWert ändern"
+    ID_MEMORY_SIZE_DWORD    "Speicherlayout als DWORD anzeigen\nDWORD"
+    ID_MEMORY_SIZE_WORD     "Speicherlayout als WORD anzeigen\nWORD"
+    ID_MEMORY_SIZE_BYTE     "Speicherlayout als BYTE anzeigen\nBYTE"
+    ID_MEMORY_REFRESH       "Speicherdaten aktualisieren\nAktualisieren"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BUILD_CLEAN          "Projekt von temporären Dateien bereinigen\nBereinigen"
+    ID_BUILD_PROJECT        "Das aktives Projekt erstellen\nErstellen"
+    ID_BUILD_COMPILE        "Selektierte Datei kompilieren\nKompilieren"
+    ID_DEBUG_START          "Prozess ausführen\nAusführen"
+    ID_DEBUG_DEBUG          "SDebugging starten\nDebuggen starten"
+    ID_DEBUG_PROCESSES      "An einen laufenden Prozess anhängen\nAn Prozess anhängen"
+    ID_DEBUG_STEP_INTO      "In Aufruf springen\nIn Aufruf springen"
+    ID_DEBUG_STEP_OVER      "Als einen Schritt ausführen\nAls einen Schritt ausführen"
+    ID_DEBUG_BREAKPOINT     "Haltepunkt einfügen\nHaltepunkt einfügen"
+    ID_DEBUG_CLEAR_BREAKPOINTS 
+                            "Alle Haltepunkte entfernen\nHaltepunkte entfernen"
+    ID_VIEW_WATCH           "Watches anzeigen\nWatches"
+    ID_VIEW_CALLSTACK       "Aufrufstack anzeigen\nAufrufstack"
+    ID_VIEW_BREAKPOINTS     "Liste der Haltepunkte anzeigen\nHaltepunkte"
+    ID_EDIT_UPPERCASE       "Selektierten Text in Großbuchstaben konvertieren\nGroßbuchstaben"
+    ID_EDIT_LOWERCASE       "Selektierten Text in Kleinbuchstaben konvertieren\nKleinbuchstaben"
+    ID_BOOKMARK_NEXT        "Gehe zum nächsten Lesezeichen\nNächstes Lesezeichen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERR_NOATTACH        "Anhängen fehlgeschlagen\nAnhängen an den Prozess fehlgeschlagen\nDer Debugger konnte den entfernten Prozess nicht übernehmen."
+    IDS_NOCONNECTION        "Im Moment besteht keine Verbindung zum entfernten Host."
+    IDS_FILES               "Dateien"
+    IDS_FILEMANAGER         "Entfernte Dateien"
+    IDS_MISC_CONNECTTIMEOUT "Verbindungstimeout"
+    IDS_FLAGS               "Linkeflags"
+    IDS_PATHS               "Verzeichnisse"
+    IDS_ERR_NOEXECUTABLE    "Keine ausführbare Datei\nEs wurde keine ausführbare Datei zum Debuggen gefunden.\nStellen Sie sicher, daß Sie die ausführbare Datei mit Debuginformationen kompilieren oder verwenden Sie das Debug Log Fenster um den potentiellen GDB Fehler zu finden."
+    IDS_STATUS_ENUMFILES    " Liste Dateien auf..."
+    IDS_MISC_COMPATIBILITY  "Kompatibilitätsmodus"
+    IDS_STATUS_STARTING     " %s läuft..."
+    IDS_FILECHANGES         "Datei geändert\nDie Datei wurde außerhalb der Ansicht geändert. Datei neu laden ?\nIrgendwer hat die Datei geändert während sie inaktiv war. Sie können den Dateiinhalt jetzt neu laden."
+    IDS_STEPS               "Angepasste Schritte"
+    IDS_COMMAND_PRESTEP     "Pre-Build Schritt"
+    IDS_COMMAND_POSTSTEP    "Post-Build Schritt"
+    IDS_CONFIG_STEPS        "Erstellungsschritte"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BOOKMARK_PREVIOUS    "Gehe zum vorherigen Lesezeichen\nVorheriges Lesezeichen"
+    ID_VIEW_COMPILE_LOG     "Kompile Lof anzeigen\nKompile Log"
+    ID_DEBUG_STOP           "Die Debug Session stoppen\nDebugger stoppen"
+    ID_DEBUG_THREADS        "Threads anzeigen\nThreads"
+    ID_DEBUG_QUICKWATCH     "Quickwatch Dialog anzeigen\nQuickwatch"
+    ID_EDIT_AUTOCOMPLETE    "Vervollständigt automatisch den selektierten Text\nAutovervollständigung"
+    ID_VIEW_DEBUG_LOG       "Debug log abzeigen\nDebug Log"
+    ID_BOOKMARK_TOGGLE      "Lesezeichen in der aktuellen Zeile umschalten\nLesezeichen umschalten"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BUILD_STOP           "Erstellen anhalten\nErstellen anhalten"
+    ID_DEBUG_STEP_OUT       "Ausführen bis Rücksprung\nAusführen bis Rücksprung"
+    ID_DEBUG_STEP_RUN       "Ausführen bis Cursor\nAusführen bis Cursor"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_DELETE          "Eintrag aus dem Projekt entfernen\nEntfernen"
+    ID_FILE_ADD_REMOTE      "Eine enfernte Datei hinzufügen\nEnfernte Datei hinzufügen"
+    ID_FILE_ADD_LOCAL       "Eine lokale Datei hinzufügen\nLokale Datei hinzufügen"
+    ID_FILE_RENAME          "Eintrag umbenennen\nUmbenennen"
+    ID_FILE_PROPERTIES      "Eigenschaften anzeigen\nEigenschaften"
+    ID_FILE_ADD_FOLDER      "Ein Verzeichnis hinzufügen\nVerzeichnis hinzufügen"
+    ID_PROJECT_SET_DEFAULT  "Als Standartprojekt setzen\nAls Standart setzen"
+    ID_BUILD_SOLUTION       "Den gesammten Arbeitsbereich neu erstellen\nArbeitsbereich neu erstellen"
+    ID_BUILD_REBUILD        "Das aktive Projekt neu erstellen\nProjekt neu ertsellen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_SAVE            "Aktive Datei speichern\nSpeichern"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_VARIABLES       "Variablen anzeigen\nVariablen"
+    ID_VIEW_THREADS         "Threadansicht anzeigen\nThreads"
+    ID_VIEW_REGISTERS       "Register anzeigen\nRegister"
+    ID_EDIT_VIEWWS          "Leerzeichenmarkierungen anzeigen\nLeerzeichen anzeigen"
+    ID_EDIT_VIEWTABS        "Führende Einrückung anzeigen\nTab Einrückung"
+    ID_EDIT_VIEWEOL         "End of Line Markierungen anzeigen\nEOL anzeigen"
+    ID_EDIT_TABIFY          "Selektierten Text einrücken\nSelektion einrücken"
+    ID_EDIT_UNTABIFY        "Selektierten Text ausrücken\nSelektion ausrücken"
+    ID_EDIT_INDENT          "Selektierten Text weiter einrücken\nWeiter einrücken"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BOOKMARKS_TOGGLE     "Lesezeichen umschalten\nLesezeichen umschalten"
+    ID_BOOKMARKS_GOTO       "Gehe zu Lesezeichen\nGehe zu Lesezeichen"
+    ID_BOOKMARKS_GOTO1      "Gehe zu Lesezeichen #1\nGehe zu Lesezeichen"
+    ID_BOOKMARKS_GOTO2      "Gehe zu Lesezeichen #2\nGehe zu Lesezeichen"
+    ID_BOOKMARKS_GOTO3      "Gehe zu Lesezeichen #3\nGehe zu Lesezeichen"
+    ID_BOOKMARKS_GOTO4      "Gehe zu Lesezeichen #4\nGehe zu Lesezeichen"
+    ID_BOOKMARKS_GOTO5      "Gehe zu Lesezeichen #5\nGehe zu Lesezeichen"
+    ID_BOOKMARKS_GOTO6      "Gehe zu Lesezeichen #6\nGehe zu Lesezeichen"
+    ID_BOOKMARKS_GOTO7      "Gehe zu Lesezeichen #7\nGehe zu Lesezeichen"
+    ID_BOOKMARKS_GOTO8      "Gehe zu Lesezeichen #8\nGehe zu Lesezeichen"
+    ID_BOOKMARS_SET         "Plaziert ein Lesezeichen an der aktuellen Zeile\nLesezeichen setzen"
+    ID_BUILD_CHECKSYNTAX    "Dateisyntax prüfen\nSyntax prüfen"
+    ID_BUILD_BUILDTAGS      "CTAG Datei erstellen\nCTAGS erstellen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_PROPERTIES      "Eigenschaften anzeigen\nEigenschaften"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_VIEWWORDWRAP    "Wortumbruch in Zeilen\nWortumbruch"
+    ID_EDIT_ZOOM_IN         "In Text hinein zoomen\nHinein zoomen"
+    ID_EDIT_ZOOM_OUT        "Aus Text heraus zoomen\nHeraus zoomen"
+    ID_EDIT_DELLINE         "Zeile unter Cursor löschen\nZeile löschen"
+END
+
+#endif    // German (Germany) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
@@ -76,60 +1141,6 @@ IDI_ICON1               ICON    DISCARDABLE     "res\\icon1.ico"
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
-IDR_BUILD               BITMAP  DISCARDABLE     "res\\build.bmp"
-IDR_DEBUG               BITMAP  DISCARDABLE     "res\\debug.bmp"
-IDR_BOOKMARKS           BITMAP  DISCARDABLE     "res\\bookmarks.bmp"
-IDR_SEARCH              BITMAP  DISCARDABLE     "res\\search.bmp"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_BACK                ICON    DISCARDABLE     "res\\back.ico"
-IDI_KEY                 ICON    DISCARDABLE     "Res\\key.ico"
-IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
-IDI_MINUS               ICON    DISCARDABLE     "res\\minus.ico"
-IDI_PLUS                ICON    DISCARDABLE     "res\\plus.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Accelerator
-//
-
-IDR_ACCELERATOR ACCELERATORS DISCARDABLE 
-BEGIN
-    "1",            ID_BOOKMARKS_GOTO1,     VIRTKEY, CONTROL, NOINVERT
-    "2",            ID_BOOKMARKS_GOTO2,     VIRTKEY, CONTROL, NOINVERT
-    "3",            ID_BOOKMARKS_GOTO3,     VIRTKEY, CONTROL, NOINVERT
-    "4",            ID_BOOKMARKS_GOTO4,     VIRTKEY, CONTROL, NOINVERT
-    "5",            ID_BOOKMARKS_GOTO5,     VIRTKEY, CONTROL, NOINVERT
-    "6",            ID_BOOKMARKS_GOTO6,     VIRTKEY, CONTROL, NOINVERT
-    "7",            ID_BOOKMARKS_GOTO7,     VIRTKEY, CONTROL, NOINVERT
-    "8",            ID_BOOKMARKS_GOTO8,     VIRTKEY, CONTROL, NOINVERT
-    "B",            ID_EDIT_RECTSELECTION,  VIRTKEY, SHIFT, CONTROL, 
-                                                    NOINVERT
-    VK_CANCEL,      ID_EDIT_BREAK,          VIRTKEY, CONTROL, NOINVERT
-    VK_F10,         ID_DEBUG_STEP_OVER,     VIRTKEY, NOINVERT
-    VK_F11,         ID_DEBUG_STEP_INTO,     VIRTKEY, NOINVERT
-    VK_F5,          ID_DEBUG_START,         VIRTKEY, NOINVERT
-    VK_F5,          ID_DEBUG_DEBUG,         VIRTKEY, CONTROL, NOINVERT
-    VK_F5,          ID_DEBUG_STOP,          VIRTKEY, SHIFT, NOINVERT
-    VK_F7,          ID_BUILD_PROJECT,       VIRTKEY, NOINVERT
-    VK_F7,          ID_BUILD_COMPILE,       VIRTKEY, CONTROL, NOINVERT
-    VK_F8,          ID_DEBUG_BREAKPOINT,    VIRTKEY, NOINVERT
-    VK_SPACE,       ID_EDIT_AUTOCOMPLETE,   VIRTKEY, CONTROL, NOINVERT
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -772,6 +1783,60 @@ BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
+IDR_BUILD               BITMAP  DISCARDABLE     "res\\build.bmp"
+IDR_DEBUG               BITMAP  DISCARDABLE     "res\\debug.bmp"
+IDR_BOOKMARKS           BITMAP  DISCARDABLE     "res\\bookmarks.bmp"
+IDR_SEARCH              BITMAP  DISCARDABLE     "res\\search.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_BACK                ICON    DISCARDABLE     "res\\back.ico"
+IDI_KEY                 ICON    DISCARDABLE     "Res\\key.ico"
+IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
+IDI_MINUS               ICON    DISCARDABLE     "res\\minus.ico"
+IDI_PLUS                ICON    DISCARDABLE     "res\\plus.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATOR ACCELERATORS DISCARDABLE 
+BEGIN
+    "1",            ID_BOOKMARKS_GOTO1,     VIRTKEY, CONTROL, NOINVERT
+    "2",            ID_BOOKMARKS_GOTO2,     VIRTKEY, CONTROL, NOINVERT
+    "3",            ID_BOOKMARKS_GOTO3,     VIRTKEY, CONTROL, NOINVERT
+    "4",            ID_BOOKMARKS_GOTO4,     VIRTKEY, CONTROL, NOINVERT
+    "5",            ID_BOOKMARKS_GOTO5,     VIRTKEY, CONTROL, NOINVERT
+    "6",            ID_BOOKMARKS_GOTO6,     VIRTKEY, CONTROL, NOINVERT
+    "7",            ID_BOOKMARKS_GOTO7,     VIRTKEY, CONTROL, NOINVERT
+    "8",            ID_BOOKMARKS_GOTO8,     VIRTKEY, CONTROL, NOINVERT
+    "B",            ID_EDIT_RECTSELECTION,  VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    VK_CANCEL,      ID_EDIT_BREAK,          VIRTKEY, CONTROL, NOINVERT
+    VK_F10,         ID_DEBUG_STEP_OVER,     VIRTKEY, NOINVERT
+    VK_F11,         ID_DEBUG_STEP_INTO,     VIRTKEY, NOINVERT
+    VK_F5,          ID_DEBUG_START,         VIRTKEY, NOINVERT
+    VK_F5,          ID_DEBUG_DEBUG,         VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_DEBUG_STOP,          VIRTKEY, SHIFT, NOINVERT
+    VK_F7,          ID_BUILD_PROJECT,       VIRTKEY, NOINVERT
+    VK_F7,          ID_BUILD_COMPILE,       VIRTKEY, CONTROL, NOINVERT
+    VK_F8,          ID_DEBUG_BREAKPOINT,    VIRTKEY, NOINVERT
+    VK_SPACE,       ID_EDIT_AUTOCOMPLETE,   VIRTKEY, CONTROL, NOINVERT
+END
 
 
 #ifndef _MAC

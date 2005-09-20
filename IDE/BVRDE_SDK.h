@@ -295,6 +295,7 @@ public:
    virtual ISolution* GetSolution() const = 0;
    virtual IView* GetActiveView() const = 0;
    virtual IDispatch* GetDispatch() = 0;
+   virtual LCID GetLCID() const = 0;
    //
    virtual BOOL AddExplorerView(HWND hWnd, LPCTSTR pstrTitle, int iImage) = 0;
    virtual BOOL RemoveExplorerView(HWND hWnd) = 0;
@@ -304,7 +305,7 @@ public:
    virtual BOOL AddDockView(HWND hWnd, IDE_DOCK_TYPE Direction, RECT rcWin) = 0;
    virtual BOOL RemoveDockView(HWND hWnd) = 0;
    virtual BOOL GetDockState(HWND hWnd, int& iState, RECT& rcWin) = 0;
-   virtual BOOL AddToolBar(HWND hWnd, LPCTSTR pstrTitle) = 0;
+   virtual BOOL AddToolBar(HWND hWnd, LPCTSTR pstrID, LPCTSTR pstrTitle) = 0;
    virtual BOOL RemoveToolBar(HWND hWnd) = 0;
    virtual BOOL ShowToolBar(HWND hWnd, BOOL bShow = TRUE) = 0;
    virtual IViewFrame* CreateClient(LPCTSTR pstrTitle, IProject* pProject, IView* pView) = 0;

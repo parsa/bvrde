@@ -158,7 +158,7 @@ public:
       sTitle.LoadString(m_pElement == NULL ? IDS_TREE_ENVIRONMENT : IDS_TREE_ROOT);
       m_hRoot = m_hGroup = m_ctrlTree.InsertItem(sTitle, 0, 0, TVI_ROOT, TVI_LAST);
       ATLASSERT(m_hRoot!=NULL);
-      
+
       // Allow listeners to add their own pages
       for( int i = 0; i < m_pMainFrame->m_aWizardListeners.GetSize(); i++ ) {
          if( m_pElement == NULL ) {
@@ -168,7 +168,7 @@ public:
             m_pMainFrame->m_aWizardListeners[i]->OnInitProperties(this, m_pElement);
          }
       }
-      
+
       // Expand root and first sub-tree
       m_ctrlTree.Expand(m_hRoot);
       HTREEITEM hItem = m_hRoot;

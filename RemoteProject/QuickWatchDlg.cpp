@@ -74,6 +74,7 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          }
       }
       // Look for the next item to add a value for...
+      m_sQueryVariable.Empty();
       for( i = 0; i < m_aItems.GetSize(); i++ ) {
          if( !m_aItems[i].bHasValue ) {
             m_iQueryParent = m_aItems[i].iParent;
@@ -92,7 +93,8 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       }
    }
    else if( _tcscmp(pstrType, _T("numchild")) == 0 ) 
-   {      
+   {
+      if( m_sQueryVariable.IsEmpty() ) return;
       CString sName = info.GetItem(_T("name"));
       while( !sName.IsEmpty() ) {
          CString sExp = info.GetSubItem(_T("exp"));
@@ -103,7 +105,10 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
             sExp.Replace(_T("quickwatch."), _T(""));
          }
          // Add item to cache
-         const ITEM& parent = m_aItems[ m_ctrlList.GetItemData(m_iQueryParent) ];
+         int iParentPos = m_ctrlList.GetItemData(m_iQueryParent);
+         ATLASSERT(iParentPos>=0 && iParentPos<m_aItems.GetSize());
+         if( iParentPos < 0 ) return;
+         const ITEM& parent = m_aItems[iParentPos];
          ITEM item;
          item.sKey = sName;
          item.sName = sExp;
@@ -266,45 +271,90 @@ LRESULT CQuickWatchDlg::OnListChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam
 
 LRESULT CQuickWatchDlg::OnListClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
 {
-   POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-   int nItems = m_ctrlList.GetCount();
-   for( int i = 0; i < nItems; i++ ) {
-      // Hit what item?
-      RECT rcItem;
-      m_ctrlList.GetItemRect(i, &rcItem);
-      if( ::PtInRect(&rcItem, pt) ) {
-         // Can expand this item?
-         int iPos = m_ctrlList.GetItemData(i);
-         ITEM& item = m_aItems[iPos];
-         if( item.iIndent > 0 
-             && item.bHasChildren 
-             && !item.bExpanded ) 
-         {
-            // Hit the expand-indicator?
-            RECT rcButton;
-            rcButton.left = rcItem.left + 3 + ((item.iIndent - 1) * CX_INDENT);
-            rcButton.top = rcItem.top + 3;
-            rcButton.right = rcButton.left + 16;
-            rcButton.bottom = rcButton.top + 16;
-            if( ::PtInRect(&rcButton, pt) ) {
-               // Query value and children
-               m_iQueryParent = i;
-               m_sQueryVariable = item.sKey;
-               CString sCommand;
-               sCommand.Format(_T("-var-list-children %s"), item.sKey);
-               m_pProject->m_DebugManager.DoDebugCommand(sCommand);
-               // Set off value evaluation run...
-               sCommand.Format(_T("-var-evaluate-expression %s"), item.sKey);
-               m_pProject->m_DebugManager.DoDebugCommand(sCommand);
-               // Mark tree as expanded
-               item.bExpanded = true;
-            }
-         }
-      }
-   }
    bHandled = FALSE;
+   POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+   BOOL bOutside = FALSE;
+   int iItem = m_ctrlList.ItemFromPoint(pt, bOutside);
+   if( iItem < 0 || bOutside ) return 0;
+   RECT rcItem = { 0 };
+   m_ctrlList.GetItemRect(iItem, &rcItem);
+   if( !::PtInRect(&rcItem, pt) ) return 0;
+   // Can expand this item?
+   int iPos = m_ctrlList.GetItemData(iItem);
+   const ITEM& item = m_aItems[iPos];
+   if( item.iIndent == 0 || !item.bHasChildren ) return 0;
+   // Hit the expand-indicator?
+   RECT rcButton;
+   rcButton.left = rcItem.left + 3 + ((item.iIndent - 1) * CX_INDENT);
+   rcButton.top = rcItem.top + 3;
+   rcButton.right = rcButton.left + 16;
+   rcButton.bottom = rcButton.top + 16;
+   if( !::PtInRect(&rcButton, pt) ) return 0;
+   if( !item.bExpanded ) _ExpandItem(iItem); else _CollapseItem(iItem);
    return 0;
 }
+
+LRESULT CQuickWatchDlg::OnListDblClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
+{
+   bHandled = FALSE;
+   POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+   BOOL bOutside = FALSE;
+   int iItem = m_ctrlList.ItemFromPoint(pt, bOutside);
+   if( iItem < 0 || bOutside ) return 0;
+   // Expand or collapse?
+   int iPos = m_ctrlList.GetItemData(iItem);
+   const ITEM& item = m_aItems[iPos];
+   if( item.iIndent == 0 || !item.bHasChildren ) return 0;
+   if( !item.bExpanded ) _ExpandItem(iItem); else _CollapseItem(iItem);
+   return 0;
+}
+
+void CQuickWatchDlg::_ExpandItem(int iItem)
+{
+   int iPos = m_ctrlList.GetItemData(iItem);
+   ITEM& item = m_aItems[iPos];
+   if( item.bExpanded ) return;
+   if( !item.bHasChildren ) return;
+   // Query value and children so we expand it
+   m_iQueryParent = iItem;
+   m_sQueryVariable = item.sKey;
+   CString sCommand;
+   sCommand.Format(_T("-var-list-children %s"), item.sKey);
+   m_pProject->m_DebugManager.DoDebugCommand(sCommand);
+   // Set off value evaluation run...
+   sCommand.Format(_T("-var-evaluate-expression %s"), item.sKey);
+   m_pProject->m_DebugManager.DoDebugCommand(sCommand);
+   // Mark branch as expanded
+   item.bExpanded = true;
+}
+
+void CQuickWatchDlg::_CollapseItem(int iItem)
+{
+   int iPos = m_ctrlList.GetItemData(iItem);
+   int nCount = m_ctrlList.GetCount();
+   ITEM& item = m_aItems[iPos];
+   if( !item.bExpanded ) return;
+   // Collapse branch; stop the interation first
+   // then remove items
+   item.bExpanded = false;
+   CSimpleArray<int> aDeletes;
+   for( int i = iItem + 1; i < nCount; i++ ) {
+      const ITEM& child = m_aItems[ m_ctrlList.GetItemData(i) ];
+      if( child.iIndent <= item.iIndent ) break;
+      aDeletes.Add(i);
+   }
+   // HACK: We cannot remove the items because the list-control
+   //       relies on it ordering. We'll just mark it invalid.
+   for( int x = aDeletes.GetSize() - 1; x >= 0; --x ) {
+      int iIndex = aDeletes[x];
+      ITEM& child = m_aItems[ m_ctrlList.GetItemData(iIndex) ];
+      child.sKey.Empty();
+      child.bHasValue = true;
+      m_ctrlList.DeleteString(iIndex);
+   }
+   m_sQueryVariable.Empty();
+}
+
 
 // Ownerdraw
 

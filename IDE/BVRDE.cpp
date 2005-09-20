@@ -7,6 +7,7 @@
 #include "MainFrm.h"
 #include "Thread.h"
 #include "SplashDlg.h"
+#include "RegSerializer.h"
 
 CAppModule _Module;
 
@@ -74,6 +75,8 @@ public:
 
 static bool SingleInstance()
 {
+   // See if another instance of BVRDE is running; send commandline
+   // to that version and terminate here.
    HANDLE hMutex = ::CreateMutex(NULL, TRUE, _T("BVRDE"));
    if( hMutex == NULL || ::GetLastError() == ERROR_ALREADY_EXISTS ) {
       HWND hWnd = ::FindWindow(_T("BVRDE_Main"), NULL);
@@ -104,6 +107,16 @@ static void PreloadLibraries()
    ::LoadLibrary(_T("MSHTML.DLL"));
 }
 
+static void SetLanguage()
+{
+   CRegSerializer reg;
+   if( !reg.Open(REG_BVRDE) ) return;
+   if( !reg.ReadGroupBegin(_T("Settings")) ) return;
+   TCHAR szBuffer[64] = { 0 };
+   reg.Read(_T("language"), szBuffer, 63);
+   if( _tcscmp(szBuffer, _T("en")) == 0 ) ::SetThreadLocale(MAKELCID(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), SORT_DEFAULT));
+   if( _tcscmp(szBuffer, _T("de")) == 0 ) ::SetThreadLocale(MAKELCID(MAKELANGID(LANG_GERMAN, SUBLANG_GERMAN), SORT_DEFAULT));
+}
 
 
 ///////////////////////////////////////////////////
@@ -112,7 +125,7 @@ static void PreloadLibraries()
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
 {
    // NOTE: We need single-threaded COM because of Active Scripting
-   //       and OLE drag'n'drop below...
+   //       and OLE drag'n'drop below runs in this scope...
    HRESULT hRes = ::CoInitialize(NULL);
    ATLASSERT(SUCCEEDED(hRes));
    hRes = ::OleInitialize(NULL);
@@ -130,6 +143,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    // Show splash screen
    CSplashWindow splash;
    splash.ShowSplash();
+
+   SetLanguage();
 
    // Grab the XML configuration file
    PreloadConfig();

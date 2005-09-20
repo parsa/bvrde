@@ -48,16 +48,283 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
+#endif    // Danish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Icon
+// Menu
 //
 
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_ICON1               ICON    DISCARDABLE     "res\\icon1.ico"
-#endif    // Danish resources
+IDR_FOLDER MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        POPUP "Hinzufügen"
+        BEGIN
+            MENUITEM "Verzeichnis hinzufügen",      ID_FILE_ADD_FOLDER
+            MENUITEM "Datei hinzufügen",            ID_FILE_ADD_LOCAL
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Entfernen",                   ID_FILE_DELETE
+        MENUITEM "Umbenennen",                  ID_FILE_RENAME
+        MENUITEM SEPARATOR
+        MENUITEM "Eigenschaften",               ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_MAIN MENU DISCARDABLE 
+BEGIN
+    POPUP "Sub0"
+    BEGIN
+        POPUP "Erweitert"
+        BEGIN
+            MENUITEM "Autovervollständigung\tCtrl+Space", 
+                                                    ID_EDIT_AUTOCOMPLETE
+            MENUITEM SEPARATOR
+            MENUITEM "Erstelle Großb&uchstaben\tCtrl+Shift+U", 
+                                                    ID_EDIT_UPPERCASE
+            MENUITEM "Erstelle K&leinbuchstaben",   ID_EDIT_LOWERCASE
+            MENUITEM "&Selektion einrücken",        ID_EDIT_TABIFY
+            MENUITEM "Selektion ausrücken",         ID_EDIT_UNTABIFY
+            MENUITEM "Zeile einrücken\tTab",        ID_EDIT_INDENT
+            MENUITEM "Zeile ausrücken\tShift+Tab",  ID_EDIT_UNINDENT
+            MENUITEM "Zeile löschen\tCtrl+L",       ID_EDIT_DELLINE
+            MENUITEM "Selektion auskommentieren",   ID_EDIT_COMMENT
+            MENUITEM "Selektion einkommentieren",   ID_EDIT_UNCOMMENT
+            MENUITEM SEPARATOR
+            MENUITEM "Rechteckige Selektion\tCtrl+Shift+B", 
+                                                    ID_EDIT_RECTSELECTION
+            MENUITEM SEPARATOR
+            MENUITEM "Wortumbruch",                 ID_EDIT_VIEWWORDWRAP
+            MENUITEM "&EOL anzeigen",               ID_EDIT_VIEWEOL
+            MENUITEM "Leerzeichen anzeigen",        ID_EDIT_VIEWWS
+            MENUITEM "Führende Einrückung anzeigen", ID_EDIT_VIEWTABS
+        END
+        POPUP "Lesezeichen"
+        BEGIN
+            MENUITEM "Lesezeichen umschalten",      ID_BOOKMARK_TOGGLE
+            MENUITEM "Vorhergehendes Lesezeichen",  ID_BOOKMARK_PREVIOUS
+            MENUITEM "&Nächstes Lesezeichen",       ID_BOOKMARK_NEXT
+            MENUITEM "Lesezeichen entfernen",       ID_BOOKMARK_CLEAR
+        END
+    END
+    POPUP "Sub1"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "Verzeichnis hinzufügen",      ID_FILE_ADD_FOLDER
+        MENUITEM "Datei hinzufügen",            ID_FILE_ADD_LOCAL
+    END
+END
+
+IDR_PROJECT MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Als Standartprojekt setzen",  ID_PROJECT_SET_DEFAULT
+        POPUP "Hinzufügen"
+        BEGIN
+            MENUITEM "Verzeichnis hinzufügen",      ID_FILE_ADD_FOLDER
+            MENUITEM "Datei hinzufügen",            ID_FILE_ADD_LOCAL
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Entfe&rnen",                  ID_FILE_DELETE
+        MENUITEM "Umbenennen",                  ID_FILE_RENAME
+        MENUITEM SEPARATOR
+        MENUITEM "&Speichern",                  ID_FILE_SAVE
+        MENUITEM SEPARATOR
+        MENUITEM "Eigenschaften",               ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_TEXT MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Öffnen",                      ID_VIEW_OPEN
+        MENUITEM "Öffnen mit...",               ID_VIEW_OPENWITH
+        MENUITEM SEPARATOR
+        MENUITEM "Entfe&rnen",                  ID_FILE_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "Eigenschaften",               ID_VIEW_PROPERTIES
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_WIZARD_MESSAGE DIALOG DISCARDABLE  0, 0, 255, 179
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Das 'Leere Projekt' wird als Kontainer für Dateien verwendet und nicht als Projekt zum Kompilieren und debuggen. Es bietet nicht die Fähigkeit zm Kompilierungen.\n\nVerwenden Sie ein 'Remote C++ Projekt' um Dateien eines entfernten Servers hinzuzufügen.",
+                    IDC_STATIC,12,12,220,90
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_WIZARD_MESSAGE, DIALOG
+    BEGIN
+        RIGHTMARGIN, 251
+        BOTTOMMARGIN, 177
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_NEW_FOLDER          "Verzeichnis"
+    IDS_FILTER_FILES        "Quellcodedateien|*.c*;*.h*;*.?c;*.inc|Web Dateien|*.htm*;*.p*;*.asp;*.js*|Alle Dateien|*.*|"
+    IDS_FINDFAILED          "Nicht gefunden\nDer String '%s' konnte nicht gefunden werden."
+    IDS_CAPTION_ERROR       "Fehler"
+    IDS_CAPTION_WARNING     "Warnung"
+    IDS_CAPTION_MESSAGE     "Nachricht"
+    IDS_CAPTION_COMMAND     "Befehlsfenster"
+    IDS_ERR_OPENVIEW        "Datei öffnen Fehler\nDie Datei konnte nicht in einer neuen Ansicht geöffnet werden."
+    IDS_ERR_LASTERROR       "\nSystem Fehlermeldung:\n"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_OUTPUT      "Ausgabe"
+    IDS_LOG_SENDERROR       "Ein Fehler ist beim Senden der Daten aufgetreten."
+    IDS_STATUS_LOADING      " Lade Projekt '%s'..."
+    IDS_FILECHANGES         "Datei geändert\nDie Datei wurde außerhalb der Ansicht geändert. Neu laden ?\nJemand hat die Datei geändert während diese inaktiv war. Sie können den Inhalt der Datei neu laden."
+    IDS_BUILD               "Erstellen"
+    IDS_CAPTION_QUESTION    "BVRDE"
+    IDS_WIZARD_TITLE_MESSAGE "Das 'Leere Projekt'"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_WIZARD_SUBTITLE_MESSAGE 
+                            "Eine Wichtige Anmerkung über den leeren Projekttyp."
+    IDS_FTP                 "FTP"
+    IDS_TELNET              "Telnet"
+    IDS_GDB                 "GDB"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CONFIG_COMMANDS     "Befehle"
+    IDS_STATUS_RUNNING      " Läuft..."
+    IDS_STATUS_OPENFILE     " Öffne Datei.."
+    IDS_OPTIONS             "Optionen"
+    IDS_CONFIG_OPTIONS      "Optionen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERR_DATAWRITE       "Daten Schreibfehler\nEin Fehler ist während des sendens der Daten zum entfernten Host aufgetreten.\nDer entfernte Host hat die eingehenden Daten nicht akzeptiert oder er hat die Verbindung geschlossen."
+    IDS_COMMAND_MAIN        "Einstiegsfunktion"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERR_FILESAVE        "Speichern fehlgeschlagen\nDas Speichern der Datei '%s' ist fehlgeschlagen.\nWenn die Datei eine entfernte Datei ist, ist es vermutlich ein Timeout Fehler. Dann erneut versuchen."
+    IDS_STOPPED             "Gestoppt"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_CLEAR           "Löscht die Markierung.\nLöschen"
+    ID_EDIT_COPY            "Kopiert die Markierung und überträgt sie in die Zwischenablage.\nKopieren"
+    ID_EDIT_CUT             "Entfernt die Markierung und überträgt sie in die Zwischenablage.\nAusschneiden"
+    ID_EDIT_FIND            "Sucht den angegebenen Text.\nSuchen"
+    ID_EDIT_PASTE           "Fügt den Inhalt der Zwischenablage ein.\nEinfügen"
+    ID_EDIT_REPEAT          "Wiederholt die letzte Aktion.\nWiederholen"
+    ID_EDIT_REPLACE         "Ersetzt einen bestimmten Text durch einen anderen.\nErsetzen"
+    ID_EDIT_SELECT_ALL      "Markiert das gesamte Dokument.\nAlles markieren"
+    ID_EDIT_UNDO            "Macht die letzte Aktion rückgängig.\nRückgängig"
+    ID_EDIT_REDO            "Wiederholt die vorher rückgängig gemachte Aktion.\nWiederherstellen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_GOTO            "Gehe zu..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERR_FILEINCLUDED    "Existiert bereits\nDie Datei existiert bereits im Projekt."
+    IDS_SAVECHANGES         "Änderungen speichern\nMöchten Sie die Änderungen erst in derProjektdatei speichern ?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_UNKNOWN             "Unbekannt"
+    IDS_TREE_CONFIGURATION  "Konfiguration"
+    IDS_CONFIG_CONFIGURATION "Konfiguration"
+    IDS_TREE_ADVANCED       "Erweitert"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SAVEFILE            "Datei speichern\nDie Datei wurde modifiziert. Möchten Sie Datei zuerst speichern ?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_PROPERTIES      "Eigenschaften anzeigen\nEigenschaften"
+    ID_VIEW_OPEN            "Datei öffnen\nÖffnen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_RECTSELECTION   "Verwende rechteckige Selektion\nRechteckige Selektion"
+    ID_VIEW_OPENWITH        "Datei mit externem Editor öffnen\nÖffnen mit"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_DELETE          "Den Eintrag aus dem Projekt entfernen\nDatei entfernen"
+    ID_FILE_ADD_LOCAL       "Datei dem Projekt hinzufügen\nDatei hinzufügen"
+    ID_FILE_RENAME          "Den Eintrag umbenennen\nUmbenennen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_ADD_FOLDER      "Ein Verzeichnis dem Projekt hinzufügen\nVerzeichnis hinzufügen"
+    ID_PROJECT_SET_DEFAULT  "Als Standartprojekt festlegen\nAls Standart setzen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_SAVE            "Den Eintrag speichern\nSpeichern"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_VIEWTABS        "Führende Einrückung anzeigen\nTab Einrückung"
+END
+
+#endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -69,38 +336,6 @@ IDI_ICON1               ICON    DISCARDABLE     "res\\icon1.ico"
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_BACK                ICON    DISCARDABLE     "res\\back.ico"
-IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
-IDI_MINUS               ICON    DISCARDABLE     "res\\minus.ico"
-IDI_PLUS                ICON    DISCARDABLE     "res\\plus.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Accelerator
-//
-
-IDR_ACCELERATOR ACCELERATORS DISCARDABLE 
-BEGIN
-    "B",            ID_EDIT_RECTSELECTION,  VIRTKEY, SHIFT, CONTROL, 
-                                                    NOINVERT
-    VK_F4,          ID_VIEW_PROPERTIES,     VIRTKEY, NOINVERT
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -200,6 +435,69 @@ BEGIN
 END
 
 
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_WIZARD_MESSAGE DIALOGEX 0, 0, 255, 179
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "The Empty Project is used as a container for files - rather than a project for compilation and debugging. The Empty Project does not offer the ability to issue compile commands.\n\nUse a Remote C++ Project to attach files from a remote server.",
+                    IDC_STATIC,12,12,220,90
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_WIZARD_MESSAGE, DIALOG
+    BEGIN
+        RIGHTMARGIN, 251
+        BOTTOMMARGIN, 177
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_BACK                ICON    DISCARDABLE     "res\\back.ico"
+IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
+IDI_MINUS               ICON    DISCARDABLE     "res\\minus.ico"
+IDI_PLUS                ICON    DISCARDABLE     "res\\plus.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATOR ACCELERATORS DISCARDABLE 
+BEGIN
+    "B",            ID_EDIT_RECTSELECTION,  VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    VK_F4,          ID_VIEW_PROPERTIES,     VIRTKEY, NOINVERT
+END
+
+
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -244,37 +542,6 @@ BEGIN
 END
 
 #endif    // !_MAC
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_WIZARD_MESSAGE DIALOGEX 0, 0, 255, 179
-STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
-BEGIN
-    LTEXT           "The Empty Project is used as a container for files - rather than a project for compilation and debugging. The Empty Project does not offer the ability to issue compile commands.\n\nUse a Remote C++ Project to attach files from a remote server.",
-                    IDC_STATIC,12,12,220,90
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
-BEGIN
-    IDD_WIZARD_MESSAGE, DIALOG
-    BEGIN
-        RIGHTMARGIN, 251
-        BOTTOMMARGIN, 177
-    END
-END
-#endif    // APSTUDIO_INVOKED
 
 
 /////////////////////////////////////////////////////////////////////////////

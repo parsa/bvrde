@@ -35,7 +35,7 @@ public:
    CIcon m_iconDelete;
    CIcon m_iconUp;
    CIcon m_iconDown;
-   CIcon m_iconArrow;
+   CFont m_fontWingdings;
 
    enum
    {
@@ -83,6 +83,7 @@ public:
       COMMAND_ID_HANDLER(ID_TOOLTOKEN_FILENAME, OnToolToken)
       COMMAND_ID_HANDLER(ID_TOOLTOKEN_SELECTION, OnToolToken)
       COMMAND_CODE_HANDLER(EN_CHANGE, OnChange)
+      COMMAND_CODE_HANDLER(CBN_SELCHANGE, OnCbChange)
       NOTIFY_CODE_HANDLER(LVN_ITEMCHANGED, OnSelChanged)
    END_MSG_MAP()
 
@@ -115,7 +116,8 @@ public:
       m_iconDelete.LoadIcon(IDI_DELETE, 16, 16);
       m_iconUp.LoadIcon(IDI_UP, 16, 16);
       m_iconDown.LoadIcon(IDI_DOWN, 16, 16);
-      m_iconArrow.LoadIcon(IDI_DROPARROW, 16, 16);
+      
+      m_fontWingdings.CreateFont(14, 0, 0, 0, 0, 0, 0, 0, SYMBOL_CHARSET, 0, 0, 0, 0, _T("Wingdings"));
 
       COLORREF clrBack = BlendRGB(::GetSysColor(COLOR_WINDOW), RGB(0,0,0), 6);
 
@@ -134,7 +136,8 @@ public:
       m_ctrlDelete.SetIcon(m_iconDelete);
       m_ctrlUp.SetIcon(m_iconUp);
       m_ctrlDown.SetIcon(m_iconDown);
-      m_ctrlBrowseArguments.SetIcon(m_iconArrow);
+      m_ctrlBrowseArguments.SetFont(m_fontWingdings);
+      m_ctrlBrowseArguments.SetWindowText(_T("\xE8"));
 
       _LoadItems();
       m_ctrlList.SelectItem(0);
@@ -263,6 +266,12 @@ public:
       int iIndex = m_ctrlList.GetSelectedIndex();
       if( iIndex < 0 ) return 0;
       if( wID == IDC_TITLE ) m_ctrlList.SetItemText(iIndex, 0, CWindowText(m_ctrlTitle));
+      return 0;
+   }
+
+   LRESULT OnCbChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+   {
+      _UpdateButtons();
       return 0;
    }
 

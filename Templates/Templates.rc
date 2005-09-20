@@ -46,6 +46,126 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
+#endif    // Danish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_NEWFILE DIALOG DISCARDABLE  0, 0, 351, 218
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Neue Datei"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,238,197,50,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,294,197,50,14
+    LTEXT           "Categories",IDC_STATIC,7,7,54,9
+    LTEXT           "Templates",IDC_STATIC,125,7,54,9
+    CONTROL         "Tree1",IDC_GROUPTREE,"SysTreeView32",TVS_HASLINES | 
+                    TVS_LINESATROOT | TVS_DISABLEDRAGDROP | 
+                    TVS_SHOWSELALWAYS | TVS_INFOTIP | WS_BORDER | WS_TABSTOP,
+                    7,17,114,152
+    CONTROL         "List1",IDC_FILELIST,"SysListView32",LVS_SINGLESEL | 
+                    LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | 
+                    LVS_AUTOARRANGE | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,123,17,221,152
+    LTEXT           " ...",IDC_DESCRIPTION,7,172,337,11,SS_NOPREFIX | 
+                    SS_SUNKEN
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,188,337,1
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_NEWFILE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 344
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 211
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // German (Germany) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_NEWFILE DIALOGEX 0, 0, 351, 218
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "New File"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,238,197,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,294,197,50,14
+    LTEXT           "Categories",IDC_STATIC,7,7,54,9
+    LTEXT           "Templates",IDC_STATIC,125,7,54,9
+    CONTROL         "Tree1",IDC_GROUPTREE,"SysTreeView32",TVS_HASLINES | 
+                    TVS_LINESATROOT | TVS_DISABLEDRAGDROP | 
+                    TVS_SHOWSELALWAYS | TVS_INFOTIP | WS_BORDER | WS_TABSTOP,
+                    7,17,114,152
+    CONTROL         "List1",IDC_FILELIST,"SysListView32",LVS_SINGLESEL | 
+                    LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | 
+                    LVS_AUTOARRANGE | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,123,17,221,152
+    LTEXT           " ...",IDC_DESCRIPTION,7,172,337,11,SS_NOPREFIX | 
+                    SS_SUNKEN
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,188,337,1
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_NEWFILE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 344
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 211
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -92,65 +212,6 @@ END
 
 #endif    // !_MAC
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_NEWFILE DIALOGEX 0, 0, 351, 218
-STYLE DS_SHELLFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "New File"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,238,197,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,294,197,50,14
-    LTEXT           "Categories",IDC_STATIC,7,7,54,9
-    LTEXT           "Templates",IDC_STATIC,125,7,54,9
-    CONTROL         "Tree1",IDC_GROUPTREE,"SysTreeView32",TVS_HASLINES | 
-                    TVS_LINESATROOT | TVS_DISABLEDRAGDROP | 
-                    TVS_SHOWSELALWAYS | TVS_INFOTIP | WS_BORDER | WS_TABSTOP,
-                    7,17,114,152
-    CONTROL         "List1",IDC_FILELIST,"SysListView32",LVS_SINGLESEL | 
-                    LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | 
-                    LVS_AUTOARRANGE | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | 
-                    WS_BORDER | WS_TABSTOP,123,17,221,152
-    LTEXT           " ...",IDC_DESCRIPTION,7,172,337,11,SS_NOPREFIX | 
-                    SS_SUNKEN
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,188,337,1
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
-BEGIN
-    IDD_NEWFILE, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 344
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 211
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-#endif    // Danish resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //

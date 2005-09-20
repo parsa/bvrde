@@ -97,6 +97,7 @@ public:
    CButton m_ctrlTabbed;
    CButton m_ctrlMdi;
    CComboBox m_ctrlStartup;
+   CComboBox m_ctrlLanguage;
 
    // Overloads
 

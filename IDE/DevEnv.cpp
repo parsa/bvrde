@@ -16,6 +16,11 @@ DWORD CMainFrame::GetVersion() const
    return MAKELPARAM(1, 0);
 }
 
+LCID CMainFrame::GetLCID() const
+{
+   return m_Locale;
+}
+
 IDispatch* CMainFrame::GetDispatch()
 {
    CMainFrame* pThis = const_cast<CMainFrame*>(this);
@@ -88,15 +93,16 @@ BOOL CMainFrame::RemoveExplorerView(HWND hWnd)
    return m_viewExplorer.RemoveView(hWnd);
 }
 
-BOOL CMainFrame::AddToolBar(HWND hWnd, LPCTSTR pstrTitle)
+BOOL CMainFrame::AddToolBar(HWND hWnd, LPCTSTR pstrID, LPCTSTR pstrTitle)
 {
    ATLASSERT(::IsWindow(hWnd));
+   ATLASSERT(!::IsBadStringPtr(pstrID,-1));
    ATLASSERT(!::IsBadStringPtr(pstrTitle,-1));
    if( !::IsWindow(hWnd) ) return FALSE;
    CLockStaticDataInit lock;
    // Get stored properties
    CString sKey;
-   sKey.Format(_T("window.toolbar.%s."), pstrTitle);
+   sKey.Format(_T("window.toolbar.%s."), pstrID);
    TCHAR szBuffer[32] = { 0 };
    GetProperty(sKey + _T("show"), szBuffer, (sizeof(szBuffer)/sizeof(TCHAR))-1);
    BOOL bShowDefault = _tcscmp(szBuffer, _T("true")) == 0;
@@ -119,6 +125,7 @@ BOOL CMainFrame::AddToolBar(HWND hWnd, LPCTSTR pstrTitle)
    UIAddToolBar(hWnd);
    // Add it to internal list
    TOOLBAR tb = { 0 };
+   _tcsncpy(tb.szID, pstrID, (sizeof(tb.szID) / sizeof(TCHAR)) - 1);
    _tcsncpy(tb.szName, pstrTitle, (sizeof(tb.szName) / sizeof(TCHAR)) - 1);
    tb.hWnd = hWnd;
    tb.bShowDefault = bShowDefault;

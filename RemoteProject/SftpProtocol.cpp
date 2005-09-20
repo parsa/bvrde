@@ -99,6 +99,8 @@ DWORD CSftpThread::Run()
 {
    ATLASSERT(m_pManager);
 
+   ::SetThreadLocale(_pDevEnv->GetLCID());
+
    CRYPT_SESSION& cryptSession = (CRYPT_SESSION&) m_pManager->m_cryptSession;
    ATLASSERT(cryptSession==0);
 

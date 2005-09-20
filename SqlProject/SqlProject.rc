@@ -14,6 +14,416 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// Deutsch (Deutschland) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 170
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Setup",IDC_STATIC,0,0,25,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,30,4,228,1
+    LTEXT           "Terminator:",IDC_STATIC,14,16,40,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_TERMINATOR,57,16,33,12,ES_UPPERCASE | ES_AUTOHSCROLL
+    CONTROL         "Autocommit aktivieren",IDC_AUTOCOMMIT,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,33,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Kommentare lokal parsen",IDC_STRIPCOMMENTS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,44,91,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Klammernblock anzeigen",IDC_MATCHBRACES,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,56,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Ausgabe limitieren auf",IDC_LIMITRECORDS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,68,83,11
+    EDITTEXT        IDC_MAXROWS,98,68,33,12,ES_UPPERCASE | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    CONTROL         "Fehler limitieren auf",IDC_LIMITERRORS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,82,82,11
+    EDITTEXT        IDC_MAXERRORS,98,82,33,12,ES_UPPERCASE | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "Anzeige",IDC_STATIC,0,106,33,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,33,110,224,1
+    CONTROL         "Autovervollständigungs Featuer verwenden",
+                    IDC_AUTOCOMPLETE,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,14,122,176,10,WS_EX_TRANSPARENT
+    CONTROL         "Ansichten in der Autovervollständigung nicht anzeigen",
+                    IDC_IGNOREVIEWS,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,14,133,212,10,WS_EX_TRANSPARENT
+    CONTROL         "Tabelleninformationen im Hintergundthread laden",
+                    IDC_BACKGROUNDLOAD,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,14,144,207,10,WS_EX_TRANSPARENT
+END
+
+IDD_WIZARD_CONNECTION DIALOGEX 0, 0, 255, 179
+STYLE DS_FIXEDSYS | WS_CHILD
+EXSTYLE WS_EX_CONTROLPARENT
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Spezifizieren Sie die folgenden Angaben um die Daten zu kontaktieren :",
+                    IDC_STATIC,1,1,250,11
+    LTEXT           "   1. Spezifizieren Sie den Server und den Datenbanknamen",
+                    IDC_STATIC,1,17,250,11
+    RTEXT           "Server : ",IDC_STATIC,33,33,37,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_SERVER,74,33,137,12,ES_AUTOHSCROLL
+    RTEXT           "Datenbank : ",IDC_STATIC,27,49,43,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_DATABASE,74,49,137,12,ES_AUTOHSCROLL
+    LTEXT           "   2. Geben Sie die Anmeldeinformationen für den Serverlogin an",
+                    IDC_STATIC,1,74,250,11
+    RTEXT           "Benutzername : ",IDC_STATIC,8,89,62,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_USERNAME,74,89,137,12,ES_AUTOHSCROLL
+    RTEXT           "Passwort : ",IDC_STATIC,33,105,37,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_PASSWORD,74,105,137,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "Passwort speichern",IDC_SAVEPASSWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,74,123,82,8
+    LTEXT           "   3. Geben Sie den initialen Katalog an, der verwendet werden soll",
+                    IDC_STATIC,1,140,250,11
+    RTEXT           "Katalog : ",IDC_STATIC,33,154,37,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_CATALOG,74,154,137,12,ES_AUTOHSCROLL
+END
+
+IDD_WIZARD_EMPTY DIALOGEX 0, 0, 255, 179
+STYLE DS_FIXEDSYS | WS_CHILD
+EXSTYLE WS_EX_CONTROLPARENT
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+END
+
+IDD_WIZARD_PROVIDERS DIALOG DISCARDABLE  0, 0, 255, 179
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LISTBOX         IDC_LIST,10,15,204,162,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Verfügbare Provider :",IDC_STATIC,1,1,250,11
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_WIZARD_CONNECTION, DIALOG
+    BEGIN
+        RIGHTMARGIN, 251
+        BOTTOMMARGIN, 177
+    END
+
+    IDD_WIZARD_EMPTY, DIALOG
+    BEGIN
+        RIGHTMARGIN, 251
+        BOTTOMMARGIN, 177
+    END
+
+    IDD_WIZARD_PROVIDERS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 251
+        BOTTOMMARGIN, 177
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_DATABASE MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Öffnen",                      ID_VIEW_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "Umbennen",                    ID_FILE_RENAME
+        MENUITEM "Entfe&rnen",                  ID_FILE_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "Verbindung trennen",          ID_DATABASE_DISCONNECT
+        MENUITEM SEPARATOR
+        MENUITEM "&Eigenschaften",              ID_VIEW_PROPERTIES
+    END
+END
+
+IDR_EDIT_LIST MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Kopieren",                    ID_EDIT_COPY
+    END
+END
+
+IDR_MAIN MENU DISCARDABLE 
+BEGIN
+    POPUP "Sub0"
+    BEGIN
+        POPUP "Datenbank"
+        BEGIN
+            MENUITEM "Abf&rage ausführen\tCtrl+W",  ID_QUERY_RUN
+            MENUITEM "Selektierten Text ausführen\tCtrl+E", 
+                                                    ID_QUERY_RUNSELECTED
+            MENUITEM SEPARATOR
+            MENUITEM "Avfrage stoppen\tCtrl+Break", ID_QUERY_STOP
+        END
+    END
+    POPUP "Sub1"
+    BEGIN
+        POPUP "Erweitert"
+        BEGIN
+            MENUITEM "Autovervollständigung\tCtrl+Space", 
+                                                    ID_EDIT_AUTOCOMPLETE
+            MENUITEM SEPARATOR
+            MENUITEM "Erstelle Großbuchstaben\tCtrl+Shift+U", 
+                                                    ID_EDIT_UPPERCASE
+            MENUITEM "Erstelle Kleinbuchstaben\tCtrl+U", ID_EDIT_LOWERCASE
+            MENUITEM "&Selektion einrücken",        ID_EDIT_TABIFY
+            MENUITEM "Selektion ausrücken",         ID_EDIT_UNTABIFY
+            MENUITEM "Zeile einrücken\tTab",        ID_EDIT_INDENT
+            MENUITEM "Zeile ausrücken\tShift+Tab",  ID_EDIT_UNINDENT
+            MENUITEM "Zeile löschen\tCtrl+L",       ID_EDIT_DELLINE
+            MENUITEM "Selektion auskommentieren",   ID_EDIT_COMMENT
+            MENUITEM "Selektion einkommentieren",   ID_EDIT_UNCOMMENT
+            MENUITEM SEPARATOR
+            MENUITEM "Word Wrap",                   ID_EDIT_VIEWWORDWRAP
+        END
+        POPUP "Zoom"
+        BEGIN
+            MENUITEM "Hinein zoomen\tCtrl+Add",     ID_EDIT_ZOOM_IN
+            MENUITEM "Heraus zoomen\tCtrl+Sub",     ID_EDIT_ZOOM_OUT
+        END
+    END
+    POPUP "Sub2"
+    BEGIN
+        MENUITEM "SQL Text",                    ID_VIEW_TAB1
+        MENUITEM "Ergebnisfenster",             ID_VIEW_TAB2
+        MENUITEM "SQL Ergebnis",                ID_VIEW_TAB3
+        MENUITEM SEPARATOR
+    END
+    POPUP "Sub3"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "Neue D&atenverknüpfung hinzufügen...", ID_ADD_DATABASE
+    END
+END
+
+IDR_PROJECT MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Neue D&atenverknüpfung hinzufügen...", ID_ADD_DATABASE
+        MENUITEM SEPARATOR
+        MENUITEM "Als Standartprojekt festlegen", ID_PROJECT_SET_DEFAULT
+        MENUITEM SEPARATOR
+        MENUITEM "Entfe&rnen",                  ID_FILE_DELETE
+        MENUITEM "Umbenennen",                  ID_FILE_RENAME
+        MENUITEM SEPARATOR
+        MENUITEM "Eigenschaften",               ID_VIEW_PROPERTIES
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDR_MAINFRAME           "SQL Projekt"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_ERROR       "Fehler"
+    IDS_CAPTION_WARNING     "Warnung"
+    IDS_CAPTION_MESSAGE     "Nachricht"
+    IDS_ERR_LASTERROR       "\nSystem Fehlermeldung:\n"
+    IDS_WIZARD_TITLE_PROVIDER "Provider wählen"
+    IDS_WIZARD_SUBTITLE_PROVIDER 
+                            "Wählen Sie den OLE DB Provider der für die Verbindung verwendet werden soll."
+    IDS_STATUS_LOADING      " Lade Projekt '%s'..."
+    IDS_HELP                "  sql <SQL> - SQL Statement ausführen.\r\n"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_WIZARD_TITLE_CONNECTION "Angaben zu den Verbindungseigenschaften"
+    IDS_WIZARD_SUBTITLE_CONNECTION 
+                            "Ändern der Verbindungseigenschaften für die Datenquelle."
+    IDS_UNKNOWN             "Datenbank"
+    IDS_ERR_NOCONNECTION    "Keine Verbindung zur Datenbank\nVerbindung zur selektierten Datenbank fehlgeschlagen.\nDie Datenbank generierte die folgende Meldung :\n%s"
+    IDS_STDERROR            "Nichtdefinierter Datenbankfehler."
+    IDS_STATUS_OPENDATABASE " Öffne Datenverbindung..."
+    IDS_ERR_OPENVIEW        "Datei öffnen Fehler\nÖffnen der Datei in einer neuen Ansicht nicht möglich."
+    IDS_ERR_DBOPEN          "Verbindung fehlgeschlagen.\nVerbindung zur Datenbank ist nicht möglich."
+    IDS_SQL                 "  SQL"
+    IDS_RESULT              "  Ergebnis  "
+    IDS_SCHEMA              "Schema"
+    IDS_TREE_DATABASE       "Datenbank"
+    IDS_TREE_TABLES         "Tabellen"
+    IDS_TREE_SYSTEMTABLES   "Systemtabellen"
+    IDS_TREE_VIEWS          "Ansichten"
+    IDS_SB_EXECUTING        " Führe SQL Statement aus..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION_TOOLBAR     "SQL"
+    IDS_TREE_SP             "Gespeicherte Prozeduren"
+    IDS_TREE_INFO           "Info"
+    IDS_DBNAME_LABEL        "Name"
+    IDS_DBTYPE_LABEL        "Typ"
+    IDS_DBVERSION_LABEL     "Version"
+    IDS_DBLOCATION_LABEL    "Standort"
+    IDS_DBCATALOG_LABEL     "Katalog"
+    IDS_TREE_COLUMNS        "Felder"
+    IDS_TREE_INDICES        "Indexe"
+    IDS_DBSERVER_LABEL      "Server"
+    IDS_DATABASE            "Datenbanken"
+    IDS_YES                 "Ja"
+    IDS_NO                  "Nein"
+    IDS_INFO_NAME           "Name"
+    IDS_INFO_SCHEMA         "Schema"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_INFO_CATALOG        "Katalog"
+    IDS_INFO_POSITION       "Position"
+    IDS_INFO_NULLABLE       "Null erlaubt"
+    IDS_INFO_PRIMARY        "Primär"
+    IDS_INFO_UNIQUE         "Eindeutig"
+    IDS_INFO_FLAGS          "Flags"
+    IDS_INFO_TYPE           "Typ"
+    IDS_INFO_FIELDS         "Felder"
+    IDS_INFO_TABLE          "Tabelle"
+    IDS_COL_NAME            "Name"
+    IDS_COL_VALUE           "Wert"
+    IDS_INFO_LENGTH         "Länge"
+    IDS_INFO_PRECISION      "Präzision"
+    IDS_INFO_DIGITS         "Stellen"
+    IDS_INFO_HASDEFAULT     "Hat Standart"
+    IDS_INFO_DEFAULT        "Standart"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TYPE_INT            "Integer"
+    IDS_TYPE_STRING         "String"
+    IDS_TYPE_BOOL           "Boolean"
+    IDS_TYPE_GUID           "GUID"
+    IDS_TYPE_DATE           "Date"
+    IDS_TYPE_TIME           "Time"
+    IDS_TYPE_TIMESTAMP      "Timestamp"
+    IDS_TYPE_BLOB           "Blob"
+    IDS_TYPE_FLOAT          "Float"
+    IDS_TYPE_DOUBLE         "Decimal"
+    IDS_INFO_NULLS          "Null erlaubt"
+    IDS_INFO_CLUSTERED      "Clustered"
+    IDS_TAB_SUMMERY         " Summery "
+    IDS_TAB_RESULT          "Ergebnis #%ld"
+    IDS_SB_DONE             " Abfrage komplett."
+    IDS_DBERROR_FORMAT      "Abfrage fehlgeschlagen: %s\r\nFehler: %ld (0x%08X)\r\nQuelle: %s:\r\n%s"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TRUE                "Wahr"
+    IDS_FALSE               "Falsch"
+    IDS_STANDARD            "Standart"
+    IDS_TYPE_CURRENCY       "Currency"
+    IDS_ROW_AFFECTED        "%ld Zeilen betroffen."
+    IDS_ROWS_AFFECTED       "%ld Zeilen betroffen."
+    IDS_ROW_SELECTED        "%ld Zeile markiert."
+    IDS_ROWS_SELECTED       "%ld Zeilen markiert."
+    IDS_SAVEFILE            "Datei speichern\nDie Datei wurde modifiziert. Möchten Sie die Datei speichern ?"
+    IDS_DBERROR_FAILED      "Abfrage fehlgeschlagen: "
+    IDS_TREE_ADVANCED       "Erweitert"
+    IDS_TREE_SQL            "SQL"
+    IDS_FILTER_SQL          "SQL Dateien|*.sql|Alle Dateien|*.*|"
+    IDS_CAPTION_QUESTION    "BVRDE"
+    IDS_NO_ROWS_AFFECTED    "Der Befehl wird keine Daten und auch keine Zeilen zurückliefern."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_PROPERTIES      "Eigenschaften anzeigen\nEigenschaften"
+    ID_VIEW_OPEN            "Öffnen\nÖffnen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_DELETE          "Eintrag aus dem Projekt entfernen\nEntfernen"
+    ID_FILE_RENAME          "Eintrag umbenennen\nUmbenennen"
+    ID_PROJECT_SET_DEFAULT  "Dieses Projekt als Standartprojekt festlegen.\nAls Standartprojekt festlegen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_QUERY_RUN            "Abfrage ausführen\nAbfrage ausführen"
+    ID_QUERY_STOP           "Laufende Abfrage stoppen\nAbfrage stoppen"
+    ID_QUERY_RUNSELECTED    "Markierten Text ausführen\nMarkierten Text ausführen"
+    ID_ADD_DATABASE         "Einen neuen Datenbankeintrag erstellen\nNeuen Eintrag hinzufügen"
+    ID_DATABASE_DISCONNECT  "Datenbankverbindung trennen\nTrennen"
+    ID_FILE_PROPERTIES      "Eigenschaften anzeigen\nEigenschaften"
+    ID_HISTORY_DELETE       "Historieneintrag löschen\nHistorie löschen"
+    ID_HISTORY_NEW          "Eine leere Seite erzeugen und Text in der Historie ablegen\nSQL neu"
+    ID_HISTORY_RIGHT        "Gehe in der SQL Historie vorwärts\nIn Historie vorwärts"
+    ID_HISTORY_LEFT         "Gehe in der SQL Historie rückwärts\nIn Historie rückwärts"
+    ID_QUERY_INSPECT        "Überprüfen\nÜberprüfen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_COPY            "Selektierte Zeile in die Zwischenablage kopieren\nKopieren"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_VIEW_TAB1            "Gehe zur SQL Ansicht\nSQL Ansicht"
+    ID_VIEW_TAB2            "Gehe zum Ergebnisfenster\nErgebnisfenster"
+    ID_VIEW_TAB3            "Gehe zum SQL Ergebnisfenster\nSQL Ergebnisfenster"
+    ID_EDIT_AUTOCOMPLETE    "Automatisch das Wort unter dem Cursor vervollständigen\nAutovervollständigung"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_FILE_SAVE            "Als SQL Datei speichern\nSQL Speichern"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_UPPERCASE       "Markierung in Großbuchstaben wandeln\nGroßbuchstaben"
+    ID_EDIT_LOWERCASE       "Markierung in Kleinbuchstaben wandeln\nKleinbuchstaben"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_ZOOM_IN         "Hineinzoomen\nHineinzoomen"
+    ID_EDIT_ZOOM_OUT        "Herauszoomen\nHerauszoomen"
+END
+
+#endif    // Deutsch (Deutschland) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+/////////////////////////////////////////////////////////////////////////////
 // Danish resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)

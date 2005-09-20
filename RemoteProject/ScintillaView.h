@@ -81,6 +81,7 @@ public:
       NOTIFY_CODE_HANDLER(SCN_CALLTIPCLICK, OnCallTipClick)
       NOTIFY_CODE_HANDLER(SCN_DWELLSTART, OnDwellStart)
       NOTIFY_CODE_HANDLER(SCN_DWELLEND, OnDwellEnd)
+      NOTIFY_CODE_HANDLER(SCN_AUTOCSELECTION, OnAutoExpand)
       CHAIN_COMMANDS_HWND( m_ctrlEdit )
    ALT_MSG_MAP(1) // CScintillCtrl
       MESSAGE_HANDLER(WM_SETFOCUS, OnSetEditFocus)
@@ -105,11 +106,13 @@ public:
    LRESULT OnDebugRunTo(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugSetNext(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugLink(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnCharAdded(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnMarginClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnCallTipClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnDwellStart(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnDwellEnd(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnAutoExpand(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 
    // IIdleListener
 

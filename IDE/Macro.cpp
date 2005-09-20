@@ -96,7 +96,7 @@ bool CMacro::RunMacroFromScript(CComBSTR bstrData,
                                  pvarResult,
                                  pExcepInfo);
 
-   // Now, invoke our function! The is almost magically easy
+   // Now, invoke our function! This is almost magically easy
    // due to ATL helper classes.
    if( bstrFunction.Length() > 0 ) {
       CComDispatchDriver spDisp;

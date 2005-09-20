@@ -1,6 +1,8 @@
 Version 0.9c
+* German translation provided by Torsten Albrecht (Ingenieurbüro AttNet)
 * New 'mode' command in Console to switch interpreter mode
 * Autohide views now close when you click on the button if open
+* Function-braces automatically added in autocompletion
 
 Version 0.9b
 * Timeout problems during Test Connection fixed

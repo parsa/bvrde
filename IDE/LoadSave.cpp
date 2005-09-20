@@ -73,11 +73,14 @@ void CMainFrame::_LoadSettings()
    m_hDevNames = NULL;
    ::SetRectEmpty(&m_rcPageMargins);
 
+   m_Locale = ::GetThreadLocale();
+
    // Read mutable properties
    CRegSerializer reg;
    if( reg.Open(REG_BVRDE) ) {
       // Load Window positions
-      if( reg.ReadGroupBegin(_T("Settings")) ) {
+      if( reg.ReadGroupBegin(_T("Settings")) ) {         
+         _AddProperty(&reg, _T("language"), _T("gui.main.language"));
          _AddProperty(&reg, _T("windowpos"), _T("window.main.position"));
          _AddProperty(&reg, _T("autohide-cx"), _T("window.autohide.cx"));
          _AddProperty(&reg, _T("autohide-cy"), _T("window.autohide.cy"));
@@ -363,9 +366,10 @@ bool CMainFrame::_LoadGeneralSettings(CXmlSerializer& arc)
    if( arc.ReadGroupBegin(_T("ToolBars")) ) 
    {
       while( arc.ReadGroupBegin(_T("ToolBar")) ) {
-         CString sName;
-         arc.Read(_T("name"), sName);
-         sKey.Format(_T("window.toolbar.%s."), sName);
+         CString sID;
+         arc.Read(_T("id"), sID);
+         sKey.Format(_T("window.toolbar.%s."), sID);
+         _AddProperty(&arc, _T("name"), sKey + _T("name"));
          _AddProperty(&arc, _T("show"), sKey + _T("show"));
          _AddProperty(&arc, _T("position"), sKey + _T("position"));
          _AddProperty(&arc, _T("newRow"), sKey + _T("newRow"));
@@ -382,6 +386,7 @@ void CMainFrame::_SaveSettings()
    CRegSerializer reg;
    if( reg.Create(REG_BVRDE) ) {
       reg.WriteGroupBegin(_T("Settings"));
+      _StoreProperty(&reg, _T("language"), _T("gui.main.language"));
       _StoreProperty(&reg, _T("windowpos"), _T("window.main.position"));
       _StoreProperty(&reg, _T("autohide-cx"), _T("window.autohide.cx"));
       _StoreProperty(&reg, _T("autohide-cy"), _T("window.autohide.cy"));
@@ -491,6 +496,7 @@ void CMainFrame::_SaveToolBarState()
             m_Rebar.GetBandInfo(iPos, &rbbi);
             if( rbbi.hwndChild != tb.hWnd ) continue;
             arc.WriteItem(_T("ToolBar"));
+            arc.Write(_T("id"), tb.szID);
             arc.Write(_T("name"), tb.szName);
             arc.Write(_T("position"), (long) iPos);
             arc.Write(_T("show"), (rbbi.fStyle & RBBS_HIDDEN) == 0 ? _T("true") : _T("false"));
