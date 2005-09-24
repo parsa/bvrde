@@ -364,6 +364,15 @@ BEGIN
     END
 END
 
+IDR_TELNET MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Enfe&rnen",                   ID_EDIT_CLEAR
+        MENUITEM "Kopieren",                    ID_EDIT_COPY
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1052,13 +1061,13 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_BOOKMARK_PREVIOUS    "Gehe zum vorherigen Lesezeichen\nVorheriges Lesezeichen"
-    ID_VIEW_COMPILE_LOG     "Kompile Lof anzeigen\nKompile Log"
+    ID_BOOKMARK_TOGGLE      "Lesezeichen in der aktuellen Zeile umschalten\nLesezeichen umschalten"
     ID_DEBUG_STOP           "Die Debug Session stoppen\nDebugger stoppen"
     ID_DEBUG_THREADS        "Threads anzeigen\nThreads"
     ID_DEBUG_QUICKWATCH     "Quickwatch Dialog anzeigen\nQuickwatch"
     ID_EDIT_AUTOCOMPLETE    "Vervollständigt automatisch den selektierten Text\nAutovervollständigung"
+    ID_VIEW_COMPILE_LOG     "Kompile Lof anzeigen\nKompile Log"
     ID_VIEW_DEBUG_LOG       "Debug log abzeigen\nDebug Log"
-    ID_BOOKMARK_TOGGLE      "Lesezeichen in der aktuellen Zeile umschalten\nLesezeichen umschalten"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1129,6 +1138,11 @@ BEGIN
     ID_EDIT_DELLINE         "Zeile unter Cursor löschen\nZeile löschen"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_MENU_OPENINCLUDE    """%s"" öffnen"
+END
+
 #endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1141,6 +1155,30 @@ END
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
+IDR_BUILD               BITMAP  DISCARDABLE     "res\\build.bmp"
+IDR_DEBUG               BITMAP  DISCARDABLE     "res\\debug.bmp"
+IDR_BOOKMARKS           BITMAP  DISCARDABLE     "res\\bookmarks.bmp"
+IDR_SEARCH              BITMAP  DISCARDABLE     "res\\search.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_BACK                ICON    DISCARDABLE     "res\\back.ico"
+IDI_KEY                 ICON    DISCARDABLE     "Res\\key.ico"
+IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
+IDI_MINUS               ICON    DISCARDABLE     "res\\minus.ico"
+IDI_PLUS                ICON    DISCARDABLE     "res\\plus.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1424,6 +1462,15 @@ BEGIN
     POPUP "Popup"
     BEGIN
         MENUITEM "&Open",                       ID_REMOTEDIR_OPEN
+    END
+END
+
+IDR_TELNET MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Clear",                      ID_EDIT_CLEAR
+        MENUITEM "&Copy",                       ID_EDIT_COPY
     END
 END
 
@@ -1784,30 +1831,6 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
-IDR_BUILD               BITMAP  DISCARDABLE     "res\\build.bmp"
-IDR_DEBUG               BITMAP  DISCARDABLE     "res\\debug.bmp"
-IDR_BOOKMARKS           BITMAP  DISCARDABLE     "res\\bookmarks.bmp"
-IDR_SEARCH              BITMAP  DISCARDABLE     "res\\search.bmp"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_BACK                ICON    DISCARDABLE     "res\\back.ico"
-IDI_KEY                 ICON    DISCARDABLE     "Res\\key.ico"
-IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
-IDI_MINUS               ICON    DISCARDABLE     "res\\minus.ico"
-IDI_PLUS                ICON    DISCARDABLE     "res\\plus.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2293,13 +2316,13 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_BOOKMARK_PREVIOUS    "Go to previous Bookmark\nPrevious Bookmark"
-    ID_VIEW_COMPILE_LOG     "View Compile Log\nCompile Log"
+    ID_BOOKMARK_TOGGLE      "Toogles bookmarks at the current line\nToggle Bookmark"
     ID_DEBUG_STOP           "Stop the debug session\nStop Debugger"
     ID_DEBUG_THREADS        "Show threads\nThreads"
     ID_DEBUG_QUICKWATCH     "Show quickwatch dialog\nQuickwatch"
     ID_EDIT_AUTOCOMPLETE    "Autocomplete selected text\nAutocomplete"
+    ID_VIEW_COMPILE_LOG     "View Compile Log\nCompile Log"
     ID_VIEW_DEBUG_LOG       "View Debug log\nDebug Log"
-    ID_BOOKMARK_TOGGLE      "Toogles bookmarks at the current line\nToggle Bookmark"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -2368,6 +2391,11 @@ BEGIN
     ID_EDIT_ZOOM_IN         "Zoom text in\nZoom In"
     ID_EDIT_ZOOM_OUT        "Zoom text out\nZoom out"
     ID_EDIT_DELLINE         "Delete line at cursor\nDelete Line"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_MENU_OPENINCLUDE    "Open ""%s"""
 END
 
 #endif    // English (U.S.) resources

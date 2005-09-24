@@ -98,6 +98,7 @@ public:
    CButton m_ctrlMdi;
    CComboBox m_ctrlStartup;
    CComboBox m_ctrlLanguage;
+   CStatic m_ctrlGreyed;
 
    // Overloads
 
@@ -107,10 +108,12 @@ public:
 
    BEGIN_MSG_MAP(CGeneralOptionsPage)
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+      MESSAGE_HANDLER(WM_CTLCOLORSTATIC, OnCtlColorStatic)
       CHAIN_MSG_MAP( CPropertyPageImpl<CGeneralOptionsPage> )
    END_MSG_MAP()
 
    LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 };
 
 

@@ -18,6 +18,7 @@
 #define IDS_CAPTION_MESSAGE             1008
 #define IDS_STATUS_PRINTING             1009
 #define IDS_PRINT_TITLE                 1010
+#define IDS_MENU_OPENINCLUDE            1011
 #define IDS_FINDFAILED                  1014
 #define IDC_FINDTEXT                    1137
 #define IDC_WHOLEWORD                   1138
@@ -35,7 +36,9 @@
 #define ID_BOOKMARK_NEXT                40031
 #define ID_BOOKMARK_PREVIOUS            40032
 #define ID_BOOKMARK_CLEAR               40033
-#define ID_BOOKMARK_TOGGLE              40043
+#define ID_BOOKMARK_TOGGLE              40034
+#define ID_EDIT_AUTOCOMPLETE            40039
+#define ID_EDIT_OPENINCLUDE             40040
 #define ID_EDIT_VIEWWS                  40052
 #define ID_EDIT_VIEWTABS                40053
 #define ID_EDIT_VIEWEOL                 40060

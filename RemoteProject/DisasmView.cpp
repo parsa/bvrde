@@ -158,14 +158,15 @@ LRESULT CDisasmView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
 LRESULT CDisasmView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {   
+   SetFocus();
    POINT pt;
    ::GetCursorPos(&pt);
    CMenu menu;
    menu.LoadMenu(IDR_DISASSEMBLY);
    ATLASSERT(menu.IsMenu());
    CMenuHandle submenu = menu.GetSubMenu(0);
-   UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, pt, TRUE, this);
-   PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0), (LPARAM) m_hWnd);
+   UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, pt, FALSE, this);
+   if( nCmd != 0 ) PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0), (LPARAM) m_hWnd);
    return 0;
 }
 

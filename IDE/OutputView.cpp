@@ -85,8 +85,8 @@ LRESULT COutputView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
    menu.LoadMenu(IDR_OUTPUTVIEW);
    ATLASSERT(menu.IsMenu());
    CMenuHandle submenu = menu.GetSubMenu(0);
-   UINT nCmd = g_pDevEnv->ShowPopupMenu(NULL, submenu, pt, TRUE, this);
-   PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0), (LPARAM) m_hWnd);
+   UINT nCmd = g_pDevEnv->ShowPopupMenu(NULL, submenu, pt, FALSE, this);
+   if( nCmd != 0 ) PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0), (LPARAM) m_hWnd);
    return 0;
 }
 

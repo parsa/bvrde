@@ -166,10 +166,11 @@ public:
       LPCITEMIDLIST lpPidl = pidlItem;
       if( FAILED( sspFolder->GetUIObjectOf(hWnd, 1, &lpPidl, IID_IContextMenu, NULL, (LPVOID*) &spContextMenu))) return FALSE;
       // Do we need to display the popup menu?
-      HMENU hMenu = ::CreatePopupMenu();
+      CMenu menu;
+      menu.CreatePopupMenu();
       int nCmd = 0;
       if( SUCCEEDED( spContextMenu->QueryContextMenu(
-           hMenu, 
+           menu, 
            0, 
            1, 
            0x7FFF, 
@@ -178,11 +179,11 @@ public:
          m_ShellMenu.m_spCtxMenu2 = spContextMenu;
          // Display the context menu.
          POINT pt = { x, y };
-         nCmd = _pDevEnv->ShowPopupMenu(NULL, hMenu, pt, FALSE);
+         nCmd = _pDevEnv->ShowPopupMenu(NULL, menu, pt, FALSE);
          m_ShellMenu.m_spCtxMenu2.Release();
       }
       // If a command is available (from the menu, perhaps), execute it.
-      if( nCmd ) {
+      if( nCmd != 0 ) {
          CMINVOKECOMMANDINFO ici = { 0 };
          ici.cbSize       = sizeof(CMINVOKECOMMANDINFO);
          ici.fMask        = 0;
@@ -195,7 +196,6 @@ public:
          ici.hIcon        = NULL;
          if( SUCCEEDED( spContextMenu->InvokeCommand(&ici)) ) bResult = TRUE;
       }
-      if( hMenu ) ::DestroyMenu(hMenu);
       return bResult;
    }
 };

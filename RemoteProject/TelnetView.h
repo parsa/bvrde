@@ -13,7 +13,8 @@
 
 class CTelnetView : 
    public CScrollWindowImpl<CTelnetView>,
-   public IOutputLineListener
+   public IOutputLineListener,
+   public IIdleListener
 {
 public:
    DECLARE_WND_CLASS(_T("BVRDE_TelnetView"))
@@ -27,11 +28,11 @@ public:
       MAX_LINES = 25,
    };
 
-   typedef struct LINE
+   typedef struct tagLINE
    {
       VT100COLOR nColor;
       TCHAR szText[MAX_CHARS + 1];
-   };
+   } LINE;
 
    CShellManager* m_pShell;
    CSimpleArray<LINE> m_aLines;
@@ -59,7 +60,9 @@ public:
       MESSAGE_HANDLER(WM_COMPACTING, OnCompacting)      
       MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkgnd)
       MESSAGE_HANDLER(WM_GETMINMAXINFO, OnGetMinMaxInfo)
-      MESSAGE_HANDLER(WM_LBUTTONDOWN, OnButtonDown)
+      MESSAGE_HANDLER(WM_CONTEXTMENU, OnContextMenu)
+      COMMAND_ID_HANDLER(ID_EDIT_CLEAR, OnEditClear)
+      COMMAND_ID_HANDLER(ID_EDIT_COPY, OnEditCopy)
       CHAIN_MSG_MAP( CScrollWindowImpl<CTelnetView> )
    END_MSG_MAP()
 
@@ -69,14 +72,21 @@ public:
    LRESULT OnCompacting(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnGetMinMaxInfo(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-   LRESULT OnButtonDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnContextMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnEditClear(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnEditCopy(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 
    // IOutputListener
 
    void OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText);
 
-   // Implementation
+   // IIdleListener
 
+   void OnIdle(IUpdateUI* pUIBase);
+   void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax);
+
+   // Implementation
+   
    void DoPaint(CDCHandle dc);
 };
 

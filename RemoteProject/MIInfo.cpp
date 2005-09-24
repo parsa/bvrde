@@ -44,7 +44,7 @@ bool CMiInfo::Parse(LPCTSTR pstrInput)
    Release();
    ATLASSERT(m_pstrData==NULL);
    if( *pstrInput == ',' ) pstrInput++;
-   // We're using a slightly complicated buffer/reference-counting scheme
+   // We're using a slightly complicated (and naive) buffer/reference-counting scheme
    // to keep the data alive as long as its being used.
    DWORD dwLength = (_tcslen(pstrInput) + 1) * sizeof(TCHAR);
    m_pstrData = (LPTSTR) malloc(dwLength);

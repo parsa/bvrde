@@ -186,12 +186,12 @@ bool CDebugManager::ClearBreakpoints()
    return true;
 }
 
-bool CDebugManager::AddBreakpoint(LPCTSTR pstrText)
+bool CDebugManager::AddBreakpoint(LPCTSTR pstrFilename, int iLine)
 {
    // Add it to internal list
    CLockStaticDataInit lock;
-   CString sText = pstrText;
-   if( sText.IsEmpty() ) return false;
+   CString sText;
+   sText.Format(_T("%s:%d"), pstrFilename, iLine + 1);
    // We add a dummy entry now. We don't know the internal GDB breakpoint-nr
    // for this breakpoint, but we'll soon learn when GDB answers our request.
    m_aBreakpoints.Add(sText, 0);
@@ -202,7 +202,7 @@ bool CDebugManager::AddBreakpoint(LPCTSTR pstrText)
       bool bRestartApp = _PauseDebugger();
       // Send GDB commands
       CString sCommand;
-      sCommand.Format(_T("-break-insert %s"), pstrText);
+      sCommand.Format(_T("-break-insert %s"), sText);
       if( !DoDebugCommand(sCommand) ) return false;
       if( !DoDebugCommand(_T("-break-list")) ) return false;
       // Warn about GDB's inability to add ASYNC breakpoints
@@ -217,12 +217,13 @@ bool CDebugManager::AddBreakpoint(LPCTSTR pstrText)
    return true;
 }
 
-bool CDebugManager::RemoveBreakpoint(LPCTSTR pstrText)
+bool CDebugManager::RemoveBreakpoint(LPCTSTR pstrFilename, int iLine)
 {
    CLockStaticDataInit lock;
+   CString sText;
+   sText.Format(_T("%s:%d"), pstrFilename, iLine + 1);
    if( IsDebugging() ) {
       // Find the internal GDB breakpoint-nr for this breakpoint
-      CString sText = pstrText;
       long lNumber = m_aBreakpoints.Lookup(sText);
       if( lNumber > 0 ) {
          bool bRestartApp = _PauseDebugger();
@@ -235,27 +236,26 @@ bool CDebugManager::RemoveBreakpoint(LPCTSTR pstrText)
       }
    }
    // Remove it from our own internal list too 
-   CString sText = pstrText;
    return m_aBreakpoints.Remove(sText) == TRUE;
 }
 
-bool CDebugManager::GetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<long>& aLines) const
+bool CDebugManager::GetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLines) const
 {
    CLockStaticDataInit lock;
    size_t cchName = _tcslen(pstrFilename);
    for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
       if( _tcsncmp(m_aBreakpoints.GetKeyAt(i), pstrFilename, cchName) == 0 ) {
          LPCTSTR pstr = _tcschr(m_aBreakpoints.GetKeyAt(i), ':');
-         if( pstr ) {
-            long lLineNo = _ttol(pstr + 1);
-            aLines.Add(lLineNo);
+         if( pstr != NULL ) {
+            int iLine = _ttoi(pstr + 1) - 1;
+            aLines.Add(iLine);
          }
       }
    }
    return true;
 }
 
-bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<CString>& aBreakpoints)
+bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLines)
 {
    ATLASSERT(IsDebugging());
    // This method is called from the views upon a DEBUG_CMD_REQUEST_BREAKPOINTS request
@@ -272,7 +272,11 @@ bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<CString>& 
       }
    }
    // Add all the new breakpoints
-   for( i = 0; i < aBreakpoints.GetSize(); i++ ) m_aBreakpoints.Add(aBreakpoints[i], 0);
+   CString sText;
+   for( i = 0; i < aLines.GetSize(); i++ ) {
+      sText.Format(_T("%s:%d"), pstrFilename, aLines[i] + 1);
+      m_aBreakpoints.Add(sText, 0L);
+   }
    return true;
 }
 

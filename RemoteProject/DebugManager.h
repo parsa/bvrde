@@ -66,10 +66,10 @@ public:
    bool IsDebugging() const;
 
    bool ClearBreakpoints();
-   bool AddBreakpoint(LPCTSTR pstrText);
-   bool RemoveBreakpoint(LPCTSTR pstrText);
-   bool GetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<long>& aLines) const;
-   bool SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<CString>& aBreakpoints);
+   bool AddBreakpoint(LPCTSTR pstrFilename, int iLine);
+   bool RemoveBreakpoint(LPCTSTR pstrFilename, int iLine);
+   bool GetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLines) const;
+   bool SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLines);
 
    bool RunTo(LPCTSTR pstrFilename, long lLineNum);
    bool SetNextStatement(LPCTSTR pstrFilename, long lLineNum);

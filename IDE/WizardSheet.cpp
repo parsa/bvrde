@@ -301,6 +301,7 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    m_ctrlMdi = GetDlgItem(IDC_USE_MDI);
    m_ctrlStartup = GetDlgItem(IDC_STARTUP);
    m_ctrlLanguage = GetDlgItem(IDC_LANGUAGE);
+   m_ctrlGreyed = GetDlgItem(IDC_GREYED);
 
    TCHAR szBuffer[32] = { 0 };
    g_pDevEnv->GetProperty(_T("gui.main.client"), szBuffer, 31);
@@ -330,6 +331,18 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    else m_ctrlLanguage.SetCurSel(0);
 
    return 0;
+}
+
+LRESULT CGeneralOptionsPage::OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+   bHandled = FALSE;
+   if( (HWND) lParam != m_ctrlGreyed ) return 0;
+   bHandled = TRUE;
+   LRESULT lRes = DefWindowProc();
+   CDCHandle dc = (HDC) wParam;
+   dc.SetBkMode(TRANSPARENT);
+   dc.SetTextColor(::GetSysColor(COLOR_BTNSHADOW));
+   return (LPARAM) ::GetStockObject(HOLLOW_BRUSH);
 }
 
 int CGeneralOptionsPage::OnApply()

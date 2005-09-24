@@ -4,6 +4,8 @@
 
 #include "TelnetView.h"
 
+#include "atldataobj.h"
+
 
 ////////////////////////////////////////////////////////
 //
@@ -186,9 +188,41 @@ LRESULT CTelnetView::OnGetMinMaxInfo(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lP
    return 0;
 }
 
-LRESULT CTelnetView::OnButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+LRESULT CTelnetView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    SetFocus();
+   POINT pt;
+   ::GetCursorPos(&pt);
+   CMenu menu;
+   menu.LoadMenu(IDR_TELNET);
+   ATLASSERT(menu.IsMenu());
+   CMenuHandle submenu = menu.GetSubMenu(0);
+   UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, pt, FALSE, this);
+   if( nCmd != 0 ) PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0), (LPARAM) m_hWnd);
+   return 0;
+}
+
+LRESULT CTelnetView::OnEditClear(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   CLockLineDataInit lock;
+   LINE newline = { VT100_BLACK, 0 };
+   for( int i = 0; i < m_aLines.GetSize(); i++ ) {
+      m_aLines.SetAtIndex(i, newline);
+   }
+   Invalidate();
+   return 0;
+}
+
+LRESULT CTelnetView::OnEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   CLockLineDataInit lock;
+   CString sText;
+   for( int i = 0; i < m_aLines.GetSize(); i++ ) {
+      const LINE& line = m_aLines[i];
+      sText += line.szText;
+      sText += _T("\r\n");
+   }
+   AtlSetClipboardText(m_hWnd, sText);
    return 0;
 }
 
@@ -211,4 +245,16 @@ void CTelnetView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    m_aLines.SetAtIndex(nCount - 1, newline);
 
    Invalidate();
+}
+
+// IIdleListener
+
+void CTelnetView::OnIdle(IUpdateUI* pUIBase)
+{
+   pUIBase->UIEnable(ID_EDIT_COPY, TRUE);
+   pUIBase->UIEnable(ID_EDIT_CLEAR, TRUE);
+}
+
+void CTelnetView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+{
 }

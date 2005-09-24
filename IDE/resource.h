@@ -267,6 +267,7 @@
 #define IDC_TYPE                        1085
 #define IDC_LAUNCH                      1087
 #define IDC_BROWSE                      1088
+#define IDC_GREYED                      1089
 #define IDC_TEXT                        1148
 #define IDC_DONT_SHOW                   1197
 #define IDC_DESCRIPTION                 1198
@@ -340,7 +341,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        241
 #define _APS_NEXT_COMMAND_VALUE         32874
-#define _APS_NEXT_CONTROL_VALUE         1089
+#define _APS_NEXT_CONTROL_VALUE         1090
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

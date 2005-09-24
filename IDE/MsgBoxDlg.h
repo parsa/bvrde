@@ -166,7 +166,7 @@ public:
       COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
       COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
    ALT_MSG_MAP(1)
-      MESSAGE_HANDLER(WM_KEYUP, OnKeyUp)
+      MESSAGE_HANDLER(WM_KEYDOWN, OnKeyDown)
    END_MSG_MAP()
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -269,8 +269,11 @@ public:
 
       return FALSE;
    }
-   LRESULT OnKeyUp(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+   LRESULT OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
+      // Handle accelrator keys manually.
+      // NOTE: Needs to be on WM_KEYDOWN since keyup can be fired if the dialog box was
+      //       triggered by a keypress.
       CWindowText sOK = GetDlgItem(IDOK);
       CWindowText sCancel = GetDlgItem(IDCANCEL);
       if( m_ctrlOK.IsWindowVisible() && wParam == (WPARAM) sOK[0] ) PostMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0), (LPARAM) m_hWnd);

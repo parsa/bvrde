@@ -32,6 +32,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
    // For displaying a message-box asynchroniously
    CSimpleArray<CString> aDbgCmd;
+   bool bUpdatedAlready = false;
    CString sMessage;
    CString sCaption;
    UINT iFlags;
@@ -163,6 +164,9 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          {
             // Debugger stopped at some point (breakpoint, user break, etc).
             // Let's update the debug views with fresh values.
+
+            if( bUpdatedAlready ) break;
+            bUpdatedAlready = true;
 
             if( m_viewBreakpoint.WantsData() ) {
                aDbgCmd.Add(CString(_T("-break-list")));

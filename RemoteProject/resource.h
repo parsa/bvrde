@@ -66,6 +66,7 @@
 #define IDR_REMOTEDIR                   125
 #define IDS_CAPTION_QUESTION            126
 #define IDD_RUNARGUMENTS                126
+#define IDR_TELNET                      126
 #define IDS_WIZARD_TITLE_TRANSFER       127
 #define IDS_WIZARD_SUBTITLE_TRANSFER    128
 #define IDS_WIZARD_TITLE_STARTAPP       129
@@ -246,6 +247,7 @@
 #define IDS_COMMAND_PRESTEP             285
 #define IDS_COMMAND_POSTSTEP            286
 #define IDS_CONFIG_STEPS                287
+#define IDS_MENU_OPENINCLUDE            288
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -336,14 +338,15 @@
 #define ID_BOOKMARK_NEXT                40031
 #define ID_BOOKMARK_PREVIOUS            40032
 #define ID_BOOKMARK_CLEAR               40033
-#define ID_VIEW_COMPILE_LOG             40034
+#define ID_BOOKMARK_TOGGLE              40034
 #define ID_DEBUG_STOP                   40035
 #define ID_DEBUG_THREADS                40036
 #define ID_DEBUG_QUICKWATCH             40037
 #define ID_DEBUG_GOTO_CURRENT           40038
 #define ID_EDIT_AUTOCOMPLETE            40039
+#define ID_EDIT_OPENINCLUDE             40040
+#define ID_VIEW_COMPILE_LOG             40041
 #define ID_VIEW_DEBUG_LOG               40042
-#define ID_BOOKMARK_TOGGLE              40043
 #define ID_VIEW_VARIABLES               40049
 #define ID_VIEW_THREADS                 40050
 #define ID_VIEW_REGISTERS               40051

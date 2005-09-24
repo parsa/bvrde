@@ -137,8 +137,7 @@ public:
       CMenuHandle submenu;
       submenu = menu.GetSubMenu(0);
       CDummyElement Element(_T("Popup"), _T("TabMenu"));
-      UINT nCmd = g_pDevEnv->ShowPopupMenu(&Element, submenu, pt);
-      if( nCmd == 0 ) return 0;
+      UINT nCmd = g_pDevEnv->ShowPopupMenu(&Element, submenu, pt, FALSE);
       switch( nCmd ) {
       case ID_TAB_ACTIVATE:
          {

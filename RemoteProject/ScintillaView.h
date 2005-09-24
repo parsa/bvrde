@@ -43,6 +43,7 @@ public:
    CString m_sLanguage;             // Language
    CString m_sOutputToken;          // Match substring for compile view
    CString m_sDwellText;            // Current tip text
+   CString m_sIncludePopup;         // Include-file from popup
    int m_iOutputLine;               // Last matched compile view line
    bool m_bClearSquigglyLines;      // Remove squiggly lines?
    bool m_bAutoIndent;              // Do we need to auto-indent text?
@@ -71,6 +72,7 @@ public:
       MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSettingChange)
       MESSAGE_HANDLER(WM_HELP, OnHelp)
       COMMAND_ID_HANDLER(ID_FILE_SAVE, OnFileSave)
+      COMMAND_ID_HANDLER(ID_EDIT_OPENINCLUDE, OnEditOpenInclude)
       COMMAND_ID_HANDLER(ID_EDIT_AUTOCOMPLETE, OnEditAutoComplete)
       COMMAND_ID_HANDLER(ID_DEBUG_BREAKPOINT, OnDebugBreakpoint)
       COMMAND_ID_HANDLER(ID_DEBUG_STEP_RUN, OnDebugRunTo)
@@ -102,6 +104,7 @@ public:
    LRESULT OnFileSave(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnFilePrint(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnEditAutoComplete(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnEditOpenInclude(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugBreakpoint(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugRunTo(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugSetNext(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
@@ -147,6 +150,7 @@ public:
    void _ShowMemberToolTip(long lPos, MEMBERINFO* pInfo, long lCurTip, bool bExpand, COLORREF clrBack, COLORREF clrText);
    bool _GetMemberInfo(long lPos, MEMBERINFO& info);
    CString _FindBlockType(long lPosition);
+   CString _FindIncludeUnderCursor(long lPos);
    CString _FindTagType(const CString& sName, long lPosition);
    CString _GetSelectedText();
    CString _GetNearText(long iPosition, bool bExcludeKeywords = true);

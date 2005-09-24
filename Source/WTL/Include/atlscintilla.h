@@ -78,17 +78,17 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_SETSEL, (WPARAM) cr.cpMin, (LPARAM) cr.cpMax);
    }
-   int GetCurrentLine()
+   int GetCurrentLine() const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return LineFromPosition(GetCurrentPos());
    }
-   int GetLineLength(int iLine)
+   int GetLineLength(int iLine) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return GetLineEndPosition(iLine) - PositionFromLine(iLine);
    }
-   int GetTextRange(int iStart, int iEnd, LPSTR pstrText)
+   int GetTextRange(int iStart, int iEnd, LPSTR pstrText) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ATLASSERT(pstrText);
@@ -98,7 +98,7 @@ public:
       tr.lpstrText = pstrText;
       return (int) ::SendMessage(m_hWnd, SCI_GETTEXTRANGE, 0, (LPARAM) &tr);
    }
-   int GetCaretInLine()
+   int GetCaretInLine() const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       int lCaret = GetCurrentPos();
@@ -963,13 +963,13 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_SETSEL, (WPARAM) lStart, (LPARAM) lEnd);
    }
-   int GetSelText(LPSTR pstrText)
+   int GetSelText(LPSTR pstrText) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ATLASSERT(pstrText);
       return (int) ::SendMessage(m_hWnd, SCI_GETSELTEXT, 0, (LPARAM) pstrText);
    }
-   int GetTextRange(TextRange* pTextRange)
+   int GetTextRange(TextRange* pTextRange) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ATLASSERT(pTextRange);
@@ -980,22 +980,22 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_HIDESELECTION, (WPARAM) bNormal, 0L);
    }
-   int PointXFromPosition(long lPos)
+   int PointXFromPosition(long lPos) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return (int) ::SendMessage(m_hWnd, SCI_POINTXFROMPOSITION, 0, (LPARAM) lPos);
    }
-   int PointYFromPosition(long lPos)
+   int PointYFromPosition(long lPos) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return (int) ::SendMessage(m_hWnd, SCI_POINTYFROMPOSITION, 0, (LPARAM) lPos);
    }
-   int LineFromPosition(long lPos)
+   int LineFromPosition(long lPos) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return (int) ::SendMessage(m_hWnd, SCI_LINEFROMPOSITION, (WPARAM) lPos, 0L);
    }
-   long PositionFromLine(int iLine)
+   long PositionFromLine(int iLine) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return (long) ::SendMessage(m_hWnd, SCI_POSITIONFROMLINE, (WPARAM) iLine, 0L);

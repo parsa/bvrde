@@ -103,6 +103,7 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_EDIT_UNTABIFY, bHasSelection);
    pUIBase->UIEnable(ID_EDIT_ZOOM_IN, TRUE);
    pUIBase->UIEnable(ID_EDIT_ZOOM_OUT, TRUE);
+   pUIBase->UIEnable(ID_EDIT_OPENINCLUDE, TRUE);
 
    pUIBase->UIEnable(ID_EDIT_VIEWWS, TRUE);
    pUIBase->UISetCheck(ID_EDIT_VIEWWS, GetViewWS() != SCWS_INVISIBLE);
@@ -189,16 +190,16 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    ::SetFocus(m_hWnd);
 
    // Get the cursor position
-   long lPos = GetCurrentPos();
    POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
    POINT ptLocal = pt;
    ::MapWindowPoints(NULL, m_hWnd, &ptLocal, 1);
    if( lParam == (LPARAM) -1 ) {
+      long lPos = GetCurrentPos();
       pt.x = PointXFromPosition(lPos);
       pt.y = PointYFromPosition(lPos);
    }
    // Place cursor at mouse if not clicked inside a selection
-   lPos = PositionFromPoint(ptLocal.x, ptLocal.y);
+   long lPos = PositionFromPoint(ptLocal.x, ptLocal.y);
    CharacterRange cr = GetSelection();
    if( lPos < cr.cpMin || lPos > cr.cpMax ) SetSel(lPos, lPos);
 
@@ -206,7 +207,12 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    CMenuHandle menu = m_pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
    ATLASSERT(menu.IsMenu());
    CMenuHandle submenu = menu.GetSubMenu(1);
+
+   // Show popup menu now
    m_pDevEnv->ShowPopupMenu(NULL, submenu, pt);
+
+   // Clean up in EDIT menu after C++ OpenInclude command
+   submenu.RemoveMenu(ID_EDIT_OPENINCLUDE, MF_BYCOMMAND);
 
    return 0;
 }
@@ -1403,6 +1409,9 @@ void CScintillaView::_MaintainTags(CHAR ch)
    }
 }
 
+/**
+ *	Find the last open XML/HTML tag.
+ */
 CString CScintillaView::_FindOpenXmlTag(LPCSTR pstrText, int nSize) const
 {
    CString sRet;
@@ -1458,6 +1467,9 @@ CString CScintillaView::_GetProperty(CString sKey) const
    return szBuffer;
 }
 
+/**
+/* Find substring next occourance in text.
+/*/
 int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings)
 {
    int iLength = strlen(pstrText);

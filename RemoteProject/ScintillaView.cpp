@@ -133,11 +133,11 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       CString sName;
       m_pView->GetName(sName.GetBufferSetLength(128), 128);
       sName.ReleaseBuffer();
-      CSimpleArray<long> aLines;
+      CSimpleArray<int> aLines;
       m_pCppProject->m_DebugManager.GetBreakpoints(sName, aLines);
       m_ctrlEdit.MarkerDeleteAll(MARKER_BREAKPOINT);
       for( int i = 0; i < aLines.GetSize(); i++ ) {
-         m_ctrlEdit.MarkerAdd(aLines[i] - 1, MARKER_BREAKPOINT);
+         m_ctrlEdit.MarkerAdd(aLines[i], MARKER_BREAKPOINT);
       }
    }
 
@@ -192,26 +192,43 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    bHandled = FALSE;
    if( m_pCppProject == NULL ) return 0;
    if( m_sLanguage != _T("cpp") ) return 0;
-   if( !m_pCppProject->m_DebugManager.IsDebugging() ) return 0;
 
    SetFocus();
 
-   long lPos = m_ctrlEdit.GetCurrentPos();
-   POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-
    // Get the cursor position
+   POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
    POINT ptLocal = pt;
    ScreenToClient(&ptLocal);
    if( lParam == (LPARAM) -1 ) {
+      long lPos = m_ctrlEdit.GetCurrentPos();
       pt.x = m_ctrlEdit.PointXFromPosition(lPos);
       pt.y = m_ctrlEdit.PointYFromPosition(lPos);
    }
 
    // Place cursor at mouse if not clicked inside a selection
-   lPos = m_ctrlEdit.PositionFromPoint(ptLocal.x, ptLocal.y);
+   long lPos = m_ctrlEdit.PositionFromPoint(ptLocal.x, ptLocal.y);
    CharacterRange cr = m_ctrlEdit.GetSelection();
    if( lPos < cr.cpMin || lPos > cr.cpMax ) m_ctrlEdit.GotoPos(lPos);
 
+   if( !m_pCppProject->m_DebugManager.IsDebugging() ) {
+      // Is there an include directive under the cursor?
+      // Add additional menu item to open file.
+      m_sIncludePopup = _FindIncludeUnderCursor(lPos);
+      if( !m_sIncludePopup.IsEmpty() ) {
+         CString sText;
+         sText.Format(IDS_MENU_OPENINCLUDE, m_sIncludePopup);
+         // Grab EDIT submenu from main window's menu
+         CMenuHandle menu = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
+         CMenuHandle submenu = menu.GetSubMenu(1);
+         submenu.InsertMenu(0, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENINCLUDE, sText);
+         submenu.SetMenuDefaultItem(0, TRUE);
+      }
+      // Just continue to display the standard menu from the GenEdit component.
+      // We'll ignore all our previous work to position the menu...
+      return 0;
+   }
+
+   // We're in debug mode and should display the debug menu.
    CMenu menu;
    menu.LoadMenu(IDR_EDIT_DEBUG);
    ATLASSERT(menu.IsMenu());
@@ -279,6 +296,14 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    return 0;
 }
 
+LRESULT CScintillaView::OnEditOpenInclude(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{   
+   CWaitCursor cursor;
+   if( m_pCppProject == NULL ) return 0;
+   if( !m_pCppProject->OpenView(m_sIncludePopup, 0) ) return ::MessageBeep(MB_ICONEXCLAMATION);
+   return 0;
+}
+
 LRESULT CScintillaView::OnEditAutoComplete(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    // The use of \b (BELL) character here is a hack, and is used to
@@ -300,16 +325,19 @@ LRESULT CScintillaView::OnDebugBreakpoint(WORD /*wNotifyCode*/, WORD /*wID*/, HW
    m_pView->GetName(sName.GetBufferSetLength(128), 128);
    sName.ReleaseBuffer();
 
-   CString sBreakpoint;
-   sBreakpoint.Format(_T("%s:%ld"), sName, (long) iLine + 1);
-
    if( (lValue & lMask) != 0 ) {
-      if( m_pCppProject->m_DebugManager.RemoveBreakpoint(sBreakpoint) ) {
-         m_ctrlEdit.MarkerDelete(iLine, MARKER_BREAKPOINT);
+      bool bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLine);
+      // HACK: Because the breakpoint may have been moved due to editing
+      //       we'll try to delete any breakpoint in the neighborhood.
+      const int DEBUG_LINE_FUDGE = 3;
+      for( int iOffset = -DEBUG_LINE_FUDGE; !bRes && iOffset <= DEBUG_LINE_FUDGE; iOffset++ ) {
+         bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLine + iOffset);
       }
+      if( bRes ) m_ctrlEdit.MarkerDelete(iLine, MARKER_BREAKPOINT);
+      else ::MessageBeep(MB_ICONEXCLAMATION);
    }
    else {
-      if( m_pCppProject->m_DebugManager.AddBreakpoint(sBreakpoint) ) {
+      if( m_pCppProject->m_DebugManager.AddBreakpoint(sName, iLine) ) {
          m_ctrlEdit.MarkerAdd(iLine, MARKER_BREAKPOINT);
       }
    }
@@ -400,14 +428,12 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
          // Before the debugger starts, it collects breakpoint information
          // directly from the views.
          int iLine = 0;
-         CSimpleArray<CString> aBreakpoints;
+         CSimpleArray<int> aLines;
          while( (iLine = m_ctrlEdit.MarkerNext(iLine, 1 << MARKER_BREAKPOINT)) >= 0 ) {
-            CString sBreakpoint;
-            sBreakpoint.Format(_T("%s:%ld"), sName, (long) iLine + 1);
-            aBreakpoints.Add(sBreakpoint);
+            aLines.Add(iLine);
             iLine++;
          }
-         m_pCppProject->m_DebugManager.SetBreakpoints(sName, aBreakpoints);
+         m_pCppProject->m_DebugManager.SetBreakpoints(sName, aLines);
       }
       break;
    case DEBUG_CMD_GET_CARET_TEXT:
@@ -603,6 +629,7 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
 
    pUIBase->UIEnable(ID_EDIT_COMMENT, TRUE);
    pUIBase->UIEnable(ID_EDIT_UNCOMMENT, TRUE);
+   pUIBase->UIEnable(ID_EDIT_OPENINCLUDE, TRUE);
    pUIBase->UIEnable(ID_EDIT_AUTOCOMPLETE, TRUE);
    pUIBase->UIEnable(ID_DEBUG_BREAKPOINT, TRUE);
    pUIBase->UIEnable(ID_DEBUG_STEP_RUN, bDebugging); 
@@ -948,6 +975,11 @@ bool CScintillaView::_GetMemberInfo(long lPos, MEMBERINFO& info)
          info.sType = _FindTagType(info.sName, lStartPos);
          if( !info.sType.IsEmpty() ) info.sScope = info.sType;
       }
+      if( info.sName.IsEmpty() && info.sType.IsEmpty() ) {
+         // This here prevent the global-scope member list to appear 
+         // when there actually was a member to query.
+         info.sName = sParent;
+      }
    }
    else {
       // It's just a regular function or variable
@@ -1002,8 +1034,8 @@ bool CScintillaView::_GetMemberInfo(long lPos, MEMBERINFO& info)
 
 /**
  * Determine scope name.
- * This function located the class/struct-type relative to
- * the 'lPosition' location.
+ * This function locates the class/struct-type relative to
+ * the poisition given.
  */
 CString CScintillaView::_FindBlockType(long lPosition)
 {
@@ -1175,6 +1207,42 @@ CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
             }
             iIndex = m_pCppProject->m_TagManager.FindItem(iIndex + 1, sType);
          }
+      }
+   }
+   return _T("");
+}
+
+/**
+/* Determine if there is an include file at the position.
+/*/
+CString CScintillaView::_FindIncludeUnderCursor(long lPos)
+{
+   CHAR szBuffer[256] = { 0 };
+   int iLine = m_ctrlEdit.LineFromPosition(lPos);
+   if( m_ctrlEdit.GetLineLength(iLine) >= sizeof(szBuffer) - 1 ) return _T("");
+   m_ctrlEdit.GetLine(iLine, szBuffer);
+   CString sLine = szBuffer;
+   sLine.TrimLeft();
+   if( sLine.Left(1) != _T("#") ) return _T("");
+   LPCSTR pstr = strchr(szBuffer, '<');
+   if( pstr == NULL ) pstr = strchr(szBuffer, '\"');
+   if( pstr == NULL ) return _T("");
+   pstr++;
+   CHAR szFile[MAX_PATH] = { 0 };
+   LPSTR pDest = szFile;
+   for( ; ; ) {
+      switch( *pstr ) {
+      case '>':
+      case '\"':
+         return szFile;
+      case '\r':
+      case '\n':
+      case '\0':
+      case ';':
+         return _T("");
+      default:
+         if( strlen(szFile) >= MAX_PATH ) break;
+         *pDest++ = *pstr++;
       }
    }
    return _T("");

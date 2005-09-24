@@ -235,8 +235,8 @@ public:
       m_ctrlBrowseArguments.GetWindowRect(&rcWindow);
       POINT pt = { rcWindow.right, rcWindow.top };
       UINT nCmd = g_pDevEnv->ShowPopupMenu(NULL, submenu, pt, FALSE);
+      if( nCmd != 0 ) PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0));
       m_ctrlArguments.SetFocus();
-      PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0));
       return 0;
    }
    LRESULT OnBrowsePath(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)

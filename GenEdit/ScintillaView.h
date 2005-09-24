@@ -50,7 +50,7 @@ public:
    bool m_bSuggestionDisplayed;     // Suggestion word curently displayed
    long lAutoTextPos;               // Text Position for start of AutoText
    int iAutoTextEntry;              // AutoText to activate
-   CHAR m_cPrevChar;
+   CHAR m_cPrevChar;                // Preivously typed char
 
    // IIdleListener
 
