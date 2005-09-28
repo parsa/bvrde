@@ -3,10 +3,12 @@
 #include "resource.h"
 
 #include "TagProxy.h"
+#include "Project.h"
 
 
 void CTagManager::Init(CRemoteProject* pProject)
 {
+   m_pProject = pProject;
    m_TagInfo.Init(pProject);
    m_LexInfo.Init(pProject);
    m_LexType = LEXTYPE_UNKNOWN;
@@ -90,3 +92,47 @@ bool CTagManager::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aLi
    if( aList.GetSize() == 0 ) m_TagInfo.GetMemberList(pstrType, aList, bInheritance);
    return true;
 }
+
+bool CTagManager::GoToDefinition(LPCTSTR pstrMember)
+{
+   CString sParent;
+   CString sName;
+   sParent = CString(pstrMember).SpanExcluding(_T(":"));
+   CSimpleValArray<TAGINFO*> aList;
+   GetMemberList(sParent, aList, true);
+   if( aList.GetSize() == 0 ) return false;
+   sName = CString(pstrMember + sParent.GetLength() + 2);
+   for( int i = 0; i < aList.GetSize(); i++ ) {
+      if( sName == aList[i]->pstrName ) return GoToDefinition(aList[i]);
+   }
+   return false;
+}
+
+bool CTagManager::GoToDefinition(TAGINFO* pTag)
+{
+   ATLASSERT(m_pProject);
+   ATLASSERT(pTag);
+   if( pTag->iLineNo >= 0 ) {
+      // Line-numbers have first priority. We don't parse lineno. from
+      // CTAGS files because they are too unreliable, but we will get
+      // them from our own realtime C++ lexer.
+      return m_pProject->OpenView(pTag->pstrFile, pTag->iLineNo);
+   }
+   else if( m_pProject->OpenView(pTag->pstrFile, 0) ) {
+      // FIX: CTAGS doesn't actually produce sensible REGEX
+      //      so we need to strip tokens and prepare a standard search.
+      CString sToken = pTag->pstrToken;
+      sToken.Replace(_T("\\/"), _T("/"));
+      sToken.TrimLeft(_T("/^"));
+      sToken.TrimRight(_T("$/;\""));
+      int iFlags = SCFIND_MATCHCASE; //|SCFIND_REGEXP;
+      m_pProject->DelayedViewMessage(DEBUG_CMD_FINDTEXT, sToken, 0, iFlags);
+      m_pProject->DelayedViewMessage(DEBUG_CMD_FOLDCURSOR);
+      return true;
+   }
+   else {
+      ::MessageBeep((UINT)-1);
+      return false;
+   }
+}
+

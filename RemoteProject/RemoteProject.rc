@@ -1141,6 +1141,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_MENU_OPENINCLUDE    """%s"" öffnen"
+    IDS_MENU_OPENDECL       "Gehe zu Definition ""%s"""
 END
 
 #endif    // German (Germany) resources
@@ -1471,6 +1472,8 @@ BEGIN
     BEGIN
         MENUITEM "&Clear",                      ID_EDIT_CLEAR
         MENUITEM "&Copy",                       ID_EDIT_COPY
+        MENUITEM SEPARATOR
+        MENUITEM "Close",                       ID_VIEW_CLOSE
     END
 END
 
@@ -2252,6 +2255,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     ID_REMOTEDIR_OPEN       "Open selected file\nOpen"
     ID_DEBUG_ARGUMENTS      "Set program launch arguments\nArguments"
+    ID_VIEW_CLOSE           "Closes the view\nClose"
     ID_DEBUG_BREAK          "Break Debugger\nBreak"
     ID_DEBUG_STEP_SET       "Sets the next statement\nSet Next"
 END
@@ -2396,6 +2400,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_MENU_OPENINCLUDE    "Open ""%s"""
+    IDS_MENU_OPENDECL       "Go to declaration ""%s"""
 END
 
 #endif    // English (U.S.) resources

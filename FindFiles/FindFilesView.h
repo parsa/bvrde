@@ -48,6 +48,7 @@ public:
       ::wsprintf(szTitle, szText, m_szPattern);
       _AppendRtfText(szTitle, CFM_COLOR, 0, ::GetSysColor(COLOR_HIGHLIGHT));
       // Need to postfix with pattern-match for folder
+      for( size_t i = 0; i < _tcslen(m_szFolder); i++ ) if( m_szFolder[i] == ' ' ) m_szFolder[i] = '?';
       _tcscat(m_szFolder, _T("/*"));
       _tcscpy(m_szLastFile, _T(""));
       // Build 'grep' prompt and execute comment through

@@ -377,7 +377,7 @@ LRESULT CEmptyProject::OnFileAddLocal(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
    dlg.m_ofn.nMaxFile = sizeof(szBuffer) / sizeof(TCHAR);
    dlg.m_ofn.lpstrInitialDir = m_sPath;
    if( dlg.DoModal() != IDOK ) return 0;
-   
+
    // Compute paths and names
    CString sPath = dlg.m_ofn.lpstrFile;
    if( sPath.Right(1) != _T("\\") ) sPath += '\\';

@@ -248,6 +248,7 @@
 #define IDS_COMMAND_POSTSTEP            286
 #define IDS_CONFIG_STEPS                287
 #define IDS_MENU_OPENINCLUDE            288
+#define IDS_MENU_OPENDECL               289
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -393,6 +394,7 @@
 #define ID_VIEW_FILEMANAGER             40128
 #define ID_REMOTEDIR_OPEN               40129
 #define ID_DEBUG_ARGUMENTS              40130
+#define ID_VIEW_CLOSE                   40131
 #define ID_DEBUG_BREAK                  40132
 #define ID_DEBUG_STEP_SET               40133
 #define ID_BUILD_STOP                   40144
@@ -408,7 +410,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        127
-#define _APS_NEXT_COMMAND_VALUE         40131
+#define _APS_NEXT_COMMAND_VALUE         40132
 #define _APS_NEXT_CONTROL_VALUE         1029
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

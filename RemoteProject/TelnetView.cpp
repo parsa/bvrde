@@ -202,13 +202,18 @@ LRESULT CTelnetView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
    return 0;
 }
 
+LRESULT CTelnetView::OnViewClose(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   SendMessage(WM_COMPACTING);
+   _pDevEnv->AddDockView(m_hWnd, IDE_DOCK_HIDE, CWindow::rcDefault);
+   return 0;
+}
+
 LRESULT CTelnetView::OnEditClear(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    CLockLineDataInit lock;
    LINE newline = { VT100_BLACK, 0 };
-   for( int i = 0; i < m_aLines.GetSize(); i++ ) {
-      m_aLines.SetAtIndex(i, newline);
-   }
+   for( int i = 0; i < m_aLines.GetSize(); i++ ) m_aLines.SetAtIndex(i, newline);
    Invalidate();
    return 0;
 }
@@ -253,6 +258,7 @@ void CTelnetView::OnIdle(IUpdateUI* pUIBase)
 {
    pUIBase->UIEnable(ID_EDIT_COPY, TRUE);
    pUIBase->UIEnable(ID_EDIT_CLEAR, TRUE);
+   pUIBase->UIEnable(ID_VIEW_CLOSE, TRUE);
 }
 
 void CTelnetView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)

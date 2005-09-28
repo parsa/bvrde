@@ -30,7 +30,7 @@ public:
    CSimpleArray<CString> m_aFilters;
    CString m_sOrigPath;
    CString m_sPath;
-   TCHAR m_cBuffer[2048];
+   LPTSTR m_pstrBuffer;
    bool m_bInside;
 
    CImageListCtrl m_FolderImages;
@@ -51,6 +51,7 @@ public:
       LPCTSTR pstrDefExt = NULL,
       DWORD dwFlags = OFN_NOCHANGEDIR,
       LPCTSTR pstrFilter = NULL);
+   ~CRemoteFileDlg();
 
    BEGIN_DLGRESIZE_MAP(CRemoteFileDlg)
       DLGRESIZE_CONTROL(IDC_LIST, DLSZ_SIZE_X | DLSZ_SIZE_Y)

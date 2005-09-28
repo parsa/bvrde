@@ -234,32 +234,6 @@ void CClassView::_PopulateTree()
    m_aExpandedNames.RemoveAll();
 }
 
-void CClassView::_GoToDefinition(TAGINFO* pTag)
-{
-   ATLASSERT(m_pProject);
-   ATLASSERT(pTag);
-   if( pTag->iLineNo >= 0 ) {
-      // Line-numbers have first priority. We don't parse lineno. from
-      // CTAGS files because they are too unreliable, but we will get
-      // them from our own realtime C++ lexer.
-      m_pProject->OpenView(pTag->pstrFile, pTag->iLineNo);
-   }
-   else if( m_pProject->OpenView(pTag->pstrFile, 0) ) {
-      // FIX: CTAGS doesn't actually produce sensible REGEX
-      //      so we need to strip tokens and prepare a standard search.
-      CString sToken = pTag->pstrToken;
-      sToken.Replace(_T("\\/"), _T("/"));
-      sToken.TrimLeft(_T("/^"));
-      sToken.TrimRight(_T("$/;\""));
-      int iFlags = SCFIND_MATCHCASE; //|SCFIND_REGEXP;
-      m_pProject->DelayedViewMessage(DEBUG_CMD_FINDTEXT, sToken, 0, iFlags);
-      m_pProject->DelayedViewMessage(DEBUG_CMD_FOLDCURSOR);
-   }
-   else {
-      ::MessageBeep((UINT)-1);
-   }
-}
-
 // Message handlers
 
 LRESULT CClassView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -297,7 +271,7 @@ LRESULT CClassView::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
    if( m_ctrlTree.GetParentItem(hItem) == NULL ) return 0;
    TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(hItem);
    if( pTag == NULL ) return 0;
-   _GoToDefinition(pTag);
+   m_pProject->m_TagManager.GoToDefinition(pTag);
    return 0;
 }
 
@@ -342,7 +316,7 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
       break;
    case ID_CLASSVIEW_GOTO:
       {
-         _GoToDefinition(m_pCurrentTag);
+         m_pProject->m_TagManager.GoToDefinition(m_pCurrentTag);
       }
       break;
    case ID_CLASSVIEW_COPY:

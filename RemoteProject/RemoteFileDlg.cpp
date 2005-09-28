@@ -20,7 +20,15 @@ CRemoteFileDlg::CRemoteFileDlg(BOOL bOpenFileDialog, // TRUE for FileOpen, FALSE
    m_dwFlags = dwFlags;
    ::ZeroMemory(&m_ofn, sizeof(m_ofn));
    m_bInside = false;
+   m_pstrBuffer = NULL;
 }
+
+CRemoteFileDlg::~CRemoteFileDlg()
+{
+   if( m_pstrBuffer != NULL ) free(m_pstrBuffer);
+}
+
+// Message Handlers
 
 LRESULT CRemoteFileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
@@ -119,7 +127,7 @@ LRESULT CRemoteFileDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
    if( !m_ctrlOK.IsWindowEnabled() ) return 0;
 
    CWaitCursor cursor;
-  
+
    // Is selected item a directory? 
    // We need to navigate into the subfolder then...
    if( m_ctrlList.GetSelectedCount() == 1 ) {
@@ -142,36 +150,42 @@ LRESULT CRemoteFileDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
    }
 
    // Create result. The path is the first entry.
-   LPTSTR pstr = m_cBuffer;
-   ::lstrcpy(pstr, m_sPath);
-   pstr += ::lstrlen(pstr) + 1;
-   // Now, find all the selected files...
+   // First find all the selected files...
+   CString sFiles = CWindowText(m_ctrlFilename);
    CSimpleArray<CString> aFiles;
-   CString s = CWindowText(m_ctrlFilename);
-   while( !s.IsEmpty() ) {
-      s.TrimLeft(_T(" \""));
-      if( s.IsEmpty() ) break;
+   while( !sFiles.IsEmpty() ) {
+      sFiles.TrimLeft(_T(" \""));
+      if( sFiles.IsEmpty() ) break;
       CString sFilename = s.SpanExcluding(_T("\""));
       int iLen = sFilename.GetLength();
       if( iLen == 0 ) break;
       if( !m_sDefExt.IsEmpty() && sFilename.Find('.') < 0 ) sFilename += _T(".") + m_sDefExt;
       aFiles.Add(sFilename);
-      s = s.Mid(iLen + 1);
+      sFiles = sFiles.Mid(iLen + 1);
    }
    s.TrimRight();
    if( !s.IsEmpty() ) {
       if( !m_sDefExt.IsEmpty() && s.Find('.') < 0 ) s += _T(".") + m_sDefExt;
       aFiles.Add(s);
    }
-   // ... then generate the return-buffer, which is returned as a SZ-array.
+   // ... then figure out the size of the return-buffer
+   DWORD dwBufLen = m_sPath.GetLength() + 1;
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
-      ::lstrcpy(pstr, aFiles[i]);
+      dwBufLen += aFiles[i].GetLength() + 1;
+   }
+   dwBufLen += 3;
+   // ... then generate the return-buffer, which is returned as a SZ-array.
+   LPTSTR pstr = m_pstrBuffer = malloc(dwBufLen * sizeof(TCHAR));
+   ::lstrcpy(pstr, m_sPath);
+   pstr += ::lstrlen(pstr) + 1;
+   for( int j = 0; j < aFiles.GetSize(); j++ ) {
+      ::lstrcpy(pstr, aFiles[j]);
       pstr += ::lstrlen(pstr) + 1;
    }
    *pstr = '\0';
-   ATLASSERT(pstr-m_cBuffer<sizeof(m_cBuffer)); 
+   ATLASSERT(pstr-m_pstrBuffer<dwBufLen*sizeof(TCHAR));
 
-   m_ofn.lpstrFile = m_cBuffer;
+   m_ofn.lpstrFile = m_pstrBuffer;
    
    // Change back to original path
    if( m_dwFlags & OFN_NOCHANGEDIR ) m_pFileManager->SetCurPath(m_sOrigPath);

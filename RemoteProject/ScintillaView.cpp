@@ -213,15 +213,24 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    if( !m_pCppProject->m_DebugManager.IsDebugging() ) {
       // Is there an include directive under the cursor?
       // Add additional menu item to open file.
+      CString sText;
       m_sIncludePopup = _FindIncludeUnderCursor(lPos);
       if( !m_sIncludePopup.IsEmpty() ) {
-         CString sText;
          sText.Format(IDS_MENU_OPENINCLUDE, m_sIncludePopup);
+      }
+      else {
+         MEMBERINFO info;
+         if( !_GetMemberInfo(lPos, info) ) return 0;
+         if( !info.sScope.IsEmpty() && !info.sName.IsEmpty() ) {
+            m_sIncludePopup.Format(_T("%s::%s"), info.sScope, info.sName);
+            sText.Format(IDS_MENU_OPENDECL, m_sIncludePopup);
+         }
+      }
+      if( !sText.IsEmpty() ) {
          // Grab EDIT submenu from main window's menu
          CMenuHandle menu = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
          CMenuHandle submenu = menu.GetSubMenu(1);
          submenu.InsertMenu(0, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENINCLUDE, sText);
-         submenu.SetMenuDefaultItem(0, TRUE);
       }
       // Just continue to display the standard menu from the GenEdit component.
       // We'll ignore all our previous work to position the menu...
@@ -299,8 +308,14 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 LRESULT CScintillaView::OnEditOpenInclude(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {   
    CWaitCursor cursor;
-   if( m_pCppProject == NULL ) return 0;
-   if( !m_pCppProject->OpenView(m_sIncludePopup, 0) ) return ::MessageBeep(MB_ICONEXCLAMATION);
+   if( m_sIncludePopup.Find(_T("::")) > 0 ) {
+      bool bRes = m_pCppProject->m_TagManager.GoToDefinition(m_sIncludePopup);
+      if( !bRes ) return ::MessageBeep((UINT)-1);
+   }
+   else {
+      bool bRes = m_pCppProject->OpenView(m_sIncludePopup, 0);
+      if( !bRes ) return ::MessageBeep((UINT)-1);
+   }
    return 0;
 }
 
@@ -334,7 +349,7 @@ LRESULT CScintillaView::OnDebugBreakpoint(WORD /*wNotifyCode*/, WORD /*wID*/, HW
          bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLine + iOffset);
       }
       if( bRes ) m_ctrlEdit.MarkerDelete(iLine, MARKER_BREAKPOINT);
-      else ::MessageBeep(MB_ICONEXCLAMATION);
+      else ::MessageBeep((UINT)-1);
    }
    else {
       if( m_pCppProject->m_DebugManager.AddBreakpoint(sName, iLine) ) {
@@ -1209,6 +1224,7 @@ CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
          }
       }
    }
+
    return _T("");
 }
 
@@ -1263,7 +1279,8 @@ void CScintillaView::_ShowToolTip(long lPos, CString& sText, bool bAdjustPos, CO
    m_ctrlEdit.CallTipSetFore(clrText);
    m_ctrlEdit.CallTipSetBack(clrBack);
 
-   // Make tooltip multi-line if a line exceeds 60 chars
+   // Wordwrap tooltip line if it exceeds 60 chars and force
+   // a new-line when it exceeds 90 chars.
    int cxWidth = 0;
    int nLength = sText.GetLength();
    for( int i = 0; i < nLength; i++ ) {
@@ -1348,8 +1365,8 @@ void CScintillaView::_ShowMemberToolTip(long lPos, MEMBERINFO* pInfo, long lCurT
    // Which tip to display
    m_TipInfo.lCurTip = lCurTip % m_TipInfo.aDecl.GetSize();
 
-   CString sText = m_TipInfo.aDecl[m_TipInfo.lCurTip];
    // Multiple entries? Let's allow browsing the tip texts
+   CString sText = m_TipInfo.aDecl[m_TipInfo.lCurTip];
    if( !m_TipInfo.bExpand 
        && m_TipInfo.aDecl.GetSize() > 1 ) 
    {

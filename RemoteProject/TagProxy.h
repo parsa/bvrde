@@ -23,6 +23,9 @@ public:
    bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance);
    bool GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner = NULL);
 
+   bool GoToDefinition(TAGINFO* pTag);
+   bool GoToDefinition(LPCTSTR pstrMember);
+
 public:
    enum
    {
@@ -30,6 +33,7 @@ public:
       LEXTYPE_CTAGS,
       LEXTYPE_LEX,
    } m_LexType;
+   CRemoteProject* m_pProject;
    CTagInfo m_TagInfo;
    CLexInfo m_LexInfo;
 };

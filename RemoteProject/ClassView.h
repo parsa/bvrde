@@ -38,7 +38,6 @@ public:
    // Implementation
 
    void _PopulateTree();
-   void _GoToDefinition(TAGINFO* pTag);
 
    // IIdleListener
 

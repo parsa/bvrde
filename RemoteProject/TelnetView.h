@@ -61,6 +61,7 @@ public:
       MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkgnd)
       MESSAGE_HANDLER(WM_GETMINMAXINFO, OnGetMinMaxInfo)
       MESSAGE_HANDLER(WM_CONTEXTMENU, OnContextMenu)
+      COMMAND_ID_HANDLER(ID_VIEW_CLOSE, OnViewClose)
       COMMAND_ID_HANDLER(ID_EDIT_CLEAR, OnEditClear)
       COMMAND_ID_HANDLER(ID_EDIT_COPY, OnEditCopy)
       CHAIN_MSG_MAP( CScrollWindowImpl<CTelnetView> )
@@ -73,6 +74,7 @@ public:
    LRESULT OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnGetMinMaxInfo(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnContextMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnViewClose(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnEditClear(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnEditCopy(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 
