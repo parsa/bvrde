@@ -2,7 +2,7 @@ Version 0.9c
 * German translation provided by Torsten Albrecht (Ingenieurbüro AttNet)
 * New 'mode' command in Console to switch interpreter mode
 * Autohide views now close when you click on the button if already open
-* Function-braces automatically added in autocompletion
+* Function-parens automatically added in autocompletion
 * Ability to open include files from context menu
 * Ability to go to class member declaration from context menu
 

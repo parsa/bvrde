@@ -89,22 +89,19 @@ DWORD CCompileThread::Run()
       // First send window resize
       if( m_szWindow.cx > 0 ) m_pManager->m_ShellManager.WriteScreenSize(m_szWindow.cx, m_szWindow.cy);
 
-      m_cs.Lock();
-
       // Get a local copy of the commands
+      m_cs.Lock();
       CSimpleValArray<CString> aActions;
       while( m_aCommands.GetSize() > 0 ) {
          aActions.Add(m_aCommands[0]);
          m_aCommands.RemoveAt(0);
       }
-
       // Copy the batched flags value to the current session
       UINT Flags = m_Flags;
       m_pManager->m_Flags = Flags;
-
       m_cs.Unlock();
 
-      // Execute commands
+      // Execute commands...
       for( int i = 0; i < aActions.GetSize(); i++ ) {
          CString sCommand = aActions[i];
          if( sCommand.IsEmpty() ) continue;
@@ -113,7 +110,7 @@ DWORD CCompileThread::Run()
             // Need to broadcast termination marker to allow
             // gracefull closure of views
             m_pManager->m_ShellManager.BroadcastLine(VT100_HIDDEN, TERM_MARKER);
-            // We need to stop now
+            // We should stop now
             m_pManager->SignalStop();
             // Let's just remove the remaining commands (if any was added
             // since), because they are not going to be sent anyway...
@@ -421,6 +418,9 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, 
    }
 
    // Some additional flags
+   // Referencing a meta-token in the command (such as $FILENAME$
+   // will cause the file to be save and reloaded once the commands
+   // are executed.
    if( sName.Find(_T("$FILE")) > 0 ) {
       IView* pView = _pDevEnv->GetActiveView();
       if( pView != NULL ) pView->Save();

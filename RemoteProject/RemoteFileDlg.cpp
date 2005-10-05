@@ -68,6 +68,8 @@ LRESULT CRemoteFileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    _AddShellIcon(m_FileImages, _T(".exe"), FILE_ATTRIBUTE_NORMAL);
    _AddShellIcon(m_FileImages, _T(".tmp"), FILE_ATTRIBUTE_NORMAL);
    _AddShellIcon(m_FileImages, _T(".xml"), FILE_ATTRIBUTE_NORMAL);
+   _AddShellIcon(m_FileImages, _T(".bat"), FILE_ATTRIBUTE_NORMAL);
+   _AddShellIcon(m_FileImages, _T(".html"), FILE_ATTRIBUTE_NORMAL);
    m_ctrlList.SetImageList(m_FileImages, LVSIL_SMALL);
 
    // Buttons
@@ -156,17 +158,17 @@ LRESULT CRemoteFileDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
    while( !sFiles.IsEmpty() ) {
       sFiles.TrimLeft(_T(" \""));
       if( sFiles.IsEmpty() ) break;
-      CString sFilename = s.SpanExcluding(_T("\""));
+      CString sFilename = sFiles.SpanExcluding(_T("\""));
       int iLen = sFilename.GetLength();
       if( iLen == 0 ) break;
       if( !m_sDefExt.IsEmpty() && sFilename.Find('.') < 0 ) sFilename += _T(".") + m_sDefExt;
       aFiles.Add(sFilename);
       sFiles = sFiles.Mid(iLen + 1);
    }
-   s.TrimRight();
-   if( !s.IsEmpty() ) {
-      if( !m_sDefExt.IsEmpty() && s.Find('.') < 0 ) s += _T(".") + m_sDefExt;
-      aFiles.Add(s);
+   sFiles.TrimRight();
+   if( !sFiles.IsEmpty() ) {
+      if( !m_sDefExt.IsEmpty() && sFiles.Find('.') < 0 ) sFiles += _T(".") + m_sDefExt;
+      aFiles.Add(sFiles);
    }
    // ... then figure out the size of the return-buffer
    DWORD dwBufLen = m_sPath.GetLength() + 1;
@@ -175,7 +177,7 @@ LRESULT CRemoteFileDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
    }
    dwBufLen += 3;
    // ... then generate the return-buffer, which is returned as a SZ-array.
-   LPTSTR pstr = m_pstrBuffer = malloc(dwBufLen * sizeof(TCHAR));
+   LPTSTR pstr = m_pstrBuffer = (LPTSTR) malloc(dwBufLen * sizeof(TCHAR));
    ::lstrcpy(pstr, m_sPath);
    pstr += ::lstrlen(pstr) + 1;
    for( int j = 0; j < aFiles.GetSize(); j++ ) {
@@ -183,13 +185,12 @@ LRESULT CRemoteFileDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
       pstr += ::lstrlen(pstr) + 1;
    }
    *pstr = '\0';
-   ATLASSERT(pstr-m_pstrBuffer<dwBufLen*sizeof(TCHAR));
 
    m_ofn.lpstrFile = m_pstrBuffer;
-   
+
    // Change back to original path
    if( m_dwFlags & OFN_NOCHANGEDIR ) m_pFileManager->SetCurPath(m_sOrigPath);
-   
+
    EndDialog(wID);
    return 0;
 }
@@ -341,9 +342,17 @@ bool CRemoteFileDlg::_PopulateView(LPCTSTR pstrPath)
 
       sFilename.MakeUpper();
       int iImage = 3;
+      if( sFilename.Find(_T("MAK")) == 0 ) iImage = 5;
       if( sFilename.Find(_T(".TXT")) > 0) iImage = 1;
+      if( sFilename.Find(_T(".LOG")) > 0) iImage = 1;
+      if( sFilename.Find(_T(".CFG")) > 0) iImage = 1;
       if( sFilename.Find(_T(".C")) > 0 ) iImage = 4;
       if( sFilename.Find(_T(".H")) > 0 ) iImage = 4;
+      if( sFilename.Find(_T(".EC")) > 0 ) iImage = 4;
+      if( sFilename.Find(_T(".PC")) > 0 ) iImage = 4;
+      if( sFilename.Find(_T(".SH")) > 0 ) iImage = 5;
+      if( sFilename.Find(_T(".MAK")) > 0 ) iImage = 5;
+      if( sFilename.Find(_T(".HTM")) > 0 ) iImage = 6;
       if( (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0 ) iImage = 0;
       m_ctrlList.InsertItem(LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE, 
          i, 

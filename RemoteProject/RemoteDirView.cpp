@@ -69,6 +69,7 @@ LRESULT CRemoteDirView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
    _AddShellIcon(m_FileImages, _T(".tmp"), FILE_ATTRIBUTE_NORMAL);
    _AddShellIcon(m_FileImages, _T(".xml"), FILE_ATTRIBUTE_NORMAL);
    _AddShellIcon(m_FileImages, _T(".html"), FILE_ATTRIBUTE_NORMAL);
+   _AddShellIcon(m_FileImages, _T(".bat"), FILE_ATTRIBUTE_NORMAL);
    m_ctrlFiles.SetImageList(m_FileImages, LVSIL_SMALL);
 
    // Prepare ListView
@@ -258,11 +259,18 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
       CString sFilename = fd.cFileName;
       sFilename.MakeUpper();
       int iImage = 3;
+      if( sFilename.Find(_T("MAK")) == 0) iImage = 6;
       if( sFilename.Find(_T(".TXT")) > 0) iImage = 1;
+      if( sFilename.Find(_T(".LOG")) > 0) iImage = 1;
+      if( sFilename.Find(_T(".CFG")) > 0) iImage = 1;
       if( sFilename.Find(_T(".C")) > 0 ) iImage = 2;
       if( sFilename.Find(_T(".H")) > 0 ) iImage = 2;
+      if( sFilename.Find(_T(".PC")) > 0 ) iImage = 2;
+      if( sFilename.Find(_T(".EC")) > 0 ) iImage = 2;
       if( sFilename.Find(_T(".XML")) > 0 ) iImage = 4;
       if( sFilename.Find(_T(".HTM")) > 0 ) iImage = 5;
+      if( sFilename.Find(_T(".SH")) > 0) iImage = 6;
+      if( sFilename.Find(_T(".MAK")) > 0) iImage = 6;
       if( (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0 ) iImage = 0;
       m_ctrlFiles.InsertItem(LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE, 
          i, 

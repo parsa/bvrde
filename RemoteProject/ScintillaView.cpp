@@ -49,12 +49,14 @@ BOOL CScintillaView::GetText(LPSTR& pstrText)
 {
    ATLASSERT(pstrText==NULL);
 
+   // Let's obey the LineEndConversion rules
    TCHAR szBuffer[32] = { 0 };
    _pDevEnv->GetProperty(_T("editors.general.eolMode"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("cr")) == 0 ) m_ctrlEdit.ConvertEOLs(SC_EOL_CR);
    else if( _tcscmp(szBuffer, _T("lf")) == 0 ) m_ctrlEdit.ConvertEOLs(SC_EOL_LF);
    else if( _tcscmp(szBuffer, _T("crlf")) == 0 ) m_ctrlEdit.ConvertEOLs(SC_EOL_CRLF);
 
+   // Return the text from the editor...
    int nLength = m_ctrlEdit.GetTextLength() + 1;
    pstrText = (LPSTR) malloc(nLength);
    if( pstrText == NULL ) {
@@ -72,10 +74,12 @@ BOOL CScintillaView::SetText(LPCSTR pstrText)
    m_ctrlEdit.EmptyUndoBuffer();
    m_ctrlEdit.SetSavePoint();
 
-   // Adjust the line-number margin width.
+   // Adjust the line-number margin width depending
+   // on how many lines there is in the document!
    int iWidth = m_ctrlEdit.GetMarginWidthN(0);
    if( iWidth > 0 && m_ctrlEdit.GetLineCount() > 9999 ) m_ctrlEdit.SetMarginWidthN(0, m_ctrlEdit.TextWidth(STYLE_LINENUMBER, "_99999"));  
 
+   // Let Scintilla repaint the view
    SendMessage(WM_SETTINGCHANGE);
    return TRUE;
 }
@@ -858,14 +862,19 @@ void CScintillaView::_AutoComplete(CHAR ch)
    // Yippie, we found one!!!
    CSimpleValArray<TAGINFO*> aList;
    m_pCppProject->m_TagManager.GetMemberList(info.sType, aList, true);
+
+   // We'll not allow 0 nor more than 300 items in the list.
+   // This prevents a global-scope dropdown which would be horrible slow!
    int nCount = aList.GetSize();
    if( nCount == 0 || nCount > 300 ) return;
 
-   // Need to sort the items Scintilla-style
+   // Need to sort the items Scintilla-style [bubble-sort]
    for( int a = 0; a < nCount; a++ ) {
       for( int b = a + 1; b < nCount; b++ ) {
-         // Right; Scintilla uses strcmp() to compile its items.
-         if( strcmp(T2CA(aList[a]->pstrName), T2CA(aList[b]->pstrName)) > 0 ) {
+         // So Scintilla uses strcmp() to compare its items.
+         // BUG: Obviously there's a difference between the mapping of UNICODE and MBCS
+         //      but since C++ identifiers are mainly ASCII we'll cross our fingers.
+         if( _tcscmp(aList[a]->pstrName, aList[b]->pstrName) > 0 ) {
             TAGINFO* pTemp1 = aList[a];
             TAGINFO* pTemp2 = aList[b];
             aList.SetAtIndex(a, pTemp2);
@@ -942,7 +951,7 @@ void CScintillaView::_ClearSquigglyLines()
 }
 
 /**
- * Extract information about a C++ member at a editor position.
+ * Extract information about a C++ member at an editor position.
  */
 bool CScintillaView::_GetMemberInfo(long lPos, MEMBERINFO& info)
 {
@@ -991,7 +1000,7 @@ bool CScintillaView::_GetMemberInfo(long lPos, MEMBERINFO& info)
          if( !info.sType.IsEmpty() ) info.sScope = info.sType;
       }
       if( info.sName.IsEmpty() && info.sType.IsEmpty() ) {
-         // This here prevent the global-scope member list to appear 
+         // This here prevents the global-scope member list from appearing
          // when there actually was a member to query.
          info.sName = sParent;
       }

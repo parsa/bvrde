@@ -14,6 +14,7 @@
 // Forward declare
 class CCompileManager;
 
+// Compil flags
 #define COMPFLAG_COMMANDMODE    0x00000001
 #define COMPFLAG_IGNOREOUTPUT   0x00000002
 #define COMPFLAG_BUILDSESSION   0x00000004
@@ -24,6 +25,10 @@ class CCompileManager;
 ////////////////////////////////////////////////////////
 //
 
+/**
+ * @class CRebuildThread
+ * Handles rebuild of an entire solution.
+ */
 class CRebuildThread : public CThreadImpl<CRebuildThread>
 {
 public:
@@ -37,6 +42,11 @@ public:
 ////////////////////////////////////////////////////////
 //
 
+/**
+ * @class CCompileThread
+ * Handle compile commands (rebuild, compile, check syntax) etc. It executes
+ * a queue of command-line commands.
+ */
 class CCompileThread : public CThreadImpl<CCompileThread>
 {
 public:

@@ -237,6 +237,8 @@ LRESULT CTelnetView::OnEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 
 void CTelnetView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 {
+   // NOTE: Since lines may very well arrive from another thread we'll
+   //       have to protect the data members.
    CLockLineDataInit lock;
 
    LINE newline = { nColor, 0 };
