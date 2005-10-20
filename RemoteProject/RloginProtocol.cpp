@@ -308,15 +308,15 @@ DWORD CRloginThread::Run()
                // FALL THROUGH
             case '\n':
                {
-                  CString s = _GetLine(pBuffer, dwStartLinePos, dwPos);
+                  CString sLine = _GetLine(pBuffer, dwStartLinePos, dwPos);
                   dwPos = 0;
                   dwStartLinePos = 0;
                   if( bNextIsPrompt ) {
-                     if( s.IsEmpty() ) break;
+                     if( sLine.IsEmpty() ) break;
                      bNextIsPrompt = false;
-                     break;
+                     if( sLine.Find(TERM_MARKER) < 0 ) break;
                   }
-                  m_pCallback->BroadcastLine(nColor, s);
+                  m_pCallback->BroadcastLine(nColor, sLine);
                   nColor = VT100_DEFAULT;
                }
                break;

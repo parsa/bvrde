@@ -26,6 +26,7 @@ CTelnetView::CTelnetView() :
   m_pShell(NULL),
   m_dwFlags(0UL),
   m_iStart(0),
+  m_clrDefBack(RGB(120,120,200)),
   m_clrBack(RGB(120,120,200)),
   m_clrText(RGB(255,255,255))
 {
@@ -95,9 +96,17 @@ void CTelnetView::DoPaint(CDCHandle dc)
    HFONT hOldFont = dc.SelectFont(m_font);
    for( int i = 0; i < m_aLines.GetSize(); i++ ) {
       const LINE& line = m_aLines[i];
-      dc.SetTextColor(m_clrText);
-      if( line.nColor == VT100_RED ) dc.SetTextColor(RGB(180,60,50));
-      if( line.nColor == VT100_GREEN ) dc.SetTextColor(RGB(50,120,50));
+      switch( line.nColor ) {
+      case VT100_RED:
+         dc.SetTextColor(m_clrBack == m_clrDefBack ? RGB(240,220,200) : RGB(180,60,50));
+         break;
+      case VT100_GREEN:
+         dc.SetTextColor(m_clrBack == m_clrDefBack ? RGB(200,220,200) : RGB(50,120,50));
+         break;
+      default:
+         dc.SetTextColor(m_clrText);
+         break;
+      }
       dc.DrawText(line.szText, min(_tcslen(line.szText), MAX_CHARS), &rcPage, DT_SINGLELINE | DT_LEFT | DT_TOP | DT_NOPREFIX | DT_NOCLIP);
       rcPage.top += m_tm.tmHeight;
    }
@@ -227,6 +236,7 @@ LRESULT CTelnetView::OnEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
       sText += line.szText;
       sText += _T("\r\n");
    }
+   sText.Replace(_T("\r\n\r\n"), _T("\r\n"));
    AtlSetClipboardText(m_hWnd, sText);
    return 0;
 }

@@ -135,7 +135,10 @@ void CClassView::Clear()
 {
    if( !m_ctrlTree.IsWindow() ) return;
    // Delete all items and reset
+   m_bLocked = true;
+   m_ctrlTree.SetRedraw(FALSE);
    m_ctrlTree.DeleteAllItems();
+   m_ctrlTree.SetRedraw(TRUE);
    m_aExpandedNames.RemoveAll();
    m_bPopulated = false;
    m_bLocked = false;
@@ -278,6 +281,7 @@ LRESULT CClassView::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
 LRESULT CClassView::OnTreeSelChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
    LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
+   if( m_bLocked ) return 0;
    if( lpNMTV->itemNew.hItem == NULL ) return 0;
    TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(lpNMTV->itemNew.hItem);
    if( pTag == NULL ) return 0;
@@ -403,8 +407,8 @@ LRESULT CClassView::OnTreeExpanded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 LRESULT CClassView::OnGetDisplayInfo(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
    LPNMTVDISPINFO lpNMTVDI = (LPNMTVDISPINFO) pnmh;
-   if( (lpNMTVDI->item.mask & TVIF_TEXT) == 0 ) return 0;
    if( m_bLocked ) return 0;
+   if( (lpNMTVDI->item.mask & TVIF_TEXT) == 0 ) return 0;
    // NOTE: We use a callback for populating the tree text. This saves
    //       memory when keeping a large parse tree, but certainly makes it
    //       more difficult to maintain the tree. Since we modify classes

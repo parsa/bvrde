@@ -334,7 +334,7 @@ END
 
 IDD_OPTIONS_EDITORS DIALOGEX 0, 0, 263, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Einstellungen",IDC_STATIC,0,0,46,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,48,4,210,1
@@ -1138,6 +1138,7 @@ BEGIN
     IDS_LANG_DEFAULT        "Standart"
     IDS_LANG_ENGLISH        "English"
     IDS_LANG_GERMAN         "Deutch"
+    IDS_RESTART             "Restart BVRDE\nYou must restart BVRDE to apply the changes."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1489,7 +1490,7 @@ END
 
 IDD_OPTIONS_EDITORS DIALOGEX 0, 0, 263, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Settings",IDC_STATIC,0,0,26,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,33,4,225,1
@@ -2070,8 +2071,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,9,0,1
- PRODUCTVERSION 0,9,0,1
+ FILEVERSION 0,9,0,3
+ PRODUCTVERSION 0,9,0,3
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2089,14 +2090,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Viksoe.dk\0"
             VALUE "FileDescription", "BVRDE - Bjarke Viksoe's Remote Development Environment\0"
-            VALUE "FileVersion", "0, 9, 0, 1\0"
+            VALUE "FileVersion", "0, 9, 0, 3\0"
             VALUE "InternalName", "BVRDE\0"
             VALUE "LegalCopyright", "Copyright 2003 - 2005 Bjarke Viksoe\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "BVRDE.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "BVRDE\0"
-            VALUE "ProductVersion", "0, 9, 0, 1\0"
+            VALUE "ProductVersion", "0, 9, 0, 3\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -2467,6 +2468,7 @@ BEGIN
     IDS_LANG_DEFAULT        "Default"
     IDS_LANG_ENGLISH        "English"
     IDS_LANG_GERMAN         "German"
+    IDS_RESTART             "Restart needed\nYou must restart BVRDE to apply the changes."
 END
 
 STRINGTABLE DISCARDABLE 

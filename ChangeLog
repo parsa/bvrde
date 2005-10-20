@@ -1,3 +1,6 @@
+Version 0.9d:
+* It is possible to disable plugins
+
 Version 0.9c
 * German translation provided by Torsten Albrecht (Ingenieurbüro AttNet)
 * New 'mode' command in Console to switch interpreter mode

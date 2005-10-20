@@ -1694,6 +1694,9 @@ YY_RULE_SETUP
 					  current->type = "typedef enum" ;
 					  current->name.clear() ;
 					  lineCount() ;
+					  current->file = yyFileName ;
+					  current->startLine = yyLineNr ;
+					  lastTContext = 1;
 				  	  BEGIN( ClassName ) ;
 					}
 	YY_BREAK
@@ -2050,7 +2053,7 @@ YY_RULE_SETUP
 					    else if( current->done == onlyDocs )
 					    {
 					      int section = current->section;
-					      current_root->addSubEntry( current ) ;
+					      current_root->addNextEntry( current ) ;
 					      current = new Entry ;
 					      current->protection = protection ;
 					      if( section == CLASS_SEC ) current->protection = GLOB ;
@@ -2274,7 +2277,7 @@ YY_RULE_SETUP
 					  msg( "found name     ", current->name ) ;
 
 				          int section = current->section;
-					  current_root->addSubEntry( current ) ;
+					  current_root->addNextEntry( current ) ;
 					  current = new Entry ;
 					  current->protection = protection ;
 					  if( section == CLASS_SEC ) current->protection = GLOB ;
@@ -2289,7 +2292,7 @@ YY_RULE_SETUP
 					  msg( "found name     ", current->name ) ;
 
 					  int section = current->section;
-					  current_root->addSubEntry( current ) ;
+					  current_root->addNextEntry( current ) ;
 					  current = new Entry ;
 					  current->protection = protection ;
 					  if( section == CLASS_SEC ) current->protection = GLOB ;
@@ -2304,8 +2307,8 @@ case 81:
 YY_RULE_SETUP
 { 
 					  lineCount() ;
-					  if( current->doc.length() > 0
-						  ||  current->memo.length() > 0 )
+					  if( !current->doc.empty()
+						  ||  !current->memo.empty() )
 					  {
 						msg( "found doc entry" ) ;
 						current->lineNo = yyLineNr;
@@ -2351,8 +2354,8 @@ case 88:
 YY_RULE_SETUP
 { 
 					  lineCount() ;
-					  if( current->doc.length() > 0
-					      ||  current->memo.length() > 0 )
+					  if( !current->doc.empty() 
+					      ||  !current->memo.empty() )
 					  {
 					     msg( "found doc entry" ) ;
 					     current->lineNo = yyLineNr;
@@ -3671,7 +3674,7 @@ int main()
  */
 void parseDoc(Entry* rt)
 {
-	if( rt->doc.length() )
+	if( !rt->doc.empty() )
 	{
 		Entry* _current = current ;
 		rt->program = rt->doc ;
@@ -3680,7 +3683,7 @@ void parseDoc(Entry* rt)
 		inputPosition = 0 ;
 		current = rt ;
 		cpprestart( cppin ) ;
-		if( rt->memo.length() > 0 )
+		if( !rt->memo.empty() )
 			BEGIN( CppDoc ) ;
 		else
 			BEGIN( CppMemo ) ;
@@ -3695,8 +3698,8 @@ void parseDoc(Entry* rt)
 void callcpplex()
 {
 	cpplex() ;
-	if( (current->name.length()  ||  current->program.length()  ||
-		current->memo.length()  ||  current->doc.length() )
+	if( ( !current->name.empty()  ||  !current->program.empty()  ||
+		  !current->memo.empty()  ||  !current->doc.empty() )
 		&&  current->done == onlyDocs )
 	{
 		if( current->section == EMPTY_SEC )
@@ -3710,9 +3713,9 @@ void callcpplex()
 void parseCppClasses(Entry* rt)
 {
     if( rt == 0 ) return ;
-    for( Entry *cr = rt->sub ; cr ; cr = cr->next )
+    for( Entry *cr = rt ; cr ; cr = cr->next )
     {
-		if( cr->program.length() > 0 )
+		if( !cr->program.empty() )
 		{
 #ifdef _DEBUG
 			if (verb)
@@ -3744,7 +3747,6 @@ void parseCppClasses(Entry* rt)
 			callcpplex() ;
 			cr->program.clear() ;
 		}
-		parseCppClasses( cr ) ;
     }
     parseDoc( rt ) ;
 }

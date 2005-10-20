@@ -568,7 +568,10 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    }
 
    // Busy debugging?
-   if( m_pProject->m_DebugManager.IsBusy() ) {
+   // We won't allow compiling and debugging at the same time!
+   // Background tasks, however, are allowed to run since they are not likely
+   // to interfere with the debug shell.
+   if( m_pProject->m_DebugManager.IsBusy() && (Flags & COMPFLAG_COMMANDMODE) == 0 ) {
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_QUESTION));
       CString sMsg(MAKEINTRESOURCE(IDS_DEBUGGER_BUSY));
       if( ((Flags & COMPFLAG_IGNOREOUTPUT) != 0) || IDNO == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_YESNO | MB_ICONQUESTION) ) return false;
@@ -678,10 +681,10 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    CString sText;
    sText.Format(_T("%s\r\n"), pstrText);
 
-   int iPos = sText.Find(TERM_MARKER);
-   if( iPos >= 0 ) {
-      if( iPos == 0 ) return; // HACK: Ignore if printed on first column!
-                              //       Avoid halting on echo.
+   // Is this the termination marker? 
+   // Let's finish the session.
+   if( sText.Find(TERM_MARKER) > 0 ) 
+   {
       m_ShellManager.RemoveLineListener(this);
       // Notify the rest of the environment
       if( (m_Flags & COMPFLAG_SILENT) == 0 ) {
@@ -703,6 +706,7 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    }
 
    if( nColor == VT100_HIDDEN ) return;
+   if( sText.Find(TERM_MARKER) == 0 ) return;
 
    // Yield control?
    if( ::InSendMessage() ) ::ReplyMessage(TRUE);
@@ -767,6 +771,8 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    }
    if( _tcsncmp(pstrText, _T("make["), 5) == 0 ) cf.dwEffects |= CFE_ITALIC;
    if( _tcschr(m_sPromptPrefix, *pstrText) != NULL ) cf.dwEffects |= CFE_BOLD;
+
+   // Some lines that look like prompts aren't really prompts...
    if( *pstrText == '/' && _tcschr(pstrText, ':') != NULL ) cf.dwEffects &= ~CFE_BOLD;
 
    ctrlEdit.SetSel(iStartPos, iEndPos);

@@ -21,6 +21,11 @@ class CRemoteProject;
 #define PLUGIN_NAME        "Remote C++"
 #define PLUGIN_DESCRIPTION "Allows compiling and debugging of remote C++ projects."
 
+// What's the story about the termination marker? Well, we need to be able to signal that
+// the shell/prompt has completed our commands. We do this by submitting an additional
+// command-line which gets processed by the shell interpreter.
+// The extra command-line does produce any output, but as soon as we see it executed in
+// the shell prompt, we'll stop the connection.
 #define TERM_MARKER _T("###BVRDE###")
 
 

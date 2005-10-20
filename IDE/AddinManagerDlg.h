@@ -20,6 +20,8 @@ public:
    CImageListCtrl m_ctrlImages;
    CCheckListViewCtrl m_ctrlList;
    CStatic m_ctrlDescription;
+   
+   BOOL m_bChanged;
 
    BEGIN_MSG_MAP(CChooseSolutionDlg)
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
@@ -59,7 +61,8 @@ public:
          long lType = plugin.GetType();
          int iItem = m_ctrlList.InsertItem(m_ctrlList.GetItemCount(), sText, -1);
          m_ctrlList.SetItemData(iItem, (LPARAM) i);
-         m_ctrlList.SetCheckState(iItem, TRUE);
+         m_ctrlList.SetCheckState(iItem, plugin.IsMarkedActive());
+         // Change text and icon on the first subitem
          CString sType;
          if( lType & PLUGIN_PROJECT ) {
             if( !sType.IsEmpty() ) sType += _T(" / ");
@@ -85,6 +88,8 @@ public:
       m_ctrlList.SetColumnWidth(1, LVSCW_AUTOSIZE_USEHEADER);
       m_ctrlList.SelectItem(0);
 
+      m_bChanged = FALSE;
+
       BOOL bDummy;
       OnItemChanged(0, NULL, bDummy);
 
@@ -105,6 +110,32 @@ public:
    }
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
+      if( m_bChanged ) {
+         // Delete registry key that holds list of items and recreate it...
+         CRegKey regParent;
+         if( regParent.Create(HKEY_CURRENT_USER, REG_BVRDE) == ERROR_SUCCESS ) {
+            regParent.DeleteSubKey(_T("Disabled Plugins"));
+            regParent.Close();
+         }
+         CRegKey reg;
+         if( reg.Create(HKEY_CURRENT_USER, REG_BVRDE _T("\\Disabled Plugins")) == ERROR_SUCCESS ) {
+            int nCount = m_ctrlList.GetItemCount();
+            for( int i = 0; i < nCount; i++ ) {
+               int iIndex = (int) m_ctrlList.GetItemData(i);
+               BOOL bActive = m_ctrlList.GetCheckState(i);
+               CPlugin& plugin = g_aPlugins[iIndex];
+               plugin.ChangeActiveState(bActive);
+               if( bActive ) continue;
+               TCHAR szName[MAX_PATH];
+               _tcscpy(szName, plugin.GetFilename());
+               ::PathStripPath(szName);
+               ::PathRemoveExtension(szName);
+               reg.SetValue(1, szName);
+            }
+            reg.Close();
+         }
+         m_pMainFrame->_ShowMessageBox(m_hWnd, IDS_RESTART, IDS_CAPTION_MESSAGE, MB_ICONINFORMATION);
+      }
       EndDialog(wID);
       return 0;
    }
@@ -113,12 +144,14 @@ public:
       EndDialog(wID);
       return 0;
    }
-   LRESULT OnItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+   LRESULT OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
    {
+      LPNMLISTVIEW pNMLV = (LPNMLISTVIEW) pnmh;
       CString sDescription;
       int iCurSel = m_ctrlList.GetSelectedIndex();
       if( iCurSel >= 0 ) sDescription = g_aPlugins[m_ctrlList.GetItemData(iCurSel)].GetDescription();
       m_ctrlDescription.SetWindowText(sDescription);
+      if( pNMLV != NULL && (pNMLV->uOldState & LVIS_STATEIMAGEMASK) != (pNMLV->uNewState & LVIS_STATEIMAGEMASK) ) m_bChanged = TRUE;
       _UpdateButtons();
       return 0;
    }
@@ -127,6 +160,7 @@ public:
 
    void _UpdateButtons()
    {
+      CWindow(GetDlgItem(IDOK)).EnableWindow(m_bChanged);
    }
 };
 

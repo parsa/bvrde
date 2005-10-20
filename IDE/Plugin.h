@@ -16,18 +16,23 @@ private:
    CString m_sFilename;
    CString m_sName;
    LONG m_lType;
+   BOOL m_bActive;
+   BOOL m_bLoaded;
 
    LPFNSETMENU m_pSetMenu;
    LPFNSETPOPUPMENU m_pSetPopupMenu;
 
 public:
-   void Init(LPCTSTR pstrFilename);
+   void Init(LPCTSTR pstrFilename, BOOL bActive);
    BOOL LoadPackage(IDevEnv* pDevEnv);
    //
    CString GetFilename() const;
    CString GetName() const;
    CString GetDescription() const;
    LONG GetType() const;
+   BOOL IsLoaded() const;
+   BOOL IsMarkedActive() const;
+   void ChangeActiveState(BOOL bActive);
 
    UINT QueryAcceptFile(LPCTSTR pstrFilename) const;
    IView* CreateView(LPCTSTR pstrFilename, IProject* pProject, IElement* pParent) const;

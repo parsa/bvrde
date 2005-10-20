@@ -39,6 +39,7 @@ public:
    CFontHandle m_font;
    COLORREF m_clrText;
    COLORREF m_clrBack;
+   COLORREF m_clrDefBack;
    TEXTMETRIC m_tm;
    int m_iStart;
    DWORD m_dwFlags;

@@ -54,13 +54,12 @@ IView* CMainFrame::CreateView(LPCTSTR pstrFilename, IProject* pProject /*= NULL*
    UINT iBestScore = 0;
    for( int i = 0; i < g_aPlugins.GetSize(); i++ ) {
       CPlugin& plugin = g_aPlugins[i];
-      if( (plugin.GetType() & PLUGIN_FILETYPE) != 0 ) {
-         UINT iScore = plugin.QueryAcceptFile(pstrFilename);
-         if( iScore > iBestScore ) {
-            iBestScore = iScore;
-            pBestPlugin = &plugin;
-         }
-      }
+      if( !plugin.IsLoaded() ) continue;
+      if( (plugin.GetType() & PLUGIN_FILETYPE) == 0 ) continue;
+      UINT iScore = plugin.QueryAcceptFile(pstrFilename);
+      if( iScore <= iBestScore ) continue;
+      iBestScore = iScore;
+      pBestPlugin = &plugin;
    }
    if( pBestPlugin == NULL ) {
       ::MessageBeep((UINT)-1);

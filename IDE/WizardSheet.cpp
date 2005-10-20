@@ -160,11 +160,11 @@ LRESULT CSolutionTypePage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    m_ctrlList = GetDlgItem(IDC_LIST);
    m_ctrlList.SetImageList(m_Images, LVSIL_NORMAL);
    for( int i = 0; i < g_aPlugins.GetSize(); i++ ) {
-      LONG iType = g_aPlugins[i].GetType();
-      if( (iType & PLUGIN_PROJECT) != 0 ) {
-         int iIndex = m_ctrlList.InsertItem(0, g_aPlugins[i].GetName(), 0);
-         m_ctrlList.SetItemData(iIndex, i);
-      }
+      CPlugin& Plugin = g_aPlugins[i];
+      if( !Plugin.IsLoaded() ) continue;
+      if( (Plugin.GetType() & PLUGIN_PROJECT) == 0 ) continue;
+      int iIndex = m_ctrlList.InsertItem(0, Plugin.GetName(), 0);
+      m_ctrlList.SetItemData(iIndex, i);
    }
    m_ctrlList.SelectItem(0);
 

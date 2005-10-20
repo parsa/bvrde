@@ -47,24 +47,27 @@ public:
    void _LoadPlugins()
    {
       // Collect all PKG files in program folder
+      CRegKey reg;
+      reg.Open(HKEY_CURRENT_USER, REG_BVRDE _T("\\Disabled Plugins"), KEY_READ);
+      DWORD dwDisabled = 0;
       CString sPattern;
       sPattern.Format(_T("%s*.pkg"), CModulePath());
       CFindFile ff;
       for( BOOL bRes = ff.FindFile(sPattern); bRes; bRes = ff.FindNextFile() ) {
          if( ff.IsDots() ) continue;
          if( ff.IsDirectory() ) continue;
+         // Figure out if it's in the DisabledPlugins list
+         BOOL bActive = reg.m_hKey == NULL || reg.QueryValue(dwDisabled, ff.GetFileTitle()) != ERROR_SUCCESS;
+         // Just add the plugin...
          CPlugin plugin;
-         plugin.Init(ff.GetFilePath());
+         plugin.Init(ff.GetFilePath(), bActive);
          g_aPlugins.Add(plugin);
       }
       ff.Close();
       // Load and initialize each plugin
       for( int i = 0; i< g_aPlugins.GetSize(); i++ ) {
          CPlugin& plugin = g_aPlugins[i];
-         if( !_LoadPlugin(plugin) ) {
-            // Failed to load, remove it again...
-            g_aPlugins.RemoveAt(i--);
-         }
+         _LoadPlugin(plugin);
       }
    }
 };

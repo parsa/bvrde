@@ -47,8 +47,8 @@ public:
 
    void OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    {
-      if( *pstrText == '[' ) return;                        // Is prompt?
-      if( _tcsstr(pstrText, TERM_MARKER) != NULL ) return;  // Is termination marker?
+      if( *pstrText == '[' ) return;                            // Ignore prompt?
+      if( _tcsstr(pstrText, TERM_MARKER) != NULL ) return;      // Ignore termination marker?
       m_dwLastTime = ::GetTickCount();
       m_pCallback->OnIncomingLine(CComBSTR(pstrText));
    }

@@ -435,49 +435,49 @@ bool CSolution::_AddProject(LPCTSTR pstrSolutionFilename, LPCTSTR pstrFilename, 
    // See if there's a plugin that supports this project type
    for( int i = 0; i < g_aPlugins.GetSize(); i++ ) {
       CPlugin& Plugin = g_aPlugins[i];
-      if( Plugin.GetName() == pstrType ) {
-         // Found plugin that supports this project type
-         Project.pPlugin = &Plugin;
-         // Create a new project
-         Project.pProject = Plugin.CreateProject();
-         ATLASSERT(Project.pProject);
-         if( Project.pProject == NULL ) {
-            m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_CREATEPROJECT, IDS_CAPTION_ERROR, MB_ICONERROR);
-            m_aProjects.RemoveAt(m_aProjects.GetSize() - 1);
-            return true;
-         }
-
-         TCHAR szProjectPath[MAX_PATH];
-         _tcscpy(szProjectPath, szProjectFile);
-         ::PathRemoveFileSpec(szProjectPath);
-         ::PathAddBackslash(szProjectPath);
-
-         // Initialize with default settings
-         if( !Project.pProject->Initialize(g_pDevEnv, szProjectPath) ) {
-            m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_CREATEPROJECT, IDS_CAPTION_ERROR, MB_ICONERROR);
-            m_aProjects.RemoveAt(m_aProjects.GetSize() - 1);
-            return true;
-         }
-         
-         // Time to actually load the project settings
-         CXmlSerializer arc;
-         if( !arc.Open(_T("Project"), szProjectFile) ) {
-            m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_LOADPROJECT, IDS_CAPTION_ERROR, MB_ICONERROR);
-            Project.pProject->Close();
-            Plugin.DestroyProject(Project.pProject);
-            m_aProjects.RemoveAt(m_aProjects.GetSize() - 1);
-            return true;
-         }
-         if( !Project.pProject->Load(&arc) ) {
-            m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_LOADPROJECT, IDS_CAPTION_ERROR, MB_ICONERROR);
-            Project.pProject->Close();
-            Plugin.DestroyProject(Project.pProject);
-            m_aProjects.RemoveAt(m_aProjects.GetSize() - 1);
-            return true;
-         }
-         arc.Close();
+      if( !Plugin.IsLoaded() ) continue;
+      if( Plugin.GetName() != pstrType ) continue;
+      // Found plugin that supports this project type
+      Project.pPlugin = &Plugin;
+      // Create a new project
+      Project.pProject = Plugin.CreateProject();
+      ATLASSERT(Project.pProject);
+      if( Project.pProject == NULL ) {
+         m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_CREATEPROJECT, IDS_CAPTION_ERROR, MB_ICONERROR);
+         m_aProjects.RemoveAt(m_aProjects.GetSize() - 1);
          return true;
       }
+
+      TCHAR szProjectPath[MAX_PATH];
+      _tcscpy(szProjectPath, szProjectFile);
+      ::PathRemoveFileSpec(szProjectPath);
+      ::PathAddBackslash(szProjectPath);
+
+      // Initialize with default settings
+      if( !Project.pProject->Initialize(g_pDevEnv, szProjectPath) ) {
+         m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_CREATEPROJECT, IDS_CAPTION_ERROR, MB_ICONERROR);
+         m_aProjects.RemoveAt(m_aProjects.GetSize() - 1);
+         return true;
+      }
+      
+      // Time to actually load the project settings
+      CXmlSerializer arc;
+      if( !arc.Open(_T("Project"), szProjectFile) ) {
+         m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_LOADPROJECT, IDS_CAPTION_ERROR, MB_ICONERROR);
+         Project.pProject->Close();
+         Plugin.DestroyProject(Project.pProject);
+         m_aProjects.RemoveAt(m_aProjects.GetSize() - 1);
+         return true;
+      }
+      if( !Project.pProject->Load(&arc) ) {
+         m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_LOADPROJECT, IDS_CAPTION_ERROR, MB_ICONERROR);
+         Project.pProject->Close();
+         Plugin.DestroyProject(Project.pProject);
+         m_aProjects.RemoveAt(m_aProjects.GetSize() - 1);
+         return true;
+      }
+      arc.Close();
+      return true;
    }
    // Failed to find plugin of that type!
    CString sText;
