@@ -18,8 +18,8 @@ various remote systems. This includes FTP and secure & encrypted protocols
 such as SSH and SFTP.
 
 
-Copyright (C) 2002-2005 Bjarke Viksøe (bjarke@viksoe.dk)
---------------------------------------------------------
+Copyright (C) 2002-2005 Bjarke Viksøe (bviksoe@users.sourceforge.net)
+---------------------------------------------------------------------
 
 To start BVRDE, simply activate the application from the program-icon
 in the Start Menu, or double-click on the BVRDE executable.

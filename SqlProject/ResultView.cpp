@@ -76,16 +76,17 @@ LRESULT CResultView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
    m_ctrlEdit.SetReadOnly(TRUE);
    m_ctrlEdit.SetEventMask(ENM_LINK);
  
-   CString s(MAKEINTRESOURCE(IDS_TAB_SUMMERY));
+   CString sText(MAKEINTRESOURCE(IDS_TAB_SUMMERY));
    TCITEM tci = { 0 };
    tci.mask = TCIF_TEXT;
-   tci.pszText = (LPTSTR) (LPCTSTR) s;
+   tci.pszText = (LPTSTR) (LPCTSTR) sText;
    m_ctrlTab.InsertItem(0, &tci);
    m_ctrlTab.SetCurSel(0);
 
    m_wndClient = m_ctrlEdit;
 
    SetTimer(BACKGROUND_TIMERID, BACKGROUND_TRIGGER_TIME);
+
    return 0;
 }
 
@@ -206,7 +207,6 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
          // approximated size of field width.
          for( int i = 0; i < pPacket->iCols; i++ ) {
             CString sName = pPacket->pstrData[i];
-            int cx = pPacket->plData[i] * tm.tmAveCharWidth;
             ctrlList.AddColumn(sName, i);
 
             // Same columns appear in new recordset? 
@@ -220,10 +220,18 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
                }
             }
             if( !bAdjusted ) {
+               // What is the column length
+               // FIX: Using tmMaxCharWidth would have seemed reasonable here but
+               //      creates much too large columns.
+               int cx = (pPacket->plData[i] * (tm.tmAveCharWidth + 4)) + 10;
+               // We'll also consider the width of the header
                SIZE szText = { 0 };
                dc.GetTextExtent(sName, sName.GetLength(), &szText);
-               if( cx > 130 ) cx = min(130, cx);
-               if( cx < szText.cx + 20 ) cx = szText.cx + 20;
+               // NOTE: We won't allow really large columns, so here
+               //       is a hard-coded limit in pixels.
+               const MAX_COLUMN_WIDTH = 150;
+               cx = max(szText.cx + 25, cx);
+               cx = min(MAX_COLUMN_WIDTH, cx);
                ctrlList.SetColumnWidth(i, cx);
             }
          }

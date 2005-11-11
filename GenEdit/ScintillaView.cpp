@@ -224,10 +224,6 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    CString sFilename = m_sFilename;
    sFilename.MakeLower();
 
-   COLORREF clrBack = RGB(255,255,255);
-   COLORREF clrBackShade = BlendRGB(clrBack, RGB(0,0,0), 3);
-   COLORREF clrBackDarkShade = BlendRGB(clrBack, RGB(0,0,0), 8);
-
    CString sKey;
    SYNTAXCOLOR syntax[20] = { 0 };
    int* ppStyles = NULL;
@@ -287,7 +283,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       syntax[6].bBold = true;
       syntax[7] = syntax[0];
       syntax[7].clrText = RGB(0,0,0);
-      syntax[7].clrBack = clrBackDarkShade;
+      syntax[7].clrBack = BlendRGB(syntax[0].clrBack, RGB(0,0,0), 8);
       syntax[7].bBold = true;
       syntax[8] = syntax[0];
       syntax[8].clrText = RGB(200,0,0);
@@ -566,7 +562,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       syntax[8].bBold = true;
       syntax[9] = syntax[6];
       syntax[9].clrText = RGB(0,0,0);
-      syntax[9].clrBack = clrBackDarkShade;
+      syntax[9].clrBack = BlendRGB(syntax[0].clrBack, RGB(0,0,0), 8);
       syntax[9].bBold = true;
       syntax[10] = syntax[6];
       syntax[10].clrText = RGB(200,0,0);
@@ -577,7 +573,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    ClearDocumentStyle();
 
    // Define bookmark markers
-   _DefineMarker(MARKER_BOOKMARK, SC_MARK_SMALLRECT, RGB(0, 0, 64), RGB(128, 128, 128));
+   _DefineMarker(MARKER_BOOKMARK, SC_MARK_SMALLRECT, RGB(0,0,64), RGB(128,128,128));
 
    // If this Editor is part of a C++ project we
    // know how to link it up with the debugger
@@ -610,6 +606,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    // Apply our color-styles according to the
    // style-definition lists declared above
+   COLORREF clrBack = RGB(255,255,255);
    while( ppStyles && *ppStyles != -1 ) 
    {
       int iStyle = *ppStyles;
@@ -620,7 +617,18 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       StyleSetItalic(iStyle, c.bItalic);
       if( _tcslen(c.szFont) > 0 ) StyleSetFont(iStyle, T2A(c.szFont));
       if( c.iHeight > 0 ) StyleSetSize(iStyle, c.iHeight);
+      if( iStyle == STYLE_DEFAULT ) clrBack = c.clrBack;
       ppStyles += 2;
+   }
+
+   COLORREF clrBackShade = BlendRGB(clrBack, RGB(0,0,0), 3);
+   COLORREF clrBackDarkShade = BlendRGB(clrBack, RGB(0,0,0), 8);
+   
+   // Special contrast settings (BUG #1348377)
+   if( clrBack == RGB(0,0,0) ) {
+      clrBackShade = BlendRGB(clrBack, RGB(255,255,255), 3);
+      clrBackDarkShade = BlendRGB(clrBack, RGB(255,255,255), 8);
+      SetCaretFore(RGB(255,255,255));
    }
 
    TCHAR szBuffer[64] = { 0 };
@@ -843,15 +851,23 @@ LRESULT CScintillaView::OnMacroRecord(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
 
 // Implementation
 
+/**
+ * Match brace.
+ * We match brace chars, block-scope char and parens for several
+ * languages.
+ */
 void CScintillaView::_MatchBraces(long lPos)
 {
    if( !m_bMatchBraces ) return;
    CHAR ch = (CHAR) GetCharAt(lPos);
    int iStyle = GetStyleAt(lPos);
    if( (ch == '{' && m_sLanguage == _T("cpp") && iStyle == SCE_C_OPERATOR )
+       || (ch == '(' && m_sLanguage == _T("cpp") && iStyle == SCE_C_OPERATOR )
        || (ch == '<' && m_sLanguage == _T("html"))
        || (ch == '{' && m_sLanguage == _T("java"))
+       || (ch == '(' && m_sLanguage == _T("java"))
        || (ch == '{' && m_sLanguage == _T("php") && iStyle == SCE_HPHP_OPERATOR )
+       || (ch == '(' && m_sLanguage == _T("php") && iStyle == SCE_HPHP_OPERATOR )
        || (ch == '{' && m_sLanguage == _T("asp")) ) 
    {
       long lMatch = BraceMatch(lPos);
@@ -1155,7 +1171,7 @@ void CScintillaView::_MaintainIndent(CHAR ch)
 {
    if( !m_bAutoIndent && !m_bSmartIndent ) return;
    int iCurPos = GetCurrentPos();
-   if( !_IsValidInsertPos(iCurPos) ) return;
+   if( ch != '\n' && !_IsValidInsertPos(iCurPos) ) return;
    int iCurLine = GetCurrentLine();
    int iLastLine = iCurLine - 1;
    // Find the most recent non-empty list.
@@ -1208,7 +1224,9 @@ void CScintillaView::_MaintainIndent(CHAR ch)
       }
       if( m_sLanguage == _T("html") || m_sLanguage == _T("asp") || m_sLanguage == _T("php") )
       {
-         if( ch == '\n' && GetCharAt(iCurPos - (GetEOLMode() == SC_EOL_CRLF ? 3 : 2)) == '>' ) {
+         if( ch == '\n' 
+             && GetCharAt(iCurPos - (GetEOLMode() == SC_EOL_CRLF ? 3 : 2)) == '>' ) 
+         {
             CHAR szLine1[256] = { 0 };
             CHAR szLine2[256] = { 0 };
             if( GetLineLength(iCurLine) >= sizeof(szLine1) - 1 ) return;
@@ -1386,7 +1404,7 @@ void CScintillaView::_MaintainTags(CHAR ch)
    if( ch == '[' && (m_sLanguage == _T("cpp") || m_sLanguage == _T("php") || m_sLanguage == _T("java")) ) 
    {
       //
-      // Insert hard-braces for C++ arrays
+      // Insert hard-braces for C-type arrays
       //
       ReplaceSel("]");
       SetSel(lPosition, lPosition);
@@ -1394,7 +1412,7 @@ void CScintillaView::_MaintainTags(CHAR ch)
    if( ch == '?' && chPrev == '<' && m_sLanguage == _T("php") )
    {
       //
-      // Autoclose PHP preprocessor
+      // Autoclose PHP preprocessing tag
       //
       ReplaceSel("?>");
       SetSel(lPosition, lPosition);
@@ -1402,7 +1420,7 @@ void CScintillaView::_MaintainTags(CHAR ch)
    if( ch == '%' && chPrev == '<' && m_sLanguage == _T("asp") )
    {
       //
-      // Autoclose ASP preprocessor
+      // Autoclose ASP preprocessing tag
       //
       ReplaceSel("%>");
       SetSel(lPosition, lPosition);
@@ -1434,6 +1452,11 @@ CString CScintillaView::_FindOpenXmlTag(LPCSTR pstrText, int nSize) const
    return sRet;
 }
 
+/**
+ * Sets the indentation.
+ * The indentation can be a little tricky in Scintilla because if there is a
+ * text selection we should try to preserve it after the indent.
+ */
 void CScintillaView::_SetLineIndentation(int iLine, int iIndent)
 {
    if( iIndent < 0 ) return;
@@ -1614,6 +1637,11 @@ bool CScintillaView::_AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) 
    return true;
 }
 
+/**
+ * Is a valid language text spot.
+ * We consider comments illegal insertion-points for many of our
+ * text services.
+ */
 bool CScintillaView::_IsValidInsertPos(long lPos) const
 {
    struct 

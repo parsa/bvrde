@@ -1,0 +1,83 @@
+How to compile the project
+==========================
+
+
+   These are generic compilation instructions.
+
+The solution compiles with Microsoft Developer Studio 6, but has been known
+to compile with the later Visual Studio.NET version. You must however import
+the DSW project files to do this.
+
+Installation of Microsoft Windows Template Library (WTL), the HTML Help Workshop
+and Microsoft Platform SDK is required. Links for these libraries are available below.
+
+To compile the projects, you should use the "Batch Build" option in Developer Studio.
+This will build all the projects in the solution in the correct order.
+Most compile error are solved by making sure that you have installed the latest version
+of the projects mentioned below.
+
+
+    Links
+
+The folllowing links are needed or useful for compiling the projects:
+
+ Microsoft WTL library
+ http://wtl.sourceforge.net
+
+ Microsoft Platform SDK
+ http://msdn.microsoft.com/developer/sdk/platform.htm
+
+ Microsoft Html Help Workshop
+ http://msdn.microsoft.com/library/default.asp?url=/library/en-us/htmlhelp/html/vsconHH1Start.asp
+
+ The Scintilla Editor
+ http://www.scintilla.org
+
+ Cryptlib library
+ http://www.cs.auckland.ac.nz/~pgut001/cryptlib/
+
+
+    Resolving Errors
+
+If you get errors about a missing atlres.h or atlapp.h file you have not installed
+the WTL library properly.
+
+If you get errors concerning the WinInet "FtpCommand" method, you have not 
+updated your MS Platform SDK files or configured it properly.
+Alternatively remove the offending line from the FtpProtocol.cpp file.
+
+Compile errors regarding an unknown ATL namespace prefix can be
+corrected directly in the atldispa.h source by removing the prefix
+as described in the comments or updating your Platform SDK.
+
+Compile errors about the undefined LPNMREBARCHEVRON is also
+solved by updating to the latest Platform SDK headers.
+
+Compile errors regarding missing CLogFont classes mean that you did
+not update your WTL library to the latest version. My former helper classes
+are now part of the WTL library itself.
+
+Compile errors complaining about ambiguous symbols in ATL can be resolved 
+by following the instructions in the WTL ReadMe file.
+
+Missing the "HtmlHelp.lib" or "HtmlHelp.h" files? Then you forgot to
+install and add the "Microsoft HTML Help Workshop" include/lib paths
+to your development environment.
+
+The code depends on the Microsoft version of the STL library. If you
+have installed a different STL library, temporarily revert to the
+Microsoft include paths to make use of the Microsoft STL version.
+
+Compiling under Visual Studio.NET will generate a number of warnings. You
+may ignore these warnings.
+
+Compile errors mentioning "___security_cookie" may be related to the /GS
+switch in the latest VisualStudio.NET compiler family. To sucessfully 
+compile you should disable the "Buffer Security Check" setting.
+
+The realtime C++ lexer, "cpp.l", needs a lex/yacc utility to compile. It 
+is currently compiled with "flex" but other lex-tools may work.
+
+
+Bjarke Viksøe (bviksoe@users.sourceforge.net)
+http://bvrde.sourceforge.net

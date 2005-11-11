@@ -68,6 +68,8 @@ BOOL CDbOperations::EnumTables(COledbDatabase* pDb /*=NULL*/)
       ti.bFullInfo = false;
       ti.dwTouched = 0;
       ti.ItemType = DBTYPE_TABLE;
+      // NOTE: When OLEDB defines the TableTerm as the preferred way to recognize a table,
+      //       we don't actually have a proper way to distinguish a view or system table.
       if( ti.sType == _T("VIEW") ) ti.ItemType = DBTYPE_VIEW;
       if( ti.sType == _T("SYNONYM") ) ti.ItemType = DBTYPE_VIEW;
       if( ti.sType.Find(_T("SYSTEM")) >= 0) ti.ItemType = DBTYPE_SYSTEMTABLE;
@@ -205,7 +207,8 @@ void CDbOperations::MarkTable(LPCTSTR pstrName)
 {
    // Mark table with timestamp. The background
    // update-thread will eventually visit this table and grab
-   // column/index information.
+   // column/index information. Marking a table means that we put
+   // a priority on it so we collect table/field-information quicker.
    CLockStaticDataInit lock;
    for( int i = 0; i < m_aTables.GetSize(); i++ ) {
       if( m_aTables[i].sName == pstrName ) m_aTables[i].dwTouched = ::GetTickCount();

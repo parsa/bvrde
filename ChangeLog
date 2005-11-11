@@ -1,5 +1,7 @@
 Version 0.9d:
 * It is possible to disable plugins
+* Addressed problem with session was not detecting termination
+* Lexer parses unnamed structs too
 
 Version 0.9c
 * German translation provided by Torsten Albrecht (Ingenieurbüro AttNet)
