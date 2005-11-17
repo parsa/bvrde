@@ -80,6 +80,7 @@ private:
    static CStackView m_viewStack;
    static CBreakpointView m_viewBreakpoint;
    static CRegisterView m_viewRegister;
+   static CTelnetView m_viewOutput;
    static CMemoryView m_viewMemory;
    static CDisasmView m_viewDisassembly;
    static CVariableView m_viewVariable;
@@ -142,6 +143,7 @@ public:
    void SendViewMessage(UINT nCmd, LAZYDATA* pData);
    CClassView* GetClassView() const;
    CTelnetView* GetDebugView() const;
+   CTelnetView* GetOutputView() const;
    BOOL SetName(LPCTSTR pstrName);
    BOOL GetPath(LPTSTR pstrPath, UINT cchMax) const;
    bool GetTagInfo(LPCTSTR pstrValue, bool bAskDebugger, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/);
@@ -180,6 +182,7 @@ public:
       COMMAND_ID_HANDLER(ID_VIEW_WATCH, OnViewWatch)
       COMMAND_ID_HANDLER(ID_VIEW_VARIABLES, OnViewVariables)
       COMMAND_ID_HANDLER(ID_VIEW_CALLSTACK, OnViewStack)
+      COMMAND_ID_HANDLER(ID_VIEW_DEBUGOUTPUT, OnViewOutput)
       COMMAND_ID_HANDLER(ID_VIEW_FILEMANAGER, OnViewRemoteDir)
       COMMAND_ID_HANDLER(ID_PROJECT_SET_DEFAULT, OnProjectSetDefault)      
       COMMAND_ID_HANDLER(ID_DEBUG_START, OnDebugStart)
@@ -230,6 +233,7 @@ public:
    LRESULT OnViewVariables(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewStack(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewOutput(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewRemoteDir(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnProjectSetDefault(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugStart(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

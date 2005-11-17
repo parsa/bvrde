@@ -27,7 +27,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
    {
       _Module.Init(NULL, hInstance);
       ::DisableThreadLibraryCalls(hInstance);
-      AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES);
    }
    else if( dwReason == DLL_PROCESS_DETACH ) 
    {
@@ -47,6 +46,7 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv->AddAppListener(&_Monitor);
    _pDevEnv->AddIdleListener(&_Monitor);
    _pDevEnv->ReserveUIRange(ID_VIEW_FILEMANAGER, ID_VIEW_FILEMANAGER + 1);
+   AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES);
    return TRUE;
 }
 

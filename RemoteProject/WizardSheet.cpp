@@ -331,15 +331,22 @@ LRESULT CCompilerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    m_ctrlPort.SetWindowText(m_pProject->m_CompileManager.GetParam(_T("Port")));
    m_ctrlExtra.SetWindowText(m_pProject->m_CompileManager.GetParam(_T("Extra")));
 
+   CString sType = m_pProject->m_CompileManager.GetParam(_T("Type"));
+
+   // If this is the first time we're visiting the page, fill
+   // out some defaults...
    if( m_ctrlHost.GetWindowTextLength() == 0 ) {
       m_ctrlHost.SetWindowText(g_data.sHost);
       m_ctrlPort.SetWindowText(_T("23"));
       m_ctrlUsername.SetWindowText(g_data.sUsername);
       m_ctrlPassword.SetWindowText(g_data.sPassword);
       m_ctrlPath.SetWindowText(g_data.sPath);
+      if( g_data.iType == FILETRANSFER_SFTP ) {
+         sType = _T("ssh");
+         m_ctrlPort.SetWindowText(_T("22"));
+      }
    }
 
-   CString sType = m_pProject->m_CompileManager.GetParam(_T("Type"));
    int iType = SHELLTRANSFER_TELNET;
    if( sType == _T("ssh") ) iType = SHELLTRANSFER_SSH;
    if( sType == _T("rlogin") ) iType = SHELLTRANSFER_RLOGIN;
@@ -640,6 +647,10 @@ LRESULT CDebuggerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    m_ctrlPort.SetWindowText(m_pProject->m_DebugManager.GetParam(_T("Port")));
    m_ctrlExtra.SetWindowText(m_pProject->m_DebugManager.GetParam(_T("Extra")));
 
+   CString sType = m_pProject->m_DebugManager.GetParam(_T("Type"));
+
+   // If this is the first time we're visiting the page, fill
+   // out some defaults...
    if( m_ctrlHost.GetWindowTextLength() == 0 ) {
       m_ctrlHost.SetWindowText(g_data.sHost);
       m_ctrlPort.SetWindowText(_T("23"));
@@ -647,9 +658,12 @@ LRESULT CDebuggerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
       m_ctrlPassword.SetWindowText(g_data.sPassword);
       m_ctrlPath.SetWindowText(g_data.sPath);
       m_ctrlExtra.SetWindowText(g_data.sExtra);
+      if( g_data.iType == FILETRANSFER_SFTP ) {
+         sType = _T("ssh");
+         m_ctrlPort.SetWindowText(_T("22"));
+      }
    }
 
-   CString sType = m_pProject->m_DebugManager.GetParam(_T("Type"));
    int iType = SHELLTRANSFER_TELNET;
    if( sType == _T("ssh") ) iType = SHELLTRANSFER_SSH;
    if( sType == _T("rlogin") ) iType = SHELLTRANSFER_RLOGIN;

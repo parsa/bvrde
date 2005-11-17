@@ -21,8 +21,6 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
    {
      _Module.Init(NULL, hInstance);
      ::DisableThreadLibraryCalls(hInstance);
-     //
-     AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_USEREX_CLASSES);
    }
    else if( dwReason == DLL_PROCESS_DETACH ) 
    {
@@ -40,7 +38,9 @@ EXTERN_C
 BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
 {
    _pDevEnv = pDevEnv;
-   
+
+   AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_USEREX_CLASSES);
+
    _pDevEnv->SetProperty(_T("file.extension.c"), _T("C Source"));
    _pDevEnv->SetProperty(_T("file.extension.cpp"), _T("C++ Source"));
    _pDevEnv->SetProperty(_T("file.extension.cxx"), _T("C++ Source"));
@@ -56,6 +56,7 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv->ReserveUIRange(43000, 43000 + 200);
 
    CEmptyProject::InitializeToolBars();
+
    return TRUE;
 }
 

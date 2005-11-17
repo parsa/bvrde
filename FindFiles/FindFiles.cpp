@@ -27,9 +27,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
    {
       _Module.Init(NULL, hInstance);
       ::DisableThreadLibraryCalls(hInstance);
-      //
-      HMODULE hRichEdit = ::LoadLibrary(CRichEditCtrl::GetLibraryName());
-      ATLASSERT(hRichEdit);
    }
    else if( dwReason == DLL_PROCESS_DETACH ) 
    {
@@ -49,6 +46,10 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv->AddAppListener(&_Monitor);
    _pDevEnv->AddIdleListener(&_Monitor);
    _pDevEnv->ReserveUIRange(ID_EDIT_FINDFILES, ID_EDIT_FINDFILES + 1);
+
+   HMODULE hRichEdit = ::LoadLibrary(CRichEditCtrl::GetLibraryName());
+   ATLASSERT(hRichEdit);
+
    return TRUE;
 }
 

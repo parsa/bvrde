@@ -586,6 +586,41 @@ LRESULT CRemoteProject::OnViewWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
    return 0;
 }
 
+LRESULT CRemoteProject::OnViewOutput(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+
+   // Create the Console Output view
+   if( !m_viewOutput.IsWindow() ) {
+      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_DEBUGOUTPUT));
+      DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+      m_viewOutput.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
+      m_viewOutput.SetColors(::GetSysColor(COLOR_WINDOWTEXT), ::GetSysColor(COLOR_WINDOW));
+      _pDevEnv->AddDockView(m_viewOutput, IDE_DOCK_HIDE, CWindow::rcDefault);
+   }
+
+   // Position the view
+   if( !m_viewOutput.IsWindowVisible() ) {
+      IDE_DOCK_TYPE DockType;
+      RECT rcWindow = { 0 };
+      if( m_DockManager.GetInfo(m_viewOutput, DockType, rcWindow) ) {
+         _pDevEnv->AddDockView(m_viewOutput, DockType, rcWindow);
+      }
+      else {
+         RECT rcDefault = { 120, 40, 640, 400 };
+         m_DockManager.SetInfo(m_viewOutput, IDE_DOCK_TOP, rcDefault);
+         _pDevEnv->AddDockView(m_viewOutput, IDE_DOCK_TOP, rcDefault);
+      }
+      DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
+   }
+   else {
+      _pDevEnv->AddDockView(m_viewOutput, IDE_DOCK_HIDE, CWindow::rcDefault);
+      m_viewOutput.Close();
+   }
+
+   return 0;
+}
+
 LRESULT CRemoteProject::OnViewRemoteDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    // Create/remove repository view
@@ -762,6 +797,7 @@ LRESULT CRemoteProject::OnBuildCompile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
    sType.ReleaseBuffer();
    if( sType != _T("CPP") ) return 0;
 
+   // We'll need the filename of the selected file to compile...
    IView* pFile = NULL;
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       if( m_aFiles[i] == pElement ) {
@@ -770,7 +806,6 @@ LRESULT CRemoteProject::OnBuildCompile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
       }
    }
    if( pFile == NULL ) return 0;
-
    CString sFilename;
    pFile->GetFileName(sFilename.GetBufferSetLength(MAX_PATH), MAX_PATH);
    sFilename.ReleaseBuffer();
@@ -791,6 +826,7 @@ LRESULT CRemoteProject::OnBuildCheckSyntax(WORD /*wNotifyCode*/, WORD /*wID*/, H
    sType.ReleaseBuffer();
    if( sType != _T("CPP") ) return 0;
 
+   // We'll need the filename of the selected file...
    IView* pFile = NULL;
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       if( m_aFiles[i] == pElement ) {
@@ -799,7 +835,6 @@ LRESULT CRemoteProject::OnBuildCheckSyntax(WORD /*wNotifyCode*/, WORD /*wID*/, H
       }
    }
    if( pFile == NULL ) return 0;
-
    CString sFilename;
    pFile->GetFileName(sFilename.GetBufferSetLength(MAX_PATH), MAX_PATH);
    sFilename.ReleaseBuffer();

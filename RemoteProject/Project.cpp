@@ -27,6 +27,8 @@ CRemoteProject::~CRemoteProject()
 
 BOOL CRemoteProject::Initialize(IDevEnv* pEnv, LPCTSTR pstrPath)
 {
+   ATLASSERT(pEnv);
+
    m_bLoaded = true;
 
    m_wndMain = pEnv->GetHwnd(IDE_HWND_MAIN);
@@ -61,6 +63,7 @@ BOOL CRemoteProject::Close()
    _pDevEnv->RemoveIdleListener(this);
    _pDevEnv->RemoveWizardListener(this);
 
+   m_viewOutput.Close();
    m_viewDebugLog.Close();
    m_viewClassTree.Close();
    m_viewCompileLog.Close();
@@ -355,9 +358,10 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_VIEW_WATCH, bDebugging);
    pUIBase->UIEnable(ID_VIEW_CALLSTACK, bDebugging);
    pUIBase->UIEnable(ID_VIEW_BREAKPOINTS, bDebugging);
+   pUIBase->UIEnable(ID_VIEW_DEBUGOUTPUT, bDebugging);
 
-   pUIBase->UISetCheck(ID_VIEW_COMPILE_LOG, m_viewCompileLog.IsWindowVisible());
-   pUIBase->UISetCheck(ID_VIEW_DEBUG_LOG, m_viewDebugLog.IsWindowVisible());
+   pUIBase->UISetCheck(ID_VIEW_COMPILE_LOG, m_viewCompileLog.IsWindow() && m_viewCompileLog.IsWindowVisible());
+   pUIBase->UISetCheck(ID_VIEW_DEBUG_LOG, m_viewDebugLog.IsWindow() && m_viewDebugLog.IsWindowVisible());
    pUIBase->UISetCheck(ID_VIEW_REGISTERS, m_viewRegister.IsWindow() && m_viewRegister.IsWindowVisible());
    pUIBase->UISetCheck(ID_VIEW_MEMORY, m_viewMemory.IsWindow() && m_viewMemory.IsWindowVisible());
    pUIBase->UISetCheck(ID_VIEW_DISASM, m_viewDisassembly.IsWindow() && m_viewDisassembly.IsWindowVisible());
@@ -366,6 +370,7 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UISetCheck(ID_VIEW_WATCH, m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible());
    pUIBase->UISetCheck(ID_VIEW_CALLSTACK, m_viewStack.IsWindow() && m_viewStack.IsWindowVisible());
    pUIBase->UISetCheck(ID_VIEW_BREAKPOINTS, m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible());
+   pUIBase->UISetCheck(ID_VIEW_DEBUGOUTPUT, m_viewOutput.IsWindow() && m_viewOutput.IsWindowVisible());
 }
 
 void CRemoteProject::OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
@@ -569,6 +574,11 @@ CTelnetView* CRemoteProject::GetDebugView() const
    return &m_viewDebugLog;
 }
 
+CTelnetView* CRemoteProject::GetOutputView() const
+{
+   return &m_viewOutput;
+}
+
 CClassView* CRemoteProject::GetClassView() const
 {
    return &m_viewClassTree;
@@ -715,8 +725,8 @@ void CRemoteProject::_InitializeData()
    _AddCommandBarImages(IDR_TOOLIMAGES);
 
    // We'll always display the C++ toolbars
-   _pDevEnv->ShowToolBar(m_ctrlBuild, TRUE);
-   _pDevEnv->ShowToolBar(m_ctrlDebug, TRUE);
+   _pDevEnv->ShowToolBar(m_ctrlBuild, TRUE, TRUE);
+   _pDevEnv->ShowToolBar(m_ctrlDebug, TRUE, TRUE);
 }
 
 bool CRemoteProject::_LoadSettings(ISerializable* pArc)
@@ -1143,5 +1153,6 @@ CMemoryView CRemoteProject::m_viewMemory;
 CDisasmView CRemoteProject::m_viewDisassembly;
 CVariableView CRemoteProject::m_viewVariable;
 CThreadView CRemoteProject::m_viewThread;
+CTelnetView CRemoteProject::m_viewOutput;
 CRemoteDirView CRemoteProject::m_viewRemoteDir;
 

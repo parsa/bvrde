@@ -139,7 +139,7 @@ LRESULT CTelnetView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 {
    if( m_pShell ) {
       m_pShell->RemoveLineListener(this);
-      if( (m_dwFlags & TNV_TERMINATEONCLOSE) != 0 ) {
+      if( (m_dwFlags & TELNETVIEW_TERMINATEONCLOSE) != 0 ) {
          m_pShell->Stop();
          m_pShell = NULL;
       }
@@ -162,7 +162,7 @@ LRESULT CTelnetView::OnCompacting(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    // the docking framework. The view runs in the background (still gets input)
    // and is ready to display itself if the user activates it from the memu.
    if( m_pShell ) {
-      if( (m_dwFlags & TNV_TERMINATEONCLOSE) != 0 ) {
+      if( (m_dwFlags & TELNETVIEW_TERMINATEONCLOSE) != 0 ) {
          _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, _T(""), FALSE);
          m_pShell->Stop();
       }
@@ -211,6 +211,13 @@ LRESULT CTelnetView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
    return 0;
 }
 
+LRESULT CTelnetView::OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
+   SetFocus();
+   bHandled = FALSE;
+   return 0;
+}
+
 LRESULT CTelnetView::OnViewClose(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    SendMessage(WM_COMPACTING);
@@ -247,12 +254,36 @@ LRESULT CTelnetView::OnEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 
 void CTelnetView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 {
-   // NOTE: Since lines may very well arrive from another thread we'll
-   //       have to protect the data members.
-   CLockLineDataInit lock;
+   // Filtering out debug output?
+   // BUG: We're filtering lines indiscriminately. We should really try
+   //      to figure out if this is GDB prompt/output or not. 
+   //      But this is very difficult!
+   if( (m_dwFlags & TELNETVIEW_FILTERDEBUG) != 0 ) 
+   {
+      if( _tcsstr(pstrText, _T("232^")) != NULL ) return;
+      if( _tcsstr(pstrText, _T("232*")) != NULL ) return;
+      if( _tcsstr(pstrText, _T("232-")) != NULL ) return;
+      if( _tcsncmp(pstrText, _T("&\""), 2) == 0 ) return;
+      if( _tcsncmp(pstrText, _T("~\""), 2) == 0 ) return;
+      if( _tcsncmp(pstrText, _T("(gdb"), 4) == 0 ) return;
+      // Transform target output...
+      // TODO: Figure out if we really need this here?
+      TCHAR szOutput[400];
+      if( _tcsncmp(pstrText, _T("@\""), 2) == 0 ) {
+         _tcsncpy(szOutput, pstrText + 2, 399);
+         szOutput[399] = '\0';
+         size_t cchLen = _tcslen(szOutput);
+         if( cchLen > 0 ) szOutput[cchLen - 1] = '\0';
+         pstrText = szOutput;
+      }
+   }
 
    LINE newline = { nColor, 0 };
    _tcsncpy(newline.szText, pstrText, MAX_CHARS);
+
+   // NOTE: Since lines may very well arrive from another thread we'll
+   //       have to protect the data members.
+   CLockLineDataInit lock;
 
    int nCount = m_aLines.GetSize();
    for( int i = 0; i < nCount - 1; i++ ) {
@@ -261,7 +292,7 @@ void CTelnetView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    }
    m_aLines.SetAtIndex(nCount - 1, newline);
 
-   Invalidate();
+   if( IsWindow() ) Invalidate();
 }
 
 // IIdleListener
@@ -276,3 +307,4 @@ void CTelnetView::OnIdle(IUpdateUI* pUIBase)
 void CTelnetView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
 {
 }
+

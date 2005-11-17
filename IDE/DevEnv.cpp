@@ -168,8 +168,15 @@ BOOL CMainFrame::RemoveToolBar(HWND hWnd)
    return FALSE;
 }
 
-BOOL CMainFrame::ShowToolBar(HWND hWnd, BOOL bShow /*= TRUE*/)
+BOOL CMainFrame::ShowToolBar(HWND hWnd, BOOL bShow /*= TRUE*/, BOOL bUseDefault /*= TRUE*/)
 {
+   // Find it in collection and override
+   for( int i = 0; i < m_aToolBars.GetSize(); i++ ) {
+      if( m_aToolBars[i].hWnd == hWnd ) {
+         if( bUseDefault ) bShow = m_aToolBars[i].bShowDefault;
+         break;
+      }
+   }
    // Find the Rebar band and change visibility
    for( UINT j = 0; j < m_Rebar.GetBandCount(); j++ ) {
       REBARBANDINFO rbi = { 0 };
@@ -277,7 +284,9 @@ BOOL CMainFrame::RemoveAutoHideView(HWND hWnd)
 BOOL CMainFrame::ActivateAutoHideView(HWND hWnd)
 {
    ATLASSERT(m_AutoHide.IsWindow());
+   ATLASSERT(::IsWindow(hWnd));
    if( !::IsWindow(hWnd) ) return FALSE;
+   // BUG: Cannot thread-protect here because of dead-lock issues.
    BOOL bRes = m_AutoHide.ActivateView(hWnd);
    ::RedrawWindow(hWnd, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
    return bRes;

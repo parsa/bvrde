@@ -27,19 +27,15 @@ BOOL CSqlProject::Initialize(IDevEnv* pEnv, LPCTSTR pstrPath)
    _pDevEnv = pEnv;
    m_wndMain = pEnv->GetHwnd(IDE_HWND_MAIN);
 
-   if( m_accel.IsNull() ) m_accel.LoadAccelerators(IDR_ACCELERATOR);
+   CSqlProject::InitializeToolBars();
 
-   static bool s_bInitialized = false;
-   if( !s_bInitialized ) {
-      s_bInitialized = true;
-      _AddCommandBarImages(IDR_TOOLIMAGES);
-   }
+   if( m_accel.IsNull() ) m_accel.LoadAccelerators(IDR_ACCELERATOR);
 
    _pDevEnv->AddAppListener(this);
    _pDevEnv->AddTreeListener(this);
    _pDevEnv->AddWizardListener(this);
 
-   _pDevEnv->ShowToolBar(m_ctrlToolbar, TRUE);
+   _pDevEnv->ShowToolBar(m_ctrlToolbar, TRUE, TRUE);
 
    m_bLoaded = true;
    return TRUE;
@@ -195,21 +191,6 @@ IView* CSqlProject::GetItem(INT iIndex)
 INT CSqlProject::GetItemCount() const
 {
    return m_aViews.GetSize();
-}
-
-// Operations
-
-void CSqlProject::InitializeToolBars()
-{
-   // NOTE: The toolbars are static members of this
-   //       class so we need to initialize them once only.
-   if( m_ctrlToolbar.IsWindow() ) return;
-
-   CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
-
-   m_ctrlToolbar = CFrameWindowImplBase<>::CreateSimpleToolBarCtrl(wndMain, IDR_TOOLBAR, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
-
-   _pDevEnv->AddToolBar(m_ctrlToolbar, _T("SQL"), CString(MAKEINTRESOURCE(IDS_CAPTION_TOOLBAR)));
 }
 
 // IAppMessageListener
@@ -393,7 +374,22 @@ IElement* CSqlProject::_GetSelectedTreeElement(HTREEITEM* phItem /*= NULL*/) con
    return (IElement*) lParam;
 }
 
-bool CSqlProject::_AddCommandBarImages(UINT nRes) const
+void CSqlProject::InitializeToolBars()
+{
+   // NOTE: The toolbars are static members of this
+   //       class so we need to initialize them once only.
+   if( m_ctrlToolbar.IsWindow() ) return;
+
+   CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
+
+   m_ctrlToolbar = CFrameWindowImplBase<>::CreateSimpleToolBarCtrl(wndMain, IDR_TOOLBAR, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
+
+   _pDevEnv->AddToolBar(m_ctrlToolbar, _T("SQL"), CString(MAKEINTRESOURCE(IDS_CAPTION_TOOLBAR)));
+
+   _AddCommandBarImages(IDR_TOOLIMAGES);
+}
+
+bool CSqlProject::_AddCommandBarImages(UINT nRes)
 {
    CImageListCtrl Images;
    Images.Create(16, 16, ILC_COLOR | ILC_MASK, 16, 1);

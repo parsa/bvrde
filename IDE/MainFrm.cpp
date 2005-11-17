@@ -1192,7 +1192,7 @@ LRESULT CMainFrame::OnRebarRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
    // Toolbar name was clicked; now show/hide it
    CLockWindowUpdate lock = m_hWnd;
    HWND hWnd = m_aToolBars[nCmd - 0x1000].hWnd;
-   ShowToolBar(hWnd, !::IsWindowVisible(hWnd));
+   ShowToolBar(hWnd, !::IsWindowVisible(hWnd), FALSE);
    _SaveToolBarState();
    return 0;
 }

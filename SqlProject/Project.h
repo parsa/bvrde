@@ -96,9 +96,10 @@ public:
    LRESULT OnTreeDblClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeRClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 
-   // Operations
+   // Static
 
    static void InitializeToolBars();
+   static bool _AddCommandBarImages(UINT nRes);
 
 // Implementation
 private:
@@ -107,7 +108,6 @@ private:
    bool _LoadConnections(ISerializable* pArchive);
    bool _SaveConnections(ISerializable* pArchive);
    IElement* _GetSelectedTreeElement(HTREEITEM* phItem = NULL) const;
-   bool _AddCommandBarImages(UINT nRes) const;
 
 // Attributes
 public:

@@ -93,15 +93,17 @@ void CMainFrame::_ArrangeToolBars()
          }
       }
    }
-   // Add toolbars to the ReBar control now...
+   // Add toolbars to the ReBar control now.
+   // NOTE: Upon startup we will only display the "default" toolbar. All project
+   //       toolbars are kept hidden until a project is loaded and it forces them
+   //       to display.
    for( int i = 0; i < nCount; i++ ) {
       TOOLBAR& tb = m_aToolBars[i];
       if( i == 0 ) tb.bNewRow = TRUE;
       if( !m_CmdBar.AddToolbar(tb.hWnd) ) continue;
       if( !AddSimpleReBarBand(tb.hWnd, NULL, tb.bNewRow, 0, TRUE) ) continue;
       tb.nBand = m_Rebar.GetBandCount() - 1;
-      // We might need to hide it
-      m_Rebar.ShowBand(tb.nBand, tb.bShowDefault);
+      m_Rebar.ShowBand(tb.nBand, _tcscmp(tb.szID, _T("Default")) == 0);
    }
    // Adjust sizes (Experimental; Windows XP only! Crashes on Windows 98/2000)
    DWORD dwMajor = 0;
@@ -234,7 +236,7 @@ BOOL CMainFrame::OnIdle()
    }
 
    // Here we determine if the active view suddenly changed dirty
-   // state and updates the Tab folders...
+   // state and updates the MDI Tab folders.
    if( hWnd != NULL ) {
       IView* pView = NULL;
       CWinProp prop = hWnd;

@@ -322,7 +322,7 @@ public:
    BOOL GetDockState(HWND hWnd, int& iState, RECT& rcWin);
    BOOL AddToolBar(HWND hWnd, LPCTSTR pstrID, LPCTSTR pstrTitle);
    BOOL RemoveToolBar(HWND hWnd);
-   BOOL ShowToolBar(HWND hWnd, BOOL bShow = TRUE);
+   BOOL ShowToolBar(HWND hWnd, BOOL bShow = TRUE, BOOL bUseDefault = TRUE);
    IViewFrame* CreateClient(LPCTSTR pstrTitle, IProject* pProject, IView* pView);
    BOOL DestroyClient(HWND hWnd);
    //

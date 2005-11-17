@@ -131,6 +131,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             if( m_DockManager.IsAutoShown(m_viewDisassembly, _T("showDisassembly")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
             if( m_DockManager.IsAutoShown(m_viewVariable, _T("showVariable")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
             if( m_DockManager.IsAutoShown(m_viewBreakpoint, _T("showBreakpoint")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
+            if( m_DockManager.IsAutoShown(m_viewOutput, _T("showOutput")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DEBUGOUTPUT, 0));
          }
          break;
       case LAZY_DEBUG_KILL_EVENT:
@@ -149,6 +150,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             m_DockManager.SetInfo(m_viewDisassembly, _T("showDisassembly"));
             m_DockManager.SetInfo(m_viewVariable, _T("showVariable"));
             m_DockManager.SetInfo(m_viewBreakpoint, _T("showBreakpoint"));
+            m_DockManager.SetInfo(m_viewOutput, _T("showOutput"));
 
             if( m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
             if( m_viewStack.IsWindow() && m_viewStack.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
@@ -158,6 +160,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             if( m_viewDisassembly.IsWindow() && m_viewDisassembly.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
             if( m_viewVariable.IsWindow() && m_viewVariable.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
             if( m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
+            if( m_viewOutput.IsWindow() && m_viewOutput.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DEBUGOUTPUT, 0));
          }
          break;
       case LAZY_DEBUG_BREAK_EVENT:

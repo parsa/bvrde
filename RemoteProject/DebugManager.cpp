@@ -315,22 +315,22 @@ bool CDebugManager::RunNormal()
 
    Stop();
 
-   CTelnetView* pView = m_pProject->GetDebugView();
-
    CString sStatus;
-   sStatus.Format(IDS_STATUS_CONNECT_WAIT);
+   sStatus.LoadString(IDS_STATUS_CONNECT_WAIT);
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
    _pDevEnv->PlayAnimation(TRUE, ANIM_TRANSFER);
 
+   // Initialize and show the console output-log
+   CTelnetView* pView = m_pProject->GetDebugView();
    pView->Clear();
-   pView->Init(&m_ShellManager, TNV_TERMINATEONCLOSE);
-
-   RECT rcWin = { 120, 120, 800 + 120, 600 + 120 };   // TODO: Memorize this position
-   _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_HIDE, rcWin);
-   _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_FLOAT, rcWin);
+   pView->Init(&m_ShellManager, TELNETVIEW_TERMINATEONCLOSE);
+   RECT rcLogWin = { 120, 120, 800 + 120, 600 + 120 };   // TODO: Memorize this position
+   _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_HIDE, rcLogWin);
+   _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_FLOAT, rcLogWin);
    pView->CenterWindow();
    pView->UpdateWindow();
 
+   // Restart the connection to the remote machine
    m_ShellManager.Start();
    if( !m_ShellManager.WaitForConnection() ) {      
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
@@ -341,7 +341,7 @@ bool CDebugManager::RunNormal()
       return false;
    }
 
-   sStatus.Format(IDS_STATUS_RUNNING);
+   sStatus.LoadString(IDS_STATUS_RUNNING);
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, TRUE);
    _pDevEnv->PlayAnimation(FALSE, 0);
 
@@ -491,20 +491,25 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
    CWaitCursor cursor;
 
    Stop();
-
-   CTelnetView* pView = m_pProject->GetDebugView();
-   
+ 
    CString sStatus;
    sStatus.LoadString(IDS_STATUS_CONNECT_WAIT);
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
    _pDevEnv->PlayAnimation(TRUE, ANIM_TRANSFER);
 
+   // Initialize and hide the debug-log output window
+   CTelnetView* pView = m_pProject->GetDebugView();
    pView->Clear();
    pView->Init(&m_ShellManager, 0);
+   RECT rcLogWin = { 120, 120, 800 + 120, 600 + 120 };   
+   _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_HIDE, rcLogWin);
 
-   // Display the output window
-   RECT rcWin = { 120, 120, 800 + 120, 600 + 120 };   
-   _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_HIDE, rcWin);
+   // Initialize and hide the output-log view.
+   // The start event will show the view based on users preferences.
+   CTelnetView* pOutput = m_pProject->GetOutputView();
+   pOutput->Clear();
+   pOutput->Init(&m_ShellManager, TELNETVIEW_FILTERDEBUG);
+   if( pOutput->IsWindow() ) _pDevEnv->AddDockView(pOutput->m_hWnd, IDE_DOCK_HIDE, rcLogWin);
 
    // Prepare session
    m_ShellManager.AddLineListener(this);
@@ -600,7 +605,10 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
 {
    ATLASSERT(!::IsBadStringPtr(pstrCommand,-1));
 
+   // Here is an important transformation. For ordinary GDB commands we format them
+   // as "232-gdb-exit" etc (prefixing with 232) so we can recognize the response easilier.
    CString sCommand = pstrCommand;
+   if( pstrCommand[0] == '-' ) sCommand.Format(_T("232%s"), pstrCommand);
 
    TCHAR szProjectName[128] = { 0 };
    m_pProject->GetName(szProjectName, 127);
@@ -777,7 +785,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
       return;
    }
    // Debugger returned an error message
-   if( sCommand == _T("error") ) 
+   if( sCommand == _T("error") )
    {
       // Ignore errors might have been requested, so fulfill thy wish...
       if( m_nIgnoreErrors > 0 ) return;
@@ -823,7 +831,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
          sTemp.Format(_T(",name=\"%s\""), m_sVarName);
          sLine += sTemp;
       }
-      // Check command and route it to client processing
+      // Check for internal commands or route it to client processing
       CMiInfo info = sLine;
       if( sCommand == _T("frame") ) {
          _ParseNewFrame(info);
@@ -962,14 +970,16 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    // Not accepting lines before first acknoledge
    if( m_nDebugAck == 0 ) return;
    // Parse output stream
-   if( *pstrText == '^' ) _ParseResultRecord(pstrText + 1);
    if( *pstrText == '@' ) _ParseTargetOutput(pstrText + 1);
    if( *pstrText == '&' ) _ParseLogOutput(pstrText + 1);
    // Unfortunately Out-of-band output may occur in the middle
    // of the stream! This is obvious a GDB bug, but we'll try to
    // handle the situation by adding a command-handshake (see 
    // DoDebugCommand()) and by looking for substrings.
-   LPTSTR pstr = _tcschr(pstrText, '*');
-   if( pstr ) _ParseOutOfBand(pstr + 1);
+   LPTSTR pstr = _tcsstr(pstrText, _T("232^"));
+   if( pstr ) _ParseResultRecord(pstr + 4);
+   pstr = _tcsstr(pstrText, _T("232*"));
+   if( pstr ) _ParseOutOfBand(pstr + 4);
    // Happily ignore everything else...
 }
+

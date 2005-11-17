@@ -307,7 +307,7 @@ public:
    virtual BOOL GetDockState(HWND hWnd, int& iState, RECT& rcWin) = 0;
    virtual BOOL AddToolBar(HWND hWnd, LPCTSTR pstrID, LPCTSTR pstrTitle) = 0;
    virtual BOOL RemoveToolBar(HWND hWnd) = 0;
-   virtual BOOL ShowToolBar(HWND hWnd, BOOL bShow = TRUE) = 0;
+   virtual BOOL ShowToolBar(HWND hWnd, BOOL bShow = TRUE, BOOL bUseDefault = TRUE) = 0;
    virtual IViewFrame* CreateClient(LPCTSTR pstrTitle, IProject* pProject, IView* pView) = 0;
    virtual BOOL DestroyClient(HWND hWnd) = 0;
    //

@@ -276,6 +276,8 @@ BEGIN
     BEGIN
         POPUP "Debugfenster"
         BEGIN
+            MENUITEM "&Datenausgabe",               ID_VIEW_DEBUGOUTPUT
+            MENUITEM SEPARATOR
             MENUITEM "&Watch",                      ID_VIEW_WATCH
             MENUITEM "Stack aufrufen",              ID_VIEW_CALLSTACK
             MENUITEM "&Variablen",                  ID_VIEW_VARIABLES
@@ -998,6 +1000,7 @@ BEGIN
     ID_DEBUG_ARGUMENTS      "Programmargumente setzen\nArgumente"
     ID_DEBUG_BREAK          "Debugger unterbrechen\nUnterbrechen"
     ID_DEBUG_STEP_SET       "Setzt das nächste Statement\nNächstes Statement setzen"
+    ID_VIEW_DEBUGOUTPUT     "Datenausgabe anzeigen\nDatenausgabe"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1142,6 +1145,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_MENU_OPENINCLUDE    """%s"" öffnen"
     IDS_MENU_OPENDECL       "Gehe zu Definition ""%s"""
+    IDS_CAPTION_DEBUGOUTPUT "Datenausgabe"
 END
 
 #endif    // German (Germany) resources
@@ -1369,6 +1373,8 @@ BEGIN
     BEGIN
         POPUP "Debug Windows"
         BEGIN
+            MENUITEM "Console &Output",             ID_VIEW_DEBUGOUTPUT
+            MENUITEM SEPARATOR
             MENUITEM "&Watch",                      ID_VIEW_WATCH
             MENUITEM "&Call Stack",                 ID_VIEW_CALLSTACK
             MENUITEM "&Variables",                  ID_VIEW_VARIABLES
@@ -2257,7 +2263,8 @@ BEGIN
     ID_DEBUG_ARGUMENTS      "Set program launch arguments\nArguments"
     ID_VIEW_CLOSE           "Closes the view\nClose"
     ID_DEBUG_BREAK          "Break Debugger\nBreak"
-    ID_DEBUG_STEP_SET       "Sets the next statement\nSet Next"
+    ID_DEBUG_STEP_SET       "View Debug Output\nDebug Output"
+    ID_VIEW_DEBUGOUTPUT     "View Application Output\nOutput"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -2401,6 +2408,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_MENU_OPENINCLUDE    "Open ""%s"""
     IDS_MENU_OPENDECL       "Go to declaration ""%s"""
+    IDS_CAPTION_DEBUGOUTPUT "Console Output"
 END
 
 #endif    // English (U.S.) resources

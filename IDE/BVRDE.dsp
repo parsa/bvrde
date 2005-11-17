@@ -593,6 +593,10 @@ SOURCE=..\ChangeLog
 # End Source File
 # Begin Source File
 
+SOURCE=..\Compiling
+# End Source File
+# Begin Source File
+
 SOURCE=..\Copyright
 # End Source File
 # Begin Source File

@@ -20,9 +20,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
    {
       _Module.Init(NULL, hInstance);
       ::DisableThreadLibraryCalls(hInstance);
-      //
-      AtlAxWinInit();
-      AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_USEREX_CLASSES);
    }
    else if( dwReason == DLL_PROCESS_DETACH ) 
    {
@@ -70,6 +67,9 @@ EXTERN_C
 BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
 {
    _pDevEnv = pDevEnv;
+
+   AtlAxWinInit();
+   AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_USEREX_CLASSES);
 
    _pDevEnv->SetProperty(_T("file.extension.obj"), _T("Object File"));
    _pDevEnv->SetProperty(_T("file.extension.bin"), _T("Binary File"));

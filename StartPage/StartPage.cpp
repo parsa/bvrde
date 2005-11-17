@@ -22,7 +22,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
    {
       _Module.Init(NULL, hInstance);
       ::DisableThreadLibraryCalls(hInstance);
-      AtlAxWinInit();
    }
    else if( dwReason == DLL_PROCESS_DETACH ) 
    {
@@ -40,6 +39,7 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
 {
    _pDevEnv = pDevEnv;
    _pDevEnv->AddAppListener(&_Monitor);
+   AtlAxWinInit();
    return TRUE;
 }
 

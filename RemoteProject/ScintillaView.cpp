@@ -338,19 +338,20 @@ LRESULT CScintillaView::OnDebugBreakpoint(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 
    int iLine = m_ctrlEdit.GetCurrentLine();
    long lValue = m_ctrlEdit.MarkerGet(iLine);
-   long lMask = (1 << MARKER_BREAKPOINT);
+   long lMarkerMask = (1 << MARKER_BREAKPOINT);
 
    CString sName;
    m_pView->GetName(sName.GetBufferSetLength(128), 128);
    sName.ReleaseBuffer();
 
-   if( (lValue & lMask) != 0 ) {
+   if( (lValue & lMarkerMask) != 0 ) {
       bool bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLine);
       // HACK: Because the breakpoint may have been moved due to editing
       //       we'll try to delete any breakpoint in the neighborhood.
-      const int DEBUG_LINE_FUDGE = 3;
-      for( int iOffset = -DEBUG_LINE_FUDGE; !bRes && iOffset <= DEBUG_LINE_FUDGE; iOffset++ ) {
+      const int DEBUG_LINE_FUDGE = 4;
+      for( int iOffset = 1; !bRes && iOffset < DEBUG_LINE_FUDGE; iOffset++ ) {
          bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLine + iOffset);
+         if( !bRes ) bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLine - iOffset);
       }
       if( bRes ) m_ctrlEdit.MarkerDelete(iLine, MARKER_BREAKPOINT);
       else ::MessageBeep((UINT)-1);
@@ -623,8 +624,10 @@ LRESULT CScintillaView::OnAutoExpand(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
    // Do we need to add the starting function brace?
    SCNotification* pSCN = (SCNotification*) pnmh;
    if( m_pCppProject == NULL ) return 0;
+   int iOffset = 3;
+   if( m_ctrlEdit.GetCharAt(pSCN->lParam - 1) == '.' ) iOffset = 2;
    MEMBERINFO info;
-   _GetMemberInfo(pSCN->lParam - 3, info);
+   _GetMemberInfo(pSCN->lParam - iOffset, info);
    CSimpleArray<CString> aResult;
    m_pCppProject->m_TagManager.GetItemDeclaration(A2CT(pSCN->text), aResult, info.sType);
    if( aResult.GetSize() == 0 ) return 0;

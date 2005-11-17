@@ -147,6 +147,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    CSplashWindow splash;
    splash.ShowSplash();
 
+   // Change the language now; this is a setting in the registry because
+   // we'd like all message-boxes (even errors at this stage) to appear
+   // in the correct language.
    SetLanguage();
 
    // Grab the XML configuration file

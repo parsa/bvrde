@@ -58,10 +58,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
    {
       _Module.Init(NULL, hInstance);
       ::DisableThreadLibraryCalls(hInstance);
-      //
-      AtlAxWinInit();
-      ::LoadLibrary(CRichEditCtrl::GetLibraryName());
-      AtlInitCommonControls(ICC_TAB_CLASSES | ICC_BAR_CLASSES | ICC_USEREX_CLASSES);
    }
    else if( dwReason == DLL_PROCESS_DETACH ) 
    {
@@ -80,10 +76,15 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv = pDevEnv;
    _pDevEnv->ReserveUIRange(40400, 40500);
 
+   AtlAxWinInit();
+   AtlInitCommonControls(ICC_TAB_CLASSES | ICC_BAR_CLASSES | ICC_USEREX_CLASSES);
+   ::LoadLibrary(CRichEditCtrl::GetLibraryName());
+
+   CSqlProject::InitializeToolBars();
+
    static CWizardListener wizard;
    _pDevEnv->AddWizardListener(&wizard);
-   
-   CSqlProject::InitializeToolBars();
+
    return TRUE;
 }
 

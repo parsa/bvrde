@@ -23,8 +23,6 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
    {
      _Module.Init(NULL, hInstance);
      ::DisableThreadLibraryCalls(hInstance);
-     ::LoadLibrary(CRichEditCtrl::GetLibraryName());
-     AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_USEREX_CLASSES);
    }
    else if( dwReason == DLL_PROCESS_DETACH ) 
    {
@@ -73,7 +71,12 @@ EXTERN_C
 BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
 {
    _pDevEnv = pDevEnv;
-   
+
+   ::LoadLibrary(CRichEditCtrl::GetLibraryName());
+   AtlInitCommonControls(ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_USEREX_CLASSES);
+
+   CRemoteProject::InitializeToolBars();
+
    _pDevEnv->SetProperty(_T("file.extension.c"), _T("C Source"));
    _pDevEnv->SetProperty(_T("file.extension.cc"), _T("C Source"));
    _pDevEnv->SetProperty(_T("file.extension.cpp"), _T("C++ Source"));
@@ -97,7 +100,6 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    static CWizardListener wizard;
    _pDevEnv->AddWizardListener(&wizard);
 
-   CRemoteProject::InitializeToolBars();
    return TRUE;
 }
 
