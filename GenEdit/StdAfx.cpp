@@ -11,3 +11,5 @@
    #pragma comment(linker, "/IGNORE:4089")
 #endif
 
+// Shell helper functions (IE4)
+#pragma comment(lib, "shlwapi.lib")

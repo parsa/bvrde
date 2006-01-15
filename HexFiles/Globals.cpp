@@ -14,7 +14,7 @@ BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition)
    if( hMenuSource == NULL ) return FALSE;
    // Make sure that we start with only one separator menu-item
    UINT iStartPos = 0;
-   if( ::GetMenuState(hMenuSource, 0, MF_BYPOSITION) & (MF_SEPARATOR|MF_POPUP) == MF_SEPARATOR ) {
+   if( (::GetMenuState(hMenuSource, 0, MF_BYPOSITION) & (MF_SEPARATOR|MF_POPUP)) == MF_SEPARATOR ) {
       if( (nPosition == 0) 
           || (::GetMenuState(hMenu, nPosition - 1, MF_BYPOSITION) & MF_SEPARATOR) != 0 ) 
       {

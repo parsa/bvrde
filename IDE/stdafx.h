@@ -15,6 +15,7 @@
 #define _WIN32_IE         0x0501
 #define _RICHEDIT_VER     0x0200
 
+#define _CRT_SECURE_NO_DEPRECATE
 #define _WTL_NEW_PAGE_NOTIFY_HANDLERS
 #define _WTL_USE_MDI
 

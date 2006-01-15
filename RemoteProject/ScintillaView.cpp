@@ -8,6 +8,9 @@
 #include "Project.h"
 #include "Files.h"
 
+#include "AcListBox.h"
+
+
 #pragma code_seg( "EDITOR" )
 
 #pragma comment(lib, "../GenEdit/Lib/GenEdit.lib")
@@ -140,9 +143,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       CSimpleArray<int> aLines;
       m_pCppProject->m_DebugManager.GetBreakpoints(sName, aLines);
       m_ctrlEdit.MarkerDeleteAll(MARKER_BREAKPOINT);
-      for( int i = 0; i < aLines.GetSize(); i++ ) {
-         m_ctrlEdit.MarkerAdd(aLines[i], MARKER_BREAKPOINT);
-      }
+      for( int i = 0; i < aLines.GetSize(); i++ ) m_ctrlEdit.MarkerAdd(aLines[i], MARKER_BREAKPOINT);
    }
 
    SendMessageToDescendants(WM_SETTINGCHANGE);
@@ -422,7 +423,10 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
          m_ctrlEdit.MarkerDeleteAll(MARKER_RUNNING);
          if( _tcscmp(::PathFindFileName(pData->szFilename), sName) == 0 ) {
             int iLine = pData->lLineNum;
-            if( iLine >= 0 ) m_ctrlEdit.MarkerAdd(iLine - 1, MARKER_CURLINE);
+            if( iLine >= 0 ) {
+               m_ctrlEdit.MarkerAdd(iLine - 1, MARKER_CURLINE);
+               m_ctrlEdit.EnsureVisible(iLine - 1);
+            }
          }
          if( m_ctrlEdit.CallTipActive() ) m_ctrlEdit.CallTipCancel();
       }
@@ -629,7 +633,7 @@ LRESULT CScintillaView::OnAutoExpand(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
    MEMBERINFO info;
    _GetMemberInfo(pSCN->lParam - iOffset, info);
    CSimpleArray<CString> aResult;
-   m_pCppProject->m_TagManager.GetItemDeclaration(A2CT(pSCN->text), aResult, info.sType);
+   m_pCppProject->m_TagManager.GetItemInfo(A2CT(pSCN->text), info.sType, TAGINFO_DECLARATION, aResult);
    if( aResult.GetSize() == 0 ) return 0;
    CString sText;
    if( aResult[0].Find('(') >= 0 ) sText = _T("(");
@@ -906,6 +910,14 @@ void CScintillaView::_AutoComplete(CHAR ch)
    _RegisterListImages();
    m_ctrlEdit.AutoCSetIgnoreCase(FALSE);
    m_ctrlEdit.AutoCShow(info.sName.GetLength(), T2CA(sList));
+
+   // Subclass the listbox so we can display info window as well
+   HWND hWndList = ::FindWindow(_T("ListBoxX"), NULL);
+   if( hWndList != NULL ) {
+      CAcListBoxCtrl* pList = new CAcListBoxCtrl();
+      pList->SubclassWindow(hWndList);
+      pList->Init(m_pCppProject, info.sType, info.sName, sList);
+   }
 }
 
 /**
@@ -1011,14 +1023,18 @@ bool CScintillaView::_GetMemberInfo(long lPos, MEMBERINFO& info)
    else {
       // It's just a regular function or variable
       info.sName = _GetNearText(lPos);
-      if( m_ctrlEdit.GetCharAt(lStartPos + info.sName.GetLength() + 1) == ':' ) info.sScope.Empty();
-      CSimpleArray<CString> aLocalType;
-      m_pCppProject->GetTagInfo(info.sName, false, aLocalType, info.sScope);
-      if( aLocalType.GetSize() != 1 ) {
-         info.sType = _FindTagType(info.sName, lPos);
+      if( m_ctrlEdit.GetCharAt(lStartPos + info.sName.GetLength() + 1) == ':' ) {
+         info.sScope.Empty();
+      }
+      else {
          CSimpleArray<CString> aLocalType;
-         if( m_pCppProject->GetTagInfo(info.sType, false, aLocalType, NULL) ) {
-            info.sScope = info.sType;
+         m_pCppProject->GetTagInfo(info.sName, false, aLocalType, info.sScope);
+         if( aLocalType.GetSize() != 1 ) {
+            info.sType = _FindTagType(info.sName, lPos);
+            CSimpleArray<CString> aLocalType;
+            if( m_pCppProject->GetTagInfo(info.sType, false, aLocalType, NULL) ) {
+               info.sScope = info.sType;
+            }
          }
       }
    }

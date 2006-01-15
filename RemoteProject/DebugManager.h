@@ -29,12 +29,14 @@ public:
 private:
    CRemoteProject* m_pProject;
    CSimpleMap<CString, long> m_aBreakpoints;   // Breakpoints; key=<filename:lineno> value=<break-nr>
+   CEvent m_eventAck;
    volatile int m_nDebugAck;                   // No of debug acknoledge
    volatile int m_nLastAck;                    // Last known acknoledge
    volatile int m_nIgnoreErrors;               // Ignore GDB error report?
    bool m_bBreaked;                            // Is debugging, but currently breaked?
    bool m_bDebugging;                          // Is debugging?
    bool m_bCommandMode;                        // In Command mode?
+   bool m_bSeendExit;
    CString m_sVarName;                         // Data-evaluation variable name
    //
    CString m_sCommandCD;
@@ -43,6 +45,7 @@ private:
    CString m_sDebuggerExecutable;
    CString m_sDebuggerArgs;
    CString m_sDebugMain;
+   CString m_sSearchPath;
    long m_lStartTimeout;
 
 // Operations

@@ -19,7 +19,7 @@ public:
 
    BEGIN_DISPATCH_MAP(CFilesOM)
       DISP_PROPGET(Count, VT_I4)
-      DISP_METHOD1_ID(Item, DISPID_VALUE, VT_DISPATCH, VT_I4)
+      DISP_METHOD_ID(Item, DISPID_VALUE, VT_DISPATCH, 1, VTS_I4)
    END_DISPATCH_MAP()
 
    LONG __stdcall get_Count();
@@ -93,7 +93,7 @@ public:
       DISP_PROPGET(Name, VT_BSTR)
       DISP_PROPGET(Type, VT_BSTR)
       DISP_PROPGET(Count, VT_I4)
-      DISP_METHOD1_ID(Item, DISPID_VALUE, VT_DISPATCH, VT_I4)
+      DISP_METHOD_ID(Item, DISPID_VALUE, VT_DISPATCH, 1, VTS_I4)
    END_DISPATCH_MAP()
 
    BSTR __stdcall get_Name();
@@ -151,10 +151,10 @@ public:
       DISP_PROPGET(CurLine, VT_I4)
       DISP_METHOD(SetSelection, VT_EMPTY, 2, VTS_I4 VTS_I4)
       DISP_METHOD0(GetSelection, VT_BSTR)
-      DISP_METHOD1(ReplaceSelection, VT_EMPTY, VT_BSTR)
-      DISP_METHOD1(PosFromLine, VT_I4, VT_I4)
-      DISP_METHOD1(LineLength, VT_I4, VT_I4)
-      DISP_METHOD1(FindText, VT_EMPTY, VT_BSTR)
+      DISP_METHOD(ReplaceSelection, VT_EMPTY, 1, VTS_BSTR)
+      DISP_METHOD(PosFromLine, VT_I4, 1, VTS_I4)
+      DISP_METHOD(LineLength, VT_I4, 1, VTS_I4)
+      DISP_METHOD(FindText, VT_EMPTY, 1, VTS_BSTR)
       DISP_METHOD(SendRawMessage, VT_EMPTY, 3, VTS_I4 VTS_I4 VTS_BSTR)
    END_DISPATCH_MAP()
 

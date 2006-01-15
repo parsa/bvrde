@@ -89,7 +89,9 @@ void CMainFrame::_LoadSettings()
          _AddProperty(&reg, _T("pane-right"), _T("window.pane.right"));
          _AddProperty(&reg, _T("pane-bottom"), _T("window.pane.bottom"));
          _AddProperty(&reg, _T("properties-cy"), _T("window.properties.cy"));
+         _AddProperty(&reg, _T("properties-pos"), _T("window.properties.pos"));
          _AddProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
+         _AddProperty(&reg, _T("explorer-pos"), _T("window.explorer.pos"));
          _AddProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
          reg.ReadGroupEnd();
       }
@@ -396,7 +398,9 @@ void CMainFrame::_SaveSettings()
       _StoreProperty(&reg, _T("pane-right"), _T("window.pane.right"));
       _StoreProperty(&reg, _T("pane-bottom"), _T("window.pane.bottom"));
       _StoreProperty(&reg, _T("properties-cy"), _T("window.properties.cy"));
+      _StoreProperty(&reg, _T("properties-pos"), _T("window.properties.pos"));
       _StoreProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
+      _StoreProperty(&reg, _T("explorer-pos"), _T("window.explorer.pos"));
       _StoreProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
       reg.WriteGroupEnd();
       reg.WriteGroupBegin(_T("DebugViews"));
@@ -430,19 +434,19 @@ BOOL CMainFrame::LoadWindowPos()
 
 void CMainFrame::_LoadUIState()
 {
-   TCHAR szBuffer[128] = { 0 };
-   GetProperty(_T("window.autohide.cx"), szBuffer, 127);
-   if( _ttol(szBuffer) > 0 ) m_AutoHide.SetPaneSize(AUTOHIDE_LEFT, _ttol(szBuffer));
-   GetProperty(_T("window.autohide.cy"), szBuffer, 127);
-   if( _ttol(szBuffer) > 0 ) m_AutoHide.SetPaneSize(AUTOHIDE_BOTTOM, _ttol(szBuffer));
-   GetProperty(_T("window.pane.left"), szBuffer, 127);
-   if( _ttol(szBuffer) > 0 ) m_Dock.SetPaneSize(DOCK_LEFT, _ttol(szBuffer));
-   GetProperty(_T("pwindow.pane.top"), szBuffer, 127);
-   if( _ttol(szBuffer) > 0 ) m_Dock.SetPaneSize(DOCK_TOP, _ttol(szBuffer));
-   GetProperty(_T("window.pane.right"), szBuffer, 127);
-   if( _ttol(szBuffer) > 0 ) m_Dock.SetPaneSize(DOCK_RIGHT, _ttol(szBuffer));
-   GetProperty(_T("window.pane.bottom"), szBuffer, 127);
-   if( _ttol(szBuffer) > 0 ) m_Dock.SetPaneSize(DOCK_BOTTOM, _ttol(szBuffer));
+   TCHAR szBuffer[64] = { 0 };
+   GetProperty(_T("window.autohide.cx"), szBuffer, 63);
+   if( _ttol(szBuffer) > 0 ) m_AutoHide.SetPaneSize(AUTOHIDE_LEFT, _ttoi(szBuffer));
+   GetProperty(_T("window.autohide.cy"), szBuffer, 63);
+   if( _ttol(szBuffer) > 0 ) m_AutoHide.SetPaneSize(AUTOHIDE_BOTTOM, _ttoi(szBuffer));
+   GetProperty(_T("window.pane.left"), szBuffer, 63);
+   if( _ttol(szBuffer) > 0 ) m_Dock.SetPaneSize(DOCK_LEFT, _ttoi(szBuffer));
+   GetProperty(_T("pwindow.pane.top"), szBuffer, 63);
+   if( _ttol(szBuffer) > 0 ) m_Dock.SetPaneSize(DOCK_TOP, _ttoi(szBuffer));
+   GetProperty(_T("window.pane.right"), szBuffer, 63);
+   if( _ttol(szBuffer) > 0 ) m_Dock.SetPaneSize(DOCK_RIGHT, _ttoi(szBuffer));
+   GetProperty(_T("window.pane.bottom"), szBuffer, 63);
+   if( _ttol(szBuffer) > 0 ) m_Dock.SetPaneSize(DOCK_BOTTOM, _ttoi(szBuffer));
 }
 
 void CMainFrame::_SaveUIState()
@@ -470,14 +474,18 @@ void CMainFrame::_SaveUIState()
    RECT rc = { 0 };
    int iDockState = 0;
    m_Dock.GetWindowState(m_viewExplorer, iDockState, rc);
-   if( iDockState < IDE_DOCK_FLOAT ) {
+   if( iDockState < IDE_DOCK_FLOAT || iDockState == IDE_DOCK_HIDE  ) {
       ::wsprintf(szBuffer, _T("%ld"), rc.bottom - rc.top);
       SetProperty(_T("window.explorer.cy"), szBuffer);
+      ::wsprintf(szBuffer, _T("%ld"), iDockState);
+      SetProperty(_T("window.explorer.pos"), szBuffer);
    }
    m_Dock.GetWindowState(m_viewProperties, iDockState, rc);
-   if( iDockState < IDE_DOCK_FLOAT ) {
+   if( iDockState < IDE_DOCK_FLOAT || iDockState == IDE_DOCK_HIDE ) {
       ::wsprintf(szBuffer, _T("%ld"), rc.bottom - rc.top);
       SetProperty(_T("window.properties.cy"), szBuffer);
+      ::wsprintf(szBuffer, _T("%ld"), iDockState);
+      SetProperty(_T("window.properties.pos"), szBuffer);
    }
 }
 

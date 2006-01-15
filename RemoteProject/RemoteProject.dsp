@@ -320,7 +320,15 @@ SOURCE=..\Source\CPP\Include\Thread.h
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=..\Source\WTL\Controls\AcListBox.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\Source\WTL\Include\atlscintilla.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\WTL\Controls\CmdEdit.h
 # End Source File
 # Begin Source File
 

@@ -186,7 +186,11 @@ inline HPROPERTY PropCreateCategory(LPCTSTR pstrName, LPARAM lParam=0)
 template< class T, class TBase = CListBox, class TWinTraits = CWinTraitsOR<LBS_OWNERDRAWVARIABLE|LBS_NOTIFY> >
 class ATL_NO_VTABLE CPropertyListImpl : 
    public CWindowImpl< T, TBase, TWinTraits >,
+#if _MSC_VER < 1400
    public COwnerDraw< CPropertyListImpl >
+#else
+   public COwnerDraw< CPropertyListImpl<T, TBase, TWinTraits> >
+#endif
 {
 public:
    DECLARE_WND_SUPERCLASS(NULL, TBase::GetWndClassName())

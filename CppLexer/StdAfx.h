@@ -11,6 +11,8 @@
 #endif // _MSC_VER > 1000
 
 #define WIN32_LEAN_AND_MEAN
+#define _CRT_SECURE_NO_DEPRECATE
+
 #define _FILE_DEFINED
 typedef int FILE;
 

@@ -16,6 +16,8 @@
 #define _RICHEDIT_VER     0x0200
 
 #define _WTL_NEW_PAGE_NOTIFY_HANDLERS
+#define _CRT_SECURE_NO_DEPRECATE
+
 #define PROGID_XMLDOMDocument L"MSXML2.DOMDocument.3.0"
 
 

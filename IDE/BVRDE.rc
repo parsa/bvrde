@@ -2179,7 +2179,7 @@ BEGIN
     IDS_CAPTION_MESSAGE     "Message"
     IDS_ERR_PROJECTTYPE     "Error loading Project\nProject has an unrecognized type.\nThe Project '%s' has the unknown type '%s'. It will be removed from the Solution."
     IDS_ERR_SAVEPROJECT     "Save Error\nAn error occured while writing project file."
-    IDS_SAVE_DIRTY          "Save changes\nChanges has been made to this solution. Do you wish to save changes first?"
+    IDS_SAVE_DIRTY          "Save changes\nDo you wish to save changes to this Solution?\nChanges has been made to this Solution. If you do not save the changes they are discarded."
     IDS_FILTER_PROJECT      "Project files|*.prj|All Files|*.*|"
     IDS_FILTER_SOLUTION     "Solution files|*.sln|All Files|*.*|"
 END

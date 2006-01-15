@@ -250,6 +250,8 @@
 #define IDS_MENU_OPENINCLUDE            288
 #define IDS_MENU_OPENDECL               289
 #define IDS_CAPTION_DEBUGOUTPUT         290
+#define IDS_MISC_SEARCHPATH             291
+#define IDS_COMMAND_ARGS                292
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -399,20 +401,23 @@
 #define ID_DEBUG_BREAK                  40132
 #define ID_DEBUG_STEP_SET               40133
 #define ID_VIEW_DEBUGOUTPUT             40134
-#define ID_BUILD_STOP                   40144
-#define ID_DEBUG_STEP_OUT               40146
-#define ID_DEBUG_STEP_RUN               40147
-#define ID_DEBUG_EDIT_LINK              40148
-#define ID_VIEW_OPEN_WITH               40149
-#define ID_EDIT_BREAK                   40183
-#define ID_SEARCH_GO                    40192
+#define ID_DISASM_CURRENT               40135
+#define ID_BUILD_STOP                   40136
+#define ID_DEBUG_STEP_OUT               40137
+#define ID_DEBUG_STEP_RUN               40138
+#define ID_DEBUG_EDIT_LINK              40139
+#define ID_VIEW_OPEN_WITH               40140
+#define ID_EDIT_BREAK                   40141
+#define ID_SEARCH_GO                    40142
+#define ID_SEARCH_TEXT                  40143
+#define ID_DEBUG_STEP_INSTRUCTION       40144
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        127
-#define _APS_NEXT_COMMAND_VALUE         40134
+#define _APS_NEXT_COMMAND_VALUE         40145
 #define _APS_NEXT_CONTROL_VALUE         1029
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

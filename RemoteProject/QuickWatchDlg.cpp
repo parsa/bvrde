@@ -52,7 +52,8 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    else if( _tcscmp(pstrType, _T("value")) == 0 ) 
    {
       // Add the value to this item
-      for( int i = 0; i < m_aItems.GetSize(); i++ ) {
+      int i;
+      for( i = 0; i < m_aItems.GetSize(); i++ ) {
          if( m_sQueryVariable == m_aItems[i].sKey ) {
             ITEM& item = m_aItems[i];
             item.sValue = info.GetItem(_T("value"));

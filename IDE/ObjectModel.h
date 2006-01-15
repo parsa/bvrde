@@ -46,7 +46,7 @@ public:
       DISP_PROPGET(ActiveProject, VT_DISPATCH)
       DISP_METHOD(SendRawMessage, VT_EMPTY, 3, VTS_I4 VTS_I4 VTS_I4)
       DISP_METHOD0(Quit, VT_EMPTY)
-      DISP_METHOD1(GetProperty, VT_BSTR, VT_BSTR)
+      DISP_METHOD(GetProperty, VT_BSTR, 1, VTS_BSTR)
       DISP_METHOD(SetProperty, VT_EMPTY, 2, VTS_BSTR VTS_BSTR)
    END_DISPATCH_MAP()
 
@@ -71,7 +71,7 @@ public:
 
    BEGIN_DISPATCH_MAP(CRecentProjectsOM)
       DISP_PROPGET(Count, VT_I4)
-      DISP_METHOD1_ID(Item, DISPID_VALUE, VT_BSTR, VT_I4)
+      DISP_METHOD_ID(Item, DISPID_VALUE, VT_BSTR, 1, VTS_I4)
    END_DISPATCH_MAP()
 
    LONG __stdcall get_Count();
@@ -91,8 +91,8 @@ public:
       DISP_PROPGET(Solution, VT_DISPATCH)
       DISP_PROPGET(ActiveWindow, VT_DISPATCH)
       DISP_PROPGET(ActiveProject, VT_DISPATCH)
-      DISP_METHOD1(CreateObject, VT_DISPATCH, VT_BSTR)
-      DISP_METHOD1(Sleep, VT_EMPTY, VT_I4)
+      DISP_METHOD(CreateObject, VT_DISPATCH, 1, VTS_BSTR)
+      DISP_METHOD(Sleep, VT_EMPTY, 1, VTS_I4)
    END_DISPATCH_MAP()
 
    IDispatch* __stdcall get_App();
@@ -116,8 +116,8 @@ public:
       DISP_PROPGET(Type, VT_BSTR)
       DISP_PROPGET(Filename, VT_BSTR)
       DISP_PROPGET(Projects, VT_DISPATCH)
-      DISP_METHOD1(Open, VT_BOOL, VT_BSTR)
-      DISP_METHOD1(Save, VT_BOOL, VT_BSTR)
+      DISP_METHOD(Open, VT_BOOL, 1, VTS_BSTR)
+      DISP_METHOD(Save, VT_BOOL, 1, VTS_BSTR)
       //DISP_METHOD0(Close, VT_EMPTY)
    END_DISPATCH_MAP()
 
@@ -140,7 +140,7 @@ public:
 
    BEGIN_DISPATCH_MAP(CProjectsOM)
       DISP_PROPGET(Count, VT_I4)
-      DISP_METHOD1_ID(Item, DISPID_VALUE, VT_DISPATCH, VT_I4)
+      DISP_METHOD_ID(Item, DISPID_VALUE, VT_DISPATCH, 1, VTS_I4)
    END_DISPATCH_MAP()
 
    LONG __stdcall get_Count();
@@ -178,7 +178,7 @@ public:
 
    BEGIN_DISPATCH_MAP(CFilesOM)
       DISP_PROPGET(Count, VT_I4)
-      DISP_METHOD1_ID(Item, DISPID_VALUE, VT_DISPATCH, VT_I4)
+      DISP_METHOD_ID(Item, DISPID_VALUE, VT_DISPATCH, 1, VTS_I4)
    END_DISPATCH_MAP()
 
    LONG __stdcall get_Count();

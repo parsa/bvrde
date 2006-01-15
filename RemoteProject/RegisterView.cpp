@@ -83,13 +83,22 @@ LRESULT CRegisterView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
    LRESULT lRes = DefWindowProc();
    SetFont(AtlGetDefaultGuiFont());
    SetColumnWidth(180);
+   CClientDC dc = m_hWnd;
+   HFONT hOldFont = dc.SelectFont(GetFont());
+   dc.GetTextMetrics(&m_tm);
+   dc.SelectFont(hOldFont);
    return lRes;
 }
 
 LRESULT CRegisterView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    CClientRect rcClient = m_hWnd;
-   if( (rcClient.bottom - rcClient.top) / GetItemHeight(0) >= GetCount() ) SetColumnWidth(rcClient.right - rcClient.left);
-   else SetColumnWidth(180);
+   const int MIN_COLUMN_WIDTH = 180;
+   int cx = rcClient.right - rcClient.left;
+   int cy = rcClient.bottom - rcClient.top;
+   if( cy / m_tm.tmHeight > GetCount() ) SetColumnWidth(cx);
+   else if( cy / m_tm.tmHeight > GetCount() / 2 ) SetColumnWidth(cx / 2);
+   else SetColumnWidth(cx < MIN_COLUMN_WIDTH * 3 ? MIN_COLUMN_WIDTH : cx / 3);
    return 0;
 }
+

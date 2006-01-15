@@ -41,7 +41,7 @@ public:
    int FindItem(int iStart, LPCTSTR pstrName);
    bool GetOuterList(CSimpleValArray<TAGINFO*>& aList);
    bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList);
-   bool GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner = NULL);
+   bool GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult);
    bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance);
 
 // Operations

@@ -6,6 +6,8 @@
 
 #include "ViewSerializer.h"
 
+#include "CmdEdit.h"
+
 
 // Constructor / destructor
 
@@ -339,6 +341,7 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_DEBUG_STEP_INTO, bDebugging);
    pUIBase->UIEnable(ID_DEBUG_STEP_OVER, bDebugging);
    pUIBase->UIEnable(ID_DEBUG_STEP_OUT, bDebugging);
+   pUIBase->UIEnable(ID_DEBUG_STEP_INSTRUCTION, bDebugging);
    pUIBase->UIEnable(ID_DEBUG_STEP_RUN, FALSE);
    pUIBase->UIEnable(ID_DEBUG_BREAK, bDebugging && !bDebugBreak);
    pUIBase->UIEnable(ID_DEBUG_STOP, bProcessStarted);
@@ -649,7 +652,7 @@ bool CRemoteProject::GetTagInfo(LPCTSTR pstrValue, bool bAskDebugger, CSimpleArr
    //       immediately - but it may also delay the retrieval of information
    //       (which happens when it queries debug-information from the debugger).
    if( bAskDebugger && m_DebugManager.IsDebugging() ) return m_DebugManager.GetTagInfo(pstrValue);
-   return m_TagManager.GetItemDeclaration(pstrValue, aResult, pstrOwner);
+   return m_TagManager.GetItemInfo(pstrValue, pstrOwner, TAGINFO_DECLARATION, aResult);
 }
 
 void CRemoteProject::InitializeToolBars()
@@ -665,16 +668,27 @@ void CRemoteProject::InitializeToolBars()
    m_ctrlBookmarks = CFrameWindowImplBase<>::CreateSimpleToolBarCtrl(wndMain, IDR_BOOKMARKS, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE | TBSTYLE_LIST);
    m_ctrlSearch = CFrameWindowImplBase<>::CreateSimpleToolBarCtrl(wndMain, IDR_SEARCH, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE | TBSTYLE_LIST);
 
-   m_ctrlMode.Create(m_ctrlBuild, CWindow::rcDefault, NULL, WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | CBS_HASSTRINGS);
+   m_ctrlMode.Create(m_ctrlBuild, CWindow::rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_TABSTOP | CBS_DROPDOWNLIST | CBS_HASSTRINGS);
    m_ctrlMode.SetFont(AtlGetDefaultGuiFont());
    m_ctrlMode.AddString(CString(MAKEINTRESOURCE(IDS_RELEASE)));
    m_ctrlMode.AddString(CString(MAKEINTRESOURCE(IDS_DEBUG)));
    m_ctrlMode.SetCurSel(1);
 
+   m_ctrlFindText.Create(m_ctrlSearch, CWindow::rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_TABSTOP | CBS_DROPDOWN | CBS_HASSTRINGS, 0, ID_SEARCH_TEXT);
+   m_ctrlFindText.SetFont(AtlGetDefaultGuiFont());
+   m_ctrlFindText.ReadFromRegistry(REG_BVRDE _T("\\Mru"), _T("Find"));
+
+   CCmdEditCtrl* pFindEdit = new CCmdEditCtrl();
+   pFindEdit->SubclassWindow(m_ctrlFindText.GetWindow(GW_CHILD));
+   pFindEdit->SetCommand(ID_SEARCH_GO);
+
    m_ctrlBuild.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
    _AddButtonText(m_ctrlBuild, ID_BUILD_PROJECT, IDS_BUILD);
    _AddControlToToolbar(m_ctrlBuild, m_ctrlMode, 90, 4, false);
    m_ctrlMode.SetWindowPos(NULL, 0, 0, 90, 120, SWP_NOMOVE | SWP_NOREDRAW);
+
+   _AddControlToToolbar(m_ctrlSearch, m_ctrlFindText, 90, 0, false);
+   m_ctrlFindText.SetWindowPos(NULL, 0, 0, 90, 120, SWP_NOMOVE | SWP_NOREDRAW);
 
    m_ctrlBookmarks.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
    _AddDropDownButton(m_ctrlBookmarks, ID_BOOKMARKS_TOGGLE);
@@ -685,7 +699,7 @@ void CRemoteProject::InitializeToolBars()
    _pDevEnv->AddToolBar(m_ctrlBuild, _T("CppBuild"), CString(MAKEINTRESOURCE(IDS_CAPTION_BUILD)));
    _pDevEnv->AddToolBar(m_ctrlDebug, _T("CppDebug"), CString(MAKEINTRESOURCE(IDS_CAPTION_DEBUG)));
    _pDevEnv->AddToolBar(m_ctrlBookmarks, _T("Bookmarks"), CString(MAKEINTRESOURCE(IDS_CAPTION_BOOKMARKS)));
-   //_pDevEnv->AddToolBar(m_ctrlSearch, _T("Search"), CString(MAKEINTRESOURCE(IDS_CAPTION_SEARCH)));
+   _pDevEnv->AddToolBar(m_ctrlSearch, _T("Search"), CString(MAKEINTRESOURCE(IDS_CAPTION_SEARCH)));
 }
 
 // Implementation
@@ -724,9 +738,11 @@ void CRemoteProject::_InitializeData()
 
    _AddCommandBarImages(IDR_TOOLIMAGES);
 
-   // We'll always display the C++ toolbars
+   // Are we showing the toolbars?
    _pDevEnv->ShowToolBar(m_ctrlBuild, TRUE, TRUE);
    _pDevEnv->ShowToolBar(m_ctrlDebug, TRUE, TRUE);
+   _pDevEnv->ShowToolBar(m_ctrlBookmarks, TRUE, TRUE);
+   _pDevEnv->ShowToolBar(m_ctrlSearch, TRUE, TRUE);
 }
 
 bool CRemoteProject::_LoadSettings(ISerializable* pArc)
@@ -1142,6 +1158,7 @@ CToolBarCtrl CRemoteProject::m_ctrlDebug;
 CToolBarCtrl CRemoteProject::m_ctrlBookmarks;
 CToolBarCtrl CRemoteProject::m_ctrlSearch;
 CComboBox CRemoteProject::m_ctrlMode;
+CMruComboCtrl CRemoteProject::m_ctrlFindText;
 CClassView CRemoteProject::m_viewClassTree;
 CTelnetView CRemoteProject::m_viewDebugLog;
 CTelnetView CRemoteProject::m_viewCompileLog;

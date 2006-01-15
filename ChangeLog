@@ -1,3 +1,10 @@
+Version 0.9e:
+* Bookmark persistance in session
+* Dissasembly scrolling and other improvements
+* Solution Explorer and Properties View remember their position
+* New function tip while browsing AutoCompletion list
+* New Search Text toolbar
+
 Version 0.9d:
 * It is possible to disable plugins
 * Addressed problem with session not detecting termination

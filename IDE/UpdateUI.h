@@ -25,7 +25,8 @@ public:
    BOOL ReserveUIRange(UINT nStart, UINT nEnd)
    {
       // Check for overlapping ranges
-      for( int i = 0; i < m_ranges.GetSize(); i++ ) {
+      int i;
+      for( i = 0; i < m_ranges.GetSize(); i++ ) {
          if( nStart < (UINT) m_ranges[i].cy && nEnd > (UINT) m_ranges[i].cx ) return FALSE;
       }
       // Add new range

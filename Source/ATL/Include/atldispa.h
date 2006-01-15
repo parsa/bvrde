@@ -7,10 +7,10 @@
 // atldispa - Dynamic IDispatch handler
 //
 // Written by Bjarke Viksoe (bjarke@viksoe.dk)
-// Copyright (c) 2001-2003 Bjarke Viksoe.
+// Copyright (c) 2001-2005 Bjarke Viksoe.
 //
 // This code may be used in compiled form in any way you desire. This
-// file may be redistributed by any means PROVIDING it is 
+// source file may be redistributed by any means PROVIDING it is 
 // not sold for profit without the authors written consent, and 
 // providing that this notice and the authors name is included. 
 //
@@ -71,7 +71,8 @@ struct _ATL_DISPATCH_ENTRY
   UINT wFlags;
   VARTYPE vtReturn;
   UINT nArgs;
-  VARTYPE vtArgs[_ATL_MAX_VARTYPES];
+  LPCWSTR vtArgs;
+  VARTYPE vtSingle;
   void (__stdcall T::*pfn)();
 };
 
@@ -82,38 +83,38 @@ struct _ATL_DISPATCH_ENTRY
       static const _ATL_DISPATCH_ENTRY<_atl_disp_classtype> _dispmap[] = {
 
 #define DISP_METHOD_ID(func, dispid, vtRet, nCnt, vtArgs) \
-   { OLESTR(#func), dispid, DISPATCH_METHOD, vtRet, nCnt, { vtArgs }, (void (__stdcall _atl_disp_classtype::*)())func },
+   { OLESTR(#func), dispid, DISPATCH_METHOD, vtRet, nCnt, { vtArgs }, VT_EMPTY, (void (__stdcall _atl_disp_classtype::*)())func },
 
 #define DISP_METHOD(func, vtRet, nCnt, vtArgs) \
    DISP_METHOD_ID(func, DISPID_UNKNOWN, vtRet, nCnt, vtArgs)
 
 #define DISP_METHOD0_ID(func, dispid, vtRet) \
-   { OLESTR(#func), dispid, DISPATCH_METHOD, vtRet, 0, { VT_EMPTY }, (void (__stdcall _atl_disp_classtype::*)())func },
+   { OLESTR(#func), dispid, DISPATCH_METHOD, vtRet, 0, { VTS_EMPTY }, VT_EMPTY, (void (__stdcall _atl_disp_classtype::*)())func },
 
 #define DISP_METHOD0(func, vtRet) \
    DISP_METHOD0_ID(func, DISPID_UNKNOWN, vtRet)
 
 #define DISP_METHOD1_ID(func, dispid, vtRet, vtArg) \
-   { OLESTR(#func), dispid, DISPATCH_METHOD, vtRet, 1, { vtArg }, (void (__stdcall _atl_disp_classtype::*)())func },
+   { OLESTR(#func), dispid, DISPATCH_METHOD, vtRet, 1, NULL, vtArg, (void (__stdcall _atl_disp_classtype::*)())func },
 
 #define DISP_METHOD1(func, vtRet, vtArg) \
    DISP_METHOD1_ID(func, DISPID_UNKNOWN, vtRet, vtArg)
 
 #define DISP_PROP_ID(member, dispid, vt) \
-   { OLESTR(#member), dispid, DISPATCH_PROPERTYGET, vt, 0, { VT_EMPTY }, (void (__stdcall _atl_disp_classtype::*)())get_##member }, \
-   { OLESTR(#member), DISPID_PROPERTYPUT, DISPATCH_PROPERTYPUT, VT_EMPTY, 1, { vt }, (void (__stdcall _atl_disp_classtype::*)())put_##member },
+   { OLESTR(#member), dispid, DISPATCH_PROPERTYGET, vt, 0, { VTS_EMPTY }, VT_EMPTY, (void (__stdcall _atl_disp_classtype::*)())get_##member }, \
+   { OLESTR(#member), DISPID_PROPERTYPUT, DISPATCH_PROPERTYPUT, VT_EMPTY, 1, NULL, vt, (void (__stdcall _atl_disp_classtype::*)())put_##member },
 
 #define DISP_PROP(member, vt) \
    DISP_PROP_ID(member, DISPID_UNKNOWN, vt)
 
 #define DISP_PROPGET_ID(member, dispid, vt) \
-   { OLESTR(#member), dispid, DISPATCH_PROPERTYGET, vt, 0, { VT_EMPTY }, (void (__stdcall _atl_disp_classtype::*)())get_##member },
+   { OLESTR(#member), dispid, DISPATCH_PROPERTYGET, vt, 0, { VTS_EMPTY }, VT_EMPTY, (void (__stdcall _atl_disp_classtype::*)())get_##member },
 
 #define DISP_PROPGET(member, vt) \
    DISP_PROPGET_ID(member, DISPID_UNKNOWN, vt)
 
 #define DISP_PROPPUT_ID(member, dispid, vt) \
-   { OLESTR(#member), dispid, DISPATCH_PROPERTYPUT, VT_EMPTY, 1, { vt }, (void (__stdcall _atl_disp_classtype::*)())put_##member },
+   { OLESTR(#member), dispid, DISPATCH_PROPERTYPUT, VT_EMPTY, 1, NULL, vt, (void (__stdcall _atl_disp_classtype::*)())put_##member },
 
 #define DISP_PROPPUT(member, vt) \
    DISP_PROPPUT_ID(member, DISPID_UNKNOWN, vt)
@@ -135,9 +136,9 @@ public:
    // These are here only to support use in non-COM objects   
    STDMETHOD(QueryInterface)(REFIID riid, LPVOID *ppvObject)
    {
-      // NOTE: If compile errors occour here, 
+      // NOTE: If compile errors occour at this location, 
       //       add/remove the "ATL::" namespace qualifiers in front 
-      //       of the InlineIsEqualGUID() methods.
+      //       of the InlineIsEqualGUID() methods below.
       //       This is due to a problem in old MS Platform SDK releases.
       if( ATL::InlineIsEqualGUID(riid, *pdiid) || 
           InlineIsEqualUnknown(riid) ||
@@ -182,7 +183,7 @@ public:
          const _ATL_DISPATCH_ENTRY<T>* pMap = T::_GetDispMap();
          DISPID dispid = 1;
          while( pMap->pfn!=NULL ) {
-            if( wcsicmp(pMap->szName, rgszNames[i])==0 ) {
+            if( ::lstrcmpiW(pMap->szName, rgszNames[i])==0 ) {
                rgdispid[i] = pMap->dispid==DISPID_UNKNOWN ? dispid : pMap->dispid;
                break;
             }
@@ -209,6 +210,8 @@ public:
          if( dispidMember==dispid ) {
             if( (DISPATCH_PROPERTYPUT==wFlags) && (DISPID_PROPERTYPUT==(pMap+1)->dispid) ) 
                pMap++;
+            VARTYPE* pArgs = (VARTYPE*) pMap->vtArgs;
+            if( pArgs == NULL ) pArgs = (VARTYPE*) &pMap->vtSingle;
             UINT nArgs = pMap->nArgs;
             if( pdispparams->cArgs != nArgs ) return DISP_E_BADPARAMCOUNT;
             VARIANTARG** ppVarArgs = nArgs ? (VARIANTARG**)_alloca(sizeof(VARIANTARG*)*nArgs) : NULL;
@@ -218,7 +221,7 @@ public:
                ppVarArgs[i] = &pVarArgs[i];
                ::VariantInit(&pVarArgs[i]);
                if( FAILED(::VariantCopyInd(&pVarArgs[i], &pdispparams->rgvarg[nArgs-i-1])) ) return DISP_E_TYPEMISMATCH;
-               if( FAILED(::VariantChangeType(&pVarArgs[i], &pVarArgs[i], 0, pMap->vtArgs[i])) ) return DISP_E_TYPEMISMATCH;
+               if( FAILED(::VariantChangeType(&pVarArgs[i], &pVarArgs[i], 0, pArgs[i])) ) return DISP_E_TYPEMISMATCH;
             }
             T *pT = static_cast<T*>(this);
             CComStdCallThunk<T> thunk;
@@ -231,7 +234,7 @@ public:
                CC_STDCALL,
                pMap->vtReturn,
                nArgs,
-               (VARTYPE*)pMap->vtArgs,
+               pArgs,
                nArgs ? ppVarArgs : NULL,
                pvarResult);
             for( i=0; i<nArgs; i++ ) ::VariantClear(&pVarArgs[i]);
@@ -364,6 +367,8 @@ public:
             if( dispidMember==dispid ) {
                if( (DISPATCH_PROPERTYPUT==wFlags) && (DISPID_PROPERTYPUT==(pMap+1)->dispid) ) 
                   pMap++;
+               VARTYPE* pArgs = (VARTYPE*) pMap->vtArgs;
+               if( pArgs == NULL ) pArgs = (VARTYPE*) &pMap->vtSingle;
                UINT nArgs = pMap->nArgs;
                if( pdispparams->cArgs!=nArgs ) return DISP_E_BADPARAMCOUNT;
                VARIANTARG** ppVarArgs = nArgs ? (VARIANTARG**)_alloca(sizeof(VARIANTARG*)*nArgs) : NULL;
@@ -373,7 +378,7 @@ public:
                   ppVarArgs[i] = &pVarArgs[i];
                   ::VariantInit(&pVarArgs[i]);
                   if( FAILED(::VariantCopyInd(&pVarArgs[i], &pdispparams->rgvarg[nArgs-i-1])) ) return DISP_E_TYPEMISMATCH;
-                  if( FAILED(::VariantChangeType(&pVarArgs[i], &pVarArgs[i], 0, pMap->vtArgs[i])) ) return DISP_E_TYPEMISMATCH;
+                  if( FAILED(::VariantChangeType(&pVarArgs[i], &pVarArgs[i], 0, pArgs[i])) ) return DISP_E_TYPEMISMATCH;
                }
                T *pT = static_cast<T*>(p);
                CComStdCallThunk<T> thunk;
@@ -386,7 +391,7 @@ public:
                   CC_STDCALL,
                   pMap->vtReturn,
                   nArgs,
-                  (VARTYPE*)pMap->vtArgs,
+                  pArgs,
                   nArgs ? ppVarArgs : NULL,
                   pvarResult);
                for( i=0; i<nArgs; i++ ) ::VariantClear(&pVarArgs[i]);
@@ -456,7 +461,7 @@ inline HRESULT CComDynTypeInfoHolder<T>::GetTI(LCID lcid)
          PARAMDATA* pParams = pM->ppdata = new PARAMDATA[pMap->nArgs];
          for( UINT j=0; j<pMap->nArgs; j++ ) {
             pParams->szName = NULL;
-            pParams->vt = pMap->vtArgs[j];
+            pParams->vt = pMap->vtArgs != NULL ? pMap->vtArgs[j] : pMap->vtSingle;
             pParams++;
          }
       }

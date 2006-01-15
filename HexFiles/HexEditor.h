@@ -44,7 +44,7 @@ public:
       m_hMapFile = NULL;
       f.Close();
    }
-   inline IsOpen() const
+   inline bool IsOpen() const
    {
       return m_hMapFile != NULL;
    }

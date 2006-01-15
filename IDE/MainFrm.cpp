@@ -84,19 +84,26 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    // Load UI settngs and change pane sizes
    _LoadUIState();
 
-   // Create docked views
+   // Create docked Solution Explorer views
    CString sExplorerName(MAKEINTRESOURCE(IDS_SOULTIONEXPLORER));
    m_viewExplorer.Create(m_Dock, rcDefault, sExplorerName, ATL_SIMPLE_DOCKVIEW_STYLE);
    m_Dock.AddWindow(m_viewExplorer);
    TCHAR szBuffer[64] = { 0 };
+   GetProperty(_T("window.explorer.pos"), szBuffer, 63);   
+   short iSide = (short) _ttoi(szBuffer);
+   if( _tcslen(szBuffer) == 0 || iSide == IDE_DOCK_FLOAT ) iSide = DOCK_RIGHT;
    GetProperty(_T("window.explorer.cy"), szBuffer, 63);
-   m_Dock.DockWindow(m_viewExplorer, DOCK_RIGHT, _ttoi(szBuffer));
+   m_Dock.DockWindow(m_viewExplorer, iSide, _ttoi(szBuffer));
 
+   // Create docked Properties views
    CString sPropertiesName(MAKEINTRESOURCE(IDS_PROPERTIES));
    m_viewProperties.Create(m_Dock, rcDefault, sPropertiesName, ATL_SIMPLE_DOCKVIEW_STYLE);
    m_Dock.AddWindow(m_viewProperties);
+   GetProperty(_T("window.properties.pos"), szBuffer, 63);
+   iSide = (short) _ttoi(szBuffer);
+   if( _tcslen(szBuffer) == 0 || iSide == IDE_DOCK_FLOAT ) iSide = DOCK_RIGHT;
    GetProperty(_T("window.properties.cy"), szBuffer, 63);
-   m_Dock.DockWindow(m_viewProperties, DOCK_RIGHT, _ttoi(szBuffer));
+   m_Dock.DockWindow(m_viewProperties, iSide, _ttoi(szBuffer));
 
    // Attach MDI Container (manages the MDI Client and tabbed frame)
    DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
@@ -105,15 +112,6 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
    // Create docked views
    m_Dock.SetClient(m_MDIContainer);
-
-   GetProperty(_T("window.pane.left"), szBuffer, 63);
-   m_Dock.SetPaneSize(DOCK_LEFT, _ttoi(szBuffer));
-   GetProperty(_T("window.pane.right"), szBuffer, 63);
-   m_Dock.SetPaneSize(DOCK_RIGHT, _ttoi(szBuffer));
-   GetProperty(_T("window.pane.top"), szBuffer, 63);
-   m_Dock.SetPaneSize(DOCK_TOP, _ttoi(szBuffer));
-   GetProperty(_T("window.pane.bottom"), szBuffer, 63);
-   m_Dock.SetPaneSize(DOCK_BOTTOM, _ttoi(szBuffer));
 
    // The AutoHide control
    m_Images.Create(IDB_EXPLORER, 16, 1, RGB(255,0,255));

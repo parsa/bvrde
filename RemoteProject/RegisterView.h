@@ -17,6 +17,7 @@ public:
    CRemoteProject* m_pProject;
    CSimpleArray<CString> m_aNames;
    CSimpleArray<CString> m_aValues;
+   TEXTMETRIC m_tm;
    bool m_bInitialResize;
 
    // Operations

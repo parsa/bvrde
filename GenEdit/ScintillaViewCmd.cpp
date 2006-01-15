@@ -28,19 +28,19 @@ LRESULT CScintillaView::OnFind(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
    case IDC_MARKALL:
       {
          int iCurrent = GetCurrentPos();
-         int posFirstFound = _FindNext(s_frFind.Flags | FR_DOWN, s_frFind.lpstrFindWhat, false);
+         int posFirstFound = _FindNext(s_frFind.Flags | FR_DOWN, s_frFind.lpstrFindWhat, false, true);
          int posFound = posFirstFound;
          while( posFound != -1 ) {
             int iLineNum = LineFromPosition(posFound);
             MarkerAdd(iLineNum, MARKER_BOOKMARK);
-            posFound = _FindNext(s_frFind.Flags | FR_DOWN | FR_WRAP, s_frFind.lpstrFindWhat, false);
+            posFound = _FindNext(s_frFind.Flags | FR_DOWN | FR_WRAP, s_frFind.lpstrFindWhat, false, true);
             if( posFound == posFirstFound ) break;
          }
          SetCurrentPos(iCurrent);
       }
       // FALL THROUGH
    case IDOK:
-      _FindNext(s_frFind.Flags, s_frFind.lpstrFindWhat, true);
+      _FindNext(s_frFind.Flags, s_frFind.lpstrFindWhat, true, true);
       break;
    }
    return 0;
@@ -52,14 +52,14 @@ LRESULT CScintillaView::OnReplace(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    UINT nRes = dlg.DoModal();
    switch( nRes ) {
    case IDOK:
-      _FindNext(s_frFind.Flags | FR_DOWN, s_frFind.lpstrFindWhat, true);
+      _FindNext(s_frFind.Flags | FR_DOWN, s_frFind.lpstrFindWhat, true, true);
       break;
    case IDC_REPLACE:
       {
          // First try to find string inside current selection (if we already selected the
          // text to do replacement on), then try to find next matching entry...
-         if( _FindNext(s_frFind.Flags | FR_DOWN | FR_INSEL, s_frFind.lpstrFindWhat, false) == -1 ) {
-            _FindNext(s_frFind.Flags | FR_DOWN, s_frFind.lpstrFindWhat, true);
+         if( _FindNext(s_frFind.Flags | FR_DOWN | FR_INSEL, s_frFind.lpstrFindWhat, false, true) == -1 ) {
+            _FindNext(s_frFind.Flags | FR_DOWN, s_frFind.lpstrFindWhat, true, true);
          }
          _ReplaceOnce();
       }
@@ -71,7 +71,7 @@ LRESULT CScintillaView::OnReplace(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          int nReplaced = 0;
          int cchSearched = (int) strlen(s_frFind.lpstrFindWhat);
          int cchReplaced = (int) strlen(s_frFind.lpstrReplaceWith);
-         while( _FindNext(s_frFind.Flags | FR_WRAP | FR_DOWN, s_frFind.lpstrFindWhat, false) >= 0 ) {
+         while( _FindNext(s_frFind.Flags | FR_WRAP | FR_DOWN, s_frFind.lpstrFindWhat, false, true) >= 0 ) {
             // Avoid endless loop
             CharacterRange crFound = GetSelection();
             if( nReplaced++ == 0 ) iStartPos = crFound.cpMin;
@@ -89,7 +89,7 @@ LRESULT CScintillaView::OnReplace(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
 LRESULT CScintillaView::OnRepeat(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-   return _FindNext(s_frFind.Flags, s_frFind.lpstrFindWhat, true);
+   return _FindNext(s_frFind.Flags, s_frFind.lpstrFindWhat, true, false);
 }
 
 LRESULT CScintillaView::OnUpperCase(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
@@ -318,6 +318,17 @@ LRESULT CScintillaView::OnViewWordWrap(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
    return 0;
 }
 
+LRESULT CScintillaView::OnSearchGo(WORD /*wNotifyCode*/, WORD /*wID*/, HWND hWndCtl, BOOL& /*bHandled*/)
+{
+   CEdit ctrl = ::FindWindowEx(hWndCtl, NULL, _T("Edit"), NULL);
+   if( !ctrl.IsWindow() ) ctrl = ::FindWindowEx(::GetWindow(hWndCtl, GW_CHILD), NULL, _T("Edit"), NULL);
+   if( !ctrl.IsWindow() ) return 0;
+   CString sText = CWindowText(ctrl);
+   USES_CONVERSION;
+   _FindNext(FR_DOWN | FR_WRAP, T2CA(sText), true, false);
+   return 0;
+}
+
 LRESULT CScintillaView::OnMarkerToggle(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    int iLineNum = GetCurrentLine();
@@ -358,7 +369,10 @@ LRESULT CScintillaView::OnMarkerGoto(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
    for( int i = 0; i <= wID - ID_BOOKMARKS_GOTO1; i++ ) {
       iLineNum = MarkerNext(iLineNum + 1, 1 << MARKER_BOOKMARK);
    }
-   if( iLineNum >= 0 ) {
+   if( iLineNum == -1 ) {
+      ::MessageBeep((UINT)-1);
+   }
+   else {
       GotoLine(iLineNum);
       EnsureVisible(iLineNum);
    }

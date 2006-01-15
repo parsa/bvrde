@@ -125,7 +125,8 @@ BOOL CXmlSerializer::ReadGroupBegin(LPCTSTR pstrName)
    CComBSTR bstrName = pstrName;
    CComPtr<IXMLDOMNode> spNext;
    CComPtr<IXMLDOMNodeList> spList;
-   for( int i = m_aContexts.GetSize() - 1; i >= 0 ; --i ) {
+   int i;
+   for( i = m_aContexts.GetSize() - 1; i >= 0 ; --i ) {
       CONTEXT& Context = m_aContexts[i];
       if( Context.iLevel == m_iLevel && Context.bstrName == bstrName ) {
          Context.spList->get_item(++Context.iIndex, &spNext);

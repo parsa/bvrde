@@ -13,7 +13,7 @@ public:
 
    BEGIN_DISPATCH_MAP(CResponse)
       DISP_METHOD0(Clear, VT_EMPTY)
-      DISP_METHOD1(Write, VT_EMPTY, VT_BSTR)
+      DISP_METHOD(Write, VT_EMPTY, 1, VTS_BSTR)
    END_DISPATCH_MAP()
 
    VOID __stdcall Clear()
@@ -43,8 +43,8 @@ public:
    BEGIN_DISPATCH_MAP(CGlobals)
       DISP_PROPGET(Count, VT_I4)
       //DISP_PROP_ID(Item, DISPID_VALUE, VT_BSTR, VT_BSTR)
-      { OLESTR("Item"), DISPID_VALUE, DISPATCH_PROPERTYGET, VT_BSTR, 1, { VT_BSTR }, (void (__stdcall _atl_disp_classtype::*)())get_Item },
-      { OLESTR("Item"), DISPID_PROPERTYPUT, DISPATCH_PROPERTYPUT, VT_EMPTY, 2, { VT_BSTR, VT_BSTR }, (void (__stdcall _atl_disp_classtype::*)())put_Item },
+      { OLESTR("Item"), DISPID_VALUE, DISPATCH_PROPERTYGET, VT_BSTR, 1, VT_EMPTY, { VTS_BSTR }, (void (__stdcall _atl_disp_classtype::*)())get_Item },
+      { OLESTR("Item"), DISPID_PROPERTYPUT, DISPATCH_PROPERTYPUT, VT_EMPTY, 2, VT_EMPTY, { VTS_BSTR VTS_BSTR }, (void (__stdcall _atl_disp_classtype::*)())put_Item },
    END_DISPATCH_MAP()
 
    LONG __stdcall get_Count()
@@ -227,7 +227,7 @@ public:
       if( (dwReturnMask & SCRIPTINFO_IUNKNOWN) == 0 ) return E_FAIL;
       if( ppUnk == NULL ) return E_POINTER;
       *ppUnk = NULL;
-      if( wcsicmp( pstrName, L"Container" ) == 0 ) *ppUnk = &m_Container;
+      if( :lstrcmpi( pstrName, L"Container" ) == 0 ) *ppUnk = &m_Container;
       return *ppUnk == NULL ? E_FAIL : S_OK;
    }
 

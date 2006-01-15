@@ -137,6 +137,9 @@ IDR_DISASSEMBLY MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
+        MENUITEM "Aufruf als ein Zeil",         ID_DEBUG_STEP_OVER
+        MENUITEM "Aufruf als ein Schritt",      ID_DEBUG_STEP_INSTRUCTION
+        MENUITEM SEPARATOR
         MENUITEM "Kopieren",                    ID_EDIT_COPY
         MENUITEM SEPARATOR
         MENUITEM "&Zeige im Intel Stil",        ID_DISASM_INTELSTYLE
@@ -1001,6 +1004,15 @@ BEGIN
     ID_DEBUG_BREAK          "Debugger unterbrechen\nUnterbrechen"
     ID_DEBUG_STEP_SET       "Setzt das nächste Statement\nNächstes Statement setzen"
     ID_VIEW_DEBUGOUTPUT     "Datenausgabe anzeigen\nDatenausgabe"
+    ID_BUILD_STOP           "Erstellen anhalten\nErstellen anhalten"
+    ID_DEBUG_STEP_OUT       "Ausführen bis Rücksprung\nAusführen bis Rücksprung"
+    ID_DEBUG_STEP_RUN       "Ausführen bis Cursor\nAusführen bis Cursor"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_DEBUG_STEP_INSTRUCTION 
+                            "Als einen Assembler Schritt ausführen\nSchritt ausführen"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1029,7 +1041,7 @@ BEGIN
     ID_DEBUG_DEBUG          "SDebugging starten\nDebuggen starten"
     ID_DEBUG_PROCESSES      "An einen laufenden Prozess anhängen\nAn Prozess anhängen"
     ID_DEBUG_STEP_INTO      "In Aufruf springen\nIn Aufruf springen"
-    ID_DEBUG_STEP_OVER      "Als einen Schritt ausführen\nAls einen Schritt ausführen"
+    ID_DEBUG_STEP_OVER      "Als einen Schritt ausführen\nSchritt ausführen"
     ID_DEBUG_BREAKPOINT     "Haltepunkt einfügen\nHaltepunkt einfügen"
     ID_DEBUG_CLEAR_BREAKPOINTS 
                             "Alle Haltepunkte entfernen\nHaltepunkte entfernen"
@@ -1071,13 +1083,6 @@ BEGIN
     ID_EDIT_AUTOCOMPLETE    "Vervollständigt automatisch den selektierten Text\nAutovervollständigung"
     ID_VIEW_COMPILE_LOG     "Kompile Lof anzeigen\nKompile Log"
     ID_VIEW_DEBUG_LOG       "Debug log abzeigen\nDebug Log"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    ID_BUILD_STOP           "Erstellen anhalten\nErstellen anhalten"
-    ID_DEBUG_STEP_OUT       "Ausführen bis Rücksprung\nAusführen bis Rücksprung"
-    ID_DEBUG_STEP_RUN       "Ausführen bis Cursor\nAusführen bis Cursor"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1146,6 +1151,8 @@ BEGIN
     IDS_MENU_OPENINCLUDE    """%s"" öffnen"
     IDS_MENU_OPENDECL       "Gehe zu Definition ""%s"""
     IDS_CAPTION_DEBUGOUTPUT "Datenausgabe"
+    IDS_MISC_SEARCHPATH     "Suchpfad"
+    IDS_COMMAND_ARGS        "GDB Parameter"
 END
 
 #endif    // German (Germany) resources
@@ -1433,7 +1440,12 @@ IDR_DISASSEMBLY MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
+        MENUITEM "Step Source Line",            ID_DEBUG_STEP_INTO
+        MENUITEM "Step Instruction",            ID_DEBUG_STEP_INSTRUCTION
+        MENUITEM SEPARATOR
         MENUITEM "&Copy",                       ID_EDIT_COPY
+        MENUITEM SEPARATOR
+        MENUITEM "&Goto Current",               ID_DISASM_CURRENT
         MENUITEM SEPARATOR
         MENUITEM "&Show as Intel Style",        ID_DISASM_INTELSTYLE
         MENUITEM "&Show Source",                ID_DISASM_SHOWSOURCE
@@ -2265,6 +2277,16 @@ BEGIN
     ID_DEBUG_BREAK          "Break Debugger\nBreak"
     ID_DEBUG_STEP_SET       "View Debug Output\nDebug Output"
     ID_VIEW_DEBUGOUTPUT     "View Application Output\nOutput"
+    ID_BUILD_STOP           "Stop Build\nStop Build"
+    ID_DEBUG_STEP_OUT       "Step Out\nStep Out"
+    ID_DEBUG_STEP_RUN       "Debug until this line is hit\nRun To Here"
+    ID_SEARCH_GO            "Search for the text\nSearch"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_DEBUG_STEP_INSTRUCTION 
+                            "Steps a single assembler instruction\nStep Instruction"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -2338,13 +2360,6 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_BUILD_STOP           "Stop Build\nStop Build"
-    ID_DEBUG_STEP_OUT       "Step Out\nStep Out"
-    ID_DEBUG_STEP_RUN       "Debug until this line is hit\nRun To Here"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     ID_FILE_DELETE          "Remove entry from project\nRemove"
     ID_FILE_ADD_REMOTE      "Add a remote file\nAdd Remote"
     ID_FILE_ADD_LOCAL       "Add a local file\nAdd Local"
@@ -2409,6 +2424,8 @@ BEGIN
     IDS_MENU_OPENINCLUDE    "Open ""%s"""
     IDS_MENU_OPENDECL       "Go to declaration ""%s"""
     IDS_CAPTION_DEBUGOUTPUT "Console Output"
+    IDS_MISC_SEARCHPATH     "Search Path"
+    IDS_COMMAND_ARGS        "Debugger Args"
 END
 
 #endif    // English (U.S.) resources

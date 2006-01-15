@@ -715,7 +715,8 @@ int CAutoTextOptionsPage::OnApply()
    // Make sure list was populated before we store data back!!!
    OnSetActive();
 
-   for( int i = 0; i < m_ctrlList.GetCount(); i++ ) {
+   int i;
+   for( i = 0; i < m_ctrlList.GetCount(); i++ ) {
       CString sName;
       m_ctrlList.GetText(i, sName);
       CString sText = (LPTSTR) m_ctrlList.GetItemData(i);

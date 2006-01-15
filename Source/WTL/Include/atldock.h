@@ -328,7 +328,11 @@ typedef CWinTraits<WS_OVERLAPPED|WS_CAPTION|WS_THICKFRAME|WS_SYSMENU, WS_EX_TOOL
 template< class T, class TBase = CWindow, class TWinTraits = CFloatWinTraits >
 class ATL_NO_VTABLE CFloatingWindowImpl : 
    public CWindowImpl< T, TBase, TWinTraits >,
+#if _MSC_VER < 1400
    public CSplitterBar<CFloatingWindowImpl>
+#else
+   public CSplitterBar<CFloatingWindowImpl<T, TBase, TWinTraits> >
+#endif
 {
 public:
    DECLARE_WND_CLASS_EX(NULL, CS_DBLCLKS, NULL)
@@ -517,13 +521,17 @@ public:
 template< class T, class TBase = CWindow, class TWinTraits = CControlWinTraits >
 class ATL_NO_VTABLE CDockingPaneChildWindowImpl : 
    public CWindowImpl< T, TBase, TWinTraits >,
+#if _MSC_VER < 1400
    public CSplitterBar<CDockingPaneChildWindowImpl>
+#else
+   public CSplitterBar<CDockingPaneChildWindowImpl<T, TBase, TWinTraits> >
+#endif
 {
 public:
    DECLARE_WND_CLASS_EX(NULL, CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS, NULL)
 
    typedef CDockingPaneChildWindowImpl< T , TBase, TWinTraits > thisClass;
-   
+
    BEGIN_MSG_MAP(CDockingPaneChildWindowImpl)
       MESSAGE_HANDLER(WM_PAINT, OnPaint)
       MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBackground)
@@ -829,7 +837,11 @@ public:
 template< class T, class TBase = CWindow, class TWinTraits = CControlWinTraits >
 class ATL_NO_VTABLE CDockingPaneWindowImpl : 
    public CWindowImpl< T, TBase, TWinTraits >,
+#if _MSC_VER < 1400
    public CSplitterBar<CDockingPaneWindowImpl>
+#else
+   public CSplitterBar<CDockingPaneWindowImpl<T, TBase, TWinTraits> >
+#endif
 {
 public:
    DECLARE_WND_CLASS_EX(NULL, CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS, COLOR_WINDOW)
@@ -1257,6 +1269,8 @@ public:
       DOCKCONTEXT* pCtx = _GetContext(hWnd);
       ATLASSERT(pCtx);
       if( pCtx == NULL ) return FALSE;
+      if( Side == DOCK_FLOAT ) return FloatWindow(hWnd, pCtx->rcWindow);
+      if( Side == DOCK_HIDDEN ) return HideWindow(hWnd);
       ::ShowWindow(pCtx->hwndChild, SW_SHOWNOACTIVATE);
       if( Side == DOCK_LASTKNOWN ) Side = pCtx->LastSide;
       if( !IsDocked(Side) ) return FALSE;

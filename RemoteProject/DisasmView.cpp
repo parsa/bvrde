@@ -11,6 +11,8 @@
 
 CDisasmView::CDisasmView() :
    m_pProject(NULL),
+   m_lOffset(0),
+   m_iLastStyle(2),
    m_bIntelStyle(true),
    m_bShowSource(false)
 {
@@ -25,6 +27,9 @@ CDisasmView::CDisasmView() :
 void CDisasmView::Init(CRemoteProject* pProject)
 {
    m_pProject = pProject;
+   m_lOffset = 0;
+   m_iLastStyle = 2;
+   m_bDontResetOffset = false;
 }
 
 bool CDisasmView::WantsData() 
@@ -36,16 +41,21 @@ bool CDisasmView::WantsData()
 
 void CDisasmView::PopulateView(CSimpleArray<CString>& aDbgCmd)
 {
-   // Estimate instruction count needed to fill screen
-   const long AVG_INST_SIZE = 4;
-   CClientRect rcClient = m_hWnd;
-   long lRows = (rcClient.bottom - rcClient.top) / m_tm.tmHeight * AVG_INST_SIZE;
-   // Execute command
+   // Offset management
+   if( !m_bDontResetOffset ) m_lOffset = 0;
+   m_bDontResetOffset = false;
+   // Execute commands
+   // First change display style if needed; then request assembler listing
+   if( m_iLastStyle != (BYTE) m_bIntelStyle ) {
+      CString sCommand;
+      sCommand.Format(_T("-gdb-set disassembly-flavor %s"), m_bIntelStyle ? _T("intel") : _T("att"));
+      aDbgCmd.Add(sCommand);
+      m_iLastStyle = (BYTE) m_bIntelStyle;
+   }
    CString sCommand;
-   sCommand.Format(_T("-gdb-set disassembly-flavor %s"), m_bIntelStyle ? _T("intel") : _T("att"));
-   aDbgCmd.Add(sCommand);
-   sCommand.Format(_T("-data-disassemble -s $pc -e \"$pc + %ld\" -- %ld"), 
-      lRows,
+   sCommand.Format(_T("-data-disassemble -s \"$pc + %ld\" -e \"$pc + %ld\" -- %ld"), 
+      m_lOffset,
+      m_lOffset + _GetPageSize(),
       m_bShowSource ? 1L : 0L);
    aDbgCmd.Add(sCommand);
 }
@@ -129,18 +139,28 @@ DWORD CALLBACK CDisasmView::_EditStreamCallback(DWORD_PTR dwCookie, LPBYTE pbBuf
 LRESULT CDisasmView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
    COLORREF clrBack = BlendRGB(::GetSysColor(COLOR_WINDOW), RGB(0,0,0), 10);
+
    ModifyStyleEx(WS_EX_CLIENTEDGE, 0);
 
    m_ctrlAddress.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_READONLY, WS_EX_CLIENTEDGE);
    m_ctrlAddress.SetFont(AtlGetDefaultGuiFont());
-   m_ctrlView.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_MULTILINE | ES_READONLY, WS_EX_CLIENTEDGE);
+   m_ctrlView.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VSCROLL | ES_MULTILINE | ES_READONLY, WS_EX_CLIENTEDGE);
    m_ctrlView.SetFont(AtlGetStockFont(ANSI_FIXED_FONT));
    m_ctrlView.SetBackgroundColor(clrBack);
    m_ctrlView.SetTargetDevice(NULL, 1);
    m_ctrlView.SetUndoLimit(0);
 
+   m_fontWingdings.CreateFont(12, 0, 0, 0, 0, 0, 0, 0, SYMBOL_CHARSET, 0, 0, 0, 0, _T("Wingdings"));
+
+   m_ctrlUp.Create(m_hWnd, rcDefault, _T("\xE9"), WS_CHILD, 0, IDC_SCROLLUP);
+   m_ctrlUp.SetFont(m_fontWingdings);
+   m_ctrlDown.Create(m_hWnd, rcDefault, _T("\xEA"), WS_CHILD, 0, IDC_SCROLLDOWN);
+   m_ctrlDown.SetFont(m_fontWingdings);
+
    CClientDC dc = m_ctrlView;
+   HFONT hOldFont = dc.SelectFont(m_ctrlView.GetFont());
    dc.GetTextMetrics(&m_tm);
+   dc.SelectFont(hOldFont);
 
    m_ctrlAddress.SetFocus();
    return 0;
@@ -153,12 +173,21 @@ LRESULT CDisasmView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
    RECT rcMemory = { 0, rcAddress.bottom, rcAddress.right, rcClient.bottom - rcClient.top };
    m_ctrlAddress.MoveWindow(&rcAddress);
    m_ctrlView.MoveWindow(&rcMemory);
+   CClientRect rcView = m_ctrlView;
+   const INT BUTTONSIZE = 18;
+   int cy = abs(rcView.bottom - rcView.top);
+   RECT rcUp = { rcMemory.right - 30 - BUTTONSIZE, rcMemory.top + 10, rcMemory.right - 30, rcMemory.top + 10 + BUTTONSIZE };
+   RECT rcDown = { rcMemory.right - 30 - BUTTONSIZE, rcMemory.bottom - 10 - BUTTONSIZE, rcMemory.right - 30, rcMemory.bottom - 10 };
+   m_ctrlUp.SetWindowPos(NULL, &rcUp, SWP_NOACTIVATE | (cy > 50 ? SWP_SHOWWINDOW : SWP_HIDEWINDOW));
+   m_ctrlDown.SetWindowPos(NULL, &rcDown, SWP_NOACTIVATE | (cy > 50 ? SWP_SHOWWINDOW : SWP_HIDEWINDOW));
+   m_ctrlUp.Invalidate();
+   m_ctrlDown.Invalidate();
    return 0;
 }
 
 LRESULT CDisasmView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {   
-   SetFocus();
+   m_ctrlView.SetFocus();
    POINT pt;
    ::GetCursorPos(&pt);
    CMenu menu;
@@ -184,17 +213,63 @@ LRESULT CDisasmView::OnIntelStyle(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    return 0;
 }
 
+LRESULT CDisasmView::OnGotoCurrent(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   m_lOffset = 0;
+   for( int i = 0; i < 10; i++ ) m_ctrlView.SendMessage(EM_SCROLL, SB_PAGEUP);
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
+   return 0;
+}
+
+LRESULT CDisasmView::OnScrollUp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   if( m_ctrlView.GetScrollPos(SB_VERT) != 0 ) return m_ctrlView.SendMessage(EM_SCROLL, SB_PAGEUP);
+   m_lOffset -= _GetPageSize();
+   m_bDontResetOffset = true;
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
+   return 0;
+}
+
+LRESULT CDisasmView::OnScrollDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   SCROLLINFO si = { 0 };
+   si.cbSize = sizeof(si);
+   si.fMask = SIF_ALL;
+   m_ctrlView.GetScrollInfo(SB_VERT, &si);
+   if( si.nPos < si.nMax - (int) si.nPage - 40 ) return m_ctrlView.SendMessage(EM_SCROLL, SB_PAGEDOWN);
+   m_lOffset += _GetPageSize();
+   m_bDontResetOffset = true;
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
+   return 0;
+}
+
+LRESULT CDisasmView::OnProjectCommand(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+{
+   return m_pProject->OnAppMessage(m_hWnd, WM_COMMAND, MAKEWPARAM(wID, wNotifyCode), (LPARAM) hWndCtl, bHandled);
+}
+
 // IIdleListener
 
 void CDisasmView::OnIdle(IUpdateUI* pUIBase)
 {
    pUIBase->UIEnable(ID_DISASM_INTELSTYLE, TRUE);
    pUIBase->UIEnable(ID_DISASM_SHOWSOURCE, FALSE);  // Not supported yet
+   pUIBase->UIEnable(ID_DISASM_CURRENT, m_lOffset != 0);
    pUIBase->UISetCheck(ID_DISASM_INTELSTYLE, m_bIntelStyle);
    pUIBase->UISetCheck(ID_DISASM_SHOWSOURCE, m_bShowSource);
 }
 
 void CDisasmView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
 {
+}
+
+// Implementation
+
+int CDisasmView::_GetPageSize() const
+{
+   const long AVG_INST_SIZE = 6;
+   CClientRect rcClient = m_hWnd;
+   long lRows = (rcClient.bottom - rcClient.top) / m_tm.tmHeight;
+   return lRows * AVG_INST_SIZE;
 }
 

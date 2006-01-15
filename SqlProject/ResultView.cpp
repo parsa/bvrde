@@ -229,7 +229,7 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
                dc.GetTextExtent(sName, sName.GetLength(), &szText);
                // NOTE: We won't allow really large columns, so here
                //       is a hard-coded limit in pixels.
-               const MAX_COLUMN_WIDTH = 150;
+               const int MAX_COLUMN_WIDTH = 150;
                cx = max(szText.cx + 25, cx);
                cx = min(MAX_COLUMN_WIDTH, cx);
                ctrlList.SetColumnWidth(i, cx);

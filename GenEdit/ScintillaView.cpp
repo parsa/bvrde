@@ -33,6 +33,7 @@
 CScintillaView::CScintillaView(IDevEnv* pDevEnv) :
    m_wndParent(this, 1),   
    m_pDevEnv(pDevEnv),
+   m_bInitialized(false),
    m_bAutoCompleteNext(false),
    m_bAutoTextDisplayed(false),
    m_bSuggestionDisplayed(false)
@@ -116,6 +117,9 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_EDIT_RECTSELECTION, TRUE);
    pUIBase->UISetCheck(ID_EDIT_RECTSELECTION, GetSelectionMode() == SC_SEL_RECTANGLE);
 
+   pUIBase->UIEnable(ID_SEARCH_TEXT, TRUE);  
+   pUIBase->UIEnable(ID_SEARCH_GO, TRUE);  
+   
    pUIBase->UIEnable(ID_BOOKMARKS_TOGGLE, TRUE);
    pUIBase->UIEnable(ID_BOOKMARKS_GOTO, TRUE);  
 
@@ -153,6 +157,7 @@ LRESULT CScintillaView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
 LRESULT CScintillaView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
+   _SaveBookmarks();
    if( m_wndParent.IsWindow() ) m_wndParent.UnsubclassWindow();
    bHandled = FALSE;
    return 0;
@@ -481,9 +486,11 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       // for HTML with embedded scripts.
       // FIX: Scintilla's stylers for embedded HTML scripts are pretty
       //      broken and the default HTML lexer actually works much better.
-      //   if( sFilename.Find(_T(".php")) >= 0 ) SetLexer(SCLEX_PHP);
-      //   else if( sFilename.Find(_T(".asp")) >= 0 ) SetLexer(SCLEX_ASP);
-      //   else if( sFilename.Find(_T(".aspx")) >= 0 ) SetLexer(SCLEX_ASP);
+      /*
+      if( sFilename.Find(_T(".php")) >= 0 ) SetLexer(SCLEX_PHP);
+      else if( sFilename.Find(_T(".asp")) >= 0 ) SetLexer(SCLEX_ASP);
+      else if( sFilename.Find(_T(".aspx")) >= 0 ) SetLexer(SCLEX_ASP);
+      */
       SetLexer(SCLEX_HTML);
 
       if( m_sLanguage == _T("asp") ) iKeywordSet = 1;  // JavaScript keylist
@@ -742,6 +749,12 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    SetEdgeColumn(80);         // Place the right edge (if visible)
    UsePopUp(FALSE);           // We'll do our own context menu
+
+   // Never been initialized?
+   if( !m_bInitialized ) {
+      _RestoreBookmarks();
+      m_bInitialized = true;
+   }
 
    Colourise(0, -1);
    Invalidate();
@@ -1493,7 +1506,7 @@ CString CScintillaView::_GetProperty(CString sKey) const
 /**
 /* Find substring next occourance in text.
 /*/
-int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings)
+int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings, bool bShowFindDlg)
 {
    int iLength = strlen(pstrText);
    if( iLength == 0 ) return -1;
@@ -1541,8 +1554,10 @@ int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings)
          CString sMsg;
          sMsg.Format(IDS_FINDFAILED, CString(pstrText));
          m_pDevEnv->ShowMessageBox(m_hWnd, sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONINFORMATION);
-         HWND hWndMain = m_pDevEnv->GetHwnd(IDE_HWND_MAIN);
-         ::PostMessage(hWndMain, WM_COMMAND, MAKEWPARAM(ID_EDIT_FIND, 0), 0L);
+         if( bShowFindDlg ) {
+            HWND hWndMain = m_pDevEnv->GetHwnd(IDE_HWND_MAIN);
+            ::PostMessage(hWndMain, WM_COMMAND, MAKEWPARAM(ID_EDIT_FIND, 0), 0L);
+         }
       }
    } 
    else {
@@ -1557,6 +1572,10 @@ int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings)
    return iFindPos;
 }
 
+/**
+ * Replace a string with a substring.
+ * The structure s_frFind contains the search/replace data.
+ */
 bool CScintillaView::_ReplaceOnce()
 {
    CharacterRange cr = GetSelection();
@@ -1597,6 +1616,38 @@ void CScintillaView::_DefineMarker(int nMarker, int nType, COLORREF clrFore, COL
    MarkerDefine(nMarker, nType);
    MarkerSetFore(nMarker, clrFore);
    MarkerSetBack(nMarker, clrBack);
+}
+
+void CScintillaView::_SaveBookmarks()
+{
+   LPCTSTR pstrName = ::PathFindFileName(m_sFilename);
+   TCHAR szKey[200] = { 0 };
+   TCHAR szValue[64] = { 0 };
+   int iIndex = 1;
+   int iLineNum = MarkerNext(0, 1 << MARKER_BOOKMARK);
+   while( iLineNum > 0 ) {
+      ::wsprintf(szKey, _T("bookmarks.%s.%d"), pstrName, iIndex++);
+      ::wsprintf(szValue, _T("%d"), iLineNum);
+      m_pDevEnv->SetProperty(szKey, szValue);
+      iLineNum = MarkerNext(iLineNum + 1, 1 << MARKER_BOOKMARK);
+   }
+   for( ; iIndex < 20; iIndex++  ) {
+      ::wsprintf(szKey, _T("bookmarks.%s.%d"), pstrName, iIndex);
+      m_pDevEnv->SetProperty(szKey, _T(""));
+   }
+}
+
+void CScintillaView::_RestoreBookmarks()
+{
+   LPCTSTR pstrName = ::PathFindFileName(m_sFilename);
+   TCHAR szKey[200] = { 0 };
+   for( int iIndex = 1; iIndex < 20; iIndex++  ) {
+      ::wsprintf(szKey, _T("bookmarks.%s.%d"), pstrName, iIndex);
+      TCHAR szValue[64] = { 0 };
+      m_pDevEnv->GetProperty(szKey, szValue, 63);
+      if( _tcslen(szValue) == 0 ) break;
+      MarkerAdd(_ttoi(szValue), MARKER_BOOKMARK);
+   }
 }
 
 void CScintillaView::_GetSyntaxStyle(LPCTSTR pstrName, SYNTAXCOLOR& syntax)

@@ -506,7 +506,8 @@ BOOL CSchemaView::_FillTreeWithFields(DATABASEOBJECT* pObj, HTREEITEM hParent)
    m_ctrlTree.SetItemData(hFields, IDS_TREE_COLUMNS);
    HTREEITEM hIndices = m_ctrlTree.InsertItem(CString(MAKEINTRESOURCE(IDS_TREE_INDICES)), 1, 1, hParent, TVI_LAST);
    m_ctrlTree.SetItemData(hIndices, IDS_TREE_INDICES);
-   for( int i = 0; i < pTable->aFields.GetSize(); i++ ) {
+   int i;
+   for( i = 0; i < pTable->aFields.GetSize(); i++ ) {
       FIELDINFO& fi = pTable->aFields[i];
       HTREEITEM hItem = m_ctrlTree.InsertItem(fi.sName, 6, 6, hFields, TVI_LAST);
       m_ctrlTree.SetItemData(hItem, (LPARAM) &fi);

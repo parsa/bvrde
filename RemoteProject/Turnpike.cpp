@@ -200,7 +200,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
                if( m_viewRegister.GetNameCount() == 0 ) {
                   aDbgCmd.Add(CString(_T("-data-list-register-names")));
                }
-               aDbgCmd.Add(CString(_T("-data-list-register-values x")));
+               aDbgCmd.Add(CString(_T("-data-list-register-values N")));
             }
          }
          break;

@@ -4,7 +4,7 @@
 #include "atldib.h"
 #include "MenuShadows.h"
 
-#include <version.h>
+#include <winver.h>
 #pragma comment(lib, "version.lib")
 
 

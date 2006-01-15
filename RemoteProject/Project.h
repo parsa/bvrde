@@ -29,6 +29,8 @@
 #include "RemoteDirView.h"
 #include "QuickWatchDlg.h"
 
+#include "MruCombo.h"
+
 #include "Commands.h"
 
 #include "WizardSheet.h"
@@ -69,6 +71,7 @@ private:
    //
    static CAccelerator m_accel;
    static CComboBox m_ctrlMode;
+   static CMruComboCtrl m_ctrlFindText;
    static CToolBarCtrl m_ctrlBuild;
    static CToolBarCtrl m_ctrlDebug;
    static CToolBarCtrl m_ctrlBookmarks;
@@ -190,6 +193,7 @@ public:
       COMMAND_ID_HANDLER(ID_DEBUG_BREAK, OnDebugBreak)
       COMMAND_ID_HANDLER(ID_DEBUG_STOP, OnDebugStop)
       COMMAND_ID_HANDLER(ID_DEBUG_STEP_INTO, OnDebugStepInto)
+      COMMAND_ID_HANDLER(ID_DEBUG_STEP_INSTRUCTION, OnDebugStepInstruction)
       COMMAND_ID_HANDLER(ID_DEBUG_STEP_OVER, OnDebugStepOver)      
       COMMAND_ID_HANDLER(ID_DEBUG_STEP_OUT, OnDebugStepOut)
       COMMAND_ID_HANDLER(ID_DEBUG_CLEAR_BREAKPOINTS, OnDebugClearBreakpoints)     
@@ -242,6 +246,7 @@ public:
    LRESULT OnDebugStop(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugStepOver(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugStepInto(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugStepInstruction(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugStepOut(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugClearBreakpoints(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugQuickWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

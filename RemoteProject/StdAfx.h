@@ -7,14 +7,16 @@
 
 #pragma once
 
-#define WINVER            0x0400
-#define _WIN32_WINNT      0x0400
+#define WINVER            0x0500
+#define _WIN32_WINNT      0x0500
 #define _WIN32_IE         0x0501
 #define _RICHEDIT_VER     0x0200
 
 #define NOCRYPT                       // Disable include of wincrypt.h
 #define _WINSOCKAPI_                  // Don't include WinSOCK v1
+#define _CRT_SECURE_NO_DEPRECATE
 #define _WTL_NEW_PAGE_NOTIFY_HANDLERS
+
 
 #include <atlbase.h>
 #include <atlapp.h>

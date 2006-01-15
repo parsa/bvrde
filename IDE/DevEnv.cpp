@@ -116,7 +116,7 @@ BOOL CMainFrame::AddToolBar(HWND hWnd, LPCTSTR pstrID, LPCTSTR pstrTitle)
       if( !m_CmdBar.AddToolbar(hWnd) ) return FALSE;
       // We might need to hide it
       m_Rebar.ShowBand(m_Rebar.GetBandCount() - 1, bShowDefault);
-      if( bShowDefault ) m_Rebar.MaximizeBand(m_Rebar.GetBandCount() - 1);
+      //if( bShowDefault ) m_Rebar.MaximizeBand(m_Rebar.GetBandCount() - 1);
       // Prepare band in Command Bar
       m_CmdBar.Prepare();
    }
@@ -140,7 +140,8 @@ BOOL CMainFrame::RemoveToolBar(HWND hWnd)
    if( !::IsWindow(hWnd) ) return FALSE;
    CLockStaticDataInit lock;
    // Remove it from the UI map
-   for( int i = 0; i < m_UIElements.GetSize(); i++ ) {
+   int i;
+   for( i = 0; i < m_UIElements.GetSize(); i++ ) {
       _AtlUpdateUIElement& e = m_UIElements[i];
       if( e.m_hWnd = hWnd ) {
          m_UIElements.RemoveAt(i);

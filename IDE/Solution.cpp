@@ -287,7 +287,8 @@ BOOL CSolution::RemoveProject(IProject* pProject)
    ATLASSERT(pProject);
    if( pProject == NULL ) return FALSE;
    // Let's see if we can find the project first...
-   for( int i = 0; i < m_aProjects.GetSize(); i++ ) {
+   int i;
+   for( i = 0; i < m_aProjects.GetSize(); i++ ) {
       if( m_aProjects[i].pProject == pProject ) break;
    }
    if( i == m_aProjects.GetSize() ) return FALSE;
@@ -327,9 +328,8 @@ BOOL CSolution::SetActiveProject(IProject* pProject)
 {
    // Let's see if we can find the project first...
    if( pProject ) {
-      for( int i = 0; i < m_aProjects.GetSize(); i++ ) {
-         if( m_aProjects[i].pProject == pProject ) break;
-      }
+      int i;
+      for( i = 0; i < m_aProjects.GetSize(); i++ ) if( m_aProjects[i].pProject == pProject ) break;
       if( i == m_aProjects.GetSize() ) return FALSE;
       if( !m_bIsLoaded ) return FALSE;
    }

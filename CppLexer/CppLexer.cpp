@@ -81,7 +81,7 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
       std::replace(cr->args.begin(), cr->args.end(), '|', '¦');
 
       static char szBuffer[1025] = { 0 };
-      ::wsprintf(szBuffer, "%s|%c%c|%s%s%s%s|%s|%ld|%s\n", 
+      ::wsprintfA(szBuffer, "%s|%c%c|%s%s%s%s|%s|%ld|%hs\n", 
          cr->name.c_str(),  
          type,
          prot,
@@ -128,10 +128,10 @@ BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
    delete root;
 
    char szTargetFilename[MAX_PATH] = { 0 };
-   ::GetModuleFileName(NULL, szTargetFilename, MAX_PATH);
+   ::GetModuleFileNameA(NULL, szTargetFilename, MAX_PATH);
    char* p = strrchr(szTargetFilename, '\\');
    if( p ) strcpy(p, "\\Lex\\");
-   strcat(szTargetFilename, ::PathFindFileName(szFilename));
+   strcat(szTargetFilename, ::PathFindFileNameA(szFilename));
    p = strrchr(szTargetFilename, '.');
    if( p ) *p = '_';
    strcat(szTargetFilename, ".lex");
@@ -139,7 +139,7 @@ BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
    char szFirstLine[MAX_PATH + 2];
    ::wsprintfA(szFirstLine, "#%s\n", szFilename);
 
-   HANDLE hFile = ::CreateFile(szTargetFilename, 
+   HANDLE hFile = ::CreateFileA(szTargetFilename, 
       GENERIC_WRITE, 
       0, 
       NULL,

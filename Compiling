@@ -64,7 +64,7 @@ Missing the "HtmlHelp.lib" or "HtmlHelp.h" files? Then you forgot to
 install and add the "Microsoft HTML Help Workshop" include/lib paths
 to your development environment.
 
-The code depends on the Microsoft version of the STL library. If you
+The code may depend on the Microsoft version of the STL library. If you
 have installed a different STL library, temporarily revert to the
 Microsoft include paths to make use of the Microsoft STL version.
 

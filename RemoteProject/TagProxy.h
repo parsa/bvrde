@@ -21,7 +21,7 @@ public:
    bool GetOuterList(CSimpleValArray<TAGINFO*>& aList);
    bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList);
    bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance);
-   bool GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner = NULL);
+   bool GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult);
 
    bool GoToDefinition(TAGINFO* pTag);
    bool GoToDefinition(LPCTSTR pstrMember);
@@ -33,6 +33,7 @@ public:
       LEXTYPE_CTAGS,
       LEXTYPE_LEX,
    } m_LexType;
+
    CRemoteProject* m_pProject;
    CTagInfo m_TagInfo;
    CLexInfo m_LexInfo;

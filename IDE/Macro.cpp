@@ -126,8 +126,8 @@ STDMETHODIMP CMacro::GetItemInfo(LPCOLESTR pstrName,
    if( (dwReturnMask & SCRIPTINFO_IUNKNOWN) == 0 ) return E_FAIL;
    if( ppUnk == NULL ) return E_POINTER;
    *ppUnk = NULL;
-   if( wcsicmp(pstrName, L"Globals") == 0 ) *ppUnk = &m_Globals;
-   if( wcsicmp(pstrName, L"App") == 0 ) *ppUnk = g_pDevEnv->GetDispatch();
+   if( ::lstrcmpiW(pstrName, L"Globals") == 0 ) *ppUnk = &m_Globals;
+   if( ::lstrcmpiW(pstrName, L"App") == 0 ) *ppUnk = g_pDevEnv->GetDispatch();
    return *ppUnk == NULL ? E_FAIL : S_OK;
 }
 

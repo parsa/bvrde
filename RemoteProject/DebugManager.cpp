@@ -15,12 +15,14 @@
 
 CDebugManager::CDebugManager() :
    m_pProject(NULL),
+   m_bSeendExit(false),
    m_bBreaked(false),
    m_bDebugging(false),
    m_bCommandMode(false),
    m_nIgnoreErrors(0)
 {
    Clear();
+   m_eventAck.Create(NULL, TRUE, FALSE);
 }
 
 CDebugManager::~CDebugManager()
@@ -71,6 +73,8 @@ bool CDebugManager::Load(ISerializable* pArc)
    m_sDebuggerArgs.ReleaseBuffer();
    pArc->Read(_T("main"), m_sDebugMain.GetBufferSetLength(64), 64);
    m_sDebugMain.ReleaseBuffer();
+   pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(200), 200);
+   m_sSearchPath.ReleaseBuffer();
    pArc->Read(_T("startTimeout"), m_lStartTimeout);
 
    if( m_lStartTimeout <= 0 ) m_lStartTimeout = 4;
@@ -94,6 +98,7 @@ bool CDebugManager::Save(ISerializable* pArc)
    pArc->Write(_T("app"), m_sDebuggerExecutable);
    pArc->Write(_T("args"), m_sDebuggerArgs);
    pArc->Write(_T("main"), m_sDebugMain);
+   pArc->Write(_T("searchPath"), m_sSearchPath);
    pArc->Write(_T("startTimeout"), m_lStartTimeout);
 
    if( !pArc->WriteGroupEnd() ) return false;
@@ -264,7 +269,8 @@ bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLin
    // First, let's remove all existing breakpoints from this file.
    CLockStaticDataInit lock;
    size_t cchName = _tcslen(pstrFilename);
-   for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
+   int i;
+   for( i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
       if( _tcsncmp(m_aBreakpoints.GetKeyAt(i), pstrFilename, cchName) == 0 ) {
          m_aBreakpoints.Remove(m_aBreakpoints.GetKeyAt(i));
          i = -1;
@@ -426,18 +432,14 @@ bool CDebugManager::DoDebugCommand(LPCTSTR pstrText)
    //       out own strings, so we'll check for a brief
    //       moment if a new GDB prompt arrives.
    //       However, we quickly give up and rely on
-   //       GDB being asyncroniously. This does have an
+   //       GDB being somewhat asyncroniously. This does have an
    //       inpact on UI responsiveness though.
    //       The problem is, however, that there's no 
    //       flow-control in the GDB-MI std-out handler, 
    //       so we'll risk to send the command in the middle 
    //       of regular output. This is a big mess!
-   const int WAIT_COMMAND_COMPLETION_RETRIES = 3;
-   for( int i = 0; i < WAIT_COMMAND_COMPLETION_RETRIES; i++ ) {
-      if( m_nLastAck != m_nDebugAck ) break;
-      ::Sleep(50L);
-   }
-   m_nLastAck = m_nDebugAck;
+   m_eventAck.WaitForEvent(3L * 50L);
+   m_eventAck.ResetEvent();
    // Translate command and send it
    return m_ShellManager.WriteData(_TranslateCommand(pstrText));
 }
@@ -457,6 +459,7 @@ CString CDebugManager::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Debugger") ) return m_sDebuggerExecutable;
    if( sName == _T("DebuggerArgs") ) return m_sDebuggerArgs;
    if( sName == _T("DebugMain") ) return m_sDebugMain;
+   if( sName == _T("SearchPath") ) return m_sSearchPath;
    if( sName == _T("StartTimeout") ) return ToString(m_lStartTimeout);
    if( sName == _T("InCommand") ) return m_bCommandMode ? _T("true") : _T("false");
    return m_ShellManager.GetParam(pstrName);
@@ -471,6 +474,7 @@ void CDebugManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Debugger") ) m_sDebuggerExecutable = pstrValue;
    if( sName == _T("DebuggerArgs") ) m_sDebuggerArgs = pstrValue;
    if( sName == _T("DebugMain") ) m_sDebugMain = pstrValue;
+   if( sName == _T("SearchPath") ) m_sSearchPath = pstrValue;
    if( sName == _T("StartTimeout") ) m_lStartTimeout = _ttol(pstrValue);
    if( sName == _T("InCommand") ) m_bCommandMode = _tcscmp(pstrValue, _T("true")) == 0;
    m_ShellManager.SetParam(pstrName, pstrValue);
@@ -518,6 +522,7 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
    m_bBreaked = false;
    m_nDebugAck = 0;
    m_nLastAck = 0;
+   m_eventAck.ResetEvent();
 
    // Wait for the remote connect to happen
    m_ShellManager.Start();
@@ -530,6 +535,9 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
       Stop();
       return false;
    }
+
+   // We should exit cleanly next time
+   m_bSeendExit = false;
 
    sStatus.LoadString(IDS_STATUS_DEBUGGING);
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
@@ -586,6 +594,25 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
       DoDebugCommand(sCommand);
    }
 
+   // Set the GDB search paths
+   if( !m_sSearchPath.IsEmpty() ) {
+      CString sPaths;
+      CString s = m_sSearchPath;
+      CString sToken = s.SpanExcluding(_T(";,"));
+      while( !sToken.IsEmpty() ) {
+         sPaths += _T(" \"");
+         sPaths += sToken;
+         sPaths += _T("\"");
+         s = s.Mid(sToken.GetLength() + 1);
+         sToken = s.SpanExcluding(_T(";,"));
+      }
+      CString sCommand;
+      sCommand.Format(_T("-environment-directory %s"), sPaths);
+      DoDebugCommand(sCommand);
+      sCommand.Format(_T("-environment-path %s"), sPaths);
+      DoDebugCommand(sCommand);
+   }
+
    return true;
 }
 
@@ -606,7 +633,9 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
    ATLASSERT(!::IsBadStringPtr(pstrCommand,-1));
 
    // Here is an important transformation. For ordinary GDB commands we format them
-   // as "232-gdb-exit" etc (prefixing with 232) so we can recognize the response easilier.
+   // as "232-command" (prefixing with 232) so we can recognize the response easilier.
+   // We currently don't use the number-prefix to recognize individual command sequences, but
+   // that may change in the future. So far we just hardcode a "random" number.
    CString sCommand = pstrCommand;
    if( pstrCommand[0] == '-' ) sCommand.Format(_T("232%s"), pstrCommand);
 
@@ -671,9 +700,9 @@ bool CDebugManager::_CheckStatus()
 }
 
 /**
-/* Parse stack frame information from debugger.
+ * Parse stack frame information from debugger.
  * Spread the word about debugger going to to "halted" state.
-/*/
+ */
 void CDebugManager::_ParseNewFrame(CMiInfo& info)
 {
    CString sFilename = info.GetItem(_T("file"), _T("frame"));
@@ -738,6 +767,7 @@ void CDebugManager::_ParseOutOfBand(LPCTSTR pstrText)
       //   'exited-signalled'
       //   'exited-with-errorcode'
       if( sValue.Find(_T("exited")) == 0 ) {
+         m_bSeendExit = true;
          SignalStop();
          return;
       }
@@ -962,6 +992,7 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       m_bCommandMode = false;
       if( m_nIgnoreErrors > 0 ) m_nIgnoreErrors--;
       m_nDebugAck++;
+      m_eventAck.SetEvent();
       return;
    }
    // Look at raw text always
@@ -976,7 +1007,7 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    // of the stream! This is obvious a GDB bug, but we'll try to
    // handle the situation by adding a command-handshake (see 
    // DoDebugCommand()) and by looking for substrings.
-   LPTSTR pstr = _tcsstr(pstrText, _T("232^"));
+   LPCTSTR pstr = _tcsstr(pstrText, _T("232^"));
    if( pstr ) _ParseResultRecord(pstr + 4);
    pstr = _tcsstr(pstrText, _T("232*"));
    if( pstr ) _ParseOutOfBand(pstr + 4);

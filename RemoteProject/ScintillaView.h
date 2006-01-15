@@ -21,6 +21,14 @@ public:
 
    CScintillaView();
 
+   typedef struct 
+   {
+      CString sName;
+      CString sType;
+      CString sScope;
+      CSimpleArray<CString> aDecl;
+   } MEMBERINFO;
+
    typedef struct
    {
       long lPos;
@@ -127,14 +135,6 @@ public:
    void OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText);
 
    // Implementation
-
-   typedef struct 
-   {
-      CString sName;
-      CString sType;
-      CString sScope;
-      CSimpleArray<CString> aDecl;
-   } MEMBERINFO;
 
    void _AutoComplete(CHAR ch);
    void _FunctionTip(CHAR ch);

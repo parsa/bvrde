@@ -63,6 +63,8 @@
 #define ID_BOOKMARKS_GOTO6              40106
 #define ID_BOOKMARKS_GOTO7              40107
 #define ID_BOOKMARKS_GOTO8              40108
+#define ID_SEARCH_GO                    40142
+#define ID_SEARCH_TEXT                  40143
 
 // Next default values for new objects
 // 

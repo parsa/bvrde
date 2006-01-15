@@ -97,12 +97,9 @@ void CTelnetView::DoPaint(CDCHandle dc)
    for( int i = 0; i < m_aLines.GetSize(); i++ ) {
       const LINE& line = m_aLines[i];
       switch( line.nColor ) {
-      case VT100_RED:
-         dc.SetTextColor(m_clrBack == m_clrDefBack ? RGB(240,220,200) : RGB(180,60,50));
-         break;
-      case VT100_GREEN:
-         dc.SetTextColor(m_clrBack == m_clrDefBack ? RGB(200,220,200) : RGB(50,120,50));
-         break;
+      case VT100_RED:   dc.SetTextColor(m_clrBack == m_clrDefBack ? RGB(240,220,200) : RGB(180,60,50)); break;
+      case VT100_GREEN: dc.SetTextColor(m_clrBack == m_clrDefBack ? RGB(200,240,220) : RGB(30,90,30)); break;
+      case VT100_BLUE:  dc.SetTextColor(m_clrBack == m_clrDefBack ? RGB(200,220,240) : RGB(30,30,90)); break;
       default:
          dc.SetTextColor(m_clrText);
          break;
@@ -277,6 +274,8 @@ void CTelnetView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
          pstrText = szOutput;
       }
    }
+
+   if( _tcsncmp(pstrText, _T("(gdb"), 4) == 0 ) nColor = VT100_BLUE;
 
    LINE newline = { nColor, 0 };
    _tcsncpy(newline.szText, pstrText, MAX_CHARS);

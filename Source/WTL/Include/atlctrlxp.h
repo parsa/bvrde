@@ -9,6 +9,7 @@
 // Alex Kamenev provided chevron support.
 // Thanks to Ramon Casellas for plenty for suggestions.
 // Nicola Tufarelli supplied fixes for button texts.
+// Tim France fixed the flat window animations.
 //
 // Overrides the original WTL CCommandBarCtrl.
 //
@@ -70,6 +71,7 @@ public:
 
    BEGIN_MSG_MAP(CFlatMenuWindow)
       MESSAGE_HANDLER(WM_NCPAINT, OnNcPaint)
+      MESSAGE_HANDLER(WM_PRINT, OnPrint)
 #ifdef __DIALOGSHADOWS_H__
       CHAIN_MSG_MAP( CDialogShadows<CFlatMenuWindow> )
 #endif // __DIALOGSHADOWS_H__
@@ -132,6 +134,65 @@ public:
       dc.SelectPen(hOldPen);
       dc.SelectBrush(hOldBrush);
       return 1;
+   }
+   LRESULT OnPrint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+   {
+      CDCHandle dc = (HDC) wParam;
+      RECT rcWin;
+      GetWindowRect(&rcWin);
+      ::OffsetRect(&rcWin, -rcWin.left, -rcWin.top);
+
+      // Do the same as in OnNcPaint, but draw to provided DC.
+      // Should there be a common method?
+      if( (lParam & PRF_NONCLIENT) != 0 )
+      {
+         // Paint frame
+         CBrush brushBack;
+         brushBack.CreateSolidBrush(m_clrBackground);
+         CPen pen;
+         pen.CreatePen(PS_SOLID, 1, m_clrHighlightBorder);
+         HPEN hOldPen = dc.SelectPen(pen);
+         HBRUSH hOldBrush = dc.SelectBrush(brushBack);
+         dc.Rectangle(rcWin.left, rcWin.top, rcWin.right, rcWin.bottom);
+         // Fill area to the left with grey color
+         CBrush brushColor;
+         brushColor.CreateSolidBrush(m_clrMenu);
+         RECT rcLeft = { rcWin.left + 1, rcWin.top + m_sizeBorder.cy, rcWin.left + m_sizeBorder.cx, rcWin.bottom - m_sizeBorder.cy };
+         dc.FillRect(&rcLeft, brushColor);
+         // If this is a top-level dropdown menu, smooth the top/left area
+         if( m_cxMenuButton > 0 ) {
+            CPen penColor;
+            penColor.CreatePen(PS_SOLID, 1, m_clrMenu);
+            dc.SelectPen(penColor);
+            dc.MoveTo(rcWin.left + 1, rcWin.top);
+            dc.LineTo(rcWin.left + m_cxMenuButton, rcWin.top);
+         }
+         dc.SelectPen(hOldPen);
+         dc.SelectBrush(hOldBrush);
+      }
+
+      // Get the system to draw all the items to a memory DC and then whack it
+      // on top of the background we just drew above
+      if( (lParam & PRF_CLIENT) != 0 )
+      {
+         RECT rcClient;
+         GetClientRect(&rcClient);
+         int cxClient = rcClient.right - rcClient.left;
+         int cyClient = rcClient.bottom - rcClient.top;
+         int offsetX = (rcWin.right - rcWin.left - cxClient) / 2;
+         int offsetY = (rcWin.bottom - rcWin.top - cyClient) / 2;
+         CDC memDC;
+         CBitmap memBM;
+         memDC.CreateCompatibleDC(dc);
+         memBM.CreateCompatibleBitmap(dc, cxClient, cyClient);
+         HBITMAP hOldBmp = memDC.SelectBitmap(memBM);
+         DefWindowProc(WM_PRINTCLIENT, (WPARAM) memDC.m_hDC, PRF_CLIENT);
+         dc.BitBlt(offsetX, offsetY, cxClient, cyClient, memDC, 0, 0, SRCCOPY);
+         memDC.SelectBitmap(hOldBmp);
+      }
+
+      bHandled = TRUE;
+      return 0;
    }
 };
 
@@ -385,58 +446,8 @@ public:
          y -= 1;                          // and move up the menu
       }
 
-#ifndef TPM_HORPOSANIMATION
-      const UINT TPM_HORPOSANIMATION = 0x0400;
-      const UINT TPM_HORNEGANIMATION = 0x0800;
-      const UINT TPM_VERPOSANIMATION = 0x1000;
-      const UINT TPM_VERNEGANIMATION = 0x2000;
-#endif // TPM_HORPOSANIMATION
-#ifndef TPM_NOANIMATION
-      const UINT TPM_NOANIMATION = 0x4000;
-#endif // TPM_NOANIMATION
-      OSVERSIONINFO ovi;
-      ovi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-      BOOL bRet = ::GetVersionEx(&ovi);
-      if( bRet && 
-          ovi.dwPlatformId == VER_PLATFORM_WIN32_NT && 
-          ovi.dwMajorVersion <= 4 ) 
-      {
-         // There are no menu-animations on Windows NT 4, so we
-         // don't tinker with the flags. NT4 might fail otherwise.
-         // Thanks to Andy Karels for this tip.
-      }
-      else {
-         // We need to turn off animations because they mess up the first menu paint.
-         // Thanks to Ramon Casellas for this tip.
-         uFlags |= TPM_NOANIMATION;
-         uFlags &= ~( TPM_HORPOSANIMATION | TPM_HORNEGANIMATION | TPM_VERPOSANIMATION | TPM_VERNEGANIMATION );
-      }
-
-      // Toggle menu fading/animation mode (Windows2K or later)
-#ifndef SPI_GETMENUFADE
-      const UINT SPI_GETMENUFADE = 0x1012;
-      const UINT SPI_SETMENUFADE = 0x1013;
-#endif // SPI_GETMENUFADE
-#ifndef SPI_GETMENUANIMATION
-      const UINT SPI_GETMENUANIMATION = 0x1002;
-      const UINT SPI_SETMENUANIMATION = 0x1003;
-#endif // SPI_GETMENUANIMATION
-#ifndef SPI_GETANIMATION
-      const UINT SPI_GETANIMATION = 0x0048;
-      const UINT SPI_SETANIMATION = 0x0049;
-#endif // SPI_GETANIMATION
-      BOOL bMenuFading = FALSE;
-      BOOL bMenuAnim = FALSE;
-      if( ovi.dwMajorVersion >= 5 )
-      {
-         bRet = ::SystemParametersInfo(SPI_GETMENUFADE, 0, &bMenuFading, 0);
-         bRet = ::SystemParametersInfo(SPI_GETMENUANIMATION, 0, &bMenuAnim, 0);
-         bRet = ::SystemParametersInfo(SPI_SETMENUFADE, 0, (LPVOID) FALSE, SPIF_SENDWININICHANGE);
-         bRet = ::SystemParametersInfo(SPI_SETMENUANIMATION, 0, (LPVOID) FALSE, SPIF_SENDWININICHANGE);
-      }
 #ifdef _CMDBAR_EXTRA_TRACE
-      ATLTRACE2(atlTraceUI, 0, "CmdBar - DoTrackPopupMenu:, bMenuFading = %s, bMenuAnim = %s\n",
-         bMenuFading ? "true" : "false", bMenuAnim ? "true" : "false");
+      ATLTRACE2(atlTraceUI, 0, "CmdBar - DoTrackPopupMenu\n");
 #endif
 
       // Figure out the size of the pressed button
@@ -479,13 +490,6 @@ public:
       UpdateWindow();
       CWindow wndTL = GetTopLevelParent();
       wndTL.UpdateWindow();
-
-      // Restore menu fade/animation mode (Windows2K or later)
-      if( ovi.dwMajorVersion >= 5 )
-      {
-         bRet = ::SystemParametersInfo(SPI_SETMENUFADE, 0, (LPVOID) bMenuFading, SPIF_SENDWININICHANGE);
-         bRet = ::SystemParametersInfo(SPI_SETMENUANIMATION, 0, (LPVOID) bMenuAnim, SPIF_SENDWININICHANGE);
-      }
 
       // Restore the menu items to the previous state for all menus that were converted
       if( m_bImagesVisible )
@@ -538,9 +542,9 @@ public:
 #ifdef _CMDBAR_EXTRA_TRACE
          ATLTRACE2(atlTraceUI, 0, "CmdBar - HCBT_CREATEWND (HWND = %8.8X)\n", hWndMenu);
 #endif
-
          ::GetClassName(hWndMenu, szClassName, 7);
-         if( ::lstrcmp(_T("#32768"), szClassName) == 0 ) {
+         if( ::lstrcmp(_T("#32768"), szClassName) == 0 ) 
+         {
             s_pCurrentBar->m_stackMenuWnd.Push(hWndMenu);
 
             // Subclass to a flat-looking menu
@@ -556,7 +560,6 @@ public:
 #ifdef _CMDBAR_EXTRA_TRACE
          ATLTRACE2(atlTraceUI, 0, "CmdBar - HCBT_DESTROYWND (HWND = %8.8X)\n", hWndMenu);
 #endif
-
          ::GetClassName(hWndMenu, szClassName, 7);
          if( ::lstrcmp(_T("#32768"), szClassName) == 0 )
          {

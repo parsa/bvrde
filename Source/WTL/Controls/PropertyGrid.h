@@ -174,7 +174,11 @@ inline HPROPERTY PropCreateBlockItem(LPCTSTR pstrName, LPARAM lParam = 0)
 template< class T, class TBase = CListViewCtrl, class TWinTraits = CWinTraitsOR<LVS_SINGLESEL|LVS_SHOWSELALWAYS> >
 class ATL_NO_VTABLE CPropertyGridImpl : 
    public CWindowImpl< T, TBase, TWinTraits >,
+#if _MSC_VER < 1400
    public CCustomDraw< CPropertyGridImpl >
+#else
+   public CCustomDraw< CPropertyGridImpl<T, TBase, TWinTraits> >
+#endif
 {
 public:
    DECLARE_WND_SUPERCLASS(NULL, TBase::GetWndClassName())

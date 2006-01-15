@@ -101,7 +101,7 @@ int CTagInfo::FindItem(int iStart, LPCTSTR pstrName)
    return -1;
 }
 
-bool CTagInfo::GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/)
+bool CTagInfo::GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult)
 {
    ATLASSERT(!::IsBadStringPtr(pstrName,-1));
    
@@ -174,19 +174,35 @@ bool CTagInfo::GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResu
       if( bAccept ) {
          // Create information.
          // Default is the stripped version of the search-expression
-         CString sValue = info.pstrToken;
-         sValue.TrimLeft(_T("/$~^* \t.,;"));
-         sValue.TrimRight(_T("/$~^* \t.,;"));
-         sValue.Replace(_T("\\/"), _T("/"));
-         // We might also have a complete tag signature.
-         // NOTE: Crappy CTAG doesn't include return value type!
-         for( short i = 0; i < info.nFields; i++ ) {
-            if( _tcsncmp(info.pstrFields[i], _T("signature:"), 10) == 0 ) {
-               sValue = CString(pstrName) + CString(info.pstrFields[i]).Mid(10);
-               break;
-            }
+         sResult = _T("");
+         if( (dwInfoType & TAGINFO_NAME) != 0 ) {
+            if( !sResult.IsEmpty() ) sResult += '|';
+            sResult += info.pstrName;
          }
-         aResult.Add(sValue);
+         if( (dwInfoType & TAGINFO_TYPE) != 0 ) {
+            if( !sResult.IsEmpty() ) sResult += '|';
+            sResult.Append((int)info.Type);
+         }
+         if( (dwInfoType & TAGINFO_DECLARATION) != 0 ) {
+            if( !sResult.IsEmpty() ) sResult += '|';
+            CString sValue = info.pstrToken;
+            sValue.TrimLeft(_T("/$~^* \t.,;"));
+            sValue.TrimRight(_T("/$~^* \t.,;"));
+            sValue.Replace(_T("\\/"), _T("/"));
+            // We might also have a complete tag signature.
+            // NOTE: Crappy CTAG doesn't include return value type!
+            for( short i = 0; i < info.nFields; i++ ) {
+               if( _tcsncmp(info.pstrFields[i], _T("signature:"), 10) == 0 ) {
+                  sValue = CString(pstrName) + CString(info.pstrFields[i]).Mid(10);
+                  break;
+               }
+            }
+            sResult += sValue;
+         }
+         if( (dwInfoType & TAGINFO_COMMENT) != 0 ) {
+            sResult += '|';
+         }
+         aResult.Add(sResult);
       }
       iIndex = FindItem(iIndex + 1, pstrName);
    }
@@ -358,7 +374,8 @@ bool CTagInfo::_LoadTags()
    m_bLoaded = true;
 
    // Look for all files in the project that contains the name "TAGS"...
-   for( int i = 0; i < m_pProject->GetItemCount(); i++ ) {
+   int i;
+   for( i = 0; i < m_pProject->GetItemCount(); i++ ) {
       IView* pView = m_pProject->GetItem(i);
       CString sName;
       pView->GetName(sName.GetBufferSetLength(128), 128);

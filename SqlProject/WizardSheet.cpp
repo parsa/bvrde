@@ -78,11 +78,12 @@ int CProviderPage::OnWizardNext()
    HRESULT Hr = m_pProject->m_pWizardView->m_Db.m_spInit.CoCreateInstance(clsid);
    if( FAILED(Hr) ) return -1;
 
-   const nProps = 2;
+   const int nProps = 2;
    DBPROP Prop[nProps];
    DBPROPSET PropSet;
    // Initialize common property options.
-   for( ULONG i = 0; i < nProps; i++ ) {
+   ULONG i;
+   for( i = 0; i < nProps; i++ ) {
       ::VariantInit(&Prop[i].vValue);
       Prop[i].dwOptions = DBPROPOPTIONS_REQUIRED;
       Prop[i].colid = DB_NULLID;
@@ -162,11 +163,12 @@ int CDefaultConnectionDlg::OnWizardNext()
    CComBSTR bstrCatalog = CWindowText(GetDlgItem(IDC_CATALOG));
    VARIANT_BOOL vbSavePassword = CButton(GetDlgItem(IDC_SAVEPASSWORD)).GetCheck() == BST_CHECKED ? VARIANT_TRUE : VARIANT_FALSE;
 
-   const nProps = 6;
+   const int nProps = 6;
    DBPROP Prop[nProps];
    DBPROPSET PropSet;
    // Initialize common property options.
-   for( ULONG i = 0; i < nProps; i++ ) {
+   ULONG i;
+   for( i = 0; i < nProps; i++ ) {
       ::VariantInit(&Prop[i].vValue);
       Prop[i].dwOptions = DBPROPOPTIONS_REQUIRED;
       Prop[i].colid = DB_NULLID;

@@ -72,6 +72,25 @@ typedef enum GUIACTION
 	GUI_ACTION_FILE_RELOAD,
 };
 
+typedef enum VT100COLOR
+{
+   VT100_DEFAULT = 0,
+   VT100_HIDDEN = 8,
+   VT100_BLACK = 30,
+   VT100_RED = 31,
+   VT100_GREEN = 32,
+   VT100_YELLOW = 33,
+   VT100_BLUE = 34,
+   VT100_MAGENTA = 35,
+   VT100_CYAN = 36,
+   VT100_WHITE = 37,
+};
+
+#define TAGINFO_NAME          0x00000001
+#define TAGINFO_DECLARATION   0x00000002
+#define TAGINFO_TYPE          0x00000004
+#define TAGINFO_COMMENT       0x00000008
+
 typedef struct
 {
    LAZYACTION Action;
@@ -112,20 +131,6 @@ typedef struct tagTAGINFO
 
 //////////////////////////////////////////////////////////////
 //
-
-typedef enum VT100COLOR
-{
-   VT100_DEFAULT = 0,
-   VT100_HIDDEN = 8,
-   VT100_BLACK = 30,
-   VT100_RED = 31,
-   VT100_GREEN = 32,
-   VT100_YELLOW = 33,
-   VT100_BLUE = 34,
-   VT100_MAGENTA = 35,
-   VT100_CYAN = 36,
-   VT100_WHITE = 37,
-};
 
 class IOutputLineListener
 {
@@ -202,7 +207,7 @@ public:
    virtual bool GetOuterList(CSimpleValArray<TAGINFO*>& aList) = 0;
    virtual bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList) = 0;
    virtual bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance) = 0;
-   virtual bool GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner = NULL) = 0;
+   virtual bool GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult) = 0;
 };
 
 

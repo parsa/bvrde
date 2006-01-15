@@ -43,6 +43,7 @@ public:
    bool m_bAutoClose;               // Automatically close HTML/XML tags?
    bool m_bAutoCase;                // Automatically determine case?
    bool m_bAutoSuggest;             // Use auto-suggestion?
+   bool m_bInitialized;             // Initialized first time?
    //
    static FINDREPLACEA s_frFind;    // The Find dialog information
    bool m_bAutoCompleteNext;        // AutoComplete displayed at next char added?
@@ -95,6 +96,7 @@ public:
       COMMAND_ID_HANDLER(ID_EDIT_VIEWEOL, OnViewEOL)
       COMMAND_ID_HANDLER(ID_EDIT_VIEWTABS, OnViewIndentGuides)
       COMMAND_ID_HANDLER(ID_EDIT_VIEWWORDWRAP, OnViewWordWrap)
+      COMMAND_ID_HANDLER(ID_SEARCH_GO, OnSearchGo)
       COMMAND_ID_HANDLER(ID_BOOKMARK_TOGGLE, OnMarkerToggle)
       COMMAND_ID_HANDLER(ID_BOOKMARK_CLEAR, OnMarkerClear)
       COMMAND_ID_HANDLER(ID_BOOKMARK_PREVIOUS, OnMarkerPrevious)
@@ -136,6 +138,7 @@ public:
    LRESULT OnViewEOL(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewIndentGuides(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewWordWrap(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnSearchGo(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMarkerToggle(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMarkerClear(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMarkerNext(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
@@ -162,13 +165,15 @@ public:
    void _SetLineIndentation(int iLine, int iIndent);
    CString _FindOpenXmlTag(LPCSTR sel, int nSize) const;
    bool _ReplaceOnce();
-   int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings);
+   int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings, bool bShowFindDlg);
    CString _GetNearText(long lPosition);
    bool _iseditchar(char ch) const;
    bool _IsValidInsertPos(long lPos) const;
    void _GetSyntaxStyle(LPCTSTR pstrName, SYNTAXCOLOR& syntax);
    bool _AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) const;
    void _DefineMarker(int nMarker, int nType, COLORREF clrFore, COLORREF clrBack);
+   void _SaveBookmarks();
+   void _RestoreBookmarks();
 };
 
 

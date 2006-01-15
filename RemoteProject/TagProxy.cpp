@@ -61,12 +61,12 @@ int CTagManager::FindItem(int iStart, LPCTSTR pstrName)
    return -1;
 }
 
-bool CTagManager::GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/)
+bool CTagManager::GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult)
 {
    if( pstrName == NULL ) return false;
    if( _tcslen(pstrName) == 0 ) return false;
-   bool bRes = m_LexInfo.GetItemDeclaration(pstrName, aResult, pstrOwner);
-   if( !bRes ) bRes = m_TagInfo.GetItemDeclaration(pstrName, aResult, pstrOwner);
+   bool bRes = m_LexInfo.GetItemInfo(pstrName, pstrOwner, dwInfoType, aResult);
+   if( !bRes ) bRes = m_TagInfo.GetItemInfo(pstrName, pstrOwner, dwInfoType, aResult);
    return bRes;
 }
 

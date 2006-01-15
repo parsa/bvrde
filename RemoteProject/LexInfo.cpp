@@ -158,7 +158,7 @@ int CLexInfo::FindItem(int iStart, LPCTSTR pstrName)
    return -1;
 }
 
-bool CLexInfo::GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/)
+bool CLexInfo::GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult)
 {
    if( !m_bLoaded ) _LoadTags();
    if( m_aFiles.GetSize() == 0 ) return false;
@@ -195,7 +195,23 @@ bool CLexInfo::GetItemDeclaration(LPCTSTR pstrName, CSimpleArray<CString>& aResu
             // Owner has to match...
             if( pstrOwner != NULL && _tcscmp(pstrOwner, info.pstrFields[0]) != 0 ) break;
             // So this is our function signature...
-            sResult = info.pstrToken;
+            sResult = _T("");
+            if( (dwInfoType & TAGINFO_NAME) != 0 ) {
+               if( !sResult.IsEmpty() ) sResult += '|';
+               sResult += info.pstrName;
+            }
+            if( (dwInfoType & TAGINFO_TYPE) != 0 ) {
+               if( !sResult.IsEmpty() ) sResult += '|';
+               sResult.Append((int)info.Type);
+            }
+            if( (dwInfoType & TAGINFO_DECLARATION) != 0 ) {
+               if( !sResult.IsEmpty() ) sResult += '|';
+               sResult += info.pstrToken;
+            }
+            if( (dwInfoType & TAGINFO_COMMENT) != 0 ) {
+               if( !sResult.IsEmpty() ) sResult += '|';
+               if( info.nFields > 1 ) sResult += info.pstrFields[1];
+            }
             aResult.Add(sResult);
          }
          for( n++; n < nCount; n++ ) {

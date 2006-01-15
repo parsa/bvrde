@@ -265,6 +265,8 @@ LRESULT CRemoteProject::OnViewOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
    IView* pView = static_cast<IView*>(pElement);
    if( !pView->OpenView(1) ) {
+      // View didn't exist. Let's ask the user if he wants to create a new file
+      // with that name.
       if( ::GetLastError() == ERROR_FILE_NOT_FOUND ) {
          HWND hWnd = ::GetActiveWindow();
          if( IDYES == _pDevEnv->ShowMessageBox(hWnd, CString(MAKEINTRESOURCE(IDS_CREATEFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), MB_YESNO | MB_ICONQUESTION) ) {
@@ -703,6 +705,13 @@ LRESULT CRemoteProject::OnDebugStepInto(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
    return 0;
 }
 
+LRESULT CRemoteProject::OnDebugStepInstruction(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+   DelayedDebugCommand(_T("-exec-step-instruction"));
+   return 0;
+}
+
 LRESULT CRemoteProject::OnDebugStepOut(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
@@ -723,6 +732,8 @@ LRESULT CRemoteProject::OnDebugQuickWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 
    ATLASSERT(m_DebugManager.IsDebugging());
    if( !m_DebugManager.IsDebugging() ) return 0;
+
+   // Remove previous dialog
    if( m_pQuickWatchDlg ) delete m_pQuickWatchDlg;
 
    // Ask active editor window to retrieve the selected/caret text

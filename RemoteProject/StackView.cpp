@@ -53,7 +53,8 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    else if( _tcscmp(pstrType, _T("stack")) == 0 
             || _tcscmp(pstrType, _T("new-thread-id")) == 0 )
    {
-      _SelectThread( _ttol(info.GetItem(_T("new-thread-id"))) );
+      CString sValue = info.GetItem(_T("new-thread-id"));
+      if( !sValue.IsEmpty() ) _SelectThread(_ttol(sValue));
       m_ctrlStack.ResetContent();
       CString sLevel = info.GetItem(_T("level"));
       while( !sLevel.IsEmpty() ) {

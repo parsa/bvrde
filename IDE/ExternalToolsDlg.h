@@ -354,7 +354,8 @@ public:
 
       CRegSerializer arc;
       if( arc.Create(REG_BVRDE _T("\\Tools")) ) {
-         for( int i = 0; i < m_ctrlList.GetItemCount(); i++ ) {
+         int i;
+         for( i = 0; i < m_ctrlList.GetItemCount(); i++ ) {
             TOOL* pTool = (TOOL*) m_ctrlList.GetItemData(i);
             CString sKey;
             sKey.Format(_T("Tool%ld"), i + 1);

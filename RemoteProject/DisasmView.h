@@ -21,14 +21,26 @@ public:
       LONG pos;
    };
 
+   enum
+   {
+      IDC_SCROLLUP = 0x2000,
+      IDC_SCROLLDOWN,
+   };
+
    CDisasmView();
 
    CRemoteProject* m_pProject;
    CEdit m_ctrlAddress;
+   CButton m_ctrlUp;
+   CButton m_ctrlDown;
    CRichEditCtrl m_ctrlView;
+   CFont m_fontWingdings;
    TEXTMETRIC m_tm;
    bool m_bIntelStyle;
    bool m_bShowSource;
+   bool m_bDontResetOffset;
+   BYTE m_iLastStyle;
+   long m_lOffset;
 
    // Operations
 
@@ -36,6 +48,8 @@ public:
    bool WantsData();
    void PopulateView(CSimpleArray<CString>& aDbgCmd);
    void SetInfo(LPCTSTR pstrType, CMiInfo& info);
+
+   int _GetPageSize() const;
 
    // Implementation
 
@@ -52,15 +66,24 @@ public:
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
       MESSAGE_HANDLER(WM_SIZE, OnSize)
       MESSAGE_HANDLER(WM_CONTEXTMENU, OnContextMenu)
+      COMMAND_ID_HANDLER(ID_DEBUG_STEP_INTO, OnProjectCommand)
+      COMMAND_ID_HANDLER(ID_DEBUG_STEP_INSTRUCTION, OnProjectCommand)
       COMMAND_ID_HANDLER(ID_DISASM_SHOWSOURCE, OnShowSource)
       COMMAND_ID_HANDLER(ID_DISASM_INTELSTYLE, OnIntelStyle)
+      COMMAND_ID_HANDLER(ID_DISASM_CURRENT, OnGotoCurrent)
+      COMMAND_ID_HANDLER(IDC_SCROLLDOWN, OnScrollDown)
+      COMMAND_ID_HANDLER(IDC_SCROLLUP, OnScrollUp)
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnContextMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnProjectCommand(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnShowSource(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnIntelStyle(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnGotoCurrent(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnScrollUp(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnScrollDown(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 };
 
 

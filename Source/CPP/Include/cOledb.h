@@ -33,7 +33,9 @@
 #include <msdaguid.h>      // OLE DB Root Enumerator
 #include <msdasql.h>       // MSDASQL - Default provider
 #pragma comment(lib, "oledb.lib")
+#if _MSC_VER < 1400
 #pragma comment(lib, "oledbd.lib")
+#endif
 
 #include "cDb.h"
 

@@ -346,7 +346,7 @@ public:
       pT->UpdateLayout();
       Invalidate();
    }
-   AUTOPANE* FindPane(HWND hWnd) const
+   const AUTOPANE* FindPane(HWND hWnd) const
    {
       for( int i = 0; i < m_panes.GetSize(); i++ ) if( m_panes[i].hWnd == hWnd ) return &m_panes[i];
       return NULL;
@@ -707,9 +707,9 @@ public:
    BOOL RemoveView(HWND hWnd)
    {
       ATLASSERT(::IsWindow(hWnd));
-      AUTOPANE* pPane = m_wndPane[AUTOHIDE_LEFT].FindPane(hWnd);
+      AUTOPANE* pPane = const_cast<AUTOPANE*>(m_wndPane[AUTOHIDE_LEFT].FindPane(hWnd));
       if( pPane ) m_wndPane[AUTOHIDE_LEFT].RemovePane(pPane);
-      pPane = m_wndPane[AUTOHIDE_BOTTOM].FindPane(hWnd);
+      pPane = const_cast<AUTOPANE*>(m_wndPane[AUTOHIDE_BOTTOM].FindPane(hWnd));
       if( pPane ) m_wndPane[AUTOHIDE_BOTTOM].RemovePane(pPane);
       T* pT = static_cast<T*>(this);
       pT->UpdateLayout();
