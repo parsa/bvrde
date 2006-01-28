@@ -20,6 +20,7 @@ CRemoteFileDlg::CRemoteFileDlg(BOOL bOpenFileDialog, // TRUE for FileOpen, FALSE
    m_dwFlags = dwFlags;
    ::ZeroMemory(&m_ofn, sizeof(m_ofn));
    m_bInside = false;
+   m_bUseCache = true;
    m_pstrBuffer = NULL;
 }
 
@@ -75,10 +76,13 @@ LRESULT CRemoteFileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    // Buttons
    m_BackIcon.LoadIcon(IDI_BACK, 16, 16);
    m_UpIcon.LoadIcon(IDI_UP, 16, 16);
+   m_RefreshIcon.LoadIcon(IDI_REFRESH, 16, 16);
    m_ctrlBack = GetDlgItem(IDC_BACK);
    m_ctrlBack.SetIcon(m_BackIcon);
    m_ctrlUp = GetDlgItem(IDC_UP);
    m_ctrlUp.SetIcon(m_UpIcon);
+   m_ctrlRefresh = GetDlgItem(IDC_REFRESH);
+   m_ctrlRefresh.SetIcon(m_RefreshIcon);
 
    // Prepare filter
    if( m_pstrFilter ) {
@@ -120,7 +124,13 @@ LRESULT CRemoteFileDlg::OnUp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
    int pos = sPath.ReverseFind(m_sSeparator.GetAt(0));
    if( pos >= 0 ) sPath = sPath.Left(pos + 1);
    _PopulateView(sPath);
-   m_ctrlUp.SetButtonStyle(BS_PUSHBUTTON);
+   return 0;
+}
+
+LRESULT CRemoteFileDlg::OnRefresh(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   m_bUseCache = false;
+   _PopulateView(m_sPath);
    return 0;
 }
 
@@ -234,7 +244,7 @@ LRESULT CRemoteFileDlg::OnFilenameChanged(WORD /*wNotifyCode*/, WORD wID, HWND /
    _GetSelectedFiles(aFiles);
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
       if( sFilenames.Find(aFiles[i]) < 0 ) {
-         // Remove selected file if it's not here anymore
+         // Remove selection on item if it's not here anymore
          LV_FINDINFO fi = { 0 };
          fi.flags = LVFI_STRING;
          fi.psz = aFiles[i];
@@ -298,8 +308,11 @@ void CRemoteFileDlg::_UpdateButtons()
       if( lvi.lParam & FILE_ATTRIBUTE_DIRECTORY ) bFolderSelected = TRUE;
       iIndex = m_ctrlList.GetNextItem(iIndex, LVNI_SELECTED);
    }
+   m_ctrlUp.SetButtonStyle(BS_PUSHBUTTON);
+   m_ctrlRefresh.SetButtonStyle(BS_PUSHBUTTON);
    m_ctrlOK.EnableWindow(bHasFilename && (nSelCount <= 1 || !bFolderSelected));
    m_ctrlUp.EnableWindow(m_ctrlFolder.GetCurSel() >= 1);
+   m_ctrlRefresh.EnableWindow(TRUE);
 }
 
 bool CRemoteFileDlg::_PopulateView(LPCTSTR pstrPath)
@@ -315,11 +328,12 @@ bool CRemoteFileDlg::_PopulateView(LPCTSTR pstrPath)
    m_pFileManager->SetCurPath(m_sPath);
 
    CSimpleArray<WIN32_FIND_DATA> aFiles;
-   if( !m_pFileManager->EnumFiles(aFiles) ) {
+   if( !m_pFileManager->EnumFiles(aFiles, m_bUseCache) ) {
       m_ctrlList.DeleteAllItems();
       m_ctrlNoConnection.ShowWindow(SW_SHOW);
       return false;
    }
+   m_bUseCache = true;
 
    CSimpleArray<CString> aFilters;
    _GetSelectedFilters(m_ctrlTypes.GetCurSel(), aFilters);

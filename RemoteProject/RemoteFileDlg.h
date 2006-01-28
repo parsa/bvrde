@@ -32,6 +32,7 @@ public:
    CString m_sPath;
    LPTSTR m_pstrBuffer;
    bool m_bInside;
+   bool m_bUseCache;
 
    CImageListCtrl m_FolderImages;
    CImageListCtrl m_FileImages;
@@ -42,8 +43,10 @@ public:
    CComboBox m_ctrlTypes;
    CIcon m_BackIcon;
    CIcon m_UpIcon;
+   CIcon m_RefreshIcon;
    CButton m_ctrlBack;
    CButton m_ctrlUp;
+   CButton m_ctrlRefresh;
    CButton m_ctrlOK;
 
    CRemoteFileDlg(BOOL bOpenFileDialog, // TRUE for FileOpen, FALSE for FileSaveAs
@@ -67,6 +70,7 @@ public:
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
       MESSAGE_HANDLER(WM_CTLCOLORSTATIC, OnCtlColorStatic)
       COMMAND_ID_HANDLER(IDC_UP, OnUp)
+      COMMAND_ID_HANDLER(IDC_REFRESH, OnRefresh)
       COMMAND_ID_HANDLER(IDOK, OnOK)
       COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
       COMMAND_HANDLER(IDC_FOLDER, CBN_SELCHANGE, OnFolderChanged)
@@ -80,6 +84,7 @@ public:
    LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnUp(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnRefresh(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnOK(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnCancel(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnFolderChanged(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

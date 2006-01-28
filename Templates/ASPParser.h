@@ -107,7 +107,7 @@ public:
    void SetLanguage(LPCWSTR pstrLanguage)
    {
       ATLASSERT(pstrLanguage);
-      if( :lstrcmpi(pstrLanguage, L"VBSCRIPT") == 0 ) {
+      if( ::lstrcmpiW(pstrLanguage, L"VBSCRIPT") == 0 ) {
          wcscpy( m_szWriteEval_Start, L"Response.Write " );
          wcscpy( m_szWriteEval_End, L"" );
          wcscpy( m_szStatement, L":" );

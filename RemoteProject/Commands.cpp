@@ -687,7 +687,7 @@ LRESULT CRemoteProject::OnDebugBreak(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 LRESULT CRemoteProject::OnDebugStop(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
-   m_DebugManager.SignalStop();
+   m_DebugManager.ProgramStop();
    return 0;
 }
 
@@ -765,7 +765,7 @@ LRESULT CRemoteProject::OnDebugArguments(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
    if( m_DebugManager.IsDebugging() ) return 0;
    CRunArgumentsDlg dlg;
    dlg.Init(this);
-   dlg.DoModal();
+   if( dlg.DoModal() == IDOK ) m_bIsDirty = true;
    return 0;
 }
 

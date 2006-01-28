@@ -90,6 +90,18 @@ public:
          }
       }
 
+      // Extract current selection from view
+      IView* pView = _pDevEnv->GetActiveView();
+      if( pView ) {
+         IDispatch* pDisp = pView->GetDispatch();
+         if( pDisp ) {
+            CComDispatchDriver dd = pDisp;
+            CComVariant vText;
+            dd.GetPropertyByName(OLESTR("GetSelection"), &vText);
+            if( vText.vt == VT_BSTR && ::SysStringLen(vText.bstrVal) > 0 ) m_ctrlFindText.SetWindowText(W2CT(vText.bstrVal));
+         }
+      }
+
       _UpdateButtons();
 
       return (LRESULT) TRUE;

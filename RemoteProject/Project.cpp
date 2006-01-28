@@ -868,6 +868,7 @@ int CRemoteProject::_GetElementImage(IElement* pElement) const
    if( _tcscmp(szType, _T("HTML")) == 0 ) return IMAGE_HTML;
    if( _tcscmp(szType, _T("BASIC")) == 0 ) return IMAGE_BASIC;
    if( _tcscmp(szType, _T("Header")) == 0 ) return IMAGE_HEADER;
+   if( _tcscmp(szType, _T("ShellScript")) == 0 ) return IMAGE_BASH;
    if( _tcscmp(szType, _T("Makefile")) == 0 ) return IMAGE_MAKEFILE;
    return IMAGE_TEXT;
 }

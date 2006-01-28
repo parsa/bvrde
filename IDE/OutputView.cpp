@@ -5,7 +5,6 @@
 #include "OutputView.h"
 
 
-/////////////////////////////////////////////////////////////////////////
 // Constructor
 
 COutputView::COutputView()
@@ -17,7 +16,6 @@ void COutputView::Clear()
    SetWindowText(_T(""));
 }
 
-/////////////////////////////////////////////////////////////////////////
 // Message handlers
 
 LRESULT COutputView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

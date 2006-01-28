@@ -90,8 +90,10 @@ void CMainFrame::_LoadSettings()
          _AddProperty(&reg, _T("pane-bottom"), _T("window.pane.bottom"));
          _AddProperty(&reg, _T("properties-cy"), _T("window.properties.cy"));
          _AddProperty(&reg, _T("properties-pos"), _T("window.properties.pos"));
+         _AddProperty(&reg, _T("properties-area"), _T("window.properties.area"));
          _AddProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
          _AddProperty(&reg, _T("explorer-pos"), _T("window.explorer.pos"));
+         _AddProperty(&reg, _T("explorer-area"), _T("window.explorer.area"));
          _AddProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
          reg.ReadGroupEnd();
       }
@@ -399,8 +401,10 @@ void CMainFrame::_SaveSettings()
       _StoreProperty(&reg, _T("pane-bottom"), _T("window.pane.bottom"));
       _StoreProperty(&reg, _T("properties-cy"), _T("window.properties.cy"));
       _StoreProperty(&reg, _T("properties-pos"), _T("window.properties.pos"));
+      _StoreProperty(&reg, _T("properties-area"), _T("window.properties.area"));
       _StoreProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
       _StoreProperty(&reg, _T("explorer-pos"), _T("window.explorer.pos"));
+      _StoreProperty(&reg, _T("explorer-area"), _T("window.explorer.area"));
       _StoreProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
       reg.WriteGroupEnd();
       reg.WriteGroupBegin(_T("DebugViews"));
@@ -471,19 +475,23 @@ void CMainFrame::_SaveUIState()
    ::wsprintf(szBuffer, _T("%ld"), m_Dock.GetPaneSize(DOCK_BOTTOM));
    SetProperty(_T("window.pane.bottom"), szBuffer);
 
-   RECT rc = { 0 };
+   RECT rcPane = { 0 };
    int iDockState = 0;
-   m_Dock.GetWindowState(m_viewExplorer, iDockState, rc);
+   m_Dock.GetWindowState(m_viewExplorer, iDockState, rcPane);
    if( iDockState < IDE_DOCK_FLOAT || iDockState == IDE_DOCK_HIDE  ) {
-      ::wsprintf(szBuffer, _T("%ld"), rc.bottom - rc.top);
+      ::wsprintf(szBuffer, _T("%ld"), rcPane.bottom - rcPane.top);
       SetProperty(_T("window.explorer.cy"), szBuffer);
+      ::wsprintf(szBuffer, _T("%ld"), m_Dock.GetPaneHeight(iDockState));
+      SetProperty(_T("window.explorer.area"), szBuffer);
       ::wsprintf(szBuffer, _T("%ld"), iDockState);
       SetProperty(_T("window.explorer.pos"), szBuffer);
    }
-   m_Dock.GetWindowState(m_viewProperties, iDockState, rc);
+   m_Dock.GetWindowState(m_viewProperties, iDockState, rcPane);
    if( iDockState < IDE_DOCK_FLOAT || iDockState == IDE_DOCK_HIDE ) {
-      ::wsprintf(szBuffer, _T("%ld"), rc.bottom - rc.top);
+      ::wsprintf(szBuffer, _T("%ld"), rcPane.bottom - rcPane.top);
       SetProperty(_T("window.properties.cy"), szBuffer);
+      ::wsprintf(szBuffer, _T("%ld"), m_Dock.GetPaneHeight(iDockState));
+      SetProperty(_T("window.properties.area"), szBuffer);
       ::wsprintf(szBuffer, _T("%ld"), iDockState);
       SetProperty(_T("window.properties.pos"), szBuffer);
    }

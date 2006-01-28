@@ -220,7 +220,7 @@ CString GetFileTypeFromFilename(LPCTSTR pstrFilename)
    _tcscpy(szExtension, sFilename);
    CString sExtension = ::PathFindExtension(szExtension);
    CString sKey;
-   sKey.Format(_T("file.mappings%s"), sExtension);
+   sKey.Format(_T("file.mappings%s"), sExtension);  // NOTE: Extension includes a dot char.
    TCHAR szValue[200] = { 0 };
    if( _pDevEnv->GetProperty(sKey, szValue, 199) ) return szValue;  
    if( sExtension == _T(".") ) return _T("makefile");
@@ -240,6 +240,7 @@ CTextFile* CreateViewFromFilename(IDevEnv* pDevEnv,
    CString sType = GetFileTypeFromFilename(pstrFilename);
    if( sType == _T("cpp") ) return new CCppFile(pCppProject, pProject, pParent);
    if( sType == _T("header") ) return new CHeaderFile(pCppProject, pProject, pParent);
+   if( sType == _T("bash") ) return new CBashFile(pCppProject, pProject, pParent);
    if( sType == _T("makefile") ) return new CMakeFile(pCppProject, pProject, pParent);
    if( sType == _T("java") ) return new CJavaFile(pCppProject, pProject, pParent);
    if( sType == _T("basic") ) return new CBasicFile(pCppProject, pProject, pParent);

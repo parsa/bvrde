@@ -580,6 +580,10 @@ SOURCE=.\res\up.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\up1.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\warning.ico
 # End Source File
 # Begin Source File

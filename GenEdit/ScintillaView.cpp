@@ -312,6 +312,24 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       };
       ppStyles = aMakefileStyles;
    }
+   else if( m_sLanguage == _T("bash") ) 
+   {
+      // Make really sure it's the BASH lexer
+      SetLexer(SCLEX_BASH);
+
+      static int aBashStyles[] = 
+      {
+         STYLE_DEFAULT,          0,
+         SCE_SH_DEFAULT,         0,
+         SCE_SH_COMMENTLINE,     1,
+         SCE_SH_STRING,          2,
+         SCE_SH_CHARACTER,       2,
+         SCE_SH_NUMBER,          3,
+         SCE_SH_IDENTIFIER,      3,
+         -1, -1,
+      };
+      ppStyles = aBashStyles;
+   }
    else if( m_sLanguage == _T("java") ) 
    {
       // Make really sure it's the CPP (includes JAVA syntax) lexer
@@ -1235,6 +1253,21 @@ void CScintillaView::_MaintainIndent(CHAR ch)
             }
          }
       }
+      if( m_sLanguage == _T("bash") ) 
+      {
+         if( ch == '\n' ) {
+            CHAR szText[256] = { 0 };
+            if( GetLineLength(iLastLine) >= sizeof(szText) - 1 ) return;
+            GetLine(iLastLine, szText);
+            CString sLine = szText;
+            int iPos = sLine.Find('#'); if( iPos >= 0 ) sLine = sLine.Left(iPos);
+            sLine.TrimLeft();
+            sLine.TrimRight();
+            if( sLine == _T("do") || sLine == _T("then") || sLine == _T("else") || sLine == _T("elif") || sLine == _T("{") ) {
+               iIndentAmount += iIndentWidth;
+            }
+         }
+      }
       if( m_sLanguage == _T("html") || m_sLanguage == _T("asp") || m_sLanguage == _T("php") )
       {
          if( ch == '\n' 
@@ -1710,6 +1743,8 @@ bool CScintillaView::_IsValidInsertPos(long lPos) const
       { SCE_HJ_STRINGEOL,      _T("java") },
       { SCE_HJ_COMMENT,        _T("java") },
       { SCE_HJ_STRINGEOL,      _T("java") },
+      { SCE_SH_STRING,         _T("bash") },
+      { SCE_SH_COMMENTLINE,    _T("bash") },
       { SCE_HBA_STRING,        _T("basic") },
       { SCE_HBA_COMMENTLINE,   _T("basic") },
       { SCE_HPA_STRING,        _T("pascal") },

@@ -175,6 +175,7 @@
 #define IDS_LANG_ENGLISH                250
 #define IDS_LANG_GERMAN                 251
 #define IDS_RESTART                     252
+#define IDS_TREE_BASH                   253
 #define IDD_MSGBOX                      263
 #define IDI_MSG_INFORMATION             264
 #define IDI_MSG_WARNING                 265
@@ -184,6 +185,7 @@
 #define IDI_UP                          269
 #define IDI_DOWN                        270
 #define IDI_DROPARROW                   271
+#define IDI_REFRESH                     272
 #define IDC_RADIO1                      1002
 #define IDC_RADIO2                      1003
 #define IDC_RADIO3                      1004
@@ -340,7 +342,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        241
+#define _APS_NEXT_RESOURCE_VALUE        243
 #define _APS_NEXT_COMMAND_VALUE         32874
 #define _APS_NEXT_CONTROL_VALUE         1090
 #define _APS_NEXT_SYMED_VALUE           101

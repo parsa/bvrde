@@ -192,7 +192,7 @@ CString CFileProtocol::GetCurPath()
    return m_sPath;
 }
 
-bool CFileProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
+bool CFileProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool /*bUseCache*/)
 {
    WIN32_FIND_DATA fd = { 0 };
    CString sPattern;

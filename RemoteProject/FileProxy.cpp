@@ -167,11 +167,11 @@ CString CFileManager::GetCurPath()
    return m_pProtocol->GetCurPath();
 }
 
-bool CFileManager::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
+bool CFileManager::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool bUseCache)
 {
    ATLASSERT(m_pProtocol);
    if( m_pProtocol == NULL ) return false;
-   return m_pProtocol->EnumFiles(aFiles);
+   return m_pProtocol->EnumFiles(aFiles, bUseCache);
 }
 
 CString CFileManager::FindFile(LPCTSTR pstrFilename)

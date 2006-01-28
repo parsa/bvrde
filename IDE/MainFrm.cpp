@@ -84,27 +84,6 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    // Load UI settngs and change pane sizes
    _LoadUIState();
 
-   // Create docked Solution Explorer views
-   CString sExplorerName(MAKEINTRESOURCE(IDS_SOULTIONEXPLORER));
-   m_viewExplorer.Create(m_Dock, rcDefault, sExplorerName, ATL_SIMPLE_DOCKVIEW_STYLE);
-   m_Dock.AddWindow(m_viewExplorer);
-   TCHAR szBuffer[64] = { 0 };
-   GetProperty(_T("window.explorer.pos"), szBuffer, 63);   
-   short iSide = (short) _ttoi(szBuffer);
-   if( _tcslen(szBuffer) == 0 || iSide == IDE_DOCK_FLOAT ) iSide = DOCK_RIGHT;
-   GetProperty(_T("window.explorer.cy"), szBuffer, 63);
-   m_Dock.DockWindow(m_viewExplorer, iSide, _ttoi(szBuffer));
-
-   // Create docked Properties views
-   CString sPropertiesName(MAKEINTRESOURCE(IDS_PROPERTIES));
-   m_viewProperties.Create(m_Dock, rcDefault, sPropertiesName, ATL_SIMPLE_DOCKVIEW_STYLE);
-   m_Dock.AddWindow(m_viewProperties);
-   GetProperty(_T("window.properties.pos"), szBuffer, 63);
-   iSide = (short) _ttoi(szBuffer);
-   if( _tcslen(szBuffer) == 0 || iSide == IDE_DOCK_FLOAT ) iSide = DOCK_RIGHT;
-   GetProperty(_T("window.properties.cy"), szBuffer, 63);
-   m_Dock.DockWindow(m_viewProperties, iSide, _ttoi(szBuffer));
-
    // Attach MDI Container (manages the MDI Client and tabbed frame)
    DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
    m_MDIContainer.Create(m_Dock, rcDefault, NULL, dwStyle);
@@ -119,6 +98,30 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    m_AutoHide.SetImageList(m_Images);
    m_AutoHide.SetClient(m_Dock);
    m_hWndClient = m_AutoHide;
+
+   // Create docked Solution Explorer views
+   CString sExplorerName(MAKEINTRESOURCE(IDS_SOULTIONEXPLORER));
+   m_viewExplorer.Create(m_Dock, rcDefault, sExplorerName, ATL_SIMPLE_DOCKVIEW_STYLE);
+   m_Dock.AddWindow(m_viewExplorer);
+   TCHAR szBuffer1[64] = { 0 };
+   TCHAR szBuffer2[64] = { 0 };
+   GetProperty(_T("window.explorer.pos"), szBuffer1, 63);   
+   short iSide = (short) _ttoi(szBuffer1);
+   if( _tcslen(szBuffer1) == 0 || iSide == IDE_DOCK_FLOAT ) iSide = DOCK_RIGHT;
+   GetProperty(_T("window.explorer.cy"), szBuffer1, 63);
+   GetProperty(_T("window.explorer.area"), szBuffer2, 63);
+   m_Dock.DockWindow(m_viewExplorer, iSide, _ttoi(szBuffer1), _ttoi(szBuffer2));
+
+   // Create docked Properties views
+   CString sPropertiesName(MAKEINTRESOURCE(IDS_PROPERTIES));
+   m_viewProperties.Create(m_Dock, rcDefault, sPropertiesName, ATL_SIMPLE_DOCKVIEW_STYLE);
+   m_Dock.AddWindow(m_viewProperties);
+   GetProperty(_T("window.properties.pos"), szBuffer1, 63);
+   iSide = (short) _ttoi(szBuffer1);
+   if( _tcslen(szBuffer1) == 0 || iSide == IDE_DOCK_FLOAT ) iSide = DOCK_RIGHT;
+   GetProperty(_T("window.properties.cy"), szBuffer1, 63);
+   GetProperty(_T("window.properties.area"), szBuffer2, 63);
+   m_Dock.DockWindow(m_viewProperties, iSide, _ttoi(szBuffer1), _ttol(szBuffer2));
 
    // AutoHide views
    CString s;
@@ -186,7 +189,7 @@ LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
       hWnd = ::GetWindow(hWnd, GW_HWNDNEXT);
       ::SendMessage(hWndClose, WM_CLOSE, 0, 0L);
    }
-   
+
    // Close solution nicely
    SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_CLOSESOLUTION, 0));
 
@@ -195,10 +198,7 @@ LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
    // Don't leave as fullscreen
    if( m_bFullScreen ) SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_FULLSCREEN, 0));
 
-   // FIX: Removing the additional ReBars help keep the
-   //      original workspace size when saving/restoring settings.
-   while( m_Rebar.DeleteBand(2) ) /* */;
-
+   // At last save UI settings
    _SaveUIState();   
    _SaveSettings();
 
@@ -212,9 +212,7 @@ LRESULT CMainFrame::OnMenuSelect(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BO
 {
    // NOTE: This method overrides the CMDIFrameWindowImpl::OnMenuSelect
    //       because of the special statusbar text-update handling.
-
    if( m_hWndStatusBar == NULL ) return 1;
-
    WORD wFlags = HIWORD(wParam);
    if( wFlags == 0xFFFF && lParam == NULL ) {
       // Menu closing
@@ -259,7 +257,6 @@ LRESULT CMainFrame::OnToolTipText(int idCtrl, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
    // NOTE: This method overrides the CMDIFrameWindowImpl::OnToolTipText
    //       because of the special toolbar tooltip-update handling.
-
    LPNMTTDISPINFO pDispInfo = (LPNMTTDISPINFO) pnmh;
    pDispInfo->szText[0] = 0;
    if( (idCtrl != 0) && !(pDispInfo->uFlags & TTF_IDISHWND) ) {
@@ -303,7 +300,7 @@ LRESULT CMainFrame::OnCopyData(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL
    // of the application. We'll use this IPC method for communicating the
    // command-line parameters.
    COPYDATASTRUCT* pCDS = (COPYDATASTRUCT*) lParam;
-   ATLASSERT(pCDS);
+   ATLASSERT(!::IsBadReadPtr(pCDS, sizeof(COPYDATASTRUCT)));
    if( ::IsBadReadPtr(pCDS, sizeof(COPYDATASTRUCT)) ) return 0;
    switch( pCDS->dwData ) {
    case 1:
@@ -903,13 +900,13 @@ LRESULT CMainFrame::OnWindowCloseAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 
 LRESULT CMainFrame::OnWindowNext(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-   MDINext(MDIGetActive(), TRUE);
+   MDINext(MDIGetActive(), FALSE);
    return 0;
 }
 
 LRESULT CMainFrame::OnWindowPrevious(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-   MDINext(MDIGetActive(), FALSE);
+   MDINext(MDIGetActive(), TRUE);
    return 0;
 }
 
@@ -983,6 +980,7 @@ LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
 
 LRESULT CMainFrame::OnUserIdle(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {  
+   // Start the once-in-a-lifetime event to background load important system DLLs
    static long s_once = 0;
    if( s_once++ == 0 ) SetTimer(DELAY_TIMERID, 500L);
    return 0;
@@ -1194,3 +1192,4 @@ LRESULT CMainFrame::OnRebarRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
    _SaveToolBarState();
    return 0;
 }
+

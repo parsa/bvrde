@@ -28,7 +28,7 @@ public:
    DECLARE_WND_CLASS(_T("BVRDE_MDIContainer"))
 
    enum { IDC_COOLTAB = 1234 };
-   
+
    CContainedWindow m_wndMDIClient;
    CDotNetTabCtrl m_ctrlTab;
    bool m_bTabsVisible;
@@ -98,6 +98,7 @@ public:
       REFLECT_NOTIFICATIONS()
    ALT_MSG_MAP(1)      // MDI client messages
       MESSAGE_HANDLER(WM_PARENTNOTIFY, OnParentNotify)
+      MESSAGE_HANDLER(WM_MDINEXT, OnMDINext)
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -222,6 +223,18 @@ public:
          break;
       }
       bHandled = FALSE; // MDI stuff relies on this, so...
+      return 0;
+   }
+   LRESULT OnMDINext(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+   {
+      if( m_ctrlTab.GetItemCount() <= 1 ) return 0;
+      int iIndex = m_ctrlTab.GetCurSel() + (lParam == 0 ? 1 : -1);
+      if( iIndex >= m_ctrlTab.GetItemCount() ) iIndex = 0;
+      if( iIndex < 0 ) iIndex = m_ctrlTab.GetItemCount() - 1;
+      TCITEM tci = { 0 };
+      tci.mask = TCIF_PARAM;
+      m_ctrlTab.GetItem(iIndex, &tci);
+      m_wndMDIClient.SendMessage(WM_MDIACTIVATE, (WPARAM) tci.lParam);
       return 0;
    }
 

@@ -61,13 +61,13 @@ public:
    CDockManager m_DockManager;
 
 private:
-   CString m_sName;
-   CString m_sPath;
-   CSimpleArray<LAZYDATA> m_aLazyData;
-   CSimpleValArray<IView*> m_aFiles;
-   CSimpleValArray<IView*> m_aDependencies;
-   CQuickWatchDlg* m_pQuickWatchDlg;
-   bool m_bIsDirty;
+   CString m_sName;                              /// Project name
+   CString m_sPath;                              /// Project path
+   CSimpleArray<LAZYDATA> m_aLazyData;           /// Delayed command queue
+   CSimpleValArray<IView*> m_aFiles;             /// List of Active views in project
+   CSimpleValArray<IView*> m_aDependencies;      /// List of file dependencies (stdlib, lib files)
+   CQuickWatchDlg* m_pQuickWatchDlg;             /// Modeless QuickWatch dialog
+   bool m_bIsDirty;                              /// Project or file(s) have changed?
    //
    static CAccelerator m_accel;
    static CComboBox m_ctrlMode;
@@ -282,6 +282,7 @@ protected:
       IMAGE_CPP = 15,
       IMAGE_XML = 17,
       IMAGE_HTML = 18,
+      IMAGE_BASH = 39,
       IMAGE_MAKEFILE = 28,
    };
 

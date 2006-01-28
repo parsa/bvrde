@@ -794,6 +794,7 @@ LRESULT CDebuggerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    
    CString sName;
    CString sValue;
+   bool bValue;
 
    sName.LoadString(IDS_COMMANDS);
    m_ctrlList.AddItem(PropCreateCategory(sName));
@@ -827,9 +828,12 @@ LRESULT CDebuggerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    sName.LoadString(IDS_MISC_CONNECTTIMEOUT);
    sValue = m_pProject->m_DebugManager.GetParam(_T("ConnectTimeout"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 21));
+   sName.LoadString(IDS_MISC_MAINTAINSESSION);
+   bValue = m_pProject->m_DebugManager.GetParam(_T("MaintainSession")) == _T("true");
+   m_ctrlList.AddItem(PropCreateSimple(sName, bValue, 22));
    sName.LoadString(IDS_MISC_SEARCHPATH);
    sValue = m_pProject->m_DebugManager.GetParam(_T("SearchPath"));
-   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 22));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 23));
 
    return 0;
 }
@@ -867,6 +871,9 @@ int CDebuggerCommandsPage::OnApply()
    m_pProject->m_DebugManager.SetParam(_T("ConnectTimeout"), CString(v.bstrVal));
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(22), &v);
+   m_pProject->m_DebugManager.SetParam(_T("MaintainSession"), v.lVal != 0 ? _T("true") : _T("false"));
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(23), &v);
    m_pProject->m_DebugManager.SetParam(_T("SearchPath"), CString(v.bstrVal));
 
    return PSNRET_NOERROR;

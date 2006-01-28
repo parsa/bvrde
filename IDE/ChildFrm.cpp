@@ -27,7 +27,7 @@ void CChildFrame::OnFinalMessage(HWND hWnd)
    prop.RemoveProperty(_T("Project"));
    prop.RemoveProperty(_T("View"));
    prop.RemoveProperty(_T("Frame"));
-   // Commit suicide
+   // Commit suicide...
    delete this;
 }
 

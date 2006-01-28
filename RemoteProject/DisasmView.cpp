@@ -62,6 +62,10 @@ void CDisasmView::PopulateView(CSimpleArray<CString>& aDbgCmd)
 
 void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
+   if( _tcscmp(pstrType, _T("cwd")) == 0 ) 
+   {
+      m_iLastStyle = 2;
+   }
    if( _tcscmp(pstrType, _T("asm_insns")) == 0 ) 
    {
       CString sTemp;

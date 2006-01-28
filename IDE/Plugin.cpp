@@ -21,7 +21,7 @@ BOOL CPlugin::LoadPackage(IDevEnv* pDevEnv)
    if( !m_Lib.IsLoaded() ) return FALSE;
 
    // There's a number of callbacks that a plugin must support.
-   // So bind the function-members now.
+   // So dynamically bind the function-members now.
    typedef VOID (CALLBACK* LPFNGETNAME)(LPTSTR,UINT);
    typedef LONG (CALLBACK* LPFNGETTYPE)();
    typedef BOOL (CALLBACK* LPFNINITIALIZE)(IDevEnv*);

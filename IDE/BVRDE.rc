@@ -1139,6 +1139,7 @@ BEGIN
     IDS_LANG_ENGLISH        "English"
     IDS_LANG_GERMAN         "Deutch"
     IDS_RESTART             "Restart BVRDE\nYou must restart BVRDE to apply the changes."
+    IDS_TREE_BASH           "Bash"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1989,6 +1990,7 @@ IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
 IDI_DOWN                ICON    DISCARDABLE     "res\\down.ico"
 IDI_DROPARROW           ICON    DISCARDABLE     "res\\droparrow.ico"
 IDI_PROJECT             ICON    DISCARDABLE     "res\\project.ico"
+IDI_REFRESH             ICON    DISCARDABLE     "res\\up1.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2469,6 +2471,7 @@ BEGIN
     IDS_LANG_ENGLISH        "English"
     IDS_LANG_GERMAN         "German"
     IDS_RESTART             "Restart needed\nYou must restart BVRDE to apply the changes."
+    IDS_TREE_BASH           "Bash"
 END
 
 STRINGTABLE DISCARDABLE 

@@ -58,6 +58,7 @@
 #define IDI_KEY                         121
 #define IDS_BUILDSOLUTION               122
 #define IDI_ICON1                       122
+#define IDI_REFRESH                     122
 #define IDS_LOG_TELNETCONNECT           123
 #define IDS_LOG_CONNECTERROR            123
 #define IDS_BUILD                       124
@@ -252,6 +253,7 @@
 #define IDS_CAPTION_DEBUGOUTPUT         290
 #define IDS_MISC_SEARCHPATH             291
 #define IDS_COMMAND_ARGS                292
+#define IDS_MISC_MAINTAINSESSION        293
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -307,6 +309,7 @@
 #define IDC_REPLACEALL                  1150
 #define IDC_REPLACEINSEL                1151
 #define IDC_FILENAME                    1152
+#define IDC_REFRESH                     1153
 #define ID_CLASSVIEW_GOTO               1200
 #define ID_CLASSVIEW_PROPERTIES         1201
 #define ID_CLASSVIEW_COPY               1202

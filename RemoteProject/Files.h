@@ -152,6 +152,19 @@ public:
 ///////////////////////////////////////////////////////7
 //
 
+class CBashFile : public CTextFile
+{
+public:
+   CBashFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
+
+public:
+   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
+};
+
+
+///////////////////////////////////////////////////////7
+//
+
 class CJavaFile : public CTextFile
 {
 public:

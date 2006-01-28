@@ -108,6 +108,7 @@ struct DOCKCONTEXT
    HWND hwndRoot;     // Main dock window
    //
    DWORD dwFlags;     // Extra flags
+   int iOrigArea;     // Original size of window
    bool bKeepSize;    // Recommend using current size and avoid rescale
 };
 
@@ -650,6 +651,7 @@ public:
             else {
                m_pCtx->rcWindow.right += m_ptEndDragPoint.x - m_ptStartDragPoint.x;
             }
+            m_pCtx->iOrigArea = 0;
             m_pCtx->bKeepSize = true;
             ::SendMessage(GetParent(), WM_DOCK_UPDATELAYOUT, 0, 0L);
          }
@@ -954,14 +956,13 @@ public:
 
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
-      bHandled = FALSE;
       if( m_map.GetSize() == 0 ) return 1;
       T* pT = static_cast<T*>(this);
       pT->UpdateLayout();
       HDWP hdwp = BeginDeferWindowPos(m_map.GetSize());
       for( int i = 0; i < m_map.GetSize(); i++ ) {
          const RECT& rc = m_map[i]->rcWindow;
-         ::DeferWindowPos(hdwp, m_map[i]->hwndDocked, NULL, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOZORDER);
+         hdwp = ::DeferWindowPos(hdwp, m_map[i]->hwndDocked, NULL, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOZORDER);
       }
       EndDeferWindowPos(hdwp);
       return 1;
@@ -1081,14 +1082,6 @@ public:
       // The last panel does not have a splitter
       ::SendMessage(m_map[i]->hwndDocked, WM_DOCK_SETSPLITTER, 0, 0L);
 
-      // Get actual height of all panels
-      int nActualHeight = 0;
-      for( i = 0; i < nPanes; i++ ) {
-         const RECT& rc = m_map[i]->rcWindow;
-         int iPaneHeight = (bVertical ? rc.bottom - rc.top : rc.right - rc.left);
-         if( iPaneHeight < 10 ) iPaneHeight = 30;
-         nActualHeight += iPaneHeight;
-      }
       // Get height of docking area
       int nTop, nHeight;
       if( bVertical ) {
@@ -1099,14 +1092,26 @@ public:
          nTop = rect.left;
          nHeight = rect.right - rect.left;
       }
+      // Get actual height of all panels
+      int nNeededHeight = 0;
+      for( i = 0; i < nPanes; i++ ) {
+         const RECT& rc = m_map[i]->rcWindow;
+         int iPaneHeight = (bVertical ? rc.bottom - rc.top : rc.right - rc.left);
+         if( m_map[i]->bKeepSize && m_map[i]->iOrigArea > 0 ) iPaneHeight = iPaneHeight * nHeight / m_map[i]->iOrigArea;
+         if( iPaneHeight < MIN_DOCKPANE_SIZE ) iPaneHeight = MIN_DOCKPANE_SIZE;
+         nNeededHeight += iPaneHeight;
+      }
       // Distribute the difference among panels
-      int nDelta = ((nHeight - nActualHeight) / nPanes);
+      int nDelta = (nHeight - nNeededHeight) / nPanes;
+      ATLTRACE("Height:%d Needed:%d Delta:%d\n", nHeight, nNeededHeight, nDelta);
       for( i = 0; i < nPanes; i++ ) {
          const RECT& rc = m_map[i]->rcWindow;
          int nSize = (bVertical ? rc.bottom - rc.top : rc.right - rc.left);
+         if( m_map[i]->bKeepSize && m_map[i]->iOrigArea > 0 ) nSize = nSize * nHeight / m_map[i]->iOrigArea;
          if( !m_map[i]->bKeepSize ) nSize += nDelta;
          if( nSize < MIN_DOCKPANE_SIZE ) nSize = MIN_DOCKPANE_SIZE;
-         if( nTop + nSize >= nHeight ) nSize /= 2;
+         if( nTop + nSize - nPanes > nHeight ) nSize /= 2;
+         ATLTRACE(" nSize%d: %d\n", i, nSize);
          if( bVertical ) {
             ::SetRect(&m_map[i]->rcWindow, rect.left, nTop, rect.right, nTop + nSize);
          }
@@ -1114,9 +1119,11 @@ public:
             ::SetRect(&m_map[i]->rcWindow, nTop, rect.top, nTop + nSize, rect.bottom);
          }
          nTop += nSize;
+         m_map[i]->iOrigArea = 0;
          m_map[i]->bKeepSize = false;
       }
       // Stretch the last window to the size of the docking window
+      ATLTRACE(" Diff:%d\n", m_map[nPanes - 1]->rcWindow.bottom - nHeight);
       (bVertical ? m_map[nPanes - 1]->rcWindow.bottom : m_map[nPanes - 1]->rcWindow.right ) = nHeight;
    }
 };
@@ -1211,6 +1218,7 @@ public:
       ::SetRect(&ctx->rcWindow, 0, 0, MIN_DOCKPANE_SIZE, MIN_DOCKPANE_SIZE);
       ctx->sizeFloat.cx = ctx->sizeFloat.cy = DEFAULT_FLOAT_SIZE;
       ctx->dwFlags = dwFlags;
+      ctx->iOrigArea = 0;
       ctx->bKeepSize = false;
       ctx->hwndOrigPrnt = ::GetParent(hWnd);
 
@@ -1263,7 +1271,7 @@ public:
       return TRUE;
    }
 
-   BOOL DockWindow(HWND hWnd, short Side, int iRequestedSize = 0)
+   BOOL DockWindow(HWND hWnd, short Side, int iRequestedSize = 0, int iAreaSize = 0)
    {
       T* pT = static_cast<T*>(this);
       DOCKCONTEXT* pCtx = _GetContext(hWnd);
@@ -1274,7 +1282,7 @@ public:
       ::ShowWindow(pCtx->hwndChild, SW_SHOWNOACTIVATE);
       if( Side == DOCK_LASTKNOWN ) Side = pCtx->LastSide;
       if( !IsDocked(Side) ) return FALSE;
-      return pT->_DockWindow(pCtx, Side, iRequestedSize, FALSE);
+      return pT->_DockWindow(pCtx, Side, iRequestedSize, iAreaSize, FALSE);
    }
 
    BOOL FloatWindow(HWND hWnd, const RECT& rc)
@@ -1300,26 +1308,36 @@ public:
       return TRUE;
    }
 
-   void GetWindowState(HWND hWnd, int& DockState, RECT& rcWindow) const
+   BOOL GetWindowState(HWND hWnd, int& DockState, RECT& rcWindow) const
    {
       const DOCKCONTEXT* pCtx = _GetContext(hWnd);
       ATLASSERT(pCtx);
-      if( pCtx == NULL ) return;
+      if( pCtx == NULL ) return FALSE;
       DockState = pCtx->Side;
-      ::GetWindowRect(::GetParent(hWnd), &rcWindow);
+      return ::GetWindowRect(::GetParent(hWnd), &rcWindow);
    }
 
    int GetPaneSize(short Side) const
    {
       ATLASSERT(IsDocked(Side));
+      if( Side >= DOCK_FLOAT ) return 0;
       int cy = m_panes[Side].m_cy;
       if( cy == 0 ) cy = m_panes[Side].m_cyOld;
       return cy;
+   }
+   int GetPaneHeight(short Side) const
+   {
+      ATLASSERT(IsDocked(Side));
+      if( Side >= DOCK_FLOAT ) return 0;
+      RECT rcClient = { 0 };
+      ::GetClientRect(m_panes[Side], &rcClient);
+      return rcClient.bottom - rcClient.top;
    }
 
    void SetPaneSize(short Side, int iSize)
    {
       ATLASSERT(IsDocked(Side));
+      if( Side >= DOCK_FLOAT ) return;
       if( iSize == 0 ) iSize = DEFAULT_DOCKPANE_SIZE;
       if( iSize < MIN_DOCKPANE_SIZE ) iSize = MIN_DOCKPANE_SIZE;
       m_panes[Side].m_cy = ( m_panes[Side].m_map.GetSize() == 0 ? 0 : iSize );
@@ -1482,7 +1500,7 @@ public:
    LRESULT OnDock(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       T* pT = static_cast<T*>(this);
-      pT->_DockWindow((DOCKCONTEXT*) lParam, (short) wParam, 0, TRUE);
+      pT->_DockWindow((DOCKCONTEXT*) lParam, (short) wParam, 0, 0, TRUE);
       return 0;
    }
 
@@ -1579,7 +1597,7 @@ public:
       }
    }
 
-   BOOL _DockWindow(DOCKCONTEXT* ctx, short Side, int iRequestedSize, BOOL bSetFocus)
+   BOOL _DockWindow(DOCKCONTEXT* ctx, short Side, int iRequestedSize, int iAreaSize, BOOL bSetFocus)
    {
       ATLASSERT(ctx);
       ATLASSERT(IsDocked(Side));
@@ -1589,7 +1607,7 @@ public:
       bool bVertical = IsDockedVertically(Side);
       // Make up a new panel size
       if( iRequestedSize <= 0 ) {
-         RECT rc;
+         RECT rc = { 0 };
          ::GetClientRect(m_panes[Side], &rc);
          iRequestedSize = bVertical ? rc.bottom - rc.top : rc.right - rc.left;
          if( m_panes[Side].m_map.GetSize() > 0 ) iRequestedSize /= m_panes[Side].m_map.GetSize();
@@ -1600,6 +1618,7 @@ public:
       (bVertical ? ctx->rcWindow.bottom : ctx->rcWindow.right) = iRequestedSize;
       // Signal that we would like to retain this size after
       // first being laid out...
+      ctx->iOrigArea = iAreaSize;
       ctx->bKeepSize = iRequestedSize > 0;
       // Dock
       m_panes[Side].DockWindow(ctx);

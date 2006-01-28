@@ -12,6 +12,8 @@ class CQueryThread;
 
 #define WM_USER_DATA_AVAILABLE   WM_USER + 200
 
+
+/// The types of packet we can send to the view
 typedef enum PACKETTYPE
 {
    PACKET_START,
@@ -22,6 +24,7 @@ typedef enum PACKETTYPE
    PACKET_DONE,
 };
 
+/// The data packet we send to the view
 typedef struct DATAPACKET
 {
    DATAPACKET()
@@ -47,6 +50,11 @@ typedef struct DATAPACKET
 } DATAPACKET;
 
 
+/**
+ * @class CQueryThread
+ * This thread runs the SQL statements and posts the result to the UI view.
+ * The thread is also responsible for gathering the DDL info and posting it to the view.
+ */
 class CQueryThread : public CThreadImpl<CQueryThread>
 {
 public:

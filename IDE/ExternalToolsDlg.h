@@ -408,7 +408,7 @@ public:
       m_ctrlNew.EnableWindow(nCount < 8 && m_nTools < sizeof(m_aTools)/sizeof(TOOL));
       m_ctrlDelete.EnableWindow(nSelCount > 0);
       m_ctrlUp.EnableWindow(nCount > 1 && nSelCount > 0 && iSelIndex > 0);
-      m_ctrlDown.EnableWindow(nCount > 1 && nSelCount > 0 && iSelIndex < nCount);
+      m_ctrlDown.EnableWindow(nCount > 1 && nSelCount > 0 && iSelIndex < nCount - 1);
       m_ctrlTitle.EnableWindow(nSelCount > 0);
       m_ctrlCommand.EnableWindow(nSelCount > 0);
       m_ctrlArguments.EnableWindow(nSelCount > 0);

@@ -141,6 +141,10 @@ SOURCE=.\SqlProject.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SqlProject.def
+# End Source File
+# Begin Source File
+
 SOURCE=.\SqlProject.rc
 # End Source File
 # Begin Source File
@@ -259,10 +263,6 @@ SOURCE=.\SchemaView.h
 # Begin Source File
 
 SOURCE=.\ScintillaView.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\SqlProject.def
 # End Source File
 # Begin Source File
 

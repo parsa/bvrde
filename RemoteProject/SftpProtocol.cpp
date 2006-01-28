@@ -450,7 +450,7 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
       SSH_WRITE_LONG(p, sizeof(buffer) - 100);
       if( !_WriteData(m_cryptSession, buffer, p - buffer) ) return false;
 
-      if( _ReadData(m_cryptSession, buffer, sizeof(buffer)) == 0 ) return false;
+      if( _ReadData(m_cryptSession, buffer, 13) == 0 ) return false;
       p = buffer;
       DWORD cbSize   = SSH_READ_LONG(p);
       BYTE id        = SSH_READ_BYTE(p);
@@ -461,6 +461,7 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
       {
          // Done?
          DWORD dwStatus = SSH_READ_LONG(p);
+         if( cbSize > 9 ) _ReadData(m_cryptSession, buffer, min(sizeof(buffer), cbSize - 9));
          if( dwStatus == SSH_FX_EOF ) {
             if( pdwSize != NULL ) *pdwSize = dwOffset;
             break;
@@ -472,14 +473,16 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
       {
          // More data to us
          DWORD dwRead = SSH_READ_LONG(p);
-         LPBYTE pData = p;
-         if( *ppOut == NULL ) *ppOut = (LPBYTE) malloc(dwRead); else *ppOut = (LPBYTE) realloc(*ppOut, dwOffset + dwRead);
-         memcpy(*ppOut + dwOffset, pData, dwRead);
+         ATLASSERT(dwRead<=cbSize-9);
+         *ppOut = (LPBYTE) realloc(*ppOut, dwOffset + dwRead);
+         _ReadData(m_cryptSession, *ppOut + dwOffset, dwRead); 
+         if( cbSize - dwRead > 9 ) _ReadData(m_cryptSession, buffer, min(sizeof(buffer), cbSize - dwRead - 9));
          dwOffset += dwRead;
       }
       else 
       {
          // Some other error; fail...
+         if( cbSize > 9 ) _ReadData(m_cryptSession, buffer, min(sizeof(buffer), cbSize - 9));
          bSuccess = false;
          break;
       }
@@ -705,7 +708,7 @@ CString CSftpProtocol::GetCurPath()
    return m_sCurDir;
 }
 
-bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
+bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool /*bUseCache*/)
 {
    // Wait for connection
    if( !WaitForConnection() ) return false;
@@ -768,7 +771,7 @@ bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles)
       // Got all files?
       if( id == SSH_FXP_STATUS && dwCount == SSH_FX_EOF ) {
          // Read remaining of status record...
-         if( cbSize > 13 ) _ReadData(m_cryptSession, buffer, cbSize - 13 + 4);
+         if( cbSize > 9 ) _ReadData(m_cryptSession, buffer, min(sizeof(buffer), cbSize - 9));
          break;
       }
 

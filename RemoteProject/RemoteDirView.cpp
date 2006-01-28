@@ -239,7 +239,7 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
    m_pFileManager->SetCurPath(m_sPath);
 
    CSimpleArray<WIN32_FIND_DATA> aFiles;
-   if( !m_pFileManager->EnumFiles(aFiles) ) {
+   if( !m_pFileManager->EnumFiles(aFiles, false) ) {
       m_ctrlFiles.DeleteAllItems();
       m_ctrlDirUp.EnableWindow(FALSE);
       m_ctrlNoConnection.ShowWindow(SW_SHOW);

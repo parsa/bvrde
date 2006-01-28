@@ -36,6 +36,8 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    static CFormattingOptionsPage s_pageSqlFormat;
    static CColorsOptionsPage s_pageMakeColors;
    static CFormattingOptionsPage s_pageMakeFormat;
+   static CColorsOptionsPage s_pageBashColors;
+   static CFormattingOptionsPage s_pageBashFormat;
    static CColorsOptionsPage s_pageHtmlColors;
    static CFormattingOptionsPage s_pageHtmlFormat;
    static CColorsOptionsPage s_pagePhpColors;
@@ -120,6 +122,14 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    s_pageMakeFormat.m_sLanguage = _T("makefile");
    s_pageMakeFormat.m_pDevEnv = this;
    s_pageMakeFormat.m_pArc = pArc;
+   s_pageBashColors.SetTitle((LPCTSTR)sColors);
+   s_pageBashColors.m_sLanguage = _T("bash");
+   s_pageBashColors.m_pDevEnv = this;
+   s_pageBashColors.m_pArc = pArc;
+   s_pageBashFormat.SetTitle((LPCTSTR)sFormat);
+   s_pageBashFormat.m_sLanguage = _T("bash");
+   s_pageBashFormat.m_pDevEnv = this;
+   s_pageBashFormat.m_pArc = pArc;
    s_pageHtmlColors.SetTitle((LPCTSTR)sColors);
    s_pageHtmlColors.m_sLanguage = _T("html");
    s_pageHtmlColors.m_pDevEnv = this;
@@ -227,6 +237,10 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    pManager->AddWizardGroup(sEditors, CString(MAKEINTRESOURCE(IDS_TREE_MAKEFILE)));
    pManager->AddWizardPage(s_pageMakeColors.IDD, s_pageMakeColors);
    pManager->AddWizardPage(s_pageMakeFormat.IDD, s_pageMakeFormat);
+   //
+   pManager->AddWizardGroup(sEditors, CString(MAKEINTRESOURCE(IDS_TREE_BASH)));
+   pManager->AddWizardPage(s_pageBashColors.IDD, s_pageBashColors);
+   pManager->AddWizardPage(s_pageBashFormat.IDD, s_pageBashFormat);
    //
    pManager->AddWizardGroup(sEditors, CString(MAKEINTRESOURCE(IDS_TREE_SQL)));
    pManager->AddWizardPage(s_pageSqlColors.IDD, s_pageSqlColors);

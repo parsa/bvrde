@@ -47,9 +47,16 @@ public:
       TCHAR szTitle[250] = { 0 };
       ::wsprintf(szTitle, szText, m_szPattern);
       _AppendRtfText(szTitle, CFM_COLOR, 0, ::GetSysColor(COLOR_HIGHLIGHT));
-      // Need to postfix with pattern-match for folder
-      for( size_t i = 0; i < _tcslen(m_szFolder); i++ ) if( m_szFolder[i] == ' ' ) m_szFolder[i] = '?';
-      _tcscat(m_szFolder, _T("/*"));
+      // Need to postfix with pattern-match for folder      
+      TCHAR szFolder[MAX_PATH];
+      for( size_t i = 0, x = 0; i < _tcslen(m_szFolder); i++ ) {
+         if( m_szFolder[i] == '\"' ) continue;
+         if( m_szFolder[i] == ' ' ) szFolder[x++] = '?';
+         else szFolder[x++] = m_szFolder[i];
+      }
+      szFolder[x++] = '/';
+      szFolder[x++] = '*';
+      szFolder[x++] = '\0';
       _tcscpy(m_szLastFile, _T(""));
       // Build 'grep' prompt and execute comment through
       // project's scripting mode.
@@ -66,7 +73,7 @@ public:
          (m_iFlags & FR_MATCHCASE) == 0  ? _T("i") : _T(""),
          (m_iFlags & FR_WHOLEWORD) != 0  ? _T("w") : _T(""),
          m_szPattern,
-         m_szFolder);
+         szFolder);
       CComVariant aParams[3];
       aParams[2] = szCommand;
       aParams[1] = static_cast<IUnknown*>(this);

@@ -55,15 +55,6 @@ END
 //
 
 IDB_CLASSVIEW           BITMAP  DISCARDABLE     "res\\classview.bmp"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_ICON1               ICON    DISCARDABLE     "res\\icon1.ico"
 #endif    // Danish resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -416,7 +407,7 @@ IDD_FILEBROWSE DIALOGEX 0, 0, 310, 177
 STYLE DS_3DLOOK | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Öffnen"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "List1",IDC_LIST,"SysListView32",LVS_LIST | 
                     LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_AUTOARRANGE | 
@@ -436,6 +427,7 @@ BEGIN
     PUSHBUTTON      "",IDC_UP,208,3,15,15,BS_ICON
     LTEXT           "No Connection to Remote Machine",IDC_NOCONNECTION,23,36,
                     146,14,NOT WS_VISIBLE,WS_EX_TRANSPARENT
+    PUSHBUTTON      "",IDC_REFRESH,226,3,15,15,BS_ICON
 END
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
@@ -1153,6 +1145,7 @@ BEGIN
     IDS_CAPTION_DEBUGOUTPUT "Datenausgabe"
     IDS_MISC_SEARCHPATH     "Suchpfad"
     IDS_COMMAND_ARGS        "GDB Parameter"
+    IDS_MISC_MAINTAINSESSION "Session behalten"
 END
 
 #endif    // German (Germany) resources
@@ -1187,6 +1180,7 @@ IDR_SEARCH              BITMAP  DISCARDABLE     "res\\search.bmp"
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_BACK                ICON    DISCARDABLE     "res\\back.ico"
+IDI_REFRESH             ICON    DISCARDABLE     "res\\refresh.ico"
 IDI_KEY                 ICON    DISCARDABLE     "Res\\key.ico"
 IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
 IDI_MINUS               ICON    DISCARDABLE     "res\\minus.ico"
@@ -1505,7 +1499,7 @@ IDD_FILEBROWSE DIALOGEX 0, 0, 310, 177
 STYLE DS_3DLOOK | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Open"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "List1",IDC_LIST,"SysListView32",LVS_LIST | 
                     LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_AUTOARRANGE | 
@@ -1525,6 +1519,7 @@ BEGIN
     PUSHBUTTON      "",IDC_UP,201,3,15,15,BS_ICON
     LTEXT           "No Connection to Remote Machine",IDC_NOCONNECTION,23,36,
                     146,14,NOT WS_VISIBLE,WS_EX_TRANSPARENT
+    PUSHBUTTON      "",IDC_REFRESH,219,3,15,15,BS_ICON
 END
 
 IDD_WIZARD_FILETRANSFER DIALOGEX 0, 0, 329, 169
@@ -1994,6 +1989,7 @@ BEGIN
     BUTTON      ID_VIEW_VARIABLES
     BUTTON      ID_VIEW_REGISTERS
     BUTTON      ID_VIEW_CALLSTACK
+    BUTTON      ID_VIEW_DEBUGOUTPUT
 END
 
 IDR_BOOKMARKS TOOLBAR DISCARDABLE  16, 15
@@ -2426,6 +2422,7 @@ BEGIN
     IDS_CAPTION_DEBUGOUTPUT "Console Output"
     IDS_MISC_SEARCHPATH     "Search Path"
     IDS_COMMAND_ARGS        "Debugger Args"
+    IDS_MISC_MAINTAINSESSION "Maintain Session"
 END
 
 #endif    // English (U.S.) resources

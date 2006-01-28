@@ -130,6 +130,7 @@ CString CViewImpl::_GetRealFilename() const
 
 bool CViewImpl::_IsValidFile(LPBYTE pData, DWORD dwSize) const
 {
+   ATLASSERT(!::IsBadReadPtr(pData,dwSize));
    if( dwSize <= 2 ) return true;
    if( pData[0] == 0xFF && pData[1] == 0xFE ) return false;   // UNICODE BOM
    if( pData[0] == 0xEF && pData[1] == 0xBB ) return false;   // UTF-8 BOM
@@ -318,13 +319,13 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
    }
    else 
    {
-      // View is a remote file; Load it through protocol manager
       if( m_pCppProject != NULL && m_sLocation == _T("remote") ) 
       {
+         // View is a remote file; Load it through protocol manager
          DWORD dwSize = 0;
          LPBYTE pData = NULL;
          if( !m_pCppProject->m_FileManager.LoadFile(m_sFilename, true, &pData, &dwSize) ) {
-            if( pData ) free(pData);
+            if( pData != NULL ) free(pData);
             return FALSE;
          }
 
@@ -334,13 +335,17 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
             return FALSE;
          }
 
-         CComBSTR bstr( (int) dwSize );
-         // BUG: Using 'dwSize' without the additional sz-terminator is
-         //      problematic since the AtlW2AHelper conversion actually
-         //      returns an error/failure. However, 'pData' is *not*
-         //      NULL terminated at this point!
-         AtlA2WHelper(bstr, (LPCSTR) pData, dwSize);
+         // FIX: We need the sz-byte for reliable MBCS/UNICODE conversion
+         //      so we duplicate the buffer once again.
+         LPSTR pstrData = (LPSTR) malloc(dwSize + 1);
+         ATLASSERT(pstrData);
+         if( pstrData == NULL ) return FALSE;
+         memcpy(pstrData, pData, dwSize);
+         pstrData[dwSize] = '\0';
+
+         CComBSTR bstr = pstrData;
          *pbstrText = bstr.Detach();
+         free(pstrData);
          free(pData);
       }
       else 
@@ -350,6 +355,7 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
          if( !f.Open(_GetRealFilename()) ) return FALSE;
          DWORD dwSize = f.GetSize();
          LPSTR pstrData = (LPSTR) malloc(dwSize + 1);
+         ATLASSERT(pstrData);
          if( pstrData == NULL ) {
             ::SetLastError(ERROR_OUTOFMEMORY);
             return FALSE;
@@ -425,14 +431,17 @@ BOOL CTextFile::OpenView(long lLineNum)
       if( !m_view.IsWindow() ) return FALSE;
       pFrame->SetClient(m_view);
 
+      // Convert to MBCS.
+      // FIX: We need to allocate enough space for the UNICODE to MBCS translation
+      //      meaning 2 bytes pr char.
       int nLen = sText.GetLength();
-      LPSTR pstrData = (LPSTR) malloc(nLen + 1);
+      LPSTR pstrData = (LPSTR) malloc((nLen * 2) + 1);
+      ATLASSERT(pstrData);
       if( pstrData == NULL ) {
          ::SetLastError(ERROR_OUTOFMEMORY);
          return FALSE;
       }
       AtlW2AHelper(pstrData, sText, nLen + 1);
-      pstrData[nLen] = '\0';
       m_view.SetText(pstrData);
       free(pstrData);
 
@@ -554,6 +563,22 @@ BOOL CMakeFile::GetType(LPTSTR pstrType, UINT cchMax) const
 ////////////////////////////////////////////////////////
 //
 
+CBashFile::CBashFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
+   CTextFile(pCppProject, pProject, pParent)
+{
+   m_sLanguage = _T("bash");
+}
+
+BOOL CBashFile::GetType(LPTSTR pstrType, UINT cchMax) const
+{
+   _tcsncpy(pstrType, _T("ShellScript"), cchMax);
+   return TRUE;
+}
+
+
+////////////////////////////////////////////////////////
+//
+
 CJavaFile::CJavaFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) :
    CTextFile(pCppProject, pProject, pParent)
 {
@@ -626,7 +651,7 @@ CAspFile::CAspFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pP
 
 BOOL CAspFile::GetType(LPTSTR pstrType, UINT cchMax) const
 {
-   _tcsncpy(pstrType, _T("ASP"), cchMax);
+   _tcsncpy(pstrType, _T("ASP Script"), cchMax);
    return TRUE;
 }
 

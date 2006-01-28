@@ -32,7 +32,7 @@ public:
    bool SetCurPath(LPCTSTR pstrPath);
    CString GetCurPath();
    CString FindFile(LPCTSTR pstrFilename);
-   bool EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles);
+   bool EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool bUseCache);
 
    CString GetParam(LPCTSTR pstrName) const;
    void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue);

@@ -13,10 +13,32 @@
 ////////////////////////////////////////////////////////
 //
 
+void CDebugStopThread::Init(CDebugManager* pManager)
+{
+   ATLASSERT(pManager);
+   m_pManager = pManager;
+}
+
+DWORD CDebugStopThread::Run()
+{
+   const int TERMINATE_AFTER_SECONDS = 3;
+   for( int i = 0; !ShouldStop() && i < TERMINATE_AFTER_SECONDS * 2; i++ ) {
+      if( !m_pManager->IsBusy() ) break;
+      ::Sleep(500UL);
+   }
+   if( m_pManager->IsBusy() ) m_pManager->SignalStop();
+   return 0;
+}
+
+
+////////////////////////////////////////////////////////
+//
+
 CDebugManager::CDebugManager() :
    m_pProject(NULL),
-   m_bSeendExit(false),
+   m_bSeenExit(false),
    m_bBreaked(false),
+   m_bRunning(false),
    m_bDebugging(false),
    m_bCommandMode(false),
    m_nIgnoreErrors(0)
@@ -34,6 +56,7 @@ void CDebugManager::Init(CRemoteProject* pProject)
 {
    ATLASSERT(pProject);
    m_pProject = pProject;
+   m_StopThread.Init(this);
    m_ShellManager.Init(pProject);
    m_aBreakpoints.RemoveAll();
 }
@@ -49,6 +72,7 @@ void CDebugManager::Clear()
    m_sDebuggerArgs = _T("-i=mi ./$PROJECTNAME$");
    m_sDebugMain = _T("main");
    m_lStartTimeout = 4;
+   m_bMaintainSession = FALSE;
 }
 
 bool CDebugManager::Load(ISerializable* pArc)
@@ -76,6 +100,7 @@ bool CDebugManager::Load(ISerializable* pArc)
    pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(200), 200);
    m_sSearchPath.ReleaseBuffer();
    pArc->Read(_T("startTimeout"), m_lStartTimeout);
+   pArc->Read(_T("maintainSession"), m_bMaintainSession);
 
    if( m_lStartTimeout <= 0 ) m_lStartTimeout = 4;
 
@@ -100,52 +125,42 @@ bool CDebugManager::Save(ISerializable* pArc)
    pArc->Write(_T("main"), m_sDebugMain);
    pArc->Write(_T("searchPath"), m_sSearchPath);
    pArc->Write(_T("startTimeout"), m_lStartTimeout);
+   pArc->Write(_T("maintainSession"), m_bMaintainSession);
 
    if( !pArc->WriteGroupEnd() ) return false;
    return true;
 }
 
+void CDebugManager::ProgramStop()
+{
+   if( m_bDebugging ) DoDebugCommand(_T("-gdb-exit"));   
+   if( !m_bMaintainSession ) DoDebugCommand(_T("exit"));
+   if( !m_StopThread.IsRunning() ) {
+      m_StopThread.Stop();
+      m_StopThread.Start();
+   }
+}
+
 void CDebugManager::SignalStop()
 {
-   // Ok, this is a hopeless semaphore, but we really
-   // don't like to be entering this as reentrant.
-   static bool s_bStopping = false;
-   if( s_bStopping ) return;
-   s_bStopping = true;
-
-   DoDebugCommand(_T("-gdb-exit"));
-   DoDebugCommand(_T("exit"));
    m_ShellManager.SignalStop();
-
-   m_pProject->DelayedDebugEvent(LAZY_DEBUG_KILL_EVENT);
-   m_pProject->DelayedViewMessage(DEBUG_CMD_SET_CURLINE);
-   m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUG_STOPPED)));
-
-   m_bDebugging = false;
-   m_bBreaked = false;
-
-   s_bStopping = false;
+   m_StopThread.SignalStop();
+   _ClearLink();
 }
 
 bool CDebugManager::Stop()
 {
    // NOTE: Don't call SignalStop() here because we've probably
    //       already sent the DelayedXXX messages once...
-
-   m_ShellManager.RemoveLineListener(this);
    m_ShellManager.Stop();
-
-   m_bCommandMode = false;
-   m_bDebugging = false;
-   m_bBreaked = false;
-   m_nIgnoreErrors = 0;
-
+   m_StopThread.Stop();
+   _ClearLink();
    return true;
 }
 
 bool CDebugManager::IsBusy() const
 {
-   return m_ShellManager.IsBusy();
+   return m_bRunning && m_ShellManager.IsConnected();
 }
 
 bool CDebugManager::IsBreaked() const
@@ -346,6 +361,8 @@ bool CDebugManager::RunNormal()
       Stop();
       return false;
    }
+   m_bSeenExit = false;
+   m_bRunning = true;
 
    sStatus.LoadString(IDS_STATUS_RUNNING);
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, TRUE);
@@ -369,7 +386,7 @@ bool CDebugManager::RunNormal()
 
 bool CDebugManager::RunDebug()
 {
-   // Launch the remote process in debug mode and switch
+   // Launch the remote process in debug-mode and switch
    // editor state to debugging.
    CSimpleArray<CString> aList;
    CString sCommand = m_sCommandCD;
@@ -438,7 +455,8 @@ bool CDebugManager::DoDebugCommand(LPCTSTR pstrText)
    //       flow-control in the GDB-MI std-out handler, 
    //       so we'll risk to send the command in the middle 
    //       of regular output. This is a big mess!
-   m_eventAck.WaitForEvent(3L * 50L);
+   const DWORD COMMAND_SEQUENCE_TIMEOUT_MS = 3UL * 50UL;
+   m_eventAck.WaitForEvent(COMMAND_SEQUENCE_TIMEOUT_MS);
    m_eventAck.ResetEvent();
    // Translate command and send it
    return m_ShellManager.WriteData(_TranslateCommand(pstrText));
@@ -461,6 +479,7 @@ CString CDebugManager::GetParam(LPCTSTR pstrName) const
    if( sName == _T("DebugMain") ) return m_sDebugMain;
    if( sName == _T("SearchPath") ) return m_sSearchPath;
    if( sName == _T("StartTimeout") ) return ToString(m_lStartTimeout);
+   if( sName == _T("MaintainSession") ) return m_bMaintainSession ? _T("true") : _T("false");
    if( sName == _T("InCommand") ) return m_bCommandMode ? _T("true") : _T("false");
    return m_ShellManager.GetParam(pstrName);
 }
@@ -476,6 +495,7 @@ void CDebugManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("DebugMain") ) m_sDebugMain = pstrValue;
    if( sName == _T("SearchPath") ) m_sSearchPath = pstrValue;
    if( sName == _T("StartTimeout") ) m_lStartTimeout = _ttol(pstrValue);
+   if( sName == _T("MaintainSession") ) m_bMaintainSession = _tcscmp(pstrValue, _T("true")) == 0;
    if( sName == _T("InCommand") ) m_bCommandMode = _tcscmp(pstrValue, _T("true")) == 0;
    m_ShellManager.SetParam(pstrName, pstrValue);
    if( m_lStartTimeout <= 0 ) m_lStartTimeout = 4;
@@ -494,7 +514,8 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
 
    CWaitCursor cursor;
 
-   Stop();
+   // Stop the current debug session and initiate a new?
+   if( !m_bMaintainSession || !m_bSeenExit ) Stop();
  
    CString sStatus;
    sStatus.LoadString(IDS_STATUS_CONNECT_WAIT);
@@ -524,20 +545,24 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
    m_nLastAck = 0;
    m_eventAck.ResetEvent();
 
-   // Wait for the remote connect to happen
-   m_ShellManager.Start();
-   if( !m_ShellManager.WaitForConnection() ) {      
-      SignalStop();
-      CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
-      CString sMsg(MAKEINTRESOURCE(IDS_ERR_HOSTCONNECT));
-      _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
-      _pDevEnv->PlayAnimation(FALSE, 0);
-      Stop();
-      return false;
+   // (Re)start connection?
+   if( !m_ShellManager.IsConnected() ) 
+   {
+      m_ShellManager.Start();
+      if( !m_ShellManager.WaitForConnection() ) {      
+         SignalStop();
+         CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
+         CString sMsg(MAKEINTRESOURCE(IDS_ERR_HOSTCONNECT));
+         _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
+         _pDevEnv->PlayAnimation(FALSE, 0);
+         Stop();
+         return false;
+      }
    }
 
-   // We should exit cleanly next time
-   m_bSeendExit = false;
+   // We should detect a clean exit for this session...
+   m_bSeenExit = false;
+   m_bRunning = true;
 
    sStatus.LoadString(IDS_STATUS_DEBUGGING);
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
@@ -576,6 +601,9 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
    // Collect new breakpoint positions directly from open views.
    LAZYDATA data;
    m_pProject->SendViewMessage(DEBUG_CMD_REQUEST_BREAKPOINTS, &data);
+
+   // This is the first command we send; views can interpret the reply (cwd) as a "startup" command
+   DoDebugCommand(_T("-environment-pwd"));
 
    // If there are no breakpoints defined, then let's
    // set a breakpoint in the main function
@@ -667,6 +695,26 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
 }
 
 /**
+ * Clean up the debugger state.
+ * Notifies the UI that debugging stopped. Clears links and state to signal
+ * that we are no longer debugging the app.
+ */
+void CDebugManager::_ClearLink()
+{
+   if( m_bDebugging ) {
+      m_pProject->DelayedDebugEvent(LAZY_DEBUG_KILL_EVENT);
+      m_pProject->DelayedViewMessage(DEBUG_CMD_SET_CURLINE);
+      m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUG_STOPPED)));
+   }
+   m_ShellManager.RemoveLineListener(this);
+   m_bCommandMode = false;
+   m_bDebugging = false;
+   m_bRunning = false;
+   m_bBreaked = false;
+   m_nIgnoreErrors = 99;  // No GDB errors/popups during exit!
+}
+
+/**
  * Check debug status before start.
  * We can only start debugging if we're not already debugging another app/module.
  * As a courtesy we also ask to save files before starting a debug session.
@@ -677,7 +725,7 @@ bool CDebugManager::_CheckStatus()
 
    // Cannot do neither run nor debug when a session is
    // already running...
-   if( m_ShellManager.IsBusy() ) {
+   if( IsBusy() ) {
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_WARNING));
       CString sMsg(MAKEINTRESOURCE(IDS_COMPILEBUSY));
       m_pProject->DelayedMessage(sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
@@ -767,8 +815,7 @@ void CDebugManager::_ParseOutOfBand(LPCTSTR pstrText)
       //   'exited-signalled'
       //   'exited-with-errorcode'
       if( sValue.Find(_T("exited")) == 0 ) {
-         m_bSeendExit = true;
-         SignalStop();
+         ProgramStop();
          return;
       }
       // Handles reason:
@@ -808,10 +855,12 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUGGING)));
       return;
    }
-   // Debugger stopped for good.
+   // Debugger stopped for good
    if( sCommand == _T("exit") ) {
       m_pProject->DelayedStatusBar(_T(""));
-      SignalStop();
+      // We should flag that we did a clean exit
+      _ClearLink();
+      m_bSeenExit = true;
       return;
    }
    // Debugger returned an error message
@@ -844,6 +893,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
          _T("name"),
          _T("value"),
          _T("addr"),
+         _T("cwd"),
          _T("asm_insns"),
          _T("numchild"),
          NULL
@@ -856,6 +906,8 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
          // it to the output (see _TranslateCommand()).
          // The consequence is that we can only have one GDB command
          // lingering at any time.
+         // TODO: Make use of the GDB command-prefix number instead
+         //       of just hard-coding it to 232 as we do today.
          CString sTemp;
          m_sVarName.Remove('\"');
          sTemp.Format(_T(",name=\"%s\""), m_sVarName);
@@ -863,12 +915,8 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
       }
       // Check for internal commands or route it to client processing
       CMiInfo info = sLine;
-      if( sCommand == _T("frame") ) {
-         _ParseNewFrame(info);
-      }
-      if( sCommand == _T("bkpt") ) {
-         _UpdateBreakpoint(info);
-      }
+      if( sCommand == _T("frame") ) _ParseNewFrame(info);
+      if( sCommand == _T("bkpt") ) _UpdateBreakpoint(info);
       // Let all the debug views get a shot at this information.
       for( LPCTSTR* ppList = pstrList; *ppList; ppList++ ) {
          if( sCommand == *ppList ) {
@@ -909,7 +957,7 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
    // GDB is known to be unstable at times
    if( sLine.Find(_T("An internal GDB error was detected.")) >= 0 ) {
       m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGUNSTABLE)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
-      SignalStop();
+      ProgramStop();
    }
    // Thread has terminated?
    if( sLine.Find(_T("has terminated.")) >= 0 ) {
@@ -938,7 +986,7 @@ void CDebugManager::_ParseLogOutput(LPCTSTR pstrText)
        || sLine.Find(_T("No executable specified, use")) >= 0 ) 
    {
       m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NOEXECUTABLE)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
-      SignalStop();
+      ProgramStop();
    }
 }
 
@@ -1011,6 +1059,6 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    if( pstr ) _ParseResultRecord(pstr + 4);
    pstr = _tcsstr(pstrText, _T("232*"));
    if( pstr ) _ParseOutOfBand(pstr + 4);
-   // Happily ignore everything else...
+   // ...and happily ignore everything else!
 }
 

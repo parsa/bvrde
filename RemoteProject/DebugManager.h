@@ -7,6 +7,22 @@
 
 #include "ShellProxy.h"
 
+////////////////////////////////////////////////////////
+//
+
+class CDebugManager;
+
+
+class CDebugStopThread : public CThreadImpl<CDebugStopThread>
+{
+public:
+   DWORD Run();
+
+   void Init(CDebugManager* pManager);
+
+   CDebugManager* m_pManager;
+};
+
 
 ////////////////////////////////////////////////////////
 //
@@ -25,18 +41,20 @@ public:
 // Attributtes
 public:
    CShellManager m_ShellManager;
+   CDebugStopThread m_StopThread;
 
 private:
    CRemoteProject* m_pProject;
    CSimpleMap<CString, long> m_aBreakpoints;   // Breakpoints; key=<filename:lineno> value=<break-nr>
-   CEvent m_eventAck;
+   CEvent m_eventAck;                          // New debug information is available?
    volatile int m_nDebugAck;                   // No of debug acknoledge
    volatile int m_nLastAck;                    // Last known acknoledge
    volatile int m_nIgnoreErrors;               // Ignore GDB error report?
    bool m_bBreaked;                            // Is debugging, but currently breaked?
    bool m_bDebugging;                          // Is debugging?
    bool m_bCommandMode;                        // In Command mode?
-   bool m_bSeendExit;
+   bool m_bRunning;                            // Process or debugger is running?
+   bool m_bSeenExit;                           // Did we see a proper GDB exit?
    CString m_sVarName;                         // Data-evaluation variable name
    //
    CString m_sCommandCD;
@@ -47,6 +65,7 @@ private:
    CString m_sDebugMain;
    CString m_sSearchPath;
    long m_lStartTimeout;
+   BOOL m_bMaintainSession;
 
 // Operations
 public:
@@ -62,6 +81,7 @@ public:
    bool Break();
    bool DoDebugCommand(LPCTSTR pstrText);
    bool DoSignal(BYTE bCmd);
+   void ProgramStop();
    void SignalStop();
    bool Stop();
    bool IsBusy() const;
@@ -92,6 +112,7 @@ private:
    bool _PauseDebugger();
    void _ResumeDebugger();
    bool _WaitForDebuggerStart();
+   void _ClearLink();
    bool _AttachProcess(CSimpleArray<CString>& aCommands);
    CString _TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam = NULL);
    void _ParseNewFrame(CMiInfo& info);

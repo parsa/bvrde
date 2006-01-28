@@ -609,6 +609,10 @@ SOURCE=.\Res\plus.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\Res\refresh.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\Res\search.bmp
 # End Source File
 # Begin Source File

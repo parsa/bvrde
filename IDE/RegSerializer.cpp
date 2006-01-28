@@ -5,6 +5,9 @@
 #include "RegSerializer.h"
 
 
+#define MAX_REG_PATH 300
+
+
 /////////////////////////////////////////////////////////////////
 // CRegSerializer 
 
@@ -33,7 +36,7 @@ void CRegSerializer::Close()
 
 BOOL CRegSerializer::ReadGroupBegin(LPCTSTR pstrName)
 {
-   TCHAR szPath[MAX_PATH];
+   TCHAR szPath[MAX_REG_PATH];
    ::wsprintf(szPath, _T("%s\\%s"), m_sPath, pstrName);
    return Open(szPath);
 }
@@ -43,7 +46,7 @@ BOOL CRegSerializer::ReadGroupEnd()
    // Slight resemblance of a hack: We simply re-open
    // the previous branch and even uses the Path-API to
    // strip the last subkey. Works great, though...
-   TCHAR szPath[MAX_PATH];
+   TCHAR szPath[MAX_REG_PATH];
    ::lstrcpy(szPath, m_sPath);
    ::PathRemoveFileSpec(szPath);
    return Open(szPath);
@@ -92,14 +95,14 @@ BOOL CRegSerializer::Read(LPCTSTR pstrName, BOOL& bValue)
 
 BOOL CRegSerializer::WriteGroupBegin(LPCTSTR pstrName)
 {
-   TCHAR szPath[MAX_PATH];
+   TCHAR szPath[MAX_REG_PATH];
    ::wsprintf(szPath, _T("%s\\%s"), m_sPath, pstrName);
    return Create(szPath);
 }
 
 BOOL CRegSerializer::WriteGroupEnd()
 {
-   TCHAR szPath[MAX_PATH];
+   TCHAR szPath[MAX_REG_PATH];
    ::lstrcpy(szPath, m_sPath);
    ::PathRemoveFileSpec(szPath);
    return Create(szPath);

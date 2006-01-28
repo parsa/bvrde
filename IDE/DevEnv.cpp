@@ -109,7 +109,8 @@ BOOL CMainFrame::AddToolBar(HWND hWnd, LPCTSTR pstrID, LPCTSTR pstrTitle)
    int iPosition = _ttoi(szBuffer);
    GetProperty(sKey + _T("newRow"), szBuffer, (sizeof(szBuffer)/sizeof(TCHAR))-1);
    BOOL bNewRow = _tcscmp(szBuffer, _T("true")) == 0;
-   // If not in initialization phase, we should add it now...
+   // If no longer in initialization phase, we should show it now.
+   // Otherwise we add the info, but will show it later.
    if( m_bInitialized ) {
       BOOL bNewRow = (m_Rebar.GetBandCount() & 1) == 0;
       if( !AddSimpleReBarBand(hWnd, NULL, bNewRow, 0, TRUE) ) return FALSE;

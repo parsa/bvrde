@@ -4,6 +4,10 @@ Version 0.9e:
 * Solution Explorer and Properties View remember their position
 * New function tip while browsing AutoCompletion list
 * New Search Text toolbar
+* New option to reuse debugger session (no reconnect)
+* Menu animations are back
+* Now using cache on FTP directory scans
+* Syntax highlighting for Bash (.sh) files
 
 Version 0.9d:
 * It is possible to disable plugins

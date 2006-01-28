@@ -84,6 +84,7 @@ BOOL CScintillaView::SetText(LPCSTR pstrText)
 
    // Let Scintilla repaint the view
    SendMessage(WM_SETTINGCHANGE);
+
    return TRUE;
 }
 
