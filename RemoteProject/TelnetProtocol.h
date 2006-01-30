@@ -134,7 +134,6 @@ public:
    CString GetParam(LPCTSTR pstrName) const;
    void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue);
 
-   bool ReadData(CString& s, DWORD dwTimeout = 0);
    bool WriteData(LPCTSTR pstrData);
    bool WriteSignal(BYTE bCmd);
    bool WriteScreenSize(int w, int h);

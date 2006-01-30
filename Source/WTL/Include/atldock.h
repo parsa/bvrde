@@ -1047,6 +1047,9 @@ public:
 
    void UpdateLayout()
    {
+      RECT rect = { 0 }; 
+      GetClientRect(&rect);
+
       if( m_map.GetSize() == 0 ) return;
       if( (GetStyle() & WS_VISIBLE) == 0 ) return;
 
@@ -1054,8 +1057,6 @@ public:
       bool bVertical = IsDockedVertically(m_Side);
 
       // Place side splitter for this docking area
-      RECT rect; 
-      GetClientRect(&rect);
       switch( m_Side ) {
       case DOCK_LEFT:
          ::SetRect(&m_rcSplitter, rect.right - m_cxySplitter, rect.top, rect.right, rect.bottom);
@@ -1092,6 +1093,8 @@ public:
          nTop = rect.left;
          nHeight = rect.right - rect.left;
       }
+      if( nHeight <= 0 ) return;
+
       // Get actual height of all panels
       int nNeededHeight = 0;
       for( i = 0; i < nPanes; i++ ) {
@@ -1101,17 +1104,19 @@ public:
          if( iPaneHeight < MIN_DOCKPANE_SIZE ) iPaneHeight = MIN_DOCKPANE_SIZE;
          nNeededHeight += iPaneHeight;
       }
-      // Distribute the difference among panels
+      // Distribute the difference evenly among panels
       int nDelta = (nHeight - nNeededHeight) / nPanes;
-      ATLTRACE("Height:%d Needed:%d Delta:%d\n", nHeight, nNeededHeight, nDelta);
       for( i = 0; i < nPanes; i++ ) {
          const RECT& rc = m_map[i]->rcWindow;
          int nSize = (bVertical ? rc.bottom - rc.top : rc.right - rc.left);
          if( m_map[i]->bKeepSize && m_map[i]->iOrigArea > 0 ) nSize = nSize * nHeight / m_map[i]->iOrigArea;
-         if( !m_map[i]->bKeepSize ) nSize += nDelta;
+         //if( !m_map[i]->bKeepSize ) nSize += nDelta;
+         if( !m_map[i]->bKeepSize && nNeededHeight != 0 ) {
+            double dblFill = (double)nSize / (double)nNeededHeight;
+            nSize += (int)((double)(nHeight - nNeededHeight) * dblFill);
+         }
          if( nSize < MIN_DOCKPANE_SIZE ) nSize = MIN_DOCKPANE_SIZE;
          if( nTop + nSize - nPanes > nHeight ) nSize /= 2;
-         ATLTRACE(" nSize%d: %d\n", i, nSize);
          if( bVertical ) {
             ::SetRect(&m_map[i]->rcWindow, rect.left, nTop, rect.right, nTop + nSize);
          }
@@ -1123,7 +1128,6 @@ public:
          m_map[i]->bKeepSize = false;
       }
       // Stretch the last window to the size of the docking window
-      ATLTRACE(" Diff:%d\n", m_map[nPanes - 1]->rcWindow.bottom - nHeight);
       (bVertical ? m_map[nPanes - 1]->rcWindow.bottom : m_map[nPanes - 1]->rcWindow.right ) = nHeight;
    }
 };
@@ -1314,7 +1318,8 @@ public:
       ATLASSERT(pCtx);
       if( pCtx == NULL ) return FALSE;
       DockState = pCtx->Side;
-      return ::GetWindowRect(::GetParent(hWnd), &rcWindow);
+      ::GetWindowRect(::GetParent(hWnd), &rcWindow);
+      return TRUE;
    }
 
    int GetPaneSize(short Side) const

@@ -190,13 +190,6 @@ void CShellManager::BroadcastLine(VT100COLOR Color, LPCTSTR pstrText)
    }
 }
 
-bool CShellManager::ReadData(CString& s, DWORD dwTimeout /*= 0*/)
-{
-   ATLASSERT(m_pProtocol);
-   if( m_pProtocol == NULL ) return false;
-   return m_pProtocol->ReadData(s, dwTimeout);
-}
-
 bool CShellManager::WriteData(LPCTSTR pstrData)
 {
    ATLASSERT(m_pProtocol);

@@ -99,6 +99,24 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    m_AutoHide.SetClient(m_Dock);
    m_hWndClient = m_AutoHide;
 
+   // AutoHide views
+   CString s;
+   s.LoadString(IDS_CAPTION_OUTPUT);
+   dwStyle = ES_MULTILINE | ES_NOHIDESEL | ES_SAVESEL | ES_READONLY | ES_DISABLENOSCROLL | 
+             WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VSCROLL;
+   m_viewOutput.Create(m_AutoHide, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
+   ATLASSERT(m_viewOutput.IsWindow());
+
+   s.LoadString(IDS_CAPTION_COMMAND);
+   dwStyle = ES_MULTILINE | ES_WANTRETURN | ES_NOHIDESEL | ES_SAVESEL | ES_DISABLENOSCROLL | 
+             WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VSCROLL;
+   m_viewCommand.m_pMainFrame = this;
+   m_viewCommand.Create(m_AutoHide, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
+   ATLASSERT(m_viewCommand.IsWindow());
+
+   AddAutoHideView(m_viewOutput, IDE_DOCK_BOTTOM, 1);
+   AddAutoHideView(m_viewCommand, IDE_DOCK_BOTTOM, 6);
+
    // Create docked Solution Explorer views
    CString sExplorerName(MAKEINTRESOURCE(IDS_SOULTIONEXPLORER));
    m_viewExplorer.Create(m_Dock, rcDefault, sExplorerName, ATL_SIMPLE_DOCKVIEW_STYLE);
@@ -122,24 +140,6 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    GetProperty(_T("window.properties.cy"), szBuffer1, 63);
    GetProperty(_T("window.properties.area"), szBuffer2, 63);
    m_Dock.DockWindow(m_viewProperties, iSide, _ttoi(szBuffer1), _ttol(szBuffer2));
-
-   // AutoHide views
-   CString s;
-   s.LoadString(IDS_CAPTION_OUTPUT);
-   dwStyle = ES_MULTILINE | ES_NOHIDESEL | ES_SAVESEL | ES_READONLY | ES_DISABLENOSCROLL | 
-             WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VSCROLL;
-   m_viewOutput.Create(m_AutoHide, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
-   ATLASSERT(m_viewOutput.IsWindow());
-
-   s.LoadString(IDS_CAPTION_COMMAND);
-   dwStyle = ES_MULTILINE | ES_WANTRETURN | ES_NOHIDESEL | ES_SAVESEL | ES_DISABLENOSCROLL | 
-             WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VSCROLL;
-   m_viewCommand.m_pMainFrame = this;
-   m_viewCommand.Create(m_AutoHide, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
-   ATLASSERT(m_viewCommand.IsWindow());
-
-   AddAutoHideView(m_viewOutput, IDE_DOCK_BOTTOM, 1);
-   AddAutoHideView(m_viewCommand, IDE_DOCK_BOTTOM, 6);
 
    m_viewOutput.Clear();
    m_viewCommand.Clear();

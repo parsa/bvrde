@@ -1138,8 +1138,9 @@ BEGIN
     IDS_LANG_DEFAULT        "Standart"
     IDS_LANG_ENGLISH        "English"
     IDS_LANG_GERMAN         "Deutch"
-    IDS_RESTART             "Restart BVRDE\nYou must restart BVRDE to apply the changes."
+    IDS_RESTART             "Wiederanlauf BVRDE\nSie müssen BVRDE wiederanlaufen, um die Änderungen anzuwenden."
     IDS_TREE_BASH           "Bash"
+    IDS_ERR_SAVESOLUTION    "Speicherfehler\nEin Fehler ist beim schreiben der Projektdatei aufgetreten."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -2472,6 +2473,7 @@ BEGIN
     IDS_LANG_GERMAN         "German"
     IDS_RESTART             "Restart needed\nYou must restart BVRDE to apply the changes."
     IDS_TREE_BASH           "Bash"
+    IDS_ERR_SAVESOLUTION    "Save Error\nAn error occured while writing solution file."
 END
 
 STRINGTABLE DISCARDABLE 

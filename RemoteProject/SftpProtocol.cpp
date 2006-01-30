@@ -433,7 +433,7 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
       ::SetLastError(ERROR_FILE_NOT_FOUND);
       return false;
    }
-   
+
    DWORD dwOffset = 0;
    bool bSuccess = true;
    while( true ) 
@@ -455,12 +455,12 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
       DWORD cbSize   = SSH_READ_LONG(p);
       BYTE id        = SSH_READ_BYTE(p);
       DWORD msgid    = SSH_READ_LONG(p);
+      DWORD dwStatus = SSH_READ_LONG(p);
       ATLASSERT(msgid==m_dwMsgId);
 
       if( id == SSH_FXP_STATUS )
       {
          // Done?
-         DWORD dwStatus = SSH_READ_LONG(p);
          if( cbSize > 9 ) _ReadData(m_cryptSession, buffer, min(sizeof(buffer), cbSize - 9));
          if( dwStatus == SSH_FX_EOF ) {
             if( pdwSize != NULL ) *pdwSize = dwOffset;
@@ -472,7 +472,7 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
       else if( id == SSH_FXP_DATA )
       {
          // More data to us
-         DWORD dwRead = SSH_READ_LONG(p);
+         DWORD dwRead = dwStatus;
          ATLASSERT(dwRead<=cbSize-9);
          *ppOut = (LPBYTE) realloc(*ppOut, dwOffset + dwRead);
          _ReadData(m_cryptSession, *ppOut + dwOffset, dwRead); 
@@ -777,6 +777,8 @@ bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool /*bUse
 
       // Failed?
       if( id != SSH_FXP_NAME ) {
+         // Read remaining of status record...
+         if( cbSize > 9 ) _ReadData(m_cryptSession, buffer, min(sizeof(buffer), cbSize - 9));
          bSuccess = false;
          break;
       }

@@ -176,6 +176,7 @@
 #define IDS_LANG_GERMAN                 251
 #define IDS_RESTART                     252
 #define IDS_TREE_BASH                   253
+#define IDS_ERR_SAVESOLUTION            254
 #define IDD_MSGBOX                      263
 #define IDI_MSG_INFORMATION             264
 #define IDI_MSG_WARNING                 265

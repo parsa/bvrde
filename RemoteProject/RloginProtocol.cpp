@@ -517,13 +517,6 @@ void CRloginProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
 }
 
-bool CRloginProtocol::ReadData(CString& s, DWORD dwTimeout /*= 0*/)
-{
-   if( !WaitForConnection() ) return false;
-   ATLASSERT(false);
-   return false;
-}
-
 bool CRloginProtocol::WriteData(LPCTSTR pstrData)
 {
    ATLASSERT(!::IsBadStringPtr(pstrData,-1));

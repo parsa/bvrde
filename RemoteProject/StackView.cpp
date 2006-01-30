@@ -35,7 +35,12 @@ bool CStackView::WantsData()
 
 void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
-   if( _tcscmp(pstrType, _T("thread-ids")) == 0 ) 
+   if( _tcscmp(pstrType, _T("cwd")) == 0 ) 
+   {
+      m_ctrlStack.ResetContent();
+      m_ctrlThreads.ResetContent();
+   }
+   else if( _tcscmp(pstrType, _T("thread-ids")) == 0 ) 
    {
       m_ctrlThreads.ResetContent();
       CString sValue = info.GetItem(_T("thread-id"));
@@ -145,6 +150,7 @@ LRESULT CStackView::OnListDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 LRESULT CStackView::OnThreadSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    ATLASSERT(m_pProject);
+   if( m_ctrlThreads.GetCurSel() < 0 ) return 0;
    CString sCommand;
    sCommand.Format(_T("-thread-select %ld"), (long) m_ctrlThreads.GetItemData(m_ctrlThreads.GetCurSel()));
    m_pProject->DelayedDebugCommand(sCommand);

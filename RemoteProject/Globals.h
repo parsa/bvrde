@@ -159,7 +159,6 @@ public:
    virtual bool IsConnected() const = 0;   
    virtual bool IsBusy() const = 0;
    //
-   virtual bool ReadData(CString& s, DWORD dwTimeout = 0) = 0;
    virtual bool WriteData(LPCTSTR pstrData) = 0;
    virtual bool WriteSignal(BYTE bCmd) = 0;
    virtual bool WriteScreenSize(int w, int h) = 0;

@@ -8,6 +8,9 @@ Version 0.9e:
 * Menu animations are back
 * Now using cache on FTP directory scans
 * Syntax highlighting for Bash (.sh) files
+* Project files are now stored in UTF-8
+* Fixed support for MBCS languages in editor (Chinese, Thai etc)
+* Installation now includes MSXML4 merge module
 
 Version 0.9d:
 * It is possible to disable plugins

@@ -28,9 +28,9 @@ BOOL CXmlSerializer::Create(LPCTSTR pstrTitle, LPCTSTR pstrFilename)
    ATLASSERT(SUCCEEDED(Hr));
    if( FAILED(Hr) ) return FALSE;
 
-   // Create preprocessing stuff (for European characters)
+   // Create preprocessing stuff (for foreign characters)
    CComPtr<IXMLDOMProcessingInstruction> spPI;
-   Hr = m_spDoc->createProcessingInstruction(CComBSTR(L"xml"), CComBSTR(L"version=\"1.0\" encoding=\"ISO-8859-1\""), &spPI);
+   Hr = m_spDoc->createProcessingInstruction(CComBSTR(L"xml"), CComBSTR(L"version=\"1.0\" encoding=\"UTF-8\""), &spPI);
    ATLASSERT(SUCCEEDED(Hr));
    if( FAILED(Hr) ) return FALSE;
    CComPtr<IXMLDOMNode> spOut;

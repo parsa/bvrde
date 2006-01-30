@@ -457,13 +457,6 @@ void CSshProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 10;
 }
 
-bool CSshProtocol::ReadData(CString& s, DWORD dwTimeout /*= 0*/)
-{
-   if( !WaitForConnection() ) return false;
-   ATLASSERT(false);
-   return false;
-}
-
 bool CSshProtocol::WriteData(LPCTSTR pstrData)
 {
    ATLASSERT(!::IsBadStringPtr(pstrData,-1));

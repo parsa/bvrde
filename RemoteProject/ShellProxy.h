@@ -40,7 +40,6 @@ public:
    bool AddLineListener(IOutputLineListener* pListener);
    bool RemoveLineListener(IOutputLineListener* pListener);
 
-   bool ReadData(CString& s, DWORD dwTimeout = 0);
    bool WriteData(LPCTSTR pstrData);
    bool WriteSignal(BYTE bCmd);
    bool WriteScreenSize(int w, int h);

@@ -155,8 +155,12 @@ BOOL CSolution::SaveSolution(LPCTSTR pstrFilename)
    }
 
    // Finally, we can save our data
-   if( !_SaveSolution() ) return FALSE;
-   
+   // TODO: Find a way to write a nicer and less generic error message.
+   if( !_SaveSolution() ) {
+      m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_SAVESOLUTION, IDS_CAPTION_ERROR, MB_ICONERROR);
+      return FALSE;
+   }
+
    // It's not dirty anymore
    m_bIsDirty = FALSE;
 
