@@ -13,7 +13,7 @@
 
 CSqlProject::CSqlProject() :
    m_bLoaded(false), 
-   m_bIsDirty(false)
+   m_bIsDirty(true)
 {
 }
 
@@ -53,6 +53,7 @@ BOOL CSqlProject::Load(ISerializable* pArc)
    if( !_LoadSettings(pArc) ) return FALSE;
    if( !_LoadConnections(pArc) ) return FALSE;
 
+   m_bIsDirty = false;
    return TRUE;
 }
 
@@ -64,7 +65,6 @@ BOOL CSqlProject::Save(ISerializable* pArc)
    if( !_SaveSettings(pArc) ) return FALSE;
    if( !_SaveConnections(pArc) ) return FALSE;
 
-   m_bIsDirty = false;
    return TRUE;
 }
 
@@ -102,9 +102,6 @@ BOOL CSqlProject::GetClass(LPTSTR pstrType, UINT cchMax) const
 BOOL CSqlProject::IsDirty() const
 {
    if( m_bIsDirty ) return TRUE;
-   for( int i = 0; i < m_aViews.GetSize(); i++ ) {
-      if( m_aViews[i]->IsDirty() ) return TRUE;
-   }
    return FALSE;
 }
 
@@ -502,7 +499,6 @@ LRESULT CSqlProject::OnViewProperties(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
    // Bring up DataLink Configuration dialog
    CView* pView = static_cast<CView*>(pElement);
    pView->ChangeProperties(m_wndMain);
-   m_bIsDirty = true;
    return 0;
 }
 

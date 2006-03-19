@@ -38,7 +38,7 @@ public:
    CString m_sType;
    CString m_sProvider;
    CString m_sServer;
-   BOOL m_bDirty;
+   BOOL m_bIsDirty;
 
    int m_iHistoryPos;
    CSimpleArray<CString> m_aHistory;

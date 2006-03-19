@@ -643,7 +643,7 @@ LRESULT CRemoteProject::OnViewRemoteDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 
 LRESULT CRemoteProject::OnViewProperties(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
-   // Find the tree-item, which will be our new parent
+   // Show Project Settings dialog
    IElement* pElement = _GetSelectedTreeElement();
    if( pElement != this ) { bHandled = FALSE; return 0; }
    if( _pDevEnv->ShowConfiguration(pElement) ) m_bIsDirty = true;
@@ -661,7 +661,7 @@ LRESULT CRemoteProject::OnProjectSetDefault(WORD /*wNotifyCode*/, WORD /*wID*/, 
    if( sType != _T("Project") ) return 0;
    // Cast it back and mark as active
    IProject* pProject = static_cast<IProject*>(pElement);
-   _pDevEnv->GetSolution()->SetActiveProject(pProject);
+   if( _pDevEnv->GetSolution()->SetActiveProject(pProject) ) m_bIsDirty = true;
    return 0;
 }
 

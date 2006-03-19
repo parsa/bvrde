@@ -102,8 +102,8 @@ BOOL CView::Reload()
 
 BOOL CView::IsDirty() const
 {
-   if( !::IsWindow(m_wndClient) ) return FALSE;
-   return m_wndClient.GetModify();
+   if( ::IsWindow(m_wndClient) ) return m_wndClient.GetModify();
+   return FALSE;   
 }
 
 BOOL CView::OpenView(long lLineNum)

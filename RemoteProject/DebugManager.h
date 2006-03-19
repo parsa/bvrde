@@ -113,7 +113,7 @@ private:
    void _ResumeDebugger();
    bool _WaitForDebuggerStart();
    void _ClearLink();
-   bool _AttachProcess(CSimpleArray<CString>& aCommands);
+   bool _AttachDebugger(CSimpleArray<CString>& aCommands);
    CString _TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam = NULL);
    void _ParseNewFrame(CMiInfo& info);
    void _UpdateBreakpoint(CMiInfo& info);

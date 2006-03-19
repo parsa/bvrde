@@ -18,10 +18,10 @@
 /////////////////////////////////////////////////////////////////
 // Global Attributes
 
-IDevEnv* g_pDevEnv = NULL;
-CSolution* g_pSolution = NULL;
-CSimpleArray<CPlugin> g_aPlugins;
-CComPtr<IXMLDOMDocument> g_spConfigDoc;
+IDevEnv* g_pDevEnv = NULL;                      /// Reference to the SDK interface
+CSolution* g_pSolution = NULL;                  /// Reference to the Solution
+CSimpleArray<CPlugin> g_aPlugins;               /// Collection of plugins
+CComPtr<IXMLDOMDocument> g_spConfigDoc;         /// Reference to the BVRDE.XML document during startup
 
 
 /////////////////////////////////////////////////////////////////
@@ -53,6 +53,7 @@ void PreloadConfig()
    VARIANT_BOOL vbSuccess = VARIANT_FALSE;
    if( FAILED( g_spConfigDoc->load(CComVariant(sFilename), &vbSuccess) ) || vbSuccess == VARIANT_FALSE ) {
       AtlMessageBox(NULL, _T("Invalid Configuration File!"), _T("BVRDE"), MB_ICONERROR | MB_SETFOREGROUND | MB_TOPMOST);
+      g_spConfigDoc.Release();
       ::PostQuitMessage(0L);
       return;
    }
@@ -120,7 +121,7 @@ void CMainFrame::_LoadSettings()
       long lValue = 0;
       g_spConfigDoc->get_readyState(&lValue);
       if( lValue == 4 ) break;  // XML in complete state!
-      MSG msg;
+      MSG msg = { 0 };
       while( ::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ) ::DispatchMessage(&msg);
       ::Sleep(0UL);
       if( ::GetTickCount() - dwStartTick > 5000UL ) return;
@@ -133,6 +134,7 @@ void CMainFrame::_LoadSettings()
    if( !arc.Open(g_spConfigDoc, _T("Settings"), sFilename) ) return;
    if( !_LoadGeneralSettings(arc) ) return;
    arc.Close();
+   g_spConfigDoc.Release();
 }
 
 bool CMainFrame::_LoadGeneralSettings(CXmlSerializer& arc)
@@ -422,8 +424,6 @@ void CMainFrame::_SaveSettings()
 
    if( m_hDevMode != NULL ) ::GlobalFree(m_hDevMode);
    if( m_hDevNames != NULL ) ::GlobalFree(m_hDevNames);
-
-   g_spConfigDoc.Release();
 }
 
 BOOL CMainFrame::LoadWindowPos()

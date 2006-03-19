@@ -153,7 +153,8 @@ DWORD CSshThread::Run()
       int iRead = 0;
       status = clib.cryptPopData(cryptSession, bReadBuffer, INITIAL_BUFFER_SIZE, &iRead);
       if( status == 0 && iRead == 0 ) {
-         // Hmm, nasty data polling delay!
+         // Hmm, nasty data polling delay! But CryptLib only supports read-timeouts in
+         // seconds and that is too high.
          ::Sleep(200L);
          continue;
       }
@@ -526,7 +527,7 @@ bool CSshProtocol::WaitForConnection()
    while( !m_bConnected ) {
 
       // Idle wait a bit
-      ::Sleep(200L);
+      PumpIdleMessages(200L);
 
       DWORD dwTick = ::GetTickCount();
 
@@ -556,8 +557,6 @@ bool CSshProtocol::WaitForConnection()
          ::SetLastError(m_dwErrorCode == 0 ? ERROR_NOT_CONNECTED : m_dwErrorCode);
          return false;
       }
-
-      PumpIdleMessages();
    }
    ATLASSERT(m_cryptSession!=0);
    return true;

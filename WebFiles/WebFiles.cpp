@@ -153,7 +153,9 @@ UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR pstrFilename)
       _T(".PHP5"),
       _T(".TPL"),
       _T(".ASP"),
+      _T(".ASPX"),
       _T(".JSP"),
+      _T(".PY"),
    };
    LPCTSTR* ppstr = pstrExtensions;
    for( int i = 0; i < sizeof(pstrExtensions) / sizeof(LPCTSTR); i++ ) {

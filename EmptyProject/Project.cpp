@@ -14,7 +14,7 @@ EXTERN_C IView* WINAPI Plugin_CreateView(LPCTSTR, IProject*, IElement*);
 
 CEmptyProject::CEmptyProject() :
    m_bLoaded(false),
-   m_bIsDirty(false)
+   m_bIsDirty(true)
 {
 }
 
@@ -88,9 +88,6 @@ BOOL CEmptyProject::IsDirty() const
 {
    if( !m_bLoaded ) return FALSE;
    if( m_bIsDirty ) return TRUE;
-   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
-      if( m_aFiles[i]->IsDirty() ) return TRUE;
-   }
    return FALSE;
 }
 

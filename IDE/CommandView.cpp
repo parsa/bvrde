@@ -99,9 +99,8 @@ public:
          }
       }
       __except(1)
-      {
-         // Bluntly ignore it...
-         ATLASSERT(false);
+      {         
+         ATLASSERT(false);   // Bluntly ignore it...
       }
       return false;
    }
@@ -265,7 +264,7 @@ CString CCommandView::_GetSystemErrorText(DWORD dwErr) const
        0,
        NULL);
    CString s = (LPCTSTR) lpMsgBuf;
-   if( lpMsgBuf ) ::LocalFree(lpMsgBuf);
+   if( lpMsgBuf != NULL ) ::LocalFree(lpMsgBuf);
    return s;
 }
 

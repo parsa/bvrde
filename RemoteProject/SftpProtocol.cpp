@@ -884,7 +884,7 @@ bool CSftpProtocol::WaitForConnection()
    while( !m_bConnected ) {
 
       // Idle wait a bit
-      ::Sleep(200L);
+      PumpIdleMessages(200L);
 
       DWORD dwTick = ::GetTickCount();
 
@@ -909,12 +909,11 @@ bool CSftpProtocol::WaitForConnection()
           && dwTick - dwTickStart > SPAWNTIMEOUT * 1000UL ) 
       {
          // Attempt to reconnect to the remote host.
+         // This will allow a periodically downed server to recover the connection.
          Start();
          ::SetLastError(m_dwErrorCode == 0 ? ERROR_NOT_CONNECTED : m_dwErrorCode);
          return false;
       }
-
-      PumpIdleMessages();
    }
    ATLASSERT(m_cryptSession!=0);
    return true;

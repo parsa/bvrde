@@ -592,7 +592,7 @@ bool CRloginProtocol::WaitForConnection()
       }
 
       // Idle wait a bit
-      ::Sleep(200L);
+      PumpIdleMessages(200L);
 
       DWORD dwTick = ::GetTickCount();
 
@@ -615,8 +615,6 @@ bool CRloginProtocol::WaitForConnection()
          ::SetLastError(m_dwErrorCode == 0 ? ERROR_NOT_CONNECTED : m_dwErrorCode);
          return false;
       }
-
-      PumpIdleMessages();
    }
    ATLASSERT(!m_socket.IsNull());
    return true;

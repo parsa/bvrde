@@ -25,7 +25,6 @@ public:
    //
    CString m_sName;
    CString m_sFilename;
-   BOOL m_bIsDirty;
 
 public:
    CView(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename);

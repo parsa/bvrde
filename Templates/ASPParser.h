@@ -1,21 +1,10 @@
-// ASPParser.h : Converts ASP script to pure script
-//
-// Written by Bjarke Viksoe (bjarke@viksoe.dk)
-// Copyright (c) 2000 Bjarke Viksøe.
-//
-// This code may be used in compiled form in any way you desire. This
-// file may be redistributed unmodified by any means PROVIDING it is 
-// not sold for profit without the authors written consent, and 
-// providing that this notice and the authors name is included. 
-//
-// This file is provided "as is" with no expressed or implied warranty.
-// The author accepts no liability if it causes any damage to you or your
-// computer whatsoever. It's free, so don't hassle me about it.
-//
-// Beware of bugs.
-//
+#if !defined(AFX_ASPPARSER_H__20060201_D439_55BD_A8CE_0080AD509054__INCLUDED_)
+#define AFX_ASPPARSER_H__20060201_D439_55BD_A8CE_0080AD509054__INCLUDED_
 
+#if _MSC_VER > 1000
 #pragma once
+#endif // _MSC_VER > 1000
+
 
 #pragma optimize("t",on)
 
@@ -238,4 +227,7 @@ public:
 };
 
 #pragma optimize("t",off)
+
+
+#endif // !defined(AFX_ASPPARSER_H__20060201_D439_55BD_A8CE_0080AD509054__INCLUDED_)
 

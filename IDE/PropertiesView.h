@@ -109,12 +109,16 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       m_ctrlName.ResetContent();
       m_ctrlList.ResetContent();
+      m_bIgnoreRest = false;
    }
+
    void SetActiveElement(IElement* pElement)
    {
+      // When the selection in the Project Explorer tree changes, we're also updating
+      // the Properties view.
       Clear();
       if( pElement == NULL ) return;
-      // Add name to combobox
+      // Add entry in the combobox
       CString sElementName;
       pElement->GetName(sElementName.GetBufferSetLength(128), 128);
       sElementName.ReleaseBuffer();
@@ -125,10 +129,15 @@ public:
       sName.Format(IDS_PROPERTIES_NAME, sElementName, sElementType);
       m_ctrlName.AddString(sName);
       m_ctrlName.SetCurSel(0);
-      // Write header and items
+      // The solution is really boring
       if( pElement == g_pSolution ) return;
-      m_bIgnoreRest = false;
+      // Write "Misc" header in the listbox
       WriteItem(CString(MAKEINTRESOURCE(IDS_MISC)));
+      // Ask selected object to enumerate its properties.
+      // All objects should at least add the "Name" and "Type" properties.
+      // Since our WriteGroupBegin() implementation will always return 'false',
+      // the Save() call will prevent a complex enumeration of properties and the call will 
+      // most likely fail. We ignore the return code, but display anything we got to that point.
       pElement->Save(this);
    }
 
@@ -155,11 +164,8 @@ public:
    BOOL WriteItem(LPCTSTR pstrName)
    { 
       if( m_bIgnoreRest ) return TRUE;
+      // BUG: Handle localization?
       CString sName = pstrName;
-      if( sName[0] == _T('_') ) {
-         m_bIgnoreRest = true;
-         return TRUE;
-      }
       ::CharUpperBuff( (LPTSTR) (LPCTSTR) sName, 1 );
       m_ctrlList.AddItem( PropCreateCategory(sName) );
       return TRUE; 
@@ -167,8 +173,8 @@ public:
    BOOL Write(LPCTSTR pstrName, LPCTSTR pstrValue)
    { 
       if( m_bIgnoreRest ) return TRUE;
+      // BUG: Handle localization?
       CString sName = pstrName;
-      if( sName[0] == _T('_') ) return TRUE;
       ::CharUpperBuff( (LPTSTR) (LPCTSTR) sName, 1 );
       m_ctrlList.AddItem( PropCreateReadOnlyItem(sName, pstrValue) );
       return TRUE;
@@ -185,8 +191,7 @@ public:
    }
    BOOL Write(LPCTSTR pstrName, BOOL bValue)
    {
-      CString sValue(MAKEINTRESOURCE(bValue ? IDS_TRUE : IDS_FALSE));
-      return Write(pstrName, sValue);
+      return Write(pstrName, CString(MAKEINTRESOURCE(bValue ? IDS_TRUE : IDS_FALSE)));
    }
    BOOL WriteExternal(LPCTSTR /*pstrName*/)
    {      

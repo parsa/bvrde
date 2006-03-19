@@ -83,6 +83,11 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
                   if( pView != NULL ) pView->Reload();
                }
                break;
+            case GUI_ACTION_COMPILESTART:
+               {
+                  m_bNeedsRecompile = false;
+               }
+               break;
             }
          }
          break;

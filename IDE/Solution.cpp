@@ -70,6 +70,7 @@ BOOL CSolution::Load(ISerializable* pArc)
    for( int i = 0; i < m_aProjects.GetSize(); i++ ) {
       if( !m_aProjects[i].pProject->Load(pArc) ) return FALSE;
    }
+
    return TRUE;
 }
 
@@ -82,6 +83,7 @@ BOOL CSolution::Save(ISerializable* pArc)
          if( !m_aProjects[i].pProject->Save(pArc) ) return FALSE;
       }
    }
+
    return TRUE;
 }
 
@@ -92,16 +94,20 @@ BOOL CSolution::LoadSolution(LPCTSTR pstrFilename)
    CLockStaticDataInit lock;
 
    Close();
+
    IProject* pDefaultProject = NULL;
    if( !_LoadSolution(pstrFilename, pDefaultProject) ) {
       Close();
       return FALSE;
    }
+
    m_sFilename = pstrFilename;
    m_bIsLoaded = TRUE;
    m_bIsDirty = FALSE;
+   
    if( pDefaultProject ) SetActiveProject(pDefaultProject);
    m_pMainFrame->PostMessage(WM_APP_BUILDSOLUTIONUI);
+
    return TRUE;
 }
 
@@ -155,9 +161,11 @@ BOOL CSolution::SaveSolution(LPCTSTR pstrFilename)
    }
 
    // Finally, we can save our data
-   // TODO: Find a way to write a nicer and less generic error message.
    if( !_SaveSolution() ) {
-      m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_SAVESOLUTION, IDS_CAPTION_ERROR, MB_ICONERROR);
+      CString sText(MAKEINTRESOURCE(IDS_ERR_SAVESOLUTION));
+      sText += _T("\n");
+      sText += _GetComErrorText();
+      m_pMainFrame->ShowMessageBox(hWndMain, sText, CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR);
       return FALSE;
    }
 
@@ -177,6 +185,7 @@ BOOL CSolution::IsDirty() const
    CLockStaticDataInit lock;
    if( !IsLoaded() ) return FALSE;
    if( m_bIsDirty ) return TRUE;
+   // The solution's dirty flag inherits the state of the project-files.
    for( int i = 0; i < m_aProjects.GetSize(); i++ ) {
       if( m_aProjects[i].pProject->IsDirty() ) return TRUE;
    }
@@ -247,10 +256,12 @@ BOOL CSolution::AddProject(IProject* pProject)
    m_aProjects.Add(Project);
 
    // Update Solution state
-   m_bIsLoaded = TRUE;
    m_bIsDirty = TRUE;
+   m_bIsLoaded = TRUE;
 
+   // Ask project tree to refresh itself
    m_pMainFrame->PostMessage(WM_APP_BUILDSOLUTIONUI);
+
    return TRUE;
 }
 
@@ -262,12 +273,10 @@ BOOL CSolution::AddProject(LPCTSTR pstrFilename)
    // and determine the project type.
    CXmlSerializer arc;
    if( !arc.Open(_T("Project"), pstrFilename) ) return FALSE;
-
    CString sType;
    arc.Read(_T("type"), sType.GetBufferSetLength(64), 64);
    sType.ReleaseBuffer();
    if( sType.IsEmpty() ) return FALSE;
-
    arc.Close();
 
    // Now load and add it into the solution
@@ -277,8 +286,8 @@ BOOL CSolution::AddProject(LPCTSTR pstrFilename)
    if( !_AddProject(m_sFilename, szRelativeName, sType) ) return false;
 
    // Update Solution state
-   m_bIsLoaded = TRUE;
    m_bIsDirty = TRUE;
+   m_bIsLoaded = TRUE;
 
    // Ask project tree to refresh itself
    m_pMainFrame->PostMessage(WM_APP_BUILDSOLUTIONUI);
@@ -344,6 +353,9 @@ BOOL CSolution::SetActiveProject(IProject* pProject)
    // Deactivate the old project
    if( pOldProject ) {
       pOldProject->DeactivateProject();
+      // NOTE: We set the dirty flag on deactivate because we'll always activate
+      //       a project when the solution loads. We'll only mark it dirty then when
+      //       the user actually changes the state.
       m_bIsDirty = TRUE;
    }
    // Activate the project
@@ -372,6 +384,7 @@ bool CSolution::_LoadSolution(LPCTSTR pstrFilename, IProject*& pDefaultProject)
       arc.Read(_T("default"), bDefault);
       if( !_LoadProject(pstrFilename, &arc) ) return false;
       if( !arc.ReadGroupEnd() ) return false;
+      // Incidently, is this the default project?
       if( bDefault ) pDefaultProject = m_aProjects[m_aProjects.GetSize() - 1].pProject;
    }
    if( !arc.ReadGroupEnd() ) return false;
@@ -429,7 +442,7 @@ bool CSolution::_AddProject(LPCTSTR pstrSolutionFilename, LPCTSTR pstrFilename, 
    LPTSTR pFilePart = NULL;
    ::GetFullPathName(szCompressedFile, MAX_PATH, szProjectFile, &pFilePart);
 
-   // Add a new project entry to our list
+   // Add a new project entry to our project list in the solution
    PROJECT Dummy;
    m_aProjects.Add(Dummy);
    PROJECT& Project = m_aProjects[ m_aProjects.GetSize() - 1 ];
@@ -463,7 +476,7 @@ bool CSolution::_AddProject(LPCTSTR pstrSolutionFilename, LPCTSTR pstrFilename, 
          m_aProjects.RemoveAt(m_aProjects.GetSize() - 1);
          return true;
       }
-      
+
       // Time to actually load the project settings
       CXmlSerializer arc;
       if( !arc.Open(_T("Project"), szProjectFile) ) {
@@ -491,7 +504,7 @@ bool CSolution::_AddProject(LPCTSTR pstrSolutionFilename, LPCTSTR pstrFilename, 
    return false;
 }
 
-bool CSolution::_SaveProject(ISerializable* pArc, PROJECT& Project)
+bool CSolution::_SaveProject(ISerializable* pArc, const PROJECT& Project)
 {
    HWND hWndMain = g_pDevEnv->GetHwnd(IDE_HWND_MAIN);
 
@@ -507,6 +520,9 @@ bool CSolution::_SaveProject(ISerializable* pArc, PROJECT& Project)
    pArc->Write(_T("filename"), szRelativeName);
    pArc->Write(_T("default"), m_pCurProject == pProject);
 
+   // Has project settings changed? If not we needn't write the project file at all.
+   if( !pProject->IsDirty() ) return true;
+
    TCHAR szFilename[MAX_PATH];
    _tcscpy(szFilename, m_sFilename);
    ::PathRemoveFileSpec(szFilename);
@@ -515,19 +531,34 @@ bool CSolution::_SaveProject(ISerializable* pArc, PROJECT& Project)
    // Time to actually commit the project settings
    CXmlSerializer arc;
    if( !arc.Create(_T("Project"), szFilename) ) {
-      m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_SAVEPROJECT, IDS_CAPTION_ERROR, MB_ICONERROR);
-      return true;
+      CString sText(MAKEINTRESOURCE(IDS_ERR_SAVEPROJECT));
+      sText += _T("\n");
+      sText += _GetComErrorText();
+      m_pMainFrame->ShowMessageBox(hWndMain, sText, CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR);
+      return false;
    }
    if( !Project.pProject->Save(&arc) ) {
       m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_SAVEPROJECT, IDS_CAPTION_ERROR, MB_ICONERROR);
-      return true;
+      return false;
    }
    if( !arc.Save() ) {
-      m_pMainFrame->_ShowMessageBox(hWndMain, IDS_ERR_SAVEPROJECT, IDS_CAPTION_ERROR, MB_ICONERROR);
-      return true;
+      CString sText(MAKEINTRESOURCE(IDS_ERR_SAVEPROJECT));
+      sText += _T("\n");
+      sText += _GetComErrorText();
+      m_pMainFrame->ShowMessageBox(hWndMain, sText, CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR);
+      return false;
    }
    arc.Close();
 
    return true;
 }
 
+CString CSolution::_GetComErrorText() const
+{
+   CComPtr<IErrorInfo> spErr;
+   ::GetErrorInfo(NULL, &spErr);
+   if( spErr == NULL ) return _T("");
+   CComBSTR bstrText;
+   spErr->GetDescription(&bstrText);
+   return bstrText;
+}

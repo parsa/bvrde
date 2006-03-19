@@ -13,8 +13,7 @@
 CViewImpl::CViewImpl(IProject* pProject, IElement* pParent, LPCTSTR pstrFilename) : 
    m_pProject(pProject),
    m_pParent(pParent),
-   m_sFilename(pstrFilename),
-   m_bIsDirty(false)
+   m_sFilename(pstrFilename)
 {
    TCHAR szName[MAX_PATH];
    _tcscpy(szName, m_sFilename);

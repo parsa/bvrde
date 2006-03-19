@@ -56,7 +56,12 @@ DWORD CCommandThread::Run()
    m_aCommands.RemoveAll();
    
    for( i = 0; i < aCommands.GetSize(); i++ ) {
+      // HACK: Racing to submit all commands may obscure the telnet output
+      //       with stdout and new commands being mixed on the same stream.
+      //       We'll play nicely and allow the commands to appear on the screen
+      //       sequentially.
       if( i >= 2 ) ::Sleep(1000L);
+      // Send new command to remote
       CString sCommand = aCommands[i];
       ISolution* pSolution = _pDevEnv->GetSolution();
       if( pSolution == NULL ) return 0;
@@ -239,6 +244,7 @@ bool CScCommands::CollectFiles(CSimpleArray<CString>& aFiles)
          ddItem.GetPropertyByName(OLESTR("Filename"), &vFilename);
          if( vFilename.vt != VT_BSTR || ::SysStringLen(vFilename.bstrVal) == 0 ) continue;
          CString sFilename = vFilename.bstrVal;
+         sFilename.Replace('\\', '/');
          aFiles.Add(sFilename);
       }
    }
@@ -248,6 +254,7 @@ bool CScCommands::CollectFiles(CSimpleArray<CString>& aFiles)
       dd.GetPropertyByName(OLESTR("Filename"), &vFilename);
       if( vFilename.vt != VT_BSTR || ::SysStringLen(vFilename.bstrVal) == 0 ) return false;
       CString sFilename = vFilename.bstrVal;
+      sFilename.Replace('\\', '/');
       aFiles.Add(sFilename);
    }
    return true;

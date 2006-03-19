@@ -248,8 +248,8 @@ LRESULT CStartPageView::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
    DispEventAdvise(m_spBrowser, &DIID_DWebBrowserEvents2);
 
    // Display HTML page
-   CComVariant vURL = L"res://startpage.pkg/index.html";
    CComVariant vEmpty;
+   CComVariant vURL = L"res://startpage.pkg/index.html";
    Hr = m_spBrowser->Navigate2(&vURL, &vEmpty, &vEmpty, &vEmpty, &vEmpty);
 
    return lRes;

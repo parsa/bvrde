@@ -20,6 +20,7 @@ class CCompileManager;
 #define COMPFLAG_BUILDSESSION   0x00000004
 #define COMPFLAG_RELOADFILE     0x00000008
 #define COMPFLAG_SILENT         0x00000010
+#define COMPFLAG_COMPILENOTIFY  0x00000020
 
 
 ////////////////////////////////////////////////////////
@@ -56,10 +57,10 @@ public:
 
    CRemoteProject* m_pProject;
    CCompileManager* m_pManager;
-   CComAutoCriticalSection m_cs;           // Thread synch lock
-   CSimpleArray<CString> m_aCommands;      // List of commands waiting for execution
-   SIZE m_szWindow;                        // Initial size of output window
-   UINT m_Flags;                           // Various COMPFLAG_xxx flags
+   CComAutoCriticalSection m_cs;           /// Thread synch lock
+   CSimpleArray<CString> m_aCommands;      /// List of commands waiting for execution
+   CSimpleArray<UINT> m_aFlags;            /// List of compiler flags
+   SIZE m_szWindow;                        /// Initial size of output window
 };
 
 
@@ -111,17 +112,17 @@ public:
    void OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText);
 
 public:
-   CRemoteProject* m_pProject;             // Reference to project
-   CShellManager m_ShellManager;           // Command Prompt connection (protocol specific)
-   CCompileThread m_CompileThread;         // Thread that pumps Compile commands
-   CRebuildThread m_RebuildThread;         // Thread that controls a Solution Rebuild
-   CString m_sProcessName;                 // Name of program (Compile, Rebuild etc)
-   CEvent m_event;                         // Event that triggers command/batch execution
-   static volatile bool s_bBusy;           // Flag signals thread busy state
-   volatile bool m_bCompiling;             // Are we currently compiling?
-   bool m_bWarningPlayed;                  // Error warning sound played once?
-   CString m_sBuildMode;                   // Currently set to Debug or Release?
-   UINT m_Flags;                           // Various state flags for current compile batch
+   CRemoteProject* m_pProject;             /// Reference to project
+   CShellManager m_ShellManager;           /// Command Prompt connection (protocol specific)
+   CCompileThread m_CompileThread;         /// Thread that pumps Compile commands
+   CRebuildThread m_RebuildThread;         /// Thread that controls a Solution Rebuild
+   CString m_sProcessName;                 /// Name of program (Compile, Rebuild etc)
+   CEvent m_event;                         /// Event that triggers command/batch execution
+   static volatile bool s_bBusy;           /// Flag signals thread busy state
+   volatile bool m_bCompiling;             /// Are we currently compiling?
+   bool m_bWarningPlayed;                  /// Error warning sound played once?
+   CString m_sBuildMode;                   /// Currently set to Debug or Release?
+   UINT m_Flags;                           /// Various state flags for current compile batch
    //
    CString m_sCommandCD;
    CString m_sCommandBuild;

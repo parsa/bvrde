@@ -60,8 +60,6 @@ public:
    CFolderFile(CEmptyProject* pLocalProject, IProject* pProject, IElement* pParent);
 
 public:
-   BOOL Load(ISerializable* pArc);
-   BOOL Save(ISerializable* pArc);
    BOOL OpenView(long lLineNum);
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
    void CloseView();

@@ -454,12 +454,11 @@ bool CFtpProtocol::WaitForConnection()
    const DWORD SPAWNTIMEOUT = 5;
    DWORD dwTickStart = ::GetTickCount();
    while( m_thread.IsRunning() ) {
-      ::Sleep(200L);
       if( ::GetTickCount() - dwTickStart > SPAWNTIMEOUT * 1000L ) {
          ::SetLastError(ERROR_TIMEOUT);
          return false;
       }
-      PumpIdleMessages();
+      PumpIdleMessages(200L);
    }
    if( !IsConnected() && !m_bCancel ) {
       // Did the server return some kind of error?
@@ -473,14 +472,13 @@ bool CFtpProtocol::WaitForConnection()
       dwTickStart = ::GetTickCount();
       ::Sleep(200L);
       while( m_thread.IsRunning() ) {
-         ::Sleep(200L);
          if( m_bCancel 
              || ::GetTickCount() - dwTickStart > (DWORD) m_lConnectTimeout * 1000UL ) 
          {
             ::SetLastError(ERROR_TIMEOUT);
             return false;
          }
-         PumpIdleMessages();
+         PumpIdleMessages(200L);
       }
       // Check if the server returned an error this time!
       if( m_dwErrorCode != 0 ) {
@@ -525,6 +523,7 @@ bool CFtpProtocol::_TranslateError()
       TCHAR szMessage[300] = { 0 };
       DWORD cchMax = 299;
       ::InternetGetLastResponseInfo(&dwErr, szMessage, &cchMax);
+      ::SetLastError(ERROR_INTERNET_EXTENDED_ERROR);
       if( _tcsstr(szMessage, _T("450 ")) != NULL ) ::SetLastError(ERROR_BUSY);
       if( _tcsstr(szMessage, _T("452 ")) != NULL ) ::SetLastError(ERROR_DISK_FULL);
       if( _tcsstr(szMessage, _T("550 ")) != NULL ) ::SetLastError(ERROR_FILE_NOT_FOUND);

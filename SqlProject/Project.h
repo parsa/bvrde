@@ -10,11 +10,11 @@ class CView;
 
 class CSqlProject : 
    public IProject,
-   virtual public IAppMessageListener,
-   virtual public IIdleListener,
-   virtual public ITreeMessageListener,
-   virtual public IWizardListener,
-   virtual public ICustomCommandListener
+   public IAppMessageListener,
+   public IIdleListener,
+   public ITreeMessageListener,
+   public IWizardListener,
+   public ICustomCommandListener
 {
 public:
    CSqlProject();

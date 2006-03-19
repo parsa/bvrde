@@ -89,16 +89,18 @@ DWORD CCompileThread::Run()
       // First send window resize
       if( m_szWindow.cx > 0 ) m_pManager->m_ShellManager.WriteScreenSize(m_szWindow.cx, m_szWindow.cy);
 
-      // Get a local copy of the commands
       m_cs.Lock();
+      // Get a local copy of the commands
       CSimpleValArray<CString> aActions;
       while( m_aCommands.GetSize() > 0 ) {
          aActions.Add(m_aCommands[0]);
          m_aCommands.RemoveAt(0);
       }
-      // Copy the batched flags value to the current session
-      UINT Flags = m_Flags;
-      m_pManager->m_Flags = Flags;
+      // Assign flags to active session
+      while( m_aFlags.GetSize() > 0 ) {
+         m_pManager->m_Flags = m_aFlags[0];
+         m_aFlags.RemoveAt(0);
+      }
       m_cs.Unlock();
 
       // Execute commands...
@@ -126,7 +128,7 @@ DWORD CCompileThread::Run()
       }
 
       // Request for re-loading of active file?
-      if( (Flags & COMPFLAG_RELOADFILE) != 0 ) {
+      if( (m_pManager->m_Flags & COMPFLAG_RELOADFILE) != 0 ) {
          m_pProject->DelayedGuiAction(GUI_ACTION_FILE_RELOAD);
       }
 
@@ -186,7 +188,7 @@ void CCompileManager::Clear()
    m_sLinkFlags = _T("");
    m_sBuildMode = _T("debug");
    m_bWarningPlayed = false;
-   m_CompileThread.m_Flags = m_Flags = 0;
+   m_Flags = 0;
 }
 
 bool CCompileManager::Load(ISerializable* pArc)
@@ -358,7 +360,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, 
       aCommands.Add(bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandBuild);
       aCommands.Add(m_sCommandPostStep);
-      Flags |= COMPFLAG_BUILDSESSION;
+      Flags |= COMPFLAG_BUILDSESSION | COMPFLAG_COMPILENOTIFY;
    }
    if( sName == _T("Rebuild") ) {
       if( !_PrepareProcess(pstrName) ) return false;
@@ -369,7 +371,7 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, 
       aCommands.Add(bReleaseMode ? m_sCommandRelease : m_sCommandDebug);
       aCommands.Add(m_sCommandRebuild);
       aCommands.Add(m_sCommandPostStep);
-      Flags |= COMPFLAG_BUILDSESSION;
+      Flags |= COMPFLAG_BUILDSESSION | COMPFLAG_COMPILENOTIFY;
    }
    if( sName == _T("Compile") ) {
       if( !_PrepareProcess(pstrName) ) return false;
@@ -520,7 +522,8 @@ bool CCompileManager::_PrepareProcess(LPCTSTR /*pstrName*/)
 {
    // Does project need save before it can run?
    // Let's warn user about this!
-   if( m_pProject->IsDirty() ) {
+   if( m_pProject->IsDirty() || m_pProject->IsViewsDirty() ) 
+   {
       bool bAutoSave = false;
       bool bSavePrompt = false;
       TCHAR szBuffer[32] = { 0 };
@@ -530,8 +533,7 @@ bool CCompileManager::_PrepareProcess(LPCTSTR /*pstrName*/)
       if( _tcscmp(szBuffer, _T("true")) == 0 ) bAutoSave = true;
 
       UINT nRes = IDNO;
-      if( bSavePrompt ) 
-      {
+      if( bSavePrompt ) {
          nRes = _pDevEnv->ShowMessageBox(NULL, 
                                          CString(MAKEINTRESOURCE(IDS_SAVECHANGES)), 
                                          CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), 
@@ -603,11 +605,10 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    m_ShellManager.AddLineListener(this);
 
    // Update execute thread
-   // Add new commands to command list.
-   // and add marker that will end the compile session
+   // Add new commands to command list and add marker that will end the compile session.
    m_CompileThread.m_cs.Lock();
    m_CompileThread.m_szWindow = _GetViewWindowSize();
-   m_CompileThread.m_Flags = Flags;
+   m_CompileThread.m_aFlags.Add(Flags);
    for( int i = 0; i < aCommands.GetSize(); i++ ) {
       CString sCommand = aCommands[i];
       if( !sCommand.IsEmpty() ) m_CompileThread.m_aCommands.Add(sCommand);
@@ -624,7 +625,11 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
          m_pProject->DelayedGuiAction(GUI_ACTION_CLEARVIEW, ctrlEdit);
          m_pProject->DelayedGuiAction(GUI_ACTION_ACTIVATEVIEW, ctrlEdit);
       }
-      // Notify views that is a compile session is starting
+      // Notify views that an actual compiler session is starting.
+      // A "compiler session" may be any makefile or direct gcc issued command.
+      // The DEBUG_CMD_COMPILE_START event will cause this class to attach
+      // itself as a listener for compiler output. It's delayed to the main
+      // GUI thread to prevent horrendous dead-lock situations.
       m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_START);
    }
 
@@ -632,9 +637,18 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    s_bBusy = true;
    m_bCompiling = true;
    m_bWarningPlayed = false;
+
+   // Trigger the compile thread so it will detect the
+   // new commands and submit them to the remote server.
    m_event.SetEvent();
 
-   // If this is in command mode, we'll be polite and wait for the command to
+   // Notify views
+   // The COMPFLAG_COMPILENOTIFY event just tells the project that
+   // it can clear various internal states related to the project being
+   // fully recompiled.
+   if( (Flags & COMPFLAG_COMPILENOTIFY) != 0 ) m_pProject->DelayedGuiAction(GUI_ACTION_COMPILESTART);
+
+   // If this is in Command Mode, we'll be polite and wait for the command to
    // actually be submitted to the remote server before we continue...
    if( (Flags & COMPFLAG_COMMANDMODE) != 0 ) {
       DWORD dwStartTick = ::GetTickCount();

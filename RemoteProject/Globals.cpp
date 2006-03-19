@@ -255,8 +255,11 @@ CTextFile* CreateViewFromFilename(IDevEnv* pDevEnv,
 }
 
 
-void PumpIdleMessages()
+void PumpIdleMessages(DWORD dwTimeout)
 {
+   // TODO: Consider using MsgWaitForMultipleObjects()
+   ::Sleep(dwTimeout);
+
    HCURSOR hCursor = ::GetCursor();
    MSG msg = { 0 };
    while( ::PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE) ) { 

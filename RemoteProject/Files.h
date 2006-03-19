@@ -24,6 +24,7 @@ public:
    CString m_sFilename;
    CString m_sLocation;
    CString m_sLanguage;
+   CString m_sFileType;
    FILETIME m_ftCurrent;
    BOOL m_bIsDirty;
 
@@ -66,8 +67,6 @@ public:
 
 public:
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
-   BOOL Load(ISerializable* pArc);
-   BOOL Save(ISerializable* pArc);
    BOOL Reload();
    BOOL OpenView(long lLineNum);
    void CloseView();
@@ -117,165 +116,78 @@ class CCppFile : public CTextFile
 {
 public:
    CCppFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
-
-
-///////////////////////////////////////////////////////7
-//
 
 class CHeaderFile : public CCppFile
 {
 public:
    CHeaderFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
-
-
-///////////////////////////////////////////////////////7
-//
 
 class CMakeFile : public CTextFile
 {
 public:
    CMakeFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
-
-
-///////////////////////////////////////////////////////7
-//
 
 class CBashFile : public CTextFile
 {
 public:
    CBashFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
-
-
-///////////////////////////////////////////////////////7
-//
 
 class CJavaFile : public CTextFile
 {
 public:
    CJavaFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
-
-
-///////////////////////////////////////////////////////7
-//
 
 class CBasicFile : public CTextFile
 {
 public:
    CBasicFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
-
-
-///////////////////////////////////////////////////////7
-//
 
 class CXmlFile : public CTextFile
 {
 public:
    CXmlFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
-
-
-///////////////////////////////////////////////////////7
-//
 
 class CHtmlFile : public CTextFile
 {
 public:
    CHtmlFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
-
-
-///////////////////////////////////////////////////////7
-//
 
 class CPhpFile : public CTextFile
 {
 public:
    CPhpFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
-
-
-///////////////////////////////////////////////////////7
-//
 
 class CAspFile : public CTextFile
 {
 public:
    CAspFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
-
-
-///////////////////////////////////////////////////////7
-//
 
 class CPerlFile : public CTextFile
 {
 public:
    CPerlFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
-
-
-///////////////////////////////////////////////////////7
-//
 
 class CPythonFile : public CTextFile
 {
 public:
    CPythonFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
-
-
-///////////////////////////////////////////////////////7
-//
 
 class CPascalFile : public CTextFile
 {
 public:
    CPascalFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
-
-public:
-   BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
 };
 
 

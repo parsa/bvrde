@@ -175,6 +175,8 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 
 BOOL CMainFrame::OnIdle()
 {
+   // NOTE: Obviously it is dangerous to have references to IDE objects hanging around
+   //       in static members, but we'll only use them for pointer comparison.
    static IView* s_pOldView = NULL;
    static IElement* s_pOldElement = NULL;
    static BOOL s_bOldDirtyFlag = NULL;

@@ -407,7 +407,7 @@ IDD_FILEBROWSE DIALOGEX 0, 0, 310, 177
 STYLE DS_3DLOOK | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Öffnen"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_LIST,"SysListView32",LVS_LIST | 
                     LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_AUTOARRANGE | 
@@ -1174,20 +1174,6 @@ IDR_SEARCH              BITMAP  DISCARDABLE     "res\\search.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_BACK                ICON    DISCARDABLE     "res\\back.ico"
-IDI_REFRESH             ICON    DISCARDABLE     "res\\refresh.ico"
-IDI_KEY                 ICON    DISCARDABLE     "Res\\key.ico"
-IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
-IDI_MINUS               ICON    DISCARDABLE     "res\\minus.ico"
-IDI_PLUS                ICON    DISCARDABLE     "res\\plus.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Menu
 //
 
@@ -1499,7 +1485,7 @@ IDD_FILEBROWSE DIALOGEX 0, 0, 310, 177
 STYLE DS_3DLOOK | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Open"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_LIST,"SysListView32",LVS_LIST | 
                     LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_AUTOARRANGE | 
@@ -1675,7 +1661,7 @@ END
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Integration",-1,0,0,38,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,46,4,212,1
@@ -1693,7 +1679,7 @@ BEGIN
     CONTROL         "Automatically close braces",IDC_AUTOCLOSE,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,59,120,10,
                     WS_EX_TRANSPARENT
-    CONTROL         "Mark error with squiggly lines",IDC_MARKERRORS,"Button",
+    CONTROL         "Mark errors with squiggly lines",IDC_MARKERRORS,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,70,120,10,
                     WS_EX_TRANSPARENT
     CONTROL         "Show debug indicators as coloured lines",
@@ -1847,6 +1833,20 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_BACK                ICON    DISCARDABLE     "res\\back.ico"
+IDI_REFRESH             ICON    DISCARDABLE     "res\\refresh.ico"
+IDI_KEY                 ICON    DISCARDABLE     "Res\\key.ico"
+IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
+IDI_MINUS               ICON    DISCARDABLE     "res\\minus.ico"
+IDI_PLUS                ICON    DISCARDABLE     "res\\plus.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

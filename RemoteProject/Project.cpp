@@ -15,7 +15,8 @@ CRemoteProject::CRemoteProject() :
    m_Dispatch(this),
    m_pQuickWatchDlg(NULL),
    m_bLoaded(false),
-   m_bIsDirty(false)
+   m_bIsDirty(false),
+   m_bNeedsRecompile(false)
 {
    SecClearPassword();
 }
@@ -83,8 +84,7 @@ BOOL CRemoteProject::Close()
 
 BOOL CRemoteProject::GetName(LPTSTR pstrName, UINT cchMax) const
 {
-   _tcsncpy(pstrName, m_sName, cchMax);
-   return TRUE;
+   return _tcsncpy(pstrName, m_sName, cchMax) > 0;
 }
 
 BOOL CRemoteProject::SetName(LPCTSTR pstrName)
@@ -111,9 +111,6 @@ BOOL CRemoteProject::IsDirty() const
 {
    if( !m_bLoaded ) return FALSE;
    if( m_bIsDirty ) return TRUE;
-   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
-      if( m_aFiles[i]->IsDirty() ) return TRUE;
-   }
    return FALSE;
 }
 
@@ -134,7 +131,7 @@ IView* CRemoteProject::GetItem(INT iIndex)
    return m_aFiles[iIndex];
 }
 
-BOOL CRemoteProject::Reset()
+bool CRemoteProject::Reset()
 {
    m_sName.Empty();
    // Close the views nicely before killing them off
@@ -145,7 +142,8 @@ BOOL CRemoteProject::Reset()
    m_aLazyData.RemoveAll();
    m_aDependencies.RemoveAll();
    m_bIsDirty = false;
-   return TRUE;
+   m_bNeedsRecompile = false;
+   return true;
 }
 
 BOOL CRemoteProject::Load(ISerializable* pArc)
@@ -170,6 +168,7 @@ BOOL CRemoteProject::Save(ISerializable* pArc)
    if( !_SaveFiles(pArc, this) ) return FALSE;
 
    m_bIsDirty = false;
+
    return TRUE;
 }
 
@@ -218,7 +217,7 @@ void CRemoteProject::ActivateProject()
    m_viewClassTree.Populate();
    m_viewRemoteDir.Init(this);
 
-   // Project filenames are relative to the solution, so
+   // Local project filenames are relative to the solution, so
    // we need to change current Windows path.
    ::SetCurrentDirectory(m_sPath);
 }
@@ -255,12 +254,6 @@ void CRemoteProject::ActivateUI()
 
    CMenuHandle menuViews = menuView.GetSubMenu(2);
    menuViews.AppendMenu(MF_STRING, ID_VIEW_FILEMANAGER, CString(MAKEINTRESOURCE(IDS_FILEMANAGER)));
-
-   // Propagate dirty flag to project itself.
-   // This will allow us to memorize if the project was ever changed
-   // and is especially useful when we need to determine if a compile
-   // is needed before the process can be run.
-   m_bIsDirty |= (IsDirty() == TRUE);
 }
 
 void CRemoteProject::DeactivateUI()
@@ -287,15 +280,20 @@ BOOL CRemoteProject::PreTranslateMessage(MSG* pMsg)
 
 void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
 {
+   // Extract type of selected element
    CString sFileType;
    IElement* pElement = _GetSelectedTreeElement();
-   if( pElement ) {
+   if( pElement != NULL ) {
       pElement->GetType(sFileType.GetBufferSetLength(64), 64);
       sFileType.ReleaseBuffer();
    }
 
+   // We should know which build mode we're operating in
    int iMode = m_ctrlMode.GetCurSel();
    m_CompileManager.SetParam(_T("BuildMode"), iMode == 0 ? _T("release") : _T("debug"));
+
+   // We continously monitor the views to detect if their contents is modified at any point
+   if( !m_bNeedsRecompile ) m_bNeedsRecompile |= IsViewsDirty();
 
    BOOL bCompiling = m_CompileManager.IsCompiling();
    BOOL bProcessStarted = m_DebugManager.IsBusy();
@@ -566,37 +564,47 @@ void CRemoteProject::OnMenuCommand(LPCTSTR pstrType, LPCTSTR pstrCommand, LPCTST
 
 // Operations
 
-BOOL CRemoteProject::GetPath(LPTSTR pstrPath, UINT cchMax) const
+bool CRemoteProject::GetPath(LPTSTR pstrPath, UINT cchMax) const
 {
-   _tcsncpy(pstrPath, m_sPath, cchMax);
-   return TRUE;
+   return _tcsncpy(pstrPath, m_sPath, cchMax) > 0;
 }
 
-CTelnetView* CRemoteProject::GetDebugView() const
+CTelnetView* CRemoteProject::GetDebugView()
 {
    return &m_viewDebugLog;
 }
 
-CTelnetView* CRemoteProject::GetOutputView() const
+CTelnetView* CRemoteProject::GetOutputView()
 {
    return &m_viewOutput;
 }
 
-CClassView* CRemoteProject::GetClassView() const
+CClassView* CRemoteProject::GetClassView()
 {
    return &m_viewClassTree;
 }
 
+bool CRemoteProject::IsRecompileNeeded() const
+{
+   if( IsDirty() ) return true;
+   return m_bNeedsRecompile;
+}
+
+bool CRemoteProject::IsViewsDirty() const
+{
+   for( int i = 0; i < m_aFiles.GetSize(); i++ ) if( m_aFiles[i]->IsDirty() ) return true;
+   return false;
+}
+
 void CRemoteProject::SendViewMessage(UINT nCmd, LAZYDATA* pData)
 {
-   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
-      DWORD dwRes = 0;
-      m_aFiles[i]->SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, nCmd), (LPARAM) pData);
-   }
+   ATLASSERT(!::IsBadReadPtr(pData,sizeof(LAZYDATA)));
+   for( int i = 0; i < m_aFiles.GetSize(); i++ ) m_aFiles[i]->SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, nCmd), (LPARAM) pData);
 }
 
 bool CRemoteProject::OpenView(LPCTSTR pstrFilename, long lLineNum)
 {
+   ATLASSERT(!::IsBadStringPtr(pstrFilename,-1));
    IView* pView = FindView(pstrFilename, false);
    if( pView == NULL ) pView = _CreateDependencyFile(pstrFilename, ::PathFindFileName(pstrFilename));
    if( pView == NULL ) return false;

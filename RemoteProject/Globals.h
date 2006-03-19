@@ -70,6 +70,7 @@ typedef enum GUIACTION
    GUI_ACTION_PLAY_ANIMATION,
    GUI_ACTION_STOP_ANIMATION,
 	GUI_ACTION_FILE_RELOAD,
+   GUI_ACTION_COMPILESTART,
 };
 
 typedef enum VT100COLOR
@@ -228,7 +229,7 @@ CString ConvertFromCrLf(const CString& s);
 CString GetFileTypeFromFilename(LPCTSTR pstrFilename);
 CTextFile* CreateViewFromFilename(IDevEnv* pDevEnv, LPCTSTR pstrFilename, CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);
 
-void PumpIdleMessages();
+void PumpIdleMessages(DWORD dwTimeout);
 
 
 #endif // !defined(AFX_GLOBALS_H__20030315_A892_7CB2_47EF_0080AD509054__INCLUDED_)

@@ -36,8 +36,7 @@ public:
       // Wait for it to start and complete
       m_dwLastTime = ::GetTickCount();
       while( pManager->GetParam(_T("InCommand")) == _T("true") ) {
-         ::Sleep(200L);
-         PumpIdleMessages();
+         ::Sleep(200UL);
          if( lTimeout > 0 && ::GetTickCount() - m_dwLastTime > (DWORD) lTimeout ) break;
       }
       pManager->m_ShellManager.RemoveLineListener(this);

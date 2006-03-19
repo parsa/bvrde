@@ -54,9 +54,10 @@ protected:
 
    bool _LoadSolution(LPCTSTR pstrFilename, IProject*& pDefaultProject);
    bool _LoadProject(LPCTSTR pstrSolutionFilename, ISerializable* pArc);
-   bool _SaveSolution();
-   bool _SaveProject(ISerializable* pArc, PROJECT& Project);
    bool _AddProject(LPCTSTR pstrSolutionFilename, LPCTSTR pstrFilename, LPCTSTR pstrType);
+   bool _SaveSolution();
+   bool _SaveProject(ISerializable* pArc, const PROJECT& Project);
+   CString _GetComErrorText() const;
 
    IDevEnv* m_pDevEnv;
    CMainFrame* m_pMainFrame;

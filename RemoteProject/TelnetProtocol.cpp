@@ -270,13 +270,15 @@ DWORD CTelnetThread::Run()
                         // Send window size immediately
                         if( nCmd == TELOPT_NAWS && nCode == TELNET_WILL ) 
                         {
+                           const BYTE SCR_WIDTH = 80;
+                           const BYTE SCR_HEIGHT = 24;
                            aSend.Add( (BYTE) TELNET_IAC );
                            aSend.Add( (BYTE) TELNET_SB );
                            aSend.Add( nCmd );
-                           aSend.Add( (BYTE)((80 >> 8) & 0xFF) );
-                           aSend.Add( (BYTE)(80 & 0xFF) );
-                           aSend.Add( (BYTE)((24 >> 8) & 0xFF) );
-                           aSend.Add( (BYTE)(24 & 0xFF) );
+                           aSend.Add( (BYTE)((SCR_WIDTH >> 8) & 0xFF) );
+                           aSend.Add( (BYTE)(SCR_WIDTH & 0xFF) );
+                           aSend.Add( (BYTE)((SCR_HEIGHT >> 8) & 0xFF) );
+                           aSend.Add( (BYTE)(SCR_HEIGHT & 0xFF) );
                            aSend.Add( (BYTE) TELNET_IAC );
                            aSend.Add( (BYTE) TELNET_SE );
                            m_pManager->m_bCanWindowSize = true;
@@ -654,7 +656,7 @@ bool CTelnetProtocol::WaitForConnection()
       }
 
       // Wait a little while
-      ::Sleep(200L);
+      PumpIdleMessages(200L);
 
       DWORD dwTick = ::GetTickCount();
 
@@ -677,8 +679,6 @@ bool CTelnetProtocol::WaitForConnection()
          ::SetLastError(m_dwErrorCode == 0 ? ERROR_NOT_CONNECTED : m_dwErrorCode);
          return false;
       }
-
-      PumpIdleMessages();
    }
    ATLASSERT(!m_socket.IsNull());
    return true;

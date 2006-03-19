@@ -23,7 +23,7 @@ CView::CView(CSqlProject* pProject,
    m_sConnectString(pstrConnectionString == NULL ? _T("") : pstrConnectionString),
    m_sType(pstrType),
    m_iHistoryPos(0),
-   m_bDirty(FALSE)
+   m_bIsDirty(TRUE)
 {
 }
 
@@ -40,7 +40,7 @@ BOOL CView::GetName(LPTSTR pstrName, UINT cchMax) const
 BOOL CView::SetName(LPCTSTR pstrName)
 {
    m_sName = pstrName;
-   m_bDirty = true;
+   m_bIsDirty = TRUE;
    return TRUE;
 }
 
@@ -57,9 +57,9 @@ IDispatch* CView::GetDispatch()
 
 BOOL CView::IsDirty() const
 {
-   // The view is not considered dirty if the SQL text has changed
-   // so we don't prompt the user unnessecary.
-   return m_bDirty;
+   // NOTE: The view is not considered dirty if the SQL text has changed
+   //       so we don't prompt the user unnessecary! SQL is futile!!
+   return m_bIsDirty;
 }
 
 BOOL CView::Load(ISerializable* pArc)
@@ -76,6 +76,7 @@ BOOL CView::Load(ISerializable* pArc)
    pArc->Read(_T("str"), m_sConnectString.GetBufferSetLength(400), 400);
    m_sConnectString.ReleaseBuffer();
    pArc->ReadGroupEnd();
+   m_bIsDirty = FALSE;
    return TRUE;
 }
 
@@ -180,7 +181,7 @@ IElement* CView::GetParent() const
 
 BOOL CView::Save()
 {
-   m_bDirty = FALSE;
+   m_bIsDirty = FALSE;
    return TRUE;
 }
 
@@ -260,7 +261,9 @@ BOOL CView::Run(BOOL bSelectedTextOnly)
       free(pstrText);   
       iLineNo = m_view.m_wndSource.LineFromPosition(m_view.m_wndSource.GetSelection().cpMin) + 1;
    }
-   if( sText.IsEmpty() ) {
+   CString sTrimmed = sText;   // FIX: Scintilla control becomes insane after file load
+   sTrimmed.TrimLeft();
+   if( sTrimmed.IsEmpty() ) {
       int nLen = m_view.m_wndSource.GetTextLength();
       LPSTR pstrText = (LPSTR) malloc(nLen + 1);
       if( pstrText == NULL ) return FALSE;

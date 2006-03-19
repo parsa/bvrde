@@ -15,7 +15,7 @@ CViewImpl::CViewImpl(CRemoteProject* pCppProject, IProject* pProject, IElement* 
    m_pCppProject(pCppProject),
    m_pProject(pProject),
    m_pParent(pParent),
-   m_bIsDirty(false)
+   m_bIsDirty(TRUE)
 {
    ::ZeroMemory(&m_ftCurrent, sizeof(FILETIME));
 }
@@ -49,7 +49,7 @@ BOOL CViewImpl::SetName(LPCTSTR pstrName)
 {
    ATLASSERT(pstrName);
    m_sName = pstrName;
-   m_bIsDirty = true;
+   m_bIsDirty = TRUE;
    return TRUE;
 }
 
@@ -57,7 +57,7 @@ BOOL CViewImpl::Load(ISerializable* pArc)
 {
    pArc->Read(_T("name"), m_sName.GetBufferSetLength(128), 128);
    m_sName.ReleaseBuffer();
-   m_bIsDirty = false;
+   m_bIsDirty = FALSE;
    return TRUE;
 }
 
@@ -76,7 +76,7 @@ BOOL CViewImpl::Save(ISerializable* pArc)
 BOOL CViewImpl::Save()
 {
    ::ZeroMemory(&m_ftCurrent, sizeof(FILETIME));
-   m_bIsDirty = false;
+   m_bIsDirty = FALSE;
    return TRUE;
 }
 
@@ -133,6 +133,7 @@ bool CViewImpl::_IsValidFile(LPBYTE pData, DWORD dwSize) const
    ATLASSERT(!::IsBadReadPtr(pData,dwSize));
    if( dwSize <= 2 ) return true;
    if( pData[0] == 0xFF && pData[1] == 0xFE ) return false;   // UNICODE BOM
+   if( pData[0] == 0xFE && pData[1] == 0xFF ) return false;   // UNICODE BOM
    if( pData[0] == 0xEF && pData[1] == 0xBB ) return false;   // UTF-8 BOM
    return true;
 }
@@ -150,18 +151,6 @@ CFolderFile::CFolderFile(CRemoteProject* pCppProject, IProject* pProject, IEleme
 BOOL CFolderFile::GetType(LPTSTR pstrType, UINT cchMax) const
 {
    _tcsncpy(pstrType, _T("Folder"), cchMax);
-   return TRUE;
-}
-
-BOOL CFolderFile::Load(ISerializable* pArc)
-{
-   if( !CViewImpl::Load(pArc) ) return FALSE;
-   return TRUE;
-}
-
-BOOL CFolderFile::Save(ISerializable* pArc)
-{
-   if( !CViewImpl::Save(pArc) ) return FALSE;
    return TRUE;
 }
 
@@ -195,6 +184,7 @@ CTextFile::CTextFile(CRemoteProject* pCppProject, IProject* pProject, IElement* 
    m_Dispatch(this)
 {
    m_sLanguage = _T("text");
+   m_sFileType = _T("Text");
 }
 
 BOOL CTextFile::Load(ISerializable* pArc)
@@ -207,6 +197,7 @@ BOOL CTextFile::Load(ISerializable* pArc)
    m_sLocation.ReleaseBuffer();
    
    if( m_sLocation.IsEmpty() ) m_sLocation = _T("local");
+
    return TRUE;
 }
 
@@ -252,6 +243,8 @@ BOOL CTextFile::Save()
       f.Close();
    }
 
+   free(pstrText);
+
    m_view.m_ctrlEdit.SetSavePoint();
 
    // Save Clears Undo stack
@@ -259,7 +252,6 @@ BOOL CTextFile::Save()
    _pDevEnv->GetProperty(_T("gui.document.clearUndo"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("true")) == 0 ) m_view.m_ctrlEdit.EmptyUndoBuffer();
 
-   free(pstrText);
    return CViewImpl::Save();
 }
 
@@ -441,7 +433,7 @@ BOOL CTextFile::OpenView(long lLineNum)
          ::SetLastError(ERROR_OUTOFMEMORY);
          return FALSE;
       }
-      AtlW2AHelper(pstrData, sText, nLen + 1);
+      AtlW2AHelper(pstrData, sText, (nLen * 2) + 1);
       m_view.SetText(pstrData);
       free(pstrData);
 
@@ -479,8 +471,7 @@ void CTextFile::CloseView()
 
 BOOL CTextFile::GetType(LPTSTR pstrType, UINT cchMax) const
 {
-   _tcsncpy(pstrType, _T("Text"), cchMax);
-   return TRUE;
+   return _tcsncpy(pstrType, m_sFileType, cchMax) > 0;
 }
 
 BOOL CTextFile::GetFileName(LPTSTR pstrName, UINT cchMax) const
@@ -498,17 +489,15 @@ IDispatch* CTextFile::GetDispatch()
 
 LRESULT CTextFile::PostMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-   if( m_view.IsWindow() ) return m_view.PostMessage(uMsg, wParam, lParam);
-   return 0;
+   if( !m_view.IsWindow() ) return 0;
+   return m_view.PostMessage(uMsg, wParam, lParam);
 }
 
 LRESULT CTextFile::SendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-   if( m_view.IsWindow() ) {
-      DWORD dwRes = 0;
-      return ::SendMessageTimeout(m_view, uMsg, wParam, lParam, SMTO_ABORTIFHUNG, 1000UL, &dwRes);
-   }
-   return 0;
+   if( !m_view.IsWindow() )  return 0;
+   DWORD dwRes = 0;
+   return ::SendMessageTimeout(m_view, uMsg, wParam, lParam, SMTO_ABORTIFHUNG, 1000UL, &dwRes);
 }
 
 
@@ -519,12 +508,7 @@ CCppFile::CCppFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pP
    CTextFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("cpp");
-}
-
-BOOL CCppFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("CPP"), cchMax);
-   return TRUE;
+   m_sFileType = _T("CPP");
 }
 
 
@@ -535,12 +519,7 @@ CHeaderFile::CHeaderFile(CRemoteProject* pCppProject, IProject* pProject, IEleme
    CCppFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("cpp");
-}
-
-BOOL CHeaderFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("Header"), cchMax);
-   return TRUE;
+   m_sFileType = _T("Header");
 }
 
 
@@ -551,12 +530,7 @@ CMakeFile::CMakeFile(CRemoteProject* pCppProject, IProject* pProject, IElement* 
    CTextFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("makefile");
-}
-
-BOOL CMakeFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("Makefile"), cchMax);
-   return TRUE;
+   m_sFileType = _T("Makefile");
 }
 
 
@@ -567,12 +541,7 @@ CBashFile::CBashFile(CRemoteProject* pCppProject, IProject* pProject, IElement* 
    CTextFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("bash");
-}
-
-BOOL CBashFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("ShellScript"), cchMax);
-   return TRUE;
+   m_sFileType = _T("ShellScript");
 }
 
 
@@ -583,12 +552,7 @@ CJavaFile::CJavaFile(CRemoteProject* pCppProject, IProject* pProject, IElement* 
    CTextFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("java");
-}
-
-BOOL CJavaFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("Java"), cchMax);
-   return TRUE;
+   m_sFileType = _T("Java");
 }
 
 
@@ -599,12 +563,7 @@ CBasicFile::CBasicFile(CRemoteProject* pCppProject, IProject* pProject, IElement
    CTextFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("basic");
-}
-
-BOOL CBasicFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("BASIC"), cchMax);
-   return TRUE;
+   m_sFileType = _T("BASIC");
 }
 
 
@@ -615,12 +574,7 @@ CHtmlFile::CHtmlFile(CRemoteProject* pCppProject, IProject* pProject, IElement* 
    CTextFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("html");
-}
-
-BOOL CHtmlFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("HTML"), cchMax);
-   return TRUE;
+   m_sFileType = _T("HTML");
 }
 
 
@@ -631,12 +585,7 @@ CPhpFile::CPhpFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pP
    CTextFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("php");
-}
-
-BOOL CPhpFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("PHP"), cchMax);
-   return TRUE;
+   m_sFileType = _T("PHP");
 }
 
 
@@ -647,12 +596,7 @@ CAspFile::CAspFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pP
    CTextFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("asp");
-}
-
-BOOL CAspFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("ASP Script"), cchMax);
-   return TRUE;
+   m_sFileType = _T("ASP Script");
 }
 
 
@@ -663,14 +607,8 @@ CXmlFile::CXmlFile(CRemoteProject* pCppProject, IProject* pProject, IElement* pP
    CTextFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("xml");
+   m_sFileType = _T("XML");
 }
-
-BOOL CXmlFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("XML"), cchMax);
-   return TRUE;
-}
-
 
 
 ////////////////////////////////////////////////////////
@@ -680,12 +618,7 @@ CPerlFile::CPerlFile(CRemoteProject* pCppProject, IProject* pProject, IElement* 
    CTextFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("perl");
-}
-
-BOOL CPerlFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("Perl"), cchMax);
-   return TRUE;
+   m_sFileType = _T("Perl");
 }
 
 
@@ -696,12 +629,7 @@ CPythonFile::CPythonFile(CRemoteProject* pCppProject, IProject* pProject, IEleme
    CTextFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("python");
-}
-
-BOOL CPythonFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("Python"), cchMax);
-   return TRUE;
+   m_sFileType = _T("Python");
 }
 
 
@@ -712,11 +640,6 @@ CPascalFile::CPascalFile(CRemoteProject* pCppProject, IProject* pProject, IEleme
    CTextFile(pCppProject, pProject, pParent)
 {
    m_sLanguage = _T("pascal");
-}
-
-BOOL CPascalFile::GetType(LPTSTR pstrType, UINT cchMax) const
-{
-   _tcsncpy(pstrType, _T("Pascal"), cchMax);
-   return TRUE;
+   m_sFileType = _T("Pascal");
 }
 

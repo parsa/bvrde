@@ -38,11 +38,11 @@
 
 class CRemoteProject : 
    public IProject,
-   virtual public IAppMessageListener,
-   virtual public IIdleListener,
-   virtual public ITreeMessageListener,
-   virtual public IWizardListener,
-   virtual public ICustomCommandListener
+   public IAppMessageListener,
+   public IIdleListener,
+   public ITreeMessageListener,
+   public IWizardListener,
+   public ICustomCommandListener
 {
 public:
    CRemoteProject();
@@ -68,6 +68,7 @@ private:
    CSimpleValArray<IView*> m_aDependencies;      /// List of file dependencies (stdlib, lib files)
    CQuickWatchDlg* m_pQuickWatchDlg;             /// Modeless QuickWatch dialog
    bool m_bIsDirty;                              /// Project or file(s) have changed?
+   bool m_bNeedsRecompile;                       /// Project should be recompiled before debug?
    //
    static CAccelerator m_accel;
    static CComboBox m_ctrlMode;
@@ -102,6 +103,7 @@ public:
 public:
    BOOL Initialize(IDevEnv* pEnv, LPCTSTR pstrPath);
    BOOL IsDirty() const;
+   BOOL SetName(LPCTSTR pstrName);
    BOOL GetFileName(LPTSTR pstrFilename, UINT cchMax) const;
    BOOL GetClass(LPTSTR pstrType, UINT cchMax) const;
    BOOL Close();
@@ -140,16 +142,18 @@ public:
 
 // Operations
 public:
-   BOOL Reset();
+   bool Reset();
    bool OpenView(LPCTSTR pstrFilename, long lLineNum);
    IView* FindView(LPCTSTR pstrFilename, bool bLocally = false) const;
    void SendViewMessage(UINT nCmd, LAZYDATA* pData);
-   CClassView* GetClassView() const;
-   CTelnetView* GetDebugView() const;
-   CTelnetView* GetOutputView() const;
-   BOOL SetName(LPCTSTR pstrName);
-   BOOL GetPath(LPTSTR pstrPath, UINT cchMax) const;
+   bool IsViewsDirty() const;
+   bool IsRecompileNeeded() const;
+   bool GetPath(LPTSTR pstrPath, UINT cchMax) const;
    bool GetTagInfo(LPCTSTR pstrValue, bool bAskDebugger, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/);
+   //
+   static CClassView* GetClassView();
+   static CTelnetView* GetDebugView();
+   static CTelnetView* GetOutputView();
    //
    void DelayedStatusBar(LPCTSTR pstrText);
    void DelayedOpenView(LPCTSTR pstrFilename, long lLineNum);

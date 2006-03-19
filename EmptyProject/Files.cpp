@@ -15,7 +15,7 @@ CViewImpl::CViewImpl(CEmptyProject* pLocalProject, IProject* pProject, IElement*
    m_pLocalProject(pLocalProject),
    m_pProject(pProject),
    m_pParent(pParent),
-   m_bIsDirty(false)
+   m_bIsDirty(TRUE)
 {
 }
 
@@ -48,7 +48,7 @@ BOOL CViewImpl::SetName(LPCTSTR pstrName)
 {
    ATLASSERT(pstrName);
    m_sName = pstrName;
-   m_bIsDirty = true;
+   m_bIsDirty = TRUE;
    return TRUE;
 }
 
@@ -56,7 +56,7 @@ BOOL CViewImpl::Load(ISerializable* pArc)
 {
    pArc->Read(_T("name"), m_sName.GetBufferSetLength(128), 128);
    m_sName.ReleaseBuffer();
-   m_bIsDirty = false;
+   m_bIsDirty = FALSE;
    return TRUE;
 }
 
@@ -65,15 +65,14 @@ BOOL CViewImpl::Save(ISerializable* pArc)
    CString sType;
    GetType(sType.GetBufferSetLength(64), 64);
    sType.ReleaseBuffer();
-
    pArc->Write(_T("name"), m_sName);
    pArc->Write(_T("type"), sType);
-
    return TRUE;
 }
 
 BOOL CViewImpl::Save()
 {
+   m_bIsDirty = FALSE;
    return TRUE;
 }
 
@@ -128,7 +127,7 @@ CString CViewImpl::_GetRealFilename() const
    // expand the filename.
    CString sPath;
    if( m_sFilename.Left(1) == _T(".") ) {
-      if( m_pLocalProject ) {
+      if( m_pLocalProject != NULL ) {
          m_pLocalProject->GetPath(sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
          sPath.ReleaseBuffer();
       }
@@ -148,18 +147,6 @@ CFolderFile::CFolderFile(CEmptyProject* pLocalProject, IProject* pProject, IElem
 BOOL CFolderFile::GetType(LPTSTR pstrType, UINT cchMax) const
 {
    _tcsncpy(pstrType, _T("Folder"), cchMax);
-   return TRUE;
-}
-
-BOOL CFolderFile::Load(ISerializable* pArc)
-{
-   if( !CViewImpl::Load(pArc) ) return FALSE;
-   return TRUE;
-}
-
-BOOL CFolderFile::Save(ISerializable* pArc)
-{
-   if( !CViewImpl::Save(pArc) ) return FALSE;
    return TRUE;
 }
 
@@ -191,8 +178,9 @@ BOOL CTextFile::Load(ISerializable* pArc)
    m_sFilename.ReleaseBuffer();
    pArc->Read(_T("location"), m_sLocation.GetBufferSetLength(64), 64);
    m_sLocation.ReleaseBuffer();
-   
+
    if( m_sLocation.IsEmpty() ) m_sLocation = _T("local");
+
    return TRUE;
 }
 
@@ -202,12 +190,6 @@ BOOL CTextFile::Save(ISerializable* pArc)
 
    pArc->Write(_T("filename"), m_sFilename);
    pArc->Write(_T("location"), m_sLocation);
-
-   if( pArc->WriteExternal(_T("text")) ) {
-      if( IsDirty() ) {
-         if( !Save() ) return FALSE;
-      }
-   }
 
    return TRUE;
 }
@@ -244,11 +226,13 @@ BOOL CTextFile::Save()
    if( _tcscmp(szBuffer, _T("true")) == 0 ) m_view.m_ctrlEdit.EmptyUndoBuffer();
 
    free(pstrText);
-   return TRUE;
+
+   return CViewImpl::Save();
 }
 
 BOOL CTextFile::IsDirty() const
 {
+   if( CViewImpl::IsDirty() ) return TRUE;
    if( ::IsWindow(m_wndFrame) ) return m_view.m_ctrlEdit.GetModify();
    return FALSE;
 }

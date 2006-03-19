@@ -133,8 +133,19 @@ bool CDebugManager::Save(ISerializable* pArc)
 
 void CDebugManager::ProgramStop()
 {
-   if( m_bDebugging ) DoDebugCommand(_T("-gdb-exit"));   
-   if( !m_bMaintainSession ) DoDebugCommand(_T("exit"));
+   // Get out of debugger prompt
+   if( m_bDebugging ) {
+      _PauseDebugger();
+      DoDebugCommand(_T("-gdb-exit"));   
+   }
+   // If we maintain the session we don't actually terminate the connection
+   // but retain it until the next time. Otherwise we exit the terminal to disconnect
+   // the session completely.
+   if( !m_bMaintainSession ) {
+      DoDebugCommand(_T("exit"));
+   }
+   // Start the "StopThread" that monitors that we're actually stopping
+   // the session eventually. The StopThread relies on the IsBusy() state.
    if( !m_StopThread.IsRunning() ) {
       m_StopThread.Stop();
       m_StopThread.Start();
@@ -322,6 +333,10 @@ bool CDebugManager::SetNextStatement(LPCTSTR pstrFilename, long lLineNum)
    return true;
 }
 
+/**
+ * Starts the compiled executable on the remote server.
+ * This method runs the executable and displays its terminal output.
+ */
 bool CDebugManager::RunNormal()
 {  
    // Launch the remote process and supervise it with
@@ -341,7 +356,9 @@ bool CDebugManager::RunNormal()
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
    _pDevEnv->PlayAnimation(TRUE, ANIM_TRANSFER);
 
-   // Initialize and show the console output-log
+   // Initialize and show the console output view.
+   // The Output view is always displayed. When it is closed we also want
+   // the session to terminate.
    CTelnetView* pView = m_pProject->GetDebugView();
    pView->Clear();
    pView->Init(&m_ShellManager, TELNETVIEW_TERMINATEONCLOSE);
@@ -370,6 +387,7 @@ bool CDebugManager::RunNormal()
 
    CString sCommand = _TranslateCommand(m_sCommandCD);
    if( !m_ShellManager.WriteData(sCommand) ) {
+      SignalStop();
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
       CString sMsg(MAKEINTRESOURCE(IDS_ERR_DATAWRITE));
       _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
@@ -384,6 +402,10 @@ bool CDebugManager::RunNormal()
    return true;
 }
 
+/**
+ * Starts the debugger.
+ * This method starts the debugger and begins debugging the compiled executable.
+ */
 bool CDebugManager::RunDebug()
 {
    // Launch the remote process in debug-mode and switch
@@ -393,13 +415,17 @@ bool CDebugManager::RunDebug()
    aList.Add(sCommand);   
    sCommand.Format(_T("%s %s"), m_sDebuggerExecutable, m_sDebuggerArgs);
    aList.Add(sCommand);   
-   if( !_AttachProcess(aList) ) return false;
+   if( !_AttachDebugger(aList) ) return false;
    // Start debugging session
    sCommand.Format(_T("-exec-arguments %s"), m_sAppArgs);
    DoDebugCommand(sCommand);
    return DoDebugCommand(_T("-exec-run"));
 }
 
+/**
+ * Debugs a specific Process ID (PID) on the remote server.
+ * Starts the debugger and attaches to a specific PID.
+ */
 bool CDebugManager::AttachProcess(long lPID)
 {  
    // Launch the remote process from a PID (Process ID)
@@ -412,7 +438,7 @@ bool CDebugManager::AttachProcess(long lPID)
    //sCommand.Format(_T("-target-attach %ld"), lPID);
    sCommand.Format(_T("%s -i=mi --pid=%ld"), m_sDebuggerExecutable, lPID);
    aList.Add(sCommand);   
-   return _AttachProcess(aList);
+   return _AttachDebugger(aList);
 }
 
 bool CDebugManager::RunContinue()
@@ -446,16 +472,16 @@ bool CDebugManager::DoDebugCommand(LPCTSTR pstrText)
    // We must be debugging to execute anything
    if( !IsDebugging() ) return false;
    // HACK: We're having trouble with echoing
-   //       out own strings, so we'll check for a brief
+   //       our own strings, so we'll check for a brief
    //       moment if a new GDB prompt arrives.
    //       However, we quickly give up and rely on
-   //       GDB being somewhat asyncroniously. This does have an
+   //       GDB being somewhat asynchronously. This does have an
    //       inpact on UI responsiveness though.
    //       The problem is, however, that there's no 
    //       flow-control in the GDB-MI std-out handler, 
    //       so we'll risk to send the command in the middle 
    //       of regular output. This is a big mess!
-   const DWORD COMMAND_SEQUENCE_TIMEOUT_MS = 3UL * 50UL;
+   const DWORD COMMAND_SEQUENCE_TIMEOUT_MS = 150UL;
    m_eventAck.WaitForEvent(COMMAND_SEQUENCE_TIMEOUT_MS);
    m_eventAck.ResetEvent();
    // Translate command and send it
@@ -503,7 +529,12 @@ void CDebugManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
 
 // Implementation
 
-bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
+/**
+ * Runs the debugger.
+ * This method runs the debugger on the remote server and hooks up
+ * output display, environment settings and command interaction.
+ */
+bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands)
 {
    // Launch the remote process in debug mode and switch
    // editor state to debugging.
@@ -530,7 +561,7 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
    _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_HIDE, rcLogWin);
 
    // Initialize and hide the output-log view.
-   // The start event will show the view based on users preferences.
+   // The start event will show the view based on user's preferences.
    CTelnetView* pOutput = m_pProject->GetOutputView();
    pOutput->Clear();
    pOutput->Init(&m_ShellManager, TELNETVIEW_FILTERDEBUG);
@@ -602,7 +633,11 @@ bool CDebugManager::_AttachProcess(CSimpleArray<CString>& aCommands)
    LAZYDATA data;
    m_pProject->SendViewMessage(DEBUG_CMD_REQUEST_BREAKPOINTS, &data);
 
-   // This is the first command we send; views can interpret the reply (cwd) as a "startup" command
+   // Prevent "Press <return> to continue" interruption
+   DoDebugCommand(_T("-gdb-set height 0"));  
+
+   // This is one of the first command we send; views can interpret the reply (cwd) as 
+   // a "startup" command.
    DoDebugCommand(_T("-environment-pwd"));
 
    // If there are no breakpoints defined, then let's
@@ -649,8 +684,7 @@ bool CDebugManager::_WaitForDebuggerStart()
    // Wait for for the first debugger acknowledgement (GDB prompt)
    DWORD dwStartTick = ::GetTickCount();
    while( ::GetTickCount() - dwStartTick < m_lStartTimeout * 1000UL ) {
-      ::Sleep(200L);
-      PumpIdleMessages();
+      PumpIdleMessages(200L);
       if( m_nDebugAck > 0 ) return true;
    }
    return false;
@@ -661,9 +695,10 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
    ATLASSERT(!::IsBadStringPtr(pstrCommand,-1));
 
    // Here is an important transformation. For ordinary GDB commands we format them
-   // as "232-command" (prefixing with 232) so we can recognize the response easilier.
-   // We currently don't use the number-prefix to recognize individual command sequences, but
-   // that may change in the future. So far we just hardcode a "random" number.
+   // as "232-command" (prefixing with 232) so we can easily recognize the response.
+   // We currently don't use an incrementing number-prefix to recognize individual command 
+   // sequences, but that may change in the future. So far we just hardcode the (randomly 
+   // picked) number: 232.
    CString sCommand = pstrCommand;
    if( pstrCommand[0] == '-' ) sCommand.Format(_T("232%s"), pstrCommand);
 
@@ -731,13 +766,13 @@ bool CDebugManager::_CheckStatus()
       m_pProject->DelayedMessage(sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
       return false;
    }
-
+ 
    // If the project needs save/compile then ask if we
    // should do so now...
-   if( m_pProject->IsDirty() ) {
+   if( m_pProject->IsDirty() || m_pProject->IsRecompileNeeded() ) {
       CString sMsg(MAKEINTRESOURCE(IDS_NEEDS_RECOMPILE));
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_QUESTION));
-      if( IDYES == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONQUESTION | MB_YESNO) ) {
+      if( IDYES == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONQUESTION | MB_YESNOCANCEL) ) {
          wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE_ALL, 0));
          wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_BUILD_PROJECT, 0));
          return false;
@@ -806,7 +841,7 @@ void CDebugManager::_ParseOutOfBand(LPCTSTR pstrText)
    if( sCommand == _T("stopped") ) {
       // Debugger has stopped and is waiting for input
       m_bBreaked = true;
-      // Parse command
+      // Parse command...
       CMiInfo info = sLine;
       sValue = info.GetItem(_T("reason"));
       // Handles reason:
@@ -864,10 +899,10 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
       return;
    }
    // Debugger returned an error message
-   if( sCommand == _T("error") )
-   {
+   if( sCommand == _T("error") ) {
       // Ignore errors might have been requested, so fulfill thy wish...
       if( m_nIgnoreErrors > 0 ) return;
+      // Extract error description and display it
       CMiInfo info = sLine;
       CString sMessage;
       sMessage.Format(IDS_ERR_DEBUG, info.GetItem(_T("msg")));
@@ -879,7 +914,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
    {
       sLine.TrimLeft(_T(","));
       // This is the list of GDB MI results that we wish to have a closer look
-      // at. Each view may get a change to interpret the data.
+      // at. Each view will get a chance to interpret the data.
       static LPCTSTR pstrList[] = 
       {
          _T("BreakpointTable"),
@@ -959,10 +994,6 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
       m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGUNSTABLE)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
       ProgramStop();
    }
-   // Thread has terminated?
-   if( sLine.Find(_T("has terminated.")) >= 0 ) {
-      DoDebugCommand(_T("-thread-list-ids"));
-   }
    // Outputting directly to the Command View if we're
    // in "command mode" (user entered custom command at prompt or scripting).
    if( m_bCommandMode ) {
@@ -981,6 +1012,7 @@ void CDebugManager::_ParseTargetOutput(LPCTSTR /*pstrText*/)
 void CDebugManager::_ParseLogOutput(LPCTSTR pstrText)
 {
    CString sLine = pstrText;
+   // GDB didn't find the executable?
    // Project name is not the executable name
    if( sLine.Find(_T("No executable file specified")) >= 0 
        || sLine.Find(_T("No executable specified, use")) >= 0 ) 
@@ -1000,7 +1032,8 @@ void CDebugManager::_ParseKeyPrompt(LPCTSTR pstrText)
 
 /**
  * Halts the debugger so we can send more GDB commands.
- * GDB is not async and doesn't allow debug commands to be sent while it is debugging the app.
+ * GDB is not async and doesn't allow debug commands to be sent while it is actively
+ * debugging the app.
  * We need to suspend it temporarily and send our commands, then we can resume debugging.
  * @return true If we halted the debugger and should restart it later.
  */
