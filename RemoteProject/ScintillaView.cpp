@@ -587,6 +587,9 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    // HACK: Bug in Scintilla which tries to start a hover tip
    //       while the window has no focus.
    if( ::GetFocus() != m_ctrlEdit ) return 0;
+   POINT pt = { 0 };
+   ::GetCursorPos(&pt);
+   if( ::WindowFromPoint(pt) != m_ctrlEdit ) return 0;
 
    // Display tooltip at all?
    TCHAR szBuffer[16] = { 0 };

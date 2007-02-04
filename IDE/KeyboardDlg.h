@@ -92,9 +92,7 @@ public:
       if( *m_phAccel != NULL ) ::DestroyAcceleratorTable(*m_phAccel);
       *m_phAccel = _BuildAccel(m_mapCurrent);
 
-      CString sFilename;
-      sFilename.Format(_T("%sBVRDE.XML"), CModulePath());
-
+      CString sFilename = CMainFrame::GetSettingsFilename();
       CXmlSerializer arc;
       if( !arc.Open(_T("Settings"), sFilename) ) return PSNRET_INVALID_NOCHANGEPAGE;
 

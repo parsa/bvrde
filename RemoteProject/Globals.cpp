@@ -54,6 +54,7 @@ CString SecGetPassword()
       return sPassword;
    }
    // Prompt user for password
+   // TODO: Ah, we need to ensure this is called from main thread only!
    CWaitCursor cursor;
    CPasswordDlg dlg;
    if( dlg.DoModal() != IDOK ) {
@@ -130,7 +131,7 @@ CString GetSystemErrorText(DWORD dwErr)
        FORMAT_MESSAGE_IGNORE_INSERTS,
        NULL,
        dwErr,
-       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+       0,
        (LPTSTR) &lpMsgBuf,
        0,
        NULL);
@@ -149,7 +150,7 @@ CString GetSystemErrorText(DWORD dwErr)
              FORMAT_MESSAGE_IGNORE_INSERTS,
              ::GetModuleHandle(*ppstr),
              dwErr,
-             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+             0,
              (LPTSTR) &lpMsgBuf,
              0,
              NULL);

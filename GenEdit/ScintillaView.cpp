@@ -46,9 +46,9 @@ CScintillaView::CScintillaView(IDevEnv* pDevEnv) :
       s_frFind.hInstance = _Module.GetResourceInstance();
       s_frFind.Flags = FR_DOWN | FR_WRAP;
       s_frFind.lpstrFindWhat = s_szFindText;
-      s_frFind.wFindWhatLen = (sizeof(s_szFindText) / sizeof(TCHAR)) - 1;
+      s_frFind.wFindWhatLen = (sizeof(s_szFindText) / sizeof(CHAR)) - 1;
       s_frFind.lpstrReplaceWith = s_szReplaceText;
-      s_frFind.wReplaceWithLen = (sizeof(s_szReplaceText) / sizeof(TCHAR)) - 1;
+      s_frFind.wReplaceWithLen = (sizeof(s_szReplaceText) / sizeof(CHAR)) - 1;
    }
 }
 
@@ -1159,7 +1159,8 @@ void CScintillaView::_AutoComplete(CHAR ch)
          pstr = strstr(pstr, szFind);
       }
       // Add globals for PHP...
-      if( m_sLanguage == _T("php") ) {
+      if( m_sLanguage == _T("php") ) 
+      {
          _AddUnqiue(aList, _T("_GET"));
          _AddUnqiue(aList, _T("_FORM"));
          _AddUnqiue(aList, _T("_POST"));
@@ -1263,6 +1264,7 @@ void CScintillaView::_MaintainIndent(CHAR ch)
             int iPos = sLine.Find('#'); if( iPos >= 0 ) sLine = sLine.Left(iPos);
             sLine.TrimLeft();
             sLine.TrimRight();
+            // Indent is controlled by certain keywords on a separate line
             if( sLine == _T("do") || sLine == _T("then") || sLine == _T("else") || sLine == _T("elif") || sLine == _T("{") ) {
                iIndentAmount += iIndentWidth;
             }
@@ -1722,7 +1724,7 @@ bool CScintillaView::_AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) 
 }
 
 /**
- * Is a valid language text spot.
+ * Is a valid language text spot?
  * We consider comments illegal insertion-points for many of our
  * text services.
  */

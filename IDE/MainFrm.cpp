@@ -29,12 +29,17 @@ CMainFrame::CMainFrame() :
 
 LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+   ATLTRACE("%08X CMainFrame::OnCreate\n", ::GetTickCount());
+
    g_pDevEnv = this;
 
    ShowWindow(SW_HIDE);
 
    // Load settings properties
-   _LoadSettings();
+   if( !_IsSettingsLoaded() ) {
+      PostQuitMessage(0);
+      return (LRESULT) -1;
+   }
 
    // Create command bar (menu) window
    m_CmdBar.Create(m_hWnd, rcDefault, NULL, ATL_SIMPLE_CMDBAR_PANE_STYLE);
@@ -324,10 +329,19 @@ LRESULT CMainFrame::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    TCHAR szBuffer[64] = { 0 };
    GetProperty(_T("gui.main.client"), szBuffer, 63);
    m_MDIContainer.SetVisible(_tcscmp(szBuffer, _T("mdi")) != 0);
-   // Update view layout
-   UpdateLayout();
    // Relay to all children
    SendMessageToDescendants(WM_SETTINGCHANGE);
+   // Update view layout
+   UpdateLayout();
+   return 0;
+}
+
+LRESULT CMainFrame::OnDisplayChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   // Relay to all children
+   SendMessageToDescendants(WM_DISPLAYCHANGE);
+   // Update view layout
+   UpdateLayout();
    return 0;
 }
 
@@ -692,8 +706,7 @@ LRESULT CMainFrame::OnMacroShortcut(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
    g_pDevEnv->GetProperty(_T("editors.general.saveBeforeTool"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("true")) == 0 ) SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE_ALL, 0));
 
-   CString sFilename;
-   sFilename.Format(_T("%sBVRDE.xml"), CModulePath());
+   CString sFilename = GetSettingsFilename();
    CXmlSerializer arc;
    if( !arc.Open(_T("Settings"), sFilename) ) return 0;
    if( arc.ReadGroupBegin(_T("MacroMappings")) ) {

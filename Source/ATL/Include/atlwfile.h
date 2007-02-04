@@ -216,6 +216,11 @@ public:
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
       return ::GetFileTime(m_hFile, ftCreate, ftAccess, ftModified);
    }
+   BOOL SetFileTime(const FILETIME* ftCreate, const FILETIME* ftAccess, const FILETIME* ftModified)
+   {
+      _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
+      return ::SetFileTime(m_hFile, ftCreate, ftAccess, ftModified);
+   }
    BOOL DuplicateHandle(HANDLE hOther)
    {
       ATLASSERT(m_hFile==INVALID_HANDLE_VALUE);

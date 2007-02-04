@@ -517,9 +517,12 @@ void CRemoteProject::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
          AppendRtfText(ctrlEdit, CString(MAKEINTRESOURCE(IDS_ERR_DEBUGGER_NOT_RUNNING)), CFM_COLOR, 0, RGB(100,0,0));
       }
       else {
-         // Execute command in debugger and wait for completion
-         m_DebugManager.SetParam(_T("InCommand"), _T("true"));
+         // Execute command in debugger and wait for completion.
+         // We'll plunge into a horrible idle loop as we expect the command
+         // to execute quickly. This may not be the case so we'll let the
+         // command execute asynchroniously...
          CString sCommand;
+         m_DebugManager.SetParam(_T("InCommand"), _T("true"));
          sCommand.Format(_T("-interpreter-exec console \"%s\""), pstrCommand + 4);
          m_DebugManager.DoDebugCommand(sCommand);
          m_DebugManager.DoDebugCommand(_T(""));
@@ -659,6 +662,9 @@ bool CRemoteProject::GetTagInfo(LPCTSTR pstrValue, bool bAskDebugger, CSimpleArr
    // NOTE: GetTagInfo() is designed so that it *may* return a result
    //       immediately - but it may also delay the retrieval of information
    //       (which happens when it queries debug-information from the debugger).
+   //       Because of this delay, the 'bAskDebugger' flag allows the Editor
+   //       to first present its own knowledge of the value, and then wait out
+   //       for the debugger to append its infomration.
    if( bAskDebugger && m_DebugManager.IsDebugging() ) return m_DebugManager.GetTagInfo(pstrValue);
    return m_TagManager.GetItemInfo(pstrValue, pstrOwner, TAGINFO_DECLARATION, aResult);
 }
@@ -862,6 +868,19 @@ void CRemoteProject::_PopulateTree(CTreeViewCtrl& ctrlTree,
    tvscb.lParam = (LPARAM) this;
    tvscb.lpfnCompare = _SortTreeCB;
    ctrlTree.SortChildrenCB(&tvscb);
+}
+
+void CRemoteProject::_RemoveView(IView* pParent)
+{
+   CSimpleArray<IView*> aDelete;
+   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
+      if( m_aFiles[i]->GetParent() == pParent ) {
+         IView* pView = m_aFiles[i];
+         aDelete.Add(pView);
+      }
+   }   
+   m_aFiles.Remove(pParent);
+   for( int j = 0; j < aDelete.GetSize(); j++ ) _RemoveView(aDelete[j]);
 }
 
 int CRemoteProject::_GetElementImage(IElement* pElement) const

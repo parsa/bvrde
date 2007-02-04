@@ -1,7 +1,13 @@
+Version 1.0b:
+* SFTP port number no longer resets
+* Copyright file now correctly reflects the GPL license
+* Fixed problem with editor's Replace dialog
+
 Version 1.0:
-* Finally released the first public version.
+* Finally released the first public version!
 * Project only saved to disk when there are actually changes
-* Source Control now patches filenames from network path (ie Samba) to UNIX standard
+* Source Control now patches filenames from network path (ie Samba) to 
+  UNIX standard
 * Another multibyte editor fix
 * SSH library reverted to old OpenSSH version check for compatibility with Gentoo
 

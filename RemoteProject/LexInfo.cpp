@@ -52,6 +52,9 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
    if( s_hInst == NULL ) s_hInst = ::LoadLibrary(sModule);
    if( s_hInst == NULL ) return false;
 
+   // FIX: Empty files do appear as NULL text.
+   if( pstrText == NULL ) return false;
+
    // Lex the file.
    // It's not unlikely that the parse fails since it could stop at
    // normal syntax errors and less obvious LALR failures! In

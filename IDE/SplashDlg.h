@@ -34,7 +34,7 @@ public:
 
    BOOL ShowSplash()
    {
-      ATLTRACE("CSplash::ShowSplash()\n");
+      ATLTRACE("%08X CSplash::ShowSplash()\n", ::GetTickCount());
       DWORD dwThreadID;
       m_hThread = ::CreateThread(NULL, 0, RunThread, this, 0, &dwThreadID);
       if( m_hThread == NULL ) {
@@ -46,7 +46,7 @@ public:
    }
    void RemoveSplash(UINT dwDelay = 1000L)
    {
-      ATLTRACE("CSplash::RemoveSplash()\n");
+      ATLTRACE("%08X CSplash::RemoveSplash()\n", ::GetTickCount());
       if( m_hThread == NULL ) return;
       DWORD dwCode = 0;
       ::GetExitCodeThread(m_hThread, &dwCode);
@@ -94,7 +94,7 @@ public:
 
    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
-      ATLTRACE("CSplash::OnCreate()\n");
+      ATLTRACE("%08X CSplash::OnCreate()\n", ::GetTickCount());
       SIZE size;
       m_bm.GetSize(size);
       SetWindowPos(HWND_TOPMOST, 0, 0, size.cx, size.cy, SWP_NOMOVE);
@@ -110,7 +110,7 @@ public:
    }
    LRESULT OnPaint(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
-      ATLTRACE("CSplash::OnPaint()\n");
+      ATLTRACE("%08X CSplash::OnPaint()\n", ::GetTickCount());
       if( wParam != NULL ) {
          DoPaint( (HDC) wParam );
       }

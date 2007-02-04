@@ -75,13 +75,19 @@ LRESULT CFindDlg::OnChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/,
 LRESULT CFindDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {   
    USES_CONVERSION;
-   strcpy(m_fr.lpstrFindWhat, T2CA(CWindowText(m_ctrlFindText)));
+
+   strncpy(m_fr.lpstrFindWhat, T2CA(CWindowText(m_ctrlFindText)), m_fr.wFindWhatLen);
    m_fr.Flags = FR_FINDNEXT;
    if( m_ctrlDown.GetCheck() == BST_CHECKED ) m_fr.Flags |= FR_DOWN;
    if( m_ctrlMatchWholeWord.GetCheck() == BST_CHECKED ) m_fr.Flags |= FR_WHOLEWORD;
    if( m_ctrlMatchCase.GetCheck() == BST_CHECKED ) m_fr.Flags |= FR_MATCHCASE;
    if( m_ctrlRegExp.GetCheck() == BST_CHECKED ) m_fr.Flags |= SCFIND_REGEXP;
    if( m_ctrlWrap.GetCheck() == BST_CHECKED ) m_fr.Flags |= FR_WRAP;
+
+   if( strlen(m_fr.lpstrFindWhat) == 0 ) {
+      ::MessageBeep((UINT)-1);
+      return 0;
+   }
 
    m_ctrlFindText.AddToList();
 

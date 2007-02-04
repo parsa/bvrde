@@ -69,15 +69,16 @@ LRESULT CScintillaView::OnReplace(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          BeginUndoAction();
          int iStartPos = 0;
          int nReplaced = 0;
+         bool bWrapped = false;
          int cchSearched = (int) strlen(s_frFind.lpstrFindWhat);
          int cchReplaced = (int) strlen(s_frFind.lpstrReplaceWith);
          while( _FindNext(s_frFind.Flags | FR_WRAP | FR_DOWN, s_frFind.lpstrFindWhat, false, true) >= 0 ) {
             // Avoid endless loop
             CharacterRange crFound = GetSelection();
             if( nReplaced++ == 0 ) iStartPos = crFound.cpMin;
-            else if( iStartPos >= crFound.cpMin && iStartPos <= crFound.cpMin + cchReplaced ) break;
-            else if( crFound.cpMin < iStartPos ) iStartPos += cchReplaced - cchSearched;
-            // Do replacement
+            else if( crFound.cpMin <= iStartPos + cchReplaced ) bWrapped = true, iStartPos += cchReplaced - cchSearched;
+            if( bWrapped && crFound.cpMax >= iStartPos ) break;
+            // Do replacement...
             _ReplaceOnce();
          }
          EndUndoAction();

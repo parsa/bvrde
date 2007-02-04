@@ -43,9 +43,9 @@ LRESULT CRemoteDirView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
    m_ctrlFiles.Create(m_hWnd, rcDefault, NULL, dwStyle, WS_EX_CLIENTEDGE, IDC_SFILES);
    dwStyle = BS_PUSHBUTTON | WS_CHILD | WS_VISIBLE;
    m_ctrlDirUp.Create(m_hWnd, rcDefault, _T(".."), dwStyle, 0, IDC_SBUTTON);
-   RECT rcNoConnection = { 10, 60, 180, 220 };
+   RECT rcNoConnection = { 10, 60, 180, 260 };
    dwStyle = SS_LEFT | WS_CHILD;
-   m_ctrlNoConnection.Create(m_hWnd, rcNoConnection, CString(MAKEINTRESOURCE(IDS_NOCONNECTION)), dwStyle);
+   m_ctrlNoConnection.Create(m_hWnd, rcNoConnection, _T(""), dwStyle);
    m_ctrlNoConnection.SetFont(AtlGetDefaultGuiFont());
 
    // Prepare images
@@ -54,7 +54,7 @@ LRESULT CRemoteDirView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
    if( !m_FolderImages.IsNull() ) m_FolderImages.Destroy();
    m_FolderImages.Create(nSmallCx, nSmallCy, ILC_COLOR32 | ILC_MASK, 4, 0);
-   if( m_FolderImages.IsNull() ) return -1;
+   if( m_FolderImages.IsNull() ) return (LRESULT) -1;
    _AddShellIcon(m_FolderImages, _T(""), FILE_ATTRIBUTE_DIRECTORY);
    _AddShellIcon(m_FolderImages, _T(""), FILE_ATTRIBUTE_DIRECTORY, SHGFI_OPENICON);
    _AddShellIcon(m_FolderImages, _T("C:\\"), 0);
@@ -62,7 +62,7 @@ LRESULT CRemoteDirView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
    if( !m_FileImages.IsNull() ) m_FileImages.Destroy();
    m_FileImages.Create(nSmallCx, nSmallCy, ILC_COLOR32 | ILC_MASK, 8, 0);
-   if( m_FileImages.IsNull() ) return -1;
+   if( m_FileImages.IsNull() ) return (LRESULT) -1;
    _AddShellIcon(m_FileImages, _T(""), FILE_ATTRIBUTE_DIRECTORY);
    _AddShellIcon(m_FileImages, _T(".txt"), FILE_ATTRIBUTE_NORMAL);
    _AddShellIcon(m_FileImages, _T(".dat"), FILE_ATTRIBUTE_NORMAL);
@@ -223,6 +223,7 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
       m_ctrlFolders.ResetContent();
       m_ctrlFiles.DeleteAllItems();
       m_ctrlDirUp.EnableWindow(FALSE);
+      m_ctrlNoConnection.SetWindowText(CString(MAKEINTRESOURCE(IDS_NOCONNECTION)));
       m_ctrlNoConnection.ShowWindow(SW_SHOW);
       m_ctrlNoConnection.Invalidate();
       return false;
@@ -240,8 +241,13 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
 
    CSimpleArray<WIN32_FIND_DATA> aFiles;
    if( !m_pFileManager->EnumFiles(aFiles, false) ) {
+      DWORD dwErr = ::GetLastError();
       m_ctrlFiles.DeleteAllItems();
       m_ctrlDirUp.EnableWindow(FALSE);
+      CString sMsg = CString(MAKEINTRESOURCE(IDS_NOCONNECTION));
+      sMsg += _T("\r\n\r\n\r\n");
+      sMsg += GetSystemErrorText(dwErr);
+      m_ctrlNoConnection.SetWindowText(sMsg);
       m_ctrlNoConnection.ShowWindow(SW_SHOW);
       m_ctrlNoConnection.Invalidate();
       m_pFileManager->SetCurPath(sOldPath);

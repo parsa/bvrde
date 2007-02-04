@@ -1114,6 +1114,7 @@ public:
          if( !m_map[i]->bKeepSize && nNeededHeight != 0 ) {
             double dblFill = (double)nSize / (double)nNeededHeight;
             nSize += (int)((double)(nHeight - nNeededHeight) * dblFill);
+            if( nSize == 0 ) nSize = nHeight / nPanes;
          }
          if( nSize < MIN_DOCKPANE_SIZE ) nSize = MIN_DOCKPANE_SIZE;
          if( nTop + nSize - nPanes > nHeight ) nSize /= 2;

@@ -668,7 +668,7 @@ SIZE CCompileManager::_GetViewWindowSize() const
    // Helper function to determine current width of the compile-pane/window.
    // This will be relayed to the TELNET/SSH session as the window size.
    CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_OUTPUTVIEW);
-   RECT rc;
+   RECT rc = { 0 };
    wndMain.GetClientRect(&rc);
    if( rc.right - rc.left == 0 ) {
       SIZE szTemp = { 80, 25 };
@@ -726,6 +726,8 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    if( ::InSendMessage() ) ::ReplyMessage(TRUE);
 
    // Output text
+   // BUG: Accessing the EDIT hwnd outside the main thread is dangerous! We need to
+   //      put this in a delayed event.
    CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_OUTPUTVIEW);
    if( (m_Flags & COMPFLAG_COMMANDMODE) != 0 ) ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
    if( (m_Flags & COMPFLAG_IGNOREOUTPUT) != 0 ) return;
@@ -759,6 +761,9 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    ctrlEdit.GetSel(iDummy, iEndPos);
 
    // Style the text depending on certain search-strings, prompt-prefixes etc
+   // TODO: This algorithm is a little too hard-coded for my taste. These are
+   //       the strings we know the gcc/g++ compilers are producing. Should be
+   //       extended (dynamically configured) somehow!
    CHARFORMAT cf;
    cf.cbSize = sizeof(CHARFORMAT);
    cf.dwMask = CFM_COLOR | CFM_BOLD | CFM_ITALIC;

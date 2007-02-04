@@ -157,7 +157,7 @@ LRESULT CScintillaView::OnEditAutoComplete(WORD /*wNotifyCode*/, WORD /*wID*/, H
 {
    int iLenEntered = 0;
    long lPos = GetCurrentPos();
-   while( lPos > 1 && _istalpha(GetCharAt(--lPos)) ) iLenEntered++;
+   while( lPos > 1 && _issqlchar(GetCharAt(--lPos)) ) iLenEntered++;
    _AutoComplete(GetCharAt(lPos), iLenEntered);
    return 0;
 }
@@ -420,15 +420,22 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info, int iLenEntered)
    CString sTable;
    CString sKeyword;
    LPSTR p = szText;
-   while( *p ) {
+   bool bQuote = false;
+   while( *p != '\0' ) {
 
       // Skip comment
       if( *p == '-' && *(p + 1) == '-' ) while( *p && *p != '\n' ) p++;
       if( *p == '/' && *(p + 1) == '*' ) while( *p && !(*p == '*' && *(p + 1) == '/') ) p++;
 
       // Collect data for keyword
-      if( isalpha(*p) || *p == '_' ) {
+      if( _issqlchar(*p) ) {
          sKeyword += *p; 
+      }
+      else if( *p == '\"' ) {
+         bQuote = !bQuote;
+      }
+      else if( bQuote ) {
+         sKeyword += *p;
       }
       else {
          if( !sKeyword.IsEmpty() ) Info.sPrevKeyword = sKeyword;
@@ -439,7 +446,7 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info, int iLenEntered)
 
       p++;
 
-      if( !isalpha(*p) && *p != '_' && sKeyword.GetLength() > 0 ) 
+      if( !_issqlchar(*p) && sKeyword.GetLength() > 0 ) 
       {
          if( sKeyword.CompareNoCase(szTerminator) == 0 ) {
             Info.aTables.RemoveAll();
@@ -489,21 +496,30 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info, int iLenEntered)
    GetTextRange(nMin, nMax, szText);
 
    sKeyword = _T("");
+   bQuote = false;
 
    SQLKEYWORD CurKeyword = SQL_CONTEXT_UNKNOWN;
    bool bCurIsObjectNext = false;
    p = szText;
-   while( *p ) {
+   while( *p != '\0' ) {
 
       // Skip comment
       if( *p == '-' && *(p + 1) == '-' ) while( *p && *p != '\n' ) p++;
       if( *p == '/' && *(p + 1) == '*' ) while( *p && !(*p == '*' && *(p + 1) == '/') ) p++;
 
       // Collect data for keyword
-      if( isalpha(*p) || *p == '_' ) {
+      if( _issqlchar(*p)  ) {
          sKeyword += *p; 
       }
+      else if( *p == '\"' ) {
+         bQuote = !bQuote;
+      }
+      else if( bQuote ) {
+         sKeyword += *p;
+      }
       else {
+         // Need to exit as early as possible so we don't parse the SQL statement that follows.
+         // BUG: Need to match with entire terminator string.
          if( *p == szTerminator[0] ) break;
          sKeyword = _T("");
       }
@@ -512,7 +528,7 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info, int iLenEntered)
 
       p++;
 
-      if( !isalpha(*p) && *p != '_' && sKeyword.GetLength() > 0 )
+      if( !_issqlchar(*p) && sKeyword.GetLength() > 0 )
       {
          if( sKeyword.CompareNoCase(szTerminator) == 0 ) break;
 
@@ -592,6 +608,11 @@ int CScintillaView::_ScintillaCompare(LPCTSTR src, LPCTSTR dst) const
       dst++;
    }
    return 1;
+}
+
+bool CScintillaView::_issqlchar(CHAR ch) const
+{
+   return isalpha(ch) || ch == '_';
 }
 
 

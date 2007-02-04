@@ -48,8 +48,7 @@ LRESULT CMainFrame::OnAppAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 
 LRESULT CMainFrame::OnToolsOptions(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-   CString sFilename;
-   sFilename.Format(_T("%sBVRDE.XML"), CModulePath());
+   CString sFilename = GetSettingsFilename();
    CXmlSerializer arc;
    if( !arc.Open(_T("Settings"), sFilename) ) return 0;
    COptionsDlg dlg(this, NULL, &arc);
@@ -62,7 +61,7 @@ LRESULT CMainFrame::OnToolsOptions(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
       arc.Close();
       // Re-open archive and load settings...
       if( !arc.Open(_T("Settings"), sFilename) ) return 0;
-      if( !_LoadGeneralSettings(arc) ) return 0;
+      if( !_LoadSettings(arc) ) return 0;
       arc.Close();
       // Need to show MDI container/CoolTabs?
       TCHAR szBuffer[64] = { 0 };

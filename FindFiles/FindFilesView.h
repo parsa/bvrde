@@ -49,12 +49,13 @@ public:
       _AppendRtfText(szTitle, CFM_COLOR, 0, ::GetSysColor(COLOR_HIGHLIGHT));
       // Need to postfix with pattern-match for folder      
       TCHAR szFolder[MAX_PATH];
-      for( size_t i = 0, x = 0; i < _tcslen(m_szFolder); i++ ) {
+      size_t cchFolder = _tcslen(m_szFolder);
+      for( size_t i = 0, x = 0; i < cchFolder; i++ ) {
          if( m_szFolder[i] == '\"' ) continue;
          if( m_szFolder[i] == ' ' ) szFolder[x++] = '?';
          else szFolder[x++] = m_szFolder[i];
       }
-      szFolder[x++] = '/';
+      if( szFolder[x - 1] != '/' ) szFolder[x++] = '/';
       szFolder[x++] = '*';
       szFolder[x++] = '\0';
       _tcscpy(m_szLastFile, _T(""));

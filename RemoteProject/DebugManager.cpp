@@ -772,7 +772,7 @@ bool CDebugManager::_CheckStatus()
    if( m_pProject->IsDirty() || m_pProject->IsRecompileNeeded() ) {
       CString sMsg(MAKEINTRESOURCE(IDS_NEEDS_RECOMPILE));
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_QUESTION));
-      if( IDYES == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONQUESTION | MB_YESNOCANCEL) ) {
+      if( IDYES == _pDevEnv->ShowMessageBox(wndMain, sMsg, sCaption, MB_ICONQUESTION | MB_YESNO) ) {
          wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE_ALL, 0));
          wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_BUILD_PROJECT, 0));
          return false;
@@ -801,7 +801,7 @@ void CDebugManager::_ParseNewFrame(CMiInfo& info)
    }
    else
    {
-      // Debugger stopped at a point without debug information.
+      // Debugger stopped at a location without debug information.
       m_pProject->DelayedViewMessage(DEBUG_CMD_SET_CURLINE);
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUG_NOSOURCE)));
    }
@@ -996,6 +996,7 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
    }
    // Outputting directly to the Command View if we're
    // in "command mode" (user entered custom command at prompt or scripting).
+   // TODO: We really need this to be delayed to prevent thread dead-lock
    if( m_bCommandMode ) {
       CString sText = sLine.Mid(1, sLine.GetLength() - 2);
       sText.Replace(_T("\\n"), _T("\r\n"));

@@ -168,6 +168,7 @@ public:
       MESSAGE_HANDLER(WM_MENUSELECT, OnMenuSelect)
       MESSAGE_HANDLER(WM_DROPFILES, OnDropFiles)
       MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSettingChange)
+      MESSAGE_HANDLER(WM_DISPLAYCHANGE, OnDisplayChange)
       MESSAGE_HANDLER(WM_TIMER, OnTimer)
       MESSAGE_HANDLER(WM_HELP, OnHelp)
       MESSAGE_HANDLER(WM_DRAWITEM, OnDrawItem)
@@ -242,6 +243,7 @@ public:
    LRESULT OnDropFiles(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnCopyData(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSettingChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnDisplayChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnDrawItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnHelp(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -389,10 +391,9 @@ public:
    UINT _ShowMessageBox(HWND hWnd, UINT nMessage, UINT nCaption, DWORD dwFlags);
    void _AddTextButton(CToolBarCtrl tb, UINT nID, UINT nRes);
    void _AddDropDownButton(CToolBarCtrl tb, UINT nID);
-   void _LoadPlugins();
-   void _LoadSettings();
+   bool _IsSettingsLoaded() const;
    void _SaveSettings();
-   bool _LoadGeneralSettings(CXmlSerializer& arc);
+   bool _LoadSettings(CXmlSerializer& arc);
    void _AddProperty(ISerializable* pArc, LPCTSTR pstrAttribute, LPCTSTR pstrKey);
    void _StoreProperty(ISerializable* pArc, LPCTSTR pstrAttribute, LPCTSTR pstrKey);
    void _LoadUIState();
@@ -405,6 +406,8 @@ public:
    IProject* _CreateSolutionWizard();
    IProject* _CreateProjectWizard();
    IProject* _CreateFileWizard(IProject* pProject);
+
+   static CString GetSettingsFilename();
 };
 
 /////////////////////////////////////////////////////////////////////////////

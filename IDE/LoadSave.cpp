@@ -10,6 +10,8 @@
 #include "XmlSerializer.h"
 #include "RegSerializer.h"
 
+#include "Thread.h"
+
 #ifndef PROGID_XMLDOMDocument
    #define PROGID_XMLDOMDocument L"MSXML2.DOMDocument.4.0"
 #endif
@@ -21,123 +23,201 @@
 IDevEnv* g_pDevEnv = NULL;                      /// Reference to the SDK interface
 CSolution* g_pSolution = NULL;                  /// Reference to the Solution
 CSimpleArray<CPlugin> g_aPlugins;               /// Collection of plugins
-CComPtr<IXMLDOMDocument> g_spConfigDoc;         /// Reference to the BVRDE.XML document during startup
 
 
 /////////////////////////////////////////////////////////////////
-// Implementation
+// Loader thread
 
-void PreloadConfig()
+/**
+ * The setting loader thread.
+ * This thread loads the program configuration asynchroniously.
+ * It even preloads various system DLLs to boost startup performance.
+ */
+class CSettingsLoaderThread : public CThreadImpl<CSettingsLoaderThread>
 {
-   ATLASSERT(g_spConfigDoc==NULL);
+public:
+   CMainFrame* m_pMain;
+   bool m_bFailed;
 
-   CString sFilename;
-   sFilename.Format(_T("%sBVRDE.xml"), CModulePath());
-
-   // Create XML document
-   HRESULT Hr = g_spConfigDoc.CoCreateInstance(PROGID_XMLDOMDocument);
-   ATLASSERT(SUCCEEDED(Hr));
-   if( FAILED(Hr) || g_spConfigDoc == NULL ) {
-      CFileMissingDlg dlg;
-      dlg.DoModal();
-      ::PostQuitMessage(0);
-      return;
+   DWORD Run()
+   {
+      ATLTRACE("%08X CSettingsLoaderThread\n", ::GetTickCount());
+      _Init();
+      _LoadStartup();
+      _CheckConfigVersion();
+      _LoadSettings();
+      _PreloadLibraries();
+      ATLTRACE("%08X ~CSettingsLoaderThread\n", ::GetTickCount());
+      return 0;
    }
 
-   // Load from file
-   // NOTE: We quite boldly try to load the XML asynchroniously
-   //       to increase start performance. Don't think this has
-   //       any effect as long as we're not using a stream/URLMON
-   //       but Microsoft doesn't document otherwise.
-   g_spConfigDoc->put_async(VARIANT_TRUE);
-   VARIANT_BOOL vbSuccess = VARIANT_FALSE;
-   if( FAILED( g_spConfigDoc->load(CComVariant(sFilename), &vbSuccess) ) || vbSuccess == VARIANT_FALSE ) {
-      AtlMessageBox(NULL, _T("Invalid Configuration File!"), _T("BVRDE"), MB_ICONERROR | MB_SETFOREGROUND | MB_TOPMOST);
-      g_spConfigDoc.Release();
-      ::PostQuitMessage(0L);
-      return;
+   bool IsSuccess() const
+   {
+      return !m_bFailed;
    }
+
+   void _Init()
+   {
+      ATLASSERT(m_pMain!=NULL);
+      ATLASSERT(m_pMain->m_aProperties.GetSize()==0);
+
+      // We'll have a resonable bucket-size for out hash table
+      m_pMain->m_aProperties.Resize(513);
+
+      // Default printer settings
+      m_pMain->m_hDevMode = NULL;
+      m_pMain->m_hDevNames = NULL;
+      ::SetRectEmpty(&m_pMain->m_rcPageMargins);
+
+      m_pMain->m_Locale = ::GetThreadLocale();
+
+      m_bFailed = false;
+   }
+
+   void _LoadStartup()
+   {
+      // Read mutable properties
+      CRegSerializer reg;
+      if( reg.Open(REG_BVRDE) ) {
+         // Load Window positions
+         if( reg.ReadGroupBegin(_T("Settings")) ) {         
+            m_pMain->_AddProperty(&reg, _T("language"), _T("gui.main.language"));
+            m_pMain->_AddProperty(&reg, _T("windowpos"), _T("window.main.position"));
+            m_pMain->_AddProperty(&reg, _T("autohide-cx"), _T("window.autohide.cx"));
+            m_pMain->_AddProperty(&reg, _T("autohide-cy"), _T("window.autohide.cy"));
+            m_pMain->_AddProperty(&reg, _T("pane-left"), _T("window.pane.left"));
+            m_pMain->_AddProperty(&reg, _T("pane-top"), _T("window.pane.top"));
+            m_pMain->_AddProperty(&reg, _T("pane-right"), _T("window.pane.right"));
+            m_pMain->_AddProperty(&reg, _T("pane-bottom"), _T("window.pane.bottom"));
+            m_pMain->_AddProperty(&reg, _T("properties-cy"), _T("window.properties.cy"));
+            m_pMain->_AddProperty(&reg, _T("properties-pos"), _T("window.properties.pos"));
+            m_pMain->_AddProperty(&reg, _T("properties-area"), _T("window.properties.area"));
+            m_pMain->_AddProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
+            m_pMain->_AddProperty(&reg, _T("explorer-pos"), _T("window.explorer.pos"));
+            m_pMain->_AddProperty(&reg, _T("explorer-area"), _T("window.explorer.area"));
+            m_pMain->_AddProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
+            m_pMain->_AddProperty(&reg, _T("config-timestamp"), _T("config.timestamp"));
+            reg.ReadGroupEnd();
+         }
+         // Load debugview settings
+         if( reg.ReadGroupBegin(_T("DebugViews")) )
+         {
+             m_pMain->_AddProperty(&reg, _T("showWatch"), _T("gui.debugViews.showWatch"));
+             m_pMain->_AddProperty(&reg, _T("showStack"), _T("gui.debugViews.showStack"));
+             m_pMain->_AddProperty(&reg, _T("showThread"), _T("gui.debugViews.showThread"));
+             m_pMain->_AddProperty(&reg, _T("showMemory"), _T("gui.debugViews.showMemory"));
+             m_pMain->_AddProperty(&reg, _T("showOutput"), _T("gui.debugViews.showOutput"));
+             m_pMain->_AddProperty(&reg, _T("showVariable"), _T("gui.debugViews.showVariable"));
+             m_pMain->_AddProperty(&reg, _T("showRegister"), _T("gui.debugViews.showRegister"));
+             m_pMain->_AddProperty(&reg, _T("showBreakpoint"), _T("gui.debugViews.showBreakpoint"));
+             m_pMain->_AddProperty(&reg, _T("showDisassembly"), _T("gui.debugViews.showDisassembly"));
+             reg.ReadGroupEnd();
+         }
+         reg.Close();
+      }
+   }
+
+   void _CheckConfigVersion()
+   {
+      // This function is part of the Windows Vista LUA compliance test, where the
+      // BVRDE.xml file is stored in the user's AppData folder. However, we do want
+      // to warn the user about changes in the original xml file.
+      CString sDocFilename = CMainFrame::GetSettingsFilename();
+      CString sOrigFilename;
+      sOrigFilename.Format(_T("%sBVRDE.xml"), CModulePath());
+      if( sOrigFilename == sDocFilename ) return;  // Only on Vista...
+      TCHAR szDocValue[64] = { 0 };
+      m_pMain->GetProperty(_T("config.timestamp"), szDocValue, (sizeof(szDocValue) / sizeof(TCHAR)) - 1);
+      FILETIME ftOrig = { 0 };
+      CFile fOrig;
+      if( fOrig.Open(sOrigFilename) ) {
+         fOrig.GetFileTime(NULL, NULL, &ftOrig);
+         fOrig.Close();
+      }
+      TCHAR szOrigValue[64] = { 0 };
+      ::wsprintf(szOrigValue, _T("%08X%08X"), ftOrig.dwHighDateTime, ftOrig.dwLowDateTime);
+      if( _tcscmp(szDocValue, szOrigValue) != 0 ) {
+         if( _tcslen(szDocValue) > 0 && IDYES == AtlMessageBox(NULL, _T("The Master Configuration file has changed!\r\n\r\nDo you wish to copy it and use it as the current configuration?\r\nThis is recommended if you just reinstalled the tool."), _T("BVRDE"), MB_ICONQUESTION | MB_YESNO | MB_SETFOREGROUND | MB_TOPMOST) ) {
+            ::CopyFile(sOrigFilename, sDocFilename, FALSE);
+         }
+         m_pMain->SetProperty(_T("config.timestamp"), szOrigValue);
+      }
+   }
+
+   void _LoadSettings()
+   {
+      CCoInitialize cominit;
+
+      CString sFilename = CMainFrame::GetSettingsFilename();
+
+      // Create XML document
+      CComPtr<IXMLDOMDocument> spConfigDoc;
+      HRESULT Hr = spConfigDoc.CoCreateInstance(PROGID_XMLDOMDocument);
+      ATLASSERT(SUCCEEDED(Hr));
+      if( FAILED(Hr) || spConfigDoc == NULL ) {
+         CFileMissingDlg dlg;
+         dlg.DoModal();
+         m_bFailed = true;
+         return;
+      }
+
+      // Load from file
+      spConfigDoc->put_async(VARIANT_FALSE);
+      VARIANT_BOOL vbSuccess = VARIANT_FALSE;
+      if( FAILED( spConfigDoc->load(CComVariant(sFilename), &vbSuccess) ) || vbSuccess == VARIANT_FALSE ) {
+         AtlMessageBox(NULL, _T("Invalid Configuration File!"), _T("BVRDE"), MB_ICONERROR | MB_SETFOREGROUND | MB_TOPMOST);
+         m_bFailed = true;
+         return;
+      }
+      if( spConfigDoc == NULL ) {
+         AtlMessageBox(NULL, _T("Invalid Configuration File!"), _T("BVRDE"), MB_ICONERROR | MB_SETFOREGROUND | MB_TOPMOST);
+         m_bFailed = true;
+         return;
+      }
+
+      // Open archive and load settings...
+      CXmlSerializer arc;
+      if( !arc.Open(spConfigDoc, _T("Settings"), sFilename) ) return;
+      if( !m_pMain->_LoadSettings(arc) ) return;
+      arc.Close();
+      spConfigDoc.Release();
+   }
+
+   void _PreloadLibraries()
+   {
+      ::LoadLibrary(_T("NETAPI32.DLL"));
+      ::LoadLibrary(_T("RASAPI32.DLL"));
+      ::LoadLibrary(_T("RASMAN.DLL"));
+      ::LoadLibrary(_T("RTUTILS.DLL"));
+      ::LoadLibrary(_T("SHDOC32.DLL"));
+      ::LoadLibrary(_T("SHDOCVW.DLL"));
+      ::LoadLibrary(_T("SHDOCLC.DLL"));
+      ::LoadLibrary(_T("MSHTML.DLL"));
+      ::LoadLibrary(_T("MSIMG32.DLL"));
+      ::LoadLibrary(_T("IEFRAME.DLL"));
+      ::LoadLibrary(_T("URLMON.DLL"));
+   }
+};
+
+CSettingsLoaderThread g_LoaderThread;           /// Thread that loads the settings
+
+
+/////////////////////////////////////////////////////////////////
+// Settings handler
+
+void LoadSettings(CMainFrame* pMain)
+{
+   g_LoaderThread.m_pMain = pMain;
+   g_LoaderThread.Start();
 }
 
-void CMainFrame::_LoadSettings()
+bool CMainFrame::_IsSettingsLoaded() const
 {
-   ATLASSERT(g_spConfigDoc);
-   ATLASSERT(m_aProperties.GetSize()==0);
-
-   if( g_spConfigDoc == NULL ) return;
-
-   // We'll have a resonable bucket-size for out hash table
-   m_aProperties.Resize(513);
-
-   // Default printer settings
-   m_hDevMode = NULL;
-   m_hDevNames = NULL;
-   ::SetRectEmpty(&m_rcPageMargins);
-
-   m_Locale = ::GetThreadLocale();
-
-   // Read mutable properties
-   CRegSerializer reg;
-   if( reg.Open(REG_BVRDE) ) {
-      // Load Window positions
-      if( reg.ReadGroupBegin(_T("Settings")) ) {         
-         _AddProperty(&reg, _T("language"), _T("gui.main.language"));
-         _AddProperty(&reg, _T("windowpos"), _T("window.main.position"));
-         _AddProperty(&reg, _T("autohide-cx"), _T("window.autohide.cx"));
-         _AddProperty(&reg, _T("autohide-cy"), _T("window.autohide.cy"));
-         _AddProperty(&reg, _T("pane-left"), _T("window.pane.left"));
-         _AddProperty(&reg, _T("pane-top"), _T("window.pane.top"));
-         _AddProperty(&reg, _T("pane-right"), _T("window.pane.right"));
-         _AddProperty(&reg, _T("pane-bottom"), _T("window.pane.bottom"));
-         _AddProperty(&reg, _T("properties-cy"), _T("window.properties.cy"));
-         _AddProperty(&reg, _T("properties-pos"), _T("window.properties.pos"));
-         _AddProperty(&reg, _T("properties-area"), _T("window.properties.area"));
-         _AddProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
-         _AddProperty(&reg, _T("explorer-pos"), _T("window.explorer.pos"));
-         _AddProperty(&reg, _T("explorer-area"), _T("window.explorer.area"));
-         _AddProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
-         reg.ReadGroupEnd();
-      }
-      // Load debugview settings
-      if( reg.ReadGroupBegin(_T("DebugViews")) )
-      {
-          _AddProperty(&reg, _T("showWatch"), _T("gui.debugViews.showWatch"));
-          _AddProperty(&reg, _T("showStack"), _T("gui.debugViews.showStack"));
-          _AddProperty(&reg, _T("showThread"), _T("gui.debugViews.showThread"));
-          _AddProperty(&reg, _T("showMemory"), _T("gui.debugViews.showMemory"));
-          _AddProperty(&reg, _T("showOutput"), _T("gui.debugViews.showOutput"));
-          _AddProperty(&reg, _T("showVariable"), _T("gui.debugViews.showVariable"));
-          _AddProperty(&reg, _T("showRegister"), _T("gui.debugViews.showRegister"));
-          _AddProperty(&reg, _T("showBreakpoint"), _T("gui.debugViews.showBreakpoint"));
-          _AddProperty(&reg, _T("showDisassembly"), _T("gui.debugViews.showDisassembly"));
-          reg.ReadGroupEnd();
-      }
-      reg.Close();
-   }
-
-   // Wait for document to complete loading.
-   DWORD dwStartTick = ::GetTickCount();
-   while( true ) {
-      long lValue = 0;
-      g_spConfigDoc->get_readyState(&lValue);
-      if( lValue == 4 ) break;  // XML in complete state!
-      MSG msg = { 0 };
-      while( ::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ) ::DispatchMessage(&msg);
-      ::Sleep(0UL);
-      if( ::GetTickCount() - dwStartTick > 5000UL ) return;
-   }
-
-   // Open archive and load settings...
-   CString sFilename;
-   sFilename.Format(_T("%sBVRDE.xml"), CModulePath());
-   CXmlSerializer arc;
-   if( !arc.Open(g_spConfigDoc, _T("Settings"), sFilename) ) return;
-   if( !_LoadGeneralSettings(arc) ) return;
-   arc.Close();
-   g_spConfigDoc.Release();
+   g_LoaderThread.Stop();
+   return g_LoaderThread.IsSuccess();
 }
 
-bool CMainFrame::_LoadGeneralSettings(CXmlSerializer& arc)
+bool CMainFrame::_LoadSettings(CXmlSerializer& arc)
 {
    TCHAR szBuffer[MAX_PATH] = { 0 };
    CString sKey;
@@ -408,6 +488,7 @@ void CMainFrame::_SaveSettings()
       _StoreProperty(&reg, _T("explorer-pos"), _T("window.explorer.pos"));
       _StoreProperty(&reg, _T("explorer-area"), _T("window.explorer.area"));
       _StoreProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
+      _StoreProperty(&reg, _T("config-timestamp"), _T("config.timestamp"));
       reg.WriteGroupEnd();
       reg.WriteGroupBegin(_T("DebugViews"));
       _StoreProperty(&reg, _T("showWatch"), _T("gui.debugViews.showWatch"));
@@ -424,6 +505,50 @@ void CMainFrame::_SaveSettings()
 
    if( m_hDevMode != NULL ) ::GlobalFree(m_hDevMode);
    if( m_hDevNames != NULL ) ::GlobalFree(m_hDevNames);
+}
+
+CString CMainFrame::GetSettingsFilename()
+{
+   CString sFilename;
+   sFilename.Format(_T("%sBVRDE.xml"), CModulePath());
+   static OSVERSIONINFO ver = { 0 };
+   static FILETIME ft = { 0 };
+   if( ver.dwOSVersionInfoSize == 0 ) {
+      ver.dwOSVersionInfoSize = sizeof(ver);
+      ::GetVersionEx(&ver);
+   }
+   if( ver.dwMajorVersion < 6 ) return sFilename;
+   // Windows Vista or better. Need to be Windows Vista LUA (Least-privilege User Account)
+   // compliant so we cannot write to the Program Files folder. Instead we'll suggest
+   // that the BVRDE.xml file is loaded from the user's private AppData folder
+   TCHAR szPath[MAX_PATH] = { 0 };
+   ::SHGetSpecialFolderPath(NULL, szPath, CSIDL_LOCAL_APPDATA, TRUE);
+   CString sDocPath, sDocFilename;
+   sDocPath.Format(_T("%s\\BVRDE"), szPath);
+   sDocFilename.Format(_T("%s\\BVRDE.xml"), sDocPath);
+   ::CreateDirectory(sDocPath, NULL);
+   return sDocFilename;
+}
+
+void CMainFrame::_AddProperty(ISerializable* pArc, LPCTSTR pstrAttribute, LPCTSTR pstrKey)
+{
+   ATLASSERT(!::IsBadStringPtr(pstrAttribute,-1));
+   ATLASSERT(!::IsBadStringPtr(pstrKey,-1));
+   ATLASSERT(pArc);
+   static TCHAR szValue[2048] = { 0 };
+   szValue[0] = '\0';
+   pArc->Read(pstrAttribute, szValue, 2047);
+   SetProperty(pstrKey, szValue);
+}
+
+void CMainFrame::_StoreProperty(ISerializable* pArc, LPCTSTR pstrAttribute, LPCTSTR pstrKey)
+{
+   ATLASSERT(!::IsBadStringPtr(pstrAttribute,-1));
+   ATLASSERT(!::IsBadStringPtr(pstrKey,-1));
+   ATLASSERT(pArc);
+   TCHAR szValue[256] = { 0 };
+   GetProperty(pstrKey, szValue, (sizeof(szValue)/sizeof(TCHAR))-1);
+   pArc->Write(pstrAttribute, szValue);
 }
 
 BOOL CMainFrame::LoadWindowPos()
@@ -499,8 +624,7 @@ void CMainFrame::_SaveUIState()
 
 void CMainFrame::_SaveToolBarState()
 {
-   CString sFilename;
-   sFilename.Format(_T("%sBVRDE.XML"), CModulePath());
+   CString sFilename = GetSettingsFilename();
    CXmlSerializer arc;
    if( !arc.Open(_T("Settings"), sFilename) ) return;
    if( arc.ReadGroupBegin(_T("ToolBars")) ) {
@@ -525,27 +649,6 @@ void CMainFrame::_SaveToolBarState()
    }
    arc.Save();
    arc.Close();
-}
-
-void CMainFrame::_AddProperty(ISerializable* pArc, LPCTSTR pstrAttribute, LPCTSTR pstrKey)
-{
-   ATLASSERT(!::IsBadStringPtr(pstrAttribute,-1));
-   ATLASSERT(!::IsBadStringPtr(pstrKey,-1));
-   ATLASSERT(pArc);
-   static TCHAR szValue[2048] = { 0 };
-   szValue[0] = '\0';
-   pArc->Read(pstrAttribute, szValue, 2047);
-   SetProperty(pstrKey, szValue);
-}
-
-void CMainFrame::_StoreProperty(ISerializable* pArc, LPCTSTR pstrAttribute, LPCTSTR pstrKey)
-{
-   ATLASSERT(!::IsBadStringPtr(pstrAttribute,-1));
-   ATLASSERT(!::IsBadStringPtr(pstrKey,-1));
-   ATLASSERT(pArc);
-   TCHAR szValue[256] = { 0 };
-   GetProperty(pstrKey, szValue, (sizeof(szValue)/sizeof(TCHAR))-1);
-   pArc->Write(pstrAttribute, szValue);
 }
 
 

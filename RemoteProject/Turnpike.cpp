@@ -41,6 +41,8 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    // NOTE: WinNT specific API
    if( !::TryEnterCriticalSection(&g_csDelayedData.m_sec) ) {
       // No need to block the thread; let's just re-post the request...
+      // TODO: Come on... we could at least wait a little for the semaphore to be
+      //       released. This is too slow.
       m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
       return 0;
    }
@@ -173,6 +175,8 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             // Debugger stopped at some point (breakpoint, user break, etc).
             // Let's update the debug views with fresh values.
 
+            // NOTE: This is a rather expensive operation so we'll at least try not to repeat
+            //       it in this batch.
             if( bUpdatedAlready ) break;
             bUpdatedAlready = true;
 

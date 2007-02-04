@@ -4,18 +4,19 @@ Basic Installation
 
    These are generic installation instructions.
 
-The source files need no preparation before they can be compiled. A Microsoft Visual C++ 6.0
-project file is included in the source distribution.
+The source files need no preparation before they can be compiled. A Microsoft 
+Visual C++ 6.0 project file is included in the source distribution.
 
 Installation of Microsoft Windows Template Library (WTL), the HTML Help Workshop
-and Microsoft Platform SDK is required. Links for these libraries are available below.
+and Microsoft Platform SDK is required. Links for these libraries are available 
+below.
 
 The source distribution does not contain all the required binary files to
 successfully run the application. You can copy the remaining files 
 (such as CL32.DLL, SciLexer.DLL and BVRDE.XML) from the binary distribution 
 to the \Bin folder to allow the application to run.
 
-Please see the included file "Compiling" for compiler related instructions.
+Please see the file "Compiling" for compiler related instructions.
 
 
     Links

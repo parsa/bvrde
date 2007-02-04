@@ -297,6 +297,7 @@ protected:
    bool _LoadFiles(ISerializable* pArc, IElement* pParent);
    bool _SaveFiles(ISerializable* pArc, IElement* pParent);
    void _PopulateTree(CTreeViewCtrl& ctrlTree, IElement* pParent, HTREEITEM hParent) const;
+   void _RemoveView(IView* pParent);
    bool _RunFileWizard(HWND hWnd, LPCTSTR pstrName, IView* pView);
    bool _CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, bool bRemote);
    IView* _CreateDependencyFile(LPCTSTR pstrFilename, LPCTSTR pstrName);

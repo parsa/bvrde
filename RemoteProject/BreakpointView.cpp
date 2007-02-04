@@ -57,7 +57,7 @@ void CBreakpointView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          m_ctrlList.SetItemText(iItem, 3, sAddress);
          m_ctrlList.SetItemData(iItem, (LPARAM) _ttol(sNumber));
          m_ctrlList.SetCheckState(iItem, sEnabled == _T("y"));
-         sNumber = info.FindNext(_T("number"));
+         sNumber = info.FindNext(_T("number"), _T("bkpt"));
       }
       if( iSel == -1 ) {
          // No selection yet? Let's take the oppotunity to

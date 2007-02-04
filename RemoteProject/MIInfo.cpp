@@ -27,7 +27,7 @@ CMiInfo::~CMiInfo()
 void CMiInfo::Release()
 {
    if( m_pstrData == NULL ) return;
-   // TODO: Really need to protect the data members
+   // TODO: Really need to better protect the data members
    //       with a thread-lock.
    if( ::InterlockedDecrement(m_plRefCount) == 0 ) {
       free(m_pstrData);
@@ -237,9 +237,8 @@ bool CMiInfo::_FindBlockEnd(LPTSTR pstrSrc, int& iPos) const
          if( pstrSrc[iPos] == '\0' ) return false;
       }
       iPos++;
-   }
-   // Unreachable...
-   return false;
+   }   
+   return false;  // Unreachable...
 }
 
 void CMiInfo::_ConvertToPlainText(LPTSTR pstrSrc)

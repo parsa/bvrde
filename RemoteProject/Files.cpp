@@ -466,6 +466,8 @@ BOOL CTextFile::OpenView(long lLineNum)
 void CTextFile::CloseView()
 {
    if( m_wndFrame.IsWindow() ) _pDevEnv->DestroyClient(m_wndFrame);
+   // BUG: Needs to somehow also clean up the 'm_aFiles' collection in CRemoteProject
+   //      instance - otherwise this is a dangling invalid pointer!!
    delete this;
 }
 

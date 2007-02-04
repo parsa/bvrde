@@ -100,6 +100,7 @@ public:
    void _AnalyseText(SQLANALYZE& Info, int iLenEntered);
    int _ScintillaCompare(LPCTSTR src, LPCTSTR dst) const;
    int _FindItem(CSimpleArray<CString>& aList, LPCTSTR pstrName) const;
+   inline bool _issqlchar(CHAR ch) const;
 };
 
 

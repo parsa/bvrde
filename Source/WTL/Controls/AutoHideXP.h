@@ -7,7 +7,7 @@
 // AutoHideXp.h - An AutoHide control
 //
 // Written by Bjarke Viksoe (bjarke@viksoe.dk)
-// Copyright (c) 2001-2003 Bjarke Viksoe.
+// Copyright (c) 2001-2007 Bjarke Viksoe.
 //
 // This code may be used in compiled form in any way you desire. This
 // file may be redistributed by any means PROVIDING it is 
@@ -94,6 +94,7 @@ public:
       MESSAGE_HANDLER(WM_SIZE, OnSize)
       MESSAGE_HANDLER(WM_SYSCOMMAND, OnSysCommand)
       MESSAGE_HANDLER(WM_SETTINGCHANGE, OnSettingChange)
+      MESSAGE_HANDLER(WM_DISPLAYCHANGE, OnDisplayChange)
       MESSAGE_HANDLER(WM_AUTOHIDE_SETPANE, OnSetPane);
    END_MSG_MAP()
 
@@ -117,11 +118,11 @@ public:
             ::GetProcAddress(::GetModuleHandle(_T("user32.dll")), "AnimateWindow");
          if( lpfnAnimateWindow != NULL ) return lpfnAnimateWindow( m_hWnd, dwTime, dwFlags );
       }
-      // For incompatible AnimateWindow() Windows versions
-      if( dwFlags & AW_ACTIVATE ) {
+      // For incompatible AnimateWindow() Windows versions we'll simulate stuff...
+      if( (dwFlags & AW_ACTIVATE) != 0 ) {
          SetWindowPos(HWND_TOP, 0,0,0,0, SWP_SHOWWINDOW|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER);
       }
-      if( dwFlags & AW_HIDE ) {
+      if( (dwFlags & AW_HIDE) != 0 ) {
          SetWindowPos(HWND_TOP, 0,0,0,0, SWP_HIDEWINDOW|SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER);
       }
       return FALSE;
@@ -133,7 +134,7 @@ public:
       CDCHandle dc = hDC;
       HBRUSH hBrushBorder = ::GetSysColorBrush(COLOR_ACTIVEBORDER);
       HBRUSH hBrushGrey = ::GetSysColorBrush(COLOR_BTNFACE);
-      RECT rcWin;
+      RECT rcWin = { 0 };
       GetWindowRect(&rcWin);
       RECT rcLeft = { 0, m_sizeBorder.cy, m_sizeBorder.cx, (rcWin.bottom - rcWin.top) - m_sizeBorder.cy };
       dc.FillRect(&rcLeft, m_pane.iDirection == AUTOHIDE_LEFT ? hBrushGrey : hBrushBorder);
@@ -162,6 +163,11 @@ public:
       m_sizeBorder.cy = ::GetSystemMetrics(SM_CYSIZEFRAME);
       return 0;
    }
+   LRESULT OnDisplayChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+   {
+      if( IsWindowVisible() ) ::SetFocus(m_hwndOwner);  // Just close it...
+      return 0;
+   }
    LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       return 1; // handled, no background painting needed
@@ -179,11 +185,11 @@ public:
       if( (BOOL) wParam == FALSE ) {
          DWORD dwFlags = m_pane.iDirection == AUTOHIDE_LEFT ? AW_HOR_NEGATIVE : AW_VER_POSITIVE;
          _AnimateWindow(AUTOHIDE_DELAY_OUT, AW_SLIDE|dwFlags|AW_HIDE);
-         RECT rc;
+         RECT rc = { 0 };
          GetWindowRect(&rc);
          WPARAM iSize = m_pane.iDirection == AUTOHIDE_LEFT ? rc.right - rc.left : rc.bottom - rc.top;
-         ::SendMessage(m_hwndOwner, WM_AUTOHIDE_VIEWCLOSE, iSize, 0L);
-         ::PostMessage(m_hwndOwner, WM_AUTOHIDE_VIEWCLOSE, 0, 1L);
+         ::SendMessage(m_hwndOwner, WM_AUTOHIDE_VIEWCLOSE, 0, iSize);
+         ::PostMessage(m_hwndOwner, WM_AUTOHIDE_VIEWCLOSE, 1, 0L);
       }
       bHandled = FALSE;
       return 0;
@@ -214,7 +220,7 @@ public:
    {
       switch( wParam & 0xFFF0 ) {
       case SC_CLOSE:
-         ::SetFocus(m_hwndOwner); // Kill focus
+         ::SetFocus(m_hwndOwner); // Kill focus; that'll set off the close-view action!
          return 0;
       }
       bHandled = FALSE;
@@ -223,7 +229,7 @@ public:
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( !::IsWindow(m_pane.hWnd) ) return 0;
-      RECT rc;
+      RECT rc = { 0 };
       GetClientRect(&rc);
       ::SetWindowPos(m_pane.hWnd, HWND_TOP, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER|SWP_SHOWWINDOW);
       return 0;
@@ -231,7 +237,7 @@ public:
    LRESULT OnPrint(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       LRESULT lRes = DefWindowProc();
-      if( lParam & PRF_NONCLIENT ) _DrawFrame( (HDC) wParam );
+      if( (lParam & PRF_NONCLIENT) != 0 ) _DrawFrame( (HDC) wParam );
       return lRes;
    }
    LRESULT OnSetPane(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
@@ -247,19 +253,21 @@ public:
       SetWindowText(m_pane.szTitle);
       // Place view inside pane
       // NOTE: OnSize() also calls ShowWindow() to restore an invisible child
-      BOOL bDummy;
-      OnSize(WM_SIZE, 0,0, bDummy);
+      BOOL bDummy = FALSE;
+      OnSize(WM_SIZE, 0,0L, bDummy);
       UpdateWindow();
       // Entré...
       DWORD dwFlags = m_pane.iDirection == AUTOHIDE_LEFT ? AW_HOR_POSITIVE : AW_VER_NEGATIVE;
       _AnimateWindow(AUTOHIDE_DELAY_IN, AW_SLIDE|dwFlags|AW_ACTIVATE);
       // Make it top-of-the-world
-      RECT rcWin;
+      RECT rcWin = { 0 };
       GetWindowRect(&rcWin);
       SetWindowPos(HWND_TOP, &rcWin, SWP_FRAMECHANGED|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER);
       // Set focus to child view
       ::SetFocus(m_pane.hWnd);
       // HACK: Send notification to child (note the funky message type)
+      //       This allows the child to react on the popup state. We should probably
+      //       have defined ourselves a WM_APP message here!
       ::SendMessage(m_pane.hWnd, WM_COMPACTING, 0, 0L);
       return 0;
    }
@@ -384,7 +392,7 @@ public:
       CClientDC dc(m_hWnd);
       HFONT hOldFont = dc.SelectFont(m_font);
 
-      RECT rcClient;
+      RECT rcClient = { 0 };
       GetClientRect(&rcClient);
 
       int cnt = m_panes.GetSize();
@@ -462,7 +470,7 @@ public:
    LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       CDCHandle dc = (HDC) wParam;
-      RECT rc;
+      RECT rc = { 0 };
       GetClientRect(&rc);
       HBRUSH hOldBrush = dc.SelectBrush(m_hbrBack);
       dc.PatBlt(rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, PATCOPY);
@@ -505,6 +513,7 @@ public:
       else {
          m_hbrBack =  CDCHandle::GetHalftoneBrush();
       }
+
       Invalidate();
       return 0;
    }
@@ -542,6 +551,7 @@ public:
       // HACK: Because the floating pane closes itself on WM_NCACTIVATE which
       //       is fired before the click event, we never see that the pane was visible.
       //       So we risk to re-open the same pane unless we somehow cancel this event.
+      //       See CAutoFloatWindowImpl::OnNcActivate for the magic behind this.
       if( m_bCancelClick ) return 0;
       SendMessage(WM_AUTOHIDE_VIEWOPEN, wParam, lParam);
       return 0;
@@ -552,9 +562,11 @@ public:
       int iHit = _HitTest(pt);
       if( iHit == -1 || iHit == m_iCurPaneShown ) return 0;
       m_wndFloat.ShowWindow(SW_HIDE);
-      RECT rc;
+      RECT rc = { 0 };
       GetWindowRect(&rc);
       if( !IsWindowVisible() ) {
+         // Panel view is not visible; attempt to popup on the entire
+         // top-level window surface.
          ::GetWindowRect(GetTopLevelParent(), &rc);
          m_iDirection == AUTOHIDE_LEFT ? rc.right = rc.left : rc.top = rc.bottom;
       }
@@ -573,11 +585,13 @@ public:
    }
    LRESULT OnCloseView(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
-      if( lParam == 0 ) {
+      // Close view and remember width/height of panel
+      // NOTE: See OnButtonClick() for an explanation why there are 2 states here.
+      if( wParam == 0 ) {
          m_iCurPaneShown = -1;
-         m_cxy = wParam;
+         m_cxy = (int) lParam;
       }
-      m_bCancelClick = lParam == 0;
+      m_bCancelClick = (wParam == 0);
       return 0;
    }
 };
@@ -634,6 +648,7 @@ public:
       ncm.cbSize = sizeof(ncm);
       ::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, 0, &ncm, 0);
       m_cxyPane = ncm.iMenuHeight + 6;
+
       Invalidate();
       return 0;
    }

@@ -1,5 +1,12 @@
 // BVRDE.cpp : main source file for BVRDE.exe
 //
+//
+//   This program is free software; you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License as published by
+//   the Free Software Foundation; either version 2 of the License, or   
+//   (at your option) any later version.                                 
+//
+//
 
 #include "stdafx.h"
 #include "resource.h"
@@ -11,7 +18,7 @@
 
 CAppModule _Module;
 
-extern void PreloadConfig();
+extern void LoadSettings(CMainFrame* pMain);
 
 
 ///////////////////////////////////////////////////
@@ -31,18 +38,6 @@ public:
    {
       // Send signal to main window to enable UI...
       ::PostMessage(g_pDevEnv->GetHwnd(IDE_HWND_MAIN), WM_APP_INIT, 0, 0L);
-   }
-   BOOL _LoadPlugin(CPlugin& plugin)
-   {
-      __try
-      {
-         return plugin.LoadPackage(g_pDevEnv);
-      }
-      __except(1)
-      {
-         ATLASSERT(false);
-      }
-      return FALSE;
    }
    void _LoadPlugins()
    {
@@ -70,6 +65,18 @@ public:
          _LoadPlugin(plugin);
       }
    }
+   BOOL _LoadPlugin(CPlugin& plugin)
+   {
+      __try
+      {
+         return plugin.LoadPackage(g_pDevEnv);
+      }
+      __except(1)
+      {
+         ATLASSERT(false);
+      }
+      return FALSE;
+   }
 };
 
 
@@ -96,18 +103,6 @@ static bool SingleInstance()
       return false;
    }
    return true;
-}
-
-static void PreloadLibraries()
-{
-   ::LoadLibrary(_T("NETAPI32.DLL"));
-   ::LoadLibrary(_T("RASAPI32.DLL"));
-   ::LoadLibrary(_T("RASMAN.DLL"));
-   ::LoadLibrary(_T("RTUTILS.DLL"));
-   ::LoadLibrary(_T("SHDOC32.DLL"));
-   ::LoadLibrary(_T("SHDOCVW.DLL"));
-   ::LoadLibrary(_T("SHDOCLC.DLL"));
-   ::LoadLibrary(_T("MSHTML.DLL"));
 }
 
 static void SetLanguage()
@@ -143,28 +138,27 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    hRes = _Module.Init(NULL, hInstance);
    ATLASSERT(SUCCEEDED(hRes));
 
-   // Show splash screen
-   CSplashWindow splash;
-   splash.ShowSplash();
+   // Grab the XML configuration file
+   CMainFrame wndMain;
+   LoadSettings(&wndMain);
 
    // Change the language now; this is a setting in the registry because
    // we'd like all message-boxes (even errors at this stage) to appear
    // in the correct language.
    SetLanguage();
 
-   // Grab the XML configuration file
-   PreloadConfig();
+   // Show splash screen
+   CSplashWindow splash;
+   splash.ShowSplash();
 
    // Kick in the Windows Common Controls
-   AtlInitCommonControls(ICC_WIN95_CLASSES | 
-                         ICC_COOL_CLASSES | 
-                         ICC_HOTKEY_CLASS);
+   AtlInitCommonControls(ICC_WIN95_CLASSES | ICC_COOL_CLASSES | ICC_HOTKEY_CLASS);
 
    // Load the RichEdit control
    HMODULE hRichEdit = ::LoadLibrary(CRichEditCtrl::GetLibraryName());
    ATLASSERT(hRichEdit);
 
-   // We want to embed ActiveX windows
+   // We want to embed ActiveX controls
    AtlAxWinInit();
 
    CMessageLoop msgloop;
@@ -174,7 +168,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    g_pSolution = new CSolution();
 
    // Create main window
-   CMainFrame wndMain;
    if( wndMain.CreateEx() == NULL ) {
       ATLTRACE(_T("Main window creation failed!\n"));
       splash.RemoveSplash();
@@ -184,9 +177,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    // Load all plugins
    CPluginLoader loader;
    loader.Run();
-
-   // Preload a couple of system DLLs for performance reasons
-   PreloadLibraries();
 
    // Ready to remove splash screen
    splash.RemoveSplash(500);

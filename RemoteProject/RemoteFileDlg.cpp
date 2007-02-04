@@ -329,7 +329,12 @@ bool CRemoteFileDlg::_PopulateView(LPCTSTR pstrPath)
 
    CSimpleArray<WIN32_FIND_DATA> aFiles;
    if( !m_pFileManager->EnumFiles(aFiles, m_bUseCache) ) {
+      DWORD dwErr = ::GetLastError();
       m_ctrlList.DeleteAllItems();
+      CString sMsg = CString(MAKEINTRESOURCE(IDS_NOCONNECTION));
+      sMsg += _T("\r\n\r\n");
+      sMsg += GetSystemErrorText(dwErr);
+      m_ctrlNoConnection.SetWindowText(sMsg);
       m_ctrlNoConnection.ShowWindow(SW_SHOW);
       return false;
    }

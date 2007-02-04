@@ -58,16 +58,14 @@ LRESULT CReplaceDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    if( (m_fr.Flags & SCFIND_REGEXP) != 0 ) m_ctrlRegExp.SetCheck(BST_CHECKED);
    if( (m_fr.Flags & FR_WRAP) != 0 ) m_ctrlWrap.SetCheck(BST_CHECKED);
 
-   if( tr.chrg.cpMin == tr.chrg.cpMax ) {
+   if( tr.chrg.cpMin == tr.chrg.cpMax ) 
+   {
       m_ctrlWholeFile.SetCheck(BST_CHECKED);
    }
-   else {
-      if( (m_fr.Flags & FR_INSEL) != 0 ) {
-         m_ctrlInSelection.SetCheck(BST_CHECKED); 
-      }
-      else {
-         m_ctrlWholeFile.SetCheck(BST_CHECKED);
-      }
+   else 
+   {
+      if( (m_fr.Flags & FR_INSEL) != 0 ) m_ctrlInSelection.SetCheck(BST_CHECKED); 
+      else m_ctrlWholeFile.SetCheck(BST_CHECKED);
    }
 
    _UpdateButtons();
@@ -91,8 +89,9 @@ LRESULT CReplaceDlg::OnChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 LRESULT CReplaceDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {   
    USES_CONVERSION;
-   strcpy(m_fr.lpstrFindWhat, T2A(CWindowText(m_ctrlFindText)));
-   strcpy(m_fr.lpstrReplaceWith, T2A(CWindowText(m_ctrlReplaceText)));
+
+   strncpy(m_fr.lpstrFindWhat, T2A(CWindowText(m_ctrlFindText)), m_fr.wFindWhatLen);
+   strncpy(m_fr.lpstrReplaceWith, T2A(CWindowText(m_ctrlReplaceText)), m_fr.wReplaceWithLen);
    m_fr.Flags = FR_REPLACE | FR_DOWN;
    if( wID == IDC_REPLACEALL ) m_fr.Flags = FR_REPLACEALL | FR_DOWN;
    if( m_ctrlMatchWholeWord.GetCheck() == BST_CHECKED ) m_fr.Flags |= FR_WHOLEWORD;
@@ -100,6 +99,11 @@ LRESULT CReplaceDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL
    if( m_ctrlRegExp.GetCheck() == BST_CHECKED ) m_fr.Flags |= SCFIND_REGEXP;
    if( m_ctrlWrap.GetCheck() == BST_CHECKED ) m_fr.Flags |= FR_WRAP;
    if( m_ctrlInSelection.GetCheck() == BST_CHECKED ) m_fr.Flags |= FR_INSEL;
+
+   if( strlen(m_fr.lpstrFindWhat) == 0 ) {
+      ::MessageBeep((UINT)-1);
+      return 0;
+   }
 
    m_ctrlFindText.AddToList();
    m_ctrlReplaceText.AddToList();
@@ -118,7 +122,7 @@ void CReplaceDlg::_UpdateButtons()
 {
    BOOL bOK = TRUE;
    if( m_ctrlFindText.GetWindowTextLength() == 0 ) bOK = FALSE;
-   if( m_ctrlFindText.GetCurSel() >= 0 ) bOK = FALSE;
+   if( m_ctrlFindText.GetCurSel() >= 0 ) bOK = TRUE;
    CWindow(GetDlgItem(IDOK)).EnableWindow(bOK);
    CWindow(GetDlgItem(IDC_REPLACE)).EnableWindow(bOK);
    CWindow(GetDlgItem(IDC_REPLACEALL)).EnableWindow(bOK);

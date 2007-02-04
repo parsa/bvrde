@@ -21,20 +21,19 @@ LRESULT CRemoteProject::OnFileRemove(WORD /*wNotifyCode*/, WORD wID, HWND /*hWnd
    if( pElement == NULL ) { bHandled = FALSE; return 0; }
    // Remove tree item
    CTreeViewCtrl ctrlTree = _pDevEnv->GetHwnd(IDE_HWND_EXPLORER_TREE);
-   ctrlTree.DeleteItem(hItem);
    // Remove entire project or file
    if( pElement == this ) {
+      ctrlTree.DeleteItem(hItem);
       ISolution* pSolution = _pDevEnv->GetSolution();
       pSolution->RemoveProject(this);
       // NOTE: Never use class-scope variables from this point
       //       since this instance has been nuked!
    }
    else {
-      // BUG: Leaks all the child views.
-      // TODO: Recursively remove all children
       IView* pView = static_cast<IView*>(pElement);
+      _RemoveView(pView);
       pView->CloseView();
-      m_aFiles.Remove(pView);
+      ctrlTree.DeleteItem(hItem);
       m_bIsDirty = true;
    }
    return 0;
