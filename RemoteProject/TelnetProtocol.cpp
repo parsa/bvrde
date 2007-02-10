@@ -120,10 +120,11 @@ DWORD CTelnetThread::Run()
 
          if( !bAuthenticated ) 
          {
-            CString s = _GetLine(bReadBuffer, 0, dwRead);
-            s.MakeUpper();
+            CString sLine = _GetLine(bReadBuffer, 0, dwRead);
+            m_pCallback->PreAuthenticatedLine(sLine);
+            sLine.MakeUpper();
             // Need to send login?
-            if( s.Find(_T("LOGIN")) >= 0 ) {
+            if( sLine.Find(_T("LOGIN")) >= 0 ) {
                CLockStaticDataInit lock;
                CHAR szBuffer[200];
                ::wsprintfA(szBuffer, "%ls\r\n", sUsername);
@@ -131,7 +132,7 @@ DWORD CTelnetThread::Run()
                ::Sleep(100L);
             }
             // Need to send password?
-            if( s.Find(_T("PASSWORD")) >= 0 ) {
+            if( sLine.Find(_T("PASSWORD")) >= 0 ) {
                CLockStaticDataInit lock;
                CHAR szBuffer[200];
                ::wsprintfA(szBuffer, "%ls\r\n", sPassword);
@@ -142,8 +143,8 @@ DWORD CTelnetThread::Run()
          }
          else if( !m_pManager->m_bConnected ) 
          {
-            CString s = _GetLine(bReadBuffer, 0, dwRead);
-            s.MakeUpper();
+            CString sLine = _GetLine(bReadBuffer, 0, dwRead);
+            sLine.MakeUpper();
             // Did authorization fail?
             // BUG: Localization!!!
             static LPCTSTR pstrFailed[] =
@@ -158,7 +159,7 @@ DWORD CTelnetThread::Run()
             };
             const LPCTSTR* ppstr = pstrFailed;
             while( *ppstr ) {
-               if( s.Find(*ppstr) >= 0 ) {
+               if( sLine.Find(*ppstr) >= 0 ) {
                   m_pManager->m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_LOGIN_FAILED)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR | MB_MODELESS);
                   m_pManager->m_dwErrorCode = ERROR_LOGIN_WKSTA_RESTRICTION;
                   SignalStop();
@@ -482,8 +483,9 @@ bool CTelnetProtocol::Load(ISerializable* pArc)
    m_sExtraCommands.ReleaseBuffer();
    
    ConvertToCrLf(m_sExtraCommands);
+   m_sPassword = SecDecodePassword(m_sPassword);
    if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
-   
+
    return true;
 }
 
@@ -493,7 +495,7 @@ bool CTelnetProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("host"), m_sHost);
    pArc->Write(_T("port"), m_lPort);
    pArc->Write(_T("user"), m_sUsername);
-   pArc->Write(_T("password"), m_sPassword);
+   pArc->Write(_T("password"), SecEncodePassword(m_sPassword));
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("extra"), ConvertFromCrLf(m_sExtraCommands));
    pArc->Write(_T("connectTimeout"), m_lConnectTimeout);

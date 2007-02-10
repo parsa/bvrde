@@ -153,6 +153,9 @@ BOOL CDbOperations::LoadTableInfo(TABLEINFO* pTable, COledbDatabase* pDb /*=NULL
          if( lType == DBPROPVAL_IT_BTREE ) ii.sType = _T("B-tree");
          if( lType == DBPROPVAL_IT_HASH ) ii.sType = _T("Hash");
          if( lType == DBPROPVAL_IT_CONTENT ) ii.sType = _T("Content");
+#ifndef DBPROPVAL_IN_ALLOWNULL
+         const long DBPROPVAL_IN_ALLOWNULL = 0x00000000L;
+#endif // DBPROPVAL_IN_ALLOWNULL
          ii.bNulls = lNulls != DBPROPVAL_IN_ALLOWNULL;
          bool bFound = false;
          for( int i = 0; i < pTable->aIndices.GetSize(); i++ ) {
@@ -169,7 +172,7 @@ BOOL CDbOperations::LoadTableInfo(TABLEINFO* pTable, COledbDatabase* pDb /*=NULL
       rec.Close();
       spRS.Release();
    }
- 
+
    return TRUE;
 }
 

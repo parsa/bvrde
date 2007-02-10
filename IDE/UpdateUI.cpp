@@ -198,6 +198,7 @@ BOOL CMainFrame::OnIdle()
    UIEnable(ID_MACRO_SAVE, !m_sMacro.IsEmpty());
    UIEnable(ID_MACRO_PLAY, !m_sMacro.IsEmpty());
    UISetCheck(ID_VIEW_EXPLORER, m_viewExplorer.IsWindowVisible());
+   UISetCheck(ID_VIEW_OPENFILES, m_viewOpenFiles.IsWindowVisible());
    UISetCheck(ID_VIEW_PROPERTYBAR, m_viewProperties.IsWindowVisible());
    UIEnable(ID_WINDOW_CLOSE, hWnd != NULL);
    UIEnable(ID_WINDOW_CLOSE_ALL, hWnd != NULL);

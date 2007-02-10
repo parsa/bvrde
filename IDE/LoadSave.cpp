@@ -41,13 +41,11 @@ public:
 
    DWORD Run()
    {
-      ATLTRACE("%08X CSettingsLoaderThread\n", ::GetTickCount());
       _Init();
       _LoadStartup();
       _CheckConfigVersion();
       _LoadSettings();
       _PreloadLibraries();
-      ATLTRACE("%08X ~CSettingsLoaderThread\n", ::GetTickCount());
       return 0;
    }
 
@@ -95,6 +93,9 @@ public:
             m_pMain->_AddProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
             m_pMain->_AddProperty(&reg, _T("explorer-pos"), _T("window.explorer.pos"));
             m_pMain->_AddProperty(&reg, _T("explorer-area"), _T("window.explorer.area"));
+            m_pMain->_AddProperty(&reg, _T("openfiles-cy"), _T("window.openfiles.cy"));
+            m_pMain->_AddProperty(&reg, _T("openfiles-pos"), _T("window.openfiles.pos"));
+            m_pMain->_AddProperty(&reg, _T("openfiles-area"), _T("window.openfiles.area"));
             m_pMain->_AddProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
             m_pMain->_AddProperty(&reg, _T("config-timestamp"), _T("config.timestamp"));
             reg.ReadGroupEnd();
@@ -487,6 +488,9 @@ void CMainFrame::_SaveSettings()
       _StoreProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
       _StoreProperty(&reg, _T("explorer-pos"), _T("window.explorer.pos"));
       _StoreProperty(&reg, _T("explorer-area"), _T("window.explorer.area"));
+      _StoreProperty(&reg, _T("openfiles-cy"), _T("window.openfiles.cy"));
+      _StoreProperty(&reg, _T("openfiles-pos"), _T("window.openfiles.pos"));
+      _StoreProperty(&reg, _T("openfiles-area"), _T("window.openfiles.area"));
       _StoreProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
       _StoreProperty(&reg, _T("config-timestamp"), _T("config.timestamp"));
       reg.WriteGroupEnd();
@@ -512,7 +516,6 @@ CString CMainFrame::GetSettingsFilename()
    CString sFilename;
    sFilename.Format(_T("%sBVRDE.xml"), CModulePath());
    static OSVERSIONINFO ver = { 0 };
-   static FILETIME ft = { 0 };
    if( ver.dwOSVersionInfoSize == 0 ) {
       ver.dwOSVersionInfoSize = sizeof(ver);
       ::GetVersionEx(&ver);

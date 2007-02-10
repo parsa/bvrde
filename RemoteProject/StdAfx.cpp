@@ -16,9 +16,13 @@
 // Sound playing functions
 #pragma comment(lib, "winmm.lib")
 
+// Encryption
+#pragma comment(lib, "advapi32.lib")
+
 // Delay load
 #pragma comment(lib, "Delayimp.lib")
 #pragma comment(linker, "/DelayLoad:wininet.dll")
+#pragma comment(linker, "/DelayLoad:ws2_32.dll")
 #pragma comment(linker, "/DelayLoad:ws2_32.dll")
 
 #if _MSC_VER < 1300

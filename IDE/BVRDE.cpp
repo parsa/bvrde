@@ -24,65 +24,6 @@ extern void LoadSettings(CMainFrame* pMain);
 ///////////////////////////////////////////////////
 //
 
-class CPluginLoader
-{
-public:
-   DWORD Run()
-   {
-      // Load all the plugins
-      _LoadPlugins();
-      _SendReadySignal();
-      return 0;
-   }
-   void _SendReadySignal()
-   {
-      // Send signal to main window to enable UI...
-      ::PostMessage(g_pDevEnv->GetHwnd(IDE_HWND_MAIN), WM_APP_INIT, 0, 0L);
-   }
-   void _LoadPlugins()
-   {
-      // Collect all PKG files in program folder
-      CRegKey reg;
-      reg.Open(HKEY_CURRENT_USER, REG_BVRDE _T("\\Disabled Plugins"), KEY_READ);
-      DWORD dwDisabled = 0;
-      CString sPattern;
-      sPattern.Format(_T("%s*.pkg"), CModulePath());
-      CFindFile ff;
-      for( BOOL bRes = ff.FindFile(sPattern); bRes; bRes = ff.FindNextFile() ) {
-         if( ff.IsDots() ) continue;
-         if( ff.IsDirectory() ) continue;
-         // Figure out if it's in the DisabledPlugins list
-         BOOL bActive = reg.m_hKey == NULL || reg.QueryValue(dwDisabled, ff.GetFileTitle()) != ERROR_SUCCESS;
-         // Just add the plugin...
-         CPlugin plugin;
-         plugin.Init(ff.GetFilePath(), bActive);
-         g_aPlugins.Add(plugin);
-      }
-      ff.Close();
-      // Load and initialize each plugin
-      for( int i = 0; i< g_aPlugins.GetSize(); i++ ) {
-         CPlugin& plugin = g_aPlugins[i];
-         _LoadPlugin(plugin);
-      }
-   }
-   BOOL _LoadPlugin(CPlugin& plugin)
-   {
-      __try
-      {
-         return plugin.LoadPackage(g_pDevEnv);
-      }
-      __except(1)
-      {
-         ATLASSERT(false);
-      }
-      return FALSE;
-   }
-};
-
-
-///////////////////////////////////////////////////
-//
-
 static bool SingleInstance()
 {
    // See if another instance of BVRDE is running; send commandline
@@ -138,8 +79,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    hRes = _Module.Init(NULL, hInstance);
    ATLASSERT(SUCCEEDED(hRes));
 
-   // Grab the XML configuration file
    CMainFrame wndMain;
+
+   // Grab the XML configuration file
    LoadSettings(&wndMain);
 
    // Change the language now; this is a setting in the registry because

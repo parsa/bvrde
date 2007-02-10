@@ -558,6 +558,7 @@ public:
 
    BEGIN_MSG_MAP(CCustomTabCtrl)
       CHAIN_MSG_MAP(COffscreenDrawRect< T >)
+      MESSAGE_RANGE_HANDLER(WM_MOUSEFIRST, WM_MOUSELAST, OnMouseMessage) 
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
       MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
       MESSAGE_HANDLER(WM_SIZE, OnSize)
@@ -568,8 +569,8 @@ public:
       MESSAGE_HANDLER(WM_GETDLGCODE, OnGetDlgCode)
       MESSAGE_HANDLER(WM_KEYDOWN, OnKeyDown)
       MESSAGE_HANDLER(WM_LBUTTONDOWN, OnLButtonClick)
+      MESSAGE_HANDLER(WM_MBUTTONUP, OnMButtonClick)
       MESSAGE_HANDLER(WM_RBUTTONDOWN, OnRButtonClick)
-      MESSAGE_RANGE_HANDLER(WM_MOUSEFIRST, WM_MOUSELAST, OnMouseMessage) 
       COMMAND_ID_HANDLER(IDC_CB_SCROLLLEFT, OnScrollLeft)
       COMMAND_ID_HANDLER(IDC_CB_SCROLLRIGHT, OnScrollRight)
    END_MSG_MAP()
@@ -639,9 +640,28 @@ public:
       }
       return 0;
    }
+   LRESULT OnMButtonClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+   {
+      POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+      T* pT = static_cast<T*>(this);
+      int iItem = pT->HitTest(pt);
+      if( iItem != -1 ) {
+         SetFocus();
+         DeleteItem(iItem);
+      }
+      return 0;
+   }
    LRESULT OnRButtonClick(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
-      SendMessage(WM_LBUTTONDOWN, wParam, lParam); // BUG: Triggers NM_CLICK as well!
+      POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+      // Select tab below
+      T* pT = static_cast<T*>(this);
+      int iItem = pT->HitTest(pt);
+      if( iItem != -1 ) {
+         SetFocus();
+         SetCurSel(iItem);
+      }
+      // Send click notification
       NMHDR nmh = { m_hWnd, m_idDlgCtrl, NM_RCLICK };
       m_wndNotify.SendMessage(WM_NOTIFY, nmh.idFrom, (LPARAM) &nmh);
       return 0;

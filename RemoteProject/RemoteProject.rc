@@ -48,13 +48,6 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDB_CLASSVIEW           BITMAP  DISCARDABLE     "res\\classview.bmp"
 #endif    // Danish resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1146,6 +1139,8 @@ BEGIN
     IDS_MISC_SEARCHPATH     "Suchpfad"
     IDS_COMMAND_ARGS        "GDB Parameter"
     IDS_MISC_MAINTAINSESSION "Session behalten"
+    IDS_MISC_PROCESSLIST    "PS Befehl"
+    IDS_ERR_PIDLIST         "Fehler: ps command format fehler."
 END
 
 #endif    // German (Germany) resources
@@ -1166,6 +1161,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Bitmap
 //
 
+IDB_CLASSVIEW           BITMAP  DISCARDABLE     "res\\classview.bmp"
 IDR_TOOLIMAGES          BITMAP  DISCARDABLE     "res\\toolimages.bmp"
 IDR_BUILD               BITMAP  DISCARDABLE     "res\\build.bmp"
 IDR_DEBUG               BITMAP  DISCARDABLE     "res\\debug.bmp"
@@ -2423,6 +2419,8 @@ BEGIN
     IDS_MISC_SEARCHPATH     "Search Path"
     IDS_COMMAND_ARGS        "Debugger Args"
     IDS_MISC_MAINTAINSESSION "Maintain Session"
+    IDS_MISC_PROCESSLIST    "PS command"
+    IDS_ERR_PIDLIST         "Error: ps command format error."
 END
 
 #endif    // English (U.S.) resources

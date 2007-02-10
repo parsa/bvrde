@@ -184,7 +184,7 @@ public:
 
    // MDI client messages
 
-   LRESULT OnParentNotify(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+   LRESULT OnParentNotify(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {
       switch( LOWORD(wParam) ) {
       case WM_CREATE:
@@ -252,7 +252,7 @@ public:
 
    void UpdateLayout()
    {
-      RECT rc;
+      RECT rc = { 0 };
       GetClientRect(&rc);
       // Place tab control in frame if populated
       int cy = ::GetSystemMetrics(SM_CYMENUSIZE) + 4;

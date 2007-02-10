@@ -26,8 +26,8 @@ public:
    }
    ~CSplashWindow()
    {
-      // HACK: Safety!
-      while( IsWindow() ) ::Sleep(500L);
+      while( IsWindow() ) 
+         /* scary */ ::Sleep(500L);
    }
 
    // Operations
@@ -95,7 +95,8 @@ public:
    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       ATLTRACE("%08X CSplash::OnCreate()\n", ::GetTickCount());
-      SIZE size;
+
+      SIZE size = { 0 };
       m_bm.GetSize(size);
       SetWindowPos(HWND_TOPMOST, 0, 0, size.cx, size.cy, SWP_NOMOVE);
       CenterWindow();
@@ -104,7 +105,7 @@ public:
       CAnimateWindow wndAnimate = m_hWnd;
       if( !wndAnimate.AnimateWindow(200) ) ::ShowWindow(m_hWnd, SW_SHOW);
 
-      // Mark that the window was created
+      // Mark that this window was created!
       m_bCreated = true;
       return 0;
    }
@@ -142,7 +143,7 @@ public:
 
    void DoPaint(CDCHandle dc)
    {
-      RECT rc;
+      RECT rc = { 0 };
       GetClientRect(&rc);   
       CDC dcBmp;
       dcBmp.CreateCompatibleDC(dc);

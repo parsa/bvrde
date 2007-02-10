@@ -254,6 +254,8 @@
 #define IDS_MISC_SEARCHPATH             291
 #define IDS_COMMAND_ARGS                292
 #define IDS_MISC_MAINTAINSESSION        293
+#define IDS_MISC_PROCESSLIST            294
+#define IDS_ERR_PIDLIST                 295
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003

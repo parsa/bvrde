@@ -7,12 +7,11 @@
 #include "Globals.h"
 #include "Files.h"
 
+#include <wincrypt.h>
 
-// Here we store the user's password after being prompted
-// so we needn't prompt again. This implies that the same
-// password should be used for both FTP and Telnet connection!
-TCHAR g_szPassword[100];
 
+////////////////////////////////////////////////////////
+//
 
 CString ToString(long lValue)
 {
@@ -35,11 +34,19 @@ CString ConvertFromCrLf(const CString& s)
 }
 
 
+////////////////////////////////////////////////////////
+//
+
+// Here we store the user's password after being prompted
+// so we needn't prompt again. This implies that the same
+// password should be used for both FTP and Telnet connection!
+// BUG: It is also not a very secure thing to do!!
+TCHAR g_szPassword[100];
+
 
 void SecClearPassword()
 {
-   // BUG: Protect this with semaphore!
-   _tcscpy(g_szPassword, _T(""));
+   g_szPassword[0] = '\0';
 }
 
 CString SecGetPassword()
@@ -67,6 +74,100 @@ CString SecGetPassword()
    return sPassword;
 }
 
+#define CRYPT_ENVELOPE_SIZE 30
+
+// Due to security, the password.h file is not included in the source distribution.
+// It contains the single source code line of...
+//   static BYTE g_password[] = { 1, 2, 3, 4, 5, 6 };
+// where the numbers are the pass-phrase.
+//
+#include "password.h"
+
+CString SecEncodePassword(LPCTSTR pstrPassword)
+{
+   // Check if it's an empty password...
+   USES_CONVERSION;
+   LPCSTR pstr = T2A(pstrPassword);
+   size_t cchLen = strlen(pstr);
+   if( cchLen == 0 || cchLen >= CRYPT_ENVELOPE_SIZE - 2 ) return pstrPassword;
+   // Prepare encryption library...
+   static LPCTSTR pstrProvider = _T("Microsoft Base Cryptographic Provider v1.0");
+   HCRYPTPROV hProv = NULL;
+   if( !::CryptAcquireContext(&hProv, NULL, pstrProvider, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) ) return pstrPassword;
+   // Generate a buffer containing password and random fillings...
+   BYTE bData[CRYPT_ENVELOPE_SIZE] = { 0 };
+   ::CryptGenRandom(hProv, sizeof(bData), bData);
+   bData[CRYPT_ENVELOPE_SIZE - 1] = cchLen;
+   bData[CRYPT_ENVELOPE_SIZE - 2] = 0;
+   memcpy(bData, pstr, cchLen);
+   // Encrypt the data blob using Microsoft crypt library...
+   HCRYPTHASH hHash = NULL;
+   if( !::CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash) ) return pstrPassword;
+   DWORD cbKey = sizeof(g_password);
+   if( !::CryptHashData(hHash, g_password, cbKey, 0) ) return pstrPassword;
+   HCRYPTKEY hKey = NULL;
+   if( !::CryptDeriveKey(hProv, CALG_RC4, hHash, CRYPT_EXPORTABLE, &hKey) ) return pstrPassword;
+   DWORD cbData = sizeof(bData);
+   if( !::CryptEncrypt(hKey, 0, TRUE, 0, bData, &cbData, cbData) ) return pstrPassword;
+   if( hKey ) ::CryptDestroyKey(hKey);
+   if( hHash ) ::CryptDestroyHash(hHash);
+   if( hProv ) ::CryptReleaseContext(hProv, 0);
+   // Turn binary blob into a hex-encoded string...
+   char szPassword[(CRYPT_ENVELOPE_SIZE * 2) + 2] = { 0 };
+   LPSTR pOut = szPassword;
+   *pOut++ = '~';
+   for( size_t i = 0; i < CRYPT_ENVELOPE_SIZE; i++ ) {
+      static char s_hex[] = "0123456789abcdef";
+      *pOut++ = s_hex[(bData[i] & 0xf0) >> 4];
+      *pOut++ = s_hex[bData[i] & 0x0f];
+   }
+   return szPassword;
+}
+
+CString SecDecodePassword(LPCTSTR pstrPassword)
+{
+   // If the password contains the ~tilde character at the first position it
+   // is assumed that it was locally encrypted.
+   USES_CONVERSION;
+   if( pstrPassword[0] != '~' ) return pstrPassword;
+   if( _tcslen(pstrPassword) != (CRYPT_ENVELOPE_SIZE * 2) + 1 ) return pstrPassword;
+   // Prepare encryption library...
+   static LPCTSTR pstrProvider = _T("Microsoft Base Cryptographic Provider v1.0");
+   HCRYPTPROV hProv = NULL;
+   if( !::CryptAcquireContext(&hProv, NULL, pstrProvider, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) return _T("");
+   HCRYPTHASH hHash = NULL;
+   if( !::CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash)) return _T("");
+   DWORD cbKey = sizeof(g_password);
+   if( !::CryptHashData(hHash, g_password, cbKey, 0)) return _T("");
+   HCRYPTKEY hKey = NULL;
+   if( !::CryptDeriveKey(hProv, CALG_RC4, hHash, CRYPT_EXPORTABLE, &hKey)) return _T("");
+   // Convert hex-encoded to character string...
+   BYTE bData[CRYPT_ENVELOPE_SIZE * 2];
+   int i = 0;
+   while( i < CRYPT_ENVELOPE_SIZE ) {
+      ++pstrPassword;
+      CHAR iVal = (*pstrPassword > '9' ? *pstrPassword - 'a' + 10 : *pstrPassword - '0');
+      ++pstrPassword;
+      iVal = (iVal << 4) + (*pstrPassword > '9' ? *pstrPassword - 'a' + 10 : *pstrPassword - '0');
+      bData[i++] = iVal;
+   }
+   // Decrypt using Microsoft crypt library...
+   DWORD cbData = sizeof(bData);
+   if( !::CryptDecrypt(hKey, 0, TRUE, 0, bData, &cbData)) return _T("");
+   if( hKey ) ::CryptDestroyKey(hKey);
+   if( hHash ) ::CryptDestroyHash(hHash);
+   if( hProv ) ::CryptReleaseContext(hProv, 0);
+   // Turn into a password string...
+   size_t cchLen = bData[CRYPT_ENVELOPE_SIZE - 1];
+   if( cchLen == 0 || cchLen >= CRYPT_ENVELOPE_SIZE - 1 ) return _T("");
+   CHAR szPassword[CRYPT_ENVELOPE_SIZE] = { 0 };
+   memcpy(szPassword, bData, cchLen);
+   return szPassword;
+}
+
+
+////////////////////////////////////////////////////////
+//
 
 void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask /*= 0*/, DWORD dwEffects /*= 0*/, COLORREF clrText /*= 0*/)
 {
@@ -103,6 +204,9 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask /*= 0*
    ctrlEdit.SetSel(-1, -1);
 }
 
+
+////////////////////////////////////////////////////////
+//
 
 void GenerateError(IDevEnv* pDevEnv, UINT nErr, DWORD dwErr /*= (DWORD)-1*/)
 {
@@ -164,6 +268,10 @@ CString GetSystemErrorText(DWORD dwErr)
    return s;
 }
 
+
+////////////////////////////////////////////////////////
+//
+
 BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition)
 {
    ATLASSERT(::IsMenu(hMenu));
@@ -211,6 +319,9 @@ BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition)
    return TRUE;
 }
 
+
+////////////////////////////////////////////////////////
+//
 
 CString GetFileTypeFromFilename(LPCTSTR pstrFilename)
 {

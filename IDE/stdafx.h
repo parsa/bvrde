@@ -46,14 +46,12 @@ extern CAppModule _Module;
 #include "atlcollections.h"
 
 #include "BVRDE_SDK.h"
-#include "Plugin.h"
 #include "Globals.h"
 #include "ObjectModel.h"
 
 class CSolution;
 
 extern IDevEnv* g_pDevEnv;
-extern CSimpleArray<CPlugin> g_aPlugins;
 extern CSolution* g_pSolution;
 
 

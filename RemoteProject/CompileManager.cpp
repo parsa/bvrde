@@ -184,6 +184,7 @@ void CCompileManager::Clear()
    m_sPromptPrefix = _T("$~[/");
    m_sCommandPreStep = _T("");
    m_sCommandPostStep = _T("");
+   m_sCommandProcessList = _T("ps");
    m_sCompileFlags = _T("");
    m_sLinkFlags = _T("");
    m_sBuildMode = _T("debug");
@@ -218,6 +219,8 @@ bool CCompileManager::Load(ISerializable* pArc)
       m_sCommandCompile.ReleaseBuffer();
       pArc->Read(_T("clean"), m_sCommandClean.GetBufferSetLength(200), 200);
       m_sCommandClean.ReleaseBuffer();
+      pArc->Read(_T("ps"), m_sCommandProcessList.GetBufferSetLength(200), 200);
+      m_sCommandProcessList.ReleaseBuffer();
       pArc->Read(_T("checkSyntax"), m_sCommandCheckSyntax.GetBufferSetLength(200), 200);
       m_sCommandCheckSyntax.ReleaseBuffer();
       pArc->Read(_T("buildTags"), m_sCommandBuildTags.GetBufferSetLength(200), 200);
@@ -236,6 +239,8 @@ bool CCompileManager::Load(ISerializable* pArc)
       ConvertToCrLf(m_sCommandPreStep);
       ConvertToCrLf(m_sCommandPostStep);
    }
+
+   if( m_sCommandProcessList.IsEmpty() ) m_sCommandProcessList = _T("ps");
 
    if( !pArc->ReadGroupEnd() ) return false;
    return true;
@@ -259,6 +264,7 @@ bool CCompileManager::Save(ISerializable* pArc)
    pArc->Write(_T("compile"), m_sCommandCompile);
    pArc->Write(_T("clean"), m_sCommandClean);
    pArc->Write(_T("checkSyntax"), m_sCommandCheckSyntax);
+   pArc->Write(_T("ps"), m_sCommandProcessList);
    pArc->Write(_T("buildTags"), m_sCommandBuildTags);
    pArc->Write(_T("debugExport"), m_sCommandDebug);
    pArc->Write(_T("releaseExport"), m_sCommandRelease);
@@ -445,6 +451,7 @@ CString CCompileManager::GetParam(LPCTSTR pstrName) const
    if( sName == _T("BuildTags") ) return m_sCommandBuildTags;
    if( sName == _T("PreStep") ) return m_sCommandPreStep;
    if( sName == _T("PostStep") ) return m_sCommandPostStep;
+   if( sName == _T("ProcessList") ) return m_sCommandProcessList;
    if( sName == _T("DebugExport") ) return m_sCommandDebug;
    if( sName == _T("ReleaseExport") ) return m_sCommandRelease;
    if( sName == _T("CompileFlags") ) return m_sCompileFlags;
@@ -466,12 +473,13 @@ void CCompileManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("BuildTags") ) m_sCommandBuildTags = pstrValue;
    if( sName == _T("PreStep") ) m_sCommandPreStep = pstrValue;
    if( sName == _T("PostStep") ) m_sCommandPostStep = pstrValue;
+   if( sName == _T("ProcessList") ) m_sCommandProcessList = pstrValue;
    if( sName == _T("DebugExport") ) m_sCommandDebug = pstrValue;
    if( sName == _T("ReleaseExport") ) m_sCommandRelease = pstrValue;
    if( sName == _T("CompileFlags") ) m_sCompileFlags = pstrValue;
    if( sName == _T("LinkFlags") ) m_sLinkFlags = pstrValue;
-   if( sName == _T("InCommand") ) m_Flags |= _tcscmp(pstrValue, _T("true")) == 0 ? COMPFLAG_COMMANDMODE : 0;
    if( sName == _T("BuildMode") ) m_sBuildMode = pstrValue;
+   if( sName == _T("InCommand") ) m_Flags |= _tcscmp(pstrValue, _T("true")) == 0 ? COMPFLAG_COMMANDMODE : 0;
    m_ShellManager.SetParam(pstrName, pstrValue);
 }
 
@@ -533,7 +541,8 @@ bool CCompileManager::_PrepareProcess(LPCTSTR /*pstrName*/)
       if( _tcscmp(szBuffer, _T("true")) == 0 ) bAutoSave = true;
 
       UINT nRes = IDNO;
-      if( bSavePrompt ) {
+      if( bSavePrompt ) 
+      {
          nRes = _pDevEnv->ShowMessageBox(NULL, 
                                          CString(MAKEINTRESOURCE(IDS_SAVECHANGES)), 
                                          CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), 

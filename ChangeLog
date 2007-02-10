@@ -2,6 +2,9 @@ Version 1.0b:
 * SFTP port number no longer resets
 * Copyright file now correctly reflects the GPL license
 * Fixed problem with editor's Replace dialog
+* Windows Vista LUA compliance fix
+* Installer is now based on NSIS system
+* Password are stored with encryption
 
 Version 1.0:
 * Finally released the first public version!

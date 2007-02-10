@@ -48,7 +48,7 @@ public:
    {
       // Remove interval dialog view
       m_ctrlViews.RemoveItem(hWnd);
-      // Remote tab control item
+      // Remove tab control item
       for( int i = 0; i < m_ctrlTab.GetItemCount(); i++ ) {
          TCITEM tci = { 0 };
          tci.mask = TCIF_PARAM;

@@ -158,6 +158,10 @@ SOURCE=.\res\btn.gif
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\BVRDEDoc.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\CSS.css
 # End Source File
 # Begin Source File

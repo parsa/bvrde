@@ -50,6 +50,9 @@ extern IDevEnv* _pDevEnv;
 
 #include "atlscintilla.h"
 
+#include <transact.h>
+#include <oledb.h>
+
 #include "cDb.h"
 #include "cOledb.h"
 

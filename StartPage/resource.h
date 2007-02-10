@@ -2,6 +2,7 @@
 // Microsoft Developer Studio generated include file.
 // Used by StartPage.rc
 //
+#define IDR_MDICHILD                    129
 
 // Next default values for new objects
 // 
@@ -13,4 +14,3 @@
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
-

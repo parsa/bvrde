@@ -89,7 +89,7 @@ void CFrameWindow::OnFinalMessage(HWND /*hWnd*/)
 
 LRESULT CFrameWindow::OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-   if( !IsWindowVisible() || uMsg != WM_COMMAND || !::IsChild(m_hWnd, ::GetFocus()) ) {
+   if( uMsg != WM_COMMAND || !IsWindowVisible() || !::IsChild(m_hWnd, ::GetFocus()) ) {
       bHandled = FALSE;
       return 0;
    }

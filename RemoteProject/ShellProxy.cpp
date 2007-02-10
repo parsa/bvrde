@@ -128,6 +128,7 @@ CString CShellManager::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
    if( sName == _T("Type") ) return m_sType;
+   if( sName == _T("ServerType") ) return m_sServerType;
    if( m_pProtocol == NULL ) return _T("");
    return m_pProtocol->GetParam(pstrName);
 }
@@ -188,6 +189,17 @@ void CShellManager::BroadcastLine(VT100COLOR Color, LPCTSTR pstrText)
       LineListeners[i]->OnIncomingLine(Color, pstrText);
       if( m_LineListeners.GetSize() != LineListeners.GetSize() ) break;
    }
+}
+
+void CShellManager::PreAuthenticatedLine(LPCTSTR pstrText)
+{
+   CString s = pstrText;
+   if( s.Find(_T("Linux")) >= 0 || s.Find(_T("LINUX")) >= 0 ) m_sServerType = _T("LINUX");
+   if( s.Find(_T("Windows")) >= 0 ) m_sServerType = _T("Windows");
+   if( s.Find(_T("UNIX")) >= 0 ) m_sServerType = _T("UNIX");
+   if( s.Find(_T("Debian")) >= 0 ) m_sServerType = _T("Debian LINUX");
+   if( s.Find(_T("Red Hat")) >= 0 ) m_sServerType = _T("Red Hat LINUX");
+   if( s.Find(_T("HP-UX")) >= 0 ) m_sServerType = _T("HP UNIX");
 }
 
 bool CShellManager::WriteData(LPCTSTR pstrData)

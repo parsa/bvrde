@@ -25,13 +25,12 @@ CMainFrame::CMainFrame() :
    m_bInitialized(FALSE),
    m_bRecordingMacro(FALSE)
 {
+   g_pDevEnv = this;
 }
 
 LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    ATLTRACE("%08X CMainFrame::OnCreate\n", ::GetTickCount());
-
-   g_pDevEnv = this;
 
    ShowWindow(SW_HIDE);
 
@@ -135,6 +134,17 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    GetProperty(_T("window.explorer.area"), szBuffer2, 63);
    m_Dock.DockWindow(m_viewExplorer, iSide, _ttoi(szBuffer1), _ttoi(szBuffer2));
 
+   // Create docked Solution Explorer views
+   CString sOpenFiles(MAKEINTRESOURCE(IDS_OPENFILES));
+   m_viewOpenFiles.Create(m_Dock, rcDefault, sOpenFiles, ATL_SIMPLE_DOCKVIEW_STYLE);
+   m_Dock.AddWindow(m_viewOpenFiles);
+   GetProperty(_T("window.openfiles.pos"), szBuffer1, 63);
+   iSide = (short) _ttoi(szBuffer1);
+   if( _tcslen(szBuffer1) == 0 || iSide == IDE_DOCK_FLOAT ) iSide = IDE_DOCK_HIDE;
+   GetProperty(_T("window.openfiles.cy"), szBuffer1, 63);
+   GetProperty(_T("window.openfiles.area"), szBuffer2, 63);
+   m_Dock.DockWindow(m_viewOpenFiles, iSide, _ttoi(szBuffer1), _ttoi(szBuffer2));
+
    // Create docked Properties views
    CString sPropertiesName(MAKEINTRESOURCE(IDS_PROPERTIES));
    m_viewProperties.Create(m_Dock, rcDefault, sPropertiesName, ATL_SIMPLE_DOCKVIEW_STYLE);
@@ -208,6 +218,13 @@ LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
    _SaveSettings();
 
    m_AnimateImages.Destroy();
+
+   // Make sure we're not bothered by pre-translate messaging and
+   // other windows stuff again!
+   CMessageLoop* pLoop = static_cast<CMessageLoopEx*>(_Module.GetMessageLoop());
+   ATLASSERT(pLoop);
+   pLoop->RemoveMessageFilter(this);
+   pLoop->RemoveIdleHandler(this);
 
    bHandled = FALSE;
    return 0;
@@ -393,13 +410,28 @@ LRESULT CMainFrame::OnDrawItem(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
 
 LRESULT CMainFrame::OnMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-   // All messages are forwarded to the clients (listeners).
-   // Most clients hook this to intercept WM_COMMAND messages.
-   // This is blunt overkill, and we should really consider a 
-   // pure WM_COMMAND message listener interface instead.
+   bHandled = FALSE;
+   // Filter on the messages we want to relay to listeners.
+   // They are only allowed to listen for "important" messages - such
+   // as commands and top-level notifications.
+   switch( uMsg ) {
+   case WM_COMMAND:
+   case WM_NOTIFY:
+   case WM_CREATE:
+   case WM_SIZE:
+   case WM_CLOSE:
+   case WM_DESTROY:
+   case WM_ACTIVATE:
+   case WM_SETTINGCHANGE:
+   case WM_DISPLAYCHANGE:
+      break;
+   default:
+      return 0;
+   }
+   // The select messages are forwarded to the clients (listeners).
+   // Most clients hook this to intercept WM_COMMAND messages, though.
    __try
    {
-      bHandled = FALSE;
       for( int i = m_aAppListeners.GetSize() - 1; i >= 0; --i ) {
          LRESULT lRes = m_aAppListeners[i]->OnAppMessage(m_hWnd, uMsg, wParam, lParam, bHandled);
          if( bHandled ) return lRes;
@@ -744,6 +776,12 @@ LRESULT CMainFrame::OnViewExplorer(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    return 0;
 }
 
+LRESULT CMainFrame::OnViewOpenFiles(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   if( m_viewOpenFiles.IsWindowVisible() ) m_Dock.HideWindow(m_viewOpenFiles); else m_Dock.DockWindow(m_viewOpenFiles, DOCK_RIGHT);
+   return 0;
+}
+
 LRESULT CMainFrame::OnViewPropertyBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    if( m_viewProperties.IsWindowVisible() ) m_Dock.HideWindow(m_viewProperties); else m_Dock.DockWindow(m_viewProperties, DOCK_LASTKNOWN);
@@ -982,7 +1020,7 @@ LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
    UIReset();
    OnIdle();
 
-   // Display main window now
+   // Display main window now...
    if( !LoadWindowPos() ) ShowWindow(SW_SHOW);  
    m_MDIContainer.UpdateLayout();
 
@@ -1009,6 +1047,20 @@ LRESULT CMainFrame::OnUserLoadSolution(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
    SendMessage(WM_APP_CLOSESTARTPAGE);
    SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_CLOSESOLUTION, 0));
    return (LRESULT) g_pSolution->LoadSolution(pstrFilename);
+}
+
+LRESULT CMainFrame::OnUserAppMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
+{
+   // The views forwards certain messages to this method and we're supposed
+   // to forward everything to clients (listeners). This will allow plugins
+   // to react on important top-level messages and the menu commands.
+   LPMSG pMsg = (LPMSG) lParam;
+   bHandled = FALSE;
+   for( int i = m_aAppListeners.GetSize() - 1; i >= 0; --i ) {
+      LRESULT lRes = m_aAppListeners[i]->OnAppMessage(pMsg->hwnd, pMsg->message, pMsg->lParam, pMsg->wParam, bHandled);
+      if( bHandled ) return lRes;
+   }
+   return 0;
 }
 
 LRESULT CMainFrame::OnUserTreeMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
@@ -1080,9 +1132,8 @@ LRESULT CMainFrame::OnUserViewChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    }
 
    // Need to recreate entire menu
-   // NOTE: Windows MDI doesn't like its menu to be destroyed (doesn't
-   //       seem to be equally well protected by reference-counting as other
-   //       GDI objects) so we'll keep it alive in a static.
+   // NOTE: Windows MDI doesn't like its menu to be destroyed; keep it around
+   //       with a static object.
    static CMenu menu;
    if( menu.IsMenu() ) menu.DestroyMenu();
    menu.LoadMenu(IDR_MAINFRAME);

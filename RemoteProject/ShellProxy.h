@@ -44,12 +44,14 @@ public:
    bool WriteSignal(BYTE bCmd);
    bool WriteScreenSize(int w, int h);
    void BroadcastLine(VT100COLOR nColor, LPCTSTR pstrText);
+   void PreAuthenticatedLine(LPCTSTR pstrText);
    bool WaitForConnection();
 
 // Attributes
 protected:
    CRemoteProject* m_pProject;
-   CString m_sType;
+   CString m_sType;                /// Prompt type requested
+   CString m_sServerType;          /// Server type detected
    IRemoteCommandProtocol* m_pProtocol;
    CSimpleValArray<IOutputLineListener*> m_LineListeners;
 };

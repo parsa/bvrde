@@ -367,6 +367,10 @@ SOURCE=.\ExplorerView.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\OpenFilesView.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\OutputView.h
 # End Source File
 # Begin Source File

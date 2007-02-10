@@ -5,6 +5,8 @@
 
 #include "View.h"
 
+#include "resource.h"
+
 
 ///////////////////////////////////////////////////////7
 // CStartPageView
@@ -153,10 +155,12 @@ BOOL CStartPageView::Reload()
 
 BOOL CStartPageView::OpenView(long /*lLineNum*/)
 {
-   if( IsWindow() ) {
+   if( IsWindow() ) 
+   {
       ShowWindow(SW_SHOW);
    }
-   else {
+   else 
+   {
       TCHAR szName[64] = { 0 };
       GetName(szName, 63);
 
@@ -167,6 +171,10 @@ BOOL CStartPageView::OpenView(long /*lLineNum*/)
          return FALSE;
       }
       m_wndFrame = pFrame->GetHwnd();
+
+      HICON hIconSmall = (HICON)::LoadImage(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_MDICHILD), 
+         IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR);
+      m_wndFrame.SetIcon(hIconSmall, FALSE);
 
       // Create CLSID_WebBrowser control
       Create(m_wndFrame, CWindow::rcDefault, _T("{8856F961-340A-11D0-A96B-00C04FD705A2}"), WS_CHILD | WS_VISIBLE, WS_EX_CLIENTEDGE);

@@ -174,9 +174,11 @@ DWORD CSshThread::Run()
          ATLASSERT(pBuffer);
       }
 
-      if( !m_pManager->m_bConnected ) {
-         CString s = _GetLine(bReadBuffer, 0, iRead);
-         s.MakeUpper();
+      if( !m_pManager->m_bConnected ) 
+      {
+         CString sLine = _GetLine(bReadBuffer, 0, iRead);
+         m_pCallback->PreAuthenticatedLine(sLine);
+         sLine.MakeUpper();
          // Did authorization fail? 
          // TODO: Do we need this check at all?
          //       What if shell is not a telnet dude!?
@@ -192,7 +194,7 @@ DWORD CSshThread::Run()
          };
          const LPCTSTR* ppstr = pstrFailed;
          while( *ppstr ) {
-            if( s.Find(*ppstr) >= 0 ) {
+            if( sLine.Find(*ppstr) >= 0 ) {
                m_pManager->m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_LOGIN_FAILED)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR | MB_MODELESS);
                m_pManager->m_dwErrorCode = ERROR_LOGIN_WKSTA_RESTRICTION;
                SignalStop();
@@ -374,6 +376,7 @@ bool CSshProtocol::Load(ISerializable* pArc)
    pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
 
    ConvertToCrLf(m_sExtraCommands);
+   m_sPassword = SecDecodePassword(m_sPassword);
    if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 10;
 
    return true;
@@ -385,7 +388,7 @@ bool CSshProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("host"), m_sHost);
    pArc->Write(_T("port"), m_lPort);
    pArc->Write(_T("user"), m_sUsername);
-   pArc->Write(_T("password"), m_sPassword);
+   pArc->Write(_T("password"), SecEncodePassword(m_sPassword));
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("extra"), ConvertFromCrLf(m_sExtraCommands));
    pArc->Write(_T("connectTimeout"), m_lConnectTimeout);

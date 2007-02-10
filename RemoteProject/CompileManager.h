@@ -135,6 +135,7 @@ public:
    CString m_sCommandRelease;
    CString m_sCommandPreStep;
    CString m_sCommandPostStep;
+   CString m_sCommandProcessList;
    CString m_sPromptPrefix;
    CString m_sCompileFlags;
    CString m_sLinkFlags;

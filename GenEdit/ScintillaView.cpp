@@ -768,6 +768,12 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    SetEdgeColumn(80);         // Place the right edge (if visible)
    UsePopUp(FALSE);           // We'll do our own context menu
 
+   // Make sure we bump Scintilla into DBCS mode on supported asian
+   // languages...
+   static UINT aCP[] = { 932, 936, 949, 950, 1361, 0 };
+   UINT acp = ::GetACP();
+   for( UINT* pCP = aCP; *pCP != 0; pCP++ ) if( acp == *pCP ) SetCodePage((int)acp);
+
    // Never been initialized?
    if( !m_bInitialized ) {
       _RestoreBookmarks();

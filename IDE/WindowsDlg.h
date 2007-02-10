@@ -43,19 +43,18 @@ public:
       m_ctrlList.SetColumnWidth(0, LVSCW_AUTOSIZE_USEHEADER);
       m_ctrlList.SetImageList(m_ctrlImages, LVSIL_SMALL);
 
-      HWND hWnd = ::GetWindow(m_wndMDI.m_hWndMDIClient, GW_CHILD);
-      int iImage = 0;
-      while( ::IsWindow(hWnd) ) {
-         // Create icon
-         HICON hIcon = (HICON) ::GetClassLong(hWnd, GCL_HICONSM);
-         if( hIcon == NULL ) hIcon = (HICON) ::GetClassLong(hWnd, GCL_HICON);
-         m_ctrlImages.AddIcon(hIcon);
+      CWindow wnd = ::GetWindow(m_wndMDI.m_hWndMDIClient, GW_CHILD);
+      while( wnd.IsWindow() ) {
+         // Capture icon...
+         HICON hIcon = wnd.GetIcon(FALSE);
+         if( hIcon == NULL ) hIcon = (HICON) ::GetClassLong(wnd, GCL_HICONSM);
+         if( hIcon == NULL ) hIcon = (HICON) ::GetClassLong(wnd, GCL_HICON);
+         int iImage = m_ctrlImages.AddIcon(hIcon);
          // Create list item
-         CWindowText sText = hWnd;
+         CWindowText sText = wnd;
          int iItem = m_ctrlList.InsertItem(m_ctrlList.GetItemCount(), sText, iImage);
-         m_ctrlList.SetItemData(iItem, (LPARAM) hWnd);
-         hWnd = ::GetWindow(hWnd, GW_HWNDNEXT);
-         iImage++;
+         m_ctrlList.SetItemData(iItem, (LPARAM) (HWND) wnd);
+         wnd = wnd.GetWindow(GW_HWNDNEXT);
       }
 
       _UpdateButtons();

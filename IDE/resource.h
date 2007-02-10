@@ -177,6 +177,7 @@
 #define IDS_RESTART                     252
 #define IDS_TREE_BASH                   253
 #define IDS_ERR_SAVESOLUTION            254
+#define IDS_OPENFILES                   255
 #define IDD_MSGBOX                      263
 #define IDI_MSG_INFORMATION             264
 #define IDI_MSG_WARNING                 265
@@ -329,6 +330,7 @@
 #define ID_MACROS_KEY7                  32873
 #define ID_TOOLTOKEN_FILENAME           32873
 #define ID_MACROS_KEY8                  32874
+#define ID_VIEW_OPENFILES               32874
 #define ID_MACROS_KEY9                  32875
 #define ID_MACROS_KEY10                 32876
 #define ID_MACROS_KEY11                 32877
@@ -344,7 +346,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        243
-#define _APS_NEXT_COMMAND_VALUE         32874
+#define _APS_NEXT_COMMAND_VALUE         32875
 #define _APS_NEXT_CONTROL_VALUE         1090
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

@@ -792,11 +792,11 @@ DWORD COledbRecordset::GetRowNumber()
    // BUG: Not working because we do not require IRowsetScroll support
    CComQIPtr<IRowsetScroll> spScroll = m_spRowset;
    if( spScroll == NULL ) return 0;
-   DBCOUNTITEM nRows;
+   ULONG nRows = 0;
    BYTE cBookmark = DBBMK_LAST;
    HRESULT Hr = spScroll->GetApproximatePosition(DB_NULL_HCHAPTER, NULL, &cBookmark, NULL, &nRows);
    if( FAILED(Hr) ) return 0;
-   return (DWORD)nRows;
+   return (DWORD) nRows;
 }
 
 BOOL COledbRecordset::NextResultset()

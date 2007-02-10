@@ -22,6 +22,7 @@
 #include "AutoHideXp.h"
 
 #include "ExplorerView.h"
+#include "OpenFilesView.h"
 #include "PropertiesView.h"
 #include "OutputView.h"
 #include "CommandView.h"
@@ -77,6 +78,7 @@ public:
    CImageList m_AnimateImages;
    //
    CExplorerView m_viewExplorer;
+   COpenFilesView m_viewOpenFiles;
    CPropertiesView m_viewProperties;
    COutputView m_viewOutput;
    CCommandView m_viewCommand;
@@ -127,6 +129,7 @@ public:
       UPDATE_ELEMENT(ID_EDIT_GOTO, UPDUI_MENUPOPUP)
       UPDATE_ELEMENT(ID_VIEW_OPEN, UPDUI_MENUPOPUP)
       UPDATE_ELEMENT(ID_VIEW_EXPLORER, UPDUI_MENUPOPUP)
+      UPDATE_ELEMENT(ID_VIEW_OPENFILES, UPDUI_MENUPOPUP)
       UPDATE_ELEMENT(ID_VIEW_PROPERTYBAR, UPDUI_MENUPOPUP)
       UPDATE_ELEMENT(ID_VIEW_OUTPUT, UPDUI_MENUPOPUP)
       UPDATE_ELEMENT(ID_VIEW_COMMAND, UPDUI_MENUPOPUP)
@@ -185,6 +188,7 @@ public:
       COMMAND_ID_HANDLER(ID_ADD_PROJECT, OnAddProject)
       COMMAND_ID_HANDLER(ID_EDIT_COPY, OnEditCopy)
       COMMAND_ID_HANDLER(ID_VIEW_EXPLORER, OnViewExplorer)
+      COMMAND_ID_HANDLER(ID_VIEW_OPENFILES, OnViewOpenFiles)
       COMMAND_ID_HANDLER(ID_VIEW_PROPERTYBAR, OnViewPropertyBar)
       COMMAND_ID_HANDLER(ID_VIEW_PROPERTIES, OnViewProperties)
       COMMAND_ID_HANDLER(ID_VIEW_COMMAND, OnViewCommand)
@@ -223,6 +227,7 @@ public:
       MESSAGE_HANDLER(WM_APP_IDLETIME, OnUserIdle)
       MESSAGE_HANDLER(WM_APP_LOADSOLUTION, OnUserLoadSolution)
       MESSAGE_HANDLER(WM_APP_BUILDSOLUTIONUI, OnUserBuildSolutionUI)
+      MESSAGE_HANDLER(WM_APP_APPMESSAGE, OnUserAppMessage)
       MESSAGE_HANDLER(WM_APP_TREEMESSAGE, OnUserTreeMessage)
       MESSAGE_HANDLER(WM_APP_VIEWMESSAGE, OnUserViewMessage)
       MESSAGE_HANDLER(WM_APP_VIEWCHANGE, OnUserViewChange)
@@ -274,6 +279,7 @@ public:
    LRESULT OnMacroSave(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMacroShortcut(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewExplorer(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewOpenFiles(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewPropertyBar(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewOutput(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewCommand(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
@@ -298,6 +304,7 @@ public:
    LRESULT OnUserIdle(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnUserLoadSolution(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnUserBuildSolutionUI(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnUserAppMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnUserTreeMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnUserViewMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnUserViewChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

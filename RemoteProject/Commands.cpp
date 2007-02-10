@@ -755,7 +755,7 @@ LRESULT CRemoteProject::OnDebugProcesses(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
    CAttachProcessDlg dlg;
    dlg.Init(this, m_DebugManager.GetParam(L"App"));
    if( dlg.DoModal() != IDOK ) return 0;
-   return m_DebugManager.AttachProcess(dlg.GetPid());
+   return m_DebugManager.AttachProcess(dlg.GetSelectedPid());
 }
 
 LRESULT CRemoteProject::OnDebugArguments(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)

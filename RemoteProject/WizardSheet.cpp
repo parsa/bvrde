@@ -520,6 +520,9 @@ LRESULT CCompilerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    sName.LoadString(IDS_COMMAND_CLEAN);
    sValue = m_pProject->m_CompileManager.GetParam(_T("Clean"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 6));
+   sName.LoadString(IDS_MISC_PROCESSLIST);
+   sValue = m_pProject->m_CompileManager.GetParam(_T("ProcessList"));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 7));
 
    sName.LoadString(IDS_DIRECTIVES);
    m_ctrlList.AddItem(PropCreateCategory(sName));
@@ -574,6 +577,9 @@ int CCompilerCommandsPage::OnApply()
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(6), &v);
    m_pProject->m_CompileManager.SetParam(_T("Clean"), CString(v.bstrVal));
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(7), &v);
+   m_pProject->m_CompileManager.SetParam(_T("ProcessList"), CString(v.bstrVal));
 
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(10), &v);

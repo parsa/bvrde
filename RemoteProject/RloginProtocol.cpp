@@ -174,6 +174,7 @@ DWORD CRloginThread::Run()
          if( !bInitialized ) 
          {
             CString sLine = _GetLine(bReadBuffer, 0, dwRead);
+            m_pCallback->PreAuthenticatedLine(sLine);
             sLine.MakeUpper();
             // Server answered with 0-byte?
             if( sLine.IsEmpty() ) {
@@ -434,6 +435,7 @@ bool CRloginProtocol::Load(ISerializable* pArc)
    pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
 
    ConvertToCrLf(m_sExtraCommands);
+   m_sPassword = SecDecodePassword(m_sPassword);
    if( m_lConnectTimeout == 0 ) m_lConnectTimeout = 8;
    
    return true;
@@ -446,7 +448,7 @@ bool CRloginProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("port"), m_lPort);
    pArc->Write(_T("speed"), m_lSpeed);
    pArc->Write(_T("user"), m_sUsername);
-   pArc->Write(_T("password"), m_sPassword);
+   pArc->Write(_T("password"), SecEncodePassword(m_sPassword));
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("extra"), ConvertFromCrLf(m_sExtraCommands));
    pArc->Write(_T("connectTimeout"), m_lConnectTimeout);

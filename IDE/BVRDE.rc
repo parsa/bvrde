@@ -750,8 +750,9 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "Ansichten"
         BEGIN
-            MENUITEM "Arbeitsbereich Explorer",     ID_VIEW_EXPLORER
-            MENUITEM "Eigenschaftsfenster",         ID_VIEW_PROPERTYBAR
+            MENUITEM "&Arbeitsbereich Explorer",    ID_VIEW_EXPLORER
+            MENUITEM "&Eigenschaftsfenster",        ID_VIEW_PROPERTYBAR
+            MENUITEM "Aktiven &Fenster",            ID_VIEW_OPENFILES
         END
         POPUP "Andere Fenster"
         BEGIN
@@ -1122,6 +1123,7 @@ BEGIN
     ID_TOOLTOKEN_SELECTION  "Wird mit dem selektierten Bereich ersetzt\nEditorselektion"
     ID_TOOLTOKEN_HOSTNAME   "Wird mit dem Namen des Hostes ersetzt\nHostname"
     ID_TOOLTOKEN_FILENAME   "Wird mit dem aktiven Dateinamen ersetzt\nDateiname"
+    ID_VIEW_OPENFILES       "Aktiven Fenster anzeigen/verbergen\nAktiven Fenster"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1141,6 +1143,7 @@ BEGIN
     IDS_RESTART             "Wiederanlauf BVRDE\nSie müssen BVRDE wiederanlaufen, um die Änderungen anzuwenden."
     IDS_TREE_BASH           "Bash"
     IDS_ERR_SAVESOLUTION    "Speicherfehler\nEin Fehler ist beim schreiben der Projektdatei aufgetreten."
+    IDS_OPENFILES           "Aktiven Fenster"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1849,7 +1852,8 @@ BEGIN
         POPUP "Views"
         BEGIN
             MENUITEM "&Solution Explorer",          ID_VIEW_EXPLORER
-            MENUITEM "Properties Window",           ID_VIEW_PROPERTYBAR
+            MENUITEM "&Properties Window",          ID_VIEW_PROPERTYBAR
+            MENUITEM "&Open Files",                 ID_VIEW_OPENFILES
         END
         POPUP "Other Windows"
         BEGIN
@@ -2095,7 +2099,7 @@ BEGIN
             VALUE "FileDescription", "BVRDE - Bjarke Viksoe's Remote Development Environment\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
             VALUE "InternalName", "BVRDE\0"
-            VALUE "LegalCopyright", "Copyright 2003 - 2006 Bjarke Viksoe\0"
+            VALUE "LegalCopyright", "Copyright 2003 - 2007 Bjarke Viksoe\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "BVRDE.exe\0"
             VALUE "PrivateBuild", "\0"
@@ -2455,6 +2459,7 @@ BEGIN
     ID_TOOLTOKEN_SELECTION  "Replaced with editor's selection\nEditor's Selection"
     ID_TOOLTOKEN_HOSTNAME   "Replaced with the name of the host\nHost Name"
     ID_TOOLTOKEN_FILENAME   "Replaced with the active filename\nFilename"
+    ID_VIEW_OPENFILES       "Show/Hide the Open Files View\nOpen Files View"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -2474,6 +2479,7 @@ BEGIN
     IDS_RESTART             "Restart needed\nYou must restart BVRDE to apply the changes."
     IDS_TREE_BASH           "Bash"
     IDS_ERR_SAVESOLUTION    "Save Error\nAn error occured while writing solution file."
+    IDS_OPENFILES           "Open Files"
 END
 
 STRINGTABLE DISCARDABLE 

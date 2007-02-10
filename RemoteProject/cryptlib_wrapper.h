@@ -133,11 +133,11 @@ inline int SshGetPrivateKey(CCryptLib& clib,
    clib.cryptGetAttributeString( *cryptContext, CRYPT_CERTINFO_VALIDTO, &validTo, &dummy );
    if( ( validTo - validFrom > ( 86400L * 30L ) ) && validTo - ::time(NULL) <= ( 86400L * 30L ) )
    {
-      CString s;
-      if( validTo <= ::time(NULL) ) s.LoadString(IDS_ERR_KEY_EXPIRED);
-      else if( validTo - time( NULL ) <= 86400 ) s.LoadString(IDS_ERR_KEY_EXPIRES_TODAY);
-      else s.Format(IDS_ERR_KEY_EXPIRES_SOON, (validTo - ::time(NULL)) / 86400L);
-      if( !s.IsEmpty() ) _pDevEnv->ShowMessageBox(NULL, s, CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONINFORMATION|MB_MODELESS);
+      CString sMsg;
+      if( validTo <= ::time(NULL) ) sMsg.LoadString(IDS_ERR_KEY_EXPIRED);
+      else if( validTo - time( NULL ) <= 86400 ) sMsg.LoadString(IDS_ERR_KEY_EXPIRES_TODAY);
+      else sMsg.Format(IDS_ERR_KEY_EXPIRES_SOON, (validTo - ::time(NULL)) / 86400L);
+      if( !sMsg.IsEmpty() ) _pDevEnv->ShowMessageBox(NULL, sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONINFORMATION|MB_MODELESS);
    }
    return CRYPT_OK;
 }

@@ -185,6 +185,7 @@ bool CFtpProtocol::Load(ISerializable* pArc)
 
    m_sPath.TrimRight(_T("/"));
    if( m_sPath.IsEmpty() ) m_sPath = _T("/");
+   m_sPassword = SecDecodePassword(m_sPassword);
    if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
 
    return true;
@@ -196,7 +197,7 @@ bool CFtpProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("host"), m_sHost);
    pArc->Write(_T("port"), m_lPort);
    pArc->Write(_T("user"), m_sUsername);
-   pArc->Write(_T("password"), m_sPassword);
+   pArc->Write(_T("password"), SecEncodePassword(m_sPassword));
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("searchPath"), m_sSearchPath);
    pArc->Write(_T("proxy"), m_sProxy);

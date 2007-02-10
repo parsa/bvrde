@@ -145,6 +145,7 @@ public:
    virtual bool AddLineListener(IOutputLineListener* pListener) = 0;
    virtual bool RemoveLineListener(IOutputLineListener* pListener) = 0;
    virtual void BroadcastLine(VT100COLOR nColor, LPCTSTR pstrText) = 0;
+   virtual void PreAuthenticatedLine(LPCTSTR pstrText) = 0;
 };
 
 class IRemoteCommandProtocol
@@ -216,6 +217,8 @@ public:
 
 void SecClearPassword();
 CString SecGetPassword();
+CString SecDecodePassword(LPCTSTR pstrPassword);
+CString SecEncodePassword(LPCTSTR pstrPassword);
 
 void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, DWORD dwEffects = 0, COLORREF clrText = 0);
 void GenerateError(IDevEnv* pDevEnv, UINT nErr, DWORD dwErr = (DWORD)-1);

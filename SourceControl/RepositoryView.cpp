@@ -233,7 +233,7 @@ LRESULT CRepositoryView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    if( m_FolderImages.IsNull() ) return -1;
    _AddShellIcon(m_FolderImages, _T(""), FILE_ATTRIBUTE_DIRECTORY);
    _AddShellIcon(m_FolderImages, _T(""), FILE_ATTRIBUTE_DIRECTORY, SHGFI_OPENICON);
-   _AddShellIcon(m_FolderImages, _T("C:\\"), 0);
+   _AddShellIcon(m_FolderImages, _T("C:\\"), 0UL);
    m_ctrlFolders.SetImageList(m_FolderImages, TVSIL_NORMAL);
 
    if( !m_FileImages.IsNull() ) m_FolderImages.Destroy();
@@ -432,7 +432,7 @@ bool CRepositoryView::_AddShellIcon(CImageListHandle& iml, LPCTSTR pstrExtension
       sizeof(sfi),
       SHGFI_USEFILEATTRIBUTES | SHGFI_SMALLICON | SHGFI_SYSICONINDEX | dwMoreFlags);
    CIcon icon = hil.GetIcon(sfi.iIcon, ILD_TRANSPARENT);
-   return iml.AddIcon(icon) == TRUE;
+   return iml.AddIcon(icon) >= 0;
 }
 
 void CRepositoryView::_ShowWaitingMessage(UINT nRes, COLORREF clrText)
