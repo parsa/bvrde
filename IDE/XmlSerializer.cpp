@@ -5,7 +5,7 @@
 #include "XmlSerializer.h"
 
 #ifndef PROGID_XMLDOMDocument
-   #define PROGID_XMLDOMDocument L"MSXML2.DOMDocument.4.0"
+   #define PROGID_XMLDOMDocument L"MSXML2.DOMDocument"
 #endif
 
 
@@ -161,6 +161,7 @@ BOOL CXmlSerializer::ReadGroupEnd()
 {
    m_spAttribs.Release();
    if( m_spNode == NULL ) return FALSE;
+   // Clear the stack
    if( m_iLevel == 0 ) {
       m_aContexts.RemoveAll();
       return TRUE;
@@ -203,7 +204,7 @@ BOOL CXmlSerializer::Read(LPCTSTR pstrName, LPTSTR pstrValue, UINT cchMax)
    ATLASSERT(cchMax>0);
    ATLASSERT(m_spAttribs);
    USES_CONVERSION;
-   *pstrValue = _T('\0');
+   *pstrValue = '\0';
    if( m_spAttribs == NULL ) return FALSE;
    // Get the attribute
    CComPtr<IXMLDOMNode> spNode;

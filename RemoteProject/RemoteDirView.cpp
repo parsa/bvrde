@@ -19,6 +19,7 @@ void CRemoteDirView::Init(CRemoteProject* pProject)
    m_pFileManager = &pProject->m_FileManager;
    m_sPath = m_pFileManager->GetParam(_T("Path"));
    m_sSeparator = m_pFileManager->GetParam(_T("Separator"));
+   m_bLocalPath = (m_sPath.Mid(1, 2) == _T(":\\"));
    ATLASSERT(!m_sPath.IsEmpty());
    ATLASSERT(!m_sSeparator.IsEmpty());
 }
@@ -57,7 +58,7 @@ LRESULT CRemoteDirView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
    if( m_FolderImages.IsNull() ) return (LRESULT) -1;
    _AddShellIcon(m_FolderImages, _T(""), FILE_ATTRIBUTE_DIRECTORY);
    _AddShellIcon(m_FolderImages, _T(""), FILE_ATTRIBUTE_DIRECTORY, SHGFI_OPENICON);
-   _AddShellIcon(m_FolderImages, _T("C:\\"), 0);
+   _AddShellIcon(m_FolderImages, m_bLocalPath ? _T("C:\\") : _T("X:\\"), 0);
    m_ctrlFolders.SetImageList(m_FolderImages);
 
    if( !m_FileImages.IsNull() ) m_FileImages.Destroy();
@@ -65,11 +66,12 @@ LRESULT CRemoteDirView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
    if( m_FileImages.IsNull() ) return (LRESULT) -1;
    _AddShellIcon(m_FileImages, _T(""), FILE_ATTRIBUTE_DIRECTORY);
    _AddShellIcon(m_FileImages, _T(".txt"), FILE_ATTRIBUTE_NORMAL);
-   _AddShellIcon(m_FileImages, _T(".dat"), FILE_ATTRIBUTE_NORMAL);
+   _AddShellIcon(m_FileImages, _T(".cpp"), FILE_ATTRIBUTE_NORMAL);
    _AddShellIcon(m_FileImages, _T(".tmp"), FILE_ATTRIBUTE_NORMAL);
    _AddShellIcon(m_FileImages, _T(".xml"), FILE_ATTRIBUTE_NORMAL);
    _AddShellIcon(m_FileImages, _T(".html"), FILE_ATTRIBUTE_NORMAL);
    _AddShellIcon(m_FileImages, _T(".bat"), FILE_ATTRIBUTE_NORMAL);
+   _AddShellIcon(m_FileImages, _T(".exe"), FILE_ATTRIBUTE_NORMAL);
    m_ctrlFiles.SetImageList(m_FileImages, LVSIL_SMALL);
 
    // Prepare ListView
@@ -139,8 +141,8 @@ LRESULT CRemoteDirView::OnUp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*
 {
    if( !m_ctrlDirUp.IsWindowEnabled() ) return 0;
    CString sPath = m_sPath.Left(m_sPath.GetLength() - 1);
-   int pos = sPath.ReverseFind(m_sSeparator.GetAt(0));
-   if( pos >= 0 ) sPath = sPath.Left(pos + 1);
+   int iPos = sPath.ReverseFind(m_sSeparator.GetAt(0));
+   if( iPos >= 0 ) sPath = sPath.Left(iPos + 1);
    _PopulateView(sPath);
    return 0;
 }
@@ -149,17 +151,22 @@ LRESULT CRemoteDirView::OnSelChanged(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 {
    int iIndex = m_ctrlFolders.GetCurSel();
    if( iIndex < 0 ) return 0;
+   // Cannot select the root folder (Host name)
+   if( iIndex == 0 ) {
+      m_ctrlFolders.SetCurSel(1);
+      iIndex = m_ctrlFolders.GetCurSel();
+   }
    CString sPath;
-   for( int i = 0; i <= iIndex; i++ ) {
+   for( int i = 1; i <= iIndex; i++ ) {
       TCHAR szName[300] = { 0 };
       COMBOBOXEXITEM cbi = { 0 };
       cbi.mask = CBEIF_TEXT;
       cbi.iItem = i;
       cbi.pszText = szName;
       cbi.cchTextMax = (sizeof(szName) / sizeof(TCHAR)) - 1;
-      if( i > 0 ) m_ctrlFolders.GetItem(&cbi);
+      m_ctrlFolders.GetItem(&cbi);
       sPath += szName;
-      sPath += m_sSeparator;
+      if( sPath.Right(1) != m_sSeparator ) sPath += m_sSeparator;
    }
    _PopulateView(sPath);
    return 0;
@@ -196,8 +203,7 @@ LRESULT CRemoteDirView::OnItemOpen(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
    if( sFilename.GetLength() == 0 ) return 0;
    DWORD dwAttribs = m_ctrlFiles.GetItemData(iItem);
    if( (dwAttribs & FILE_ATTRIBUTE_DIRECTORY) != 0 ) {
-      m_sPath += sFilename;
-      _PopulateView(m_sPath);
+      _PopulateView(m_sPath + sFilename);
    }
    else {
       ATLASSERT(m_pProject);
@@ -224,20 +230,26 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
       m_ctrlFiles.DeleteAllItems();
       m_ctrlDirUp.EnableWindow(FALSE);
       m_ctrlNoConnection.SetWindowText(CString(MAKEINTRESOURCE(IDS_NOCONNECTION)));
-      m_ctrlNoConnection.ShowWindow(SW_SHOW);
+      m_ctrlNoConnection.ShowWindow(SW_SHOWNOACTIVATE);
       m_ctrlNoConnection.Invalidate();
       return false;
    }
 
+   CString sPath = pstrPath;
    CString sHost = m_pFileManager->GetParam(_T("Host"));
+
    CString sHostName;
    sHostName.Format(_T("[%s]"), sHost);
+   if( m_bLocalPath ) sHostName.LoadString(IDS_LOCALDRIVE);
 
-   m_sPath = pstrPath;
-   if( m_sPath.Right(1) != m_sSeparator ) m_sPath += m_sSeparator;
+   if( sPath.Right(1) != m_sSeparator ) sPath += m_sSeparator;
 
+   // NOTE: We're reusing the shared FTP/SFTP connection so we cannot
+   //       actually leave the path changed (since the opening of views may rely
+   //       on cur.dir in some protocols). We'll remember the original path
+   //       and restore it on exit.
    CString sOldPath = m_pFileManager->GetParam(_T("Path"));
-   m_pFileManager->SetCurPath(m_sPath);
+   m_pFileManager->SetCurPath(sPath);
 
    CSimpleArray<WIN32_FIND_DATA> aFiles;
    if( !m_pFileManager->EnumFiles(aFiles, false) ) {
@@ -248,7 +260,7 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
       sMsg += _T("\r\n\r\n\r\n");
       sMsg += GetSystemErrorText(dwErr);
       m_ctrlNoConnection.SetWindowText(sMsg);
-      m_ctrlNoConnection.ShowWindow(SW_SHOW);
+      m_ctrlNoConnection.ShowWindow(SW_SHOWNOACTIVATE);
       m_ctrlNoConnection.Invalidate();
       m_pFileManager->SetCurPath(sOldPath);
       return false;
@@ -262,22 +274,47 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
 
    for( int i = 0; i < aFiles.GetSize(); i++ ) {
       const WIN32_FIND_DATA& fd = aFiles[i];
-      CString sFilename = fd.cFileName;
+      CString sFilename = fd.cFileName;      
       sFilename.MakeUpper();
+
+      // Translate filename into listview image.
+      // Since this is usually on a remote drive we'll not attempt
+      // to use the local Win32 icon-association methods.
+      CString sFileType = GetFileTypeFromFilename(sFilename);
+      typedef struct tagFILEIMAGE {
+         LPCTSTR pstr;
+         int iImage;
+      } FILEIMAGE;
+      static FILEIMAGE ppstrFileTypes[] = {
+         { _T("cpp"),      2 },
+         { _T("header"),   2 },
+         { _T("text"),     3 },
+         { _T("makefile"), 6 },
+         { _T("xml"),      4 },
+         { _T("html"),     5 },
+         { _T("bash"),     6 },
+         { NULL, NULL }
+      };
+      static FILEIMAGE ppstrFileExt[] = {
+         { _T(".TXT"), 1 },
+         { _T(".CFG"), 1 },
+         { _T(".LOG"), 1 },
+         { _T(".INI"), 1 },
+         { _T(".CMD"), 6 },
+         { _T(".BAT"), 6 },
+         { _T(".EXE"), 7 },
+         { NULL, NULL }
+      };
+      int i;
       int iImage = 3;
-      if( sFilename.Find(_T("MAK")) == 0) iImage = 6;
-      if( sFilename.Find(_T(".TXT")) > 0) iImage = 1;
-      if( sFilename.Find(_T(".LOG")) > 0) iImage = 1;
-      if( sFilename.Find(_T(".CFG")) > 0) iImage = 1;
-      if( sFilename.Find(_T(".C")) > 0 ) iImage = 2;
-      if( sFilename.Find(_T(".H")) > 0 ) iImage = 2;
-      if( sFilename.Find(_T(".PC")) > 0 ) iImage = 2;
-      if( sFilename.Find(_T(".EC")) > 0 ) iImage = 2;
-      if( sFilename.Find(_T(".XML")) > 0 ) iImage = 4;
-      if( sFilename.Find(_T(".HTM")) > 0 ) iImage = 5;
-      if( sFilename.Find(_T(".SH")) > 0) iImage = 6;
-      if( sFilename.Find(_T(".MAK")) > 0) iImage = 6;
+      for( i = 0; ppstrFileTypes[i].pstr != NULL; i++ ) {
+         if( sFileType == ppstrFileTypes[i].pstr ) iImage = ppstrFileTypes[i].iImage;
+      }
+      for( i = 0; ppstrFileExt[i].pstr != NULL; i++ ) {
+         if( sFilename.Find(ppstrFileExt[i].pstr) > 0 ) iImage = ppstrFileExt[i].iImage;
+      }
       if( (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0 ) iImage = 0;
+      
       m_ctrlFiles.InsertItem(LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE, 
          i, 
          fd.cFileName, 
@@ -288,10 +325,9 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
 
    m_ctrlFiles.SortItemsEx(_ListSortProc, (LPARAM) this);
 
-   CString sPath;
-   CString sName = sHost;
-   int iIndex = 0;
-   while( true ) {      
+   CString sBuildPath;
+   CString sName = sHostName;
+   for( int iIndex = 0; ; iIndex++ ) {      
       COMBOBOXEXITEM cbi = { 0 };
       cbi.mask = CBEIF_IMAGE | CBEIF_SELECTEDIMAGE | CBEIF_INDENT | CBEIF_TEXT;
       cbi.iItem = iIndex;
@@ -301,14 +337,13 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
       cbi.iIndent = iIndex;
       m_ctrlFolders.InsertItem(&cbi);
 
-      int pos = m_sPath.Find(m_sSeparator, sPath.GetLength() + 1);
-      if( pos < 0 ) break;
-      sName = m_sPath.Mid(sPath.GetLength() + 1, pos - sPath.GetLength() - 1);
+      int iPos = sPath.Find(m_sSeparator, sBuildPath.GetLength());
+      if( iPos < 0 ) break;
+      if( iIndex == 0 && (iPos == 0 || m_bLocalPath) ) iPos += 1; // Make sure we capture the / or C:\ separator in the root
+      sName = sPath.Mid(sBuildPath.GetLength(), iPos - sBuildPath.GetLength());
 
-      sPath += sName;
-      sPath += m_sSeparator;
-
-      iIndex++;
+      sBuildPath += sName;
+      if( sBuildPath.Right(1) != m_sSeparator ) sBuildPath += m_sSeparator;
    }
 
    m_ctrlFolders.SetCurSel(m_ctrlFolders.GetCount() - 1);
@@ -317,6 +352,8 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
 
    m_pFileManager->SetCurPath(sOldPath);
 
+   m_sPath = sPath;
+
    _UpdateButtons();
 
    return true;
@@ -324,7 +361,7 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
 
 void CRemoteDirView::_UpdateButtons()
 {
-   m_ctrlDirUp.EnableWindow(m_ctrlFolders.GetCurSel() >= 1);
+   m_ctrlDirUp.EnableWindow(m_ctrlFolders.GetCurSel() > 1);
    m_ctrlDirUp.SetButtonStyle(BS_PUSHBUTTON);
    m_ctrlNoConnection.ShowWindow(SW_HIDE);
 }

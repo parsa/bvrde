@@ -1,7 +1,7 @@
 /****************************************************************************
 *																			*
 *								cryptlib Interface							*
-*						Copyright Peter Gutmann 1992-2004					*
+*						Copyright Peter Gutmann 1992-2007					*
 *																			*
 ****************************************************************************/
 
@@ -9,21 +9,25 @@
 
 #define _CRYPTLIB_DEFINED
 
+/* The current cryptlib version: 3.3.1.0 */
+
+#define CRYPTLIB_VERSION	3310
+
 /* Fixup for Windows support.  We need to include windows.h for various types
    and prototypes needed for DLL's.  In addition wincrypt.h defines some
    values with the same names as cryptlib ones, so we need to check for this
    and issue a warning not to mix cryptlib with CryptoAPI (that's like taking
    a bank vault and making one side out of papier mache).
-   
-   A second, less likely condition can occur when wincrypt.h is included 
-   after cryptlib.h, which shouldn't happen if developers follow the 
-   convention of including local headers after system headers, but can occur 
-   if they ignore this convention.  The NOCRYPT doesn't fix this since 
-   wincrypt.h can be pulled in indirectly and unconditionally, for example 
-   via winldap.h -> schnlsp.h -> schannel.h -> wincrypt.h.  To fix this, we 
-   create a redundant define for CRYPT_MODE_ECB which produces a compile 
-   error if wincrypt.h is included after cryptlib.h.  Since thie will 
-   conflict with the enum, we have to place it after the CRYPT_MODE_xxx 
+
+   A second, less likely condition can occur when wincrypt.h is included
+   after cryptlib.h, which shouldn't happen if developers follow the
+   convention of including local headers after system headers, but can occur
+   if they ignore this convention.  The NOCRYPT doesn't fix this since
+   wincrypt.h can be pulled in indirectly and unconditionally, for example
+   via winldap.h -> schnlsp.h -> schannel.h -> wincrypt.h.  To fix this, we
+   create a redundant define for CRYPT_MODE_ECB which produces a compile
+   error if wincrypt.h is included after cryptlib.h.  Since thie will
+   conflict with the enum, we have to place it after the CRYPT_MODE_xxx
    enums */
 
 #if ( defined( _WINDOWS ) || defined( WIN32 ) || defined( _WIN32 ) || \
@@ -40,8 +44,8 @@
 #endif /* Windows other than a cross-development environment */
 
 /* Machine-dependant types to allow use in special library types such as
-   DLL's.  Under Win32 and BeOS we need to use the dllimport and dllexport 
-   directives for the DLL/shared-lib version so we define the type used for 
+   DLL's.  Under Win32 and BeOS we need to use the dllimport and dllexport
+   directives for the DLL/shared-lib version so we define the type used for
    functions depending on whether we're being included via the cryptlib-
    internal crypt.h or not */
 
@@ -49,7 +53,7 @@
 	  defined( _WIN32_WCE ) ) && !( defined( STATIC_LIB ) || defined( _SCCTK ) )
   #define C_PTR	*					/* General pointer */
   #if defined( _WIN32_WCE )
-	/* Rather than relying on _UNICODE being defined (which would cause 
+	/* Rather than relying on _UNICODE being defined (which would cause
 	   problems if cryptlib is built with char * but the calling app is built
 	   with wchar_t *), we always use the default native char type, which is
 	   ASCII (or at least 8-bit) under Win32 and Unicode under WinCE */
@@ -90,6 +94,12 @@
 	  #define C_RET	__declspec( dllimport ) int	/* Shared lib import ret.val.*/
 	#endif /* CRYPT_DEFINED */
   #endif /* Static vs. shared lib */
+#elif defined( __SYMBIAN__ )
+  #ifdef _CRYPT_DEFINED
+	#define C_RET	EXPORT_C					/* DLL export ret.val.*/
+  #else
+	#define C_RET	IMPORT_C					/* DLL import ret.val.*/
+  #endif /* CRYPT_DEFINED */
 #else
   #define C_PTR	*
   #define C_CHR char
@@ -147,6 +157,7 @@ typedef enum {						/* Algorithms */
 	CRYPT_ALGO_DSA,					/* DSA */
 	CRYPT_ALGO_ELGAMAL,				/* ElGamal */
 	CRYPT_ALGO_KEA,					/* KEA */
+	CRYPT_ALGO_ECDSA,				/* ECDSA */
 
 	/* Hash algorithms */
 	CRYPT_ALGO_MD2 = 200,			/* MD2 */
@@ -158,7 +169,8 @@ typedef enum {						/* Algorithms */
 
 	/* MAC's */
 	CRYPT_ALGO_HMAC_MD5 = 300,		/* HMAC-MD5 */
-	CRYPT_ALGO_HMAC_SHA,			/* HMAC-SHA */
+	CRYPT_ALGO_HMAC_SHA1,			/* HMAC-SHA */
+		CRYPT_ALGO_HMAC_SHA = CRYPT_ALGO_HMAC_SHA1,	/* Older form */
 	CRYPT_ALGO_HMAC_RIPEMD160,		/* HMAC-RIPEMD-160 */
 
 	/* Vendors may want to use their own algorithms that aren't part of the
@@ -196,7 +208,7 @@ typedef enum {						/* Block cipher modes */
 
 #if ( defined( _WINDOWS ) || defined( WIN32 ) || defined( _WIN32 ) || \
 	  defined( __WIN32__ ) ) && !defined( _SCCTK )
-  /* Force an error if wincrypt.h is included after cryptlib.h, see note at 
+  /* Force an error if wincrypt.h is included after cryptlib.h, see note at
      the start of the file */
   #define CRYPT_MODE_ECB	1
 #endif /* Windows other than a cross-development environment */
@@ -258,6 +270,19 @@ typedef enum {						/* Certificate object types */
 	   types are only visible internally */
 	CRYPT_ICERTTYPE_CMS_CERTSET,	/* CMS SET OF Certificate = cert chain */
 	CRYPT_ICERTTYPE_SSL_CERTCHAIN,	/* SSL certificate chain = cert chain */
+	CRYPT_ICERTTYPE_CTL,			/* Cert.trust list (data-only cert chain) */
+	CRYPT_ICERTTYPE_REVINFO,		/* Revocation info/single CRL entry */
+
+	/* CRYPT_ICERTTYPE_DATAONLY is a special value that doesn't specifically 
+	   contain a data format hint but indicates that the certificate should 
+	   be instantiated without creating a corresponding context to contain 
+	   the associated public key.  This value is used by certs associated 
+	   with private-key objects and by contained in cert chains for which 
+	   only the leaf cert actually needs to have a context instantiated.
+	   Technically this is simply a modifier for CRYPT_CERTTYPE_CERTIFICATE,
+	   but there's no easy way to pass this flag down, so we give it its own
+	   pseudo-type instead */
+	CRYPT_ICERTTYPE_DATAONLY,		/* Data-only cert */
 #endif /* _CRYPT_DEFINED */
 	CRYPT_CERTTYPE_LAST				/* Last possible cert.type */
 #ifdef _CRYPT_DEFINED
@@ -277,7 +302,7 @@ typedef enum {
 	CRYPT_FORMAT_PGP,				/* PGP format */
 #ifdef _CRYPT_DEFINED
 	/* Alongside the usual types we can also wind up with various protocol-
-	   specific format types such as SSL and SSH.  The following types are 
+	   specific format types such as SSL and SSH.  The following types are
 	   only visible internally */
 	CRYPT_IFORMAT_SSL,				/* SSL format */
 	CRYPT_IFORMAT_SSH,				/* SSH format */
@@ -475,6 +500,7 @@ typedef enum {
 
 	/* Misc.information */
 	CRYPT_CTXINFO_LABEL,			/* Label for private/secret key */
+	CRYPT_CTXINFO_PERSISTENT,		/* Obj.is backed by device or keyset */
 
 	/* Used internally */
 	CRYPT_CTXINFO_LAST, CRYPT_CERTINFO_FIRST = 2000,
@@ -483,8 +509,8 @@ typedef enum {
 	/* Certificate attributes */
 	/**************************/
 
-	/* Because there are so many cert attributes, we break them down into 
-	   blocks to minimise the number of values that change if a new one is 
+	/* Because there are so many cert attributes, we break them down into
+	   blocks to minimise the number of values that change if a new one is
 	   added halfway through */
 
 	/* Pseudo-information on a cert object or meta-information which is used
@@ -497,11 +523,6 @@ typedef enum {
 		CRYPT_CERTINFO_FINGERPRINT_MD5 = CRYPT_CERTINFO_FINGERPRINT,
 	CRYPT_CERTINFO_FINGERPRINT_SHA,
 	CRYPT_CERTINFO_CURRENT_CERTIFICATE,/* Cursor mgt: Rel.pos in chain/CRL/OCSP */
-#if 1	/* To be removed in cryptlib 3.2 */
-	CRYPT_CERTINFO_CURRENT_EXTENSION,/* Cursor mgt: Rel.pos.or abs.extension */
-	CRYPT_CERTINFO_CURRENT_FIELD,	/* Cursor mgt: Rel.pos.or abs.field in ext */
-	CRYPT_CERTINFO_CURRENT_COMPONENT,/* Cursor mgt: Rel.pos in multival.field */
-#endif /* 1 */
 	CRYPT_CERTINFO_TRUSTED_USAGE,	/* Usage that cert is trusted for */
 	CRYPT_CERTINFO_TRUSTED_IMPLICIT,/* Whether cert is implicitly trusted */
 	CRYPT_CERTINFO_SIGNATURELEVEL,	/* Amount of detail to include in sigs.*/
@@ -563,7 +584,7 @@ typedef enum {
 	CRYPT_CERTINFO_IPADDRESS,				/* iPAddress */
 	CRYPT_CERTINFO_REGISTEREDID,			/* registeredID */
 
-	/* X.509 certificate extensions.  Although it would be nicer to use names 
+	/* X.509 certificate extensions.  Although it would be nicer to use names
 	   that match the extensions more closely (e.g.
 	   CRYPT_CERTINFO_BASICCONSTRAINTS_PATHLENCONSTRAINT), these exceed the
 	   32-character ANSI minimum length for unique names, and get really
@@ -600,9 +621,9 @@ typedef enum {
 
 	/* 1 3 6 1 5 5 7 1 3 qcStatements */
 	CRYPT_CERTINFO_QCSTATEMENT,
-	CRYPT_CERTINFO_QCSTATEMENT_SEMANTICS,	
+	CRYPT_CERTINFO_QCSTATEMENT_SEMANTICS,
 					/* qcStatement.statementInfo.semanticsIdentifier */
-	CRYPT_CERTINFO_QCSTATEMENT_REGISTRATIONAUTHORITY,	
+	CRYPT_CERTINFO_QCSTATEMENT_REGISTRATIONAUTHORITY,
 					/* qcStatement.statementInfo.nameRegistrationAuthorities */
 
 	/* 1 3 6 1 5 5 7 48 1 2 ocspNonce */
@@ -849,8 +870,8 @@ typedef enum {
 
 	/* 1 2 840 113549 1 9 16 2 2 essSecurityLabel */
 	CRYPT_CERTINFO_CMS_SECURITYLABEL,
-	CRYPT_CERTINFO_CMS_SECLABEL_CLASSIFICATION, /* securityClassification */
 	CRYPT_CERTINFO_CMS_SECLABEL_POLICY,		/* securityPolicyIdentifier */
+	CRYPT_CERTINFO_CMS_SECLABEL_CLASSIFICATION, /* securityClassification */
 	CRYPT_CERTINFO_CMS_SECLABEL_PRIVACYMARK,/* privacyMark */
 	CRYPT_CERTINFO_CMS_SECLABEL_CATTYPE,	/* securityCategories.securityCategory.type */
 	CRYPT_CERTINFO_CMS_SECLABEL_CATVALUE,	/* securityCategories.securityCategory.value */
@@ -886,11 +907,11 @@ typedef enum {
 	CRYPT_CERTINFO_CMS_SIGPOLICYID,			/* sigPolicyID */
 	CRYPT_CERTINFO_CMS_SIGPOLICYHASH,		/* sigPolicyHash */
 	CRYPT_CERTINFO_CMS_SIGPOLICY_CPSURI,	/* sigPolicyQualifiers.sigPolicyQualifier.cPSuri */
-	CRYPT_CERTINFO_CMS_SIGPOLICY_ORGANIZATION, 
+	CRYPT_CERTINFO_CMS_SIGPOLICY_ORGANIZATION,
 		/* sigPolicyQualifiers.sigPolicyQualifier.userNotice.noticeRef.organization */
 	CRYPT_CERTINFO_CMS_SIGPOLICY_NOTICENUMBERS,
 		/* sigPolicyQualifiers.sigPolicyQualifier.userNotice.noticeRef.noticeNumbers */
-	CRYPT_CERTINFO_CMS_SIGPOLICY_EXPLICITTEXT, 
+	CRYPT_CERTINFO_CMS_SIGPOLICY_EXPLICITTEXT,
 		/* sigPolicyQualifiers.sigPolicyQualifier.userNotice.explicitText */
 
 	/* 1 2 840 113549 1 9 16 9 signatureTypeIdentifier */
@@ -904,7 +925,7 @@ typedef enum {
 	CRYPT_CERTINFO_CMS_NONCE,				/* randomNonce */
 
 	/* SCEP attributes:
-	   2 16 840 1 113733 1 9 2 messageType 
+	   2 16 840 1 113733 1 9 2 messageType
 	   2 16 840 1 113733 1 9 3 pkiStatus
 	   2 16 840 1 113733 1 9 4 failInfo
 	   2 16 840 1 113733 1 9 5 senderNonce
@@ -1001,9 +1022,6 @@ typedef enum {
 	/* Session attributes */
 	/**********************/
 
-	/* Pseudo-information on a session or meta-information which is used to
-	   control the way that a session is managed */
-
 	/* Pseudo-information about the session */
 	CRYPT_SESSINFO_ACTIVE,			/* Whether session is active */
 	CRYPT_SESSINFO_CONNECTIONACTIVE,/* Whether network connection is active */
@@ -1067,18 +1085,18 @@ typedef enum {
 
 	/* The following attributes are only visible internally and are protected
 	   from any external access by the kernel (and for good measure by checks
-	   in other places as well).  The two attributes CRYPT_IATTRIBUTE_KEY_SPKI 
-	   and CRYPT_IATTRIBUTE_SPKI are actually the same thing, the difference 
+	   in other places as well).  The two attributes CRYPT_IATTRIBUTE_KEY_SPKI
+	   and CRYPT_IATTRIBUTE_SPKI are actually the same thing, the difference
 	   is that the former is write-only for contexts and the latter is read-
-	   only for certificates (the former is used when loading a context from 
-	   a key contained in a device, where the actual key components aren't 
-	   directly available in the context but may be needed in the future for 
-	   things like cert requests).  Because a single object can act as both a 
-	   context and a cert, having two explicitly different attribute names 
-	   makes things less confusing.  In addition, some public-key attributes 
-	   have _PARTIAL variants that load the public-key components but don't 
-	   initialise the key/move the context into the high state.  This is 
-	   used for formats in which public and private-key components are loaded 
+	   only for certificates (the former is used when loading a context from
+	   a key contained in a device, where the actual key components aren't
+	   directly available in the context but may be needed in the future for
+	   things like cert requests).  Because a single object can act as both a
+	   context and a cert, having two explicitly different attribute names
+	   makes things less confusing.  In addition, some public-key attributes
+	   have _PARTIAL variants that load the public-key components but don't
+	   initialise the key/move the context into the high state.  This is
+	   used for formats in which public and private-key components are loaded
 	   separately */
 	, CRYPT_IATTRIBUTE_FIRST = 8000,
 	CRYPT_IATTRIBUTE_TYPE,			/* Object type */
@@ -1088,60 +1106,80 @@ typedef enum {
 	CRYPT_IATTRIBUTE_ACTIONPERMS,	/* Object action permissions */
 	CRYPT_IATTRIBUTE_LOCKED,		/* Object locked for exclusive use */
 	CRYPT_IATTRIBUTE_INITIALISED,	/* Object inited (in high state) */
-	CRYPT_IATTRIBUTE_KEYSIZE,		/* Ctx: Key size (written to non-native ctxs) */
-	CRYPT_IATTRIBUTE_KEYFEATURES,	/* Ctx: Key feature info */
-	CRYPT_IATTRIBUTE_KEYID,			/* Ctx: Key ID */
-	CRYPT_IATTRIBUTE_KEYID_PGP,		/* Ctx: PGP key ID */
-	CRYPT_IATTRIBUTE_KEYID_OPENPGP,	/* Ctx: OpenPGP key ID */
-	CRYPT_IATTRIBUTE_KEY_KEADOMAINPARAMS,/* Ctx: Key agreement domain parameters */
-	CRYPT_IATTRIBUTE_KEY_KEAPUBLICVALUE,/* Ctx: Key agreement public value */
-	CRYPT_IATTRIBUTE_KEY_SPKI,		/* Ctx: SubjectPublicKeyInfo */
-	CRYPT_IATTRIBUTE_KEY_PGP,		/* Ctx: PGP-format public key */
-	CRYPT_IATTRIBUTE_KEY_SSH1,		/* Ctx: SSHv1-format public key */
-	CRYPT_IATTRIBUTE_KEY_SSH2,		/* Ctx: SSHv2-format public key */
-	CRYPT_IATTRIBUTE_KEY_SSL,		/* Ctx: SSL-format public key */
-	CRYPT_IATTRIBUTE_KEY_SPKI_PARTIAL,/* Ctx: SubjectPublicKeyInfo w/o trigger */
-	CRYPT_IATTRIBUTE_KEY_PGP_PARTIAL,/* Ctx: PGP public key w/o trigger */
-	CRYPT_IATTRIBUTE_PGPVALIDITY,	/* Ctx: PGP key validity */
-	CRYPT_IATTRIBUTE_DEVICEOBJECT,	/* Ctx: Device object handle */
-	CRYPT_IATTRIBUTE_CRLENTRY,		/* Cert: Individual entry from CRL */
-	CRYPT_IATTRIBUTE_SUBJECT,		/* Cert: SubjectName */
-	CRYPT_IATTRIBUTE_ISSUER,		/* Cert: IssuerName */
-	CRYPT_IATTRIBUTE_ISSUERANDSERIALNUMBER,	/* Cert: IssuerAndSerial */
-	CRYPT_IATTRIBUTE_SPKI,			/* Cert: Encoded SubjectPublicKeyInfo */
-	CRYPT_IATTRIBUTE_CERTCOLLECTION,/* Cert: Certs added to cert chain */
-	CRYPT_IATTRIBUTE_RESPONDERURL,	/* Cert: RTCS/OCSP responder name */
-	CRYPT_IATTRIBUTE_RTCSREQUEST,	/* Cert: RTCS req.info added to RTCS resp.*/
-	CRYPT_IATTRIBUTE_OCSPREQUEST,	/* Cert: OCSP req.info added to OCSP resp.*/
-	CRYPT_IATTRIBUTE_REVREQUEST,	/* Cert: CRMF rev.request added to CRL */
-	CRYPT_IATTRIBUTE_PKIUSERINFO,	/* Cert: Additional user info added to cert.req.*/
-	CRYPT_IATTRIBUTE_BLOCKEDATTRS,	/* Cert: Template of disallowed attrs.in cert */
-	CRYPT_IATTRIBUTE_AUTHCERTID,	/* Cert: Authorising cert ID for a cert/rev.req.*/
-	CRYPT_IATTRIBUTE_ESSCERTID,		/* Cert: ESSCertID */
-	CRYPT_IATTRIBUTE_ENTROPY,		/* Dev: Polled entropy data */
-	CRYPT_IATTRIBUTE_ENTROPY_QUALITY,/* Dev: Quality of entropy data */
-	CRYPT_IATTRIBUTE_RANDOM_LOPICKET,/* Dev: Low picket for random data attrs.*/
-	CRYPT_IATTRIBUTE_RANDOM,		/* Dev: Random data */
-	CRYPT_IATTRIBUTE_RANDOM_NZ,		/* Dev: Nonzero random data */
-	CRYPT_IATTRIBUTE_RANDOM_HIPICKET,/* Dev: High picket for random data attrs.*/
-	CRYPT_IATTRIBUTE_RANDOM_NONCE,	/* Dev: Basic nonce */
-	CRYPT_IATTRIBUTE_SELFTEST,		/* Dev: Perform self-test */
-	CRYPT_IATTRIBUTE_TIME,			/* Dev: Reliable (hardware-based) time value */
-	CRYPT_IATTRIBUTE_INCLUDESIGCERT,/* Env: Whether to include signing cert(s) */
-	CRYPT_IATTRIBUTE_ATTRONLY,		/* Env: Signed data contains only CMS attrs.*/
-	CRYPT_IATTRIBUTE_CONFIGDATA,	/* Keyset: Config information */
-	CRYPT_IATTRIBUTE_USERINDEX,		/* Keyset: Index of users */
-	CRYPT_IATTRIBUTE_USERID,		/* Keyset: User ID */
-	CRYPT_IATTRIBUTE_USERINFO,		/* Keyset: User information */
-	CRYPT_IATTRIBUTE_TRUSTEDCERT,	/* Keyset: First trusted cert */
-	CRYPT_IATTRIBUTE_TRUSTEDCERT_NEXT,	/* Keyset: Successive trusted certs */
-	CRYPT_IATTRIBUTE_ENC_TIMESTAMP,	/* Session: Encoded TSA timestamp */
-	CRYPT_IATTRUBUTE_CERTKEYSET,	/* User: Keyset to send trusted certs to */
-	CRYPT_IATTRIBUTE_CTL,			/* User: Cert.trust list */
-	CRYPT_IATTRIBUTE_CERT_TRUSTED,	/* User: Set trusted cert */
-	CRYPT_IATTRIBUTE_CERT_UNTRUSTED,/* User: Unset trusted cert */
-	CRYPT_IATTRIBUTE_CERT_CHECKTRUST,/* User: Check trust status of cert */
-	CRYPT_IATTRIBUTE_CERT_TRUSTEDISSUER,/* User: Get trusted issuer of cert */
+
+	/* Context internal attributes */
+	CRYPT_IATTRIBUTE_KEYSIZE,		/* Key size (written to non-native ctxs) */
+	CRYPT_IATTRIBUTE_KEYFEATURES,	/* Key feature info */
+	CRYPT_IATTRIBUTE_KEYID,			/* Key ID */
+	CRYPT_IATTRIBUTE_KEYID_PGP,		/* PGP key ID */
+	CRYPT_IATTRIBUTE_KEYID_OPENPGP,	/* OpenPGP key ID */
+	CRYPT_IATTRIBUTE_KEY_KEADOMAINPARAMS,/* Key agreement domain parameters */
+	CRYPT_IATTRIBUTE_KEY_KEAPUBLICVALUE,/* Key agreement public value */
+	CRYPT_IATTRIBUTE_KEY_SPKI,		/* SubjectPublicKeyInfo */
+	CRYPT_IATTRIBUTE_KEY_PGP,		/* PGP-format public key */
+	CRYPT_IATTRIBUTE_KEY_SSH,		/* SSH-format public key */
+	CRYPT_IATTRIBUTE_KEY_SSH1,		/* SSHv1-format public key */
+	CRYPT_IATTRIBUTE_KEY_SSL,		/* SSL-format public key */
+	CRYPT_IATTRIBUTE_KEY_SPKI_PARTIAL,/* SubjectPublicKeyInfo w/o trigger */
+	CRYPT_IATTRIBUTE_KEY_PGP_PARTIAL,/* PGP public key w/o trigger */
+	CRYPT_IATTRIBUTE_PGPVALIDITY,	/* PGP key validity */
+	CRYPT_IATTRIBUTE_DEVICEOBJECT,	/* Device object handle */
+	CRYPT_IATTRIBUTE_EXISTINGLABEL,	/* Existing label for object in device */
+
+	/* Certificate internal attributes */
+	CRYPT_IATTRIBUTE_SUBJECT,		/* SubjectName */
+	CRYPT_IATTRIBUTE_ISSUER,		/* IssuerName */
+	CRYPT_IATTRIBUTE_ISSUERANDSERIALNUMBER,	/* IssuerAndSerial */
+	CRYPT_IATTRIBUTE_HOLDERNAME,	/* Best approximation to cert.owner name */
+	CRYPT_IATTRIBUTE_HOLDERURI,		/* Best approximation to cert.owner URI */
+	CRYPT_IATTRIBUTE_SPKI,			/* Encoded SubjectPublicKeyInfo */
+	CRYPT_IATTRIBUTE_CERTHASHALGO,	/* Hash algo.used for cert */
+	CRYPT_IATTRIBUTE_CERTCOLLECTION,/* Certs added to cert chain */
+	CRYPT_IATTRIBUTE_CRLENTRY,		/* Individual entry from CRL */
+	CRYPT_IATTRIBUTE_RESPONDERURL,	/* RTCS/OCSP responder name */
+	CRYPT_IATTRIBUTE_RTCSREQUEST,	/* RTCS req.info added to RTCS resp.*/
+	CRYPT_IATTRIBUTE_OCSPREQUEST,	/* OCSP req.info added to OCSP resp.*/
+	CRYPT_IATTRIBUTE_REVREQUEST,	/* CRMF rev.request added to CRL */
+	CRYPT_IATTRIBUTE_PKIUSERINFO,	/* Additional user info added to cert.req.*/
+	CRYPT_IATTRIBUTE_BLOCKEDATTRS,	/* Template of disallowed attrs.in cert */
+	CRYPT_IATTRIBUTE_AUTHCERTID,	/* Authorising cert ID for a cert/rev.req.*/
+	CRYPT_IATTRIBUTE_ESSCERTID,		/* ESSCertID */
+	CRYPT_IATTRIBUTE_CERTCOPY,		/* Copy of cert object */
+	CRYPT_IATTRIBUTE_CERTCOPY_DATAONLY,	/* Copy of cert object as data-only cert */
+
+	/* Device internal attributes */
+	CRYPT_IATTRIBUTE_ENTROPY,		/* Polled entropy data */
+	CRYPT_IATTRIBUTE_ENTROPY_QUALITY,/* Quality of entropy data */
+	CRYPT_IATTRIBUTE_RANDOM_LOPICKET,/* Low picket for random data attrs.*/
+	CRYPT_IATTRIBUTE_RANDOM,		/* Random data */
+	CRYPT_IATTRIBUTE_RANDOM_NZ,		/* Nonzero random data */
+	CRYPT_IATTRIBUTE_RANDOM_HIPICKET,/* High picket for random data attrs.*/
+	CRYPT_IATTRIBUTE_RANDOM_NONCE,	/* Basic nonce */
+	CRYPT_IATTRIBUTE_SELFTEST,		/* Perform self-test */
+	CRYPT_IATTRIBUTE_TIME,			/* Reliable (hardware-based) time value */
+
+	/* Envelope internal attributes */
+	CRYPT_IATTRIBUTE_INCLUDESIGCERT,/* Whether to include signing cert(s) */
+	CRYPT_IATTRIBUTE_ATTRONLY,		/* Signed data contains only CMS attrs.*/
+
+	/* Keyset internal attributes */
+	CRYPT_IATTRIBUTE_CONFIGDATA,	/* Config information */
+	CRYPT_IATTRIBUTE_USERINDEX,		/* Index of users */
+	CRYPT_IATTRIBUTE_USERID,		/* User ID */
+	CRYPT_IATTRIBUTE_USERINFO,		/* User information */
+	CRYPT_IATTRIBUTE_TRUSTEDCERT,	/* First trusted cert */
+	CRYPT_IATTRIBUTE_TRUSTEDCERT_NEXT,	/* Successive trusted certs */
+
+	/* Session internal attributes */
+	CRYPT_IATTRIBUTE_ENC_TIMESTAMP,	/* Encoded TSA timestamp */
+
+	/* User internal attributes */
+	CRYPT_IATTRUBUTE_CERTKEYSET,	/* Keyset to send trusted certs to */
+	CRYPT_IATTRIBUTE_CTL,			/* Cert.trust list */
+	CRYPT_IATTRIBUTE_CERT_TRUSTED,	/* Set trusted cert */
+	CRYPT_IATTRIBUTE_CERT_UNTRUSTED,/* Unset trusted cert */
+	CRYPT_IATTRIBUTE_CERT_CHECKTRUST,/* Check trust status of cert */
+	CRYPT_IATTRIBUTE_CERT_TRUSTEDISSUER,/* Get trusted issuer of cert */
 	CRYPT_IATTRIBUTE_LAST,
 
 	/* Subrange values used internally for range checking */
@@ -1253,8 +1291,8 @@ typedef enum { CRYPT_CONTENT_NONE, CRYPT_CONTENT_DATA,
 			   CRYPT_CONTENT_SIGNEDANDENVELOPEDDATA,
 			   CRYPT_CONTENT_DIGESTEDDATA, CRYPT_CONTENT_ENCRYPTEDDATA,
 			   CRYPT_CONTENT_COMPRESSEDDATA, CRYPT_CONTENT_TSTINFO,
-			   CRYPT_CONTENT_SPCINDIRECTDATACONTEXT, 
-			   CRYPT_CONTENT_RTCSREQUEST, CRYPT_CONTENT_RTCSRESPONSE, 
+			   CRYPT_CONTENT_SPCINDIRECTDATACONTEXT,
+			   CRYPT_CONTENT_RTCSREQUEST, CRYPT_CONTENT_RTCSRESPONSE,
 			   CRYPT_CONTENT_RTCSRESPONSE_EXT, CRYPT_CONTENT_LAST
 			 } CRYPT_CONTENT_TYPE;
 
@@ -1278,7 +1316,7 @@ enum { CRYPT_OCSPSTATUS_NOTREVOKED, CRYPT_OCSPSTATUS_REVOKED,
 /* The amount of detail to include in signatures when signing certificate
    objects */
 
-typedef enum { 
+typedef enum {
 	CRYPT_SIGNATURELEVEL_NONE,		/* Include only signature */
 	CRYPT_SIGNATURELEVEL_SIGNERCERT,/* Include signer cert */
 	CRYPT_SIGNATURELEVEL_ALL,		/* Include all relevant info */
@@ -1304,8 +1342,8 @@ typedef enum {
 #endif /* CRYPT_DEFINED */
 	CRYPT_CERTFORMAT_LAST			/* Last possible cert.format type */
 #ifdef _CRYPT_DEFINED
-	/* The following is used as an internal format specifier when the format 
-	   is autodetected, to tell the base64 decoding code to strip MIME 
+	/* The following is used as an internal format specifier when the format
+	   is autodetected, to tell the base64 decoding code to strip MIME
 	   headers before the base64 data */
 	, CRYPT_ICERTFORMAT_SMIME_CERTIFICATE,/* S/MIME cert.request or cert chain */
 	CRYPT_CERTFORMAT_LAST_EXTERNAL = CRYPT_CERTFORMAT_XML_CERTCHAIN + 1
@@ -1416,9 +1454,11 @@ typedef enum {
 
 #define CRYPT_MAX_IVSIZE		32
 
-/* The maximum public-key component size - 4096 bits */
+/* The maximum public-key component size - 4096 bits, and maximum component
+   size for ECCs - 256 bits */
 
 #define CRYPT_MAX_PKCSIZE		512
+#define CRYPT_MAX_PKCSIZE_ECC	32
 
 /* The maximum hash size - 256 bits */
 
@@ -1431,28 +1471,30 @@ typedef enum {
 /* A magic value indicating that the default setting for this parameter
    should be used */
 
-#define CRYPT_USE_DEFAULT		-10
+#define CRYPT_USE_DEFAULT		-100
 
 /* A magic value for unused parameters */
 
-#define CRYPT_UNUSED			-11
+#define CRYPT_UNUSED			-101
+
+/* Cursor positioning codes for certificate/CRL extensions */
+
+#define CRYPT_CURSOR_FIRST		-200
+#define CRYPT_CURSOR_PREVIOUS	-201
+#define CRYPT_CURSOR_NEXT		-202
+#define CRYPT_CURSOR_LAST		-203
+
+/* The type of information polling to perform to get random seed 
+   information.  These values have to be negative because they're used
+   as magic length values for cryptAddRandom() */
+
+#define CRYPT_RANDOM_FASTPOLL	-300
+#define CRYPT_RANDOM_SLOWPOLL	-301
 
 /* Whether the PKC key is a public or private key */
 
 #define CRYPT_KEYTYPE_PRIVATE	0
 #define CRYPT_KEYTYPE_PUBLIC	1
-
-/* The type of information polling to perform to get random seed information */
-
-#define CRYPT_RANDOM_FASTPOLL	-10
-#define CRYPT_RANDOM_SLOWPOLL	-11
-
-/* Cursor positioning codes for certificate/CRL extensions */
-
-#define CRYPT_CURSOR_FIRST		-20
-#define CRYPT_CURSOR_PREVIOUS	-21
-#define CRYPT_CURSOR_NEXT		-22
-#define CRYPT_CURSOR_LAST		-23
 
 /* Keyset open options */
 
@@ -1571,6 +1613,39 @@ typedef struct {
 	int xLen;					/* Length of private integer in bits */
 	} CRYPT_PKCINFO_DLP;
 
+typedef struct {
+	/* Status information */
+	int isPublicKey;			/* Whether this is a public or private key */
+
+	/* Curve */
+	unsigned char p[ CRYPT_MAX_PKCSIZE_ECC ];/* Prime defining Fq */
+	int pLen;					/* Length of prime in bits */
+	unsigned char a[ CRYPT_MAX_PKCSIZE_ECC ];/* Element in Fq defining curve */
+	int aLen;					/* Length of element a in bits */
+	unsigned char b[ CRYPT_MAX_PKCSIZE_ECC ];/* Element in Fq defining curve */
+	int bLen;					/* Length of element b in bits */
+
+	/* Generator */
+	unsigned char gx[ CRYPT_MAX_PKCSIZE_ECC ];/* Element in Fq defining point */
+	int gxLen;					/* Length of element gx in bits */
+	unsigned char gy[ CRYPT_MAX_PKCSIZE_ECC ];/* Element in Fq defining point */
+	int gyLen;					/* Length of element gy in bits */
+	unsigned char r[ CRYPT_MAX_PKCSIZE_ECC ];/* Order of point */
+	int rLen;					/* Length of order in bits */
+	unsigned char h[ CRYPT_MAX_PKCSIZE_ECC ];/* Optional cofactor */
+	int hLen;					/* Length of cofactor in bits */
+
+	/* Public components */
+	unsigned char qx[ CRYPT_MAX_PKCSIZE_ECC ];/* Point Q on the curve */
+	int qxLen;					/* Length of point xq in bits */
+	unsigned char qy[ CRYPT_MAX_PKCSIZE_ECC ];/* Point Q on the curve */
+	int qyLen;					/* Length of point xy in bits */
+
+	/* Private components */
+	unsigned char d[ CRYPT_MAX_PKCSIZE_ECC ];/* Random integer */
+	int dLen;					/* Length of integer in bits */
+	} CRYPT_PKCINFO_ECC;
+
 /* Macros to initialise and destroy the structure that stores the components
    of a public key */
 
@@ -1595,7 +1670,7 @@ typedef struct {
 
 /* No error in function call */
 
-#define CRYPT_OK					0	/* No error */
+#define CRYPT_OK				0	/* No error */
 
 /* Error in parameters passed to function */
 
@@ -1615,6 +1690,7 @@ typedef struct {
 #define CRYPT_ERROR_NOSECURE	-13	/* Opn.not avail.at requested sec.level */
 #define CRYPT_ERROR_RANDOM		-14	/* No reliable random data available */
 #define CRYPT_ERROR_FAILED		-15	/* Operation failed */
+#define CRYPT_ERROR_INTERNAL	-16	/* Internal consistency check failed */
 
 /* Security violations */
 
@@ -1721,7 +1797,7 @@ C_RET cryptDeleteAttribute( C_IN CRYPT_HANDLE cryptHandle,
    be found */
 
 C_RET cryptAddRandom( C_IN void C_PTR randomData, C_IN int randomDataLength );
-C_RET cryptQueryObject( C_IN void C_PTR objectData, 
+C_RET cryptQueryObject( C_IN void C_PTR objectData,
 						C_IN int objectDataLength,
 					    C_OUT CRYPT_OBJECT_INFO C_PTR cryptObjectInfo );
 
@@ -1792,7 +1868,7 @@ C_RET cryptKeysetOpen( C_OUT CRYPT_KEYSET C_PTR keyset,
 					   C_IN C_STR name, C_IN CRYPT_KEYOPT_TYPE options );
 C_RET cryptKeysetClose( C_IN CRYPT_KEYSET keyset );
 
-/* Get a key from a keyset */
+/* Get a key from a keyset or device */
 
 C_RET cryptGetPublicKey( C_IN CRYPT_KEYSET keyset,
 						 C_OUT CRYPT_CONTEXT C_PTR cryptContext,
@@ -1802,8 +1878,12 @@ C_RET cryptGetPrivateKey( C_IN CRYPT_KEYSET keyset,
 						  C_OUT CRYPT_CONTEXT C_PTR cryptContext,
 						  C_IN CRYPT_KEYID_TYPE keyIDtype,
 						  C_IN C_STR keyID, C_IN C_STR password );
+C_RET cryptGetKey( C_IN CRYPT_KEYSET keyset,
+				   C_OUT CRYPT_CONTEXT C_PTR cryptContext,
+				   C_IN CRYPT_KEYID_TYPE keyIDtype, C_IN C_STR keyID, 
+				   C_IN C_STR password );
 
-/* Add/delete a key to/from a keyset */
+/* Add/delete a key to/from a keyset or device */
 
 C_RET cryptAddPublicKey( C_IN CRYPT_KEYSET keyset,
 						 C_IN CRYPT_CERTIFICATE certificate );
@@ -1827,7 +1907,7 @@ C_RET cryptCreateCert( C_OUT CRYPT_CERTIFICATE C_PTR certificate,
 					   C_IN CRYPT_CERTTYPE_TYPE certType );
 C_RET cryptDestroyCert( C_IN CRYPT_CERTIFICATE certificate );
 
-/* Get/add/delete certificate extensions.  These are direct data insertion 
+/* Get/add/delete certificate extensions.  These are direct data insertion
    functions whose use is discouraged, so they fix the string at char *
    rather than C_STR */
 

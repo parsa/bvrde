@@ -73,7 +73,7 @@ public:
    typedef struct
    {
       CString sSQL;
-      int iLineNo;
+      int lLineNum;
    } SQLPART;
 
    CDbOperations* m_pDbData;
@@ -85,7 +85,7 @@ public:
    void SetNotify(HWND hWnd);
    void Connect(LPCTSTR pstrConnectString);
    void Disconnect();
-   void ExecuteSql(LPCTSTR pstrSql, int iLineNo);
+   void ExecuteSql(LPCTSTR pstrSql, int lLineNum);
    void Abort();
    bool IsBusy() const;
    void Cancel();
@@ -93,14 +93,14 @@ public:
    void InfoRequest();
 
    BOOL _Execute(CDbCommand* pCmd, CDbRecordset* pRec);
-   BOOL _SplitSQL(const CString& sSQL, int iLineNo, CSimpleArray<SQLPART>& aParts);
+   BOOL _SplitSQL(const CString& sSQL, int lLineNum, CSimpleArray<SQLPART>& aParts);
    CString _GetDbErrorText(COledbDatabase* pDb, LPCTSTR pstrSQL) const;
 
    CEvent m_event;
    volatile STATE m_state;
    volatile bool m_bExecuting;
    /*volatile*/ CString m_sSQL;
-   volatile int m_iLineNo;
+   volatile int m_lLineNum;
    COledbCommand* m_pDbCmd;
    CString m_sConnectString;
 };

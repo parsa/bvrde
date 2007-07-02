@@ -65,8 +65,10 @@ DWORD CTelnetThread::Run()
    // Prepare negotiation and states...
    BYTE aNegotiated[256] = { 0 };
    bool bNegotiated = false;       // Initial client settings negotiated?
-   bool bAuthenticated = false;    // Client authenticated?
    bool bNextIsPrompt = false;     // Next line is likely to be prompt/command line prefix
+   bool bAuthenticated = false;    // Session fully authenticated?
+   bool bLoginSent = false;        // Seen Login prompt?
+   bool bPasswordSent = false;     // Seen Password prompt?
 
    CEvent event;
    event.Create();
@@ -116,28 +118,30 @@ DWORD CTelnetThread::Run()
 #ifdef _DEBUG
          bReadBuffer[dwRead] = '\0';
          ATLTRACE(_T("TELNET: '%hs' len=%ld\n"), bReadBuffer, dwRead);
-#endif
+#endif // _DEBUG
 
          if( !bAuthenticated ) 
          {
             CString sLine = _GetLine(bReadBuffer, 0, dwRead);
             m_pCallback->PreAuthenticatedLine(sLine);
             sLine.MakeUpper();
-            // Need to send login?
-            if( sLine.Find(_T("LOGIN")) >= 0 ) {
+            if( !bLoginSent && sLine.Find(_T("LOGIN")) >= 0 ) {
+               // Need to send login?
                CLockStaticDataInit lock;
                CHAR szBuffer[200];
                ::wsprintfA(szBuffer, "%ls\r\n", sUsername);
                socket.Write(szBuffer, strlen(szBuffer));
                ::Sleep(100L);
+               bLoginSent = true;
             }
-            // Need to send password?
-            if( sLine.Find(_T("PASSWORD")) >= 0 ) {
+            if( !bPasswordSent && sLine.Find(_T("PASSWORD")) >= 0 ) {
+               // Need to send password?
                CLockStaticDataInit lock;
                CHAR szBuffer[200];
                ::wsprintfA(szBuffer, "%ls\r\n", sPassword);
                socket.Write(szBuffer, strlen(szBuffer));
                ::Sleep(100L);
+               bPasswordSent = true;
                bAuthenticated = true;
             }
          }
@@ -163,6 +167,7 @@ DWORD CTelnetThread::Run()
                   m_pManager->m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_LOGIN_FAILED)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR | MB_MODELESS);
                   m_pManager->m_dwErrorCode = ERROR_LOGIN_WKSTA_RESTRICTION;
                   SignalStop();
+                  break;
                }
                ppstr++;
             }
@@ -363,8 +368,6 @@ DWORD CTelnetThread::Run()
          _NegotiateOption(aNegotiated, aSend, TELNET_DO, TELOPT_LINE);
          _NegotiateOption(aNegotiated, aSend, TELNET_DO, TELOPT_ECHO);
          _NegotiateOption(aNegotiated, aSend, TELNET_WILL, TELOPT_NAWS);
-         //_NegotiateOption(aNegotiated, aSend, TELNET_DO, TELOPT_EOR);
-         //_NegotiateOption(aNegotiated, aSend, TELNET_DO, TELOPT_TIM);         
          bNegotiated = true;
       }
 
@@ -376,7 +379,7 @@ DWORD CTelnetThread::Run()
    }
 
    // HACK: Some telnet servers will not abort properly when connection
-   //       is killed, so we send a stream of logoff bytes:
+   //       is killed, so we send a stream of logoff attempts:
    //       exit - TELNET_IAC DO TELOPT_LOGO - TELNET_ABORT - TELNET_XEOF
    LPSTR pstrExit = "exit\0x0FF\x0FD\x012\x0FF\x0EE\x0FF\x0EC\x004\r\n";
    socket.Write(pstrExit, sizeof(pstrExit));
@@ -478,10 +481,10 @@ bool CTelnetProtocol::Load(ISerializable* pArc)
    m_sPassword.ReleaseBuffer();
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
-   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(200), 200);
-   pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
+   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(400), 400);
    m_sExtraCommands.ReleaseBuffer();
-   
+   pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
+
    ConvertToCrLf(m_sExtraCommands);
    m_sPassword = SecDecodePassword(m_sPassword);
    if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
@@ -505,6 +508,7 @@ bool CTelnetProtocol::Save(ISerializable* pArc)
 bool CTelnetProtocol::Start()
 {
    Stop();
+   m_event.ResetEvent();
    m_thread.m_pManager = this;
    m_thread.m_pCallback = m_pCallback;
    if( !m_thread.Start() ) return false;
@@ -573,13 +577,15 @@ bool CTelnetProtocol::WriteData(LPCTSTR pstrData)
       m_pCallback->BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_LOG_CONNECTERROR)));
       return false;
    }
-   int nLen = _tcslen(pstrData);
-   LPSTR pstr = (LPSTR) _alloca(nLen + 3);
+   size_t nLen = (_tcslen(pstrData) * 2) + 3;  // MBCS + \r\n + \0
+   LPSTR pstr = (LPSTR) _alloca(nLen);
    ATLASSERT(pstr);
-   AtlW2AHelper(pstr, pstrData, nLen + 1);
-   strcpy(pstr + nLen, "\r\n");
+   if( pstr == NULL ) return false;
+   ::ZeroMemory(pstr, nLen);
+   AtlW2AHelper(pstr, pstrData, (int) nLen - 3);
+   strcat(pstr, "\r\n");
    CLockStaticDataInit lock;
-   if( !m_socket.Write(pstr, nLen + 2) ) {
+   if( !m_socket.Write(pstr, strlen(pstr)) ) {
       m_pCallback->BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_LOG_SENDERROR)));
       return false;
    }

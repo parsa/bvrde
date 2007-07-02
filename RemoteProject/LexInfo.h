@@ -43,6 +43,7 @@ public:
    bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList);
    bool GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult);
    bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance);
+   bool FindImplementation(LPCTSTR pstrName, LPCTSTR pstrOwner, CString& sFilename, long& lLineNo);
 
 // Operations
 public:
@@ -51,7 +52,8 @@ public:
 private:
    void _LoadTags();
    CString _GetTagParent(const TAGINFO& info) const;
-   bool _ParseFile(LPCTSTR pstrFilename, CString& sName, LEXFILE& file) const;
+   bool _ParseFile(LPCTSTR pstrFilename, LEXFILE& file) const;
+   CString _GetLexFilename(LPCTSTR pstrFilename, bool bCreatePath) const;
 
 // Data Members
 private:

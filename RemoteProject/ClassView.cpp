@@ -168,75 +168,6 @@ void CClassView::Rebuild()
    _PopulateTree();
 }
 
-void CClassView::_PopulateTree()
-{
-   // Not ready?
-   if( m_pProject == NULL ) return;
-
-   CSimpleValArray<TAGINFO*> aList;
-   m_pProject->m_TagManager.GetOuterList(aList);
-   if( aList.GetSize() > 0 ) 
-   {
-      m_ctrlTree.SetRedraw(FALSE);
-
-      // Remember the scroll position
-      int iScrollPos = m_ctrlTree.GetScrollPos(SB_VERT);
-
-      // Clear tree
-      m_ctrlTree.DeleteAllItems();  
-
-      // Not locked anymore; tree is safe to access!
-      m_bLocked = false;
-
-      // Insert classes and expand previously expanded branches...
-      HTREEITEM hFirstVisible = NULL;
-      TV_INSERTSTRUCT tvis = { 0 };
-      tvis.hParent = TVI_ROOT;
-      tvis.hInsertAfter = TVI_LAST;
-      tvis.item.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_CHILDREN | TVIF_PARAM;
-      tvis.item.iImage = 0;
-      tvis.item.iSelectedImage = 0;
-      tvis.item.cChildren = 1;
-      tvis.item.pszText = LPSTR_TEXTCALLBACK;
-      for( int i = 0; i < aList.GetSize(); i++ ) {
-         TAGINFO* pTag = aList[i];
-         if( pTag->Type == TAGTYPE_CLASS 
-             || pTag->Type == TAGTYPE_STRUCT ) 
-         {
-            tvis.item.lParam = (LPARAM) pTag;
-            HTREEITEM hItem = m_ctrlTree.InsertItem(&tvis);
-            for( int j = 0; j < m_aExpandedNames.GetSize(); j++ ) {
-               if( m_aExpandedNames[j] == pTag->pstrName ) {
-                  m_ctrlTree.Expand(hItem);
-                  break;
-               }
-            }
-         }
-      }
-
-      // Sort classes
-      TCHAR szValue[32] = { 0 };
-      _pDevEnv->GetProperty(_T("window.classview.sort"), szValue, 31);
-      if( _tcscmp(szValue, _T("no")) != 0 ) m_ctrlTree.SortChildren(TVI_ROOT);
-
-      // Insert "Globals" item
-      CString s(MAKEINTRESOURCE(IDS_GLOBALS));
-      tvis.item.pszText = (LPTSTR) (LPCTSTR) s;
-      tvis.item.iImage = 1;
-      tvis.item.iSelectedImage = 1;
-      tvis.item.lParam = 0;
-      m_ctrlTree.InsertItem(&tvis);
-
-      m_ctrlTree.SetRedraw(TRUE);
-
-      // FIX: Scrolling must be done outside WM_SETREDRAW section
-      m_ctrlTree.SetScrollPos(SB_VERT, iScrollPos, TRUE);
-   }
-
-   m_bPopulated = true;
-   m_aExpandedNames.RemoveAll();
-}
-
 // Message handlers
 
 LRESULT CClassView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -274,7 +205,9 @@ LRESULT CClassView::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
    if( m_ctrlTree.GetParentItem(hItem) == NULL ) return 0;
    TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(hItem);
    if( pTag == NULL ) return 0;
-   m_pProject->m_TagManager.GoToDefinition(pTag);
+   CString sImplRef = _GetImplementationRef(pTag);
+   if( !sImplRef.IsEmpty() ) m_pProject->m_TagManager.OpenTagInView(sImplRef, pTag->pstrName);
+   else m_pProject->m_TagManager.OpenTagInView(pTag);
    return 0;
 }
 
@@ -299,6 +232,7 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
    ScreenToClient(&ptClient);
    HTREEITEM hItem = m_ctrlTree.HitTest(ptClient, NULL);
    m_pCurrentTag = hItem == NULL ? NULL : (TAGINFO*) m_ctrlTree.GetItemData(hItem);
+   m_sImplementationEntry = _GetImplementationRef(m_pCurrentTag);
    // Load and show menu
    CMenu menu;
    menu.LoadMenu(hItem != NULL ? IDR_CLASSTREE_ITEM : IDR_CLASSTREE);
@@ -318,9 +252,14 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
          Rebuild();
       }
       break;
-   case ID_CLASSVIEW_GOTO:
+   case ID_CLASSVIEW_GOTODECL:
       {
-         m_pProject->m_TagManager.GoToDefinition(m_pCurrentTag);
+         m_pProject->m_TagManager.OpenTagInView(m_pCurrentTag);
+      }
+      break;
+   case ID_CLASSVIEW_GOTOIMPL:
+      {
+         m_pProject->m_TagManager.OpenTagInView(m_sImplementationEntry, m_pCurrentTag->pstrName);
       }
       break;
    case ID_CLASSVIEW_COPY:
@@ -423,11 +362,13 @@ LRESULT CClassView::OnGetDisplayInfo(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 
 void CClassView::OnIdle(IUpdateUI* pUIBase)
 {   
-   pUIBase->UIEnable(ID_CLASSVIEW_GOTO, m_pCurrentTag != NULL && m_pProject->FindView(m_pCurrentTag->pstrFile) != NULL);
-   pUIBase->UIEnable(ID_CLASSVIEW_COPY, m_pCurrentTag != NULL);
-   pUIBase->UIEnable(ID_CLASSVIEW_PROPERTIES, m_pCurrentTag != NULL);
    TCHAR szValue[32] = { 0 };
    _pDevEnv->GetProperty(_T("window.classview.sort"), szValue, 31);
+
+   pUIBase->UIEnable(ID_CLASSVIEW_GOTODECL, m_pCurrentTag != NULL && m_pProject->FindView(m_pCurrentTag->pstrFile) != NULL);
+   pUIBase->UIEnable(ID_CLASSVIEW_GOTOIMPL, m_pCurrentTag != NULL && !m_sImplementationEntry.IsEmpty());
+   pUIBase->UIEnable(ID_CLASSVIEW_COPY, m_pCurrentTag != NULL);
+   pUIBase->UIEnable(ID_CLASSVIEW_PROPERTIES, m_pCurrentTag != NULL);
    pUIBase->UIEnable(ID_CLASSVIEW_SORT, TRUE);
    pUIBase->UIEnable(ID_CLASSVIEW_NOSORT, TRUE);
    pUIBase->UISetCheck(ID_CLASSVIEW_SORT, _tcscmp(szValue, _T("alpha")) == 0);
@@ -438,3 +379,84 @@ void CClassView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/
 {
 }
 
+// Implementation
+
+void CClassView::_PopulateTree()
+{
+   // Not ready?
+   if( m_pProject == NULL ) return;
+
+   CSimpleValArray<TAGINFO*> aList;
+   m_pProject->m_TagManager.GetOuterList(aList);
+   if( aList.GetSize() > 0 ) 
+   {
+      m_ctrlTree.SetRedraw(FALSE);
+
+      // Remember the scroll position
+      int iScrollPos = m_ctrlTree.GetScrollPos(SB_VERT);
+
+      // Clear tree
+      m_ctrlTree.DeleteAllItems();  
+
+      // Not locked anymore; tree is safe to access!
+      m_bLocked = false;
+
+      // Insert classes and expand previously expanded branches...
+      HTREEITEM hFirstVisible = NULL;
+      TV_INSERTSTRUCT tvis = { 0 };
+      tvis.hParent = TVI_ROOT;
+      tvis.hInsertAfter = TVI_LAST;
+      tvis.item.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_CHILDREN | TVIF_PARAM;
+      tvis.item.iImage = 0;
+      tvis.item.iSelectedImage = 0;
+      tvis.item.cChildren = 1;
+      tvis.item.pszText = LPSTR_TEXTCALLBACK;
+      for( int i = 0; i < aList.GetSize(); i++ ) {
+         TAGINFO* pTag = aList[i];
+         if( pTag->Type == TAGTYPE_CLASS 
+             || pTag->Type == TAGTYPE_STRUCT ) 
+         {
+            tvis.item.lParam = (LPARAM) pTag;
+            HTREEITEM hItem = m_ctrlTree.InsertItem(&tvis);
+            for( int j = 0; j < m_aExpandedNames.GetSize(); j++ ) {
+               if( m_aExpandedNames[j] == pTag->pstrName ) {
+                  m_ctrlTree.Expand(hItem);
+                  break;
+               }
+            }
+         }
+      }
+
+      // Sort classes
+      TCHAR szValue[32] = { 0 };
+      _pDevEnv->GetProperty(_T("window.classview.sort"), szValue, 31);
+      if( _tcscmp(szValue, _T("no")) != 0 ) m_ctrlTree.SortChildren(TVI_ROOT);
+
+      // Insert "Globals" item
+      CString s(MAKEINTRESOURCE(IDS_GLOBALS));
+      tvis.item.pszText = (LPTSTR) (LPCTSTR) s;
+      tvis.item.iImage = 1;
+      tvis.item.iSelectedImage = 1;
+      tvis.item.lParam = 0;
+      m_ctrlTree.InsertItem(&tvis);
+
+      m_ctrlTree.SetRedraw(TRUE);
+
+      // FIX: Scrolling must be done outside WM_SETREDRAW section
+      m_ctrlTree.SetScrollPos(SB_VERT, iScrollPos, TRUE);
+   }
+
+   m_bPopulated = true;
+   m_aExpandedNames.RemoveAll();
+}
+
+CString CClassView::_GetImplementationRef(TAGINFO* pTag)
+{
+   if( pTag == NULL ) return _T("");
+   CString sFilename;
+   long lLineNum = 0;
+   if( !m_pProject->m_TagManager.m_LexInfo.FindImplementation(pTag->pstrName, pTag->pstrFields[0], sFilename, lLineNum) ) return _T("");
+   CString sRef;
+   sRef.Format(_T("%s|%ld"), sFilename, lLineNum);
+   return sRef;
+}

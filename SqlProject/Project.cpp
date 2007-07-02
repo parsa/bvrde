@@ -486,7 +486,7 @@ LRESULT CSqlProject::OnViewOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
 
    IView* pView = static_cast<IView*>(pElement);
-   if( !pView->OpenView(0) ) GenerateError(_pDevEnv, IDS_ERR_OPENVIEW);
+   if( !pView->OpenView(0) ) GenerateError(_pDevEnv, NULL, IDS_ERR_OPENVIEW);
    return 0;
 }
 

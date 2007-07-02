@@ -71,7 +71,7 @@ public:
          if( pDIS->itemID == -1 ) return 0;
          m_ctrlName.GetLBText(pDIS->itemID, sText);
       }
-      int pos = sText.ReverseFind(_T('-'));
+      int pos = sText.ReverseFind('-');
       if( pos < 0 ) return 0;
       CString sLeft = sText.Left(pos);
       CString sRight = sText.Mid(pos);

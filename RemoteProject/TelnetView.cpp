@@ -85,7 +85,7 @@ void CTelnetView::DoPaint(CDCHandle dc)
 
    CClientRect rcClient = m_hWnd;
 
-   SIZE sizePage;
+   SIZE sizePage = { 0 };
    GetScrollSize(sizePage);     
    RECT rcPage = rcClient;
    rcPage.bottom = max(rcClient.bottom, sizePage.cy);
@@ -171,7 +171,7 @@ LRESULT CTelnetView::OnCompacting(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 LRESULT CTelnetView::OnEraseBkgnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    CDCHandle dc = (HDC) wParam;
-   RECT rcClip;
+   RECT rcClip = { 0 };
    dc.GetClipBox(&rcClip);
    dc.FillSolidRect(&rcClip, m_clrBack);
    return TRUE; // We're done the painting
@@ -197,7 +197,7 @@ LRESULT CTelnetView::OnGetMinMaxInfo(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lP
 LRESULT CTelnetView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    SetFocus();
-   POINT pt;
+   POINT pt = { 0 };
    ::GetCursorPos(&pt);
    CMenu menu;
    menu.LoadMenu(IDR_TELNET);

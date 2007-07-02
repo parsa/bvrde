@@ -179,7 +179,7 @@ BOOL CMainFrame::OnIdle()
    //       in static members, but we'll only use them for pointer comparison.
    static IView* s_pOldView = NULL;
    static IElement* s_pOldElement = NULL;
-   static BOOL s_bOldDirtyFlag = NULL;
+   static BOOL s_bOldDirtyFlag = FALSE;
 
    m_Dock.OnIdle();
    m_MDIContainer.OnIdle();
@@ -234,7 +234,7 @@ BOOL CMainFrame::OnIdle()
       if( pElement != s_pOldElement ) {
          s_pOldElement = pElement;
          ShowProperties(pElement, FALSE);
-         UISetText(0, CString(MAKEINTRESOURCE(ATL_IDS_IDLEMESSAGE)));
+         UISetText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(ATL_IDS_IDLEMESSAGE)));
       }
    }
 

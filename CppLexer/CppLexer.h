@@ -12,7 +12,7 @@
    #define CPPLEXER_API __declspec(dllimport)
 #endif
 
-extern "C" BOOL CALLBACK CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText);
+extern "C" BOOL CALLBACK CppLexer_Parse(LPCSTR pstrSourceName, LPCSTR pstrText, LPCWSTR pstrOutputFile);
 
 
 #endif // !defined(AFX_CPPLEXER_H__20040701_E30C_3544_E638_0080AD509054__INCLUDED_)

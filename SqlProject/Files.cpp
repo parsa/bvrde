@@ -250,7 +250,7 @@ BOOL CView::Run(BOOL bSelectedTextOnly)
 
    // Grab text (only selection or entire text)
    CString sText;
-   int iLineNo = 1;
+   int lLineNum = 1;
    if( bSelectedTextOnly ) {
       int nLen = m_view.m_wndSource.GetTextLength();
       LPSTR pstrText = (LPSTR) malloc(nLen + 1);
@@ -259,7 +259,7 @@ BOOL CView::Run(BOOL bSelectedTextOnly)
       pstrText[nLen] = '\0';
       sText = pstrText;
       free(pstrText);   
-      iLineNo = m_view.m_wndSource.LineFromPosition(m_view.m_wndSource.GetSelection().cpMin) + 1;
+      lLineNum = m_view.m_wndSource.LineFromPosition(m_view.m_wndSource.GetSelection().cpMin) + 1;
    }
    CString sTrimmed = sText;   // FIX: Scintilla control becomes insane after file load
    sTrimmed.TrimLeft();
@@ -271,7 +271,7 @@ BOOL CView::Run(BOOL bSelectedTextOnly)
       pstrText[nLen] = '\0';
       sText = pstrText;
       free(pstrText);
-      iLineNo = 1;
+      lLineNum = 1;
       // Save the whole text in history.
       // The function will determine if we're re-issuing an old item...
       // TODO: Move this so history is only updated when query has been
@@ -283,7 +283,7 @@ BOOL CView::Run(BOOL bSelectedTextOnly)
    m_view.SetCurSel(1);
    m_view.OnTabChange(0, NULL, bDummy);
 
-   m_thread.ExecuteSql(sText, iLineNo);
+   m_thread.ExecuteSql(sText, lLineNum);
 
    return TRUE;
 }

@@ -86,9 +86,9 @@ public:
       cf.crTextColor = clrText;
       SetCharFormat(cf, SCF_ALL);
       _ColorText(sText, pstrItem, CFM_BOLD);
-      _ColorText(sText, _T("const"), CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
-      _ColorText(sText, _T("inline"), CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
-      _ColorText(sText, _T("volatile"), CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
+      _ColorText(sText, _T("const "), CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
+      _ColorText(sText, _T("inline "), CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
+      _ColorText(sText, _T("volatile "), CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
       _ColorArgs(sText, 0, BlendRGB(clrText, RGB(0,0,255), 20));
       _ColorText(sText, sComment, 0, RGB(160,160,160));
       CRichEditCtrl::RequestResize();

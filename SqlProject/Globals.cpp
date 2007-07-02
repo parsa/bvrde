@@ -48,7 +48,7 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask /*= 0*
 }
 
 
-void GenerateError(IDevEnv* pDevEnv, UINT nErr)
+void GenerateError(IDevEnv* pDevEnv, HWND hWnd, UINT nErr)
 {
    ATLASSERT(pDevEnv);
    ATLASSERT(nErr);
@@ -59,7 +59,7 @@ void GenerateError(IDevEnv* pDevEnv, UINT nErr)
       CString sTemp(MAKEINTRESOURCE(IDS_ERR_LASTERROR));
       sMsg += sTemp + GetSystemErrorText(dwErr);
    }
-   HWND hWnd = ::GetActiveWindow();
+   if( hWnd == NULL ) hWnd = ::GetActiveWindow();
    CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
    pDevEnv->ShowMessageBox(hWnd, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
 }

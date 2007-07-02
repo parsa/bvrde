@@ -15,6 +15,7 @@
 
 #pragma comment(lib, "../GenEdit/Lib/GenEdit.lib")
 
+enum { DEF_INDIC_ERRORS = 8 };
 
 // Constructor
 
@@ -219,24 +220,36 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    if( !m_pCppProject->m_DebugManager.IsDebugging() ) {
       // Is there an include directive under the cursor?
       // Add additional menu item to open file.
+      CMenuHandle menu = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
+      CMenuHandle submenu = menu.GetSubMenu(1);
       CString sText;
-      m_sIncludePopup = _FindIncludeUnderCursor(lPos);
-      if( !m_sIncludePopup.IsEmpty() ) {
-         sText.Format(IDS_MENU_OPENINCLUDE, m_sIncludePopup);
+      CString sIncludeFile = _FindIncludeUnderCursor(lPos);
+      if( !sIncludeFile.IsEmpty() ) {
+         m_PopupInfo.sIncludeFile = sIncludeFile;
+         sText.Format(IDS_MENU_OPENINCLUDE, sIncludeFile);
+         submenu.InsertMenu(0, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENINCLUDE, sText);
       }
       else {
          MEMBERINFO info;
          if( !_GetMemberInfo(lPos, info) ) return 0;
          if( !info.sScope.IsEmpty() && !info.sName.IsEmpty() ) {
-            m_sIncludePopup.Format(_T("%s::%s"), info.sScope, info.sName);
-            sText.Format(IDS_MENU_OPENDECL, m_sIncludePopup);
+            m_PopupInfo.sMemberName = info.sName;
+            int iMenuIdx = 0;
+            CSimpleArray<CString> aResult;
+            m_pCppProject->m_TagManager.m_LexInfo.GetItemInfo(info.sName, info.sScope, TAGINFO_FILENAME | TAGINFO_LINENO, aResult);
+            if( aResult.GetSize() > 0 ) {
+               m_PopupInfo.sFuncDecl = aResult[0];
+               sText.Format(IDS_MENU_OPENDECLARATION, info.sScope, info.sName);
+               submenu.InsertMenu(iMenuIdx++, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENDECLARATION, sText);
+            }
+            CString sFilename;
+            long lLineNum = 0;
+            if( m_pCppProject->m_TagManager.m_LexInfo.FindImplementation(info.sName, info.sScope, sFilename, lLineNum) ) {
+               m_PopupInfo.sFuncImpl.Format(_T("%s|%ld"), sFilename, lLineNum);
+               sText.Format(IDS_MENU_OPENIMPLEMENTATION, info.sScope, info.sName);
+               submenu.InsertMenu(iMenuIdx++, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENIMPLEMENTATION, sText);
+            }
          }
-      }
-      if( !sText.IsEmpty() ) {
-         // Grab EDIT submenu from main window's menu
-         CMenuHandle menu = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
-         CMenuHandle submenu = menu.GetSubMenu(1);
-         submenu.InsertMenu(0, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENINCLUDE, sText);
       }
       // Just continue to display the standard menu from the GenEdit component.
       // We'll ignore all our previous work to position the menu...
@@ -314,14 +327,21 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 LRESULT CScintillaView::OnEditOpenInclude(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {   
    CWaitCursor cursor;
-   if( m_sIncludePopup.Find(_T("::")) > 0 ) {
-      bool bRes = m_pCppProject->m_TagManager.GoToDefinition(m_sIncludePopup);
-      if( !bRes ) return ::MessageBeep((UINT)-1);
-   }
-   else {
-      bool bRes = m_pCppProject->OpenView(m_sIncludePopup, 0);
-      if( !bRes ) return ::MessageBeep((UINT)-1);
-   }
+   if( !m_pCppProject->OpenView(m_PopupInfo.sIncludeFile, 0) ) ::MessageBeep((UINT)-1);
+   return 0;
+}
+
+LRESULT CScintillaView::OnEditOpenDeclaration(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{   
+   CWaitCursor cursor;
+   if( !m_pCppProject->m_TagManager.OpenTagInView(m_PopupInfo.sFuncDecl, m_PopupInfo.sMemberName) ) ::MessageBeep((UINT)-1);
+   return 0;
+}
+
+LRESULT CScintillaView::OnEditOpenImplementation(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{   
+   CWaitCursor cursor;
+   if( !m_pCppProject->m_TagManager.OpenTagInView(m_PopupInfo.sFuncImpl, m_PopupInfo.sMemberName) ) ::MessageBeep((UINT)-1);
    return 0;
 }
 
@@ -519,11 +539,11 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
    case DEBUG_CMD_FOLDCURSOR:
       {
          // Place cursor at line beginning
-         int iLineNo = pData->lLineNum;
-         if( iLineNo == -1 ) iLineNo = m_ctrlEdit.GetCurrentLine();
-         long lPos = m_ctrlEdit.PositionFromLine(iLineNo);
+         int lLineNum = pData->lLineNum;
+         if( lLineNum == -1 ) lLineNum = m_ctrlEdit.GetCurrentLine();
+         long lPos = m_ctrlEdit.PositionFromLine(lLineNum);
          m_ctrlEdit.GotoPos(lPos);
-         m_ctrlEdit.EnsureVisible(iLineNo);
+         m_ctrlEdit.EnsureVisible(lLineNum);
       }
       break;
    }
@@ -598,19 +618,32 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 
    // Get text around cursor
    long lPos = pSCN->position;
-   if( !_IsRealCppEditPos(lPos) ) return 0;
+   if( !_IsRealCppEditPos(lPos) ) return 0;   
    CString sText;
    CharacterRange cr = m_ctrlEdit.GetSelection();
    if( lPos >= cr.cpMin && lPos <= cr.cpMax ) sText = _GetSelectedText();
    else sText = _GetNearText(lPos);
-   if( sText.IsEmpty() ) return 0;        
-   // Allow the debugger to speak up
+   if( sText.IsEmpty() ) return 0;
+
+   // Allow the debugger to speak up; debugger may return at a later point
+   // with the debug-information (hover tip) so we should record as must
+   // info as we know right now.
    CSimpleArray<CString> aRes;
-   if( m_pCppProject->GetTagInfo(sText, true, aRes, NULL) ) m_bMouseDwell = true;
-   // Ask lexer to deliver info also
+   if( m_pCppProject->GetTagInfo(sText, true, aRes, NULL) ) {
+      m_TipInfo.lPos = lPos;
+      m_TipInfo.sText = sText;
+      m_TipInfo.aDecl.RemoveAll();
+      m_bMouseDwell = true;
+   }
+
+   // Ask lexer to deliver info also; the lexer can
+   // give us information about type and decoration.
    MEMBERINFO info;
    if( !_GetMemberInfo(lPos, info) ) return 0;
-   // Show tooltip
+   
+   // Show tooltip. Even if the debugger returns delayed information we
+   // still show the name immediately. If the debugger finally arrives
+   // with more information, we just display that as well.
    _ShowMemberToolTip(lPos, &info, 0, true, ::GetSysColor(COLOR_INFOTEXT), ::GetSysColor(COLOR_INFOBK));
    m_bMouseDwell = true;
    return 0;
@@ -642,7 +675,8 @@ LRESULT CScintillaView::OnAutoExpand(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
    CString sText;
    if( aResult[0].Find('(') >= 0 ) sText = _T("(");
    if( aResult[0].Find(_T("()")) >= 0 ) sText = _T("()");
-   // HACK: Insert text as delayed (SCN_AUTOCSELECTION is fored before the insertion)
+   // HACK: Insert text as delayed. The notification SCN_AUTOCSELECTION is fored 
+   // before the insertion of the actual character.
    for( int i = 0; i < sText.GetLength(); i++ ) {
       m_ctrlEdit.PostMessage(WM_CHAR, sText.GetAt(i), 0);
    }
@@ -660,6 +694,8 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_EDIT_COMMENT, TRUE);
    pUIBase->UIEnable(ID_EDIT_UNCOMMENT, TRUE);
    pUIBase->UIEnable(ID_EDIT_OPENINCLUDE, TRUE);
+   pUIBase->UIEnable(ID_EDIT_OPENDECLARATION, TRUE);
+   pUIBase->UIEnable(ID_EDIT_OPENIMPLEMENTATION, TRUE);
    pUIBase->UIEnable(ID_EDIT_AUTOCOMPLETE, TRUE);
    pUIBase->UIEnable(ID_DEBUG_BREAKPOINT, TRUE);
    pUIBase->UIEnable(ID_DEBUG_STEP_RUN, bDebugging); 
@@ -683,26 +719,28 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    // This part assumes that the compiler output is formatted as
    //   <filename>:<line>
    // The variable 'm_sOutputToken' contains the editor's filename.
-   if( _tcsncmp(pstrText, m_sOutputToken, m_sOutputToken.GetLength() ) != 0 ) return;
-   int iLineNo = _ttol(pstrText + m_sOutputToken.GetLength());
-   if( iLineNo == 0 ) return;
-   --iLineNo;
+   LPCTSTR pstrToken = _tcsstr(pstrText, m_sOutputToken);
+   if( pstrToken == NULL ) return;
+   if( pstrToken != pstrText && _iscppchar(*(pstrToken - 1)) ) return;
+   int lLineNum = _ttol(pstrToken + m_sOutputToken.GetLength());
+   if( lLineNum == 0 ) return;
+   --lLineNum;
 
    // If several errors are reported on the same line we assume
    // that the first entry contained the most useful error. Otherwise
    // we easily end up highlighting the entire line always.
-   if( iLineNo <= m_iOutputLine ) return;
+   if( lLineNum <= m_iOutputLine ) return;
 
    // Get the line so we can analyze where the error occoured.
    // The GNU compilers rarely output at which column (position) the error
    // occured so we'll have to try to match a substring or message
    // with the content of the reported line.
    CHAR szLine[256] = { 0 };
-   if( m_ctrlEdit.GetLineLength(iLineNo) >= sizeof(szLine) - 1 ) return;
-   m_ctrlEdit.GetLine(iLineNo, szLine);
+   if( m_ctrlEdit.GetLineLength(lLineNum) >= sizeof(szLine) - 1 ) return;
+   m_ctrlEdit.GetLine(lLineNum, szLine);
 
    CString sLine = szLine;
-   long lLinePos = m_ctrlEdit.PositionFromLine(iLineNo);
+   long lLinePos = m_ctrlEdit.PositionFromLine(lLineNum);
 
    // Determine the position on the line the error was reported
    int iMatchPos = 0;
@@ -727,7 +765,7 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    // If no match was found, highlight the entire line
    if( iMatchPos == 0 ) {
       iMatchPos = lLinePos;
-      iMatchLength = m_ctrlEdit.GetLineLength(iLineNo);
+      iMatchLength = m_ctrlEdit.GetLineLength(lLineNum);
       // Let's trim the string if it contains leading spaces (looks stupid)
       LPCTSTR p = sLine;
       while( *p && _istspace(*p++) && iMatchLength > 0 ) {
@@ -740,12 +778,13 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    if( iMatchLength <= 0 ) return;
 
    // Apply the squiggly lines
-   m_ctrlEdit.IndicSetStyle(0, INDIC_SQUIGGLE);
-   m_ctrlEdit.IndicSetFore(0, RGB(200,0,0));
-   m_ctrlEdit.StartStyling(iMatchPos, INDIC0_MASK);
-   m_ctrlEdit.SetStyling(iMatchLength, INDIC0_MASK);
+   m_ctrlEdit.IndicSetStyle(DEF_INDIC_ERRORS, INDIC_SQUIGGLE);
+   m_ctrlEdit.IndicSetFore(DEF_INDIC_ERRORS, RGB(200,0,0));
+   m_ctrlEdit.SetIndicatorCurrent(DEF_INDIC_ERRORS);
+   m_ctrlEdit.SetIndicatorValue(0);
+   m_ctrlEdit.IndicatorFillRange(iMatchPos, iMatchLength);
 
-   m_iOutputLine = iLineNo;
+   m_iOutputLine = lLineNum;
    m_bClearSquigglyLines = true;
 }
 
@@ -892,14 +931,14 @@ void CScintillaView::_AutoComplete(CHAR ch)
             aList.SetAtIndex(b, pTemp1);
          }
       }
-   }   
+   }
 
    // Right, Scintilla requires a list of space-separated tokens
    // so let's build one...
    CString sList;
    TCHAR szText[200] = { 0 };
    for( int i = 0; i < nCount; i++ ) {
-      // Avoid duplciated names in list
+      // Avoid duplicated names in list
       if( i > 0 && _tcscmp(aList[i]->pstrName, aList[i - 1]->pstrName) == 0 ) continue;
       // Don't include operator overloads
       if( !_iscppchar(aList[i]->pstrName[0]) ) continue;
@@ -912,6 +951,8 @@ void CScintillaView::_AutoComplete(CHAR ch)
 
    // Display auto-completion popup
    _RegisterListImages();
+   m_ctrlEdit.AutoCSetMaxHeight(8);
+   m_ctrlEdit.AutoCSetFillUps("([");
    m_ctrlEdit.AutoCSetIgnoreCase(FALSE);
    m_ctrlEdit.AutoCShow(info.sName.GetLength(), T2CA(sList));
 
@@ -962,8 +1003,8 @@ void CScintillaView::_ClearSquigglyLines()
 {
    if( !m_bClearSquigglyLines ) return;  
    m_bClearSquigglyLines = false;
-   m_ctrlEdit.StartStyling(0, INDIC0_MASK);
-   m_ctrlEdit.SetStyling(m_ctrlEdit.GetLength(), 0);
+   m_ctrlEdit.SetIndicatorCurrent(DEF_INDIC_ERRORS);
+   m_ctrlEdit.IndicatorClearRange(0, m_ctrlEdit.GetLength());
    // FIX: Need this because next char will not get
    //      coloured properly in Scintilla.
    m_ctrlEdit.Colourise(0, -1);
@@ -984,7 +1025,10 @@ bool CScintillaView::_GetMemberInfo(long lPos, MEMBERINFO& info)
    info.sScope = _FindBlockType(lPos);
    // Try to figure out if we're just starting to type a new member
    CHAR chDelim = m_ctrlEdit.GetCharAt(lStartPos);
-   if( chDelim == '.' || chDelim == '>' || chDelim == ':' ) {
+   if( chDelim == '.' 
+       || (chDelim == '>' && m_ctrlEdit.GetCharAt(lStartPos - 1) == '-') 
+       || (chDelim == ':' && m_ctrlEdit.GetCharAt(lStartPos + 1) == ':') ) 
+   {      
       // Oh, it's a member of another type
       info.sName = _GetNearText(lStartPos + 1);
       long lOffset = chDelim == '.' ? 0 : 1;
@@ -996,6 +1040,7 @@ bool CScintillaView::_GetMemberInfo(long lPos, MEMBERINFO& info)
             m_pCppProject->GetTagInfo(sParent, false, aLocalType, info.sScope);
             if( aLocalType.GetSize() == 1 ) {
                info.sType = aLocalType[0];
+               // TODO: Less hard-coding; more logic
                info.sType.Replace(_T("const "), _T(""));
                info.sType.Replace(_T("inline "), _T(""));
                info.sType.Replace(_T("extern "), _T(""));
@@ -1190,6 +1235,9 @@ CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
 
          if( _iscppchar(sLine[iColPos - 1]) ) continue;
          if( _iscppchar(sLine[iColPos + sName.GetLength()]) ) continue;
+         // Special case of:
+         //    MYTYPE::name
+         if( sLine[iColPos + sName.GetLength()] == ':' && sLine[iColPos + sName.GetLength() + 1] == ':' ) return sName;
 
          // Need to guess the ending position of the type keyword.
          // Special case of:
@@ -1215,7 +1263,7 @@ CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
          int iLinePos = m_ctrlEdit.PositionFromLine(iStartLine);
          CString sType = _GetNearText(iLinePos + iEndPos, false);
          if( sType.IsEmpty() ) continue;
-         
+
          // First look up among ordinary C++ types.
          // They are likely not to be defined in any header file.
          static LPCTSTR pstrKnownTypes[] =
@@ -1246,6 +1294,7 @@ CString CScintillaView::_FindTagType(const CString& sName, long lPosition)
             case TAGTYPE_MEMBER:
             case TAGTYPE_UNKNOWN:
             case TAGTYPE_FUNCTION:
+            case TAGTYPE_IMPLEMENTATION:
                // These are not types; but rather members of one
                // so we ignore them...
                break;
@@ -1336,22 +1385,28 @@ void CScintillaView::_ShowToolTip(long lPos, CString& sText, bool bAdjustPos, CO
    USES_CONVERSION;
    m_ctrlEdit.CallTipShow(lPos, T2CA(sText));
 
-   // Locate the new tip window and move it around...
+   // Locate the new tip window and move it around.
+   // Scintilla places the tooltip too close to the cursor (especially
+   // when it's hovering over a selection), so we'll move it ourselves.
    if( !bAdjustPos ) return;
    CToolTipCtrl ctrlTip = ::FindWindow(NULL, _T("ACallTip"));
    if( !ctrlTip.IsWindow() ) return;
    if( !ctrlTip.IsWindowVisible() ) return;
-   // Move tip window a bit down so the cursor doesn't block its view
+   // Move tip window a bit down so the cursor doesn't block its view.
+   // Only move if the tooltip is below the cursor, and has a valid position.
    POINT ptCursor = { 0 };
    ::GetCursorPos(&ptCursor);
-   RECT rcWindow;
-   ctrlTip.GetWindowRect(&rcWindow);
-   if( ptCursor.y > rcWindow.bottom ) return;
-   ::OffsetRect(&rcWindow, 3, 5);
-   static HCURSOR hArrow = ::LoadCursor(NULL, IDC_ARROW);
-   if( ::GetCursor() == hArrow ) ::OffsetRect(&rcWindow, 0, 15);
-   ::InflateRect(&rcWindow, 2, 0);
-   ctrlTip.SetWindowPos(HWND_TOPMOST, &rcWindow, SWP_NOACTIVATE);
+   RECT rcWindow = { 0 };
+   GetWindowRect(&rcWindow);
+   RECT rcTip = { 0 };
+   ctrlTip.GetWindowRect(&rcTip);
+   if( rcTip.top <= rcWindow.top ) return;
+   if( ptCursor.y >= rcTip.bottom ) return;
+   static HCURSOR s_hArrowCursor = ::LoadCursor(NULL, IDC_ARROW);
+   ::OffsetRect(&rcTip, 3, 5);
+   if( ::GetCursor() == s_hArrowCursor ) ::OffsetRect(&rcTip, 0, 15);
+   ::InflateRect(&rcTip, 2, 0);
+   ctrlTip.SetWindowPos(HWND_TOPMOST, &rcTip, SWP_NOACTIVATE);
 }
 
 /**
@@ -1384,9 +1439,9 @@ void CScintillaView::_ShowMemberToolTip(long lPos, MEMBERINFO* pInfo, long lCurT
    // Find best signature match 
    if( m_TipInfo.bExpand && pInfo != NULL && m_TipInfo.aDecl.GetSize() > 1 ) {
       CHAR szLine[256] = { 0 };
-      int iLineNo = m_ctrlEdit.LineFromPosition(lPos);
-      if( m_ctrlEdit.GetLineLength(iLineNo) < sizeof(szLine) - 1 ) {
-         m_ctrlEdit.GetLine(iLineNo, szLine);
+      int lLineNum = m_ctrlEdit.LineFromPosition(lPos);
+      if( m_ctrlEdit.GetLineLength(lLineNum) < sizeof(szLine) - 1 ) {
+         m_ctrlEdit.GetLine(lLineNum, szLine);
          int nCommas = _CountCommas(A2CT(szLine));
          for( int i = 0; i < m_TipInfo.aDecl.GetSize(); i++ ) {
             if( _CountCommas(m_TipInfo.aDecl[i]) == nCommas ) lCurTip = i;
@@ -1505,11 +1560,13 @@ CString CScintillaView::_GetNearText(long lPosition, bool bExcludeKeywords /*= t
    // Is it really an identifier?
    if( !_iscppchar(szText[iStart]) ) return _T("");
    if( isdigit(szText[iStart]) ) return _T("");
-   if( bExcludeKeywords && m_ctrlEdit.GetStyleAt(lLinePos + iStart) == SCE_C_WORD ) return _T("");
    // Let's find the end then
    int iEnd = iStart;
    while( szText[iEnd] != '\0' && _iscppchar(szText[iEnd + 1]) ) iEnd++;
    szText[iEnd + 1] = '\0';
+   // Let's exclude stuff that we know really want here...
+   if( strncmp(szText + iStart, "this", 4) == 0 ) return _T("");
+   if( bExcludeKeywords && m_ctrlEdit.GetStyleAt(lLinePos + iStart) == SCE_C_WORD ) return _T("");
    // Cool, got it...
    return szText + iStart;
 }

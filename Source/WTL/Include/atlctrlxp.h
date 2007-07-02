@@ -598,8 +598,6 @@ public:
       }
       else
       {
-         // ** Removed 'static' as suggested by Ilya Kheifets.
-         CFont fontBold;
          // Compute size of text - use DrawText with DT_CALCRECT
          CWindowDC dc = m_hWnd;
          HFONT hOldFont;
@@ -608,7 +606,8 @@ public:
             LOGFONT lf;
             m_fontMenu.GetLogFont(lf);
             lf.lfWeight += 200;
-            fontBold.CreateFontIndirect(&lf);
+            static CFont fontBold;
+            if( fontBold.IsNull() ) fontBold.CreateFontIndirect(&lf);
             ATLASSERT(!fontBold.IsNull());
             hOldFont = dc.SelectFont(fontBold);
          }
@@ -891,6 +890,13 @@ public:
          if( lpCustomDraw->dwDrawStage == CDDS_PREPAINT )
          {
             lRet = CDRF_NOTIFYITEMDRAW;
+            // On Vista, it actually looks good...
+            static OSVERSIONINFO ver = { 0 };
+            if( ver.dwOSVersionInfoSize == 0 ) {
+               ver.dwOSVersionInfoSize = sizeof(ver);
+               ::GetVersionEx(&ver);
+            }
+            if( ver.dwMajorVersion >= 6 ) lRet = CDRF_DODEFAULT;
             bHandled = TRUE;
          }
          else if( lpCustomDraw->dwDrawStage == CDDS_ITEMPREPAINT ) 

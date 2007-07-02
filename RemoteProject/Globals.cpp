@@ -28,7 +28,7 @@ void ConvertToCrLf(CString& s)
 CString ConvertFromCrLf(const CString& s)
 {
    CString sRes = s;
-   sRes.Remove(_T('\r'));
+   sRes.Remove('\r');
    sRes.Replace(_T("\n"), _T("\\n"));
    return sRes;
 }
@@ -208,7 +208,7 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask /*= 0*
 ////////////////////////////////////////////////////////
 //
 
-void GenerateError(IDevEnv* pDevEnv, UINT nErr, DWORD dwErr /*= (DWORD)-1*/)
+void GenerateError(IDevEnv* pDevEnv, HWND hWnd, UINT nErr, DWORD dwErr /*= (DWORD)-1*/)
 {
    // Create error message from system error code
    ATLASSERT(pDevEnv);
@@ -220,7 +220,7 @@ void GenerateError(IDevEnv* pDevEnv, UINT nErr, DWORD dwErr /*= (DWORD)-1*/)
       CString sTemp(MAKEINTRESOURCE(IDS_ERR_LASTERROR));
       sMsg += sTemp + GetSystemErrorText(dwErr);
    }
-   HWND hWnd = ::GetActiveWindow();
+   if( hWnd == NULL ) hWnd = ::GetActiveWindow();
    CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
    pDevEnv->ShowMessageBox(hWnd, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
 }
@@ -319,6 +319,24 @@ BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition)
    return TRUE;
 }
 
+BOOL EnableSystemAccessPriveledge(LPCWSTR pwstrPriv) 
+{ 
+   BOOL bRes = FALSE;
+   HANDLE hToken = NULL;
+   if( ::OpenProcessToken(::GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) ) {
+      LUID luidDebug = { 0 }; 
+      if( ::LookupPrivilegeValue(NULL, pwstrPriv, &luidDebug) ) { 
+         TOKEN_PRIVILEGES tokenPriv; 
+         tokenPriv.PrivilegeCount = 1; 
+         tokenPriv.Privileges[0].Luid = luidDebug; 
+         tokenPriv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
+         bRes = ::AdjustTokenPrivileges(hToken, FALSE, &tokenPriv, sizeof(tokenPriv), NULL, NULL); 
+      } 
+      ::CloseHandle(hToken);
+   }
+   return bRes;
+} 
+
 
 ////////////////////////////////////////////////////////
 //
@@ -333,8 +351,8 @@ CString GetFileTypeFromFilename(LPCTSTR pstrFilename)
    CString sExtension = ::PathFindExtension(szExtension);
    CString sKey;
    sKey.Format(_T("file.mappings%s"), sExtension);  // NOTE: Extension includes a dot char.
-   TCHAR szValue[200] = { 0 };
-   if( _pDevEnv->GetProperty(sKey, szValue, 199) ) return szValue;  
+   TCHAR szValue[100] = { 0 };
+   if( _pDevEnv->GetProperty(sKey, szValue, 99) ) return szValue;  
    if( sExtension == _T(".") ) return _T("makefile");
    if( sFilename.Find(_T("make")) >= 0 ) return _T("makefile");
    if( sFilename.Find(_T(".mak")) >= 0 ) return _T("makefile");

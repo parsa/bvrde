@@ -363,6 +363,16 @@ public:
       ATLASSERT(pstrPixmap);
       ::SendMessage(m_hWnd, SCI_MARKERDEFINEPIXMAP, (WPARAM) iMarkerNumber, (LPARAM) pstrPixmap);
    }
+   void MarkerAddSet(int iLine, int iSet)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_MARKERADDSET, (WPARAM) iLine, (LPARAM) iSet);
+   }
+   void MarkerSetAlpha(int iMarkerNumber, int iAlpha)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_MARKERSETALPHA, (WPARAM) iMarkerNumber, (LPARAM) iAlpha);
+   }
    void SetMarginTypeN(int iMargin, int iMarginType)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -454,6 +464,72 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_STYLESETUNDERLINE, (WPARAM) iStyle, (LPARAM) bUnderline);
    }
+   COLORREF StyleGetFore(int iStyle) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (COLORREF) ::SendMessage(m_hWnd, SCI_STYLEGETFORE, (WPARAM) iStyle, 0L);
+   }
+   COLORREF StyleGetBack(int iStyle) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (COLORREF) ::SendMessage(m_hWnd, SCI_STYLEGETBACK, (WPARAM) iStyle, 0L);
+   }
+   BOOL StyleGetBold(int iStyle) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_STYLEGETBOLD, (WPARAM) iStyle, 0L);
+   }
+   BOOL StyleGetItalic(int iStyle) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_STYLEGETITALIC, (WPARAM) iStyle, 0L);
+   }
+   int StyleGetSize(int iStyle) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_STYLEGETSIZE, (WPARAM) iStyle, 0L);
+   }
+   int StyleGetFont(int iStyle, LPSTR pstrFontName)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ATLASSERT(pstrFontName);
+      return (int) ::SendMessage(m_hWnd, SCI_STYLEGETFONT, (WPARAM) iStyle, (LPARAM) pstrFontName);
+   }
+   BOOL StyleGetEOLFilled(int iStyle) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_STYLEGETEOLFILLED, (WPARAM) iStyle, 0L);
+   }
+   BOOL StyleGetUnderline(int iStyle) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_STYLEGETUNDERLINE, (WPARAM) iStyle, 0L);
+   }
+   int StyleGetCase(int iStyle) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_STYLEGETCASE, (WPARAM) iStyle, 0L);
+   }
+   int StyleGetCharacterSet(int iStyle) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_STYLEGETCHARACTERSET, (WPARAM) iStyle, 0L);
+   }
+   BOOL StyleGetVisible(int iStyle) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_STYLEGETVISIBLE, (WPARAM) iStyle, 0L);
+   }
+   BOOL StyleGetChangeable(int iStyle) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_STYLEGETCHANGEABLE, (WPARAM) iStyle, 0L);
+   }
+   BOOL StyleGetHotSpot(int iStyle) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_STYLEGETHOTSPOT, (WPARAM) iStyle, 0L);
+   }
    void StyleSetCase(int iStyle, int iCaseForce)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -478,6 +554,26 @@ public:
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_SETSELBACK, (WPARAM) bUseSetting, (LPARAM) clrBack);
+   }
+   int GetSelAlpha() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_GETSELALPHA, 0, 0L);
+   }
+   void SetSelAlpha(int iAlpha)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETSELALPHA, (WPARAM) iAlpha, 0L);
+   }
+   BOOL GetSelEOLFilled() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_GETSELEOLFILLED, 0, 0L);
+   }
+   void SetSelEOLFilled(BOOL bFilled)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETSELEOLFILLED, (WPARAM) bFilled, 0L);
    }
    void SetCaretFore(COLORREF clrFore)
    {
@@ -555,6 +651,16 @@ public:
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return (COLORREF) ::SendMessage(m_hWnd, SCI_INDICGETFORE, (WPARAM) iIndic, 0L);
+   }
+   void IndicSetUnder(int iIndic, BOOL bUnder)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_INDICSETUNDER, (WPARAM) iIndic, (LPARAM) bUnder);
+   }
+   BOOL IndicGetUnder(int iIndic) const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_INDICGETUNDER, (WPARAM) iIndic, 0L);
    }
    void SetWhitespaceFore(BOOL bUseSetting, COLORREF clrFore)
    {
@@ -963,13 +1069,13 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_SETSEL, (WPARAM) lStart, (LPARAM) lEnd);
    }
-   int GetSelText(LPSTR pstrText) const
+   int GetSelText(LPSTR pstrText)
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ATLASSERT(pstrText);
       return (int) ::SendMessage(m_hWnd, SCI_GETSELTEXT, 0, (LPARAM) pstrText);
    }
-   int GetTextRange(TextRange* pTextRange) const
+   int GetTextRange(TextRange* pTextRange)
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ATLASSERT(pTextRange);
@@ -980,12 +1086,12 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_HIDESELECTION, (WPARAM) bNormal, 0L);
    }
-   int PointXFromPosition(long lPos) const
+   int PointXFromPosition(long lPos)
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return (int) ::SendMessage(m_hWnd, SCI_POINTXFROMPOSITION, 0, (LPARAM) lPos);
    }
-   int PointYFromPosition(long lPos) const
+   int PointYFromPosition(long lPos)
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return (int) ::SendMessage(m_hWnd, SCI_POINTYFROMPOSITION, 0, (LPARAM) lPos);
@@ -1201,6 +1307,11 @@ public:
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_CALLTIPSETFOREHLT, (WPARAM) clrFore, 0L);
+   }
+   void CallTipUseStyle(int iTabSize)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_CALLTIPUSESTYLE, (WPARAM) iTabSize, 0L);
    }
    int VisibleFromDocLine(int iLine)
    {
@@ -2011,20 +2122,40 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_SETHOTSPOTACTIVEFORE, (WPARAM) bUseSetting, (LPARAM) clrFore);
    }
+   COLORREF GetHotspotActiveFore() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (COLORREF) ::SendMessage(m_hWnd, SCI_GETHOTSPOTACTIVEFORE, 0, 0L);
+   }
    void SetHotspotActiveBack(BOOL bUseSetting, COLORREF clrBack)
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_SETHOTSPOTACTIVEBACK, (WPARAM) bUseSetting, (LPARAM) clrBack);
+   }
+   COLORREF GetHotspotActiveBack() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (COLORREF) ::SendMessage(m_hWnd, SCI_GETHOTSPOTACTIVEBACK, 0, 0L);
    }
    void SetHotspotActiveUnderline(BOOL bUnderline)
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_SETHOTSPOTACTIVEUNDERLINE, (WPARAM) bUnderline, 0L);
    }
+   BOOL GetHotspotActiveUnderline() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_GETHOTSPOTACTIVEUNDERLINE, 0, 0L);
+   }
    void SetHotspotSingleLine(BOOL bSingleLine)
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_SETHOTSPOTSINGLELINE, (WPARAM) bSingleLine, 0L);
+   }
+   BOOL GetHotspotSingleLine() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_GETHOTSPOTSINGLELINE, 0, 0L);
    }
    void ParaDown()
    {
@@ -2231,6 +2362,101 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ::SendMessage(m_hWnd, SCI_TOGGLECARETSTICKY, 0, 0L);
    }
+   void SetPasteConvertEndings(BOOL bConvert)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETPASTECONVERTENDINGS, (WPARAM) bConvert, 0L);
+   }
+   BOOL GetPasteConvertEndings() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (BOOL) ::SendMessage(m_hWnd, SCI_GETPASTECONVERTENDINGS, 0, 0L);
+   }
+   void SelectionDuplicate()
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SELECTIONDUPLICATE, 0, 0L);
+   }
+   void SetCaretLineBackAlpha(int iAlpha)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETCARETLINEBACKALPHA, (WPARAM) iAlpha, 0L);
+   }
+   int GetCaretLineBackAlpha() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_GETCARETLINEBACKALPHA, 0, 0L);
+   }
+   void SetCaretStyle(int iCaretStyle)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETCARETSTYLE, (WPARAM) iCaretStyle, 0L);
+   }
+   int GetCaretStyle() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_GETCARETSTYLE, 0, 0L);
+   }
+   void SetIndicatorCurrent(int iIndicator)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETINDICATORCURRENT, (WPARAM) iIndicator, 0L);
+   }
+   int GetIndicatorCurrent() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_GETINDICATORCURRENT, 0, 0L);
+   }
+   void SetIndicatorValue(int iValue)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETINDICATORVALUE, (WPARAM) iValue, 0L);
+   }
+   int GetIndicatorValue() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_GETINDICATORVALUE, 0, 0L);
+   }
+   void IndicatorFillRange(int iPosition, int iFillLength)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_INDICATORFILLRANGE, (WPARAM) iPosition, (LPARAM) iFillLength);
+   }
+   void IndicatorClearRange(int iPosition, int iClearLength)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_INDICATORCLEARRANGE, (WPARAM) iPosition, (LPARAM) iClearLength);
+   }
+   int IndicatorAllOnFor(int iPosition)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_INDICATORALLONFOR, (WPARAM) iPosition, 0L);
+   }
+   int IndicatorValueAt(int iIndicator, int iPosition)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_INDICATORVALUEAT, (WPARAM) iIndicator, (LPARAM) iPosition);
+   }
+   int IndicatorStart(int iIndicator, int iPosition)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_INDICATORSTART, (WPARAM) iIndicator, (LPARAM) iPosition);
+   }
+   int IndicatorEnd(int iIndicator, int iPosition)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_INDICATOREND, (WPARAM) iIndicator, (LPARAM) iPosition);
+   }
+   void SetPositionCache(int iSize)
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      ::SendMessage(m_hWnd, SCI_SETPOSITIONCACHE, (WPARAM) iSize, 0L);
+   }
+   int GetPositionCache() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_GETPOSITIONCACHE, 0, 0L);
+   }
    void StartRecord()
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -2300,6 +2526,11 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ATLASSERT(pstrKey);
       return (int) ::SendMessage(m_hWnd, SCI_GETPROPERTYINT, (WPARAM) pstrKey, 0L);
+   }
+   int GetStyleBitsNeeded() const
+   {
+      ATLASSERT(::IsWindow(m_hWnd));
+      return (int) ::SendMessage(m_hWnd, SCI_GETSTYLEBITSNEEDED, 0, 0L);
    }
    void SetCaretPolicy(int iCaretPolicy, int iCaretSlop)
    {

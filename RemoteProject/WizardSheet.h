@@ -94,6 +94,7 @@ public:
 
    CRemoteProject* m_pProject;
 
+   CComboBox m_ctrlServer;
    CComboBox m_ctrlType;
    CEdit m_ctrlHost;
    CEdit m_ctrlPort;

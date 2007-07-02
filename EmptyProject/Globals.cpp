@@ -47,7 +47,7 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask /*= 0*
 }
 
 
-void GenerateError(IDevEnv* pDevEnv, UINT nErr)
+void GenerateError(IDevEnv* pDevEnv, HWND hWnd, UINT nErr)
 {
    ATLASSERT(pDevEnv);
    ATLASSERT(nErr);
@@ -58,7 +58,7 @@ void GenerateError(IDevEnv* pDevEnv, UINT nErr)
       CString sTemp(MAKEINTRESOURCE(IDS_ERR_LASTERROR));
       sMsg += sTemp + GetSystemErrorText(dwErr);
    }
-   HWND hWnd = ::GetActiveWindow();
+   if( hWnd == NULL ) hWnd = ::GetActiveWindow();
    CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
    pDevEnv->ShowMessageBox(hWnd, sMsg, sCaption, MB_ICONEXCLAMATION | MB_MODELESS);
 }
@@ -78,7 +78,7 @@ CString GetSystemErrorText(DWORD dwErr)
        0,
        NULL);
    CString s = (LPCTSTR) lpMsgBuf;
-   s.Remove(_T('\r'));
+   s.Remove('\r');
    s.Replace(_T("\n"), _T(" "));
    // Free the buffer.
    if( lpMsgBuf ) ::LocalFree(lpMsgBuf);
@@ -125,7 +125,7 @@ BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition)
       }
       else if( nLen > 0 ) {
          // Only non-empty items should be added
-         ATLASSERT(szItemText[0]!=_T('\0'));
+         ATLASSERT(szItemText[0]!='\0');
          // Here the state does not contain a count in the HIBYTE
          ::InsertMenu(hMenu, nPosition++, state | MF_BYPOSITION, ::GetMenuItemID(hMenuSource, i), szItemText);
       }

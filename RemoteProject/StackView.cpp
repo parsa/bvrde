@@ -142,17 +142,18 @@ LRESULT CStackView::OnListDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    int iLinePos = sLine.Find(_T("line="));
    if( iFilePos < 0 || iLinePos < 0 ) return 0;
    CString sFile = sLine.Mid(iFilePos + 6).SpanExcluding(_T("'"));
-   long lLineNo = _ttol(sLine.Mid(iLinePos + 5));
-   m_pProject->OpenView(sFile, lLineNo);
+   long lLineNum = _ttol(sLine.Mid(iLinePos + 5));
+   m_pProject->OpenView(sFile, lLineNum);
    return 0;
 }
 
 LRESULT CStackView::OnThreadSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    ATLASSERT(m_pProject);
-   if( m_ctrlThreads.GetCurSel() < 0 ) return 0;
+   int iIndex = m_ctrlThreads.GetCurSel();
+   if( iIndex < 0 ) return 0;
    CString sCommand;
-   sCommand.Format(_T("-thread-select %ld"), (long) m_ctrlThreads.GetItemData(m_ctrlThreads.GetCurSel()));
+   sCommand.Format(_T("-thread-select %ld"), (long) m_ctrlThreads.GetItemData(iIndex));
    m_pProject->DelayedDebugCommand(sCommand);
    m_pProject->DelayedDebugEvent();
    return 0;
@@ -165,7 +166,7 @@ void CStackView::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 
    CDCHandle dc = lpDIS->hDC;
    RECT rc = lpDIS->rcItem;
-   bool bSelected = lpDIS->itemState & ODS_SELECTED;
+   bool bSelected = (lpDIS->itemState & ODS_SELECTED) != 0;
 
    CString sText;
    m_ctrlStack.GetText(iIndex, sText);

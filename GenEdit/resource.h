@@ -41,6 +41,8 @@
 #define ID_EDIT_OPENINCLUDE             40040
 #define ID_EDIT_VIEWWS                  40052
 #define ID_EDIT_VIEWTABS                40053
+#define ID_EDIT_OPENDECLARATION         40054
+#define ID_EDIT_OPENIMPLEMENTATION      40055
 #define ID_EDIT_VIEWEOL                 40060
 #define ID_EDIT_TABIFY                  40061
 #define ID_EDIT_UNTABIFY                40062

@@ -13,7 +13,7 @@
 #include "Thread.h"
 
 #ifndef PROGID_XMLDOMDocument
-   #define PROGID_XMLDOMDocument L"MSXML2.DOMDocument.4.0"
+   #define PROGID_XMLDOMDocument L"MSXML2.DOMDocument"
 #endif
 
 
@@ -29,9 +29,11 @@ CSimpleArray<CPlugin> g_aPlugins;               /// Collection of plugins
 // Loader thread
 
 /**
- * The setting loader thread.
+ * The Settings Loader thread.
  * This thread loads the program configuration asynchroniously.
- * It even preloads various system DLLs to boost startup performance.
+ * It fetches the window position information so the main window can display
+ * as the very first this. It even preloads various system DLLs to boost 
+ * startup performance.
  */
 class CSettingsLoaderThread : public CThreadImpl<CSettingsLoaderThread>
 {
@@ -59,15 +61,13 @@ public:
       ATLASSERT(m_pMain!=NULL);
       ATLASSERT(m_pMain->m_aProperties.GetSize()==0);
 
-      // We'll have a resonable bucket-size for out hash table
+      // We'll have a resonable bucket-size for our hash table
       m_pMain->m_aProperties.Resize(513);
 
       // Default printer settings
       m_pMain->m_hDevMode = NULL;
       m_pMain->m_hDevNames = NULL;
       ::SetRectEmpty(&m_pMain->m_rcPageMargins);
-
-      m_pMain->m_Locale = ::GetThreadLocale();
 
       m_bFailed = false;
    }
@@ -138,7 +138,7 @@ public:
       TCHAR szOrigValue[64] = { 0 };
       ::wsprintf(szOrigValue, _T("%08X%08X"), ftOrig.dwHighDateTime, ftOrig.dwLowDateTime);
       if( _tcscmp(szDocValue, szOrigValue) != 0 ) {
-         if( _tcslen(szDocValue) > 0 && IDYES == AtlMessageBox(NULL, _T("The Master Configuration file has changed!\r\n\r\nDo you wish to copy it and use it as the current configuration?\r\nThis is recommended if you just reinstalled the tool."), _T("BVRDE"), MB_ICONQUESTION | MB_YESNO | MB_SETFOREGROUND | MB_TOPMOST) ) {
+         if( _tcslen(szDocValue) == 0 || IDYES == AtlMessageBox(NULL, _T("The Master Configuration file has changed!\r\n\r\nDo you wish to copy it and use it as the current configuration?\r\nThis is recommended if you just reinstalled the tool."), _T("BVRDE"), MB_ICONQUESTION | MB_YESNO | MB_SETFOREGROUND | MB_TOPMOST) ) {
             ::CopyFile(sOrigFilename, sDocFilename, FALSE);
          }
          m_pMain->SetProperty(_T("config.timestamp"), szOrigValue);
@@ -515,15 +515,13 @@ CString CMainFrame::GetSettingsFilename()
 {
    CString sFilename;
    sFilename.Format(_T("%sBVRDE.xml"), CModulePath());
-   static OSVERSIONINFO ver = { 0 };
-   if( ver.dwOSVersionInfoSize == 0 ) {
-      ver.dwOSVersionInfoSize = sizeof(ver);
-      ::GetVersionEx(&ver);
-   }
-   if( ver.dwMajorVersion < 6 ) return sFilename;
    // Windows Vista or better. Need to be Windows Vista LUA (Least-privilege User Account)
    // compliant so we cannot write to the Program Files folder. Instead we'll suggest
    // that the BVRDE.xml file is loaded from the user's private AppData folder
+   OSVERSIONINFO ver = { sizeof(ver) };
+   ::GetVersionEx(&ver);
+   if( ver.dwMajorVersion < 6 ) return sFilename;
+   // Get user's private AppData folder
    TCHAR szPath[MAX_PATH] = { 0 };
    ::SHGetSpecialFolderPath(NULL, szPath, CSIDL_LOCAL_APPDATA, TRUE);
    CString sDocPath, sDocFilename;

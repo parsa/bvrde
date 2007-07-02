@@ -169,7 +169,7 @@ DWORD CRloginThread::Run()
 #ifdef _DEBUG
          bReadBuffer[dwRead] = '\0';
          ATLTRACE(_T("RLOGIN: '%hs' len=%ld\n"), bReadBuffer, dwRead);
-#endif
+#endif // _DEBUG
 
          if( !bInitialized ) 
          {
@@ -260,7 +260,6 @@ DWORD CRloginThread::Run()
             ATLASSERT(iPos<sizeof(bReadBuffer));
             BYTE b = bReadBuffer[iPos++];
             switch( b ) {
-            case '\0':
             case '\0x1':
             case '\0x2':
             case '\0x10':
@@ -307,6 +306,7 @@ DWORD CRloginThread::Run()
                   }
                }
                // FALL THROUGH
+            case '\0':
             case '\n':
                {
                   CString sLine = _GetLine(pBuffer, dwStartLinePos, dwPos);
@@ -430,7 +430,7 @@ bool CRloginProtocol::Load(ISerializable* pArc)
    m_sPassword.ReleaseBuffer();
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
-   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(200), 200);
+   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(400), 400);
    m_sExtraCommands.ReleaseBuffer();
    pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
 
@@ -458,6 +458,7 @@ bool CRloginProtocol::Save(ISerializable* pArc)
 bool CRloginProtocol::Start()
 {
    Stop();
+   m_event.ResetEvent();
    m_thread.m_pManager = this;
    m_thread.m_pCallback = m_pCallback;
    if( !m_thread.Start() ) return false;
@@ -528,13 +529,15 @@ bool CRloginProtocol::WriteData(LPCTSTR pstrData)
       m_pCallback->BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_LOG_CONNECTERROR)));
       return false;
    }
-   int nLen = _tcslen(pstrData);
-   LPSTR pstr = (LPSTR) _alloca(nLen + 2);
+   int nLen = (_tcslen(pstrData) * 2) + 3;  // MBCS + \r\n + \0
+   LPSTR pstr = (LPSTR) _alloca(nLen);
    ATLASSERT(pstr);
-   AtlW2AHelper(pstr, pstrData, nLen + 1);
-   strcpy(pstr + nLen, "\r\n");
+   if( pstr == NULL ) return false;
+   ::ZeroMemory(pstr, nLen);
+   AtlW2AHelper(pstr, pstrData, nLen - 3);
+   strcat(pstr, "\r\n");
    CLockStaticDataInit lock;
-   if( !m_socket.Write(pstr, nLen + 1) ) {
+   if( !m_socket.Write(pstr, strlen(pstr)) ) {
       m_pCallback->BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_LOG_SENDERROR)));
       return false;
    }

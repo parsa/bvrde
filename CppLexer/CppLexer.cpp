@@ -52,10 +52,6 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
       if( cr->name.at(0) == '*' ) continue;
       if( cr->name.at(0) == '(' ) continue;
 
-      // We don't want class-member implementations in .cpp files to
-      // be included. We will get them from the header instead.
-      if( cr->name.find("::") != std::string::npos ) continue;
-
       char type = 'm';
       if( cr->section == FUNCTION_SEC ) type = 'm';
       else if( cr->section == TYPEDEF_SEC ) type = 't';
@@ -66,6 +62,9 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
       else if( cr->section == VARIABLE_SEC ) type = 'v';
       else if( cr->section == MACRO_SEC ) type = 'd';
       else if( cr->section == ENUM_SEC ) type = 'e';
+
+      // Assume this to be the implementation of the member
+      if( cr->name.find("::") != std::string::npos ) type = 'i', cr->args = "";
 
       char prot = 'g';
       if( cr->protection == PUBL ) prot = 'p';
@@ -100,7 +99,7 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
 }
 
 
-BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
+BOOL APIENTRY CppLexer_Parse(LPCSTR pstrSourceName, LPCSTR pstrText, LPCWSTR pstrOutputFile)
 {   
    extern void parseCpp(Entry*);
 
@@ -111,14 +110,11 @@ BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
    {
       parseCpp( root );
    }
-   catch(...)
+   catch( ... )
    {
       delete root;
       return FALSE;
    }
-
-   char szFilename[MAX_PATH] = { 0 };
-   _W2AHelper(szFilename, pstrFilename, sizeof(szFilename) - 1);
 
    STRINGLIST aList;
    _parseStructs(root, aList);
@@ -127,19 +123,10 @@ BOOL APIENTRY CppLexer_Parse(LPCWSTR pstrFilename, LPCSTR pstrText)
 
    delete root;
 
-   char szTargetFilename[MAX_PATH] = { 0 };
-   ::GetModuleFileNameA(NULL, szTargetFilename, MAX_PATH);
-   char* p = strrchr(szTargetFilename, '\\');
-   if( p ) strcpy(p, "\\Lex\\");
-   strcat(szTargetFilename, ::PathFindFileNameA(szFilename));
-   p = strrchr(szTargetFilename, '.');
-   if( p ) *p = '_';
-   strcat(szTargetFilename, ".lex");
-
    char szFirstLine[MAX_PATH + 2];
-   ::wsprintfA(szFirstLine, "#%s\n", szFilename);
+   ::wsprintfA(szFirstLine, "#%s\n", pstrSourceName);
 
-   HANDLE hFile = ::CreateFileA(szTargetFilename, 
+   HANDLE hFile = ::CreateFileW(pstrOutputFile, 
       GENERIC_WRITE, 
       0, 
       NULL,

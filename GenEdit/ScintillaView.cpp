@@ -38,6 +38,7 @@ CScintillaView::CScintillaView(IDevEnv* pDevEnv) :
    m_bAutoTextDisplayed(false),
    m_bSuggestionDisplayed(false)
 {
+   // Prepare the "Find/Replce" dialog with static variables...
    if( s_frFind.lStructSize == 0 ) {
       static CHAR s_szFindText[128] = { 0 };
       static CHAR s_szReplaceText[128] = { 0 };
@@ -105,6 +106,8 @@ void CScintillaView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_EDIT_ZOOM_IN, TRUE);
    pUIBase->UIEnable(ID_EDIT_ZOOM_OUT, TRUE);
    pUIBase->UIEnable(ID_EDIT_OPENINCLUDE, TRUE);
+   pUIBase->UIEnable(ID_EDIT_OPENDECLARATION, TRUE);
+   pUIBase->UIEnable(ID_EDIT_OPENIMPLEMENTATION, TRUE);
 
    pUIBase->UIEnable(ID_EDIT_VIEWWS, TRUE);
    pUIBase->UISetCheck(ID_EDIT_VIEWWS, GetViewWS() != SCWS_INVISIBLE);
@@ -218,6 +221,8 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
 
    // Clean up in EDIT menu after C++ OpenInclude command
    submenu.RemoveMenu(ID_EDIT_OPENINCLUDE, MF_BYCOMMAND);
+   submenu.RemoveMenu(ID_EDIT_OPENDECLARATION, MF_BYCOMMAND);
+   submenu.RemoveMenu(ID_EDIT_OPENIMPLEMENTATION, MF_BYCOMMAND);
 
    return 0;
 }
@@ -261,22 +266,25 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       static int aCppStyles[] = 
       {
          STYLE_DEFAULT,                0,
-         SCE_C_IDENTIFIER,             0,
-         SCE_C_WORD,                   1,
-         SCE_C_DEFAULT,                1,
+         SCE_C_DEFAULT,                0,
+         SCE_C_WORD,                   0,
+         SCE_C_IDENTIFIER,             1,
+         SCE_C_GLOBALCLASS,            1,
          SCE_C_COMMENT,                2,
          SCE_C_COMMENTLINE,            2,
-         SCE_C_COMMENTDOC,             2,
-         SCE_C_COMMENTLINEDOC,         2,
          SCE_C_NUMBER,                 3,
          SCE_C_OPERATOR,               3,
          SCE_C_STRING,                 4,
          SCE_C_STRINGEOL,              4,
          SCE_C_CHARACTER,              4,
+         SCE_C_UUID,                   4,
+         SCE_C_REGEX,                  4,
          SCE_C_PREPROCESSOR,           5,
          SCE_C_WORD2,                  6,
          STYLE_BRACELIGHT,             7,
          STYLE_BRACEBAD,               8,
+         SCE_C_COMMENTDOC,             9,
+         SCE_C_COMMENTLINEDOC,         9,
          SCE_C_COMMENTDOCKEYWORD,      9,
          SCE_C_COMMENTDOCKEYWORDERROR, 9,
          -1, -1,
@@ -321,6 +329,8 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       {
          STYLE_DEFAULT,          0,
          SCE_SH_DEFAULT,         0,
+         SCE_SH_WORD,            0,
+         SCE_SH_OPERATOR,        0,
          SCE_SH_COMMENTLINE,     1,
          SCE_SH_STRING,          2,
          SCE_SH_CHARACTER,       2,
@@ -338,9 +348,9 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       static int aJavaStyles[] = 
       {
          STYLE_DEFAULT,        0,
-         SCE_C_IDENTIFIER,     0,
-         SCE_C_WORD,           1,
-         SCE_C_DEFAULT,        1,
+         SCE_C_DEFAULT,        0,
+         SCE_C_WORD,           0,
+         SCE_C_IDENTIFIER,     1,
          SCE_C_COMMENT,        2,
          SCE_C_COMMENTLINE,    2,
          SCE_C_COMMENTDOC,     2,
@@ -363,9 +373,10 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       static int aPascalStyles[] = 
       {
          STYLE_DEFAULT,        0,
-         SCE_C_IDENTIFIER,     0,
-         SCE_C_WORD,           1,
-         SCE_C_DEFAULT,        1,
+         SCE_C_DEFAULT,        0,
+         SCE_C_WORD,           0,
+         SCE_C_IDENTIFIER,     1,
+         SCE_C_WORD2,          1,
          SCE_C_COMMENT,        2,
          SCE_C_COMMENTLINE,    2,
          SCE_C_COMMENTDOC,     2,
@@ -388,8 +399,10 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       static int aPerlStyles[] = 
       {
          STYLE_DEFAULT,        0,
-         SCE_PL_WORD,          1,
-         SCE_PL_DEFAULT,       1,
+         SCE_PL_DEFAULT,       0,
+         SCE_PL_ERROR,         0,
+         SCE_PL_WORD,          0,
+         SCE_PL_IDENTIFIER,    1,
          SCE_PL_COMMENTLINE,   2,
          SCE_PL_NUMBER,        3,
          SCE_PL_OPERATOR,      3,
@@ -400,7 +413,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
          SCE_PL_STRING_QR,     4,
          SCE_PL_STRING_QW,     4,
          SCE_PL_CHARACTER,     4,
-         SCE_PL_IDENTIFIER,    5,
+         SCE_PL_POD,           5,
          SCE_PL_PREPROCESSOR,  6,
          -1, -1,
       };
@@ -414,9 +427,11 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       static int aPythonStyles[] = 
       {
          STYLE_DEFAULT,        0,
-         SCE_P_IDENTIFIER,     0,
-         SCE_P_WORD,           1,
-         SCE_C_DEFAULT,        1,
+         SCE_P_DEFAULT,        0,
+         SCE_P_WORD,           0,
+         SCE_P_IDENTIFIER,     1,
+         SCE_P_CLASSNAME,      1,
+         SCE_P_DEFNAME,        1,
          SCE_P_COMMENTLINE,    2,
          SCE_P_COMMENTBLOCK,   2,
          SCE_P_NUMBER,         3,
@@ -457,18 +472,18 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
       static int aSqlStyles[] = 
       {
-         STYLE_DEFAULT,        0,
-         SCE_C_WORD,           0,
-         SCE_C_DEFAULT,        0,
-         SCE_C_WORD,           1,
-         SCE_C_IDENTIFIER,     2,
-         SCE_C_COMMENT,        3,
-         SCE_C_COMMENTLINE,    3,
-         SCE_C_NUMBER,         4,
-         SCE_C_OPERATOR,       4,
-         SCE_C_STRING,         5,
-         SCE_C_STRINGEOL,      5,
-         SCE_C_CHARACTER,      5,
+         STYLE_DEFAULT,          0,
+         SCE_SQL_DEFAULT,        0,
+         SCE_SQL_WORD,           1,
+         SCE_SQL_IDENTIFIER,     2,
+         SCE_SQL_COMMENT,        3,
+         SCE_SQL_COMMENTLINE,    3,
+         SCE_SQL_COMMENTDOC,     3,
+         SCE_SQL_NUMBER,         4,
+         SCE_SQL_OPERATOR,       4,
+         SCE_SQL_STRING,         5,
+         SCE_SQL_CHARACTER,      5,
+         SCE_SQL_WORD2,          5,
          -1, -1,
       };
       ppStyles = aSqlStyles;
@@ -482,6 +497,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       {
          STYLE_DEFAULT,          0,
          SCE_H_DEFAULT,          0,
+         SCE_H_OTHER,            0,
          SCE_H_TAG,              1,
          SCE_H_TAGUNKNOWN,       1,
          SCE_H_ATTRIBUTE,        2,
@@ -489,9 +505,13 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
          SCE_H_NUMBER,           3,
          SCE_H_DOUBLESTRING,     4,
          SCE_H_SINGLESTRING,     4,
+         SCE_H_CDATA,            4,
+         SCE_H_VALUE,            4,
          SCE_H_COMMENT,          5,
+         SCE_H_XCCOMMENT,        5,
          SCE_H_XMLSTART,         6,
          SCE_H_XMLEND,           6,
+         SCE_H_TAGEND,           6,
          -1, -1,
       };
       ppStyles = aXmlStyles;
@@ -522,6 +542,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       {
          STYLE_DEFAULT,          0,
          SCE_H_DEFAULT,          0,
+         SCE_H_OTHER,            0,
          SCE_H_TAG,              1,
          SCE_H_TAGUNKNOWN,       1,
          SCE_H_ATTRIBUTE,        2,
@@ -532,6 +553,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
          SCE_H_COMMENT,          5,
          SCE_H_XCCOMMENT,        5,
          SCE_H_ASP,              6,
+         SCE_H_ASPAT,            6,
          SCE_H_QUESTION,         8,
          //
          SCE_HB_DEFAULT,         6,
@@ -579,7 +601,8 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       };
       ppStyles = aHtmlStyles;
 
-      // Some derived styles
+      // Some of the derived styles need some adjustment
+      // so they conform with the color-scheme.
       syntax[7] = syntax[6];
       syntax[7].clrText = BlendRGB(syntax[6].clrText, RGB(0,0,0), 40);
       syntax[8] = syntax[0];
@@ -608,7 +631,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       sKey.Format(_T("editors.%s."), m_sLanguage);
       TCHAR szBuffer[64] = { 0 };
       bool bBreakpointAsLines = false;
-      if( m_pDevEnv->GetProperty(sKey + _T("breakpointLines"), szBuffer, 63) ) bBreakpointAsLines = _tcscmp(szBuffer, _T("true")) == 0;
+      if( m_pDevEnv->GetProperty(sKey + _T("breakpointLines"), szBuffer, (sizeof(szBuffer) / sizeof(TCHAR)) - 1) ) bBreakpointAsLines = _tcscmp(szBuffer, _T("true")) == 0;
       // Define markers for current-line and breakpoint
       if( bBreakpointAsLines ) {
          _DefineMarker(MARKER_BREAKPOINT, SC_MARK_BACKGROUND, RGB(250,62,62), RGB(250,62,62));
@@ -648,7 +671,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    COLORREF clrBackShade = BlendRGB(clrBack, RGB(0,0,0), 3);
    COLORREF clrBackDarkShade = BlendRGB(clrBack, RGB(0,0,0), 8);
-   
+
    // Special contrast settings (BUG #1348377)
    if( clrBack == RGB(0,0,0) ) {
       clrBackShade = BlendRGB(clrBack, RGB(255,255,255), 3);
@@ -657,23 +680,25 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    }
 
    TCHAR szBuffer[64] = { 0 };
+   int cchBuffer = 63;
+
    sKey.Format(_T("editors.%s."), m_sLanguage);
 
    bool bValue;
    int iValue;
 
    bValue = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("showLines"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("showLines"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetMarginWidthN(0, bValue ? TextWidth(STYLE_LINENUMBER, "_9999") : 0);
 
    bValue = true;
-   if( m_pDevEnv->GetProperty(sKey + _T("showMargin"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("showMargin"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetMarginWidthN(1, bValue ? 16 : 0);
    SetMarginMaskN(1, bValue ? ~SC_MASK_FOLDERS : 0);
    SetMarginSensitiveN(1, TRUE);
 
    m_bFolding = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("showFolding"), szBuffer, 63) ) m_bFolding = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("showFolding"), szBuffer, cchBuffer) ) m_bFolding = _tcscmp(szBuffer, _T("true")) == 0;
    SetMarginWidthN(2, m_bFolding ? 16 : 0);
    SetMarginMaskN(2, m_bFolding ? SC_MASK_FOLDERS : 0);
    SetMarginTypeN(2, SC_MARGIN_SYMBOL);
@@ -692,76 +717,76 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    SetFoldFlags(4);
 
    bValue = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("showIndents"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("showIndents"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetIndentationGuides(bValue == true);
 
    bValue = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("wordWrap"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("wordWrap"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetWrapMode(bValue ? SC_WRAP_WORD : SC_WRAP_NONE);
 
    bValue = true;
-   if( m_pDevEnv->GetProperty(sKey + _T("useTabs"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("useTabs"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetUseTabs(bValue == true);
 
    bValue = true;
-   if( m_pDevEnv->GetProperty(sKey + _T("tabIndent"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("tabIndent"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetTabIndents(bValue == true);
 
    bValue = true;
-   if( m_pDevEnv->GetProperty(sKey + _T("backUnindent"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("backUnindent"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetBackSpaceUnIndents(bValue == true);
 
    bValue = true;
-   if( m_pDevEnv->GetProperty(sKey + _T("rectSelection"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("rectSelection"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetSelectionMode(bValue ? SC_SEL_RECTANGLE : SC_SEL_STREAM);
 
    iValue = 8;
-   if( m_pDevEnv->GetProperty(sKey + _T("tabWidth"), szBuffer, 63) ) iValue = _ttol(szBuffer);
+   if( m_pDevEnv->GetProperty(sKey + _T("tabWidth"), szBuffer, cchBuffer) ) iValue = _ttol(szBuffer);
    SetTabWidth(max(iValue, 1));
 
    iValue = 0;
-   if( m_pDevEnv->GetProperty(sKey + _T("indentWidth"), szBuffer, 63) ) iValue = _ttol(szBuffer);
+   if( m_pDevEnv->GetProperty(sKey + _T("indentWidth"), szBuffer, cchBuffer) ) iValue = _ttol(szBuffer);
    SetIndent(iValue);
-   
+
    m_bAutoIndent = false;
    m_bSmartIndent = false;
    m_bAutoSuggest = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, 63) ) m_bAutoIndent = _tcscmp(szBuffer, _T("auto")) == 0;
-   if( m_pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, 63) ) m_bSmartIndent = _tcscmp(szBuffer, _T("smart")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, cchBuffer) ) m_bAutoIndent = _tcscmp(szBuffer, _T("auto")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, cchBuffer) ) m_bSmartIndent = _tcscmp(szBuffer, _T("smart")) == 0;
    
    m_bMatchBraces = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("matchBraces"), szBuffer, 63) ) m_bMatchBraces = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("matchBraces"), szBuffer, cchBuffer) ) m_bMatchBraces = _tcscmp(szBuffer, _T("true")) == 0;
 
    m_bProtectDebugged = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("protectDebugged"), szBuffer, 63) ) m_bProtectDebugged = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("protectDebugged"), szBuffer, cchBuffer) ) m_bProtectDebugged = _tcscmp(szBuffer, _T("true")) == 0;
 
    m_bAutoComplete = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("autoComplete"), szBuffer, 63) ) m_bAutoComplete = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("autoComplete"), szBuffer, cchBuffer) ) m_bAutoComplete = _tcscmp(szBuffer, _T("true")) == 0;
 
    m_bAutoClose = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("autoClose"), szBuffer, 63) ) m_bAutoClose = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("autoClose"), szBuffer, cchBuffer) ) m_bAutoClose = _tcscmp(szBuffer, _T("true")) == 0;
 
    m_bAutoCase = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("autoCase"), szBuffer, 63) ) m_bAutoCase = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("autoCase"), szBuffer, cchBuffer) ) m_bAutoCase = _tcscmp(szBuffer, _T("true")) == 0;
 
    m_bAutoSuggest = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("autoSuggest"), szBuffer, 63) ) m_bAutoSuggest = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("autoSuggest"), szBuffer, cchBuffer) ) m_bAutoSuggest = _tcscmp(szBuffer, _T("true")) == 0;
 
    sKey = _T("editors.general.");
 
    iValue = 1;
-   if( m_pDevEnv->GetProperty(sKey + _T("caretWidth"), szBuffer, 63) ) iValue = _ttol(szBuffer);
+   if( m_pDevEnv->GetProperty(sKey + _T("caretWidth"), szBuffer, cchBuffer) ) iValue = _ttol(szBuffer);
    SetCaretWidth(max(iValue, 1));
    
    bValue = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("showEdge"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("showEdge"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetEdgeMode(bValue ? EDGE_LINE : EDGE_NONE);
    
    bValue = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("bottomless"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("bottomless"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    
    bValue = false;
-   if( m_pDevEnv->GetProperty(sKey + _T("markCaretLine"), szBuffer, 63) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
+   if( m_pDevEnv->GetProperty(sKey + _T("markCaretLine"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetCaretLineVisible(bValue);
    SetCaretLineBack(clrBackShade);
 
@@ -900,7 +925,9 @@ void CScintillaView::_MatchBraces(long lPos)
    int iStyle = GetStyleAt(lPos);
    if( (ch == '{' && m_sLanguage == _T("cpp") && iStyle == SCE_C_OPERATOR )
        || (ch == '(' && m_sLanguage == _T("cpp") && iStyle == SCE_C_OPERATOR )
+       || (ch == '[' && m_sLanguage == _T("cpp") && iStyle == SCE_C_OPERATOR )
        || (ch == '<' && m_sLanguage == _T("html"))
+       || (ch == '<' && m_sLanguage == _T("xml"))
        || (ch == '{' && m_sLanguage == _T("java"))
        || (ch == '(' && m_sLanguage == _T("java"))
        || (ch == '{' && m_sLanguage == _T("php") && iStyle == SCE_HPHP_OPERATOR )
@@ -1134,6 +1161,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
          iPos = sKeywords.Find(szFind, iPos - 1);
       }
       if( m_bAutoCase ) sList.MakeLower();
+      AutoCSetFillUps(">");
    }
    // Get auto-completion words from PHP or XML text
    if( (ch == '$' && m_sLanguage == _T("php")) 
@@ -1154,10 +1182,10 @@ void CScintillaView::_AutoComplete(CHAR ch)
       // Create array of items found from text
       CSimpleArray<CString> aList;
       LPSTR pstr = strstr(szText, szFind);
-      while( pstr ) {
+      while( pstr != NULL ) {
          pstr++;
          CString sWord;
-         while( *pstr ) {
+         while( *pstr != '\0' ) {
             if( !_iseditchar(*pstr) ) break;
             sWord += (TCHAR) *pstr++;
          }
@@ -1176,8 +1204,14 @@ void CScintillaView::_AutoComplete(CHAR ch)
          _AddUnqiue(aList, _T("_ENV"));
          _AddUnqiue(aList, _T("_COOKIE"));
          _AddUnqiue(aList, _T("this"));
+         AutoCSetFillUps("[");
       }
-      // Sort them
+      // Add XML specific
+      if( m_sLanguage == _T("xml") )
+      {
+         AutoCSetFillUps(">");
+      }
+      // Sort the list
       for( int a = 0; a < aList.GetSize(); a++ ) {
          for( int b = a + 1; b < aList.GetSize(); b++ ) {
             // Right; Scintilla uses strcmp() to compile its items
@@ -1196,6 +1230,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
    sList.TrimRight();
    if( sList.IsEmpty() ) return;
    ClearRegisteredImages();
+   AutoCSetMaxHeight(6);
    AutoCSetIgnoreCase(FALSE);
    AutoCShow(1, T2CA(sList));
 }
@@ -1297,18 +1332,18 @@ void CScintillaView::_MaintainIndent(CHAR ch)
             // for on a new line.
             static LPCTSTR ppstrBlocks[] = 
             {
-               _T("<BODY"),
-               _T("<FORM"),
-               _T("<FRAMESET"),
-               _T("<HEAD"),
-               _T("<HTML"),
-               _T("<OBJECT")
-               _T("<SCRIPT"),
-               _T("<TABLE"),
-               _T("<TD"),
-               _T("<THEAD"),
-               _T("<TR"),
-               _T("<UL"),
+               _T("<body"),
+               _T("<form"),
+               _T("<frameset"),
+               _T("<head"),
+               _T("<html"),
+               _T("<object")
+               _T("<script"),
+               _T("<table"),
+               _T("<td"),
+               _T("<thead"),
+               _T("<tr"),
+               _T("<ul"),
                NULL,
             };
             for( LPCTSTR* ppstr = ppstrBlocks; *ppstr; ppstr++ ) {
@@ -1399,7 +1434,8 @@ void CScintillaView::_MaintainTags(CHAR ch)
    CHAR chPrev = GetCharAt(lPosition - 2);
    int iStylePrev = GetStyleAt(lPosition - 2);
 
-   if( ch == '>' && (m_sLanguage == _T("html") || m_sLanguage == _T("xml") || m_sLanguage == _T("php") || m_sLanguage == _T("asp")) )
+   if( ch == '>' 
+       && (m_sLanguage == _T("html") || m_sLanguage == _T("xml") || m_sLanguage == _T("php") || m_sLanguage == _T("asp")) )
    {
       //
       // Close HTML and XML tags
@@ -1417,11 +1453,10 @@ void CScintillaView::_MaintainTags(CHAR ch)
       CString sFound = _FindOpenXmlTag(szText, lPosition - nMin);
       if( sFound.IsEmpty() ) return;
       // Ignore some of the typical non-closed HTML tags
-      if( sFound.CompareNoCase(_T("META")) == 0 ) return;
-      if( sFound.CompareNoCase(_T("IMG")) == 0 ) return;
-      if( sFound.CompareNoCase(_T("BR")) == 0 ) return;
-      if( sFound.CompareNoCase(_T("HR")) == 0 ) return;
-      if( sFound.CompareNoCase(_T("P")) == 0 ) return;
+      static LPCTSTR ppstrNonClosed[] = { _T("meta"), _T("img"), _T("br"), _T("hr"), _T("p"), NULL };
+      for( LPCTSTR* ppstr = ppstrNonClosed; *ppstr; ppstr++ ) {
+         if( sFound.CollateNoCase(*ppstr) == 0 ) return;
+      }
       // Insert end-tag into text
       CString sInsert;
       sInsert.Format(_T("</%s>"), sFound);
@@ -1430,7 +1465,8 @@ void CScintillaView::_MaintainTags(CHAR ch)
       SetSel(lPosition, lPosition);
       EndUndoAction();
    }
-   if( ch == '{' && (m_sLanguage == _T("cpp") || m_sLanguage == _T("java") || m_sLanguage == _T("php")) )
+   if( ch == '{' 
+       && (m_sLanguage == _T("cpp") || m_sLanguage == _T("java") || m_sLanguage == _T("php")) )
    {
       //
       // Auto-close braces in C-like languages
@@ -1455,7 +1491,8 @@ void CScintillaView::_MaintainTags(CHAR ch)
          EndUndoAction();
       }
    }
-   if( ch == '[' && (m_sLanguage == _T("cpp") || m_sLanguage == _T("php") || m_sLanguage == _T("java")) ) 
+   if( ch == '[' 
+       && (m_sLanguage == _T("cpp") || m_sLanguage == _T("php") || m_sLanguage == _T("java")) ) 
    {
       //
       // Insert hard-braces for C-type arrays
@@ -1685,7 +1722,7 @@ void CScintillaView::_RestoreBookmarks()
    for( int iIndex = 1; iIndex < 20; iIndex++  ) {
       ::wsprintf(szKey, _T("bookmarks.%s.%d"), pstrName, iIndex);
       TCHAR szValue[64] = { 0 };
-      m_pDevEnv->GetProperty(szKey, szValue, 63);
+      m_pDevEnv->GetProperty(szKey, szValue, (sizeof(szValue) / sizeof(TCHAR)) - 1);
       if( _tcslen(szValue) == 0 ) break;
       MarkerAdd(_ttoi(szValue), MARKER_BOOKMARK);
    }
@@ -1707,11 +1744,11 @@ void CScintillaView::_GetSyntaxStyle(LPCTSTR pstrName, SYNTAXCOLOR& syntax)
 
    _tcscpy(syntax.szFont, _GetProperty(sKey + _T("font")));
    syntax.iHeight = _ttol(_GetProperty(sKey + _T("height")));
-   if( m_pDevEnv->GetProperty(sKey + _T("color"), szBuffer, 63) ) {
+   if( m_pDevEnv->GetProperty(sKey + _T("color"), szBuffer, (sizeof(szBuffer) / sizeof(TCHAR)) - 1) ) {
       syntax.clrText = _tcstol(szBuffer + 1, &p, 16);
       syntax.clrText = RGR2RGB(syntax.clrText);
    }
-   if( m_pDevEnv->GetProperty(sKey + _T("back"), szBuffer, 63) ) {
+   if( m_pDevEnv->GetProperty(sKey + _T("back"), szBuffer, (sizeof(szBuffer) / sizeof(TCHAR)) - 1) ) {
       syntax.clrBack = _tcstol(szBuffer + 1, &p, 16);
       syntax.clrBack = RGR2RGB(syntax.clrBack);
    }

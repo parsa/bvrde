@@ -49,7 +49,7 @@ BOOL CPlugin::LoadPackage(IDevEnv* pDevEnv)
    m_sName.ReleaseBuffer();
    m_lType = pGetType();
 
-   // An active plugin never allow the DLL code to initialize
+   // An inactive plugin never allow the DLL code to initialize
    if( !m_bActive ) return TRUE;
 
    // Call initialize to begin startup

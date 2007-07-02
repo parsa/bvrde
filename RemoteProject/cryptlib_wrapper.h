@@ -104,43 +104,55 @@ public:
       cryptAddRandom(NULL, CRYPT_RANDOM_SLOWPOLL);
       return true;
    }
+
+   DWORD StatusToWin32Error(int status, DWORD dwDefault) const
+   {
+      switch( status ) {
+      case CRYPT_ERROR_OPEN:       return WSASERVICE_NOT_FOUND;
+      case CRYPT_ERROR_MEMORY:     return ERROR_OUTOFMEMORY;
+      case CRYPT_ERROR_TIMEOUT:    return ERROR_TIMEOUT;
+      case CRYPT_ERROR_BADDATA:    return WSAEPROTOTYPE;
+      case CRYPT_ERROR_INVALID:    return ERROR_ENCRYPTION_FAILED;
+      case CRYPT_ERROR_WRONGKEY:   return ERROR_NOT_AUTHENTICATED;
+      case CRYPT_ERROR_OVERFLOW:   return WSA_QOS_ADMISSION_FAILURE;
+      case CRYPT_ERROR_SIGNALLED:  return WSAECONNRESET;
+      case CRYPT_ERROR_NOTINITED:  return ERROR_SHARING_PAUSED;
+      default:                     return dwDefault;
+      }     
+   }
+   
+   int GetPrivateKey(CRYPT_CONTEXT *cryptContext, LPCSTR keysetName, LPCSTR keyName, LPCSTR password)
+   {
+      // Loads certificate. Tries to locate and load the certificate
+      // if available. CryptLib should be initialized before this is called.
+      CRYPT_KEYSET cryptKeyset;
+      int dummy, status;
+      // Read the key from the keyset
+      status = cryptKeysetOpen( &cryptKeyset, CRYPT_UNUSED, CRYPT_KEYSET_FILE, keysetName, CRYPT_KEYOPT_READONLY );
+      if( cryptStatusError( status ) ) return status;
+      status = cryptGetPrivateKey( cryptKeyset, cryptContext, CRYPT_KEYID_NAME, keyName, password );
+      cryptKeysetClose( cryptKeyset );
+      if( cryptStatusError( status ) ) return status;
+
+      // If the key has a cert attached, make sure it's still valid before we 
+      // hand it back to the self-test functions which will report the problem 
+      // as being with the self-test rather than with the cert
+      time_t validFrom, validTo;
+      status = cryptGetAttributeString( *cryptContext, CRYPT_CERTINFO_VALIDFROM, &validFrom, &dummy );
+      if( cryptStatusError( status ) ) return CRYPT_OK;
+      cryptGetAttributeString( *cryptContext, CRYPT_CERTINFO_VALIDTO, &validTo, &dummy );
+      if( ( validTo - validFrom > ( 86400L * 30L ) ) && validTo - ::time(NULL) <= ( 86400L * 30L ) ) {
+         CString sMsg;
+         if( validTo <= ::time(NULL) ) sMsg.LoadString(IDS_ERR_KEY_EXPIRED);
+         else if( validTo - time( NULL ) <= 86400 ) sMsg.LoadString(IDS_ERR_KEY_EXPIRES_TODAY);
+         else sMsg.Format(IDS_ERR_KEY_EXPIRES_SOON, (validTo - ::time(NULL)) / 86400L);
+         if( !sMsg.IsEmpty() ) _pDevEnv->ShowMessageBox(NULL, sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONINFORMATION|MB_MODELESS);
+      }
+      return CRYPT_OK;
+   }
+
 };
 
-
-inline int SshGetPrivateKey(CCryptLib& clib, 
-                            CRYPT_CONTEXT *cryptContext, 
-                            LPCSTR keysetName,
-                            LPCSTR keyName, 
-                            LPCSTR password)
-{
-   // Loads certificate. Tries to locate and load the certificate
-   // if available. CryptLib should be initialized before this is called.
-   CRYPT_KEYSET cryptKeyset;
-   int dummy, status;
-   // Read the key from the keyset
-   status = clib.cryptKeysetOpen( &cryptKeyset, CRYPT_UNUSED, CRYPT_KEYSET_FILE, keysetName, CRYPT_KEYOPT_READONLY );
-   if( cryptStatusError( status ) ) return status;
-   status = clib.cryptGetPrivateKey( cryptKeyset, cryptContext, CRYPT_KEYID_NAME, keyName, password );
-   clib.cryptKeysetClose( cryptKeyset );
-   if( cryptStatusError( status ) ) return status;
-
-   // If the key has a cert attached, make sure it's still valid before we 
-   // hand it back to the self-test functions which will report the problem 
-   // as being with the self-test rather than with the cert
-   time_t validFrom, validTo;
-   status = clib.cryptGetAttributeString( *cryptContext, CRYPT_CERTINFO_VALIDFROM, &validFrom, &dummy );
-   if( cryptStatusError( status ) ) return CRYPT_OK;
-   clib.cryptGetAttributeString( *cryptContext, CRYPT_CERTINFO_VALIDTO, &validTo, &dummy );
-   if( ( validTo - validFrom > ( 86400L * 30L ) ) && validTo - ::time(NULL) <= ( 86400L * 30L ) )
-   {
-      CString sMsg;
-      if( validTo <= ::time(NULL) ) sMsg.LoadString(IDS_ERR_KEY_EXPIRED);
-      else if( validTo - time( NULL ) <= 86400 ) sMsg.LoadString(IDS_ERR_KEY_EXPIRES_TODAY);
-      else sMsg.Format(IDS_ERR_KEY_EXPIRES_SOON, (validTo - ::time(NULL)) / 86400L);
-      if( !sMsg.IsEmpty() ) _pDevEnv->ShowMessageBox(NULL, sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONINFORMATION|MB_MODELESS);
-   }
-   return CRYPT_OK;
-}
 
 
 #endif // !defined(AFX_CRYPTLIB_WRAPPER_H__20030717_EDCA_8D0A_76E7_0080AD509054__INCLUDED_)

@@ -447,7 +447,7 @@ LRESULT CEmptyProject::OnViewOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
 
    IView* pView = static_cast<IView*>(pElement);
-   if( !pView->OpenView(0) ) GenerateError(_pDevEnv, IDS_ERR_OPENVIEW);
+   if( !pView->OpenView(0) ) GenerateError(_pDevEnv, NULL, IDS_ERR_OPENVIEW);
    return 0;
 }
 
@@ -881,7 +881,7 @@ bool CEmptyProject::_CheckProjectFile(LPCTSTR pstrName)
       sName.ReleaseBuffer();
       if( sName.CompareNoCase(pstrName) == 0 ) {
          ::SetLastError(0L);
-         GenerateError(_pDevEnv, IDS_ERR_FILEINCLUDED);
+         GenerateError(_pDevEnv, NULL, IDS_ERR_FILEINCLUDED);
          return false;
       }       
    }

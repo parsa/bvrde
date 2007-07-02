@@ -68,16 +68,15 @@ DWORD CSshThread::Run()
    int status = clib.cryptCreateSession(&cryptSession, CRYPT_UNUSED, CRYPT_SESSION_SSH);
    if( cryptStatusError(status) ) {
       cryptSession = 0;
-      m_pManager->m_dwErrorCode = NTE_BAD_VER;
-      if( status == CRYPT_ERROR_NOTINITED ) m_pManager->m_dwErrorCode = ERROR_SHARING_PAUSED;
+      m_pManager->m_dwErrorCode = clib.StatusToWin32Error(status, NTE_BAD_VER);
       if( status == CRYPT_ERROR_PARAM3 ) m_pManager->m_dwErrorCode = ERROR_MEDIA_NOT_AVAILABLE;
       return 0;
    }
    if( cryptStatusOK(status) ) {
-      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_SERVER_NAME, pstrHost, sHost.GetLength());
+      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_SERVER_NAME, pstrHost, strlen(pstrHost));
    }
    if( cryptStatusOK(status) ) {
-      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_USERNAME, pstrUsername, sUsername.GetLength());
+      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_USERNAME, pstrUsername, strlen(pstrUsername));
    }
    if( cryptStatusOK(status) ) {
       status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_SERVER_PORT, lPort);
@@ -85,21 +84,21 @@ DWORD CSshThread::Run()
    if( cryptStatusOK(status) ) {
       if( !sCertificate.IsEmpty() ) {
          CRYPT_CONTEXT privateKey;
-         status = SshGetPrivateKey(clib, &privateKey, pstrCertificate, "BVRDE Certificate", pstrPassword);
+         status = clib.GetPrivateKey(&privateKey, pstrCertificate, "BVRDE Certificate", pstrPassword);
          if( cryptStatusOK(status) ) {
             status = clib.cryptSetAttribute( cryptSession, CRYPT_SESSINFO_PRIVATEKEY, privateKey );
             clib.cryptDestroyContext( privateKey );
          }
       }
       else {
-         status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_PASSWORD, pstrPassword, sPassword.GetLength());
+         status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_PASSWORD, pstrPassword, strlen(pstrPassword));
       }
    }
    if( cryptStatusOK(status) ) {
       status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_VERSION, 2);
    }
    if( cryptStatusError(status) ) {
-      m_pManager->m_dwErrorCode = ERROR_REQUEST_REFUSED;
+      m_pManager->m_dwErrorCode = clib.StatusToWin32Error(status, ERROR_REQUEST_REFUSED);
       if( cryptSession != 0 ) {
          clib.cryptDestroySession(cryptSession);
          cryptSession = 0;
@@ -110,21 +109,13 @@ DWORD CSshThread::Run()
    // Set timeout values
    clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_CONNECTTIMEOUT, lConnectTimeout - 2);
    //clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_TIMEOUT, lConnectTimeout);
-   //clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_READTIMEOUT, lConnectTimeout);
-   //clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_WRITETIMEOUT, lConnectTimeout);
+   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_READTIMEOUT, 0);
+   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_WRITETIMEOUT, 2);
 
    // Start connection
    status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_ACTIVE, TRUE);
    if( cryptStatusError(status) ) {
-      m_pManager->m_dwErrorCode = WSAEPROVIDERFAILEDINIT;
-      if( status == CRYPT_ERROR_OPEN ) m_pManager->m_dwErrorCode = WSASERVICE_NOT_FOUND;
-      if( status == CRYPT_ERROR_MEMORY ) m_pManager->m_dwErrorCode = ERROR_OUTOFMEMORY;
-      if( status == CRYPT_ERROR_BADDATA ) m_pManager->m_dwErrorCode = WSAEPROTOTYPE;
-      if( status == CRYPT_ERROR_INVALID ) m_pManager->m_dwErrorCode = DIGSIG_E_CRYPTO;
-      if( status == CRYPT_ERROR_TIMEOUT )  m_pManager->m_dwErrorCode = ERROR_TIMEOUT;
-      if( status == CRYPT_ERROR_WRONGKEY ) m_pManager->m_dwErrorCode = ERROR_NOT_AUTHENTICATED;
-      if( status == CRYPT_ERROR_OVERFLOW ) m_pManager->m_dwErrorCode = WSA_QOS_ADMISSION_FAILURE;
-      if( status == CRYPT_ERROR_SIGNALLED ) m_pManager->m_dwErrorCode = WSAECONNRESET;
+      m_pManager->m_dwErrorCode = clib.StatusToWin32Error(status, WSAEPROVIDERFAILEDINIT);
       CHAR szError[200] = { 0 };
       int ccbSize = sizeof(szError) - 1;
       clib.cryptGetAttributeString(cryptSession, CRYPT_ATTRIBUTE_INT_ERRORMESSAGE, szError, &ccbSize);
@@ -147,17 +138,20 @@ DWORD CSshThread::Run()
 
    VT100COLOR nColor = VT100_DEFAULT;
    bool bNextIsPrompt = false;
+   DWORD dwSleep = 20;
 
    while( !ShouldStop() ) {
 
       int iRead = 0;
       status = clib.cryptPopData(cryptSession, bReadBuffer, INITIAL_BUFFER_SIZE, &iRead);
       if( status == 0 && iRead == 0 ) {
-         // Hmm, nasty data polling delay! But CryptLib only supports read-timeouts in
-         // seconds and that is too high.
-         ::Sleep(200L);
+         // TODO: Hmm, nasty data polling delay! But CryptLib seems to be somehow broken
+         //       when enabling its read-timeout. Data appears to lag or simple disappear.
+         if( dwSleep <= 100 ) dwSleep *= 2;
+         ::Sleep(dwSleep);
          continue;
       }
+      dwSleep = 50;
       if( status == CRYPT_ERROR_TIMEOUT ) continue;
       if( cryptSession == 0 ) break;
       if( cryptStatusError(status) ) break;
@@ -165,7 +159,7 @@ DWORD CSshThread::Run()
 #ifdef _DEBUG
       bReadBuffer[iRead] = '\0';
       ATLTRACE(_T("SSH: '%hs' len=%ld\n"), bReadBuffer, iRead);
-#endif
+#endif // _DEBUG
 
       // We might need to grow the data buffer
       if( dwPos + iRead > dwBufferSize ) {
@@ -203,7 +197,7 @@ DWORD CSshThread::Run()
             ppstr++;
          }
          // Ok, signal that we're connected
-         m_pManager->m_bConnected = *ppstr == NULL;
+         m_pManager->m_bConnected = (*ppstr == NULL);
          // Send our own login commands
          if( m_pManager->m_bConnected && !sExtraCommands.IsEmpty() ) {
             CString sCustom = sExtraCommands;
@@ -330,7 +324,6 @@ CSshProtocol::CSshProtocol() :
    m_lPort(0)
 {
    Clear();
-   m_event.Create();
 }
 
 CSshProtocol::~CSshProtocol()
@@ -371,7 +364,7 @@ bool CSshProtocol::Load(ISerializable* pArc)
    m_sPassword.ReleaseBuffer();
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
-   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(200), 200);
+   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(400), 400);
    m_sExtraCommands.ReleaseBuffer();
    pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
 
@@ -421,7 +414,6 @@ bool CSshProtocol::Stop()
 void CSshProtocol::SignalStop()
 {
    m_thread.SignalStop();
-   m_event.SetEvent();
 }
 
 bool CSshProtocol::IsConnected() const
@@ -469,21 +461,23 @@ bool CSshProtocol::WriteData(LPCTSTR pstrData)
       m_pCallback->BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_LOG_CONNECTERROR)));
       return false;
    }
-   int nLen = _tcslen(pstrData);
-   LPSTR pstr = (LPSTR) _alloca(nLen + 2);
+   int nLen = (_tcslen(pstrData) * 2) + 2;  // MBCS + \n + \0
+   LPSTR pstr = (LPSTR) _alloca(nLen);
    ATLASSERT(pstr);
    if( pstr == NULL ) return false;
-   AtlW2AHelper(pstr, pstrData, nLen + 1);
-   strcpy(pstr + nLen, "\n");
+   ::ZeroMemory(pstr, nLen);
+   AtlW2AHelper(pstr, pstrData, nLen - 2);
+   strcat(pstr, "\n");
+   nLen = strlen(pstr);
    CLockStaticDataInit lock;
    int iWritten = 0;
    int iTimeout = 10;
    int status = CRYPT_ERROR_TIMEOUT;
    while( status == CRYPT_ERROR_TIMEOUT && --iTimeout > 0 ) {
-      status = clib.cryptPushData(m_cryptSession, pstr, nLen + 1, &iWritten);
+      status = clib.cryptPushData(m_cryptSession, pstr, nLen, &iWritten);
    }
    if( cryptStatusOK(status) ) status = clib.cryptFlushData(m_cryptSession);
-   if( cryptStatusError(status) || iWritten != nLen + 1 ) {
+   if( cryptStatusError(status) || iWritten != nLen ) {
       ::SetLastError(ERROR_WRITE_FAULT);
       return false;
    }

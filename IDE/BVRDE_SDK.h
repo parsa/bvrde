@@ -48,7 +48,6 @@
 #define ID_HELP_STARTPAGE           0xE415
 #define ID_HELP_SEARCH              0xE416
 #define ID_HELP_CONTENTS            0xE417
-#define ID_PROCESS                  0xE418
 #define ID_MACRO_RECORD             0xE419
 #define ID_MACRO_CANCEL             0xE41A
 

@@ -24,8 +24,10 @@ CWatchView::CWatchView() :
 void CWatchView::Init(CRemoteProject* pProject)
 {
    m_pProject = pProject;
-   // Remove previous items
-   if( m_ctrlGrid.IsWindow() ) while( m_ctrlGrid.GetItemCount() > 0 ) m_ctrlGrid.DeleteItem(0);
+   // Remove previous items; do a fresh start...
+   if( m_ctrlGrid.IsWindow() ) {
+      while( m_ctrlGrid.GetItemCount() > 0 ) m_ctrlGrid.DeleteItem(0);
+   }
 }
 
 bool CWatchView::WantsData() 
@@ -62,7 +64,7 @@ void CWatchView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       if( sName.IsEmpty() ) return;
       if( sName.Find(_T("watch")) != 0 ) return;
       CString sValue = info.GetItem(_T("value"));
-      LPARAM lWatch = (LPARAM) _ttol( ((LPCTSTR) sName) + 5);  // formatted as "watch1234"
+      LPARAM lWatch = (LPARAM) _ttol(sName.Mid(5));  // formatted as "watch1234"
       int nCount = m_ctrlGrid.GetItemCount();
       for( int i = 0; i < nCount; i++ ) {
          HPROPERTY hProp = m_ctrlGrid.GetProperty(i, 0);
@@ -80,7 +82,7 @@ void CWatchView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       CString sName = info.GetItem(_T("name"));
       while( !sName.IsEmpty() ) {
          if( _tcsncmp(sName, _T("watch"), 5) == 0 ) {
-            LPARAM lWatch = (LPARAM) _ttol( ((LPCTSTR) sName) + 5);  // formatted as "watch1234"
+            LPARAM lWatch = (LPARAM) _ttol(sName.Mid(5));  // formatted as "watch1234"
             int nCount = m_ctrlGrid.GetItemCount();
             bool bFound = false;
             for( int i = 0; !bFound && i < nCount; i++ ) {
@@ -95,6 +97,31 @@ void CWatchView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          }
          sName = info.FindNext(_T("name"));
       }
+   }
+   if( _tcscmp(pstrType, _T("changelist")) == 0 )
+   {
+      CSimpleArray<LPARAM> aChangedWatches;
+      CString sName = info.GetItem(_T("name"));
+      while( !sName.IsEmpty() ) {
+         if( _tcsncmp(sName, _T("watch"), 5) == 0 ) {
+            LPARAM lWatch = (LPARAM) _ttol(sName.Mid(5));  // formatted as "watch1234"
+            aChangedWatches.Add(lWatch);
+         }
+         sName = info.FindNext(_T("name"));
+      }
+      COLORREF clrChanged = ::GetSysColor(COLOR_HIGHLIGHT);
+      int nCount = m_ctrlGrid.GetItemCount();
+      for( int i = 0; i < nCount; i++ ) {
+         HPROPERTY hProp = m_ctrlGrid.GetProperty(i, 0);
+         LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
+         bool bFound = false;
+         for( int j = 0; !bFound && j < aChangedWatches.GetSize(); j++ ) if( aChangedWatches[j] == lKey ) bFound = true;
+         static_cast<CPropertyItem*>(hProp)->SetTextColor(bFound ? clrChanged : CLR_INVALID);
+      }
+      // Intelligently try to refresh items...
+      static int s_iLastChangeCount = -1;
+      if( s_iLastChangeCount > 0 || aChangedWatches.GetSize() > 0 ) m_ctrlGrid.Invalidate(FALSE);
+      s_iLastChangeCount = aChangedWatches.GetSize();
    }
 }
 
@@ -133,13 +160,13 @@ void CWatchView::_CreateWatch(HPROPERTY hProp, LPCTSTR pstrName)
 void CWatchView::_DeleteWatch(HPROPERTY hProp)
 {
    ATLASSERT(hProp);
-   int iItem, iCol;
+   int iItem = -1, iCol = -1;
    m_ctrlGrid.FindProperty(hProp, iItem, iCol);
    LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
+   m_ctrlGrid.DeleteItem(iItem);
    CString sCommand;
    sCommand.Format(_T("-var-delete watch%ld"), lKey);
    m_pProject->DelayedDebugCommand(sCommand);
-   m_ctrlGrid.DeleteItem(iItem);
 }
 
 
@@ -191,14 +218,18 @@ bool CWatchView::DoDrop(LPDATAOBJECT pDataObj)
 
    if( sText.IsEmpty() ) return false;
 
-   // Add item
+   // Add new item...
    LPARAM lKey = (LPARAM) ::GetTickCount();
    int iItem = m_ctrlGrid.InsertItem(-1, PropCreateSimple(_T(""), sText, lKey));
    m_ctrlGrid.SetSubItem(iItem, 1, PropCreateSimple(_T(""), _T("")));
    m_ctrlGrid.SelectItem(iItem);
    CString sCommand;
-   sCommand.Format(_T("-var-create watch%ld * \"%s\""), lKey, _T("0"));
+   sCommand.Format(_T("-var-create watch%ld * \"%s\""), lKey, sText);
    m_pProject->DelayedDebugCommand(sCommand);
+
+   CSimpleArray<CString> aDbgCmd;
+   EvaluateValues(aDbgCmd);
+   for( int i = 0; i < aDbgCmd.GetSize(); i++ ) m_pProject->DelayedDebugCommand(aDbgCmd[i]);
 
    SetFocus();
    return true;
@@ -220,8 +251,8 @@ LRESULT CWatchView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 {
    LPNMPROPERTYITEM pnpi = (LPNMPROPERTYITEM) pnmh;
 
-   int iItem;
-   int iSubItem;
+   int iItem = -1;
+   int iSubItem = -1;
    m_ctrlGrid.FindProperty(pnpi->prop, iItem, iSubItem);
 
    if( iSubItem == 0 ) 
@@ -256,12 +287,12 @@ LRESULT CWatchView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
 
 LRESULT CWatchView::OnGridKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-   // NOTE: It would be easier to catch the LVN_KEYDOWN notification
-   //       but our grid control snags it before us and we need to subclass
-   //       and intercept it.
    switch( wParam ) {
    case VK_DELETE:
       {
+         // NOTE: It would be easier to catch the LVN_KEYDOWN notification
+         //       but our grid control snags it before us and we need to subclass
+         //       and intercept it.
          int iIndex = m_ctrlGrid.GetSelectedIndex();
          if( iIndex < 0 || iIndex >= m_ctrlGrid.GetItemCount() ) return 0;
          _DeleteWatch( m_ctrlGrid.GetProperty(iIndex, 0) );

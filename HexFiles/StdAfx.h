@@ -18,7 +18,7 @@
 #define _WTL_NEW_PAGE_NOTIFY_HANDLERS
 #define _CRT_SECURE_NO_DEPRECATE
 
-#define PROGID_XMLDOMDocument L"MSXML2.DOMDocument.3.0"
+#define PROGID_XMLDOMDocument L"MSXML2.DOMDocument"
 
 
 #include <atlbase.h>

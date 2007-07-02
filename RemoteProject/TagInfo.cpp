@@ -30,6 +30,10 @@ void CTagInfo::Init(CRemoteProject* pProject)
 
 bool CTagInfo::MergeFile(LPCTSTR /*pstrFilename*/)
 {
+   // TODO: Currently we just reload all the tag files again upon the
+   //       file merge event. I assume that it would be better to maintain
+   //       optimal sorting when dealing with multiple ctag files, but this 
+   //       was never implemented.
    return _LoadTags();
 }
 
@@ -476,7 +480,7 @@ bool CTagInfo::_ParseTagFile(LPTSTR pstrText)
 
       // Look up type information at once
       info.Type = _GetTagType(info);
-      info.iLineNo = -1;
+      info.lLineNum = -1;
 
       m_aTags.Add(info);
    }

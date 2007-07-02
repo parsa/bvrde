@@ -77,7 +77,6 @@ protected:
    long m_lConnectTimeout;
    //
    CSshThread m_thread;
-   CEvent m_event;
    DWORD m_dwErrorCode;
    volatile CRYPT_SESSION m_cryptSession;
    volatile bool m_bConnected;

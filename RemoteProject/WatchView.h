@@ -12,7 +12,7 @@ class CRemoteProject;
 
 class CWatchView : 
    public CWindowImpl<CWatchView>,
-   public IRawDropTarget<CWatchView>
+   public CRawDropTarget<CWatchView>
 {
 public:
    DECLARE_WND_CLASS(_T("BVRDE_WatchView"))

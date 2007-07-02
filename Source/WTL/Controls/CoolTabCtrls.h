@@ -49,9 +49,10 @@
 
 // New tab notifications
 #ifndef TCN_INITIALIZE
-   #define TCN_INITIALIZE TCN_FIRST-10
-   #define TCN_INSERTITEM TCN_FIRST-11
-   #define TCN_DELETEITEM TCN_FIRST-12
+   #define TCN_INITIALIZE    TCN_FIRST-10
+   #define TCN_INSERTITEM    TCN_FIRST-11
+   #define TCN_DELETEITEM    TCN_FIRST-12
+   #define TCN_REQUESTREMOVE TCN_FIRST-13
 #endif // TCN_INITIALIZE
 
 // New masks
@@ -647,7 +648,8 @@ public:
       int iItem = pT->HitTest(pt);
       if( iItem != -1 ) {
          SetFocus();
-         DeleteItem(iItem);
+         NMHDR nmh = { m_hWnd, m_idDlgCtrl, TCN_REQUESTREMOVE };
+         m_wndNotify.SendMessage(WM_NOTIFY, nmh.idFrom, (LPARAM) &nmh);
       }
       return 0;
    }

@@ -93,40 +93,48 @@ bool CTagManager::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aLi
    return true;
 }
 
-bool CTagManager::GoToDefinition(LPCTSTR pstrMember)
+bool CTagManager::OpenTagInView(LPCTSTR pstrFilenameLineNo, LPCTSTR pstrMemberName)
 {
-   CString sParent;
-   CString sName;
-   sParent = CString(pstrMember).SpanExcluding(_T(":"));
-   CSimpleValArray<TAGINFO*> aList;
-   GetMemberList(sParent, aList, true);
-   if( aList.GetSize() == 0 ) return false;
-   sName = CString(pstrMember + sParent.GetLength() + 2);
-   for( int i = 0; i < aList.GetSize(); i++ ) {
-      if( sName == aList[i]->pstrName ) return GoToDefinition(aList[i]);
+   CString sToken = pstrFilenameLineNo;
+   CString sFilename = sToken.SpanExcluding(_T("|"));
+   long lLineNum = _ttol(sToken.Mid(sFilename.GetLength() + 1));
+   if( lLineNum > 0 ) {
+      return m_pProject->OpenView(sFilename, lLineNum);
    }
-   return false;
+   else if( m_pProject->OpenView(sFilename, 0) ) {
+      m_pProject->DelayedViewMessage(DEBUG_CMD_FINDTEXT, pstrMemberName, 0, SCFIND_MATCHCASE);
+      m_pProject->DelayedViewMessage(DEBUG_CMD_FOLDCURSOR);
+      return true;
+   }
+   else {
+      ::MessageBeep((UINT)-1);
+      return false;
+   }
 }
 
-bool CTagManager::GoToDefinition(TAGINFO* pTag)
+bool CTagManager::OpenTagInView(TAGINFO* pTag)
 {
    ATLASSERT(m_pProject);
    ATLASSERT(pTag);
-   if( pTag->iLineNo >= 0 ) {
+   if( pTag->lLineNum > 0 ) {
       // Line-numbers have first priority. We don't parse lineno. from
       // CTAGS files because they are too unreliable, but we will get
       // them from our own realtime C++ lexer.
-      return m_pProject->OpenView(pTag->pstrFile, pTag->iLineNo);
+      return m_pProject->OpenView(pTag->pstrFile, pTag->lLineNum);
    }
    else if( m_pProject->OpenView(pTag->pstrFile, 0) ) {
-      // FIX: CTAGS doesn't actually produce sensible REGEX
+      // If we don't have line-numbers, we'll just open the file
+      // and search in it for the member name. Hopefully the
+      // first appearance will be the stuff we're looking for.
+      // We have this situation because CTAGS may not contain
+      // line-numbers!!
+      // FIX: CTAGS doesn't actually produce sensible REGEX either
       //      so we need to strip tokens and prepare a standard search.
       CString sToken = pTag->pstrToken;
       sToken.Replace(_T("\\/"), _T("/"));
       sToken.TrimLeft(_T("/^"));
       sToken.TrimRight(_T("$/;\""));
-      int iFlags = SCFIND_MATCHCASE; //|SCFIND_REGEXP;
-      m_pProject->DelayedViewMessage(DEBUG_CMD_FINDTEXT, sToken, 0, iFlags);
+      m_pProject->DelayedViewMessage(DEBUG_CMD_FINDTEXT, sToken, 0, SCFIND_MATCHCASE);
       m_pProject->DelayedViewMessage(DEBUG_CMD_FOLDCURSOR);
       return true;
    }

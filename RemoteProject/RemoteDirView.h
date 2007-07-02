@@ -20,16 +20,18 @@ class CRemoteDirView :
    public CRawDropSource
 {
 public:
-   CImageListCtrl m_FolderImages;
-   CImageListCtrl m_FileImages;
+   CImageListCtrl m_FolderImages;    // Images for folder combobox
+   CImageListCtrl m_FileImages;      // Images for file
    CComboBoxEx m_ctrlFolders;
    CListViewCtrl m_ctrlFiles;
    CStatic m_ctrlNoConnection;
    CButton m_ctrlDirUp;
-   CRemoteProject* m_pProject;
-   CFileManager* m_pFileManager;
-   CString m_sPath;
-   CString m_sSeparator;
+
+   CRemoteProject* m_pProject;       // Reference to project
+   CFileManager* m_pFileManager;     // Reference to file protocol implementation
+   CString m_sPath;                  // Current path (full)
+   CString m_sSeparator;             // Directory separator character
+   bool m_bLocalPath;                // Is this a local Win32 system?
 
    void Init(CRemoteProject* pProject);
    void Detach();

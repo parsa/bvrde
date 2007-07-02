@@ -215,7 +215,7 @@ public:
    LRESULT OnBrowseFile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CString sFilter(MAKEINTRESOURCE(IDS_FILTER_EXE));
-      for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == _T('|') ) sFilter.SetAt(i, _T('\0'));
+      for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
       CWindowText sOriginal = CWindowText(m_ctrlCommand);
       CFileDialog dlg(TRUE, _T("exe"), sOriginal, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, sFilter);
       int nRet = dlg.DoModal();

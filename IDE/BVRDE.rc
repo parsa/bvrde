@@ -1160,6 +1160,11 @@ BEGIN
     ID_MACRO_MANAGER        "Den Makromanager anzeigen\nMakromanager"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_STATUS_RECMACRO     " Recording macro..."
+END
+
 #endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -2078,8 +2083,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,1,0,0
+ PRODUCTVERSION 1,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2097,14 +2102,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Viksoe.dk\0"
             VALUE "FileDescription", "BVRDE - Bjarke Viksoe's Remote Development Environment\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "FileVersion", "1, 1, 0, 0\0"
             VALUE "InternalName", "BVRDE\0"
             VALUE "LegalCopyright", "Copyright 2003 - 2007 Bjarke Viksoe\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "BVRDE.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "BVRDE\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "ProductVersion", "1, 1, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -2292,7 +2297,7 @@ BEGIN
     ID_FILE_CLOSESOLUTION   "Closes the current solution\nClose Solution"
     ID_FILE_SAVE_ALL        "Saves all modified documents\nSave All"
     ID_NEW_SOLUTION         "Create new blank solution\nNew solution"
-    ID_NEW_PROJECT          "Adds a new project to the Solution\nCreate project"
+    ID_NEW_PROJECT          "Add a new project to the Solution\nCreate project"
     ID_ADD_PROJECT          "Add an existing project to solution\nAdd project"
     ID_EDIT_GOTO            "Goto..."
     ID_EDIT_DELETE          "Delete selected item\nDelete"
@@ -2458,6 +2463,7 @@ BEGIN
     ID_TOOLTOKEN_PROJECTPATH "Replaced with the project path\nProject Path"
     ID_TOOLTOKEN_SELECTION  "Replaced with editor's selection\nEditor's Selection"
     ID_TOOLTOKEN_HOSTNAME   "Replaced with the name of the host\nHost Name"
+    ID_TOOLTOKEN_PROJECTNAME "Replaced with the project name\nProject Name"
     ID_TOOLTOKEN_FILENAME   "Replaced with the active filename\nFilename"
     ID_VIEW_OPENFILES       "Show/Hide the Open Files View\nOpen Files View"
 END
@@ -2494,6 +2500,11 @@ BEGIN
     ID_MACRO_SAVE           "Save a Macro to disk\nSave Macro"
     ID_MACRO_PLAY           "Replay a macro\nPlay Macro"
     ID_MACRO_MANAGER        "Display the Macro Manager\nMacro Manager"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_STATUS_RECMACRO     " Recording macro..."
 END
 
 #endif    // English (U.S.) resources

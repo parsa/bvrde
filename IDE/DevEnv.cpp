@@ -560,7 +560,7 @@ BOOL CMainFrame::GetProperty(LPCTSTR pstrKey, LPTSTR pstrValue, UINT cchMax)
    ATLASSERT(cchMax>0);
    CLockStaticDataInit lock;
    if( cchMax == 0 ) return FALSE;
-   *pstrValue = _T('\0');
+   *pstrValue = '\0';
    CString sValue;
    CString sKey = pstrKey;
    if( !m_aProperties.Lookup(sKey, sValue) ) return FALSE;   

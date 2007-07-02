@@ -204,6 +204,7 @@ void CRemoteProject::ActivateProject()
 
    m_viewCompileLog.Init(&m_CompileManager.m_ShellManager);
    m_viewDebugLog.Init(&m_DebugManager.m_ShellManager);
+
    m_viewClassTree.Init(this);
    m_viewStack.Init(this);
    m_viewRegister.Init(this);
@@ -289,8 +290,7 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    }
 
    // We should know which build mode we're operating in
-   int iMode = m_ctrlMode.GetCurSel();
-   m_CompileManager.SetParam(_T("BuildMode"), iMode == 0 ? _T("release") : _T("debug"));
+   m_CompileManager.SetParam(_T("BuildMode"), m_ctrlMode.GetCurSel() == 0 ? _T("release") : _T("debug"));
 
    // We continously monitor the views to detect if their contents is modified at any point
    if( !m_bNeedsRecompile ) m_bNeedsRecompile |= IsViewsDirty();
@@ -323,8 +323,8 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_VIEW_OPEN, pElement != NULL && !bIsFolder);
    pUIBase->UIEnable(ID_VIEW_PROPERTIES, pElement != NULL);
 
-   pUIBase->UIEnable(ID_BUILD_COMPILE, sFileType == "CPP" && !bCompiling);
-   pUIBase->UIEnable(ID_BUILD_CHECKSYNTAX, sFileType == "CPP" && !bCompiling);
+   pUIBase->UIEnable(ID_BUILD_COMPILE, sFileType == _T("CPP") && !bCompiling);
+   pUIBase->UIEnable(ID_BUILD_CHECKSYNTAX, sFileType == _T("CPP") && !bCompiling);
    pUIBase->UIEnable(ID_BUILD_PROJECT, !bCompiling);
    pUIBase->UIEnable(ID_BUILD_REBUILD, !bCompiling);
    pUIBase->UIEnable(ID_BUILD_SOLUTION, !bCompiling);   
@@ -664,7 +664,7 @@ bool CRemoteProject::GetTagInfo(LPCTSTR pstrValue, bool bAskDebugger, CSimpleArr
    //       (which happens when it queries debug-information from the debugger).
    //       Because of this delay, the 'bAskDebugger' flag allows the Editor
    //       to first present its own knowledge of the value, and then wait out
-   //       for the debugger to append its infomration.
+   //       for the debugger to append its information.
    if( bAskDebugger && m_DebugManager.IsDebugging() ) return m_DebugManager.GetTagInfo(pstrValue);
    return m_TagManager.GetItemInfo(pstrValue, pstrOwner, TAGINFO_DECLARATION, aResult);
 }
@@ -1121,7 +1121,7 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
       m_aFiles[i]->GetFileName(sName.GetBufferSetLength(128), 128);
       sName.ReleaseBuffer();
       if( sName.CompareNoCase(pstrFilename) == 0 ) {
-         GenerateError(_pDevEnv, IDS_ERR_FILEINCLUDED, 0);
+         GenerateError(_pDevEnv, NULL, IDS_ERR_FILEINCLUDED, 0);
          return false;
       }       
    }
@@ -1137,9 +1137,8 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
 
    // New C++ files are added to class-view immediately if online-scanner
    // is running...
-   if( bRemote 
-       && (sUpperName.Find(_T(".H")) > 0 || sUpperName.Find(_T(".C")) > 0) ) 
-   {
+   CString sFileType = GetFileTypeFromFilename(pstrName);
+   if( bRemote && (sFileType == _T("cpp") || sFileType == _T("header")) ) {
       if( m_TagManager.m_LexInfo.IsAvailable() ) {
          LPSTR pstrText = NULL;
          DWORD dwSize = 0;
@@ -1156,7 +1155,7 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
 IView* CRemoteProject::_CreateDependencyFile(LPCTSTR pstrFilename, LPCTSTR pstrName)
 {
    // See if we can find the file...
-   // The file may not be located in the project path, so we'll allow to
+   // The file may not be located in the project path, so we'll allow 
    // the system to search for the file.
    CString sFilename = m_FileManager.FindFile(pstrFilename);
    if( sFilename.IsEmpty() ) return NULL;

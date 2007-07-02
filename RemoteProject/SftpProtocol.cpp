@@ -146,16 +146,15 @@ DWORD CSftpThread::Run()
    int status = clib.cryptCreateSession(&cryptSession, CRYPT_UNUSED, CRYPT_SESSION_SSH);
    if( cryptStatusError(status) ) {
       cryptSession = 0;
-      m_pManager->m_dwErrorCode = NTE_BAD_VER;
-      if( status == CRYPT_ERROR_NOTINITED ) m_pManager->m_dwErrorCode = ERROR_SHARING_PAUSED;
+      m_pManager->m_dwErrorCode = clib.StatusToWin32Error(status, NTE_BAD_VER);
       if( status == CRYPT_ERROR_PARAM3 ) m_pManager->m_dwErrorCode = ERROR_MEDIA_NOT_AVAILABLE;
       return 0;
    }
    if( cryptStatusOK(status) ) {
-      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_SERVER_NAME, pstrHost, sHost.GetLength());
+      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_SERVER_NAME, pstrHost, strlen(pstrHost));
    }
    if( cryptStatusOK(status) ) {
-      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_USERNAME, pstrUsername, sUsername.GetLength());
+      status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_USERNAME, pstrUsername, strlen(pstrUsername));
    }
    if( cryptStatusOK(status) ) {
       status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_SERVER_PORT, lPort);
@@ -163,14 +162,14 @@ DWORD CSftpThread::Run()
    if( cryptStatusOK(status) ) {
       if( !sCertificate.IsEmpty() ) {
          CRYPT_CONTEXT privateKey;
-         status = SshGetPrivateKey(clib, &privateKey, pstrCertificate, "BVRDE Certificate", pstrPassword);
+         status = clib.GetPrivateKey(&privateKey, pstrCertificate, "BVRDE Certificate", pstrPassword);
          if( cryptStatusOK(status) ) {
             status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_PRIVATEKEY, privateKey);
             clib.cryptDestroyContext( privateKey );
          }
       }
       else {
-         status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_PASSWORD, pstrPassword, sPassword.GetLength());
+         status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_PASSWORD, pstrPassword, strlen(pstrPassword));
       }
    }
    if( cryptStatusOK(status) ) {
@@ -186,7 +185,7 @@ DWORD CSftpThread::Run()
       status = clib.cryptSetAttributeString(cryptSession, CRYPT_SESSINFO_SSH_CHANNEL_ARG1, "sftp", strlen("sftp"));
    }
    if( cryptStatusError(status) ) {
-      m_pManager->m_dwErrorCode = ERROR_REQUEST_REFUSED;
+      m_pManager->m_dwErrorCode = clib.StatusToWin32Error(status, ERROR_REQUEST_REFUSED);
       if( cryptSession != 0 ) {
          clib.cryptDestroySession(cryptSession);
          cryptSession = 0;
@@ -196,22 +195,13 @@ DWORD CSftpThread::Run()
 
    // Set timeout values
    clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_CONNECTTIMEOUT, lConnectTimeout - 2);
-   //clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_TIMEOUT, lConnectTimeout);
    clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_READTIMEOUT, lConnectTimeout);
    clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_WRITETIMEOUT, lConnectTimeout);
 
    // Start connection
    status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_ACTIVE, TRUE);
    if( cryptStatusError(status) ) {
-      m_pManager->m_dwErrorCode = WSAEPROVIDERFAILEDINIT;
-      if( status == CRYPT_ERROR_OPEN ) m_pManager->m_dwErrorCode = WSASERVICE_NOT_FOUND;
-      if( status == CRYPT_ERROR_MEMORY ) m_pManager->m_dwErrorCode = ERROR_OUTOFMEMORY;
-      if( status == CRYPT_ERROR_TIMEOUT ) m_pManager->m_dwErrorCode = ERROR_TIMEOUT;
-      if( status == CRYPT_ERROR_BADDATA ) m_pManager->m_dwErrorCode = WSAEPROTOTYPE;
-      if( status == CRYPT_ERROR_INVALID ) m_pManager->m_dwErrorCode = DIGSIG_E_CRYPTO;
-      if( status == CRYPT_ERROR_WRONGKEY ) m_pManager->m_dwErrorCode = ERROR_NOT_AUTHENTICATED;
-      if( status == CRYPT_ERROR_OVERFLOW ) m_pManager->m_dwErrorCode = WSA_QOS_ADMISSION_FAILURE;
-      if( status == CRYPT_ERROR_SIGNALLED ) m_pManager->m_dwErrorCode = WSAECONNRESET;
+      m_pManager->m_dwErrorCode = clib.StatusToWin32Error(status, WSAEPROVIDERFAILEDINIT);
       if( cryptSession != 0 ) {
          clib.cryptDestroySession(cryptSession);
          cryptSession = 0;
@@ -232,6 +222,10 @@ DWORD CSftpThread::Run()
 
    // Grab the full path of the start directory
    m_pManager->m_sCurDir = m_pManager->_ResolvePath(sPath);
+   if( m_pManager->m_sCurDir.IsEmpty() ) {
+      m_pManager->m_dwErrorCode = ERROR_PATH_NOT_FOUND;
+      return 0;
+   }
 
    if( ShouldStop() ) return 0;
 
@@ -400,7 +394,7 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
 
    // Construct remote filename
    CString sFilename = pstrFilename; 
-   if( pstrFilename[0] != '/' ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
+   if( pstrFilename[0] != '/' && m_sCurDir.GetLength() > 1 ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
    sFilename.Replace(_T('\\'), _T('/'));
 
    // Open file
@@ -535,7 +529,7 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
 
    // Construct remote filename
    CString sFilename = pstrFilename; 
-   if( pstrFilename[0] != '/' ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
+   if( pstrFilename[0] != '/' && m_sCurDir.GetLength() > 1 ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
    sFilename.Replace(_T('\\'), _T('/'));
 
    // Open file
@@ -662,7 +656,7 @@ bool CSftpProtocol::DeleteFile(LPCTSTR pstrFilename)
 
    // Construct remote filename
    CString sFilename = pstrFilename; 
-   if( pstrFilename[0] != '/' ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
+   if( pstrFilename[0] != '/' && m_sCurDir.GetLength() > 1 ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
    sFilename.Replace(_T('\\'), _T('/'));
 
    BYTE buffer[600] = { 0 };
@@ -695,7 +689,7 @@ bool CSftpProtocol::SetCurPath(LPCTSTR pstrPath)
    if( m_cryptSession == 0 ) return false;
 
    CString sPath = pstrPath;
-   if( pstrPath[0] != _T('/') ) sPath.Format(_T("%s/%s"), m_sCurDir, pstrPath);
+   if( pstrPath[0] != _T('/') && m_sCurDir.GetLength() > 1 ) sPath.Format(_T("%s/%s"), m_sCurDir, pstrPath);
 
    sPath = _ResolvePath(sPath);
    if( sPath.IsEmpty() ) return false;
@@ -1008,6 +1002,7 @@ CString CSftpProtocol::_ResolvePath(LPCTSTR pstrPath)
 int CSftpProtocol::_ReadData(CRYPT_SESSION cryptSession, LPVOID pData, int iMaxSize)
 {
    const DWORD READTIMEOUT = 6UL;
+   ::ZeroMemory(pData, iMaxSize);
    int iCopied = 0;
    int status = CRYPT_OK;
    DWORD dwTick = ::GetTickCount();

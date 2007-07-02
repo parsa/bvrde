@@ -45,10 +45,7 @@ void CThreadView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          int iItem = InsertItem(GetItemCount(), sText);
          DWORD dwThreadId = (DWORD) _ttol(sText);
          SetItemData(iItem, dwThreadId);
-         if( m_dwCurThread == dwThreadId ) {
-            SelectItem(iItem);
-            m_dwCurThread = dwThreadId;
-         }
+         if( m_dwCurThread == dwThreadId ) SelectItem(iItem);
          sValue = info.FindNext(_T("thread-id"));
       }
    }
@@ -103,3 +100,4 @@ LRESULT CThreadView::OnDblClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
    }
    return lRes;
 }
+

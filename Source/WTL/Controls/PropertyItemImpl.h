@@ -151,9 +151,13 @@ class CPropertyItem : public CProperty
 {
 protected:
    CComVariant m_val;
+   COLORREF m_clrBack;
+   COLORREF m_clrText;
 
 public:
-   CPropertyItem(LPCTSTR pstrName, LPARAM lParam) : CProperty(pstrName, lParam)
+   CPropertyItem(LPCTSTR pstrName, LPARAM lParam) : CProperty(pstrName, lParam),
+      m_clrBack( (COLORREF) CLR_INVALID ),
+      m_clrText( (COLORREF) CLR_INVALID )
    {
    }
    BYTE GetKind() const 
@@ -168,8 +172,15 @@ public:
       if( !GetDisplayValue(pszText, cchMax) ) return;
       CDCHandle dc(di.hDC);
       dc.SetBkMode(TRANSPARENT);
-      dc.SetTextColor(di.state & ODS_DISABLED ? di.clrDisabled : di.clrText);
-      dc.SetBkColor(di.clrBack);
+      // Set background color
+      COLORREF clrBack = di.clrBack;
+      if( m_clrBack != (COLORREF) CLR_INVALID ) clrBack = m_clrBack;
+      dc.SetBkColor(clrBack);
+      // Set text color
+      COLORREF clrText = di.clrText;
+      if( m_clrText != (COLORREF) CLR_INVALID ) clrText = m_clrText;
+      if( di.state & ODS_DISABLED ) clrText = di.clrDisabled; 
+      dc.SetTextColor(clrText);
       RECT rcText = di.rcItem;
       rcText.left += PROP_TEXT_INDENT;
       dc.DrawText(pszText, -1, 
@@ -204,6 +215,19 @@ public:
       m_val = value;
       return TRUE;
    }
+
+   COLORREF SetBkColor(COLORREF clrBack)
+   {
+      COLORREF clrOld = m_clrBack;
+      m_clrBack = clrBack;
+      return clrOld;
+   }
+   COLORREF SetTextColor(COLORREF clrText)
+   {
+      COLORREF clrOld = m_clrText;
+      m_clrText = clrText;
+      return clrOld;
+   }
 };
 
 
@@ -222,8 +246,8 @@ public:
    CPropertyReadOnlyItem(LPCTSTR pstrName, LPARAM lParam) : 
       CPropertyItem(pstrName, lParam), 
       m_uStyle( DT_LEFT | DT_SINGLELINE | DT_EDITCONTROL | DT_NOPREFIX | DT_END_ELLIPSIS | DT_VCENTER ),
-      m_clrBack( (COLORREF) -1 ),
-      m_clrText( (COLORREF) -1 ),
+      m_clrBack( (COLORREF) CLR_INVALID ),
+      m_clrText( (COLORREF) CLR_INVALID ),
       m_hIcon(NULL)
    {
    }
@@ -240,11 +264,11 @@ public:
       dc.SetBkMode(OPAQUE);
       // Set background color
       COLORREF clrBack = di.clrBack;
-      if( m_clrBack != (COLORREF) -1 ) clrBack = m_clrBack;
+      if( m_clrBack != (COLORREF) CLR_INVALID ) clrBack = m_clrBack;
       dc.SetBkColor(clrBack);
       // Set text color
       COLORREF clrText = di.clrText;
-      if( m_clrText != (COLORREF) -1 ) clrText = m_clrText;
+      if( m_clrText != (COLORREF) CLR_INVALID ) clrText = m_clrText;
       if( di.state & ODS_DISABLED ) clrText = di.clrDisabled; 
       dc.SetTextColor(clrText);
       // Draw icon if available

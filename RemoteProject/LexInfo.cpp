@@ -42,8 +42,8 @@ bool CLexInfo::IsAvailable() const
 bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
 {
    ATLASSERT(m_pProject);
-
-   CString sName = ::PathFindFileName(pstrFilename);
+   
+   USES_CONVERSION;
 
    // Load the CppLexer module
    CString sModule;
@@ -55,33 +55,36 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
    // FIX: Empty files do appear as NULL text.
    if( pstrText == NULL ) return false;
 
-   // Lex the file.
+   CString sLexFilename = _GetLexFilename(pstrFilename, true);
+   if( sLexFilename.IsEmpty() ) return false;
+
+   // Lex the text and write to the file.
    // It's not unlikely that the parse fails since it could stop at
    // normal syntax errors and less obvious LALR failures! In
    // this case we'll just ignore the content...
-   typedef BOOL (APIENTRY* LPFNPARSE)(LPCWSTR, LPCSTR);
+   typedef BOOL (APIENTRY* LPFNPARSE)(LPCSTR,LPCSTR,LPCWSTR);
    LPFNPARSE fnParse = (LPFNPARSE) ::GetProcAddress(s_hInst, "CppLexer_Parse");
    ATLASSERT(fnParse);
    if( fnParse == NULL ) return false;
    BOOL bRes = FALSE;
-   ATLTRY( bRes = fnParse(pstrFilename, pstrText) );
+   ATLTRY( bRes = fnParse(T2CA(pstrFilename), pstrText, sLexFilename) );
    if( !bRes ) return false;
 
    // Get the new file into structured form
    LEXFILE* pFile = new LEXFILE;
-   if( !_ParseFile(pstrFilename, sName, *pFile) ) {
+   if( !_ParseFile(pstrFilename, *pFile) ) {
       delete pFile;
       return false;
    }
 
    // Since we're changing the parse data, and the ClassView references
-   // this data, we must 'lock' it down so it doesn't use the old pointers...
+   // this data, we must *lock* it down so it doesn't use the old pointers...
    m_pProject->GetClassView()->Lock();
 
    // Replace the old entry in the file list
    bool bFound = false;
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
-      if( m_aFiles[i]->sFilename == sName ) {
+      if( m_aFiles[i]->sFilename == pstrFilename ) {
          free(m_aFiles[i]->pData);
          m_aFiles[i] = pFile;
          bFound = true;
@@ -166,7 +169,7 @@ bool CLexInfo::GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType
    if( !m_bLoaded ) _LoadTags();
    if( m_aFiles.GetSize() == 0 ) return false;
 
-   // Now, let's look up information about the member
+   // Now, let's look up information about the member...
    CString sResult;
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       const LEXFILE& file = *m_aFiles[i];
@@ -215,6 +218,14 @@ bool CLexInfo::GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType
                if( !sResult.IsEmpty() ) sResult += '|';
                if( info.nFields > 1 ) sResult += info.pstrFields[1];
             }
+            if( (dwInfoType & TAGINFO_FILENAME) != 0 ) {
+               if( !sResult.IsEmpty() ) sResult += '|';
+               if( info.nFields > 1 ) sResult += info.pstrFile;
+            }
+            if( (dwInfoType & TAGINFO_LINENO) != 0 ) {
+               if( !sResult.IsEmpty() ) sResult += '|';
+               sResult.Append((int)info.lLineNum);
+            }
             aResult.Add(sResult);
          }
          for( n++; n < nCount; n++ ) {
@@ -244,8 +255,8 @@ bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aList)
          if( info.pstrFile == NULL ) continue;
          switch( info.Type ) {
          case TAGTYPE_CLASS:
-         case TAGTYPE_TYPEDEF:
          case TAGTYPE_STRUCT:
+         case TAGTYPE_TYPEDEF:
             TAGINFO* pTag = &m_aFiles[i]->aTags.m_aT[iIndex];
             aList.Add(pTag);
             break;
@@ -315,6 +326,54 @@ bool CLexInfo::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList,
    return aList.GetSize() > 0;
 }
 
+bool CLexInfo::FindImplementation(LPCTSTR pstrName, LPCTSTR pstrOwner, CString& sFilename, long& lLineNum)
+{
+   if( !m_bLoaded ) _LoadTags();
+   if( m_aFiles.GetSize() == 0 ) return false;
+
+   CString sName;
+   sName.Format(_T("%s::%s"), pstrOwner, pstrName);
+
+   // Now, let's look up information about the member...
+   CString sResult;
+   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
+      const LEXFILE& file = *m_aFiles[i];
+      // Binary search on sorted list
+      int nCount = file.aTags.GetSize();
+      int min = 0;
+      int max = nCount;
+      int n = max / 2; 
+      while( min < max ) { 
+         int cmp = _tcscmp(sName, file.aTags[n].pstrName); 
+         if( cmp == 0 ) break;
+         if( cmp < 0 ) max = n; else min = n + 1;
+         n = (min + max) / 2;
+      }
+      // Find first instance of the particular string
+      if( min >= max ) continue;
+      if( _tcscmp(sName, file.aTags[n].pstrName) != 0 ) continue;
+      while( n > 0 && _tcscmp(sName, file.aTags[n - 1].pstrName) == 0 ) n--;
+      // Scan this file for occurances
+      while( true ) {
+         const TAGINFO& info = m_aFiles[i]->aTags[n];
+         switch( info.Type ) {
+         case TAGTYPE_IMPLEMENTATION:
+            sFilename = info.pstrFile;
+            lLineNum = info.lLineNum;
+            return true;
+         }
+         for( n++; n < nCount; n++ ) {
+            int cmp = _tcscmp(file.aTags[n].pstrName, sName);
+            if( cmp == 0 ) break;
+            if( cmp > 0 ) n = nCount;
+         }
+         if( n >= nCount ) break;
+      }
+   }
+
+   return false;
+}
+
 // Implementation
 
 CString CLexInfo::_GetTagParent(const TAGINFO& info) const
@@ -346,6 +405,8 @@ CString CLexInfo::_GetTagParent(const TAGINFO& info) const
 
 void CLexInfo::_LoadTags()
 {
+   // NOTE: Now what is GUI stuff doing here? Well, we're delay-loading much of this
+   //       stuff so we can't really preditct when the tag files will load.
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_LOADTAG)));
 
    Clear();
@@ -361,21 +422,20 @@ void CLexInfo::_LoadTags()
    // Look for all project's lex files
    for( int i = 0; i < m_pProject->GetItemCount(); i++ ) {
       IView* pView = m_pProject->GetItem(i);
-      CString sName;
-      pView->GetName(sName.GetBufferSetLength(128), 128);
-      sName.ReleaseBuffer();
       CString sFileName;
       pView->GetFileName(sFileName.GetBufferSetLength(MAX_PATH), MAX_PATH);
       sFileName.ReleaseBuffer();
       LEXFILE* pFile = new LEXFILE;
-      if( _ParseFile(sFileName, sName, *pFile) ) m_aFiles.Add(pFile); else delete pFile;
+      if( _ParseFile(sFileName, *pFile) ) m_aFiles.Add(pFile); else delete pFile;
    }
 
-   // Look for the global lex file (contains standard/system functions)
+   // Look for the global lex file (contains standard/system functions).
+   // We're dealing specially with the "CommonLex" filename as it will contain
+   // a great deal of precompiler header information.
    if( m_aFiles.GetSize() > 0 ) {
       LEXFILE* pFile = new LEXFILE;
       CString sName = _T("CommonLex");
-      if( _ParseFile(sName, sName, *pFile) ) {
+      if( _ParseFile(sName, *pFile) ) {
          pFile->bIncludeInBrowser = false;
          m_aFiles.Add(pFile); 
       }
@@ -385,16 +445,62 @@ void CLexInfo::_LoadTags()
    }
 }
 
-bool CLexInfo::_ParseFile(LPCTSTR pstrFilename, CString& sName, LEXFILE& file) const
+CString CLexInfo::_GetLexFilename(LPCTSTR pstrFilename, bool bCreatePath) const
 {
-   CString sFilename = ::PathFindFileName(sName);
-   CString sLexName = sFilename;
-   sLexName.Replace('.', '_');
-   CString sLexFile;
-   sLexFile.Format(_T("%sLex\\%s.lex"), CModulePath(), sLexName);
+   // Convert project-name and filename to valid names (strip filename characteristics).
+   CString sProjectName;
+   m_pProject->GetName(sProjectName.GetBuffer(128), 127);
+   sProjectName.ReleaseBuffer();
+   CString sName = ::PathFindFileName(pstrFilename);
+   if( sName.IsEmpty() ) return _T("");
+   sProjectName.Replace('.', '_'); sName.Replace('.', '_');
+   sProjectName.Replace('*', '_'); sName.Replace('*', '_');
+   sProjectName.Replace('?', '_'); sName.Replace('?', '_');
+   sProjectName.Replace(':', '_'); sName.Replace(':', '_');
+   sProjectName.Replace('\\', '_'); sName.Replace('\\', '_');
+   // As part of the Windows LUA compliance test we'll need to
+   // write stuff in the user's private private AppData folder.
+   OSVERSIONINFO ver = { sizeof(ver) };
+   ::GetVersionEx(&ver);
+   if( _tcscmp(pstrFilename, _T("CommonLex")) == 0 ) {
+      sProjectName = _T(""); ver.dwMajorVersion = 0;
+   }
+   if( ver.dwMajorVersion < 6 ) 
+   {
+      CString sDocPath;
+      sDocPath.Format(_T("%sLex\\%s"), CModulePath(), sProjectName);
+      if( bCreatePath ) ::CreateDirectory(sDocPath, NULL);
+      CString sLexFile;
+      sLexFile.Format(_T("%s\\%s.lex"), sDocPath, sName);
+      return sLexFile;
+   }
+   else 
+   {
+      TCHAR szPath[MAX_PATH] = { 0 };
+      ::SHGetSpecialFolderPath(NULL, szPath, CSIDL_LOCAL_APPDATA, TRUE);
+      CString sDocPath;
+      sDocPath.Format(_T("%s\\BVRDE"), szPath);
+      if( bCreatePath ) ::CreateDirectory(sDocPath, NULL);
+      sDocPath += _T("\\Lex");
+      if( bCreatePath ) ::CreateDirectory(sDocPath, NULL);
+      sDocPath += _T("\\");
+      sDocPath += sProjectName;
+      if( bCreatePath ) ::CreateDirectory(sDocPath, NULL);
+      CString sLexFile;
+      sLexFile.Format(_T("%s\\%s.lex"), sDocPath, sName);
+      return sLexFile;
+   }
+}
+
+bool CLexInfo::_ParseFile(LPCTSTR pstrFilename, LEXFILE& file) const
+{
+   USES_CONVERSION;
+
+   CString sLexFilename = _GetLexFilename(pstrFilename, false);
+   if( sLexFilename.IsEmpty() ) return false;
 
    CFile f;
-   if( !f.Open(sLexFile) ) return false;
+   if( !f.Open(sLexFilename) ) return false;
    DWORD dwSize = f.GetSize();
    LPSTR pstrData = (LPSTR) malloc(dwSize + 1);
    f.Read(pstrData, dwSize);
@@ -406,7 +512,7 @@ bool CLexInfo::_ParseFile(LPCTSTR pstrFilename, CString& sName, LEXFILE& file) c
    free(pstrData);
 
    file.pData = p;
-   file.sFilename = sName;
+   file.sFilename = pstrFilename;
    file.bIncludeInBrowser = true;
 
    LPCTSTR pstrFile = NULL;
@@ -419,7 +525,7 @@ bool CLexInfo::_ParseFile(LPCTSTR pstrFilename, CString& sName, LEXFILE& file) c
          p = _tcschr(p, '\n');
          if( p == NULL ) break;
          *p = '\0';
-         if( !(_tcsicmp(pstrFilename, pstrFile) == 0 || sFilename == _T("CommonLex")) ) break;
+         if( !(_tcsicmp(pstrFilename, pstrFile) == 0 || _tcscmp(pstrFilename, _T("CommonLex")) == 0) ) break;
          pstrNamePart = ::PathFindFileName(pstrFile);
          p++;
       }
@@ -438,7 +544,8 @@ bool CLexInfo::_ParseFile(LPCTSTR pstrFilename, CString& sName, LEXFILE& file) c
          case 't': info.Type = TAGTYPE_TYPEDEF; break;
          case 's': info.Type = TAGTYPE_STRUCT; break;
          case 'e': info.Type = TAGTYPE_ENUM; break;
-         default: info.Type = TAGTYPE_UNKNOWN;
+         case 'i': info.Type = TAGTYPE_IMPLEMENTATION; break;
+         default:  info.Type = TAGTYPE_UNKNOWN;
          }
          p++;  // Skip protection
          p++;
@@ -455,7 +562,7 @@ bool CLexInfo::_ParseFile(LPCTSTR pstrFilename, CString& sName, LEXFILE& file) c
          //
          LPTSTR pend = _tcschr(p, '|');
          if (pend) *pend = '\0';
-         info.iLineNo = _ttol(p);
+         info.lLineNum = _ttol(p);
          if( pend == NULL ) break;
          p = pend+1;
          //

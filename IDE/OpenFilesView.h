@@ -30,7 +30,7 @@ public:
       MESSAGE_HANDLER(WM_USER_VIEW_CREATE, OnViewCreated)
       MESSAGE_HANDLER(WM_USER_VIEW_DESTROY, OnViewDestroyed)
       NOTIFY_HANDLER(IDC_LIST, NM_RCLICK, OnRClick)
-      NOTIFY_HANDLER(IDC_LIST, NM_DBLCLK, OnItemDblClick)      
+      NOTIFY_HANDLER(IDC_LIST, LVN_ITEMACTIVATE, OnItemDblClick) 
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
@@ -39,7 +39,7 @@ public:
 
       DWORD dwStyle = WS_BORDER | WS_CHILD | WS_VISIBLE | LVS_SINGLESEL | LVS_REPORT | LVS_NOCOLUMNHEADER | LVS_SORTASCENDING;
       m_ctrlList.Create(m_hWnd, rcDefault, NULL, dwStyle, 0, IDC_LIST);
-      m_ctrlList.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
+      m_ctrlList.SetExtendedListViewStyle(LVS_EX_TRACKSELECT | LVS_EX_ONECLICKACTIVATE | LVS_EX_UNDERLINEHOT);
       m_ctrlList.AddColumn(_T(""), 0);
       m_ctrlList.SetColumnWidth(0, LVSCW_AUTOSIZE_USEHEADER);
       m_ctrlList.SetImageList(m_Images, LVSIL_SMALL);

@@ -46,14 +46,14 @@ public:
       DISP_PROPGET(Password, VT_BSTR)
       DISP_PROPGET(IsConnected, VT_BOOL)
       DISP_PROPGET(IsBusy, VT_BOOL)
-      DISP_PROP(CompileFlags, VT_BSTR)
-      DISP_PROP(LinkFlags, VT_BSTR)
       DISP_METHOD0(Clean, VT_EMPTY)
       DISP_METHOD0(Build, VT_EMPTY)
       DISP_METHOD0(Rebuild, VT_EMPTY)
       DISP_METHOD0(StartApp, VT_EMPTY)
       DISP_METHOD0(DebugApp, VT_EMPTY)
       DISP_METHOD(ExecCommand, VT_EMPTY, 3, VTS_BSTR VTS_UNKNOWN VTS_I4)
+      DISP_METHOD(GetParam, VT_BSTR, 2, VTS_BSTR VTS_BSTR)
+      DISP_METHOD(SetParam, VT_EMPTY, 3, VTS_BSTR VTS_BSTR VTS_BSTR)
    END_DISPATCH_MAP()
 
    BSTR __stdcall get_Name();
@@ -63,10 +63,6 @@ public:
    BSTR __stdcall get_Server();
    BSTR __stdcall get_Username();
    BSTR __stdcall get_Password();
-   BSTR __stdcall get_CompileFlags();
-   VOID __stdcall put_CompileFlags(BSTR bstr);
-   BSTR __stdcall get_LinkFlags();
-   VOID __stdcall put_LinkFlags(BSTR bstr);
    VARIANT_BOOL __stdcall get_IsConnected();
    VARIANT_BOOL __stdcall get_IsBusy();
    IDispatch* __stdcall get_Files();
@@ -76,6 +72,8 @@ public:
    VOID __stdcall StartApp();
    VOID __stdcall DebugApp();
    VOID __stdcall ExecCommand(BSTR Command, IUnknown* pUnk, LONG lTimeout);
+   BSTR __stdcall GetParam(BSTR Type, BSTR Key);
+   VOID __stdcall SetParam(BSTR Type, BSTR Key, BSTR Value);
 
    void _StartCompiler();
 };

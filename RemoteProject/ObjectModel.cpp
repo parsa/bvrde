@@ -108,28 +108,20 @@ BSTR CProjectOM::get_Password()
    return ::SysAllocString(sPath);
 }
 
-BSTR CProjectOM::get_CompileFlags()
+BSTR CProjectOM::GetParam(BSTR Type, BSTR Key)
 {
-   CString sValue = m_pOwner->m_CompileManager.GetParam(_T("CompileFlags"));
-   return ::SysAllocString(sValue);
+   CString sType = Type;
+   CString sValue;
+   if( sType == _T("Compiler") ) sValue = m_pOwner->m_CompileManager.GetParam(CString(Key));
+   if( sType == _T("Debugger") ) sValue = m_pOwner->m_DebugManager.GetParam(CString(Key));
+   return sValue.AllocSysString();
 }
 
-VOID CProjectOM::put_CompileFlags(BSTR bstr)
+VOID CProjectOM::SetParam(BSTR Type, BSTR Key, BSTR Value)
 {
-   CString sValue = bstr;
-   m_pOwner->m_CompileManager.SetParam(_T("CompileFlags"), sValue);
-}
-
-BSTR CProjectOM::get_LinkFlags()
-{
-   CString sValue = m_pOwner->m_CompileManager.GetParam(_T("LinkFlags"));
-   return ::SysAllocString(sValue);
-}
-
-VOID CProjectOM::put_LinkFlags(BSTR bstr)
-{
-   CString sValue = bstr;
-   m_pOwner->m_CompileManager.SetParam(_T("LinkFlags"), sValue);
+   CString sType = Type;
+   if( sType == _T("Compiler") ) m_pOwner->m_CompileManager.SetParam(CString(Key), CString(Value));
+   if( sType == _T("Debugger") ) m_pOwner->m_DebugManager.SetParam(CString(Key), CString(Value));
 }
 
 VARIANT_BOOL CProjectOM::get_IsConnected()

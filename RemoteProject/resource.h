@@ -249,13 +249,21 @@
 #define IDS_COMMAND_POSTSTEP            286
 #define IDS_CONFIG_STEPS                287
 #define IDS_MENU_OPENINCLUDE            288
-#define IDS_MENU_OPENDECL               289
+#define IDS_MENU_OPENDECLARATION        289
 #define IDS_CAPTION_DEBUGOUTPUT         290
 #define IDS_MISC_SEARCHPATH             291
 #define IDS_COMMAND_ARGS                292
 #define IDS_MISC_MAINTAINSESSION        293
 #define IDS_MISC_PROCESSLIST            294
 #define IDS_ERR_PIDLIST                 295
+#define IDS_LOG_COMSPEC                 296
+#define IDS_COMSPEC                     297
+#define IDS_LOG_GDBSTOP                 298
+#define IDS_MENU_OPENIMPLEMENTATION     299
+#define IDS_ERR_DEBUGPRIV               300
+#define IDS_STATUS_DEBUG_NOSOURCE_FUNCTION 301
+#define IDS_STATUS_DEBUG_FUNCTION       302
+#define IDS_LOCALDRIVE                  303
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -282,6 +290,7 @@
 #define IDC_ARGUMENTS                   1027
 #define IDC_PRESTEP                     1028
 #define IDC_POSTSTEP                    1029
+#define IDC_SERVER                      1029
 #define IDC_NOAUTOCOMPLETE              1039
 #define IDC_AUTOCOMPLETE                1039
 #define IDC_NOCLASSBROWSER              1040
@@ -325,6 +334,7 @@
 #define ID_FILE_RENAME                  40006
 #define ID_FILE_PROPERTIES              40007
 #define ID_FILE_ADD_FOLDER              40008
+#define ID_PROCESS                      40009
 #define ID_PROJECT_SET_DEFAULT          40012
 #define ID_PROJECT_SAVE                 40013
 #define ID_BUILD_SOLUTION               40014
@@ -361,6 +371,8 @@
 #define ID_VIEW_REGISTERS               40051
 #define ID_EDIT_VIEWWS                  40052
 #define ID_EDIT_VIEWTABS                40053
+#define ID_EDIT_OPENDECLARATION         40054
+#define ID_EDIT_OPENIMPLEMENTATION      40055
 #define ID_EDIT_VIEWEOL                 40060
 #define ID_EDIT_TABIFY                  40061
 #define ID_EDIT_UNTABIFY                40062
@@ -416,14 +428,16 @@
 #define ID_SEARCH_GO                    40142
 #define ID_SEARCH_TEXT                  40143
 #define ID_DEBUG_STEP_INSTRUCTION       40144
+#define ID_CLASSVIEW_GOTODECL           40145
+#define ID_CLASSVIEW_GOTOIMPL           40146
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        127
-#define _APS_NEXT_COMMAND_VALUE         40145
-#define _APS_NEXT_CONTROL_VALUE         1029
+#define _APS_NEXT_RESOURCE_VALUE        128
+#define _APS_NEXT_COMMAND_VALUE         40147
+#define _APS_NEXT_CONTROL_VALUE         1030
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

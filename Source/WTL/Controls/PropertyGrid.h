@@ -547,7 +547,7 @@ public:
    void _InvalidateItem(int iItem, int iSubItem)
    {
       if( iItem == -1 || iSubItem == -1 ) return;
-      RECT rc;
+      RECT rc = { 0 };
       _GetSubItemRect(iItem, iSubItem, &rc);
       InvalidateRect(&rc);
    }

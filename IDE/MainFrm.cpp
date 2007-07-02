@@ -485,7 +485,7 @@ LRESULT CMainFrame::OnCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
 LRESULT CMainFrame::OnFileOpen(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    CString sFilter(MAKEINTRESOURCE(IDS_FILTER_ALL));
-   for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == _T('|') ) sFilter.SetAt(i, _T('\0'));
+   for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
    DWORD dwStyle = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ENABLESIZING;
    CFileDialog dlg(TRUE, NULL, NULL, dwStyle, sFilter, m_hWnd);
    dlg.m_ofn.Flags &= ~OFN_ENABLEHOOK;
@@ -494,7 +494,7 @@ LRESULT CMainFrame::OnFileOpen(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/,
    // TODO: Consider attaching to current project?
    CWaitCursor cursor;
    IView* pView = CreateView(dlg.m_ofn.lpstrFile, NULL, NULL);
-   if( pView ) ATLTRY( pView->OpenView(0) );
+   if( pView != NULL ) ATLTRY( pView->OpenView(0) );
    return 0;
 }
 
@@ -506,6 +506,7 @@ LRESULT CMainFrame::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
    CWindow wnd = MDIGetActive();
    wnd.SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE, 0));
    PlayAnimation(FALSE, 0);
+   OnIdle();
    return 0;
 }
 
@@ -518,6 +519,7 @@ LRESULT CMainFrame::OnFileSaveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    if( g_pSolution->IsLoaded() ) g_pSolution->SaveSolution(NULL);
    m_MDIContainer.RefreshItems();
    PlayAnimation(FALSE, 0);
+   OnIdle();
    return 0;
 }
 
@@ -625,7 +627,7 @@ LRESULT CMainFrame::OnAddProject(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
    CString sPath;
    sPath.Format(_T("%s%s"), CModulePath(), SOLUTIONDIR);
    CString sFilter(MAKEINTRESOURCE(IDS_FILTER_PROJECT));
-   for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == _T('|') ) sFilter.SetAt(i, _T('\0'));
+   for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
    DWORD dwStyle = OFN_NOCHANGEDIR | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ENABLESIZING;
    CFileDialog dlg(TRUE, _T("prj"), NULL, dwStyle, sFilter, m_hWnd);
    dlg.m_ofn.Flags &= ~OFN_ENABLEHOOK;
@@ -881,6 +883,7 @@ LRESULT CMainFrame::OnMacroRecord(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    RecordMacro(_T("' Macro sequence"));
    RecordMacro(_T("Sub Macro"));
    RecordMacro(_T("On Error Resume Next"));
+   UISetText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_RECMACRO)));
    bHandled = FALSE;  // Other clients must see this!
    return 0;
 }
@@ -889,6 +892,7 @@ LRESULT CMainFrame::OnMacroCancel(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 {
    if( !m_bRecordingMacro ) return 0;
    RecordMacro(_T("End Sub"));
+   UISetText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(ATL_IDS_IDLEMESSAGE)));
    m_bRecordingMacro = FALSE;
    bHandled = FALSE;  // Other clients must see this!
    return 0;
@@ -916,7 +920,7 @@ LRESULT CMainFrame::OnMacroSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
    CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_SAVEMACRO));
    CString sFilter(MAKEINTRESOURCE(IDS_FILTER_MACRO));
    CString sPath = CModulePath();
-   for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == _T('|') ) sFilter.SetAt(i, _T('\0'));
+   for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
    DWORD dwStyle = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ENABLESIZING;
    CFileDialog dlg(FALSE, _T("vbs"), NULL, dwStyle, sFilter, m_hWnd);
    dlg.m_ofn.lpstrTitle = sCaption;

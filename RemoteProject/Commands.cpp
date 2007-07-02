@@ -273,7 +273,7 @@ LRESULT CRemoteProject::OnViewOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
          }
       }
       else {
-         GenerateError(_pDevEnv, IDS_ERR_OPENVIEW);
+         GenerateError(_pDevEnv, NULL, IDS_ERR_OPENVIEW);
          m_FileManager.Stop();
          m_FileManager.Start();
       }
@@ -924,7 +924,7 @@ LRESULT CRemoteProject::OnBuildFileWizard(WORD /*wNotifyCode*/, WORD /*wID*/, HW
    pElement->GetName(sName.GetBufferSetLength(100), 100);
    sName.ReleaseBuffer();
    if( !_RunFileWizard(::GetActiveWindow(), sName, (IView*) pElement) ) {
-      GenerateError(_pDevEnv, IDS_ERR_NOFILEWIZARD, 0);
+      GenerateError(_pDevEnv, NULL, IDS_ERR_NOFILEWIZARD, 0);
    }
    return 0;
 }

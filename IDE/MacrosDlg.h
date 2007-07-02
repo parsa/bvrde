@@ -157,7 +157,7 @@ public:
 
       while( !sText.IsEmpty() ) {
          CString sLine = sText;
-         int iPos = sText.Find(_T('\n'));
+         int iPos = sText.Find('\n');
          if( iPos >= 0 ) sLine = sText.Left(iPos);
 
          if( sLine.GetLength() > 0 && sLine[0] == _T(SCRIPT_COMMENT) ) {

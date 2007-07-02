@@ -25,7 +25,7 @@ class CEmptyProject;
 
 CString ToString(long lValue);
 CString GetSystemErrorText(DWORD dwErr);
-void GenerateError(IDevEnv* pDevEnv, UINT nErr);
+void GenerateError(IDevEnv* pDevEnv, HWND hWnd, UINT nErr);
 void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, DWORD dwEffects = 0, COLORREF clrText = 0);
 BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition);
 

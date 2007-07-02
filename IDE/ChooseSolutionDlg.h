@@ -93,7 +93,7 @@ public:
    LRESULT OnBrowse(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CString sFilter(MAKEINTRESOURCE(IDS_FILTER_SOLUTION));
-      for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == _T('|') ) sFilter.SetAt(i, _T('\0'));
+      for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
       CFileDialog dlg(TRUE, _T("sln"), NULL, OFN_HIDEREADONLY | OFN_FILEMUSTEXIST, sFilter);
       dlg.m_ofn.Flags &= ~OFN_ENABLEHOOK;
       if( dlg.DoModal() != IDOK ) return 0;

@@ -85,12 +85,8 @@ typedef enum VT100COLOR
    VT100_MAGENTA = 35,
    VT100_CYAN = 36,
    VT100_WHITE = 37,
+   VT100_PROMPT = 1000
 };
-
-#define TAGINFO_NAME          0x00000001
-#define TAGINFO_DECLARATION   0x00000002
-#define TAGINFO_TYPE          0x00000004
-#define TAGINFO_COMMENT       0x00000008
 
 typedef struct
 {
@@ -106,6 +102,13 @@ typedef struct
 } LAZYDATA;
 
 
+#define TAGINFO_NAME          0x00000001
+#define TAGINFO_DECLARATION   0x00000002
+#define TAGINFO_TYPE          0x00000004
+#define TAGINFO_COMMENT       0x00000008
+#define TAGINFO_FILENAME      0x00000010
+#define TAGINFO_LINENO        0x00000020
+
 typedef enum TAGTYPE
 {
    TAGTYPE_UNKNOWN = 0,
@@ -116,6 +119,7 @@ typedef enum TAGTYPE
    TAGTYPE_FUNCTION,
    TAGTYPE_MEMBER,
    TAGTYPE_ENUM,
+   TAGTYPE_IMPLEMENTATION,
 };
 
 typedef struct tagTAGINFO
@@ -126,7 +130,7 @@ typedef struct tagTAGINFO
    LPCTSTR pstrToken;
    LPCTSTR pstrFields[10];
    short nFields;
-   long iLineNo;
+   long lLineNum;
 } TAGINFO;
 
 
@@ -221,8 +225,10 @@ CString SecDecodePassword(LPCTSTR pstrPassword);
 CString SecEncodePassword(LPCTSTR pstrPassword);
 
 void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, DWORD dwEffects = 0, COLORREF clrText = 0);
-void GenerateError(IDevEnv* pDevEnv, UINT nErr, DWORD dwErr = (DWORD)-1);
+void GenerateError(IDevEnv* pDevEnv, HWND hWnd, UINT nErr, DWORD dwErr = (DWORD)-1);
 CString GetSystemErrorText(DWORD dwErr);
+
+BOOL EnableSystemAccessPriveledge(LPCWSTR pwstrPriv);
 BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition);
 
 CString ToString(long lValue);

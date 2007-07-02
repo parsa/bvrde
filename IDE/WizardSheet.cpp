@@ -327,7 +327,7 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_GERMAN)));
    g_pDevEnv->GetProperty(_T("gui.main.language"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("en")) == 0 ) m_ctrlLanguage.SetCurSel(1);
-   if( _tcscmp(szBuffer, _T("de")) == 0 ) m_ctrlLanguage.SetCurSel(2);
+   else if( _tcscmp(szBuffer, _T("de")) == 0 ) m_ctrlLanguage.SetCurSel(2);
    else m_ctrlLanguage.SetCurSel(0);
 
    return 0;
@@ -426,7 +426,7 @@ int CAssociationsOptionsPage::OnSetActive()
    {
       CString sKey = szKey;
       CString sExtension;
-      int iPos = sKey.ReverseFind(_T('.'));
+      int iPos = sKey.ReverseFind('.');
       ATLASSERT(iPos>0);
       if( iPos < 0 ) return 0;
       sExtension = sKey.Mid(iPos + 1);
@@ -1028,7 +1028,7 @@ LRESULT CColorsOptionsPage::OnFaceChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
          for( int i = 0; i < sizeof(truetypesize)/sizeof(int); i++ ) aSizes.Add(truetypesize[i]);
       }
       else {
-         for( int i = 8; i < 36; i++ ) {
+         for( int i = 8; i <= 36; i++ ) {
             CLogFont lf = lfOrig;
             lf.SetHeight(i, dc);
             CFont font;

@@ -344,7 +344,7 @@ bool CCompileManager::DoRebuild()
 bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, UINT Flags /*= 0*/)
 {
    // Should we compile in Release or Debug mode?
-   BOOL bReleaseMode = m_sBuildMode == _T("release");
+   BOOL bReleaseMode = (m_sBuildMode == _T("release"));
    // Translate named actions into real prompt commands.
    // We usually start off by changing to the project folder
    // to make sure everything run from the correct path.
@@ -500,15 +500,16 @@ CString CCompileManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrPara
    CString sName = pstrCommand;
    TCHAR szProjectName[128] = { 0 };
    m_pProject->GetName(szProjectName, 127);
-   TCHAR szProjectPath[MAX_PATH] = { 0 };
-   m_pProject->GetName(szProjectPath, MAX_PATH);
+   TCHAR szProjectPath[MAX_PATH + 1] = { 0 };
+   m_pProject->GetPath(szProjectPath, MAX_PATH);
 
    sName.Replace(_T("$PROJECTNAME$"), szProjectName);
    sName.Replace(_T("$PROJECTPATH$"), szProjectPath);
    sName.Replace(_T("$PATH$"), m_ShellManager.GetParam(_T("Path")));
+   sName.Replace(_T("$DRIVE$"), m_ShellManager.GetParam(_T("Path")).Left(2));
    sName.Replace(_T("\\n"), _T("\r\n"));
 
-   TCHAR szName[MAX_PATH] = { 0 };
+   TCHAR szName[MAX_PATH + 1] = { 0 };
    if( pstrParam == NULL ) {
       IView* pView = _pDevEnv->GetActiveView();
       if( pView != NULL ) pView->GetFileName(szName, MAX_PATH);
@@ -798,10 +799,12 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       }
    }
    if( _tcsncmp(pstrText, _T("make["), 5) == 0 ) cf.dwEffects |= CFE_ITALIC;
-   if( _tcschr(m_sPromptPrefix, *pstrText) != NULL ) cf.dwEffects |= CFE_BOLD;
 
+   // Mark prompts...
    // Some lines that look like prompts aren't really prompts...
+   if( _tcschr(m_sPromptPrefix, *pstrText) != NULL ) cf.dwEffects |= CFE_BOLD;
    if( *pstrText == '/' && _tcschr(pstrText, ':') != NULL ) cf.dwEffects &= ~CFE_BOLD;
+   if( nColor == VT100_PROMPT ) cf.dwEffects |= CFE_BOLD;
 
    ctrlEdit.SetSel(iStartPos, iEndPos);
    ctrlEdit.SetSelectionCharFormat(cf);

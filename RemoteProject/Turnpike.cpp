@@ -30,12 +30,12 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    bHandled = FALSE;
    if( m_aLazyData.GetSize() == 0 ) return 0;
 
-   // For displaying a message-box asynchroniously
-   CSimpleArray<CString> aDbgCmd;
-   bool bUpdatedAlready = false;
-   CString sMessage;
-   CString sCaption;
-   UINT iFlags;
+   
+   CSimpleArray<CString> aDbgCmd;       // Collect all new debug commands in a batch
+   bool bUpdatedAlready = false;        // Make sure to trigger debug update only once
+   CString sMessage;                    // For displaying a message-box asynchroniously
+   CString sCaption;                    // -"-
+   UINT iFlags;                         // -"-
 
    // Try to obtain the semaphore
    // NOTE: WinNT specific API
@@ -253,7 +253,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    // Now that we're not blocking, send debug commands
    for( int a = 0; a < aDbgCmd.GetSize(); a++ ) m_DebugManager.DoDebugCommand(aDbgCmd[a]);
 
-   // Display message to user if available
+   // Display message to user if needed
    if( !sMessage.IsEmpty() ) {
       HWND hWnd = ::GetActiveWindow();
       _pDevEnv->ShowMessageBox(hWnd, sMessage, sCaption, iFlags | MB_MODELESS);
@@ -322,11 +322,11 @@ void CRemoteProject::DelayedDebugCommand(LPCTSTR pstrCommand)
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
+   ATLASSERT(_tcslen(pstrCommand)<(sizeof(data.szMessage)/sizeof(TCHAR))-1);
    data.Action = LAZY_DEBUGCOMMAND;
    _tcscpy(data.szMessage, pstrCommand);
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
-   ATLASSERT(_tcslen(pstrCommand)<(sizeof(data.szMessage)/sizeof(TCHAR))-1);
 }
 
 void CRemoteProject::DelayedViewMessage(WPARAM wCmd, LPCTSTR pstrFilename /*= NULL*/, long lLineNum /*= -1*/, UINT iFlags /*= 0*/)
@@ -370,10 +370,10 @@ void CRemoteProject::DelayedDebugInfo(LPCTSTR pstrCommand, CMiInfo& info)
    LAZYDATA dummy;
    m_aLazyData.Add(dummy);
    LAZYDATA& data = m_aLazyData[m_aLazyData.GetSize() - 1];
+   ATLASSERT(_tcslen(pstrCommand)<(sizeof(data.szMessage)/sizeof(TCHAR))-1);
    data.Action = LAZY_DEBUG_INFO;
    _tcscpy(data.szMessage, pstrCommand);
    data.MiInfo.Copy(info);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
-   ATLASSERT(_tcslen(pstrCommand)<(sizeof(data.szMessage)/sizeof(TCHAR))-1);
 }
 

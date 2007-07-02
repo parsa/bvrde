@@ -38,7 +38,7 @@ DWORD CQueryThread::Run()
       
       STATE state = m_state;
       CString sSQL = (LPCTSTR) m_sSQL;   // BUG: Protect this statement with thread lock
-      int iLineNo = m_iLineNo;           //      And this guy too!
+      int lLineNum = m_lLineNum;         //      And this guy too!!
 
       m_state = STATE_NOTHING;
 
@@ -67,7 +67,7 @@ DWORD CQueryThread::Run()
          ::PostMessage(m_hWndNotify, WM_USER_DATA_AVAILABLE, 0, (LPARAM) new DATAPACKET(PACKET_START));
 
          CSimpleArray<SQLPART> aParts;
-         if( !_SplitSQL(sSQL, iLineNo, aParts) ) continue;
+         if( !_SplitSQL(sSQL, lLineNum, aParts) ) continue;
 
          Db.GetErrors()->Clear();
 
@@ -90,7 +90,7 @@ DWORD CQueryThread::Run()
             if( pDbRec == NULL ) continue;
             BOOL bRes = pDbCmd->Create(part.sSQL);
             if( !bRes ) {
-               DATAPACKET* pError = new DATAPACKET(PACKET_ERROR, part.iLineNo, 0, new CString[1]);
+               DATAPACKET* pError = new DATAPACKET(PACKET_ERROR, part.lLineNum, 0, new CString[1]);
                pError->pstrData[0] = _GetDbErrorText(&Db, part.sSQL);
                ::PostMessage(m_hWndNotify, WM_USER_DATA_AVAILABLE, 0, (LPARAM) pError);
             }
@@ -122,7 +122,7 @@ DWORD CQueryThread::Run()
                // Execute
                bRes = _Execute(pDbCmd, pDbRec);
                if( !bRes ) {
-                  DATAPACKET* pError = new DATAPACKET(PACKET_ERROR, part.iLineNo, 0, new CString[1]);
+                  DATAPACKET* pError = new DATAPACKET(PACKET_ERROR, part.lLineNum, 0, new CString[1]);
                   pError->pstrData[0] = _GetDbErrorText(&Db, part.sSQL);
                   ::PostMessage(m_hWndNotify, WM_USER_DATA_AVAILABLE, 0, (LPARAM) pError);
                }
@@ -326,10 +326,10 @@ void CQueryThread::Abort()
    if( m_pDbCmd ) m_pDbCmd->Cancel();
 }
 
-void CQueryThread::ExecuteSql(LPCTSTR pstrSql, int iLineNo)
+void CQueryThread::ExecuteSql(LPCTSTR pstrSql, int lLineNum)
 {
    m_sSQL = pstrSql;
-   m_iLineNo = iLineNo;
+   m_lLineNum = lLineNum;
    m_state = STATE_EXECUTE;
    m_event.SetEvent();
 }
@@ -361,7 +361,7 @@ void CQueryThread::Cancel()
    if( m_pDbCmd && m_pDbCmd->IsOpen() ) m_pDbCmd->Cancel();
 }
 
-BOOL CQueryThread::_SplitSQL(const CString& sSQL, int iLineNo, CSimpleArray<SQLPART>& aParts)
+BOOL CQueryThread::_SplitSQL(const CString& sSQL, int lLineNum, CSimpleArray<SQLPART>& aParts)
 {
    // Many DBRMS do not support multiple SQL statements in one query, so we'll
    // manually split up the statements and execute them one by one.
@@ -399,7 +399,7 @@ BOOL CQueryThread::_SplitSQL(const CString& sSQL, int iLineNo, CSimpleArray<SQLP
                   p += 2;
                   break;
                }
-               if( *p == '\n' ) iLineNo++;
+               if( *p == '\n' ) lLineNum++;
                p++;
             }
          }
@@ -411,12 +411,12 @@ BOOL CQueryThread::_SplitSQL(const CString& sSQL, int iLineNo, CSimpleArray<SQLP
          if( !sPart.IsEmpty() ) {
             SQLPART part;
             part.sSQL = sPart;
-            part.iLineNo = iStartLineNo;
+            part.lLineNum = iStartLineNo;
             aParts.Add(part);
          }
          sPart = "";
          p += iTermLen;
-         if( iTermLen > 1 ) iLineNo++;
+         if( iTermLen > 1 ) lLineNum++;
          iStartLineNo = 0;
       }
       // Update state
@@ -432,12 +432,12 @@ BOOL CQueryThread::_SplitSQL(const CString& sSQL, int iLineNo, CSimpleArray<SQLP
          sPart += *p++;
          break;
       case '\n':
-         iLineNo++;
+         lLineNum++;
          bInsideQuote = false;
          sPart += *p++;
          break;
       default:
-         if( iStartLineNo == 0 ) iStartLineNo = iLineNo;
+         if( iStartLineNo == 0 ) iStartLineNo = lLineNum;
          sPart += *p++;
       }
    }
@@ -446,7 +446,7 @@ BOOL CQueryThread::_SplitSQL(const CString& sSQL, int iLineNo, CSimpleArray<SQLP
    if( !sPart.IsEmpty() ) {
       SQLPART part;
       part.sSQL = sPart;
-      part.iLineNo = iStartLineNo;
+      part.lLineNum = iStartLineNo;
       aParts.Add(part);
    }
 

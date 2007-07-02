@@ -5,6 +5,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+
 #include "TagInfo.h"
 #include "LexInfo.h"
 
@@ -23,8 +24,8 @@ public:
    bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance);
    bool GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult);
 
-   bool GoToDefinition(TAGINFO* pTag);
-   bool GoToDefinition(LPCTSTR pstrMember);
+   bool OpenTagInView(TAGINFO* pTag);
+   bool OpenTagInView(LPCTSTR pstrFilenameLineNo, LPCTSTR pstrMemberName);
 
 public:
    enum

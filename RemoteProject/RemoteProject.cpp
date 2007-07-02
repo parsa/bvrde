@@ -152,7 +152,7 @@ IView* WINAPI Plugin_CreateView(LPCTSTR pstrFilename, IProject* pProject, IEleme
 {
    if( pstrFilename == NULL ) return NULL;
 
-   BOOL bRemoteFile = pstrFilename[0] == '/';
+   BOOL bRemoteFile = (pstrFilename[0] == '/');
 
    CRemoteProject* pCppProject = NULL;
    // Only accept IProject attachment if it comes from another

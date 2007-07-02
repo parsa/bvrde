@@ -20,6 +20,7 @@ public:
    bool m_bPopulated;                            // Has tree been populated?
    CRemoteProject* m_pProject;                   // Reference to project
    TAGINFO* m_pCurrentTag;                       // Reference to selected tag item
+   CString m_sImplementationEntry;               // Reference to selected items implementation file
    CSimpleArray<CString> m_aExpandedNames;       // List of exanded tree-names
 
    CImageListCtrl m_Images;
@@ -38,6 +39,7 @@ public:
    // Implementation
 
    void _PopulateTree();
+   CString _GetImplementationRef(TAGINFO* pTag);
 
    // IIdleListener
 

@@ -44,7 +44,7 @@ BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition)
       }
       else if( nLen > 0 ) {
          // Only non-empty items should be added
-         ATLASSERT(szItemText[0]!=_T('\0'));
+         ATLASSERT(szItemText[0]!='\0');
          // Here the state does not contain a count in the HIBYTE
          ::InsertMenu(hMenu, nPosition++, state | MF_BYPOSITION, ::GetMenuItemID(hMenuSource, i), szItemText);
       }

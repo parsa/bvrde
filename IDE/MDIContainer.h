@@ -94,6 +94,7 @@ public:
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
       MESSAGE_HANDLER(WM_SIZE, OnSize)
       NOTIFY_HANDLER(IDC_COOLTAB, TCN_SELCHANGE, OnSelChange)
+      NOTIFY_HANDLER(IDC_COOLTAB, TCN_REQUESTREMOVE, OnRequestRemove)
       NOTIFY_HANDLER(IDC_COOLTAB, NM_RCLICK, OnRightClick)
       REFLECT_NOTIFICATIONS()
    ALT_MSG_MAP(1)      // MDI client messages
@@ -126,12 +127,22 @@ public:
       m_wndMDIClient.SendMessage(WM_MDIACTIVATE, (WPARAM) tci.lParam);
       return 0;
    }
+   LRESULT OnRequestRemove(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+   {
+      int iIndex = m_ctrlTab.GetCurSel();
+      if( iIndex < 0 ) return 0;
+      TCITEM tci = { 0 };
+      tci.mask = TCIF_PARAM;
+      m_ctrlTab.GetItem(iIndex, &tci);
+      ::PostMessage((HWND)tci.lParam, WM_CLOSE, 0, 0L);
+      return 0;
+   }
    LRESULT OnRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       // Someone right-clicked on a tab...
       int iIndex = m_ctrlTab.GetCurSel();
       if( iIndex < 0 ) return 0;
-      POINT pt;
+      POINT pt = { 0 };
       ::GetCursorPos(&pt);
       CMenu menu;
       menu.LoadMenu(IDM_COOLTAB);
@@ -146,6 +157,12 @@ public:
             tci.mask = TCIF_PARAM;
             m_ctrlTab.GetItem(iIndex, &tci);
             ::SetFocus((HWND)tci.lParam);
+         }
+         break;
+      case ID_FILE_SAVE:
+         {
+            CWindow wnd = GetTopLevelWindow();
+            wnd.SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE, 0));
          }
          break;
       case ID_TAB_CLOSE:
@@ -170,6 +187,9 @@ public:
          {
             for( int i = 0; i < m_ctrlTab.GetItemCount(); i++ ) {
                if( i != iIndex ) {
+                  // NOTE: Because we PostMessage stuff we'll manage
+                  //       to iterate the list before things actually
+                  //       happens and affects the tab items.
                   TCITEM tci = { 0 };
                   tci.mask = TCIF_PARAM;
                   m_ctrlTab.GetItem(i, &tci);
@@ -215,8 +235,8 @@ public:
             if( iIndex >= 0 ) m_ctrlTab.DeleteItem(iIndex);
             // The UpdateButtons() call is important because we need to
             // update the UI while the reference to the view is still intact.
-            // The call will eventually calls OnUserViewChange() which 
-            // clears the view menus & tools.
+            // The call will eventually reach CMainFrame::OnUserViewChange()
+            // which clears the view menus & tools.
             UpdateButtons();
             UpdateLayout();
          }

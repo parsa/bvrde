@@ -7,6 +7,7 @@
 #include "TelnetProtocol.h"
 #include "RloginProtocol.h"
 #include "SshProtocol.h"
+#include "ComSpecProtocol.h"
 
 #pragma code_seg( "MISC" )
 
@@ -57,14 +58,18 @@ bool CShellManager::Load(ISerializable* pArc)
    m_sType = _T("telnet");
    if( pArc->ReadItem(_T("Type")) ) {
       TCHAR szType[64] = { 0 };
+      TCHAR szServerType[64] = { 0 };
       pArc->Read(_T("method"), szType, 63);
+      pArc->Read(_T("serverType"), szServerType, 63);
       m_sType = szType;
+      m_sServerType = szServerType;
    }
    if( m_pProtocol ) delete m_pProtocol;
    m_pProtocol = NULL;
-   if( m_sType == _T("telnet") ) m_pProtocol = new CTelnetProtocol();
-   else if( m_sType == _T("rlogin") ) m_pProtocol = new CRloginProtocol();
-   else if( m_sType == _T("ssh") ) m_pProtocol = new CSshProtocol();
+   if( m_sType == _T("telnet") )       m_pProtocol = new CTelnetProtocol();
+   else if( m_sType == _T("rlogin") )  m_pProtocol = new CRloginProtocol();
+   else if( m_sType == _T("ssh") )     m_pProtocol = new CSshProtocol();
+   else if( m_sType == _T("comspec") ) m_pProtocol = new CComSpecProtocol();
    else {
       ATLASSERT(false);
       return false;
@@ -82,6 +87,7 @@ bool CShellManager::Save(ISerializable* pArc)
 
    if( !pArc->WriteItem(_T("Type")) ) return false;
    pArc->Write(_T("method"), m_sType);
+   pArc->Write(_T("serverType"), m_sServerType);
 
    if( !m_pProtocol->Save(pArc) ) return false;
 
@@ -141,15 +147,17 @@ void CShellManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
       if( m_pProtocol ) delete m_pProtocol;
       m_pProtocol = NULL;
       m_sType = pstrValue;
-      if( m_sType == _T("telnet") ) m_pProtocol = new CTelnetProtocol();
-      else if( m_sType == _T("rlogin") ) m_pProtocol = new CRloginProtocol();
-      else if( m_sType == _T("ssh") ) m_pProtocol = new CSshProtocol();
+      if( m_sType == _T("telnet") )       m_pProtocol = new CTelnetProtocol();
+      else if( m_sType == _T("rlogin") )  m_pProtocol = new CRloginProtocol();
+      else if( m_sType == _T("ssh") )     m_pProtocol = new CSshProtocol();
+      else if( m_sType == _T("comspec") ) m_pProtocol = new CComSpecProtocol();
       else {
          ATLASSERT(false);
          return;
       }
       m_pProtocol->Init(m_pProject, this);
    }
+   if( sName == _T("ServerType") ) m_sServerType = pstrValue;
    // Just pass the parameter on to the actual protocol
    ATLASSERT(m_pProtocol);
    if( m_pProtocol == NULL ) return;
@@ -193,13 +201,18 @@ void CShellManager::BroadcastLine(VT100COLOR Color, LPCTSTR pstrText)
 
 void CShellManager::PreAuthenticatedLine(LPCTSTR pstrText)
 {
-   CString s = pstrText;
-   if( s.Find(_T("Linux")) >= 0 || s.Find(_T("LINUX")) >= 0 ) m_sServerType = _T("LINUX");
-   if( s.Find(_T("Windows")) >= 0 ) m_sServerType = _T("Windows");
-   if( s.Find(_T("UNIX")) >= 0 ) m_sServerType = _T("UNIX");
-   if( s.Find(_T("Debian")) >= 0 ) m_sServerType = _T("Debian LINUX");
-   if( s.Find(_T("Red Hat")) >= 0 ) m_sServerType = _T("Red Hat LINUX");
-   if( s.Find(_T("HP-UX")) >= 0 ) m_sServerType = _T("HP UNIX");
+   // Try to detect server type...
+   if( m_sServerType.IsEmpty() ) {
+      CString s = pstrText;
+      if( s.Find(_T("Linux")) >= 0 )   m_sServerType = _T("LINUX (Generic)");
+      if( s.Find(_T("LINUX")) >= 0 )   m_sServerType = _T("LINUX (Generic)");
+      if( s.Find(_T("Windows")) >= 0 ) m_sServerType = _T("Windows");
+      if( s.Find(_T("UNIX")) >= 0 )    m_sServerType = _T("UNIX (Generic)");
+      if( s.Find(_T("Debian")) >= 0 )  m_sServerType = _T("LINUX (Debian)");
+      if( s.Find(_T("Red Hat")) >= 0 ) m_sServerType = _T("LINUX (Red Hat)");
+      if( s.Find(_T("Ubuntu")) >= 0 )  m_sServerType = _T("LINUX (Ubuntu)");
+      if( s.Find(_T("HP-UX")) >= 0 )   m_sServerType = _T("UNIX (HP-UX)");
+   }
 }
 
 bool CShellManager::WriteData(LPCTSTR pstrData)

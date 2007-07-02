@@ -152,34 +152,26 @@ CString CCommandView::_ParseLine() const
 
 void CCommandView::_ExecAndCapture(LPCTSTR pstrCommandLine)
 {
-   USES_CONVERSION;
-
-   OSVERSIONINFO osv = { sizeof(OSVERSIONINFO) };
-   ::GetVersionEx(&osv);
-   bool bWin95 = osv.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS;
-
    SECURITY_ATTRIBUTES sa = { sizeof(SECURITY_ATTRIBUTES), 0, 0 };
    sa.bInheritHandle = TRUE;
    sa.lpSecurityDescriptor = NULL;
 
-   // If NT make a real security thing to allow inheriting handles
+   // Make a real security thing to allow inheriting handles
    SECURITY_DESCRIPTOR sd;
-   if( !bWin95 ) {
-      ::InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION);
-      ::SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE);
-      sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-      sa.lpSecurityDescriptor = &sd;
-   }
+   ::InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION);
+   ::SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE);
+   sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+   sa.lpSecurityDescriptor = &sd;
 
    // Create pipe for output redirection
-   // read handle, write handle, security attributes, number of bytes reserved for pipe - 0 default
+   // Read handle, write handle, security attributes, number of bytes reserved for pipe - 0 default
    HANDLE hPipeWrite = NULL;
    HANDLE hPipeRead = NULL;
    ::CreatePipe(&hPipeRead, &hPipeWrite, &sa, 0);
 
    HANDLE hWriteSubProcess = NULL;
 
-   // Read handle, write handle, security attributes,  number of bytes reserved for pipe - 0 default
+   // Read handle, write handle, security attributes, number of bytes reserved for pipe - 0 default
    HANDLE hRead2 = NULL;
    ::CreatePipe(&hRead2, &hWriteSubProcess, &sa, 0);
 
@@ -194,7 +186,6 @@ void CCommandView::_ExecAndCapture(LPCTSTR pstrCommandLine)
    si.hStdError = hPipeWrite;
 
    PROCESS_INFORMATION pi = { 0 };
-   DWORD dwTimeDetectedDeath = 0;
    BOOL bRunning = ::CreateProcess(
            NULL,
            const_cast<LPTSTR>(pstrCommandLine),
@@ -209,6 +200,7 @@ void CCommandView::_ExecAndCapture(LPCTSTR pstrCommandLine)
    if( !bRunning ) {
       AppendRtfText(m_hWnd, _GetSystemErrorText(::GetLastError()), CFM_COLOR, 0, COLOR_RED);
    }
+
    while( bRunning ) {
       DWORD dwBytesRead = 0;
       DWORD dwBytesAvail = 0;
@@ -226,22 +218,13 @@ void CCommandView::_ExecAndCapture(LPCTSTR pstrCommandLine)
          AppendRtfText(m_hWnd, sText);
          UpdateWindow();
       }
-      if( dwTimeDetectedDeath > 0 && ::GetTickCount()  - dwTimeDetectedDeath > 500 ) bRunning = false;
       DWORD dwExitCode = 0;
       if( ::GetExitCodeProcess(pi.hProcess, &dwExitCode) ) {
-         if( STILL_ACTIVE != dwExitCode ) {
-            if( bWin95 ) {
-               // Process is dead, but wait a second in case there is some output in transit
-               dwTimeDetectedDeath = ::GetTickCount();
-            } 
-            else {   
-               // NT; so it's dead already...
-               break;
-            }
-         }
+         if( STILL_ACTIVE != dwExitCode ) break;
       }
       ::Sleep(100L);
    }
+
    ::CloseHandle(pi.hProcess);
    ::CloseHandle(pi.hThread);
    ::CloseHandle(hPipeRead);

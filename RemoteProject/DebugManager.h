@@ -50,8 +50,9 @@ private:
    volatile int m_nDebugAck;                   // No of debug acknoledge
    volatile int m_nLastAck;                    // Last known acknoledge
    volatile int m_nIgnoreErrors;               // Ignore GDB error report?
+   volatile int m_nIgnoreBreaks;               // Ignore doing visual updates when breaking?
    bool m_bBreaked;                            // Is debugging, but currently breaked?
-   bool m_bDebugging;                          // Is debugging?
+   bool m_bDebugging;                          // Is currently debugging?
    bool m_bCommandMode;                        // In Command mode?
    bool m_bRunning;                            // Process or debugger is running?
    bool m_bSeenExit;                           // Did we see a proper GDB exit?
@@ -66,6 +67,7 @@ private:
    CString m_sSearchPath;
    long m_lStartTimeout;
    BOOL m_bMaintainSession;
+   double m_dblDebuggerVersion;
 
 // Operations
 public:

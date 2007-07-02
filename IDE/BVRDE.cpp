@@ -46,7 +46,7 @@ static bool SingleInstance()
    return true;
 }
 
-static void SetLanguage()
+static void SetLanguage(CMainFrame* pMain)
 {
    CRegSerializer reg;
    if( !reg.Open(REG_BVRDE) ) return;
@@ -55,6 +55,7 @@ static void SetLanguage()
    reg.Read(_T("language"), szBuffer, 63);
    if( _tcscmp(szBuffer, _T("en")) == 0 ) ::SetThreadLocale(MAKELCID(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), SORT_DEFAULT));
    if( _tcscmp(szBuffer, _T("de")) == 0 ) ::SetThreadLocale(MAKELCID(MAKELANGID(LANG_GERMAN, SUBLANG_GERMAN), SORT_DEFAULT));
+   pMain->m_Locale = ::GetThreadLocale();
 }
 
 
@@ -87,7 +88,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    // Change the language now; this is a setting in the registry because
    // we'd like all message-boxes (even errors at this stage) to appear
    // in the correct language.
-   SetLanguage();
+   SetLanguage(&wndMain);
 
    // Show splash screen
    CSplashWindow splash;

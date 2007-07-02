@@ -36,12 +36,14 @@ DWORD CDebugStopThread::Run()
 
 CDebugManager::CDebugManager() :
    m_pProject(NULL),
-   m_bSeenExit(false),
    m_bBreaked(false),
    m_bRunning(false),
+   m_bSeenExit(false),
    m_bDebugging(false),
    m_bCommandMode(false),
-   m_nIgnoreErrors(0)
+   m_dblDebuggerVersion(0.0),
+   m_nIgnoreErrors(0),
+   m_nIgnoreBreaks(0)
 {
    Clear();
    m_eventAck.Create(NULL, TRUE, FALSE);
@@ -378,8 +380,8 @@ bool CDebugManager::RunNormal()
       Stop();
       return false;
    }
-   m_bSeenExit = false;
    m_bRunning = true;
+   m_bSeenExit = false;
 
    sStatus.LoadString(IDS_STATUS_RUNNING);
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, TRUE);
@@ -434,7 +436,8 @@ bool CDebugManager::AttachProcess(long lPID)
    aList.Add(sCommand);   
    // FIX: The MI interface does not yet support the "-target-attach" command
    //      and using the "--pid" command-line argument tends to prompt for
-   //      "press RETURN to continue"...
+   //      "press RETURN to continue". Since this is all we got, we'll have
+   //      to detect this and press RETURN...
    //sCommand.Format(_T("-target-attach %ld"), lPID);
    sCommand.Format(_T("%s -i=mi --pid=%ld"), m_sDebuggerExecutable, lPID);
    aList.Add(sCommand);   
@@ -455,15 +458,16 @@ bool CDebugManager::GetTagInfo(LPCTSTR pstrValue)
    // We must be debugging to talk to the debugger
    if( !IsDebugging() ) return false;
    // Send query to GDB debugger about the data value.
+   // NOTE: Somewhere down in the _TranslateCommand() method
+   //       we'll make sure to ignore any errors returned since we cannot
+   //       really control what the mouse-hover intercepts.
    CString sValue = pstrValue;
    sValue.Replace(_T("\\"), _T("\\\\"));
    sValue.Replace(_T("\""), _T("\\\""));
-   // NOTE: Somewhere down in the _TranslateCommand() method
-   //       we'll make sure to ignore any errors returned.
    CString sCommand;
    sCommand.Format(_T("-data-evaluate-expression \"%s\""), sValue);
    DoDebugCommand(sCommand);
-   return true;  // We don't know if there will be data available!!
+   return true;  // We don't know if there will be data available!! Just be happy about it.
 }
 
 bool CDebugManager::DoDebugCommand(LPCTSTR pstrText)
@@ -570,6 +574,7 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands)
    // Prepare session
    m_ShellManager.AddLineListener(this);
    m_nIgnoreErrors = 0;
+   m_nIgnoreBreaks = 0;
    m_bDebugging = true;
    m_bBreaked = false;
    m_nDebugAck = 0;
@@ -592,8 +597,8 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands)
    }
 
    // We should detect a clean exit for this session...
-   m_bSeenExit = false;
    m_bRunning = true;
+   m_bSeenExit = false;
 
    sStatus.LoadString(IDS_STATUS_DEBUGGING);
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
@@ -634,9 +639,15 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands)
    m_pProject->SendViewMessage(DEBUG_CMD_REQUEST_BREAKPOINTS, &data);
 
    // Prevent "Press <return> to continue" interruption
+   DoDebugCommand(_T("-gdb-set confirm off"));  
+   DoDebugCommand(_T("-gdb-set width 0"));  
    DoDebugCommand(_T("-gdb-set height 0"));  
 
-   // This is one of the first command we send; views can interpret the reply (cwd) as 
+   // Initialize some GDB settings depending on connection type
+   CString sShellType = m_ShellManager.GetParam(_T("Type"));
+   if( sShellType == _T("comspec") ) DoDebugCommand(_T("-gdb-set debugevents on"));  
+
+   // This is one of the first commands we send; views can interpret the reply (cwd) as 
    // a "startup" command.
    DoDebugCommand(_T("-environment-pwd"));
 
@@ -657,7 +668,8 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands)
       DoDebugCommand(sCommand);
    }
 
-   // Set the GDB search paths
+   // Set the GDB search paths. The user can here add additional search paths
+   // once GDB is started.
    if( !m_sSearchPath.IsEmpty() ) {
       CString sPaths;
       CString s = m_sSearchPath;
@@ -708,9 +720,10 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
    // Translate meta-tokens in command
    sCommand.Replace(_T("$PROJECTNAME$"), szProjectName);
    sCommand.Replace(_T("$PATH$"), m_ShellManager.GetParam(_T("Path")));
+   sCommand.Replace(_T("$DRIVE$"), m_ShellManager.GetParam(_T("Path")).Left(2));
    sCommand.Replace(_T("\\n"), _T("\r\n"));
    if( pstrParam ) {
-      TCHAR szName[MAX_PATH];
+      TCHAR szName[MAX_PATH + 1] = { 0 };
       _tcscpy(szName, pstrParam);
       sCommand.Replace(_T("$FILEPATH$"), szName);
       ::PathStripPath(szName);
@@ -724,8 +737,9 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
    // messages all the time, so we'll ignore these.
    if( sCommand.Find(_T("-delete")) >= 0 ) m_nIgnoreErrors++;
    if( sCommand.Find(_T("-evaluate")) >= 0 ) m_nIgnoreErrors++;
-   if( sCommand.Find(_T("-var-evaluate-expression")) >= 0 ) m_sVarName = sCommand.Mid(25);
-   if( sCommand.Find(_T("-data-evaluate-expression")) >= 0 ) m_sVarName = sCommand.Mid(26);
+   int iPos;
+   if( (iPos = sCommand.Find(_T("-var-evaluate-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 25);
+   if( (iPos = sCommand.Find(_T("-data-evaluate-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 26);
    return sCommand;
 }
 
@@ -747,6 +761,7 @@ void CDebugManager::_ClearLink()
    m_bRunning = false;
    m_bBreaked = false;
    m_nIgnoreErrors = 99;  // No GDB errors/popups during exit!
+   m_nIgnoreBreaks = 99;  // No GDB updates during exit!
 }
 
 /**
@@ -788,22 +803,31 @@ bool CDebugManager::_CheckStatus()
  */
 void CDebugManager::_ParseNewFrame(CMiInfo& info)
 {
+   CString sFunction = info.GetItem(_T("func"));
+   if( sFunction.IsEmpty() ) sFunction = info.GetItem(_T("at"));
    CString sFilename = info.GetItem(_T("file"), _T("frame"));
    if( !sFilename.IsEmpty() ) 
    {
       // Debugger stopped in source file.
-      // Bring up trace window...
+      // We'll attempt to bring the source file into view and
+      // place the "current line" marker at the breaked position.
       bool bKnownFile = m_pProject->FindView(sFilename, true) != NULL;
       long lLineNum = _ttol(info.GetItem(_T("line"), _T("frame")));
       m_pProject->DelayedOpenView(sFilename, lLineNum);
       m_pProject->DelayedViewMessage(DEBUG_CMD_SET_CURLINE, sFilename, lLineNum);
-      m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(bKnownFile ? IDS_STATUS_DEBUG_BREAKPOINT : IDS_STATUS_DEBUG_NOFILE)));
+      CString sText;
+      if( bKnownFile ) sText.LoadString(IDS_STATUS_DEBUG_BREAKPOINT);
+      else if( sFunction.IsEmpty() ) sText.LoadString(IDS_STATUS_DEBUG_NOFILE);
+      else sText.Format(IDS_STATUS_DEBUG_FUNCTION, sFunction);
+      m_pProject->DelayedStatusBar(sText);
    }
    else
    {
       // Debugger stopped at a location without debug information.
       m_pProject->DelayedViewMessage(DEBUG_CMD_SET_CURLINE);
-      m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUG_NOSOURCE)));
+      CString sText(MAKEINTRESOURCE(IDS_STATUS_DEBUG_NOSOURCE));
+      if( !sFunction.IsEmpty() ) sText.Format(IDS_STATUS_DEBUG_NOSOURCE_FUNCTION, sFunction);
+      m_pProject->DelayedStatusBar(sText);
    }
    // Cause the debug views to refresh
    m_pProject->DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
@@ -839,8 +863,14 @@ void CDebugManager::_ParseOutOfBand(LPCTSTR pstrText)
    CString sToken;
    CString sValue;
    if( sCommand == _T("stopped") ) {
-      // Debugger has stopped and is waiting for input
+      // Debugger has stopped and is waiting for input.
+      // We mark the session as "breaked". We then continue to
+      // show possible errors/warnings and update the debug views.
+      // NOTE: For temporary breaks (ie. where we stop the running debugger 
+      //       to insert a breakpoint) we make sure not to try to update
+      //       the user-interface, since this is an internal event.
       m_bBreaked = true;
+      if( m_nIgnoreBreaks > 0 ) return;
       // Parse command...
       CMiInfo info = sLine;
       sValue = info.GetItem(_T("reason"));
@@ -871,7 +901,9 @@ void CDebugManager::_ParseOutOfBand(LPCTSTR pstrText)
          // Play the breakpoint sound
          ::PlaySound(_T("BVRDE_BreakpointHit"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
       }
-      // Assume current position changed, so we'll need to notify views about this
+      // Assume current position changed, so we'll need to notify views about this.
+      // This call will inform all the views of the new active source-code position
+      // and possible allow them to refresh their display.
       _ParseNewFrame(info);
       return;
    }
@@ -893,7 +925,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
    // Debugger stopped for good
    if( sCommand == _T("exit") ) {
       m_pProject->DelayedStatusBar(_T(""));
-      // We should flag that we did a clean exit
+      // We should flag that we did a clean exit!
       _ClearLink();
       m_bSeenExit = true;
       return;
@@ -929,6 +961,8 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
          _T("value"),
          _T("addr"),
          _T("cwd"),
+         _T("changelist"),
+         _T("ndeleted"),
          _T("asm_insns"),
          _T("numchild"),
          NULL
@@ -943,9 +977,11 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
          // lingering at any time.
          // TODO: Make use of the GDB command-prefix number instead
          //       of just hard-coding it to 232 as we do today.
+         CString sVarName= m_sVarName;
+         sVarName.TrimLeft(_T("\" "));
+         sVarName.TrimRight(_T("\"\t\r\n "));
          CString sTemp;
-         m_sVarName.Remove('\"');
-         sTemp.Format(_T(",name=\"%s\""), m_sVarName);
+         sTemp.Format(_T(",name=\"%s\""), sVarName);
          sLine += sTemp;
       }
       // Check for internal commands or route it to client processing
@@ -970,6 +1006,14 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
    // Not seen first GDB prompt yet? GDB might be spitting out error messages
    // in raw format then...
    if( m_nDebugAck == 0 ) {
+      int iPos = sLine.Find(_T("GNU gdb "));
+      if( iPos == 0 || iPos == 1 ) {
+         LPTSTR pEnd = NULL;
+         m_dblDebuggerVersion = _tcstod(sLine.Mid(iPos + 8), &pEnd);
+         if( m_dblDebuggerVersion >= 4.0 && m_dblDebuggerVersion < 5.3 ) {
+            m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGVERSION)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
+         }
+      }
       if( sLine.Find(_T("o debugging symbols found")) >= 0 ) {
          m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NODEBUGINFO)), CString(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE)), MB_ICONINFORMATION);
       }
@@ -989,10 +1033,17 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
          m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGVERSION)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
       }
    }
-   // GDB is known to be unstable at times
+   // GDB is known to be unstable at times...
    if( sLine.Find(_T("An internal GDB error was detected.")) >= 0 ) {
       m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGUNSTABLE)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
       ProgramStop();
+   }
+   // For some targets we really wish to know the PID of the running program.
+   // Settings debugevent reporting on seems to be the only way to trigger this
+   // in GDB.
+   if( sLine.Find(_T("do_initial_child_stuff")) >= 0 ) {
+      m_ShellManager.SetParam(_T("ProcessID"), sLine.Mid(sLine.Find(_T("process")) + 7));
+      DoDebugCommand(_T("-gdb-set debugevents off"));
    }
    // Outputting directly to the Command View if we're
    // in "command mode" (user entered custom command at prompt or scripting).
@@ -1042,7 +1093,11 @@ bool CDebugManager::_PauseDebugger()
 {
    // Do we need to stop the debugger?
    if( IsBreaked() ) return false;
-   // Yes, let's give it a break.
+   // Yes, let's give it a break. Make sure to mark the
+   // event so we don't update views as well. This is a temporary
+   // state as we intent to immediately resume the session once
+   // we sent our commands.
+   m_nIgnoreBreaks++;
    Break();
    // Wait for break sequence to complete
    const int TIMEOUT = 10;  // in 100ms
@@ -1073,6 +1128,7 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    if( _tcsncmp(pstrText, _T("(gdb"), 4) == 0 ) {
       m_bCommandMode = false;
       if( m_nIgnoreErrors > 0 ) m_nIgnoreErrors--;
+      if( m_nIgnoreBreaks > 0 ) m_nIgnoreBreaks--;
       m_nDebugAck++;
       m_eventAck.SetEvent();
       return;
