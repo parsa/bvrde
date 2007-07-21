@@ -85,7 +85,7 @@ IDR_CLASSTREE MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "Alphabetisch &sortieren",     ID_CLASSVIEW_SORT
+        MENUITEM "Alphabetisch &sortieren    ", ID_CLASSVIEW_SORT
         MENUITEM "Nicht sortieren",             ID_CLASSVIEW_NOSORT
     END
 END
@@ -95,7 +95,7 @@ BEGIN
     POPUP "Popup"
     BEGIN
         MENUITEM "&Gehe zu Definition",         ID_CLASSVIEW_GOTO
-        MENUITEM "&Gehe zu Implementation",     ID_CLASSVIEW_GOTOIMPL
+        MENUITEM "&Gehe zu Implementation    ", ID_CLASSVIEW_GOTOIMPL
         MENUITEM SEPARATOR
         MENUITEM "&Kopieren",                   ID_CLASSVIEW_COPY
         MENUITEM SEPARATOR
@@ -108,7 +108,7 @@ BEGIN
     POPUP "Popup"
     BEGIN
         MENUITEM "&Öffnen",                     ID_VIEW_OPEN
-        MENUITEM "Öffnen mit...",               ID_VIEW_OPEN_WITH
+        MENUITEM "Öffnen mit...    ",           ID_VIEW_OPEN_WITH
         MENUITEM SEPARATOR
         MENUITEM "&Kompilieren",                ID_BUILD_COMPILE
         MENUITEM SEPARATOR
@@ -169,7 +169,7 @@ BEGIN
         MENUITEM "Enfe&rnen",                   ID_FILE_DELETE
         MENUITEM "Umbenennen",                  ID_FILE_RENAME
         MENUITEM SEPARATOR
-        MENUITEM "&Eigenschaften",              ID_VIEW_PROPERTIES
+        MENUITEM "&Eigenschaften    ",          ID_VIEW_PROPERTIES
     END
 END
 
@@ -291,7 +291,8 @@ BEGIN
     END
     POPUP "Sub6"
     BEGIN
-        MENUITEM "Haltepunkt einfügen/entfernen", ID_DEBUG_BREAKPOINT
+        MENUITEM "Haltepunkt einfügen/entfernen   \tF8", ID_DEBUG_BREAKPOINT
+        MENUITEM "Quick Watch",                 ID_DEBUG_QUICKWATCH
         MENUITEM SEPARATOR
     END
 END
@@ -300,9 +301,11 @@ IDR_MEMORY MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
+        MENUITEM "Wert ändern",                 ID_MEMORY_EDIT
+        MENUITEM SEPARATOR
         MENUITEM "&Aktualisieren",              ID_MEMORY_REFRESH
         MENUITEM SEPARATOR
-        MENUITEM "Zeige als &DWORD",            ID_MEMORY_SIZE_DWORD
+        MENUITEM "Zeige als &DWORD     ",       ID_MEMORY_SIZE_DWORD
         MENUITEM "Zeige als &WORD",             ID_MEMORY_SIZE_WORD
         MENUITEM "Zeige als &BYTE",             ID_MEMORY_SIZE_BYTE
     END
@@ -316,7 +319,8 @@ BEGIN
         MENUITEM "Neu erstellen",               ID_BUILD_REBUILD
         MENUITEM "Bereinigen",                  ID_BUILD_CLEAN
         MENUITEM SEPARATOR
-        MENUITEM "Als Standartprojekt festlegen", ID_PROJECT_SET_DEFAULT
+        MENUITEM "Als Standartprojekt festlegen     ", 
+                                                ID_PROJECT_SET_DEFAULT
         POPUP "Hinzufügen"
         BEGIN
             MENUITEM "Verzeichnis hinzufügen",      ID_FILE_ADD_FOLDER
@@ -337,7 +341,7 @@ IDR_REMOTEDIR MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "Öffnen",                      ID_REMOTEDIR_OPEN
+        MENUITEM "Öffnen    ",                  ID_REMOTEDIR_OPEN
     END
 END
 
@@ -346,7 +350,7 @@ BEGIN
     POPUP "Popup"
     BEGIN
         MENUITEM "Öffnen",                      ID_VIEW_OPEN
-        MENUITEM "Öffnen mit..",                ID_VIEW_OPEN_WITH
+        MENUITEM "Öffnen mit..    ",            ID_VIEW_OPEN_WITH
         MENUITEM SEPARATOR
         MENUITEM "&Entfernen",                  ID_FILE_DELETE
         MENUITEM SEPARATOR
@@ -358,8 +362,24 @@ IDR_TELNET MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "Enfe&rnen",                   ID_EDIT_CLEAR
+        MENUITEM "Enfe&rnen    ",               ID_EDIT_CLEAR
         MENUITEM "Kopieren",                    ID_EDIT_COPY
+    END
+END
+
+IDR_BREAKPOINTS MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Open in View",               ID_BREAKPOINTS_OPEN
+        MENUITEM "&Delete Breakpoint",          ID_BREAKPOINTS_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&Enable",                     ID_BREAKPOINTS_ENABLE
+        MENUITEM "&Disable",                    ID_BREAKPOINTS_DISABLE
+        MENUITEM SEPARATOR
+        MENUITEM "&Refresh",                    ID_BREAKPOINTS_REFRESH
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_BREAKPOINTS_PROPERTIES
     END
 END
 
@@ -414,7 +434,7 @@ BEGIN
                     WS_TABSTOP
     DEFPUSHBUTTON   "&Öffnen",IDOK,252,136,50,14
     PUSHBUTTON      "Abbrechen",IDCANCEL,252,154,50,14
-    LTEXT           "Suchen &in :",1091,4,6,37,8,SS_NOTIFY
+    LTEXT           "Suchen &in:",1091,4,6,37,8,SS_NOTIFY
     CONTROL         "",IDC_FOLDER,"ComboBoxEx32",CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP,44,4,142,98
     PUSHBUTTON      "",IDC_BACK,190,3,15,15,BS_ICON | WS_DISABLED
@@ -489,10 +509,10 @@ STYLE DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU |
 CAPTION "Quick Watch"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    LTEXT           "Ausdruck :",IDC_STATIC,7,7,100,9,0,WS_EX_TRANSPARENT
+    LTEXT           "Ausdruck:",IDC_STATIC,7,7,100,9,0,WS_EX_TRANSPARENT
     COMBOBOX        IDC_LINE,7,19,199,63,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "Aktueller Wert :",IDC_STATIC,7,36,100,9,0,
+    LTEXT           "Aktueller Wert:",IDC_STATIC,7,36,100,9,0,
                     WS_EX_TRANSPARENT
     LISTBOX         IDC_LIST,7,47,200,123,LBS_OWNERDRAWVARIABLE | 
                     LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
@@ -506,7 +526,7 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Programmargumente"
 FONT 8, "MS Sans Serif"
 BEGIN
-    LTEXT           "Setzen sie die Argumente mit welchen das Programm ausgeführt werden soll :",
+    LTEXT           "Setzen sie die Argumente mit welchen das Programm ausgeführt werden soll:",
                     IDC_STATIC,7,7,247,11
     EDITTEXT        IDC_ARGUMENTS,21,24,229,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,162,47,50,14,WS_DISABLED
@@ -525,30 +545,30 @@ IDD_WIZARD_COMPILER DIALOGEX 0, 0, 330, 184
 STYLE DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    RTEXT           "Server: ",IDC_STATIC,36,7,46,12,SS_CENTERIMAGE,
+    RTEXT           "Linktyp: ",IDC_STATIC,46,7,36,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
-    COMBOBOX        IDC_SERVER,86,7,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_TYPE,86,7,81,79,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    RTEXT           "Linktyp: ",IDC_STATIC,46,22,36,12,SS_CENTERIMAGE,
+    RTEXT           "Server: ",IDC_STATIC,36,22,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
-    COMBOBOX        IDC_TYPE,86,22,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_SERVER,86,22,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    RTEXT           "Entfernter Host: ",IDC_STATIC,19,41,63,12,
+    RTEXT           "Entfernter Host: ",IDC_HOST_LABEL,19,41,63,12,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
-    EDITTEXT        IDC_HOST,86,41,94,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_HOST,86,41,170,12,ES_AUTOHSCROLL
     RTEXT           "Port: ",IDC_STATIC,36,56,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_PORT,86,56,46,12,ES_AUTOHSCROLL | ES_NUMBER
-    RTEXT           "Benutzername : ",IDC_STATIC,19,71,63,12,SS_CENTERIMAGE,
+    RTEXT           "Benutzername: ",IDC_STATIC,19,71,63,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_USERNAME,86,71,94,12,ES_AUTOHSCROLL
-    RTEXT           "Passwort : ",IDC_STATIC,36,86,46,12,SS_CENTERIMAGE,
+    RTEXT           "Passwort: ",IDC_STATIC,36,86,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_PASSWORD,86,86,94,12,ES_PASSWORD | ES_AUTOHSCROLL
-    RTEXT           "Initiales Verzeichnis :",IDC_STATIC,7,101,75,12,
+    RTEXT           "Initiales Verzeichnis:",IDC_STATIC,7,101,75,12,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
     EDITTEXT        IDC_PATH,86,101,170,12,ES_AUTOHSCROLL
-    RTEXT           "Angepasst : ",IDC_STATIC,36,117,46,12,SS_CENTERIMAGE,
+    RTEXT           "Angepasst: ",IDC_STATIC,36,117,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_EXTRA,86,117,170,29,ES_MULTILINE | ES_AUTOHSCROLL | 
                     ES_WANTRETURN | WS_VSCROLL
@@ -559,30 +579,30 @@ IDD_WIZARD_DEBUGGER DIALOGEX 0, 0, 330, 184
 STYLE DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    RTEXT           "Debugger : ",IDC_STATIC,37,7,46,12,SS_CENTERIMAGE,
+    RTEXT           "Linktyp: ",IDC_STATIC,37,7,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
-    COMBOBOX        IDC_DEBUGGER,87,7,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_TYPE,87,7,81,80,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    RTEXT           "Linktyp : ",IDC_STATIC,37,22,46,12,SS_CENTERIMAGE,
+    RTEXT           "Debugger: ",IDC_STATIC,37,22,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
-    COMBOBOX        IDC_TYPE,87,22,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_DEBUGGER,87,22,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    RTEXT           "Entfernter Host : ",IDC_STATIC,13,42,70,12,
+    RTEXT           "Entfernter Host: ",IDC_HOST_LABEL,13,42,70,12,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
-    EDITTEXT        IDC_HOST,87,42,94,12,ES_AUTOHSCROLL
-    RTEXT           "Port : ",IDC_STATIC,37,57,46,12,SS_CENTERIMAGE,
+    EDITTEXT        IDC_HOST,87,42,170,12,ES_AUTOHSCROLL
+    RTEXT           "Port: ",IDC_STATIC,37,57,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_PORT,87,57,46,12,ES_AUTOHSCROLL | ES_NUMBER
-    RTEXT           "Benutzername :",IDC_STATIC,20,72,63,12,SS_CENTERIMAGE,
+    RTEXT           "Benutzername:",IDC_STATIC,20,72,63,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_USERNAME,87,72,94,12,ES_AUTOHSCROLL
-    RTEXT           "Passwort :",IDC_STATIC,7,87,76,12,SS_CENTERIMAGE,
+    RTEXT           "Passwort:",IDC_STATIC,7,87,76,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_PASSWORD,87,87,94,12,ES_PASSWORD | ES_AUTOHSCROLL
-    RTEXT           "Initiales Verzeichnis :",IDC_STATIC,7,102,76,12,
+    RTEXT           "Initiales Verzeichnis:",IDC_STATIC,7,102,76,12,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
     EDITTEXT        IDC_PATH,87,102,170,12,ES_AUTOHSCROLL
-    RTEXT           "Angepasst :",IDC_STATIC,37,118,46,12,SS_CENTERIMAGE,
+    RTEXT           "Angepasst:",IDC_STATIC,37,118,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_EXTRA,87,118,170,29,ES_MULTILINE | ES_AUTOHSCROLL | 
                     ES_WANTRETURN | WS_VSCROLL
@@ -593,25 +613,25 @@ IDD_WIZARD_FILETRANSFER DIALOGEX 0, 0, 329, 169
 STYLE DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    RTEXT           "Entfernter Host :",IDC_STATIC,14,26,72,12,
-                    SS_CENTERIMAGE,WS_EX_TRANSPARENT
+    RTEXT           "Entfernter Host:",IDC_STATIC,14,26,72,12,SS_CENTERIMAGE,
+                    WS_EX_TRANSPARENT
     EDITTEXT        IDC_HOST,90,26,94,12,ES_AUTOHSCROLL
-    RTEXT           "Port : ",IDC_STATIC,40,41,46,12,SS_CENTERIMAGE,
+    RTEXT           "Port: ",IDC_STATIC,40,41,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_PORT,90,41,46,12,ES_AUTOHSCROLL | ES_NUMBER
-    RTEXT           "Benutzername :",IDC_STATIC,29,56,57,12,SS_CENTERIMAGE,
+    RTEXT           "Benutzername:",IDC_STATIC,29,56,57,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_USERNAME,90,56,94,12,ES_AUTOHSCROLL
-    RTEXT           "Passwort :",IDC_STATIC,40,71,46,12,SS_CENTERIMAGE,
+    RTEXT           "Passwort:",IDC_STATIC,40,71,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_PASSWORD,90,71,94,12,ES_PASSWORD | ES_AUTOHSCROLL
-    RTEXT           "Initiales Verzeichnis :",IDC_STATIC,16,86,70,12,
+    RTEXT           "Initiales Verzeichnis:",IDC_STATIC,16,86,70,12,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
     EDITTEXT        IDC_PATH,90,86,170,12,ES_AUTOHSCROLL
     PUSHBUTTON      "Verzeichnis &testen",IDC_TEST,91,104,79,14
-    RTEXT           "Linktyp :",IDC_STATIC,40,7,46,12,SS_CENTERIMAGE,
+    RTEXT           "Linktyp:",IDC_STATIC,40,7,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
-    COMBOBOX        IDC_TYPE,90,7,81,57,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_TYPE,90,7,81,76,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
 END
 
@@ -628,6 +648,28 @@ BEGIN
     LTEXT           "Post-Build:",IDC_STATIC,11,78,34,12,0,WS_EX_TRANSPARENT
     EDITTEXT        IDC_POSTSTEP,49,78,211,47,ES_MULTILINE | ES_AUTOHSCROLL | 
                     ES_WANTRETURN | WS_VSCROLL
+END
+
+IDD_BREAKPOINTINFO DIALOG DISCARDABLE  0, 0, 301, 192
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Breakpoint Information"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        " Ignore Count ",IDC_FRAME1,7,7,225,62
+    CONTROL         "Ignore the breakpoint being hit the following number of time...",
+                    IDC_IGNORECOUNT_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    BS_MULTILINE | WS_TABSTOP,13,16,176,19
+    EDITTEXT        IDC_IGNORECOUNT,25,41,42,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "times",-1,71,42,47,10,SS_CENTERIMAGE
+    GROUPBOX        " Condition ",IDC_FRAME2,7,74,225,65
+    CONTROL         "Use the following condition to determine when the breakpoint is hit.",
+                    IDC_CONDITION_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    BS_MULTILINE | WS_TABSTOP,14,86,206,18
+    LTEXT           "Condition:",-1,25,111,37,10,SS_CENTERIMAGE
+    EDITTEXT        IDC_CONDITION,64,110,154,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,244,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,244,24,50,14
 END
 
 
@@ -721,6 +763,14 @@ BEGIN
     BEGIN
         LEFTMARGIN, 2
         BOTTOMMARGIN, 162
+    END
+
+    IDD_BREAKPOINTINFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 294
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 185
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1003,6 +1053,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     ID_DEBUG_STEP_INSTRUCTION 
                             "Als einen Assembler Schritt ausführen\nSchritt ausführen"
+    ID_CLASSVIEW_GOTOIMPL   "Gehe zur Member\nGehe zur Implementation"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1147,7 +1198,7 @@ BEGIN
     IDS_MISC_PROCESSLIST    "PS Befehl"
     IDS_ERR_PIDLIST         "Fehler: ps command format fehler."
     IDS_LOG_COMSPEC         "Unable to start local command line utility."
-    IDS_COMSPEC             "Lokal / MINGW"
+    IDS_COMSPEC             "Lokal / MinGW"
     IDS_LOG_GDBSTOP         "Fehler. Der GDB Debugger ist nicht in der Lage zur Laufzeit neue Haltepunkte zu setzen."
     IDS_MENU_OPENIMPLEMENTATION "Gehe zu funktion ""%s::%s"""
     IDS_ERR_DEBUGPRIV       "No Debug Priviledges\nYou account may not be able to debug\nYou Windows user account does not seem to have sufficient DEBUG priviledges. Please contact you System Administrator."
@@ -1155,6 +1206,17 @@ BEGIN
                             " Außerhalb des Quellcodes gestoppt (aus '%s')..."
     IDS_STATUS_DEBUG_FUNCTION " Gestoppt am Haltepunkt (aus '%s')..."
     IDS_LOCALDRIVE          "Lokal"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_HOST_LABEL          "Entfernter Host: "
+    IDS_MINGWBIN_LABEL      "MinGW /bin:"
+    IDS_ERR_MINGWPATH       "Path not correct\nThe MinGW /bin path may not be correct.\nPlease enter a local path where the gdb debugger and compilation tools are located.\n\nContinue?"
+    IDS_ERR_MINGWEMPTY      "No MingW Path\nNo MinGW /bin path have been specified.\nWhile this is a valid configuration, your Windows system must be set up to start the debugger and compilation tools without a full path.\n\nContinue?"
+    IDS_BREAKPOINTHIT       "This breakpoint has been hit %d times.\r\n"
+    IDS_BREAKPOINTTEMP      "This is a temporary breakpoint.\r\n"
+    IDS_ERR_WINXP           "Windows XP erfordert.\nDiese Eigenschaft erfordert neueres Windows.\nDiese Eigenschaft ist auf Windows XP oder besseres nur vorhanden. "
 END
 
 #endif    // German (Germany) resources
@@ -1203,7 +1265,7 @@ BEGIN
     POPUP "Popup"
     BEGIN
         MENUITEM "&Open",                       ID_VIEW_OPEN
-        MENUITEM "Open with...",                ID_VIEW_OPEN_WITH
+        MENUITEM "Open with...    ",            ID_VIEW_OPEN_WITH
         MENUITEM SEPARATOR
         MENUITEM "&Compile",                    ID_BUILD_COMPILE
         MENUITEM SEPARATOR
@@ -1218,7 +1280,7 @@ BEGIN
     POPUP "Popup"
     BEGIN
         MENUITEM "&Open",                       ID_VIEW_OPEN
-        MENUITEM "Open with...",                ID_VIEW_OPEN_WITH
+        MENUITEM "Open with...    ",            ID_VIEW_OPEN_WITH
         MENUITEM SEPARATOR
         MENUITEM "&Remove",                     ID_FILE_DELETE
         MENUITEM SEPARATOR
@@ -1234,7 +1296,7 @@ BEGIN
         MENUITEM "Rebuild",                     ID_BUILD_REBUILD
         MENUITEM "&Clean",                      ID_BUILD_CLEAN
         MENUITEM SEPARATOR
-        MENUITEM "Set as Default Project",      ID_PROJECT_SET_DEFAULT
+        MENUITEM "Set as Default Project     ", ID_PROJECT_SET_DEFAULT
         POPUP "Add"
         BEGIN
             MENUITEM "Add Folder",                  ID_FILE_ADD_FOLDER
@@ -1265,7 +1327,7 @@ BEGIN
         MENUITEM "&Remove",                     ID_FILE_DELETE
         MENUITEM "Rename",                      ID_FILE_RENAME
         MENUITEM SEPARATOR
-        MENUITEM "&Properties",                 ID_VIEW_PROPERTIES
+        MENUITEM "&Properties    ",             ID_VIEW_PROPERTIES
     END
 END
 
@@ -1385,7 +1447,8 @@ BEGIN
     END
     POPUP "Sub6"
     BEGIN
-        MENUITEM "Insert/Delete &Breakpoint",   ID_DEBUG_BREAKPOINT
+        MENUITEM "Insert/Delete &Breakpoint   \tF8", ID_DEBUG_BREAKPOINT
+        MENUITEM "Quick Watch",                 ID_DEBUG_QUICKWATCH
         MENUITEM SEPARATOR
     END
 END
@@ -1394,7 +1457,7 @@ IDR_CLASSTREE MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "&Sort alphabetically",        ID_CLASSVIEW_SORT
+        MENUITEM "&Sort alphabetically    ",    ID_CLASSVIEW_SORT
         MENUITEM "&Don't Sort",                 ID_CLASSVIEW_NOSORT
     END
 END
@@ -1435,7 +1498,7 @@ BEGIN
     POPUP "Popup"
     BEGIN
         MENUITEM "&Go to Definition",           ID_CLASSVIEW_GOTODECL
-        MENUITEM "&Go to Implementation",       ID_CLASSVIEW_GOTOIMPL
+        MENUITEM "&Go to Implementation    ",   ID_CLASSVIEW_GOTOIMPL
         MENUITEM SEPARATOR
         MENUITEM "&Copy",                       ID_CLASSVIEW_COPY
         MENUITEM SEPARATOR
@@ -1447,9 +1510,11 @@ IDR_MEMORY MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
+        MENUITEM "Edit Memory Value",           ID_MEMORY_EDIT
+        MENUITEM SEPARATOR
         MENUITEM "&Refresh",                    ID_MEMORY_REFRESH
         MENUITEM SEPARATOR
-        MENUITEM "Display as &DWORD",           ID_MEMORY_SIZE_DWORD
+        MENUITEM "Display as &DWORD     ",      ID_MEMORY_SIZE_DWORD
         MENUITEM "Display as &WORD",            ID_MEMORY_SIZE_WORD
         MENUITEM "Display as &BYTE",            ID_MEMORY_SIZE_BYTE
     END
@@ -1459,7 +1524,7 @@ IDR_REMOTEDIR MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "&Open",                       ID_REMOTEDIR_OPEN
+        MENUITEM "&Open    ",                   ID_REMOTEDIR_OPEN
     END
 END
 
@@ -1467,10 +1532,28 @@ IDR_TELNET MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "&Clear",                      ID_EDIT_CLEAR
+        MENUITEM "&Clear    ",                  ID_EDIT_CLEAR
         MENUITEM "&Copy",                       ID_EDIT_COPY
         MENUITEM SEPARATOR
+        MENUITEM "Word Wrap   ",                ID_EDIT_WORDWRAP
+        MENUITEM SEPARATOR
         MENUITEM "Close",                       ID_VIEW_CLOSE
+    END
+END
+
+IDR_BREAKPOINTS MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Open in View",               ID_BREAKPOINTS_OPEN
+        MENUITEM "&Delete Breakpoint",          ID_BREAKPOINTS_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&Enabled",                    ID_BREAKPOINTS_ENABLE
+        MENUITEM "&Disabled",                   ID_BREAKPOINTS_DISABLE
+        MENUITEM SEPARATOR
+        MENUITEM "&Refresh",                    ID_BREAKPOINTS_REFRESH
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_BREAKPOINTS_PROPERTIES
     END
 END
 
@@ -1529,7 +1612,7 @@ BEGIN
     PUSHBUTTON      "&Test Connection",IDC_TEST,58,104,79,14
     RTEXT           "Link type: ",IDC_STATIC,7,7,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
-    COMBOBOX        IDC_TYPE,57,7,81,57,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_TYPE,57,7,81,76,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
 END
 
@@ -1537,17 +1620,17 @@ IDD_WIZARD_COMPILER DIALOGEX 0, 0, 330, 184
 STYLE DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    RTEXT           "Server: ",IDC_STATIC,7,7,46,12,SS_CENTERIMAGE,
+    RTEXT           "Link type: ",IDC_STATIC,7,7,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
-    COMBOBOX        IDC_SERVER,57,7,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_TYPE,57,7,81,77,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    RTEXT           "Link type: ",IDC_STATIC,7,22,46,12,SS_CENTERIMAGE,
+    RTEXT           "Server: ",IDC_STATIC,7,22,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
-    COMBOBOX        IDC_TYPE,57,22,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_SERVER,57,22,81,86,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    RTEXT           "Remote host: ",IDC_STATIC,7,42,46,12,SS_CENTERIMAGE,
+    RTEXT           "Remote host: ",IDC_HOST_LABEL,7,42,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
-    EDITTEXT        IDC_HOST,57,42,94,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_HOST,57,42,170,12,ES_AUTOHSCROLL
     RTEXT           "Port: ",IDC_STATIC,7,57,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_PORT,57,57,46,12,ES_AUTOHSCROLL | ES_NUMBER
@@ -1571,17 +1654,17 @@ IDD_WIZARD_DEBUGGER DIALOGEX 0, 0, 330, 184
 STYLE DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    RTEXT           "Debugger: ",IDC_STATIC,7,7,46,12,SS_CENTERIMAGE,
+    RTEXT           "Link type: ",IDC_STATIC,7,7,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
-    COMBOBOX        IDC_DEBUGGER,57,7,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_TYPE,57,7,81,80,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    RTEXT           "Link type: ",IDC_STATIC,7,22,46,12,SS_CENTERIMAGE,
+    RTEXT           "Debugger: ",IDC_STATIC,7,22,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
-    COMBOBOX        IDC_TYPE,57,22,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_DEBUGGER,57,22,81,41,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    RTEXT           "Remote host: ",IDC_STATIC,7,42,46,12,SS_CENTERIMAGE,
+    RTEXT           "Remote host: ",IDC_HOST_LABEL,7,42,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
-    EDITTEXT        IDC_HOST,57,42,94,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_HOST,57,42,170,12,ES_AUTOHSCROLL
     RTEXT           "Port: ",IDC_STATIC,7,57,46,12,SS_CENTERIMAGE,
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_PORT,57,57,46,12,ES_AUTOHSCROLL | ES_NUMBER
@@ -1658,7 +1741,7 @@ BEGIN
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
     CTEXT           "Enter the password for connecting to the remote server.",
                     IDC_STATIC,10,54,198,10,0,WS_EX_TRANSPARENT
-    CTEXT           "This password will be used to connect on all connections which was configured with a blank password.",
+    CTEXT           "This password will be to login on all connections which was configured with a blank password.",
                     IDC_SUBNOTE,7,67,204,20,SS_NOPREFIX,WS_EX_TRANSPARENT
 END
 
@@ -1738,6 +1821,30 @@ BEGIN
     LTEXT           "Post-Build:",IDC_STATIC,11,78,34,12,0,WS_EX_TRANSPARENT
     EDITTEXT        IDC_POSTSTEP,48,78,211,47,ES_MULTILINE | ES_AUTOHSCROLL | 
                     ES_WANTRETURN | WS_VSCROLL
+END
+
+IDD_BREAKPOINTINFO DIALOG DISCARDABLE  0, 0, 301, 192
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Breakpoint Information"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        " Ignore Count ",IDC_FRAME1,7,7,225,62
+    CONTROL         "Ignore the breakpoint being hit the following number of time...",
+                    IDC_IGNORECOUNT_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    BS_MULTILINE | WS_TABSTOP,13,16,176,19
+    EDITTEXT        IDC_IGNORECOUNT,25,41,42,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "times",IDC_STATIC,71,42,47,10,SS_CENTERIMAGE
+    GROUPBOX        " Condition ",IDC_FRAME2,7,74,225,65
+    CONTROL         "Use the following condition to determine when the breakpoint is hit.",
+                    IDC_CONDITION_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    BS_MULTILINE | WS_TABSTOP,14,86,206,18
+    LTEXT           "Condition:",IDC_STATIC,25,111,37,10,SS_CENTERIMAGE
+    EDITTEXT        IDC_CONDITION,64,110,154,12,ES_AUTOHSCROLL
+    GROUPBOX        " Info ",IDC_FRAME3,7,144,225,41
+    LTEXT           "...",IDC_INFORMATION,15,156,208,22
+    DEFPUSHBUTTON   "OK",IDOK,244,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,244,24,50,14
 END
 
 
@@ -1832,6 +1939,14 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 259
         BOTTOMMARGIN, 162
+    END
+
+    IDD_BREAKPOINTINFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 294
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 185
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -2282,6 +2397,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_VIEW_FILEMANAGER     "Show/Hide the Remote Files window\nRemote Files"
     ID_REMOTEDIR_OPEN       "Open selected file\nOpen"
     ID_DEBUG_ARGUMENTS      "Set program launch arguments\nArguments"
     ID_VIEW_CLOSE           "Closes the view\nClose"
@@ -2300,6 +2416,13 @@ BEGIN
                             "Steps a single assembler instruction\nStep Instruction"
     ID_CLASSVIEW_GOTODECL   "Go to the member declaration\nGoto Declaration"
     ID_CLASSVIEW_GOTOIMPL   "Go to member implementation\nGoto implementation"
+    ID_BREAKPOINTS_REFRESH  "Updates the breakpoint information\nRefresh"
+    ID_BREAKPOINTS_OPEN     "Open source file where breakpoint is located\nOpen"
+    ID_BREAKPOINTS_ENABLE   "Enable breakpoint\nEnable"
+    ID_BREAKPOINTS          "Disable breakpoint\nDisable"
+    ID_BREAKPOINTS_PROPERTIES "View breakpoint properties\nProperties"
+    ID_BREAKPOINTS_DELETE   "Delete the breakpoint\nDelete"
+    ID_EDIT_WORDWRAP        "Wrap lines\nWrap lines"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -2365,10 +2488,10 @@ BEGIN
     ID_BOOKMARK_TOGGLE      "Toogles bookmarks at the current line\nToggle Bookmark"
     ID_DEBUG_STOP           "Stop the debug session\nStop Debugger"
     ID_DEBUG_THREADS        "Show threads\nThreads"
-    ID_DEBUG_QUICKWATCH     "Show quickwatch dialog\nQuickwatch"
+    ID_DEBUG_QUICKWATCH     "Show Quickwatch dialog\nQuickwatch"
     ID_EDIT_AUTOCOMPLETE    "Autocomplete selected text\nAutocomplete"
-    ID_VIEW_COMPILE_LOG     "View Compile Log\nCompile Log"
-    ID_VIEW_DEBUG_LOG       "View Debug log\nDebug Log"
+    ID_VIEW_COMPILE_LOG     "Show/Hide the Compile Log\nCompile Log"
+    ID_VIEW_DEBUG_LOG       "Show/Hide the Debug log\nDebug Log"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -2443,7 +2566,7 @@ BEGIN
     IDS_MISC_PROCESSLIST    "PS command"
     IDS_ERR_PIDLIST         "Error: ps command format error."
     IDS_LOG_COMSPEC         "Unable to start local command line utility."
-    IDS_COMSPEC             "Local / MINGW"
+    IDS_COMSPEC             "Local / MinGW"
     IDS_LOG_GDBSTOP         "Failed. The GDB debugger is not able to set new breakpoint."
     IDS_MENU_OPENIMPLEMENTATION "Go to implementation ""%s::%s"""
     IDS_ERR_DEBUGPRIV       "No Debug Priviledges\nYou account may not be able to debug\nYou Windows user account does not seem to have sufficient DEBUG priviledges. Please contact you System Administrator."
@@ -2451,6 +2574,17 @@ BEGIN
                             " Stopped outside source scope (at '%s')..."
     IDS_STATUS_DEBUG_FUNCTION " Stopped at breakpoint (at '%s')..."
     IDS_LOCALDRIVE          "Local Drive"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_HOST_LABEL          "Remote host: "
+    IDS_MINGWBIN_LABEL      "MingW /bin:"
+    IDS_ERR_MINGWPATH       "Path not correct\nThe MinGW /bin path may not be correct.\nPlease enter a local path where the gdb debugger and compilation tools are located.\n\nContinue?"
+    IDS_ERR_MINGWEMPTY      "No MinGW Path\nNo MinGW /bin path have been specified.\nThis is a valid configuration. However your Windows system must be set up to start the debugger and compilation tools without a full path.\n\nContinue?"
+    IDS_BREAKPOINTHIT       "This breakpoint has been hit %d times.\r\n"
+    IDS_BREAKPOINTTEMP      "This is a temporary breakpoint.\r\n"
+    IDS_ERR_WINXP           "Windows XP required\nThis feature requires a newer Windows\nThis feature is only available on Windows XP or better."
 END
 
 #endif    // English (U.S.) resources

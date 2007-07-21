@@ -183,7 +183,7 @@ bool CMiInfo::_ParseString(LPTSTR pstrSrc, int iStart, LPCTSTR pstrGroup, LPCTST
       }
       if( pstrSrc[iEnd] == '\"' ) pstrSrc[iEnd] = '\0';
 
-      // Convert it back to plain text
+      // Convert it from escaped back to plain text
       _ConvertToPlainText(pstrSrc + iStart);
 
       // Add item
@@ -222,11 +222,9 @@ bool CMiInfo::_FindBlockEnd(LPTSTR pstrSrc, int& iPos) const
          break;
       case '}':
       case ']':
-         if( --iLevel == 0 ) {
-            pstrSrc[iPos] = '\0';
-            return true;
-         }
-         break;
+         if( --iLevel != 0 ) break;
+         pstrSrc[iPos] = '\0';
+         return true;
       case '\"':
          iPos++;
          while( pstrSrc[iPos] != '\0' && pstrSrc[iPos] != '\"' ) 
@@ -246,6 +244,7 @@ void CMiInfo::_ConvertToPlainText(LPTSTR pstrSrc)
    ATLASSERT(!::IsBadWritePtr(pstrSrc,_tcslen(pstrSrc)));
    // Converts from C-style (escaped) to ASCII text.
    // Notice that the string is converted inplace!
+   // TODO: Do we need to be aware of codepage or utf-8 here?
    LPCTSTR pstrText = pstrSrc;
    LPTSTR pstrDest = pstrSrc;
    while( *pstrSrc != '\0' ) {

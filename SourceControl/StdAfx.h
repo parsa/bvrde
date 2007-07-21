@@ -25,11 +25,16 @@ extern CComModule _Module;
 
 #include <atlcom.h>
 #include <atlwin.h>
+#include <atlhost.h>
 #include <atlmisc.h>
 #include <atlctrls.h>
 #include <atlctrlx.h>
 #include <atlgdix.h>
 #include <atlctrlsext.h>
+
+#include <mshtml.h>
+#include <msxml2.h>
+#include <ExDispid.h>
 
 #include "atlwinmisc.h"
 #include "Thread.h"
@@ -38,6 +43,7 @@ extern CComModule _Module;
 extern IDevEnv* _pDevEnv;
 
 #define ID_VIEW_REPOSITORY   42000
+#define ID_VIEW_CVSDIFF      42001
 
 
 //{{AFX_INSERT_LOCATION}}

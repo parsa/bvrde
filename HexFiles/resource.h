@@ -10,7 +10,7 @@
 #define IDS_DESIGN                      1001
 #define IDS_PREVIEW                     1002
 #define IDS_XML_ERR                     1003
-#define IDS_SB_POSITION                 1004
+#define IDS_STATUS_POSITION                 1004
 #define IDS_ERR_DOCUMENT                1005
 #define IDS_CAPTION_ERROR               1006
 #define IDS_CAPTION_WARNING             1007

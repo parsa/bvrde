@@ -10,6 +10,8 @@
 #include "CheckInDlg.h"
 #include "LoginCvsDlg.h"
 
+#include "DiffCvsView.h"
+
 
 ////////////////////////////////////////////////////////////////7
 //
@@ -17,13 +19,13 @@
 
 void CCommandThread::ChangePath()
 {
-   CString sCommand = _T("cd $PATH$");
-   m_aCommands.Add(sCommand);
+   AddCommand(IDC_SC_CHANGEDIR, _T("cd $PATH$"));
 }
 
-void CCommandThread::AddCommand(UINT /*nCmd*/, LPCTSTR pstrCommand, LONG lTimeout /*= 4000L*/)
+void CCommandThread::AddCommand(UINT nCmd, LPCTSTR pstrCommand, LONG lTimeout /*= 4000L*/)
 {
    CString sCommand = pstrCommand;
+   m_aCmdIds.Add(nCmd);
    m_aCommands.Add(sCommand);
    m_lTimeout = lTimeout;
 }
@@ -39,22 +41,33 @@ DWORD CCommandThread::Run()
 
    CCoInitialize cominit;
 
-   // Bring up the Command View so we can see it all...
-   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
-   _pDevEnv->ActivateAutoHideView(ctrlEdit);
-
    // Construct and execute commands through the
    // project's scripting mode.
    m_sResult.Empty();
+
+   UINT nCmd = 0;
+   bool bActivateOutputView = true;
 
    int i;
    CSimpleArray<CString> aCommands;
    for( i = 0; i < m_aCommands.GetSize(); i++ ) {
       CString sCommand = m_aCommands[i];
       aCommands.Add(sCommand);
+
+      switch( m_aCmdIds[i] ) {
+      case ID_SC_DIFFVIEW:
+         bActivateOutputView = false;
+         nCmd = ID_VIEW_CVSDIFF;
+         break;
+      }
    }
    m_aCommands.RemoveAll();
+   m_aCmdIds.RemoveAll();
    
+   // Bring up the Command View so we can see it all...
+   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
+   if( bActivateOutputView ) _pDevEnv->ActivateAutoHideView(ctrlEdit);
+
    for( i = 0; i < aCommands.GetSize(); i++ ) {
       // HACK: Racing to submit all commands may obscure the telnet output
       //       with stdout and new commands being mixed on the same stream.
@@ -79,12 +92,12 @@ DWORD CCommandThread::Run()
    }
 
    // Let's look at the result
-   CSimpleArray<CString> aLines;
-   _SplitResult(m_sResult, aLines);
+   m_aLines.RemoveAll();
+   _SplitResult(m_sResult, m_aLines);
 
    CString sMessage = _T("\r\n");
-   for( i = 0; i < aLines.GetSize(); i++ ) {
-      sMessage += aLines[i];
+   for( i = 0; i < m_aLines.GetSize(); i++ ) {
+      sMessage += m_aLines[i];
       sMessage += _T("\r\n");
    }
 
@@ -93,6 +106,13 @@ DWORD CCommandThread::Run()
    AppendRtfText(ctrlEdit, sMessage, CFM_BOLD, 0);
    AppendRtfText(ctrlEdit, _T("\r\n> "), CFM_BOLD, CFE_BOLD);
    ctrlEdit.SetReadOnly(FALSE);
+
+   // May need to trigger action again. This would for instance
+   // be to display the diff. in a window.
+   if( nCmd != 0 ) {
+      CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
+      wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0));
+   }
 
    return 0;
 }
@@ -206,11 +226,27 @@ bool CScCommands::Init()
    return true;
 }
 
+bool CScCommands::SetCurElement(IElement* pElement)
+{
+   m_pCurElement = pElement;
+   m_bIsFolder = false;
+   if( pElement == NULL ) return false;
+   // Ok, figure out if the element is a container (folder)
+   // or not...
+   CComDispatchDriver dd = pElement->GetDispatch();
+   if( dd == NULL ) return false;
+   DISPID dispItem = NULL;
+   HRESULT HrHasItem = dd.GetIDOfName(L"Item", &dispItem);
+   CComVariant vFiles;
+   dd.GetPropertyByName(OLESTR("Files"), &vFiles);
+   if( vFiles.vt == VT_EMPTY && HrHasItem == S_OK ) vFiles = dd;
+   m_bIsFolder = (vFiles.vt != VT_EMPTY);
+   return true;
+}
+
 bool CScCommands::CollectFiles(CSimpleArray<CString>& aFiles)
 {
-   extern IElement* g_pCurElement;
-
-   IElement* pElement = g_pCurElement;
+   IElement* pElement = m_pCurElement;
 
    TCHAR szType[100] = { 0 };
    pElement->GetType(szType, 99);
@@ -253,6 +289,11 @@ bool CScCommands::CollectFiles(CSimpleArray<CString>& aFiles)
       CComVariant vFilename;
       dd.GetPropertyByName(OLESTR("Filename"), &vFilename);
       if( vFilename.vt != VT_BSTR || ::SysStringLen(vFilename.bstrVal) == 0 ) return false;
+      // Let's just save the file before doing anything to it
+      TCHAR szBuffer[32] = { 0 };
+      _pDevEnv->GetProperty(_T("editors.general.saveBeforeTool"), szBuffer, 31);
+      if( _tcscmp(szBuffer, _T("true")) == 0 ) dd.Invoke0(L"Save");      
+      // Add the file to the collection
       CString sFilename = vFilename.bstrVal;
       sFilename.Replace('\\', '/');
       aFiles.Add(sFilename);
@@ -398,7 +439,7 @@ bool CScCommands::StatusFile(CSimpleArray<CString>& aFiles)
    }
    m_thread.Stop();
    m_thread.ChangePath();
-   m_thread.AddCommand(ID_SC_DIFFVIEW, sCmd);
+   m_thread.AddCommand(ID_SC_STATUS, sCmd);
    m_thread.Start();
    return true;
 }
@@ -413,8 +454,15 @@ bool CScCommands::DiffFile(CSimpleArray<CString>& aFiles)
    }
    m_thread.Stop();
    m_thread.ChangePath();
-   m_thread.AddCommand(ID_SC_STATUS, sCmd);
+   m_thread.AddCommand(ID_SC_DIFFVIEW, sCmd);
    m_thread.Start();
    return true;
 }
 
+void CScCommands::ShowDiffView()
+{
+   CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
+   CDiffCvsView* pView = new CDiffCvsView;
+   pView->Create(wndMain, CWindow::rcDefault);
+   if( !pView->GeneratePage(m_pCurElement, m_thread.m_aLines) ) pView->DestroyWindow();
+}

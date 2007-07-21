@@ -32,18 +32,21 @@ public:
          // Display Find dialog
          CFindFilesDlg dlg;
          if( dlg.DoModal() == IDOK ) {
-            // Commence search
+            // Commence search...
             m_viewFind.DoSearch(dlg.GetPattern(), dlg.GetFolder(), dlg.GetFlags());
+            // Bring up the auto-hide view
             _pDevEnv->ActivateAutoHideView(m_viewFind);
          }
       }
       bHandled = FALSE;
       return 0;
    }
+
    BOOL PreTranslateMessage(MSG* pMsg)
    {
       return FALSE;
    }
+
    void OnIdle(IUpdateUI* pUIBase)
    {
       // Currently we only enable the menu-item for C++ Projects...
@@ -54,6 +57,7 @@ public:
       if( pProject ) pProject->GetClass(szType, 127);
       pUIBase->UIEnable(ID_EDIT_FINDFILES, _tcscmp(szType, _T("Remote C++")) == 0);
    }
+
    void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
    {
 #if (_ATL_VER >= 0x0700)

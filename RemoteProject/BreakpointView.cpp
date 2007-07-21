@@ -5,6 +5,8 @@
 #include "Project.h"
 #include "BreakpointView.h"
 
+#include "BreakpointInfoDlg.h"
+
 
 /////////////////////////////////////////////////////////////////////////
 // Constructor/destructor
@@ -38,28 +40,40 @@ void CBreakpointView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    if( _tcscmp(pstrType, _T("BreakpointTable")) == 0 ) 
    {
       m_bUpdating = true;
-      int iSel = m_ctrlList.GetSelectedIndex();
+      int iOldSel = m_ctrlList.GetSelectedIndex();
+      m_ctrlList.SetRedraw(FALSE);
       m_ctrlList.DeleteAllItems();
+      m_aItems.RemoveAll();
       CString sNumber = info.GetItem(_T("number"), _T("bkpt"));
       while( !sNumber.IsEmpty() ) {
-         CString sType = info.GetSubItem(_T("type"));
-         CString sFile = info.GetSubItem(_T("file"));
-         CString sFunc = info.GetSubItem(_T("func"));
-         CString sLine = info.GetSubItem(_T("line"));
-         CString sEnabled = info.GetSubItem(_T("enabled"));
-         CString sAddress = info.GetSubItem(_T("addr"));
+         BREAKINFO Info;
+         Info.iBrkNr = _ttol(sNumber);
+         Info.sType = info.GetSubItem(_T("type"));
+         Info.sFile = info.GetSubItem(_T("file"));
+         Info.sFunc = info.GetSubItem(_T("func"));
+         Info.lLineNum = _ttol(info.GetSubItem(_T("line")));
+         Info.bEnabled = info.GetSubItem(_T("enabled")) == _T("y");
+         Info.sAddress = info.GetSubItem(_T("addr"));
+         Info.iIgnoreCount = _ttoi(info.GetSubItem(_T("ignore")));
+         Info.sCondition = info.GetSubItem(_T("cond"));
+         Info.iHitCount = _ttoi(info.GetSubItem(_T("times")));
+         Info.bTemporary = info.GetSubItem(_T("disp")) == _T("del");
+         m_aItems.Add(Info);
+         int iIndex = m_aItems.GetSize() - 1;
 
-         int iItem = m_ctrlList.InsertItem(m_ctrlList.GetItemCount(), sType);
          CString sLocation;
-         sLocation.Format(_T("%s, %ld"), sFunc, _ttol(sLine));
-         m_ctrlList.SetItemText(iItem, 1, sFile);
+         sLocation.Format(_T("%s, %ld"), Info.sFunc, Info.lLineNum);
+
+         int iItem = m_ctrlList.InsertItem(m_ctrlList.GetItemCount(), Info.sType);
+         m_ctrlList.SetItemText(iItem, 1, Info.sFile);
          m_ctrlList.SetItemText(iItem, 2, sLocation);
-         m_ctrlList.SetItemText(iItem, 3, sAddress);
-         m_ctrlList.SetItemData(iItem, (LPARAM) _ttol(sNumber));
-         m_ctrlList.SetCheckState(iItem, sEnabled == _T("y"));
+         m_ctrlList.SetItemText(iItem, 3, Info.sAddress);
+         m_ctrlList.SetCheckState(iItem, Info.bEnabled);
+         m_ctrlList.SetItemData(iItem, iIndex);
+         
          sNumber = info.FindNext(_T("number"), _T("bkpt"));
       }
-      if( iSel == -1 ) {
+      if( iOldSel == -1 ) {
          // No selection yet? Let's take the oppotunity to
          // resize the column headers...
          m_ctrlList.SetColumnWidth(0, 90);
@@ -67,7 +81,10 @@ void CBreakpointView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          m_ctrlList.SetColumnWidth(2, 120);
          m_ctrlList.SetColumnWidth(3, 100);
       }
-      m_ctrlList.SelectItem(iSel);
+      m_ctrlList.SelectItem(iOldSel);
+      m_ctrlList.SetRedraw(TRUE);
+      m_ctrlList.Invalidate();
+      m_ctrlList.EnsureVisible(iOldSel, FALSE);
       m_bUpdating = false;
    }
 }
@@ -96,56 +113,133 @@ LRESULT CBreakpointView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
    return 0;
 }
 
+LRESULT CBreakpointView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
+   int iItem = m_ctrlList.GetSelectedIndex();
+   if( iItem < 0 ) return 0;
+   // Load and show menu
+   DWORD dwPos = ::GetMessagePos();
+   POINT ptPos = { GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos) };
+   CMenu menu;
+   menu.LoadMenu(IDR_BREAKPOINTS);
+   CMenuHandle submenu = menu.GetSubMenu(0);
+   UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, ptPos, FALSE, this);
+   PostMessage(WM_COMMAND, MAKEWPARAM(nCmd, 0));
+   return 0;
+}
+
 LRESULT CBreakpointView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
    LPNMLISTVIEW lpNMLV = (LPNMLISTVIEW) pnmh;
    // To prevent submitting new debug commands while we're just updating
    // existing items with GDB output, we check this guy...
    if( m_bUpdating ) return 0;
+   // The state-image changes when the checkbox is clicked
    if( (lpNMLV->uNewState & LVIS_STATEIMAGEMASK) == (lpNMLV->uOldState & LVIS_STATEIMAGEMASK) ) return 0;
-   // User changed item? Let's update the debugger...
    int iItem = lpNMLV->iItem;
-   long lName = (long) m_ctrlList.GetItemData(iItem);
-   if( m_ctrlList.GetCheckState(iItem) ) {
-      CString sCommand;
-      sCommand.Format(_T("-break-enable %ld"), lName);
-      m_pProject->DelayedDebugCommand(sCommand);
-   }
-   else {
-      CString sCommand;
-      sCommand.Format(_T("-break-disable %ld"), lName);
-      m_pProject->DelayedDebugCommand(sCommand);
-   }
-   // Get a fresh view of things
-   m_pProject->DelayedDebugCommand(_T("-break-list"));
+   m_ctrlList.SelectItem(iItem);
+   const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
+   PostMessage(WM_COMMAND, MAKEWPARAM(Info.bEnabled ? ID_BREAKPOINTS_DISABLE : ID_BREAKPOINTS_ENABLE, 0));
    return 0;
 }
 
-LRESULT CBreakpointView::OnKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
+LRESULT CBreakpointView::OnKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
    LPNMLVKEYDOWN lpNMLVKD = (LPNMLVKEYDOWN) pnmh;
-   if( lpNMLVKD->wVKey == VK_DELETE ) {
-      int iItem = m_ctrlList.GetSelectedIndex();
-      long lName = (long) m_ctrlList.GetItemData(iItem);
-      CString sCommand;
-      sCommand.Format(_T("-break-delete %ld"), lName);
-      m_pProject->DelayedDebugCommand(sCommand);
-      m_pProject->DelayedDebugCommand(_T("-break-list"));
-      // BUG: Argh, no function to refresh views!!
-      m_pProject->DelayedViewMessage(DEBUG_CMD_CLEAR_BREAKPOINTS);
-   }
+   if( lpNMLVKD->wVKey == VK_RETURN ) return PostMessage(WM_COMMAND, MAKEWPARAM(ID_BREAKPOINTS_OPEN, 0));
+   if( lpNMLVKD->wVKey == VK_DELETE ) return PostMessage(WM_COMMAND, MAKEWPARAM(ID_BREAKPOINTS_DELETE, 0));
+   bHandled = FALSE;
    return 0;
 }
 
 LRESULT CBreakpointView::OnDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
-   int iItem = m_ctrlList.GetSelectedIndex();
-   if( iItem < 0 ) return 0;
-   CString sFilename;
-   CString sLocation;
-   m_ctrlList.GetItemText(iItem, 1, sFilename);
-   m_ctrlList.GetItemText(iItem, 2, sLocation);
-   LPCTSTR p = _tcschr(sLocation, ',');
-   if( p ) m_pProject->OpenView(sFilename, _ttol(p + 1));
+   PostMessage(WM_COMMAND, MAKEWPARAM(ID_BREAKPOINTS_OPEN, 0));
    return 0;
 }
+
+LRESULT CBreakpointView::OnItemOpenSource(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   int iItem = m_ctrlList.GetSelectedIndex();
+   if( iItem < 0 ) return 0;
+   const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
+   m_pProject->OpenView(Info.sFile, Info.lLineNum);
+   return 0;
+}
+
+LRESULT CBreakpointView::OnItemDelete(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   int iItem = m_ctrlList.GetSelectedIndex();
+   if( iItem < 0 ) return 0;
+   const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
+   m_pProject->m_DebugManager.RemoveBreakpoint(Info.sFile, Info.lLineNum - 1);
+   BOOL bDummy = FALSE;
+   OnItemRefresh(0, 0, NULL, bDummy);
+   return 0;
+}
+
+LRESULT CBreakpointView::OnItemEnable(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   int iItem = m_ctrlList.GetSelectedIndex();
+   if( iItem < 0 ) return 0;
+   const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
+   CString sCommand;
+   sCommand.Format(_T("-break-enable %d"), Info.iBrkNr);
+   m_pProject->DelayedDebugCommand(sCommand);
+   BOOL bDummy = FALSE;
+   OnItemRefresh(0, 0, NULL, bDummy);
+   return 0;
+}
+
+LRESULT CBreakpointView::OnItemDisable(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   int iItem = m_ctrlList.GetSelectedIndex();
+   if( iItem < 0 ) return 0;
+   const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
+   CString sCommand;
+   sCommand.Format(_T("-break-disable %d"), Info.iBrkNr);
+   m_pProject->DelayedDebugCommand(sCommand);
+   BOOL bDummy = FALSE;
+   OnItemRefresh(0, 0, NULL, bDummy);
+   return 0;
+}
+
+LRESULT CBreakpointView::OnItemRefresh(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   // Asking to refresh will also update our internal list.
+   // We'll have to ask the views to update too I guess.
+   m_pProject->DelayedDebugCommand(_T("-break-list"));
+   m_pProject->DelayedViewMessage(DEBUG_CMD_SET_BREAKPOINTS);
+   return 0;
+}
+
+LRESULT CBreakpointView::OnItemProperties(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   int iItem = m_ctrlList.GetSelectedIndex();
+   if( iItem < 0 ) return 0;
+   const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
+   CBreakpointInfoDlg dlg;
+   dlg.Init(m_pProject, Info);
+   dlg.DoModal();
+   return 0;
+}
+
+// IIdleListener
+
+void CBreakpointView::OnIdle(IUpdateUI* pUIBase)
+{   
+   const BREAKINFO& Info = m_aItems[ m_ctrlList.GetSelectedIndex() ];
+   pUIBase->UIEnable(ID_BREAKPOINTS_OPEN, TRUE);
+   pUIBase->UIEnable(ID_BREAKPOINTS_DELETE, TRUE);
+   pUIBase->UIEnable(ID_BREAKPOINTS_ENABLE, TRUE);
+   pUIBase->UIEnable(ID_BREAKPOINTS_DISABLE, TRUE);
+   pUIBase->UIEnable(ID_BREAKPOINTS_PROPERTIES, TRUE);
+   pUIBase->UIEnable(ID_BREAKPOINTS_REFRESH, TRUE);
+   pUIBase->UISetCheck(ID_BREAKPOINTS_ENABLE, Info.bEnabled);
+   pUIBase->UISetCheck(ID_BREAKPOINTS_DISABLE, !Info.bEnabled);
+}
+
+void CBreakpointView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
+{
+}
+

@@ -43,6 +43,9 @@ public:
    CComSpecProtocol();
    virtual ~CComSpecProtocol();
 
+   BOOL GenerateBreakEvent(DWORD dwProcessId);
+   BOOL GenerateConsoleEvent(DWORD dwProcessId, DWORD dwEvent);
+
 // IRemoteCommandProtocol
 public:
    void Init(CRemoteProject* pProject, IShellCallback* pCallback = NULL);
@@ -68,13 +71,14 @@ protected:
    CRemoteProject* m_pProject;
    IShellCallback* m_pCallback;
 
-   CString m_sPath;
-   CString m_sExtraCommands;
+   CString m_sBinPath;                         // Path to MingW /bin folder
+   CString m_sPath;                            // Output path
+   CString m_sExtraCommands;                   // Configuration
    //
    CComSpecThread m_thread;
    volatile DWORD m_dwErrorCode;
    volatile bool m_bConnected;
-   DWORD m_dwProcessId;
+   volatile DWORD m_dwSpawnedProcessId;        // Process ID of debugged process (inferior)
 };
 
 

@@ -69,6 +69,8 @@ protected:
    CString m_sPassword;
    CString m_sPath;
    CString m_sExtraCommands;
+   CString m_sLoginPrompt;
+   CString m_sPasswordPrompt;
    long m_lSpeed;
    long m_lConnectTimeout;
    //

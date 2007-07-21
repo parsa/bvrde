@@ -98,8 +98,7 @@
 #define IDS_OPTIONS                     158
 #define IDS_CONFIG_OPTIONS              159
 #define IDS_DEBUGGER                    160
-#define IDS_SB_PANE3                    161
-#define IDS_SB_POSITION                 161
+#define IDS_STATUS_POSITION                 161
 #define IDS_TYPEDEF                     161
 #define IDS_ERR_TELNETCONNECT           162
 #define IDS_ERR_HOSTCONNECT             162

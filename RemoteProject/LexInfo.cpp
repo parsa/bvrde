@@ -151,14 +151,33 @@ int CLexInfo::FindItem(int iStart, LPCTSTR pstrName)
    else
    {
       ATLASSERT(m_iFile>=0 && m_iFile<m_aFiles.GetSize());
-      // Scan rest of list sequentially
-      // NOTE: We limit the search to the known file only!
+      // Scan rest of file sequentially
       const LEXFILE& file = *m_aFiles[m_iFile];
       int nCount = file.aTags.GetSize();
       for( int iIndex = iStart; iIndex < nCount; iIndex++ ) {
          int cmp = _tcscmp(file.aTags[iIndex].pstrName, pstrName);
          if( cmp == 0 ) return iIndex;
-         if( cmp > 0 ) return -1;
+         if( cmp > 0 ) break;  // The file is sorted, so it's OK to give up
+      }
+      // Scan the other files too
+      for( int i = m_iFile + 1; i < m_aFiles.GetSize(); i++ ) {
+         const LEXFILE& file = *m_aFiles[i];
+         // Binary search on sorted list
+         int min = 0;
+         int max = file.aTags.GetSize();
+         int n = max / 2; 
+         while( min < max ) { 
+            int cmp = _tcscmp(pstrName, file.aTags[n].pstrName); 
+            if( cmp == 0 ) break;
+            if( cmp < 0 ) max = n; else min = n + 1;
+            n = (min + max) / 2;
+         }
+         // Find first instance of the particular string
+         if( min >= max ) continue;
+         if( _tcscmp(pstrName, file.aTags[n].pstrName) != 0 ) continue;
+         while( n > 0 && _tcscmp(pstrName, file.aTags[n - 1].pstrName) == 0 ) n--;
+         m_iFile = i;
+         return n;
       }
    }
    return -1;
@@ -200,7 +219,10 @@ bool CLexInfo::GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType
          case TAGTYPE_FUNCTION:
             // Owner has to match...
             if( pstrOwner != NULL && _tcscmp(pstrOwner, info.pstrFields[0]) != 0 ) break;
-            // So this is our function signature...
+            // So this is our function signature.
+            // Yearh I know... it's a bit crappy to return the result in a |-separated string,
+            // but apparently there was some problems with wrapping a structure inside an ATL array.
+            // TODO: We really should look at this once again...
             sResult = _T("");
             if( (dwInfoType & TAGINFO_NAME) != 0 ) {
                if( !sResult.IsEmpty() ) sResult += '|';
@@ -246,6 +268,7 @@ bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aList)
    if( m_aFiles.GetSize() == 0 ) return false;
 
    // List all classes available in TAG file...
+   // NOTE: This is doing a full filescan!
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       const LEXFILE& file = *m_aFiles[i];
       if( !file.bIncludeInBrowser ) continue;
@@ -273,6 +296,7 @@ bool CLexInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aList)
    if( m_aFiles.GetSize() == 0 ) return false;
 
    // List all globals available in TAG file...
+   // NOTE: This is doing a full filescan!
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       const LEXFILE& file = *m_aFiles[i];
       if( !file.bIncludeInBrowser ) continue;
@@ -301,6 +325,7 @@ bool CLexInfo::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList,
    if( m_aFiles.GetSize() == 0 ) return false;
 
    // List all classes available in TAG file...
+   // NOTE: This is doing a full filescan!
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       const LEXFILE& file = *m_aFiles[i];
       int nCount = file.aTags.GetSize();

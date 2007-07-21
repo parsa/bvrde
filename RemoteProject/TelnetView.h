@@ -10,6 +10,7 @@
 #define TELNETVIEW_EDITABLE          0x00000001
 #define TELNETVIEW_TERMINATEONCLOSE  0x00000002
 #define TELNETVIEW_FILTERDEBUG       0x00000004
+#define TELNETVIEW_WORDWRAP          0x00000008
 
 
 class CTelnetView : 
@@ -26,7 +27,7 @@ public:
    enum
    {
       MAX_CHARS = 80,
-      MAX_LINES = 25,
+      MAX_DISPLAY_LINES = 25,
    };
 
    typedef struct tagLINE
@@ -35,14 +36,14 @@ public:
       TCHAR szText[MAX_CHARS + 1];
    } LINE;
 
-   CShellManager* m_pShell;
-   CSimpleArray<LINE> m_aLines;
-   CFontHandle m_font;
-   COLORREF m_clrText;
-   COLORREF m_clrBack;
-   COLORREF m_clrDefBack;
-   TEXTMETRIC m_tm;
-   int m_iStart;
+   CShellManager* m_pShell;             // Reference to the shell connection
+   CSimpleArray<LINE> m_aLines;         // Lines in display
+   CFontHandle m_font;                  // Display font
+   COLORREF m_clrText;                  // Default text color
+   COLORREF m_clrBack;                  // Default background color
+   COLORREF m_clrDefBack;               // Original background color
+   TEXTMETRIC m_tm;                     // Text metrics
+   int m_nLineCount;                    // Maximum number of lines cached
    DWORD m_dwFlags;
 
    // Operations
@@ -50,8 +51,14 @@ public:
    void Init(CShellManager* pTelnet, DWORD dwFlags = 0);
    void Close();
    void Clear();
+   DWORD GetFlags() const;
    void SetFlags(DWORD dwFlags);
    void SetColors(COLORREF clrText, COLORREF clrBack);
+   void SetLineCount(int iMaxLines);
+
+   // Implementation
+
+   void _SetScrollSize();
 
    // Message map and handlers
 
@@ -67,6 +74,7 @@ public:
       COMMAND_ID_HANDLER(ID_VIEW_CLOSE, OnViewClose)
       COMMAND_ID_HANDLER(ID_EDIT_CLEAR, OnEditClear)
       COMMAND_ID_HANDLER(ID_EDIT_COPY, OnEditCopy)
+      COMMAND_ID_HANDLER(ID_EDIT_WORDWRAP, OnEditWordWrap)
       CHAIN_MSG_MAP( CScrollWindowImpl<CTelnetView> )
    END_MSG_MAP()
 
@@ -81,6 +89,7 @@ public:
    LRESULT OnViewClose(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnEditClear(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnEditCopy(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnEditWordWrap(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 
    // IOutputListener
 

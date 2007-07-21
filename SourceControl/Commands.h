@@ -12,6 +12,8 @@ class CCommandThread :
 {
 public:
    CSimpleArray<CString> m_aCommands;
+   CSimpleArray<UINT> m_aCmdIds;
+   CSimpleArray<CString> m_aLines;
    CString m_sResult;
    long m_lTimeout;
 
@@ -39,6 +41,8 @@ class CScCommands
 {
 public:
    CCommandThread m_thread;
+   IElement* m_pCurElement;      // TODO: Get rid of this nasty un-ref'ed API object
+   bool m_bIsFolder;             // Is current element a container?
 
    bool bEnabled;
    CString sType;
@@ -63,6 +67,7 @@ public:
    CString sBrowseSingle;
 
    bool Init();
+   bool SetCurElement(IElement* pElement);
    bool CollectFiles(CSimpleArray<CString>& aFiles);
    bool CheckIn(CSimpleArray<CString>& sFiles);
    bool CheckOut(CSimpleArray<CString>& sFiles);
@@ -73,6 +78,7 @@ public:
    bool LogOut(CSimpleArray<CString>& sFiles);
    bool DiffFile(CSimpleArray<CString>& sFiles);
    bool StatusFile(CSimpleArray<CString>& sFiles);
+   void ShowDiffView();
 };
 
 extern CScCommands _Commands;

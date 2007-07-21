@@ -69,7 +69,7 @@ private:
    CQuickWatchDlg* m_pQuickWatchDlg;             /// Modeless QuickWatch dialog
    bool m_bIsDirty;                              /// Project or file(s) have changed?
    bool m_bNeedsRecompile;                       /// Project should be recompiled before debug?
-   //
+
    static CAccelerator m_accel;
    static CComboBox m_ctrlMode;
    static CMruComboCtrl m_ctrlFindText;
@@ -147,6 +147,7 @@ public:
    IView* FindView(LPCTSTR pstrFilename, bool bLocally = false) const;
    void SendViewMessage(UINT nCmd, LAZYDATA* pData);
    bool IsViewsDirty() const;
+   bool IsWindowVisible(UINT nID) const;
    bool IsRecompileNeeded() const;
    bool GetPath(LPTSTR pstrPath, UINT cchMax) const;
    bool GetTagInfo(LPCTSTR pstrValue, bool bAskDebugger, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/);

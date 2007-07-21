@@ -94,7 +94,9 @@ int CTagInfo::FindItem(int iStart, LPCTSTR pstrName)
    }
    else
    {
-      // Quick test when list is sorted
+      // Quick test when list is sorted.
+      // This is an optimization that allows us to terminate the search
+      // quickly if we know the file was sorted.
       if( m_bSorted && _tcscmp(m_aTags[iStart].pstrName, pstrName) > 0 ) return -1;
       // Scan list sequentially
       int nCount = m_aTags.GetSize();
@@ -297,8 +299,8 @@ bool CTagInfo::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList,
 
    // Now look up the members
    // OPTI: We'll have to look at all entries in the CTAG file here.
-   //       To optimize this we must 'link' the entries at load-time, which
-   //       would be a slow/nasty process...
+   //       To otherwise optimize this we could 'link' the entries at load-time, 
+   //       which would be a slow/nasty process...
    int nCount = m_aTags.GetSize();
    for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
       // Not a lot of information in the CTAG entries, but      

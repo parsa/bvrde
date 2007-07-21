@@ -47,6 +47,10 @@ void CVariableView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       CString sName = info.GetItem(_T("name"));
       while( !sName.IsEmpty() ) {
          CString sValue = info.GetSubItem(_T("value"));
+         // NOTE: Newer versions of GDB states that it exposes an "editable"
+         //       property, but it turns our this doesn't actually mean
+         //       that a user will be able to edit the value, hence the
+         //       crappy string-character test below.
          BOOL bEnable = TRUE;
          if( sValue.Find(_T("...")) >= 0 ) bEnable = FALSE;
          TCHAR chFirst = '\0';
@@ -132,5 +136,6 @@ LRESULT CVariableView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    m_pProject->DelayedDebugCommand(sCommand);
    // Refresh all values
    m_pProject->DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
+
    return 0;
 }

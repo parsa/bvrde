@@ -12,23 +12,6 @@ DEFINE_GUID(CGID_IWebBrowserPriv,0xED016940L,0xBD5B,0x11cf,0xBA,0x4E,0x00,0xC0,0
 ////////////////////////////////////////////////////////
 // Operations
 
-// Show Wait cursor.
-// Stripped copy of WTL sources.
-class CWaitCursor
-{
-public:
-   HCURSOR m_hOldCursor;
-   CWaitCursor()
-   {
-      m_hOldCursor = ::SetCursor( ::LoadCursor(NULL, IDC_WAIT) );
-   }
-   ~CWaitCursor()
-   {
-      ::SetCursor(m_hOldCursor);
-   }
-};
-
-
 BOOL CFrameWindow::SetPage(LPCTSTR pstrKeyword, LPCTSTR pstrLanguage, long lPos)
 {
    ATLASSERT(::IsWindow(m_hWnd));
@@ -118,11 +101,17 @@ BOOL CFrameWindow::PreTranslateMessage(MSG* pMsg)
 
 BOOL CFrameWindow::_LoadHtml(IUnknown* pUnk, LPCWSTR pstrHTML)
 {
+   m_bstrHTML = pstrHTML;
    CComQIPtr<IWebBrowser> spBrowser = pUnk;
-   if( spBrowser ) {
+   if( spBrowser != NULL ) {
       CComPtr<IDispatch> spDisp;
       spBrowser->get_Document(&spDisp);
-      if( spDisp == NULL ) return FALSE;
+      if( spDisp == NULL ) {
+         // IE DOM Document not yet ready; instead of listening for the
+         // ready event, we just repeatedly retry the operation.
+         SetTimer(TIMERID_LOADHTML, 500);
+         return FALSE;
+      }
       pUnk = spDisp;
    }
    HANDLE hHTMLText = ::GlobalAlloc(GPTR, (wcslen(pstrHTML) + 1) * sizeof(WCHAR));
@@ -257,6 +246,15 @@ LRESULT CFrameWindow::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    m_ctrlToolBar.GetWindowRect(&rcToolBar);
    RECT rcBrowser = { rcClient.left, rcToolBar.bottom - rcToolBar.top, rcClient.right, rcClient.bottom };
    m_wndBrowser.MoveWindow(&rcBrowser);
+   return 0;
+}
+
+LRESULT CFrameWindow::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+{
+   bHandled = FALSE;
+   if( wParam != TIMERID_LOADHTML ) return 0;
+   KillTimer(TIMERID_LOADHTML);
+   _LoadHtml(m_spBrowser, m_bstrHTML);
    return 0;
 }
 

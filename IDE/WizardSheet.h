@@ -48,6 +48,7 @@ public:
 
    CSolutionTypePage();
 
+   IDevEnv* m_pDevEnv;
    CMainFrame* m_pMainFrame;
    IProject* m_pProject;
    CPlugin* m_pPlugin;
@@ -59,7 +60,7 @@ public:
 
    // Operations
 
-   void Init(CMainFrame* pFrame);
+   void Init(IDevEnv* pDevEnv, CMainFrame* pFrame);
 
    // Overloads
 

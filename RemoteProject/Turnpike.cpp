@@ -30,7 +30,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    bHandled = FALSE;
    if( m_aLazyData.GetSize() == 0 ) return 0;
 
-   
+
    CSimpleArray<CString> aDbgCmd;       // Collect all new debug commands in a batch
    bool bUpdatedAlready = false;        // Make sure to trigger debug update only once
    CString sMessage;                    // For displaying a message-box asynchroniously
@@ -38,10 +38,9 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    UINT iFlags;                         // -"-
 
    // Try to obtain the semaphore
-   // NOTE: WinNT specific API
    if( !::TryEnterCriticalSection(&g_csDelayedData.m_sec) ) {
       // No need to block the thread; let's just re-post the request...
-      // TODO: Come on... we could at least wait a little for the semaphore to be
+      // TODO: C'mon... we could at least wait a little for the semaphore to be
       //       released. This is too slow.
       m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
       return 0;
@@ -107,16 +106,17 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, data.szMessage, TRUE);
          }
          break;
-      case LAZY_SEND_VIEW_MESSAGE:
+      case LAZY_SEND_GLOBAL_VIEW_MESSAGE:
          {
-            // Broadcast message to all known views in project
-            // HACK: Send this message to *ALL* editors - not just those
-            //       belonging to this project. We'll like all editors to react
-            //       on debugger line changes so all C++ files are updated.
-            //for( int i = 0; i < m_aFiles.GetSize(); i++ ) m_aFiles[i]->SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
-            //m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
+            // Broadcast message to all known views in solution
             CWindow wndMdiClient = _pDevEnv->GetHwnd(IDE_HWND_MDICLIENT);
             wndMdiClient.SendMessageToDescendants(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
+         }
+         break;
+      case LAZY_SEND_PROJECT_VIEW_MESSAGE:
+         {
+            // Broadcast message to all known views in project
+            for( int i = 0; i < m_aFiles.GetSize(); i++ ) m_aFiles[i]->SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
          }
          break;
       case LAZY_DEBUGCOMMAND:
@@ -231,10 +231,10 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             if( m_pQuickWatchDlg && m_pQuickWatchDlg->IsWindow() && m_pQuickWatchDlg->IsWindowVisible() ) m_pQuickWatchDlg->SetInfo(data.szMessage, data.MiInfo);
 
             if( _tcscmp(data.szMessage, _T("value")) == 0 ) {
-               // Pass information to editors, since it might be mouse hover information...
+               // Pass information to active editor, since it might be mouse hover information...
                // NOTE: Must use SendMessage() rather than delayed message because
                //       of scope of 'data' structure.
-               data.Action = LAZY_SEND_VIEW_MESSAGE;
+               data.Action = LAZY_SEND_GLOBAL_VIEW_MESSAGE;
                data.wParam = DEBUG_CMD_HOVERINFO;
                m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
                break;
@@ -333,7 +333,7 @@ void CRemoteProject::DelayedViewMessage(WPARAM wCmd, LPCTSTR pstrFilename /*= NU
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
-   data.Action = LAZY_SEND_VIEW_MESSAGE;
+   data.Action = LAZY_SEND_GLOBAL_VIEW_MESSAGE;
    data.wParam = wCmd;
    _tcscpy(data.szFilename, pstrFilename == NULL ? _T("") : pstrFilename);
    _tcscpy(data.szMessage, _T(""));

@@ -32,8 +32,8 @@ public:
    TCHAR m_szPattern[128];
    TCHAR m_szFolder[MAX_PATH];
    TCHAR m_szLastFile[MAX_PATH];
-   LONG m_nMatches;
    UINT m_iFlags;
+   volatile LONG m_nMatches;
 
    DWORD Run()
    {
@@ -67,10 +67,14 @@ public:
       if( pProject == NULL ) return 0;
       IDispatch* pDisp = pProject->GetDispatch();
       CComDispatchDriver dd = pDisp;
+      // -G  causes grep to behave like the standard grep utility. 
+      // -r  when an input file is a directory, grep treats all files under that directory/subdirectories as input files. 
+      // -w  only match lines where the pattern matches a whole word.
+      // -i  ignores the case of the strings being matched.
       TCHAR szCommand[400];
       ::wsprintf(szCommand, _T("grep -nH%s%s%s%s '%s' %s"),
          (m_iFlags & FR_REGEXP) != 0     ? _T("G") : _T(""),
-         (m_iFlags & FR_SUBFOLDERS) != 0 ? _T("R") : _T(""),
+         (m_iFlags & FR_SUBFOLDERS) != 0 ? _T("r") : _T(""),
          (m_iFlags & FR_MATCHCASE) == 0  ? _T("i") : _T(""),
          (m_iFlags & FR_WHOLEWORD) != 0  ? _T("w") : _T(""),
          m_szPattern,
@@ -156,7 +160,7 @@ public:
          m_ctrlEdit.SetSel(iStartPos, iEndPos);
          m_ctrlEdit.ReplaceSel(_T(""));
       }
-      // Append line
+      // Append line...
       LONG iStartPos = 0;
       LONG iEndPos = 0;
       LONG iDummy = 0;
@@ -285,8 +289,10 @@ public:
       // Start a new thread to collect result
       m_thread.Stop();
       m_thread.m_ctrlEdit = m_hWnd;
-      _tcsncpy(m_thread.m_szPattern, pstrPattern, (sizeof(m_thread.m_szPattern)/sizeof(TCHAR)) - 1);
+      ::ZeroMemory(m_thread.m_szFolder, sizeof(m_thread.m_szFolder));
+      ::ZeroMemory(m_thread.m_szPattern, sizeof(m_thread.m_szPattern));
       _tcsncpy(m_thread.m_szFolder, pstrFolder, (sizeof(m_thread.m_szFolder)/sizeof(TCHAR)) - 1);
+      _tcsncpy(m_thread.m_szPattern, pstrPattern, (sizeof(m_thread.m_szPattern)/sizeof(TCHAR)) - 1);
       m_thread.m_iFlags = iFlags;
       m_thread.Start();
    }
@@ -297,7 +303,7 @@ public:
 
    // Implementation
 
-   bool _OpenView(LPCTSTR pstrFilename, long lLineNum)
+   bool _OpenView(LPCTSTR pstrFilename, long lLineNum) const
    {
       ATLASSERT(!::IsBadStringPtr(pstrFilename,-1));
       if( _tcslen(pstrFilename) < 2 ) return false;

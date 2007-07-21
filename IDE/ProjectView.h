@@ -90,9 +90,8 @@ public:
       pElement->GetType(sType.GetBufferSetLength(64), 64);
       sType.ReleaseBuffer();
       if( sType != _T("Solution") ) return 0;
-      UINT nRes = IDR_SOLUTION;
       CMenu menu;
-      menu.LoadMenu(nRes);
+      menu.LoadMenu(IDR_SOLUTION);
       CMenuHandle submenu = menu.GetSubMenu(0);
       DWORD dwPos = ::GetMessagePos();
       POINT pt = { GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos) };

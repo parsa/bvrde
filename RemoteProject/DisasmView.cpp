@@ -44,7 +44,6 @@ void CDisasmView::PopulateView(CSimpleArray<CString>& aDbgCmd)
    // Offset management
    if( !m_bDontResetOffset ) m_lOffset = 0;
    m_bDontResetOffset = false;
-   // Execute commands
    // First change display style if needed; then request assembler listing
    if( m_iLastStyle != (BYTE) m_bIntelStyle ) {
       CString sCommand;
@@ -52,6 +51,7 @@ void CDisasmView::PopulateView(CSimpleArray<CString>& aDbgCmd)
       aDbgCmd.Add(sCommand);
       m_iLastStyle = (BYTE) m_bIntelStyle;
    }
+   // Request disassembly listing from debugger
    CString sCommand;
    sCommand.Format(_T("-data-disassemble -s \"$pc + %ld\" -e \"$pc + %ld\" -- %ld"), 
       m_lOffset,

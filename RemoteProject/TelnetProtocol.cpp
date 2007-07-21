@@ -29,6 +29,8 @@ DWORD CTelnetThread::Run()
    u_short iPort = (u_short) _ttol( m_pManager->GetParam(_T("Port")) );
    CString sPath = m_pManager->GetParam(_T("Path"));
    CString sExtraCommands = m_pManager->GetParam(_T("Extra"));
+   CString sLoginPrompt = m_pManager->GetParam(_T("LoginPrompt"));
+   CString sPasswordPrompt = m_pManager->GetParam(_T("PasswordPrompt"));
 
    if( iPort == 0 ) iPort = 23; // default telnet port
    if( sPassword.IsEmpty() ) sPassword = SecGetPassword();
@@ -125,7 +127,7 @@ DWORD CTelnetThread::Run()
             CString sLine = _GetLine(bReadBuffer, 0, dwRead);
             m_pCallback->PreAuthenticatedLine(sLine);
             sLine.MakeUpper();
-            if( !bLoginSent && sLine.Find(_T("LOGIN")) >= 0 ) {
+            if( !bLoginSent && sLine.Find(sLoginPrompt) >= 0 ) {
                // Need to send login?
                CLockStaticDataInit lock;
                CHAR szBuffer[200];
@@ -134,7 +136,7 @@ DWORD CTelnetThread::Run()
                ::Sleep(100L);
                bLoginSent = true;
             }
-            if( !bPasswordSent && sLine.Find(_T("PASSWORD")) >= 0 ) {
+            if( !bPasswordSent && sLine.Find(sPasswordPrompt) >= 0 ) {
                // Need to send password?
                CLockStaticDataInit lock;
                CHAR szBuffer[200];
@@ -463,6 +465,8 @@ void CTelnetProtocol::Clear()
    m_lPort = 0;
    m_sPath.Empty();
    m_sExtraCommands.Empty();
+   m_sLoginPrompt = _T("LOGIN");
+   m_sPasswordPrompt = _T("PASSWORD");
    m_lConnectTimeout = 8;
    m_bCanWindowSize = false;
 }
@@ -481,13 +485,19 @@ bool CTelnetProtocol::Load(ISerializable* pArc)
    m_sPassword.ReleaseBuffer();
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
-   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(400), 400);
+   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(1400), 1400);
    m_sExtraCommands.ReleaseBuffer();
+   pArc->Read(_T("loginPrompt"), m_sLoginPrompt.GetBufferSetLength(100), 100);
+   m_sLoginPrompt.ReleaseBuffer();
+   pArc->Read(_T("passwordPrompt"), m_sPasswordPrompt.GetBufferSetLength(100), 100);
+   m_sPasswordPrompt.ReleaseBuffer();
    pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
 
    ConvertToCrLf(m_sExtraCommands);
    m_sPassword = SecDecodePassword(m_sPassword);
    if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
+   if( m_sLoginPrompt.IsEmpty() ) m_sLoginPrompt = _T("LOGIN");
+   if( m_sPasswordPrompt.IsEmpty() ) m_sPasswordPrompt = _T("PASSWORD");
 
    return true;
 }
@@ -501,6 +511,8 @@ bool CTelnetProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("password"), SecEncodePassword(m_sPassword));
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("extra"), ConvertFromCrLf(m_sExtraCommands));
+   pArc->Write(_T("loginPrompt"), m_sLoginPrompt);
+   pArc->Write(_T("passwordPrompt"), m_sPasswordPrompt);
    pArc->Write(_T("connectTimeout"), m_lConnectTimeout);
    return true;
 }
@@ -544,13 +556,15 @@ bool CTelnetProtocol::IsBusy() const
 CString CTelnetProtocol::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
+   if( sName == _T("Type") ) return _T("Telnet");
    if( sName == _T("Path") ) return m_sPath;
    if( sName == _T("Host") ) return m_sHost;
+   if( sName == _T("Port") ) return ToString(m_lPort);
    if( sName == _T("Username") ) return m_sUsername;
    if( sName == _T("Password") ) return m_sPassword;
    if( sName == _T("Extra") ) return m_sExtraCommands;
-   if( sName == _T("Port") ) return ToString(m_lPort);
-   if( sName == _T("Type") ) return _T("Telnet");
+   if( sName == _T("LoginPrompt") ) return m_sLoginPrompt;
+   if( sName == _T("PasswordPrompt") ) return m_sPasswordPrompt;
    if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
    return _T("");
 }
@@ -564,6 +578,8 @@ void CTelnetProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Password") ) m_sPassword = pstrValue;
    if( sName == _T("Port") ) m_lPort = _ttol(pstrValue);
    if( sName == _T("Extra") ) m_sExtraCommands = pstrValue;
+   if( sName == _T("LoginPrompt") ) m_sLoginPrompt = pstrValue;
+   if( sName == _T("PasswordPrompt") ) m_sPasswordPrompt = pstrValue;
    if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
    if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
 }

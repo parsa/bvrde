@@ -70,9 +70,16 @@ public:
    }
    LRESULT OnChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
+      _UpdateButtons();
+      return 0;
+   }
+
+   // Implementation
+
+   void _UpdateButtons()
+   {
       m_ctrlOK.EnableWindow(m_ctrlPassword.GetWindowTextLength() > 0);
       m_ctrlOK.SetButtonStyle(m_ctrlPassword.GetWindowTextLength() > 0 ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
-      return 0;
    }
 };
 

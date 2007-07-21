@@ -101,7 +101,7 @@ public:
    volatile bool m_bExecuting;
    /*volatile*/ CString m_sSQL;
    volatile int m_lLineNum;
-   COledbCommand* m_pDbCmd;
+   /*volatile*/ COledbCommand* m_pDbCmd;
    CString m_sConnectString;
 };
 

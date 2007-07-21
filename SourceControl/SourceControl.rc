@@ -116,7 +116,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP |
 CAPTION "Datei hinzufügen"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Kommentar :",-1,9,7,41,8
+    LTEXT           "Kommentar:",-1,9,7,41,8
     EDITTEXT        IDC_COMMENT,53,7,152,23,ES_MULTILINE | ES_AUTOVSCROLL | 
                     ES_AUTOHSCROLL
     DEFPUSHBUTTON   "Datei hinzufügen",IDOK,212,7,65,14,WS_DISABLED | 
@@ -133,7 +133,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP |
 CAPTION "Einchecken"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Kommentar :",-1,9,7,41,8
+    LTEXT           "Kommentar:",-1,9,7,41,8
     EDITTEXT        IDC_COMMENT,53,7,152,23,ES_MULTILINE | ES_AUTOVSCROLL | 
                     ES_AUTOHSCROLL
     CONTROL         "Prüfen, daß die Datei eingechecked ist",IDC_KEEPOUT,
@@ -154,20 +154,20 @@ STYLE DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP |
 CAPTION "CVS Login"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Ben&utzer :",-1,9,7,41,12,SS_CENTERIMAGE
+    LTEXT           "Ben&utzer:",-1,9,7,41,12,SS_CENTERIMAGE
     EDITTEXT        IDC_USERNAME,53,7,152,12,ES_AUTOHSCROLL
-    LTEXT           "&Passwort :",-1,9,22,41,12,SS_CENTERIMAGE
+    LTEXT           "&Passwort:",-1,9,22,41,12,SS_CENTERIMAGE
     EDITTEXT        IDC_PASSWORD,53,22,152,12,ES_PASSWORD | ES_AUTOHSCROLL
-    LTEXT           "&Server : ",-1,9,38,41,12,SS_CENTERIMAGE
+    LTEXT           "&Server: ",-1,9,38,41,12,SS_CENTERIMAGE
     EDITTEXT        IDC_SERVER,53,38,152,12,ES_AUTOHSCROLL
     LTEXT           "&Typ: ",-1,9,55,41,12,SS_CENTERIMAGE
     COMBOBOX        IDC_CTYPE,53,55,163,74,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     DEFPUSHBUTTON   "&Login",IDOK,212,7,65,14,WS_GROUP
     PUSHBUTTON      "Abbrechen",IDCANCEL,212,24,65,14
-    LTEXT           "CVS Root :",-1,9,88,41,12,SS_CENTERIMAGE
+    LTEXT           "CVS Root:",-1,9,88,41,12,SS_CENTERIMAGE
     EDITTEXT        IDC_CONNECT,53,88,200,12,ES_AUTOHSCROLL | ES_READONLY
-    LTEXT           "Pf&ad :",-1,9,71,41,12,SS_CENTERIMAGE
+    LTEXT           "Pf&ad:",-1,9,71,41,12,SS_CENTERIMAGE
     EDITTEXT        IDC_PATH,53,71,152,12,ES_AUTOHSCROLL
 END
 
@@ -178,7 +178,7 @@ BEGIN
     LISTBOX         IDC_LIST,0,21,255,156,LBS_OWNERDRAWVARIABLE | 
                     LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "Typ :",IDC_STATIC,2,3,27,12,SS_CENTERIMAGE
+    LTEXT           "Typ:",IDC_STATIC,2,3,27,12,SS_CENTERIMAGE
     COMBOBOX        IDC_TYPE,30,3,140,85,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
 END
@@ -353,6 +353,10 @@ BEGIN
     ID_SC_LOGIN             "In Quellcodekontrollsystem einloggen\nLogin"
     ID_SC_DIFFVIEW          "Datei differenzen anzeigen\nDatei diff."
     ID_SC_ADDFILE           "Datei zum Quellcodekontrollsytsem hinzufügen\nDatei hinzufügen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     ID_SC_REMOVEFILE        "Datei vom Quellcodekontrollsystem entfernen\nDatei entfernen"
     ID_SC_STATUS            "Dateistatus anzeigen\nStatus"
     ID_SC_LOGOUT            "Aus dem Quellcodekontrollsystem ausloggen\nLogout"
@@ -408,11 +412,11 @@ BEGIN
                     WS_TABSTOP
 END
 
-IDD_CVS_LOGIN DIALOGEX 30, 73, 288, 110
+IDD_CVS_LOGIN DIALOG DISCARDABLE  30, 73, 287, 110
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "CVS Login"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "&User: ",-1,9,7,41,12,SS_CENTERIMAGE
     EDITTEXT        IDC_USERNAME,53,7,152,12,ES_AUTOHSCROLL
@@ -423,8 +427,8 @@ BEGIN
     LTEXT           "&Type: ",-1,9,55,41,12,SS_CENTERIMAGE
     COMBOBOX        IDC_CTYPE,53,55,163,74,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    DEFPUSHBUTTON   "&Login",IDOK,212,7,65,14,WS_GROUP
-    PUSHBUTTON      "Cancel",IDCANCEL,212,24,65,14
+    DEFPUSHBUTTON   "&Login",IDOK,211,7,65,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,211,24,65,14
     LTEXT           "CVS Root:",-1,9,88,41,12,SS_CENTERIMAGE
     EDITTEXT        IDC_CONNECT,53,88,200,12,ES_AUTOHSCROLL | ES_READONLY
     LTEXT           "P&ath: ",-1,9,71,41,12,SS_CENTERIMAGE
@@ -492,7 +496,7 @@ BEGIN
     IDD_CVS_LOGIN, DIALOG
     BEGIN
         LEFTMARGIN, 9
-        RIGHTMARGIN, 277
+        RIGHTMARGIN, 276
         TOPMARGIN, 7
         BOTTOMMARGIN, 100
     END
@@ -611,12 +615,17 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_VIEW_REPOSITORY      "Show/Hide the Source Control Repository\nSource Control Repository"
     ID_SC_UPDATE            "Update file to with latest changes\nUpdate"
     ID_SC_CHECKIN           "Check In file\nCheck In"
     ID_SC_CHECKOUT          "Check out file\nCheck Out"
     ID_SC_LOGIN             "Log in to Source Control\nLogin"
     ID_SC_DIFFVIEW          "Show file differences\nDiff File"
     ID_SC_ADDFILE           "Add File to Source Control\nAdd File"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     ID_SC_REMOVEFILE        "Remove file from Source Control\nRemove File"
     ID_SC_STATUS            "Show File Status\nStatus"
     ID_SC_LOGOUT            "Log out of Source Control\nLogout"

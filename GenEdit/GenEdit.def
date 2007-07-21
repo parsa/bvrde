@@ -1,0 +1,7 @@
+LIBRARY GenEdit
+
+EXPORTS
+	GetLexerName
+	GetLexerCount
+	Fold
+	Lex

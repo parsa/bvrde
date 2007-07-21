@@ -50,7 +50,7 @@
 #define IDS_SQL                         1016
 #define IDS_RESULT                      1017
 #define IDS_SCHEMA                      1018
-#define IDS_SB_POSITION                 1019
+#define IDS_STATUS_POSITION             1019
 #define IDS_TREE_DATABASE               1019
 #define IDS_ERR_DOCUMENT                1020
 #define IDS_TREE_TABLES                 1020
@@ -59,7 +59,7 @@
 #define IDS_PRINT_TITLE                 1022
 #define IDS_TREE_VIEWS                  1022
 #define IDS_EXECUTING                   1023
-#define IDS_SB_EXECUTING                1023
+#define IDS_STATUS_EXECUTING            1023
 #define IDS_CAPTION_TOOLBAR             1024
 #define IDS_TREE_SP                     1025
 #define IDS_TREE_INFO                   1026
@@ -112,7 +112,7 @@
 #define IDS_INFO_CLUSTERED              1067
 #define IDS_TAB_SUMMERY                 1068
 #define IDS_TAB_RESULT                  1069
-#define IDS_SB_DONE                     1070
+#define IDS_STATUS_DONE                 1070
 #define IDS_DBERROR_FORMAT              1071
 #define IDS_TRUE                        1072
 #define IDS_FALSE                       1073
@@ -130,6 +130,7 @@
 #define IDS_FILTER_SQL                  1084
 #define IDS_CAPTION_QUESTION            1085
 #define IDS_NO_ROWS_AFFECTED            1086
+#define IDS_STATUS_TABLEENUM            1087
 #define IDD_OPTIONS_ADVANCED            32009
 #define ID_FILE_DELETE                  40003
 #define ID_FILE_ADD_REMOTE              40004

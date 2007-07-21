@@ -25,7 +25,7 @@ struct CLockLineDataInit
 CTelnetView::CTelnetView() :
   m_pShell(NULL),
   m_dwFlags(0UL),
-  m_iStart(0),
+  m_nLineCount(MAX_DISPLAY_LINES),
   m_clrDefBack(RGB(120,120,200)),
   m_clrBack(RGB(120,120,200)),
   m_clrText(RGB(255,255,255))
@@ -59,6 +59,11 @@ void CTelnetView::Close()
    m_pShell = NULL;
 }
 
+DWORD CTelnetView::GetFlags() const
+{
+   return m_dwFlags;
+}
+
 void CTelnetView::SetFlags(DWORD dwFlags)
 {
    m_dwFlags = dwFlags;
@@ -70,12 +75,19 @@ void CTelnetView::SetColors(COLORREF clrText, COLORREF clrBack)
    m_clrBack = clrBack;
 }
 
+void CTelnetView::SetLineCount(int iMaxLines)
+{
+   m_nLineCount = max(MAX_DISPLAY_LINES, iMaxLines);
+   _SetScrollSize();
+   Clear();
+}
+
 void CTelnetView::Clear()
 {
    CLockLineDataInit lock;
    m_aLines.RemoveAll();
    LINE line = { VT100_DEFAULT, 0 };
-   for( int i = 0; i < MAX_LINES; i++ ) m_aLines.Add(line);
+   for( int i = 0; i < m_nLineCount; i++ ) m_aLines.Add(line);
    if( IsWindow() ) Invalidate();
 }
 
@@ -96,6 +108,8 @@ void CTelnetView::DoPaint(CDCHandle dc)
    HFONT hOldFont = dc.SelectFont(m_font);
    for( int i = 0; i < m_aLines.GetSize(); i++ ) {
       const LINE& line = m_aLines[i];
+      // NOTE: We pick some psychedelic text colors based on the background-color of the
+      //       window. We shouldn't really hardcode it that rudely.
       switch( line.nColor ) {
       case VT100_RED:   dc.SetTextColor(m_clrBack == m_clrDefBack ? RGB(240,220,200) : RGB(180,60,50)); break;
       case VT100_GREEN: dc.SetTextColor(m_clrBack == m_clrDefBack ? RGB(200,240,220) : RGB(30,90,30)); break;
@@ -120,13 +134,7 @@ LRESULT CTelnetView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
    
    m_font = AtlGetStockFont(SYSTEM_FIXED_FONT);
 
-   CClientDC dc(m_hWnd);
-   HFONT hOldFont = dc.SelectFont(m_font);
-   dc.GetTextMetrics(&m_tm);
-   dc.SelectFont(hOldFont);
-
-   SetScrollSize(m_tm.tmAveCharWidth * MAX_CHARS, m_tm.tmHeight * m_aLines.GetSize(), FALSE);
-   SetScrollOffset(0, m_tm.tmHeight * MAX_LINES);
+   _SetScrollSize();
 
    bHandled = FALSE;
    return 0;
@@ -158,7 +166,7 @@ LRESULT CTelnetView::OnCompacting(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    // View is being closed. It's not being destroyed, since it's part of
    // the docking framework. The view runs in the background (still gets input)
    // and is ready to display itself if the user activates it from the memu.
-   if( m_pShell ) {
+   if( m_pShell != NULL ) {
       if( (m_dwFlags & TELNETVIEW_TERMINATEONCLOSE) != 0 ) {
          _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, _T(""), FALSE);
          m_pShell->Stop();
@@ -174,19 +182,19 @@ LRESULT CTelnetView::OnEraseBkgnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*
    RECT rcClip = { 0 };
    dc.GetClipBox(&rcClip);
    dc.FillSolidRect(&rcClip, m_clrBack);
-   return TRUE; // We're done the painting
+   return TRUE; // We've done the painting
 }
 
 LRESULT CTelnetView::OnGetMinMaxInfo(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {
    MINMAXINFO* pMMI = (MINMAXINFO*) lParam;
-   SIZE size;
-   GetScrollSize(size);
-   pMMI->ptMaxTrackSize.x = size.cx + 
+   int cxMax = m_tm.tmAveCharWidth * MAX_CHARS;
+   int cyMax = m_tm.tmHeight * MAX_DISPLAY_LINES;
+   pMMI->ptMaxTrackSize.x = cxMax + 
       (2 * ::GetSystemMetrics(SM_CXSIZEFRAME)) + 
       (2 * ::GetSystemMetrics(SM_CXEDGE)) +
       ::GetSystemMetrics(SM_CXVSCROLL);
-   pMMI->ptMaxTrackSize.y = size.cy + 
+   pMMI->ptMaxTrackSize.y = cyMax + 
       ::GetSystemMetrics(SM_CYCAPTION) + 
       (2 * ::GetSystemMetrics(SM_CYSIZEFRAME)) + 
       (2 * ::GetSystemMetrics(SM_CYEDGE)) + 
@@ -245,6 +253,27 @@ LRESULT CTelnetView::OnEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
    return 0;
 }
 
+LRESULT CTelnetView::OnEditWordWrap(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   m_dwFlags ^= TELNETVIEW_WORDWRAP;
+   return 0;
+}
+
+
+/////////////////////////////////////////////////////////////////////////
+// Implementation
+
+void CTelnetView::_SetScrollSize()
+{
+   CClientDC dc(m_hWnd);
+   HFONT hOldFont = dc.SelectFont(m_font);
+   dc.GetTextMetrics(&m_tm);
+   dc.SelectFont(hOldFont);
+
+   SetScrollSize(m_tm.tmAveCharWidth * MAX_CHARS, m_tm.tmHeight * m_nLineCount, FALSE);
+   SetScrollOffset(0, m_tm.tmHeight * m_nLineCount);
+}
+
 
 /////////////////////////////////////////////////////////////////////////
 // IOutputLineListener 
@@ -277,19 +306,28 @@ void CTelnetView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 
    if( _tcsncmp(pstrText, _T("(gdb"), 4) == 0 ) nColor = VT100_BLUE;
 
-   LINE newline = { nColor, 0 };
-   _tcsncpy(newline.szText, pstrText, MAX_CHARS);
-
    // NOTE: Since lines may very well arrive from another thread we'll
    //       have to protect the data members.
    CLockLineDataInit lock;
 
+   CString sText = pstrText;
    int nCount = m_aLines.GetSize();
-   for( int i = 0; i < nCount - 1; i++ ) {
-      LINE& line = m_aLines[i + 1];
-      m_aLines.SetAtIndex(i, line);
-   }
-   m_aLines.SetAtIndex(nCount - 1, newline);
+   do 
+   {
+      int nSize = sText.GetLength();
+      if( (m_dwFlags & TELNETVIEW_WORDWRAP) != 0 ) nSize = min(nSize, MAX_CHARS);
+
+      LINE newline = { nColor, 0 };
+      _tcscpy(newline.szText, sText.Left(MAX_CHARS));
+
+      for( int i = 0; i < nCount - 1; i++ ) {
+         LINE& line = m_aLines[i + 1];
+         m_aLines.SetAtIndex(i, line);
+      }
+      m_aLines.SetAtIndex(nCount - 1, newline);
+
+      sText = sText.Mid(nSize);
+   } while( !sText.IsEmpty() );
 
    if( IsWindow() ) Invalidate();
 }
@@ -300,7 +338,9 @@ void CTelnetView::OnIdle(IUpdateUI* pUIBase)
 {
    pUIBase->UIEnable(ID_EDIT_COPY, TRUE);
    pUIBase->UIEnable(ID_EDIT_CLEAR, TRUE);
+   pUIBase->UIEnable(ID_EDIT_WORDWRAP, TRUE);
    pUIBase->UIEnable(ID_VIEW_CLOSE, TRUE);
+   pUIBase->UISetCheck(ID_EDIT_WORDWRAP, (m_dwFlags & TELNETVIEW_WORDWRAP) != 0);
 }
 
 void CTelnetView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)

@@ -93,9 +93,35 @@ void CWatchView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
             if( !bFound ) {
                int iItem = m_ctrlGrid.InsertItem(-1, PropCreateSimple(_T(""), sName, lWatch));
                m_ctrlGrid.SetSubItem(iItem, 1, PropCreateSimple(_T(""), _T("")));
+               // Let's not be satisfied with the "watchXXX" name. The debugger can name
+               // the variable properly.
+               CString sCommand;
+               sCommand.Format(_T("-var-info-expression %s"), sName);
+               m_pProject->DelayedDebugCommand(sCommand);
             }
          }
          sName = info.FindNext(_T("name"));
+      }
+   }
+   if( _tcscmp(pstrType, _T("lang")) == 0 )
+   {
+      CString sName = info.GetItem(_T("name"));
+      CString sRealName = info.GetItem(_T("exp"));
+      if( sName.Left(5) == _T("watch") && !sRealName.IsEmpty() ) {
+         LPARAM lWatch = (LPARAM) _ttol(sName.Mid(5));  // formatted as "watch1234"
+         int nCount = m_ctrlGrid.GetItemCount();
+         for( int i = 0; i < nCount; i++ ) {
+            HPROPERTY hProp = m_ctrlGrid.GetProperty(i, 0);
+            LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
+            if( lKey != lWatch ) continue;
+            CComVariant vName = sRealName;
+            m_ctrlGrid.SetItemValue(hProp, &vName);
+            // Update the value while we're at it...
+            CString sCommand;
+            sCommand.Format(_T("-var-evaluate-expression watch%ld"), lWatch);
+            m_pProject->DelayedDebugCommand(sCommand);
+            break;
+         }
       }
    }
    if( _tcscmp(pstrType, _T("changelist")) == 0 )
@@ -132,6 +158,11 @@ void CWatchView::EvaluateValues(CSimpleArray<CString>& aDbgCmd)
 
    CString sCommand = _T("-var-update *");
    aDbgCmd.Add(sCommand);
+
+   // While the above debugger command gives us a list of chenged items, I still
+   // perfer to evaluate *all* wathces - simply because there is slight risk that
+   // we didn't catch an update.
+   // TODO: Baloney. Fix this.
 
    int nCount = m_ctrlGrid.GetItemCount();
    for( int i = 0; i < nCount; i++ ) {

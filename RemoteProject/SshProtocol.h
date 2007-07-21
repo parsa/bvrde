@@ -23,7 +23,6 @@ public:
    DWORD Run();
    
 protected:
-   int _GetPrivateKey(CRYPT_CONTEXT *cryptContext, LPCSTR keysetName, LPCSTR keyName, LPCSTR password);
    CHAR _GetByte(CRYPT_SESSION cryptSession, const LPBYTE pBuffer, int iLength, int& iPos) const;
    CString _GetLine(LPBYTE pBuffer, int dwStart, int dwEnd) const;
 

@@ -34,6 +34,18 @@ DWORD CDebugStopThread::Run()
 ////////////////////////////////////////////////////////
 //
 
+static CComAutoCriticalSection m_csBreakpoint;
+
+struct CLockBreakpointData
+{
+   CLockBreakpointData() { m_csBreakpoint.Lock(); };
+   ~CLockBreakpointData() { m_csBreakpoint.Unlock(); };
+};
+
+
+////////////////////////////////////////////////////////
+//
+
 CDebugManager::CDebugManager() :
    m_pProject(NULL),
    m_bBreaked(false),
@@ -198,7 +210,7 @@ bool CDebugManager::Break()
 
 bool CDebugManager::ClearBreakpoints()
 {
-   CLockStaticDataInit lock;
+   CLockBreakpointData lock;
    if( IsDebugging() ) {
       if( m_aBreakpoints.GetSize() > 0 ) {
          bool bRestartApp = _PauseDebugger();
@@ -209,6 +221,7 @@ bool CDebugManager::ClearBreakpoints()
             sCommand.Append(m_aBreakpoints.GetValueAt(i));
          }
          DoDebugCommand(sCommand);
+         DoDebugCommand(_T("-break-list"));
          if( bRestartApp ) _ResumeDebugger();
       }
    }
@@ -219,13 +232,14 @@ bool CDebugManager::ClearBreakpoints()
    return true;
 }
 
-bool CDebugManager::AddBreakpoint(LPCTSTR pstrFilename, int iLine)
+bool CDebugManager::AddBreakpoint(LPCTSTR pstrFilename, int iLineNum)
 {
+   CLockBreakpointData lock;
    // Add it to internal list
-   CLockStaticDataInit lock;
+   pstrFilename = ::PathFindFileName(pstrFilename);
    CString sText;
-   sText.Format(_T("%s:%d"), pstrFilename, iLine + 1);
-   // We add a dummy entry now. We don't know the internal GDB breakpoint-nr
+   sText.Format(_T("%s:%d"), pstrFilename, iLineNum + 1);
+   // We add a dummy entry now. We don't know the internal GDB breakpoint-no
    // for this breakpoint, but we'll soon learn when GDB answers our request.
    m_aBreakpoints.Add(sText, 0);
    // If we're debugging, we need to update GDB as well...
@@ -250,15 +264,17 @@ bool CDebugManager::AddBreakpoint(LPCTSTR pstrFilename, int iLine)
    return true;
 }
 
-bool CDebugManager::RemoveBreakpoint(LPCTSTR pstrFilename, int iLine)
+bool CDebugManager::RemoveBreakpoint(LPCTSTR pstrFilename, int iLineNum)
 {
-   CLockStaticDataInit lock;
+   CLockBreakpointData lock;
+   pstrFilename = ::PathFindFileName(pstrFilename);
    CString sText;
-   sText.Format(_T("%s:%d"), pstrFilename, iLine + 1);
+   sText.Format(_T("%s:%d"), pstrFilename, iLineNum + 1);
    if( IsDebugging() ) {
       // Find the internal GDB breakpoint-nr for this breakpoint
-      long lNumber = m_aBreakpoints.Lookup(sText);
-      if( lNumber > 0 ) {
+      int iIndex = m_aBreakpoints.FindKey(sText);;
+      if( iIndex >= 0 ) {
+         long lNumber = m_aBreakpoints.Lookup(sText);
          bool bRestartApp = _PauseDebugger();
          // We have it; let's ask GDB to delete the breakpoint
          CString sCommand;
@@ -274,7 +290,8 @@ bool CDebugManager::RemoveBreakpoint(LPCTSTR pstrFilename, int iLine)
 
 bool CDebugManager::GetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLines) const
 {
-   CLockStaticDataInit lock;
+   CLockBreakpointData lock;
+   pstrFilename = ::PathFindFileName(pstrFilename);
    size_t cchName = _tcslen(pstrFilename);
    for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
       if( _tcsncmp(m_aBreakpoints.GetKeyAt(i), pstrFilename, cchName) == 0 ) {
@@ -295,7 +312,7 @@ bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLin
    // where we ask the views to identify all active breakpoints. We're supposed to
    // clear our internal breakpoint-list for that file and add the active items.
    // First, let's remove all existing breakpoints from this file.
-   CLockStaticDataInit lock;
+   CLockBreakpointData lock;
    size_t cchName = _tcslen(pstrFilename);
    int i;
    for( i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
@@ -527,7 +544,7 @@ void CDebugManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("StartTimeout") ) m_lStartTimeout = _ttol(pstrValue);
    if( sName == _T("MaintainSession") ) m_bMaintainSession = _tcscmp(pstrValue, _T("true")) == 0;
    if( sName == _T("InCommand") ) m_bCommandMode = _tcscmp(pstrValue, _T("true")) == 0;
-   m_ShellManager.SetParam(pstrName, pstrValue);
+   m_ShellManager.SetParam(pstrName, pstrValue);  
    if( m_lStartTimeout <= 0 ) m_lStartTimeout = 4;
 }
 
@@ -734,10 +751,11 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
 
    // Do some manipulation depending on the debug command.
    // Some commands might spuriously fail and we don't want to see error
-   // messages all the time, so we'll ignore these.
+   // messages all the time, so we'll bluntly ignore these.
    if( sCommand.Find(_T("-delete")) >= 0 ) m_nIgnoreErrors++;
    if( sCommand.Find(_T("-evaluate")) >= 0 ) m_nIgnoreErrors++;
    int iPos;
+   if( (iPos = sCommand.Find(_T("-var-info-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 21);
    if( (iPos = sCommand.Find(_T("-var-evaluate-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 25);
    if( (iPos = sCommand.Find(_T("-data-evaluate-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 26);
    return sCommand;
@@ -960,6 +978,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
          _T("name"),
          _T("value"),
          _T("addr"),
+         _T("lang"),
          _T("cwd"),
          _T("changelist"),
          _T("ndeleted"),
@@ -968,7 +987,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
          NULL
       };
       CString sCommand = sLine.SpanExcluding(_T("="));
-      if( sCommand == _T("value") ) {
+      if( sCommand == _T("value") || sCommand == _T("lang") ) {
          // Unfortunately the GDB MI "value" result doesn't always
          // contain information about what was asked, so we
          // internally book-keep this information and append
@@ -1004,7 +1023,10 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
    if( sLine.IsEmpty() ) return;
 
    // Not seen first GDB prompt yet? GDB might be spitting out error messages
-   // in raw format then...
+   // in raw format then.
+   // Some outdated versions of GDB doesn't include this output in the console-stream
+   // tags, but merely prints them as text. We'll try to detect both (hence the missing
+   // first character in error messages).
    if( m_nDebugAck == 0 ) {
       int iPos = sLine.Find(_T("GNU gdb "));
       if( iPos == 0 || iPos == 1 ) {
@@ -1029,7 +1051,7 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
       if( sLine.Find(_T("o such file")) >= 0 ) {
          m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NODEBUGFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
       }
-      if( sLine.Find(_T("gdb: unrecognized option")) >= 0 ) {
+      if( sLine.Find(_T("db: unrecognized option")) >= 0 ) {
          m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGVERSION)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
       }
    }
@@ -1057,13 +1079,26 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
    }
 }
 
-void CDebugManager::_ParseTargetOutput(LPCTSTR /*pstrText*/)
+void CDebugManager::_ParseTargetOutput(LPCTSTR pstrText)
 {
+   CString sLine = pstrText;
+   if( sLine.IsEmpty() ) return;
+   // Outputting directly to the Command View if we're
+   // in "command mode" (user entered custom command at prompt or scripting).
+   // TODO: We really need this to be delayed to prevent thread dead-lock
+   if( m_bCommandMode ) {
+      CString sText = sLine.Mid(1, sLine.GetLength() - 2);
+      sText.Replace(_T("\\n"), _T("\r\n"));
+      sText.Replace(_T("\\t"), _T("\t"));
+      CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
+      AppendRtfText(ctrlEdit, sText);
+   }
 }
 
 void CDebugManager::_ParseLogOutput(LPCTSTR pstrText)
 {
    CString sLine = pstrText;
+   if( sLine.IsEmpty() ) return;
    // GDB didn't find the executable?
    // Project name is not the executable name
    if( sLine.Find(_T("No executable file specified")) >= 0 
@@ -1076,10 +1111,13 @@ void CDebugManager::_ParseLogOutput(LPCTSTR pstrText)
 
 void CDebugManager::_ParseKeyPrompt(LPCTSTR pstrText)
 {
+   CString sLine = pstrText;
+   if( sLine.IsEmpty() ) return;
    // FIX: How "Machine Interface" is it really, when GDB from time to time
    //      prompts me to hit return to continue?!!
-   CString sLine = pstrText;
-   if( sLine.Find(_T("---Type <return>")) >= 0 ) DoDebugCommand(_T("\r\n"));
+   if( sLine.Find(_T("---Type <return>")) >= 0 ) {
+      DoDebugCommand(_T("\r\n"));
+   }
 }
 
 /**
@@ -1134,7 +1172,7 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       return;
    }
    // Look at raw text always
-   if( *pstrText == '~' ) _ParseConsoleOutput(pstrText + 1);
+   if( *pstrText == '~' || m_nDebugAck == 0 ) _ParseConsoleOutput(pstrText + 1);
    if( *pstrText == '-' ) _ParseKeyPrompt(pstrText);
    // Not accepting lines before first acknoledge
    if( m_nDebugAck == 0 ) return;

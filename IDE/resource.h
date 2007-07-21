@@ -179,6 +179,7 @@
 #define IDS_ERR_SAVESOLUTION            254
 #define IDS_OPENFILES                   255
 #define IDS_STATUS_RECMACRO             256
+#define IDS_ERR_REGNOPRIV               257
 #define IDD_MSGBOX                      263
 #define IDI_MSG_INFORMATION             264
 #define IDI_MSG_WARNING                 265

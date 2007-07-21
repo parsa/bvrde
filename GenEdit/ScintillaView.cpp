@@ -260,49 +260,57 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    if( m_sLanguage == _T("cpp") ) 
    {
-      // Make really sure it's the CPP language
-      SetLexer(SCLEX_CPP);
+      // Make really sure it's the CPP language. We'll use our
+      // own custom lexer for Scintilla
+      //SetLexer(SCLEX_CPP);
+      CHAR szDllModule[MAX_PATH];
+      ::GetModuleFileNameA(_Module.GetModuleInstance(), szDllModule, MAX_PATH);
+      LoadLexerLibrary(szDllModule);
+      SetLexerLanguage("BVRDE_cpp");
 
       static int aCppStyles[] = 
       {
          STYLE_DEFAULT,                0,
          SCE_C_DEFAULT,                0,
-         SCE_C_WORD,                   0,
-         SCE_C_IDENTIFIER,             1,
-         SCE_C_GLOBALCLASS,            1,
-         SCE_C_COMMENT,                2,
-         SCE_C_COMMENTLINE,            2,
-         SCE_C_NUMBER,                 3,
-         SCE_C_OPERATOR,               3,
-         SCE_C_STRING,                 4,
-         SCE_C_STRINGEOL,              4,
-         SCE_C_CHARACTER,              4,
-         SCE_C_UUID,                   4,
-         SCE_C_REGEX,                  4,
-         SCE_C_PREPROCESSOR,           5,
-         SCE_C_WORD2,                  6,
-         STYLE_BRACELIGHT,             7,
-         STYLE_BRACEBAD,               8,
-         SCE_C_COMMENTDOC,             9,
-         SCE_C_COMMENTLINEDOC,         9,
-         SCE_C_COMMENTDOCKEYWORD,      9,
-         SCE_C_COMMENTDOCKEYWORDERROR, 9,
+         SCE_C_WORD,                   1,
+         SCE_C_IDENTIFIER,             2,
+         SCE_C_GLOBALCLASS,            3,
+         SCE_C_FUNCTIONCLASS,          4,
+         SCE_C_TYPEDEFCLASS,           5,
+         SCE_C_COMMENT,                6,
+         SCE_C_COMMENTLINE,            6,
+         SCE_C_NUMBER,                 7,
+         SCE_C_OPERATOR,               8,
+         SCE_C_STRING,                 9,
+         SCE_C_STRINGEOL,              9,
+         SCE_C_CHARACTER,              9,
+         SCE_C_UUID,                   9,
+         SCE_C_REGEX,                  9,
+         SCE_C_PREPROCESSOR,           10,
+         SCE_C_WORD2,                  11,
+         STYLE_BRACELIGHT,             12,
+         STYLE_BRACEBAD,               13,
+         SCE_C_COMMENTDOC,             14,
+         SCE_C_COMMENTLINEDOC,         14,
+         SCE_C_COMMENTDOCKEYWORD,      14,
+         SCE_C_COMMENTDOCKEYWORDERROR, 14,
          -1, -1,
       };
       ppStyles = aCppStyles;
 
       // Create custom word- & brace highlight-styles from default
-      syntax[6] = syntax[0];
-      syntax[6].bBold = true;
-      syntax[7] = syntax[0];
-      syntax[7].clrText = RGB(0,0,0);
-      syntax[7].clrBack = BlendRGB(syntax[0].clrBack, RGB(0,0,0), 8);
-      syntax[7].bBold = true;
-      syntax[8] = syntax[0];
-      syntax[8].clrText = RGB(200,0,0);
-      syntax[8].bBold = true;
-      syntax[9] = syntax[2];
-      syntax[9].bBold = true;
+      syntax[11] = syntax[1];
+      syntax[11].bBold = true;
+      syntax[12] = syntax[0];
+      syntax[12].clrText = RGB(0,0,0);
+      syntax[12].clrBack = BlendRGB(syntax[0].clrBack, RGB(0,0,0), 8);
+      syntax[12].bBold = true;
+      syntax[13] = syntax[0];
+      syntax[13].clrText = RGB(200,0,0);
+      syntax[13].bBold = true;
+      syntax[14] = syntax[6];
+      syntax[14].bBold = true;
+      syntax[14].clrText= BlendRGB(syntax[6].clrText, syntax[6].clrBack, 30);
    }
    else if( m_sLanguage == _T("makefile") ) 
    {
@@ -330,12 +338,12 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
          STYLE_DEFAULT,          0,
          SCE_SH_DEFAULT,         0,
          SCE_SH_WORD,            0,
-         SCE_SH_OPERATOR,        0,
-         SCE_SH_COMMENTLINE,     1,
-         SCE_SH_STRING,          2,
-         SCE_SH_CHARACTER,       2,
-         SCE_SH_NUMBER,          3,
-         SCE_SH_IDENTIFIER,      3,
+         SCE_SH_OPERATOR,        1,
+         SCE_SH_COMMENTLINE,     2,
+         SCE_SH_STRING,          3,
+         SCE_SH_CHARACTER,       3,
+         SCE_SH_NUMBER,          4,
+         SCE_SH_IDENTIFIER,      5,
          -1, -1,
       };
       ppStyles = aBashStyles;
@@ -819,7 +827,7 @@ LRESULT CScintillaView::OnUpdateUI(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHand
    long lCol = (long) GetColumn(lPos) + 1;
    long lRow = (long) LineFromPosition(lPos) + 1;
    CString sMsg;
-   sMsg.Format(IDS_SB_POSITION, lRow, lCol);
+   sMsg.Format(IDS_STATUS_POSITION, lRow, lCol);
    m_pDevEnv->ShowStatusText(ID_SB_PANE2, sMsg, TRUE);
    // Find matching brace
    _MatchBraces(lPos);
@@ -908,6 +916,15 @@ LRESULT CScintillaView::OnMacroRecord(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
    sMacro.Replace(_T("\t"), _T("\" + Chr(9) + \""));
    sMacro.Replace(_T("\n"), _T("\" + vbCrLf + \""));
    m_pDevEnv->RecordMacro(sMacro);
+   return 0;
+}
+
+LRESULT CScintillaView::OnNeedShown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
+{
+   SCNotification* pSCN = (SCNotification*) pnmh;
+   int iStartLine = LineFromPosition(pSCN->position);
+   int iEndLine = LineFromPosition(pSCN->position + pSCN->length - 1);
+   for( int iLineNum = iStartLine; iLineNum <= iEndLine; iLineNum++ ) EnsureVisible(iLineNum);
    return 0;
 }
 

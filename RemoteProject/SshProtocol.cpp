@@ -364,7 +364,7 @@ bool CSshProtocol::Load(ISerializable* pArc)
    m_sPassword.ReleaseBuffer();
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
-   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(400), 400);
+   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(1400), 1400);
    m_sExtraCommands.ReleaseBuffer();
    pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
 
@@ -429,13 +429,13 @@ bool CSshProtocol::IsBusy() const
 CString CSshProtocol::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
+   if( sName == _T("Type") ) return _T("SSH");
    if( sName == _T("Path") ) return m_sPath;
    if( sName == _T("Host") ) return m_sHost;
    if( sName == _T("Username") ) return m_sUsername;
    if( sName == _T("Password") ) return m_sPassword;
    if( sName == _T("Extra") ) return m_sExtraCommands;
    if( sName == _T("Port") ) return ToString(m_lPort);
-   if( sName == _T("Type") ) return _T("SSH");
    if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
    return _T("");
 }

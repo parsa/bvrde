@@ -41,6 +41,9 @@ extern CComModule _Module;
 #include "atlwinmisc.h"
 #include "atlscintilla.h"
 
+#define SCE_C_FUNCTIONCLASS  20
+#define SCE_C_TYPEDEFCLASS   21
+
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

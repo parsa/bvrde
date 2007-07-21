@@ -10,27 +10,24 @@
 #pragma comment(lib, "shlwapi.lib")
 
 int verb = 0;
+HANDLE hMutex = NULL;
 
 
 /////////////////////////////////////////////////////////////////////////////
 // DLL Main
 
-BOOL APIENTRY DllMain( HANDLE hInstance, DWORD /*dwReason*/, LPVOID /*lpReserved*/)
+BOOL APIENTRY DllMain( HANDLE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 {
-   ::DisableThreadLibraryCalls((HINSTANCE)hInstance);
+   if( dwReason == DLL_PROCESS_ATTACH ) {
+      ::DisableThreadLibraryCalls((HINSTANCE) hInstance);
+      hMutex = ::CreateMutex(NULL, FALSE, NULL);
+   }
    return TRUE;
 }
 
 
 /////////////////////////////////////////////////////////////////////////////
 // Parse method
-
-LPSTR _W2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars)
-{
-   lpa[0] = '\0';
-   ::WideCharToMultiByte(CP_ACP, 0, lpw, -1, lpa, nChars, NULL, NULL);
-   return lpa;
-}
 
 bool _UDgreater(std::string& elem1, std::string& elem2)
 {
@@ -52,6 +49,8 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
       if( cr->name.at(0) == '*' ) continue;
       if( cr->name.at(0) == '(' ) continue;
 
+      if( cr->doc.empty() ) cr->doc = cr->memo;
+
       char type = 'm';
       if( cr->section == FUNCTION_SEC ) type = 'm';
       else if( cr->section == TYPEDEF_SEC ) type = 't';
@@ -71,10 +70,10 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
       if( cr->protection == PROT ) prot = 'r';
       if( cr->protection == PRIV ) prot = 'i';
 
-      std::replace(cr->memo.begin(), cr->memo.end(), '\r', ' ');
-      std::replace(cr->memo.begin(), cr->memo.end(), '\n', ' ');
-      std::replace(cr->memo.begin(), cr->memo.end(), '\t', ' ');
-      std::replace(cr->memo.begin(), cr->memo.end(), '|', '¦');
+      std::replace(cr->doc.begin(), cr->doc.end(), '\r', ' ');
+      std::replace(cr->doc.begin(), cr->doc.end(), '\n', ' ');
+      std::replace(cr->doc.begin(), cr->doc.end(), '\t', ' ');
+      std::replace(cr->doc.begin(), cr->doc.end(), '|', '¦');
       std::replace(cr->type.begin(), cr->type.end(), '|', '¦');
       std::replace(cr->name.begin(), cr->name.end(), '|', '¦');
       std::replace(cr->args.begin(), cr->args.end(), '|', '¦');
@@ -90,7 +89,7 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
          cr->args.c_str(),
          parent->name == cr->name ? "" : parent->name.c_str(),
          (long) cr->lineNo,
-         cr->memo.c_str());
+         cr->doc.c_str());
 
       static std::string sRes = szBuffer;
       sRes = szBuffer;
@@ -105,25 +104,27 @@ BOOL APIENTRY CppLexer_Parse(LPCSTR pstrSourceName, LPCSTR pstrText, LPCWSTR pst
 
    Entry* root = new Entry();
    if( root == NULL ) return FALSE;
+   STRINGLIST aList;
    root->program = pstrText;
+   ::WaitForSingleObject(hMutex, 3000 /*INFINITE*/);
    try
    {
-      parseCpp( root );
+      parseCpp(root);
+      _parseStructs(root, aList);
    }
    catch( ... )
    {
+      ::ReleaseMutex(hMutex);
       delete root;
       return FALSE;
    }
-
-   STRINGLIST aList;
-   _parseStructs(root, aList);
+   ::ReleaseMutex(hMutex);
 
    std::sort(aList.begin(), aList.end(), _UDgreater);
 
    delete root;
 
-   char szFirstLine[MAX_PATH + 2];
+   char szFirstLine[MAX_PATH + 3];
    ::wsprintfA(szFirstLine, "#%s\n", pstrSourceName);
 
    HANDLE hFile = ::CreateFileW(pstrOutputFile, 

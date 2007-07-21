@@ -14,7 +14,11 @@ and Microsoft Platform SDK is required. Links for these libraries are available 
 To compile the projects, you should use the "Batch Build" option in Developer Studio.
 This will build all the projects in the solution in the correct order.
 Most compile error are solved by making sure that you have installed the latest version
-of the projects mentioned below.
+of the 3rd party projects mentioned below.
+
+One sub-project, the RemoteProject, will not compile unless you manually add a
+password.cpp file to the solution. More information can be found in the 
+Globals.h source file for that project.
 
 
     Links
@@ -25,7 +29,7 @@ The folllowing links are needed or useful for compiling the projects:
  http://wtl.sourceforge.net
 
  Microsoft Platform SDK
- http://msdn.microsoft.com/developer/sdk/platform.htm
+ http://support.microsoft.com/default.aspx?pr=psdk
 
  Microsoft Html Help Workshop
  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/htmlhelp/html/vsconHH1Start.asp
@@ -36,6 +40,9 @@ The folllowing links are needed or useful for compiling the projects:
  Cryptlib library
  http://www.cs.auckland.ac.nz/~pgut001/cryptlib/
 
+ DOC++
+ htpp://docpp.sourceforge.net 
+
 
     Resolving Errors
 
@@ -45,6 +52,10 @@ the WTL library properly.
 If you get errors concerning the WinInet "FtpCommand" method, you have not 
 updated your MS Platform SDK files or configured it properly.
 Alternatively remove the offending line from the FtpProtocol.cpp file.
+
+The sub-project, RemoteProject, will not compile unless you manually add a
+password.h file to the solution. More information can be found in the 
+Globals.cpp source file.
 
 Compile errors regarding an unknown ATL namespace prefix can be
 corrected directly in the atldispa.h source by removing the prefix
@@ -72,7 +83,7 @@ Compiling under Visual Studio.NET will generate a number of warnings. You
 may ignore these warnings.
 
 Compile errors mentioning "___security_cookie" may be related to the /GS
-switch in the latest VisualStudio.NET compiler family. To sucessfully 
+switch in the latest Visual Studio.NET compiler family. To sucessfully 
 compile you should disable the "Buffer Security Check" setting.
 
 The realtime C++ lexer, "cpp.l", needs a lex/yacc utility to compile. It 

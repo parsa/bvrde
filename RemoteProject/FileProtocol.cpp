@@ -37,7 +37,7 @@ bool CFileProtocol::Load(ISerializable* pArc)
    if( !pArc->ReadItem(_T("MappedDrive")) ) return false;
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
-   pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(128), 128);
+   pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(200), 200);
    m_sSearchPath.ReleaseBuffer();
 
    m_sPath.TrimRight(_T("\\"));
@@ -56,6 +56,7 @@ bool CFileProtocol::Save(ISerializable* pArc)
 bool CFileProtocol::Start()
 {
    Stop();
+   m_sCurDir = m_sPath;
    m_bConnected = true;
    return true;
 }
@@ -80,11 +81,11 @@ bool CFileProtocol::IsConnected() const
 CString CFileProtocol::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
+   if( sName == _T("Type") ) return _T("network");
    if( sName == _T("Path") ) return m_sPath;
    if( sName == _T("SearchPath") ) return m_sSearchPath;
    if( sName == _T("Separator") ) return _T("\\");
    if( sName == _T("Certificate") ) return _T("Windows Network Drive");
-   if( sName == _T("Type") ) return _T("network");
    return _T("");
 }
 
@@ -104,12 +105,11 @@ bool CFileProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
    *ppOut = NULL;
    if( pdwSize != NULL ) *pdwSize = 0;
 
-   CString sFilename;
-   sFilename.Format(_T("%s\\%s"), m_sPath, pstrFilename);
+   CString sFilename = pstrFilename;
+   if( ::PathIsRelative(pstrFilename) && m_sCurDir.GetLength() > 1 ) sFilename.Format(_T("%s\\%s"), m_sCurDir, pstrFilename);
 
    CFile f;
    if( !f.Open(sFilename) ) return false; 
-   DWORD dwRead = 0;
    DWORD dwSize = f.GetSize();
    *ppOut = (LPBYTE) malloc(dwSize);
    if( *ppOut == NULL ) {
@@ -117,19 +117,20 @@ bool CFileProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
       ::SetLastError(ERROR_OUTOFMEMORY);
       return false;
    }
-   BOOL bRes = f.Read(*ppOut, dwSize, &dwRead);
-   DWORD dwErr = ::GetLastError();
-   if( !bRes ) {
-      free(*ppOut);
-      dwSize = 0;
-      *ppOut = NULL;
+   DWORD dwBytesRead = 0;
+   BOOL bRes = f.Read(*ppOut, dwSize, &dwBytesRead);
+   if( !bRes || dwBytesRead != dwSize ) {
+      DWORD dwErr = ::GetLastError();
+      free(*ppOut); *ppOut = NULL;
+      f.Close();
+      ::SetLastError(dwErr);
+      return false;
    }
    f.Close();
-   ::SetLastError(dwErr);
 
    if( pdwSize != NULL ) *pdwSize = dwSize;
 
-   return bRes == TRUE;
+   return true;
 }
 
 bool CFileProtocol::SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE pData, DWORD dwSize)
@@ -137,37 +138,23 @@ bool CFileProtocol::SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE pData, D
    ATLASSERT(pstrFilename);
    ATLASSERT(pData);
 
-   CString sFilename;
-   sFilename.Format(_T("%s\\%s"), m_sPath, pstrFilename);
+   CString sFilename = pstrFilename;
+   if( ::PathIsRelative(pstrFilename) && m_sCurDir.GetLength() > 1 ) sFilename.Format(_T("%s\\%s"), m_sCurDir, pstrFilename);
 
    CFile f;
    if( !f.Create(sFilename) ) return false;
-
-   DWORD dwPos = 0;
-   while( dwSize > 0 ) {
-      DWORD dwWritten = 0;
-      BOOL bRes = f.Write(pData + dwPos, dwSize, &dwWritten);
-      if( !bRes ) {
-         DWORD dwErr = ::GetLastError();
-         f.Close();
-         ::SetLastError(dwErr);
-         return false;
-      }
-      if( bRes && dwWritten == 0 ) break;
-      dwPos += dwWritten;
-      dwSize -= dwWritten;
-   }
-
+   DWORD dwBytesWritten = 0;
+   if( !f.Write(pData, dwSize, &dwBytesWritten) ) return false;
    f.Close();
 
-   return true;
+   return dwBytesWritten == dwSize;
 }
 
 bool CFileProtocol::DeleteFile(LPCTSTR pstrFilename)
 {
    ATLASSERT(pstrFilename);
-   CString sFilename;
-   sFilename.Format(_T("%s\\%s"), m_sPath, pstrFilename);
+   CString sFilename = pstrFilename;
+   if( ::PathIsRelative(pstrFilename) && m_sCurDir.GetLength() > 1 ) sFilename.Format(_T("%s\\%s"), m_sCurDir, pstrFilename);
    return CFile::Delete(sFilename) == TRUE;
 }
 
@@ -183,20 +170,20 @@ bool CFileProtocol::SetCurPath(LPCTSTR pstrPath)
       return false;
    }
    if( !::PathIsDirectory(szPath) ) return false;
-   m_sPath = szPath;
+   m_sCurDir = szPath;
    return true;
 }
 
 CString CFileProtocol::GetCurPath()
 {
-   return m_sPath;
+   return m_sCurDir;
 }
 
 bool CFileProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool /*bUseCache*/)
 {
    WIN32_FIND_DATA fd = { 0 };
    CString sPattern;
-   sPattern.Format(_T("%s\\*.*"), m_sPath);
+   sPattern.Format(_T("%s\\*.*"), m_sCurDir);
    HINTERNET hFind = ::FindFirstFile(sPattern, &fd);
    if( hFind == NULL && ::GetLastError() == ERROR_NO_MORE_FILES ) return true;
    if( hFind == NULL ) return false;

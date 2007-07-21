@@ -23,7 +23,11 @@
 // Beware of bugs.
 //
 
-
+/**
+ * Label with colors.
+ * This is a RichEdit extension which can color C++ declarations
+ * using the coloring ability of the RichEdit.
+ */
 class CFunctionRtfCtrl : public CRichEditCtrl
 {
 public:
@@ -36,8 +40,6 @@ public:
       COLORREF clrTip = ::GetSysColor(COLOR_INFOBK);
       COLORREF clrWindow = ::GetSysColor(COLOR_WINDOW);
       m_clrBack = BlendRGB(clrTip, clrWindow, 80);
-      RECT rcWindow;
-      ::GetWindowRect(hWndParent, &rcWindow);
       CRichEditCtrl::Create(hWndParent, rcDefault, NULL, WS_POPUP | ES_MULTILINE | ES_READONLY, WS_EX_TOOLWINDOW);
       ModifyStyleEx(WS_EX_CLIENTEDGE, WS_EX_STATICEDGE);
       SetFont(AtlGetDefaultGuiFont());
@@ -46,15 +48,17 @@ public:
       SendMessage(EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, MAKELPARAM(2, 2));
       SetBackgroundColor(m_clrBack);
       SetUndoLimit(0);
-      LimitText(16000);
+      LimitText(8000);
       HideSelection();
       return m_hWnd;
    }
-   void RequestResize(REQRESIZE* prr)
+   void SetResize(REQRESIZE* pRR)
    {
-      RECT rcWindow;
-      ::GetWindowRect(m_hWndParent, &rcWindow);
-      RECT rcSize = prr->rc;
+      ATLASSERT(IsWindow());
+      if( !IsWindow() ) return;
+      RECT rcWindow = { 0 };
+      GetWindowRect(&rcWindow);
+      RECT rcSize = pRR->rc;
       ::InflateRect(&rcSize, 0, 8);
       rcWindow.bottom = rcWindow.top + (rcSize.bottom - rcSize.top);
       SetWindowPos(HWND_TOPMOST, &rcWindow, SWP_NOMOVE | SWP_SHOWWINDOW | SWP_NOACTIVATE);
@@ -62,6 +66,7 @@ public:
    void ShowItem(CRemoteProject* pProject, LPCTSTR pstrType, LPCTSTR pstrItem)
    {
       ATLASSERT(pProject);
+      // Look up information about this member
       CSimpleArray<CString> aResult;
       pProject->m_TagManager.GetItemInfo(pstrItem, pstrType, TAGINFO_DECLARATION | TAGINFO_COMMENT, aResult);
       if( aResult.GetSize() == 0 ) return;
@@ -69,37 +74,68 @@ public:
       CString sComment;
       sDecl = aResult[0].SpanExcluding(_T("|"));
       sComment = aResult[0].Mid(sDecl.GetLength() + 1);
-      CString sText;
-      sText.Format(_T("%s"), sDecl);
+      // Format the member declaration.
+      // Here follow a range of strange replacements. They will basically turn...
+      //    int Foo(int a, int b);
+      // into
+      //    int Foo( int<nbsp>a, int<nbsp>b<nbsp>);
+      // where <nbsp> is a non-breaking space. Looks good in formatting/word-
+      // wrapping.
+      CString sText = sDecl;
+      sText.Replace(_T("  "), _T(" "));
+      sText.Replace(' ', 0xA0);
+      sText.Replace(_T(",\xA0"), _T(", "));
+      sText.Replace(_T("("), _T("( "));    sText.Replace(_T("( \xA0"), _T("( "));
+      sText.Replace(_T(")"), _T("\xA0)")); sText.Replace(_T("\xA0\xA0)"), _T("\xA0)"));
+      int cchDeclLen = sText.GetLength();
+      // Ah, we can also have a comment for this declaration. Format
+      // it below. We'll color it gray in a little while too.
       if( !sComment.IsEmpty() ) {
          sComment = sComment.Left(150);
          if( sComment.GetLength() == 150 ) sComment += _T("...");
-         CString sTemp = _T("// ") + sComment;
-         sComment = sTemp;
-         sText += _T("\n\n   ");
-         sText += sComment;
+         CString sTemp;
+         sTemp.Format(_T("\n\n  // %s"), sComment);
+         sText += sTemp;
       }
       SetWindowText(sText);
+      // Finally we can do coloring of the text. Since the text is techincally
+      // identical to our plan-text string, we can use the positions from the string
+      // data to select/format/unselect the richedit.
       COLORREF clrText = ::GetSysColor(COLOR_INFOTEXT);
       CHARFORMAT cf = { 0 };     
       cf.dwMask |= CFM_COLOR;
       cf.crTextColor = clrText;
       SetCharFormat(cf, SCF_ALL);
-      _ColorText(sText, pstrItem, CFM_BOLD);
-      _ColorText(sText, _T("const "), CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
-      _ColorText(sText, _T("inline "), CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
-      _ColorText(sText, _T("volatile "), CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
+      _ColorText(sText, pstrItem,       CFM_BOLD);
+      _ColorText(sText, _T("const"),    0, BlendRGB(clrText, RGB(255,0,128), 20));
+      _ColorText(sText, _T("inline"),   CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
+      _ColorText(sText, _T("extern"),   CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
+      _ColorText(sText, _T("volatile"), CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
+      _ColorText(sText, _T("virtual"),  0, BlendRGB(clrText, RGB(255,0,128), 20));
       _ColorArgs(sText, 0, BlendRGB(clrText, RGB(0,0,255), 20));
-      _ColorText(sText, sComment, 0, RGB(160,160,160));
+      _ColorText(sText, sComment, 0, RGB(130,130,130));
+      // Now we will indent the declaration if it spans muliple lines.
+      SetSel(0, cchDeclLen);
+      PARAFORMAT2 pf;
+      pf.cbSize = sizeof(pf);
+      pf.dwMask = PFM_OFFSET;
+      pf.dxOffset = 150;
+      SetParaFormat(pf);
+      // Finally we can ask the RichEdit it resize itself
+      // to its optimal size. This will also show the window
+      // once again.
+      SetSel(-1, -1);
       CRichEditCtrl::RequestResize();
    }
+
    void _ColorArgs(CString& sText, BYTE iEffect, COLORREF clrText)
    {
       int iPos = sText.Find('(');
       if( iPos < 0 ) return;
       int cchLen = sText.GetLength();
       CString sWord;
-      for( int i = 0; i < cchLen; i++ ) {
+      CString sTemp;
+      for( int i = iPos; i < cchLen; i++ ) {
          TCHAR c = sText[i];
          switch( c ) {
          case ',':
@@ -108,8 +144,13 @@ public:
             break;
          case '\r':
          case '\n':
+         case 0xA0:
+            if( sText[i + 1] != ')' ) sWord.Empty();
+            break;
          case ' ':
-            sWord.Empty();
+            break;
+         case '/':
+            i = cchLen;
             break;
          default:
             sWord += c;
@@ -118,26 +159,38 @@ public:
    }
    void _ColorText(CString& sText, LPCTSTR pstrItem, BYTE iEffect, COLORREF clrText = CLR_NONE)
    {
-      int iPos = sText.Find(pstrItem);
-      if( iPos < 0 ) return;
-      SetSel(iPos, iPos + _tcslen(pstrItem));
-      CHARFORMAT cf = { 0 };
-      if( clrText != CLR_NONE ) {
-         cf.dwMask |= CFM_COLOR;
-         cf.crTextColor = clrText;
+      int cchText = sText.GetLength();
+      int cchItem = (int) _tcslen(pstrItem);
+      int iStartPos = 0;
+      for( int iPos = 0; (iPos = sText.Find(pstrItem, iStartPos)) >= 0; iStartPos = iPos + 1 ) {
+         if( iPos > 0 && _istalnum(sText[iPos - 1]) ) continue;
+         if( iPos + cchItem < cchText && _istalnum(sText[iPos + cchItem]) ) continue;
+         SetSel(iPos, iPos + cchItem);
+         CHARFORMAT cf = { 0 };
+         if( clrText != CLR_NONE ) {
+            cf.dwMask |= CFM_COLOR;
+            cf.crTextColor = clrText;
+         }
+         if( (iEffect & CFM_BOLD) != 0 ) {
+            cf.dwMask |= CFM_BOLD;
+            cf.dwEffects |= CFE_BOLD;
+         }
+         if( (iEffect & CFM_ITALIC) != 0 ) {
+            cf.dwMask |= CFM_ITALIC;
+            cf.dwEffects |= CFE_ITALIC;
+         }
+         SetCharFormat(cf, SCF_SELECTION);
       }
-      if( (iEffect & CFM_BOLD) != 0 ) {
-         cf.dwMask |= CFM_BOLD;
-         cf.dwEffects |= CFE_BOLD;
-      }
-      if( (iEffect & CFM_ITALIC) != 0 ) {
-         cf.dwMask |= CFM_ITALIC;
-         cf.dwEffects |= CFE_ITALIC;
-      }
-      SetCharFormat(cf, SCF_SELECTION);
    }
 };
 
+/**
+ * AutoComplete control.
+ * This is an extension for the ListBox control used by the Scintilla
+ * Editor control. It will manage a popup window on the right side of the
+ * control, displaying the C++ declaration of the item selected in 
+ * the actual ListBox.
+ */
 class CAcListBoxCtrl : public CWindowImpl<CAcListBoxCtrl, CWindow>
 {
 public:
@@ -159,6 +212,7 @@ public:
       m_sList = sList;
       m_wndList = GetWindow(GW_CHILD);
       m_iCurSel = -1;
+      // Ignite the timer which checks for changes in selection
       SetTimer(TIMER_ID, 300);
       // Create RichEdit control
       m_wndInfo.Create(m_hWnd);
@@ -186,22 +240,27 @@ public:
    }
    LRESULT OnRequestResize(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
    {
-      m_wndInfo.RequestResize((REQRESIZE*) pnmh);
+      REQRESIZE* pRR = (REQRESIZE*) pnmh;
+      m_wndInfo.SetResize(pRR);
       return 0;
    }
 
    void _ShowInfo(int iIndex)
    {
-      m_wndInfo.ShowWindow(SW_HIDE);
       CString sItem = _GetListItem(iIndex);
+      // Reposition window. Now the RichEdit control will also do its own magic and 
+      // try to optimally resize the control (because it has the REQUESTRESIZE 
+      // style), so we need to be carefull here...
+      m_wndInfo.ShowWindow(SW_HIDE);
       const INT CXWINDOW = 300;
       RECT rcWindow = { 0 };
       GetWindowRect(&rcWindow);
-      if( rcWindow.right + CXWINDOW > ::GetSystemMetrics(SM_CXSCREEN) ) return;
       RECT rcInfo = { rcWindow.right + 4, rcWindow.top, rcWindow.right + CXWINDOW, rcWindow.top + 10 };
-      m_wndInfo.MoveWindow(&rcInfo);
+      if( rcInfo.right > ::GetSystemMetrics(SM_CXSCREEN) ) return;
+      m_wndInfo.MoveWindow(&rcInfo, FALSE);
       m_wndInfo.ShowItem(m_pCppProject, m_sType, sItem);
    }
+
    CString _GetListItem(int iIndex) const
    {
       int iItem = 0;

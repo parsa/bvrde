@@ -35,6 +35,9 @@ public:
 
    DWORD Run();
 
+   HRESULT _ParseCvsLine(BSTR bstr);
+   HRESULT _ParseSubversionLine(BSTR bstr);
+
    // ILineCallback
 
    HRESULT STDMETHODCALLTYPE OnIncomingLine(BSTR bstr);

@@ -69,7 +69,9 @@
 #define IDD_RUNARGUMENTS                126
 #define IDR_TELNET                      126
 #define IDS_WIZARD_TITLE_TRANSFER       127
+#define IDR_BREAKPOINTS                 127
 #define IDS_WIZARD_SUBTITLE_TRANSFER    128
+#define IDD_BREAKPOINTINFO              128
 #define IDS_WIZARD_TITLE_STARTAPP       129
 #define IDS_WIZARD_SUBTITLE_STARTAPP    130
 #define IDS_WIZARD_TITLE_DEBUGGER       131
@@ -104,8 +106,7 @@
 #define IDS_OPTIONS                     158
 #define IDS_CONFIG_OPTIONS              159
 #define IDS_DEBUGGER                    160
-#define IDS_SB_PANE3                    161
-#define IDS_SB_POSITION                 161
+#define IDS_STATUS_POSITION             161
 #define IDS_TYPEDEF                     161
 #define IDS_ERR_TELNETCONNECT           162
 #define IDS_ERR_HOSTCONNECT             162
@@ -264,6 +265,13 @@
 #define IDS_STATUS_DEBUG_NOSOURCE_FUNCTION 301
 #define IDS_STATUS_DEBUG_FUNCTION       302
 #define IDS_LOCALDRIVE                  303
+#define IDS_HOST_LABEL                  304
+#define IDS_MINGWBIN_LABEL              305
+#define IDS_ERR_MINGWPATH               306
+#define IDS_ERR_MINGWEMPTY              307
+#define IDS_BREAKPOINTHIT               308
+#define IDS_BREAKPOINTTEMP              309
+#define IDS_ERR_WINXP                   310
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -291,6 +299,15 @@
 #define IDC_PRESTEP                     1028
 #define IDC_POSTSTEP                    1029
 #define IDC_SERVER                      1029
+#define IDC_HOST_LABEL                  1030
+#define IDC_IGNORECOUNT                 1031
+#define IDC_IGNORECOUNT_CHECK           1032
+#define IDC_CONDITION_CHECK             1033
+#define IDC_CONDITION                   1034
+#define IDC_FRAME1                      1035
+#define IDC_FRAME2                      1036
+#define IDC_FRAME3                      1037
+#define IDC_INFORMATION                 1038
 #define IDC_NOAUTOCOMPLETE              1039
 #define IDC_AUTOCOMPLETE                1039
 #define IDC_NOCLASSBROWSER              1040
@@ -430,14 +447,22 @@
 #define ID_DEBUG_STEP_INSTRUCTION       40144
 #define ID_CLASSVIEW_GOTODECL           40145
 #define ID_CLASSVIEW_GOTOIMPL           40146
+#define ID_BREAKPOINTS_REFRESH          40148
+#define ID_BREAKPOINTS_OPEN             40149
+#define ID_BREAKPOINTS_ENABLE           40150
+#define ID_BREAKPOINTS                  40151
+#define ID_BREAKPOINTS_PROPERTIES       40152
+#define ID_BREAKPOINTS_DISABLE          40153
+#define ID_BREAKPOINTS_DELETE           40154
+#define ID_EDIT_WORDWRAP                40155
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        128
-#define _APS_NEXT_COMMAND_VALUE         40147
-#define _APS_NEXT_CONTROL_VALUE         1030
+#define _APS_NEXT_RESOURCE_VALUE        129
+#define _APS_NEXT_COMMAND_VALUE         40156
+#define _APS_NEXT_CONTROL_VALUE         1039
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

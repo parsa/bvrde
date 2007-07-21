@@ -13,7 +13,6 @@ CComModule _Module;
 IDevEnv* _pDevEnv;
 CEventMonitor _Monitor;
 CScCommands _Commands;
-IElement* g_pCurElement;      // TODO: Get rid of this nasty un-ref'ed API object
 
 
 
@@ -32,6 +31,8 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
    {
       _Module.Init(NULL, hInstance);
       ::DisableThreadLibraryCalls(hInstance);
+      //
+      AtlAxWinInit();
    }
    else if( dwReason == DLL_PROCESS_DETACH ) 
    {
@@ -82,7 +83,6 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv->ReserveUIRange(42000, 42099);
 
    _Commands.Init();
-   g_pCurElement = NULL;
 
    static CWizardListener wizard;
    _pDevEnv->AddWizardListener(&wizard);
@@ -157,7 +157,8 @@ VOID WINAPI Plugin_SetPopupMenu(IElement* pElement, HMENU hMenu)
    ::MergeMenu(hMenu, hSrcMenu, ::GetMenuItemCount(hMenu) - 2);
    ::DestroyMenu(hSrcMenu);
    // Remember last element because we're going to
-   // process the command on this one later
-   g_pCurElement = pElement;
+   // process the command on this one later.
+   // BUG: No we can't expect this to survive!!
+   _Commands.SetCurElement(pElement);
 }
 

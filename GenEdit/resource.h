@@ -7,7 +7,7 @@
 #define IDD_REPLACE                     107
 #define IDR_POPUP                       108
 #define IDC_SELECTION                   1004
-#define IDS_SB_POSITION                 1004
+#define IDS_STATUS_POSITION                 1004
 #define IDC_WHOLEFILE                   1005
 #define IDC_GOLINE                      1005
 #define IDS_ERR_DOCUMENT                1005

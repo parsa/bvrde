@@ -89,8 +89,8 @@ DWORD CCompileThread::Run()
       // First send window resize
       if( m_szWindow.cx > 0 ) m_pManager->m_ShellManager.WriteScreenSize(m_szWindow.cx, m_szWindow.cy);
 
+      // Get a local copy of the currently queued commands
       m_cs.Lock();
-      // Get a local copy of the commands
       CSimpleValArray<CString> aActions;
       while( m_aCommands.GetSize() > 0 ) {
          aActions.Add(m_aCommands[0]);
@@ -123,7 +123,7 @@ DWORD CCompileThread::Run()
             m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_NETWORKWRITE)));
             return 0;
          }
-         ::Sleep(200L);
+         ::Sleep(200L);  // FIX: Don't rush things; overlapping stdin/stdout
          if( ShouldStop() ) break;
       }
 
@@ -661,10 +661,11 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    // If this is in Command Mode, we'll be polite and wait for the command to
    // actually be submitted to the remote server before we continue...
    if( (Flags & COMPFLAG_COMMANDMODE) != 0 ) {
+      const DWORD COMMAND_MODE_TIMEOUT = 8;
       DWORD dwStartTick = ::GetTickCount();
       while( m_CompileThread.m_aCommands.GetSize() > 0 ) {
          ::Sleep(50L);
-         if( ::GetTickCount() - dwStartTick > 800UL ) break;         
+         if( ::GetTickCount() - dwStartTick > COMMAND_MODE_TIMEOUT * 100UL ) break;         
       }
    }
 
@@ -801,9 +802,11 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    if( _tcsncmp(pstrText, _T("make["), 5) == 0 ) cf.dwEffects |= CFE_ITALIC;
 
    // Mark prompts...
-   // Some lines that look like prompts aren't really prompts...
+   // Some lines that look like prompts aren't really prompts.
    if( _tcschr(m_sPromptPrefix, *pstrText) != NULL ) cf.dwEffects |= CFE_BOLD;
+   if( _tcsstr(pstrText, _T(" $ ")) != NULL && _tcschr(pstrText, ':') != NULL ) cf.dwEffects |= CFE_BOLD;
    if( *pstrText == '/' && _tcschr(pstrText, ':') != NULL ) cf.dwEffects &= ~CFE_BOLD;
+   if( *pstrText == '/' && _tcsstr(pstrText, _T(" line ")) != NULL ) cf.dwEffects &= ~CFE_BOLD;
    if( nColor == VT100_PROMPT ) cf.dwEffects |= CFE_BOLD;
 
    ctrlEdit.SetSel(iStartPos, iEndPos);

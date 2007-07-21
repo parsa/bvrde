@@ -12,6 +12,7 @@
 #define IDC_REGEXP                      1140
 #define IDC_SUBFOLDERS                  1141
 #define IDC_FOLDER                      1142
+#define ID_EDIT_FINDFILES   41000
 
 // Next default values for new objects
 // 

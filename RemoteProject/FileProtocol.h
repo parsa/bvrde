@@ -41,6 +41,7 @@ public:
 
 protected:
    CString m_sPath;
+   CString m_sCurDir;
    CString m_sSearchPath;
    //
    bool m_bCancel;

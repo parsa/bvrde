@@ -58,7 +58,7 @@ IProject* CMainFrame::_CreateSolutionWizard()
    CString sSubTitle(MAKEINTRESOURCE(IDS_WIZARD_SUBTITLE_SOLUTIONTYPE));
 
    CSolutionTypePage wndTypePage;
-   wndTypePage.Init(this);
+   wndTypePage.Init(g_pDevEnv, this);
    wndTypePage.Create();
    wndTypePage.SetTitle((LPCTSTR)sCaption);
    wndTypePage.SetHeaderTitle(sTitle);
@@ -84,7 +84,7 @@ IProject* CMainFrame::_CreateProjectWizard()
    CString sSubTitle(MAKEINTRESOURCE(IDS_WIZARD_SUBTITLE_SOLUTIONTYPE));
 
    CSolutionTypePage wndTypePage;
-   wndTypePage.Init(this);
+   wndTypePage.Init(g_pDevEnv, this);
    wndTypePage.SetTitle((LPCTSTR)sCaption);
    wndTypePage.SetHeaderTitle(sTitle);
    wndTypePage.SetHeaderSubTitle(sSubTitle);
@@ -140,9 +140,10 @@ CSolutionTypePage::CSolutionTypePage() :
 {
 }
 
-void CSolutionTypePage::Init(CMainFrame* pFrame)
+void CSolutionTypePage::Init(IDevEnv* pDevEnv, CMainFrame* pFrame)
 {
    m_pProject = NULL;
+   m_pDevEnv = pDevEnv;
    m_pMainFrame = pFrame;
 }
 
@@ -218,7 +219,7 @@ int CSolutionTypePage::OnWizardNext()
 
    CString sPath;
    sPath.Format(_T("%s%s"), CModulePath(), SOLUTIONDIR);
-   m_pProject->Initialize(g_pDevEnv, sPath);
+   m_pProject->Initialize(m_pDevEnv, sPath);
 
    CString sName = CWindowText(m_ctrlName);
    CSimpleWizardManager manager(GetPropertySheet());
@@ -275,14 +276,14 @@ int CSolutionFinishPage::OnWizardFinish()
 //
 
 #define SET_CHECK(id, prop) \
-   { TCHAR szBuf[32] = { 0 }; g_pDevEnv->GetProperty(prop, szBuf, 31); \
+   { TCHAR szBuf[32] = { 0 }; m_pDevEnv->GetProperty(prop, szBuf, 31); \
      if( _tcscmp(szBuf, _T("true"))==0 ) CButton(GetDlgItem(id)).Click(); }
 
 #define GET_CHECK(id, prop) \
-   g_pDevEnv->SetProperty(prop, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"))
+   m_pDevEnv->SetProperty(prop, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"))
 
 #define TRANSFER_PROP(name, prop) \
-   { TCHAR szBuf[32] = { 0 }; g_pDevEnv->GetProperty(prop, szBuf, 31); \
+   { TCHAR szBuf[32] = { 0 }; m_pDevEnv->GetProperty(prop, szBuf, 31); \
      m_pArc->Write(name, szBuf); }
 
 #define WRITE_CHECKBOX(id, name) \
@@ -304,7 +305,7 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    m_ctrlGreyed = GetDlgItem(IDC_GREYED);
 
    TCHAR szBuffer[32] = { 0 };
-   g_pDevEnv->GetProperty(_T("gui.main.client"), szBuffer, 31);
+   m_pDevEnv->GetProperty(_T("gui.main.client"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("mdi")) == 0 ) {
       m_ctrlMdi.Click();
    }
@@ -316,7 +317,7 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    m_ctrlStartup.AddString(CString(MAKEINTRESOURCE(IDS_STARTUP_LAST)));
    m_ctrlStartup.AddString(CString(MAKEINTRESOURCE(IDS_STARTUP_OPENFILE)));
    m_ctrlStartup.AddString(CString(MAKEINTRESOURCE(IDS_STARTUP_BLANK)));
-   g_pDevEnv->GetProperty(_T("gui.main.start"), szBuffer, 31);
+   m_pDevEnv->GetProperty(_T("gui.main.start"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("lastsolution")) == 0 ) m_ctrlStartup.SetCurSel(1);
    else if( _tcscmp(szBuffer, _T("openfile")) == 0 ) m_ctrlStartup.SetCurSel(2);
    else if( _tcscmp(szBuffer, _T("blank")) == 0 ) m_ctrlStartup.SetCurSel(3);
@@ -325,7 +326,7 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_DEFAULT)));
    m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_ENGLISH)));
    m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_GERMAN)));
-   g_pDevEnv->GetProperty(_T("gui.main.language"), szBuffer, 31);
+   m_pDevEnv->GetProperty(_T("gui.main.language"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("en")) == 0 ) m_ctrlLanguage.SetCurSel(1);
    else if( _tcscmp(szBuffer, _T("de")) == 0 ) m_ctrlLanguage.SetCurSel(2);
    else m_ctrlLanguage.SetCurSel(0);
@@ -351,18 +352,18 @@ int CGeneralOptionsPage::OnApply()
 
    _tcscpy(szBuffer, _T("tabbed"));
    if( m_ctrlMdi.GetCheck() == BST_CHECKED ) _tcscpy(szBuffer, _T("mdi"));
-   g_pDevEnv->SetProperty(_T("gui.main.client"), szBuffer);
+   m_pDevEnv->SetProperty(_T("gui.main.client"), szBuffer);
 
    _tcscpy(szBuffer, _T("startpage"));
    if( m_ctrlStartup.GetCurSel() == 1 ) _tcscpy(szBuffer, _T("lastsolution"));
    if( m_ctrlStartup.GetCurSel() == 2 ) _tcscpy(szBuffer, _T("openfile"));
    if( m_ctrlStartup.GetCurSel() == 3 ) _tcscpy(szBuffer, _T("blank"));
-   g_pDevEnv->SetProperty(_T("gui.main.start"), szBuffer);
+   m_pDevEnv->SetProperty(_T("gui.main.start"), szBuffer);
 
    _tcscpy(szBuffer, _T("def"));
    if( m_ctrlLanguage.GetCurSel() == 1 ) _tcscpy(szBuffer, _T("en"));
    if( m_ctrlLanguage.GetCurSel() == 2 ) _tcscpy(szBuffer, _T("de"));
-   g_pDevEnv->SetProperty(_T("gui.main.language"), szBuffer);
+   m_pDevEnv->SetProperty(_T("gui.main.language"), szBuffer);
 
    m_pArc->ReadItem(_T("Gui"));
    TRANSFER_PROP(_T("client"), _T("gui.main.client"));
@@ -422,7 +423,7 @@ int CAssociationsOptionsPage::OnSetActive()
    int iStart = 0;
    TCHAR szKey[200];
    TCHAR szValue[200];
-   while( g_pDevEnv->EnumProperties(iStart, _T("file.extension.*"), szKey, szValue) ) 
+   while( m_pDevEnv->EnumProperties(iStart, _T("file.extension.*"), szKey, szValue) ) 
    {
       CString sKey = szKey;
       CString sExtension;
@@ -469,9 +470,6 @@ int CAssociationsOptionsPage::OnSetActive()
 
 int CAssociationsOptionsPage::OnApply()
 {
-   CString sFile;
-   sFile.Format(_T("\"%s\\BVRDE.EXE\" %%1"), CModulePath());
-
    for( int i = 0; i < m_ctrlList.GetItemCount(); i++ ) {
       BOOL bNowState = m_ctrlList.GetCheckState(i);
       BOOL bOldState = (BOOL) m_ctrlList.GetItemData(i);
@@ -504,12 +502,14 @@ int CAssociationsOptionsPage::OnApply()
             DWORD dwCount = MAX_PATH;
             regFile.QueryValue(szOldValue, NULL /*_T("command")*/, &dwCount);
             // Write a new "command" value
-            TCHAR szCommandValue[MAX_PATH] = { 0 };
+            TCHAR szCommandValue[MAX_PATH + 8] = { 0 };
             if( bNowState == FALSE ) {
                dwCount = MAX_PATH;
                regFile.QueryValue(szCommandValue, _T("BVRDE.backup"), &dwCount);
             }
             else {
+               CString sFile;
+               sFile.Format(_T("\"%s\\BVRDE.EXE\" %%1"), CModulePath());
                _tcscpy(szCommandValue, sFile);
             }
             regFile.SetValue(szCommandValue);
@@ -517,6 +517,9 @@ int CAssociationsOptionsPage::OnApply()
             if( bNowState != FALSE ) regFile.SetValue(szOldValue, _T("BVRDE.backup"));
             // Delete anything DDE specific
             //regFile.RecurseDeleteKey(_T("ddeexec"));
+         }
+         else {
+            m_pDevEnv->ShowMessageBox(m_hWnd, CString(MAKEINTRESOURCE(IDS_ERR_REGNOPRIV)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR);
          }
       }
    }
@@ -558,7 +561,7 @@ int CMappingsOptionsPage::OnSetActive()
    int iStart = 0;
    TCHAR szKey[200];
    TCHAR szValue[200];
-   while( g_pDevEnv->EnumProperties(iStart, _T("file.mappings.*"), szKey, szValue) ) 
+   while( m_pDevEnv->EnumProperties(iStart, _T("file.mappings.*"), szKey, szValue) ) 
    {
       int iItem = m_ctrlList.InsertItem(-1, PropCreateSimple(_T(""), _tcsrchr(szKey, '.') + 1));
       m_ctrlList.SetSubItem(iItem, 1, PropCreateSimple(_T(""), szValue));
@@ -588,7 +591,7 @@ int CMappingsOptionsPage::OnApply()
       if( vExt.vt == VT_BSTR && ::SysStringLen(vExt.bstrVal) > 0 ) {
          CString sKey;
          sKey.Format(_T("file.mappings.%s"), OLE2CT(vExt.bstrVal));
-         g_pDevEnv->SetProperty(sKey, OLE2CT(vType.bstrVal));
+         m_pDevEnv->SetProperty(sKey, OLE2CT(vType.bstrVal));
       }
    }
 
@@ -682,7 +685,7 @@ int CAutoTextOptionsPage::OnSetActive()
       CString sKey;
       sKey.Format(_T("autotext.entry%ld."), i++);
       TCHAR szName[32] = { 0 };
-      g_pDevEnv->GetProperty(sKey + _T("name"), szName, (sizeof(szName) / sizeof(TCHAR)) - 1);
+      m_pDevEnv->GetProperty(sKey + _T("name"), szName, (sizeof(szName) / sizeof(TCHAR)) - 1);
       if( _tcslen(szName) == 0 ) break;
       // Set name
       m_ctrlName.SetWindowText(szName);
@@ -691,7 +694,7 @@ int CAutoTextOptionsPage::OnSetActive()
       // Set item text
       const int cchMax = 400;
       CString sText;
-      g_pDevEnv->GetProperty(sKey + _T("text"), sText.GetBufferSetLength(cchMax), cchMax);
+      m_pDevEnv->GetProperty(sKey + _T("text"), sText.GetBufferSetLength(cchMax), cchMax);
       sText.ReleaseBuffer();
       sText.Replace(_T("\\n"), _T("\r\n"));
       sText.Replace(_T("\\t"), _T("\t"));
@@ -722,14 +725,14 @@ int CAutoTextOptionsPage::OnApply()
       CString sText = (LPTSTR) m_ctrlList.GetItemData(i);
       CString sKey;
       sKey.Format(_T("autotext.entry%ld."), i + 1);
-      g_pDevEnv->SetProperty(sKey + _T("name"), sName);
-      g_pDevEnv->SetProperty(sKey + _T("text"), sText);
+      m_pDevEnv->SetProperty(sKey + _T("name"), sName);
+      m_pDevEnv->SetProperty(sKey + _T("text"), sText);
    }
    for( ; i < MAX_ITEMS; i++ ) {
       CString sKey;
       sKey.Format(_T("autotext.entry%ld."), i + 1);
-      g_pDevEnv->SetProperty(sKey + _T("name"), _T(""));
-      g_pDevEnv->SetProperty(sKey + _T("text"), _T(""));
+      m_pDevEnv->SetProperty(sKey + _T("name"), _T(""));
+      m_pDevEnv->SetProperty(sKey + _T("text"), _T(""));
    }
 
    if( m_pArc->ReadGroupBegin(_T("AutoText")) ) 
@@ -740,13 +743,13 @@ int CAutoTextOptionsPage::OnApply()
          CString sKey;
          sKey.Format(_T("autotext.entry%ld."), i + 1);
          TCHAR szName[32] = { 0 };
-         g_pDevEnv->GetProperty(sKey + _T("name"), szName, 31);
+         m_pDevEnv->GetProperty(sKey + _T("name"), szName, 31);
          if( szName[0] != '\0' ) {
             if( m_pArc->WriteGroupBegin(_T("Text")) ) {
                m_pArc->Write(_T("name"), szName);
                const int cchMax = 400;
                CString sText;
-               g_pDevEnv->GetProperty(sKey + _T("text"), sText.GetBufferSetLength(cchMax), cchMax);
+               m_pDevEnv->GetProperty(sKey + _T("text"), sText.GetBufferSetLength(cchMax), cchMax);
                sText.ReleaseBuffer();
                sText.Replace(_T("\r\n"), _T("\\n"));
                sText.Replace(_T("\t"), _T("\\t"));
@@ -876,22 +879,22 @@ LRESULT CColorsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
       LPTSTR p = NULL;
       COLORREF clr;
       TCHAR szBuffer[64] = { 0 };
-      g_pDevEnv->GetProperty(sKey + _T("name"), m_aFonts[i].szTitle, 63);
+      m_pDevEnv->GetProperty(sKey + _T("name"), m_aFonts[i].szTitle, 63);
       if( _tcslen(m_aFonts[i].szTitle) == 0 ) break;
-      g_pDevEnv->GetProperty(sKey + _T("font"), m_aFonts[i].szFaceName, LF_FACESIZE - 1);
-      g_pDevEnv->GetProperty(sKey + _T("height"), szBuffer, 15);
+      m_pDevEnv->GetProperty(sKey + _T("font"), m_aFonts[i].szFaceName, LF_FACESIZE - 1);
+      m_pDevEnv->GetProperty(sKey + _T("height"), szBuffer, 15);
       m_aFonts[i].iHeight = max(8, _ttol(szBuffer));
       ::ZeroMemory(szBuffer, sizeof(szBuffer));
-      g_pDevEnv->GetProperty(sKey + _T("color"), szBuffer, 15);
+      m_pDevEnv->GetProperty(sKey + _T("color"), szBuffer, 15);
       clr = _tcstol(szBuffer + 1, &p, 16);
       m_aFonts[i].clrText = RGR2RGB(clr);
       ::ZeroMemory(szBuffer, sizeof(szBuffer));
-      g_pDevEnv->GetProperty(sKey + _T("back"), szBuffer, 15);
+      m_pDevEnv->GetProperty(sKey + _T("back"), szBuffer, 15);
       clr = _tcstol(szBuffer + 1, &p, 16);
       m_aFonts[i].clrBack = RGR2RGB(clr);
-      g_pDevEnv->GetProperty(sKey + _T("bold"), szBuffer, 15);
+      m_pDevEnv->GetProperty(sKey + _T("bold"), szBuffer, 15);
       m_aFonts[i].bBold = _tcscmp(szBuffer, _T("true")) == 0;
-      g_pDevEnv->GetProperty(sKey + _T("italic"), szBuffer, 15);
+      m_pDevEnv->GetProperty(sKey + _T("italic"), szBuffer, 15);
       m_aFonts[i].bItalic = _tcscmp(szBuffer, _T("true")) == 0;
 
       m_ctrlList.AddString(m_aFonts[i].szTitle);
@@ -1062,28 +1065,28 @@ int CColorsOptionsPage::OnApply()
       CString sKey;
       sKey.Format(_T("editors.%s.style%ld."), m_sLanguage, i + 1);
 
-      g_pDevEnv->SetProperty(sKey + _T("name"), m_aFonts[i].szTitle);
+      m_pDevEnv->SetProperty(sKey + _T("name"), m_aFonts[i].szTitle);
       //
-      g_pDevEnv->SetProperty(sKey + _T("font"), m_aFonts[i].szFaceName);
+      m_pDevEnv->SetProperty(sKey + _T("font"), m_aFonts[i].szFaceName);
       //
       ::wsprintf(szBuffer, _T("%d"), m_aFonts[i].iHeight);
-      g_pDevEnv->SetProperty(sKey + _T("height"), szBuffer);
+      m_pDevEnv->SetProperty(sKey + _T("height"), szBuffer);
       //
       ::wsprintf(szBuffer, _T("#%02X%02X%02X"), 
          GetRValue(m_aFonts[i].clrText),
          GetGValue(m_aFonts[i].clrText),
          GetBValue(m_aFonts[i].clrText));
-      g_pDevEnv->SetProperty(sKey + _T("color"), szBuffer);
+      m_pDevEnv->SetProperty(sKey + _T("color"), szBuffer);
       //
       ::wsprintf(szBuffer, _T("#%02X%02X%02X"), 
          GetRValue(m_aFonts[i].clrBack),
          GetGValue(m_aFonts[i].clrBack),
          GetBValue(m_aFonts[i].clrBack));
-      g_pDevEnv->SetProperty(sKey + _T("back"), szBuffer);
+      m_pDevEnv->SetProperty(sKey + _T("back"), szBuffer);
       //
-      g_pDevEnv->SetProperty(sKey + _T("bold"), m_aFonts[i].bBold ? _T("true") : _T("false"));
+      m_pDevEnv->SetProperty(sKey + _T("bold"), m_aFonts[i].bBold ? _T("true") : _T("false"));
       //
-      g_pDevEnv->SetProperty(sKey + _T("italic"), m_aFonts[i].bItalic ? _T("true") : _T("false"));
+      m_pDevEnv->SetProperty(sKey + _T("italic"), m_aFonts[i].bItalic ? _T("true") : _T("false"));
    }
 
    if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
@@ -1198,12 +1201,12 @@ LRESULT CFormattingOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, L
    SET_CHECK(IDC_INDENTS, sKey + _T("showIndents"));
 
    TCHAR szBuffer[32];
-   g_pDevEnv->GetProperty(sKey + _T("tabWidth"), szBuffer, 31);
+   m_pDevEnv->GetProperty(sKey + _T("tabWidth"), szBuffer, 31);
    SetDlgItemInt(IDC_TABWIDTH, max(1, _ttol(szBuffer)));
-   g_pDevEnv->GetProperty(sKey + _T("indentWidth"), szBuffer, 31);
+   m_pDevEnv->GetProperty(sKey + _T("indentWidth"), szBuffer, 31);
    SetDlgItemInt(IDC_INDENTWIDTH, max(0, _ttol(szBuffer)));
 
-   g_pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, 31);
+   m_pDevEnv->GetProperty(sKey + _T("indentMode"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("auto")) == 0 ) m_ctrlIndentMode.SetCurSel(1);
    else if( _tcscmp(szBuffer, _T("smart")) == 0 ) m_ctrlIndentMode.SetCurSel(2);
    else m_ctrlIndentMode.SetCurSel(0);
@@ -1228,10 +1231,10 @@ int CFormattingOptionsPage::OnApply()
    _tcscpy(szBuffer, _T("none"));
    if( m_ctrlIndentMode.GetCurSel() == 1 ) _tcscpy(szBuffer, _T("auto"));
    if( m_ctrlIndentMode.GetCurSel() == 2 ) _tcscpy(szBuffer, _T("smart"));
-   g_pDevEnv->SetProperty(sKey + _T("indentMode"), szBuffer);
+   m_pDevEnv->SetProperty(sKey + _T("indentMode"), szBuffer);
 
-   g_pDevEnv->SetProperty(sKey + _T("tabWidth"), CWindowText(m_ctrlTabWidth));
-   g_pDevEnv->SetProperty(sKey + _T("indentWidth"), CWindowText(m_ctrlIndentWidth));
+   m_pDevEnv->SetProperty(sKey + _T("tabWidth"), CWindowText(m_ctrlTabWidth));
+   m_pDevEnv->SetProperty(sKey + _T("indentWidth"), CWindowText(m_ctrlIndentWidth));
 
    if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
    {
@@ -1288,10 +1291,10 @@ LRESULT CEditorsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    m_ctrlEOL.AddString(CString(MAKEINTRESOURCE(IDS_AUTOMATIC)));
 
    TCHAR szBuffer[32];
-   g_pDevEnv->GetProperty(sKey + _T("caretWidth"), szBuffer, 31);
+   m_pDevEnv->GetProperty(sKey + _T("caretWidth"), szBuffer, 31);
    SetDlgItemInt(IDC_CARETWIDTH, max(1, _ttol(szBuffer)));
 
-   g_pDevEnv->GetProperty(sKey + _T("eolMode"), szBuffer, 31);
+   m_pDevEnv->GetProperty(sKey + _T("eolMode"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("cr")) == 0 ) m_ctrlEOL.SetCurSel(0);
    else if( _tcscmp(szBuffer, _T("lf")) == 0 ) m_ctrlEOL.SetCurSel(1);
    else if( _tcscmp(szBuffer, _T("crlf")) == 0 ) m_ctrlEOL.SetCurSel(2);
@@ -1314,9 +1317,9 @@ int CEditorsOptionsPage::OnApply()
    if( m_ctrlEOL.GetCurSel() == 0 ) _tcscpy(szBuffer, _T("cr"));
    if( m_ctrlEOL.GetCurSel() == 1 ) _tcscpy(szBuffer, _T("lf"));
    if( m_ctrlEOL.GetCurSel() == 2 ) _tcscpy(szBuffer, _T("crlf"));
-   g_pDevEnv->SetProperty(sKey + _T("eolMode"), szBuffer);
+   m_pDevEnv->SetProperty(sKey + _T("eolMode"), szBuffer);
 
-   g_pDevEnv->SetProperty(sKey + _T("caretWidth"), CWindowText(m_ctrlCaretWidth));
+   m_pDevEnv->SetProperty(sKey + _T("caretWidth"), CWindowText(m_ctrlCaretWidth));
 
    if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
    {

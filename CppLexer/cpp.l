@@ -95,9 +95,6 @@ static int yyread(char *buf,int max_size)
 %}
 
 %x	Cxx_Memo
-%x	SubDoc
-%x	SubDocComment
-%x	SubDocCppComment
 %x	Doc
 %x	VerbDoc
 %x	Define
@@ -333,9 +330,9 @@ static int yyread(char *buf,int max_size)
 					  current->args = yytext ;
 					  BEGIN( DefineEnded ) ;
 					}
-<DefineEnd,DefineEnded>"\\\n"		{ yyLineNr++ ; }
-<DefineEnd,DefineEnded>"\\\r\n"		{ yyLineNr++ ; }
-<DefineEnd,DefineEnded>"\n"		{ 
+<DefineEnd,DefineEnded>\\\n		{ yyLineNr++ ; }
+<DefineEnd,DefineEnded>\\\r\n		{ yyLineNr++ ; }
+<DefineEnd,DefineEnded>\n		{ 
 					  if( current->done == onlyDocs )
 					  {
 					    current->section = MACRO_SEC ;
@@ -688,68 +685,6 @@ static int yyread(char *buf,int max_size)
 <VerbDoc,Doc>"//"			{ current->doc += yytext ; }
 <VerbDoc,Doc>"/*"			{ current->doc += yytext ; }
 <VerbDoc,Doc>"*/"			{ BEGIN( FindMembers ) ; }
-
-<FindMembers>("//@{".*\n)|("/*@{"[^*]*\*+"/")	{ 
-					  lineCount() ;
-					  current->file = yyFileName ;
-					  if( current->lineNo == 0 ) current->lineNo = yyLineNr;
-					  current->startLine = yyLineNr ;
-					  BEGIN( SubDoc ) ;
-					}
-<SubDoc>"/*"				{ 
-					  current->program += yytext ;
-					  BEGIN( SubDocComment ) ;
-					}
-<SubDoc>"//"				{ 
-					  current->program += yytext ;
-					  BEGIN( SubDocCppComment ) ;
-					}
-<SubDoc>.				{ current->program += *yytext ; }
-<SubDoc>\n				{ 
-					  current->program += *yytext ;
-					  yyLineNr++ ;
-					}
-<SubDoc>("//@{".*\n)|("/*@{"[^*]*\*+"/")	{ 
-					  lineCount() ;
-					  current->program += yytext ;
-					  ++bracketCount ;
-					}
-<SubDoc>("//@}".*\n)|("/*@}"[^*]*\*+"/") 	{ 
-					  lineCount() ;
-					  if( bracketCount > 0 )
-					  {
-					    current->program += yytext ;
-					    --bracketCount ;
-					  }
-					  else
-					  {
-					    msg( "found doc subentry" ) ;
-					              current->lineNo = yyLineNr;
-					    current_root->addSubEntry( current ) ;
-					    current = new Entry ;
-					    current->protection = protection ;
-					    BEGIN( FindMembers ) ;
-					  }
-					}
-
-<SubDocComment,SubDocCppComment>"/*"	{ current->program += yytext ; }
-<SubDocComment,SubDocCppComment>"//"	{ current->program += yytext ; }
-<SubDocComment>.			{ current->program += yytext ; }
-<SubDocComment>\n			{ 
-					  current->program += yytext ;
-					  ++yyLineNr ;
-					}
-<SubDocComment>"*/"			{ 
-					  current->program += yytext ;
-					  BEGIN( SubDoc ) ;
-					}
-
-<SubDocCppComment>.			{ current->program += yytext ; }
-<SubDocCppComment>\n			{ 
-					  current->program += yytext ;
-					  ++yyLineNr ;
-					  BEGIN( SubDoc ) ;
-					}
 
 <CppMemo>[^.]				{ 
 					  current->memo += yytext ;

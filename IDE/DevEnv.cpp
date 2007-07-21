@@ -461,13 +461,13 @@ UINT CMainFrame::ShowPopupMenu(IElement* pElement, HMENU hMenu, POINT pt, BOOL b
    ATLASSERT(::IsWindow(m_hWnd));
    ATLASSERT(::IsMenu(hMenu));
    if( !::IsMenu(hMenu) ) return 0;
+   // Allow plugins to customize menu
+   for( int i = 0; i < g_aPlugins.GetSize(); i++ ) g_aPlugins[i].SetPopupMenu(pElement, hMenu);
    // Make sure menu-items are properly UI updated before
    // displaying any menu. The caller can optionally provide an
    // IdleListener to enable the specific popup items.
    OnIdle();
-   if( pListener ) pListener->OnIdle(this);
-   // Allow plugins to customize menu
-   for( int i = 0; i < g_aPlugins.GetSize(); i++ ) g_aPlugins[i].SetPopupMenu(pElement, hMenu);
+   if( pListener != NULL ) pListener->OnIdle(this);
    // Show popup-menu
    DWORD dwFlags = TPM_LEFTBUTTON | TPM_VERTICAL | TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD;
    UINT nCmd = (UINT) m_CmdBar.TrackPopupMenu(hMenu, dwFlags, pt.x, pt.y, NULL);
@@ -498,6 +498,9 @@ BOOL CMainFrame::ShowStatusText(UINT nID, LPCTSTR pstrText, BOOL bPermanent /*= 
    ATLASSERT(!::IsBadStringPtr(pstrText,-1));
    ATLASSERT(m_StatusBar.IsWindow());
    if( nID != ID_DEFAULT_PANE ) {
+      ATLASSERT(bPermanent);
+      // Change one of the secondary panes in the statusbar. We'll need to
+      // calculate the text width to make it look nice.
       CWindowDC dc = m_StatusBar;
       SIZE size = { 0 };
       dc.GetTextExtent(pstrText, _tcslen(pstrText), &size);
@@ -506,8 +509,11 @@ BOOL CMainFrame::ShowStatusText(UINT nID, LPCTSTR pstrText, BOOL bPermanent /*= 
    }
    else {
       ATLASSERT(ID_DEFAULT_PANE==0);
+      // Change the statusbar text now. Windows will update the screen right away.
+      // If we choose the non-permanent option, we'll use UISetText() to eventually
+      // set the statusbar text back once the system is idle.
       m_StatusBar.SetPaneText(ID_DEFAULT_PANE, pstrText);
-      UISetText(0, bPermanent ? pstrText : CString(MAKEINTRESOURCE(ATL_IDS_IDLEMESSAGE)), FALSE);
+      UISetText(0, bPermanent ? pstrText : CString(MAKEINTRESOURCE(ATL_IDS_IDLEMESSAGE)), TRUE);
    }
    return 0;
 }

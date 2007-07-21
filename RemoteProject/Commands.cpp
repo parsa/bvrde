@@ -197,6 +197,7 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
       // NOTE: Before we can use PathRelativePathTo() we need to
       //       convert back to Windows filename-slashes because it doesn't
       //       work with unix-type slashes (/ vs \).
+      // TODO: Do a real implementation of PathRelativePathTo.
       if( sSeparator != _T("\\") ) sFilename.Replace(sSeparator, _T("\\"));
       TCHAR szName[MAX_PATH] = { 0 };
       _tcscpy(szName, sFilename);
@@ -284,7 +285,9 @@ LRESULT CRemoteProject::OnViewOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 LRESULT CRemoteProject::OnViewCompileLog(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+
    // Position the view
+   ATLASSERT(m_viewCompileLog.IsWindow());
    if( !m_viewCompileLog.IsWindowVisible() ) {
       RECT rcWin = { 20, 20, 400, 400 };
       _pDevEnv->AddDockView(m_viewCompileLog, IDE_DOCK_FLOAT, rcWin);
@@ -292,13 +295,16 @@ LRESULT CRemoteProject::OnViewCompileLog(WORD /*wNotifyCode*/, WORD wID, HWND /*
    else {
       _pDevEnv->AddDockView(m_viewCompileLog, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
+   
    return 0;
 }
 
 LRESULT CRemoteProject::OnViewDebugLog(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+
    // Position the view
+   ATLASSERT(m_viewDebugLog.IsWindow());
    if( !m_viewDebugLog.IsWindowVisible() ) {
       RECT rcWin = { 20, 20, 400, 400 };
       _pDevEnv->AddDockView(m_viewDebugLog, IDE_DOCK_FLOAT, rcWin);
@@ -306,38 +312,50 @@ LRESULT CRemoteProject::OnViewDebugLog(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
    else {
       _pDevEnv->AddDockView(m_viewDebugLog, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
+   
    return 0;
+}
+
+template< typename TView >
+bool ShowOrHideViewWindow(CRemoteProject* pProject, TView& view, UINT nCaption, IDE_DOCK_TYPE DockDefault, CRect rcStartup, DWORD dwExtStyle)
+{
+   // Create the view if needed
+   if( !view.IsWindow() ) {
+      CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
+      CString sTitle(MAKEINTRESOURCE(nCaption));
+      DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+      view.Init(pProject);
+      view.Create(wndMain, CWindow::rcDefault, sTitle, dwStyle, dwExtStyle);
+      _pDevEnv->AddDockView(view, IDE_DOCK_HIDE, CWindow::rcDefault);
+   }
+   ATLASSERT(view.IsWindow());
+
+   // Dock and position the view
+   if( !view.IsWindowVisible() ) {
+      IDE_DOCK_TYPE DockType;
+      RECT rcWindow = { 0 };
+      if( pProject->m_DockManager.GetInfo(view, DockType, rcWindow) ) {
+         _pDevEnv->AddDockView(view, DockType, rcWindow);
+      }
+      else {
+         pProject->m_DockManager.SetInfo(view, DockDefault, rcStartup);
+         _pDevEnv->AddDockView(view, DockDefault, rcStartup);
+      }
+      return true;
+   }
+   else {
+      _pDevEnv->AddDockView(view, IDE_DOCK_HIDE, CWindow::rcDefault);
+      return false;
+   }
 }
 
 LRESULT CRemoteProject::OnViewBreakpoints(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
-   // Create the Breakpoints view
-   if( !m_viewBreakpoint.IsWindow() ) {
-      CString s(MAKEINTRESOURCE(IDS_CAPTION_BREAKPOINTS));
-      DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-      m_viewBreakpoint.Init(this);
-      m_viewBreakpoint.Create(m_wndMain, CWindow::rcDefault, s, dwStyle, WS_EX_CLIENTEDGE);
-      _pDevEnv->AddDockView(m_viewBreakpoint, IDE_DOCK_HIDE, CWindow::rcDefault);
-   }
-   
-   // Position the view
-   if( !m_viewBreakpoint.IsWindowVisible() ) {
-      IDE_DOCK_TYPE DockType;
-      RECT rcWindow = { 0 };
-      if( m_DockManager.GetInfo(m_viewBreakpoint, DockType, rcWindow) ) {
-         _pDevEnv->AddDockView(m_viewBreakpoint, DockType, rcWindow);
-      }
-      else {
-         RECT rcDefault = { 420, 40, 780, 300 };
-         m_DockManager.SetInfo(m_viewBreakpoint, IDE_DOCK_FLOAT, rcDefault);
-         _pDevEnv->AddDockView(m_viewBreakpoint, IDE_DOCK_FLOAT, rcDefault);
-      }
+   // Create the Breakpoint view
+   if( ShowOrHideViewWindow(this, m_viewBreakpoint, IDS_CAPTION_BREAKPOINTS, IDE_DOCK_BOTTOM, CRect(420, 40, 780, 300), WS_EX_CLIENTEDGE) ) {
       DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
-   }
-   else {
-      _pDevEnv->AddDockView(m_viewBreakpoint, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
 
    return 0;
@@ -347,31 +365,9 @@ LRESULT CRemoteProject::OnViewRegisters(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
-   // Create the Registers view
-   if( !m_viewRegister.IsWindow() ) {
-      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_REGISTERS));
-      DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-      m_viewRegister.Init(this);
-      m_viewRegister.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
-      _pDevEnv->AddDockView(m_viewRegister, IDE_DOCK_HIDE, CWindow::rcDefault);
-   }
-
-   // Position the view
-   if( !m_viewRegister.IsWindowVisible() ) {
-      IDE_DOCK_TYPE DockType;
-      RECT rcWindow = { 0 };
-      if( m_DockManager.GetInfo(m_viewRegister, DockType, rcWindow) ) {
-         _pDevEnv->AddDockView(m_viewRegister, DockType, rcWindow);
-      }
-      else {
-         RECT rcDefault = { 420, 40, 640, 300 };
-         m_DockManager.SetInfo(m_viewRegister, IDE_DOCK_FLOAT, rcDefault);
-         _pDevEnv->AddDockView(m_viewRegister, IDE_DOCK_FLOAT, rcDefault);
-      }
+   // Create the CPU Registers view
+   if( ShowOrHideViewWindow(this, m_viewRegister, IDS_CAPTION_REGISTERS, IDE_DOCK_FLOAT, CRect(420, 40, 640, 300), WS_EX_CLIENTEDGE) ) {
       DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
-   }
-   else {
-      _pDevEnv->AddDockView(m_viewRegister, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
 
    return 0;
@@ -381,31 +377,9 @@ LRESULT CRemoteProject::OnViewMemory(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
-   // Create the Memory view
-   if( !m_viewMemory.IsWindow() ) {
-      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_MEMORY));
-      DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-      m_viewMemory.Init(this);
-      m_viewMemory.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
-      _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_HIDE, CWindow::rcDefault);
-   }
-
-   // Position the view
-   if( !m_viewMemory.IsWindowVisible() ) {
-      IDE_DOCK_TYPE DockType;
-      RECT rcWindow = { 0 };
-      if( m_DockManager.GetInfo(m_viewMemory, DockType, rcWindow) ) {
-         _pDevEnv->AddDockView(m_viewMemory, DockType, rcWindow);
-      }
-      else {
-         RECT rcDefault = { 60, 140, 780, 400 };
-         m_DockManager.SetInfo(m_viewMemory, IDE_DOCK_FLOAT, rcDefault);
-         _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_FLOAT, rcDefault);
-      }
+   // Create the Memory Dump view
+   if( ShowOrHideViewWindow(this, m_viewMemory, IDS_CAPTION_MEMORY, IDE_DOCK_FLOAT, CRect(60, 140, 780, 400), WS_EX_CLIENTEDGE) ) {
       DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
-   }
-   else {
-      _pDevEnv->AddDockView(m_viewMemory, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
 
    return 0;
@@ -415,31 +389,9 @@ LRESULT CRemoteProject::OnViewDisassembly(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
-   // Create the Disassembly view
-   if( !m_viewDisassembly.IsWindow() ) {
-      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_DISASSEMBLY));
-      DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-      m_viewDisassembly.Init(this);
-      m_viewDisassembly.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
-      _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_HIDE, CWindow::rcDefault);
-   }
-
-   // Position the view
-   if( !m_viewDisassembly.IsWindowVisible() ) {
-      IDE_DOCK_TYPE DockType;
-      RECT rcWindow = { 0 };
-      if( m_DockManager.GetInfo(m_viewDisassembly, DockType, rcWindow) ) {
-         _pDevEnv->AddDockView(m_viewDisassembly, DockType, rcWindow);
-      }
-      else {
-         RECT rcDefault = { 320, 50, 690, 400 };
-         m_DockManager.SetInfo(m_viewDisassembly, IDE_DOCK_FLOAT, rcDefault);
-         _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_FLOAT, rcDefault);
-      }
+   // Create the Dissembly view
+   if( ShowOrHideViewWindow(this, m_viewDisassembly, IDS_CAPTION_DISASSEMBLY, IDE_DOCK_FLOAT, CRect(320, 50, 690, 400), WS_EX_CLIENTEDGE) ) {
       DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
-   }
-   else {
-      _pDevEnv->AddDockView(m_viewDisassembly, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
 
    return 0;
@@ -449,31 +401,9 @@ LRESULT CRemoteProject::OnViewThreads(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
-   // Create the Thread view
-   if( !m_viewThread.IsWindow() ) {
-      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_THREADS));
-      DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-      m_viewThread.Init(this);
-      m_viewThread.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
-      _pDevEnv->AddDockView(m_viewThread, IDE_DOCK_HIDE, CWindow::rcDefault);
-   }
-
-   // Position the view
-   if( !m_viewThread.IsWindowVisible() ) {
-      IDE_DOCK_TYPE DockType;
-      RECT rcWindow = { 0 };
-      if( m_DockManager.GetInfo(m_viewThread, DockType, rcWindow) ) {
-         _pDevEnv->AddDockView(m_viewThread, DockType, rcWindow);
-      }
-      else {
-         RECT rcDefault = { 420, 220, 600, 450 };
-         m_DockManager.SetInfo(m_viewThread, IDE_DOCK_BOTTOM, rcDefault);
-         _pDevEnv->AddDockView(m_viewThread, IDE_DOCK_BOTTOM, rcDefault);
-      }
+   // Create the Thread List view
+   if( ShowOrHideViewWindow(this, m_viewThread, IDS_CAPTION_THREADS, IDE_DOCK_BOTTOM, CRect(420, 220, 600, 450), WS_EX_CLIENTEDGE) ) {
       DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
-   }
-   else {
-      _pDevEnv->AddDockView(m_viewThread, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
 
    return 0;
@@ -483,31 +413,9 @@ LRESULT CRemoteProject::OnViewStack(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
-   // Create the Stack view
-   if( !m_viewStack.IsWindow() ) {
-      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_CALLSTACK));
-      DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-      m_viewStack.Init(this);
-      m_viewStack.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, 0);
-      _pDevEnv->AddDockView(m_viewStack, IDE_DOCK_HIDE, CWindow::rcDefault);
-   }
-
-   // Position the view
-   if( !m_viewStack.IsWindowVisible() ) {
-      IDE_DOCK_TYPE DockType;
-      RECT rcWindow = { 0 };
-      if( m_DockManager.GetInfo(m_viewStack, DockType, rcWindow) ) {
-         _pDevEnv->AddDockView(m_viewStack, DockType, rcWindow);
-      }
-      else {
-         RECT rcDefault = { 420, 520, 780, 650 };
-         m_DockManager.SetInfo(m_viewStack, IDE_DOCK_BOTTOM, rcDefault);
-         _pDevEnv->AddDockView(m_viewStack, IDE_DOCK_BOTTOM, rcDefault);
-      }
+   // Create the Stack Backtrace view
+   if( ShowOrHideViewWindow(this, m_viewStack, IDS_CAPTION_CALLSTACK, IDE_DOCK_BOTTOM, CRect(420, 520, 780, 650), 0) ) {
       DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
-   }
-   else {
-      _pDevEnv->AddDockView(m_viewStack, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
 
    return 0;
@@ -518,30 +426,8 @@ LRESULT CRemoteProject::OnViewVariables(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
    // Create the Variables view
-   if( !m_viewVariable.IsWindow() ) {
-      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_VARIABLES));
-      DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-      m_viewVariable.Init(this);
-      m_viewVariable.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
-      _pDevEnv->AddDockView(m_viewVariable, IDE_DOCK_HIDE, CWindow::rcDefault);
-   }
-
-   // Position the view
-   if( !m_viewVariable.IsWindowVisible() ) {
-      IDE_DOCK_TYPE DockType;
-      RECT rcWindow = { 0 };
-      if( m_DockManager.GetInfo(m_viewVariable, DockType, rcWindow) ) {
-         _pDevEnv->AddDockView(m_viewVariable, DockType, rcWindow);
-      }
-      else {
-         RECT rcDefault = { 450, 520, 760, 750 };
-         m_DockManager.SetInfo(m_viewVariable, IDE_DOCK_BOTTOM, rcDefault);
-         _pDevEnv->AddDockView(m_viewVariable, IDE_DOCK_BOTTOM, rcDefault);
-      }
+   if( ShowOrHideViewWindow(this, m_viewVariable, IDS_CAPTION_VARIABLES, IDE_DOCK_BOTTOM, CRect(450, 520, 760, 750), WS_EX_CLIENTEDGE) ) {
       DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
-   }
-   else {
-      _pDevEnv->AddDockView(m_viewVariable, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
 
    return 0;
@@ -552,36 +438,15 @@ LRESULT CRemoteProject::OnViewWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
 
    // Create the Watches view
-   if( !m_viewWatch.IsWindow() ) {
-      CString sTitle(MAKEINTRESOURCE(IDS_CAPTION_WATCH));
-      DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-      m_viewWatch.Init(this);
-      m_viewWatch.Create(m_wndMain, CWindow::rcDefault, sTitle, dwStyle, WS_EX_CLIENTEDGE);
-      _pDevEnv->AddDockView(m_viewWatch, IDE_DOCK_HIDE, CWindow::rcDefault);
-   }
-
-   // Position the view
-   if( !m_viewWatch.IsWindowVisible() ) {
-      IDE_DOCK_TYPE DockType;
-      RECT rcWindow = { 0 };
-      if( m_DockManager.GetInfo(m_viewWatch, DockType, rcWindow) ) {
-         _pDevEnv->AddDockView(m_viewWatch, DockType, rcWindow);
-      }
-      else {
-         RECT rcDefault = { 320, 180, 750, 450 };
-         m_DockManager.SetInfo(m_viewWatch, IDE_DOCK_FLOAT, rcDefault);
-         _pDevEnv->AddDockView(m_viewWatch, IDE_DOCK_FLOAT, rcDefault);
-      }
+   if( ShowOrHideViewWindow(this, m_viewWatch, IDS_CAPTION_WATCH, IDE_DOCK_FLOAT, CRect(320, 180, 750, 450), WS_EX_CLIENTEDGE) ) {
       // We'll need to add the watches again.
       // This should be the first this we do, because otherwise the debugger views
       // will try to evaluate the watches before they have been created.
       // BUG: GDB doesn't allow us to add "delayed" watches in this version, so
-      //      we'll get errors complaining about undefined variables.
+      //      we'll get errors complaining about undefined variables. A fix
+      //      for this is placed inside the GDB command handler.
       m_viewWatch.ActivateWatches();
       DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
-   }
-   else {
-      _pDevEnv->AddDockView(m_viewWatch, IDE_DOCK_HIDE, CWindow::rcDefault);
    }
 
    return 0;
@@ -737,7 +602,7 @@ LRESULT CRemoteProject::OnDebugQuickWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 
    // Ask active editor window to retrieve the selected/caret text
    LAZYDATA data;
-   data.Action = LAZY_SEND_VIEW_MESSAGE;
+   data.Action = LAZY_SEND_GLOBAL_VIEW_MESSAGE;
    data.wParam = DEBUG_CMD_GET_CARET_TEXT;
    m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
    

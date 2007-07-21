@@ -599,6 +599,15 @@ bool CRemoteProject::IsViewsDirty() const
    return false;
 }
 
+bool CRemoteProject::IsWindowVisible(UINT nID) const
+{
+   switch( nID ) {
+   case ID_VIEW_WATCH:        return m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible();
+   case ID_VIEW_BREAKPOINTS:  return m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible();
+   }
+   return false;
+}
+
 void CRemoteProject::SendViewMessage(UINT nCmd, LAZYDATA* pData)
 {
    ATLASSERT(!::IsBadReadPtr(pData,sizeof(LAZYDATA)));
@@ -734,6 +743,7 @@ void CRemoteProject::_InitializeData()
    dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
    m_viewCompileLog.Init(&m_CompileManager.m_ShellManager);
    m_viewCompileLog.Create(m_wndMain, CWindow::rcDefault, sCaption, dwStyle, WS_EX_CLIENTEDGE);
+   m_viewCompileLog.SetLineCount(80);
    _pDevEnv->AddDockView(m_viewCompileLog, IDE_DOCK_HIDE, CWindow::rcDefault);
 
    // Create the Debug Log view
@@ -743,6 +753,7 @@ void CRemoteProject::_InitializeData()
    m_viewDebugLog.Init(&m_DebugManager.m_ShellManager);
    m_viewDebugLog.Create(m_wndMain, CWindow::rcDefault, sCaption, dwStyle, WS_EX_CLIENTEDGE);
    m_viewDebugLog.SetColors(::GetSysColor(COLOR_WINDOWTEXT), clrBack);
+   m_viewDebugLog.SetLineCount(80);
    _pDevEnv->AddDockView(m_viewDebugLog, IDE_DOCK_HIDE, CWindow::rcDefault);
 
    // Create the Class view
@@ -1101,8 +1112,8 @@ bool CRemoteProject::_RunFileWizard(HWND hWnd, LPCTSTR pstrName, IView* pView)
    HINSTANCE hInst = ::LoadLibrary(sModule);
    if( hInst == NULL ) return false;
 
-   typedef BOOL (APIENTRY* LPFNRUNWIZARD)(HWND, LPCTSTR, IDevEnv*, ISolution*, IProject*, IView*);
-   LPFNRUNWIZARD fnRunWizard = (LPFNRUNWIZARD) ::GetProcAddress(hInst, "Templates_RunWizard");
+   typedef BOOL (APIENTRY* PFNRUNWIZARD)(HWND, LPCTSTR, IDevEnv*, ISolution*, IProject*, IView*);
+   PFNRUNWIZARD fnRunWizard = (PFNRUNWIZARD) ::GetProcAddress(hInst, "Templates_RunWizard");
    if( fnRunWizard == NULL ) return false;
    if( !fnRunWizard(hWnd, pstrName, _pDevEnv, _pDevEnv->GetSolution(), this, pView) ) return false;
 
@@ -1159,7 +1170,7 @@ IView* CRemoteProject::_CreateDependencyFile(LPCTSTR pstrFilename, LPCTSTR pstrN
    // the system to search for the file.
    CString sFilename = m_FileManager.FindFile(pstrFilename);
    if( sFilename.IsEmpty() ) return NULL;
-   
+
    // Create new object
    IView* pView = _pDevEnv->CreateView(pstrFilename, this, this);
    if( pView == NULL ) return false;

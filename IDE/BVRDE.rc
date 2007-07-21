@@ -57,12 +57,12 @@ CAPTION "Tool Argumente"
 FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "",IDC_STATIC,7,7,268,68
-    LTEXT           "Argumente bearbeiten bevor das Tool ausgeführt wird :",
+    LTEXT           "Argumente bearbeiten bevor das Tool ausgeführt wird:",
                     IDC_STATIC,15,17,191,10
-    LTEXT           "Befehl :",IDC_STATIC,18,31,37,13,SS_NOPREFIX | 
+    LTEXT           "Befehl:",IDC_STATIC,18,31,37,13,SS_NOPREFIX | 
                     SS_CENTERIMAGE
     EDITTEXT        IDC_COMMAND,59,31,204,13,ES_AUTOHSCROLL
-    LTEXT           "Argumente :",IDC_STATIC,18,48,40,13,SS_NOPREFIX | 
+    LTEXT           "Argumente:",IDC_STATIC,18,48,40,13,SS_NOPREFIX | 
                     SS_CENTERIMAGE
     EDITTEXT        IDC_ARGUMENTS,59,48,204,13,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,171,85,50,14
@@ -103,15 +103,15 @@ BEGIN
     LISTBOX         IDC_LIST,7,7,90,155,LBS_OWNERDRAWVARIABLE | 
                     LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "Standartt Tastenkürzel :",IDC_STATIC,109,7,80,8,
+    LTEXT           "Standartt Tastenkürzel:",IDC_STATIC,109,7,80,8,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
     CONTROL         "HotKey1",IDC_DEFAULT_KEY,"msctls_hotkey32",WS_BORDER,
                     109,18,103,13
-    LTEXT           "Aktuelles Tastenkürzel :",IDC_STATIC,109,40,90,8,
+    LTEXT           "Aktuelles Tastenkürzel:",IDC_STATIC,109,40,90,8,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
     CONTROL         "HotKey1",IDC_CURRENT_KEY,"msctls_hotkey32",WS_BORDER,
                     109,50,103,13
-    LTEXT           "Neues Tastenkürzel eingeben  :",IDC_STATIC,109,74,98,8,
+    LTEXT           "Neues Tastenkürzel eingeben:",IDC_STATIC,109,74,98,8,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
     CONTROL         "HotKey1",IDC_NEW_KEY,"msctls_hotkey32",WS_BORDER | 
                     WS_TABSTOP,109,86,103,13
@@ -140,13 +140,13 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,166,7,50,14,WS_DISABLED
     PUSHBUTTON      "Abbrechen",IDCANCEL,166,24,50,14
-    LTEXT           "Makros : ",IDC_STATIC,7,7,84,10
+    LTEXT           "Makros: ",IDC_STATIC,7,7,84,10
     LISTBOX         IDC_LIST,7,19,149,113,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Makrodatei : ",IDC_STATIC,7,138,34,12,SS_CENTERIMAGE
+    LTEXT           "Makrodatei: ",IDC_STATIC,7,138,34,12,SS_CENTERIMAGE
     COMBOBOX        IDC_FILES,46,138,110,57,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Beschreibung :",IDC_STATIC,7,155,84,10
+    LTEXT           "Beschreibung:",IDC_STATIC,7,155,84,10
     EDITTEXT        IDC_DESCRIPTION,7,166,149,29,ES_MULTILINE | 
                     ES_AUTOVSCROLL | ES_READONLY
 END
@@ -183,15 +183,15 @@ BEGIN
     LISTBOX         IDC_LIST,7,7,90,155,LBS_OWNERDRAWVARIABLE | 
                     LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "Standart Tastenkürzel :",IDC_STATIC,109,7,74,8,
+    LTEXT           "Standart Tastenkürzel:",IDC_STATIC,109,7,72,8,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
     CONTROL         "HotKey1",IDC_DEFAULT_KEY,"msctls_hotkey32",WS_BORDER,
                     109,18,103,13
-    LTEXT           "Aktuelles Tastenkürzel :",IDC_STATIC,109,40,63,8,
+    LTEXT           "Aktuelles Tastenkürzel:",IDC_STATIC,109,40,63,8,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
     CONTROL         "HotKey1",IDC_CURRENT_KEY,"msctls_hotkey32",WS_BORDER,
                     109,50,103,13
-    LTEXT           "Neues Tastenkürzel eingeben :",IDC_STATIC,109,74,102,8,
+    LTEXT           "Neues Tastenkürzel eingeben:",IDC_STATIC,109,74,102,8,
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
     CONTROL         "HotKey1",IDC_NEW_KEY,"msctls_hotkey32",WS_BORDER | 
                     WS_TABSTOP,109,86,103,13
@@ -261,7 +261,7 @@ BEGIN
     LTEXT           "Autotext Definitionen der Liste hinzufügen.",IDC_STATIC,
                     0,0,261,15
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,217,26,40,1
-    LTEXT           "Kurzzeichen : ",IDC_STATIC,49,36,44,11,SS_CENTERIMAGE
+    LTEXT           "Kurzzeichen: ",IDC_STATIC,49,36,44,11,SS_CENTERIMAGE
     EDITTEXT        IDC_NAME,100,36,121,12,ES_AUTOHSCROLL
     PUSHBUTTON      "IDI_LOAD1",IDC_NEW,225,36,13,13,BS_ICON
     PUSHBUTTON      "IDI_LOAD1",IDC_DELETE,239,36,13,13,BS_ICON
@@ -285,7 +285,7 @@ BEGIN
     COMBOBOX        IDC_FONT,119,22,136,76,CBS_DROPDOWN | 
                     CBS_OWNERDRAWVARIABLE | CBS_SORT | CBS_HASSTRINGS | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Größe:",IDC_STATIC,88,40,15,12,SS_CENTERIMAGE
+    LTEXT           "Größe:",IDC_STATIC,88,40,24,12,SS_CENTERIMAGE
     COMBOBOX        IDC_FONTSIZE,119,40,41,60,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "Vordergrund:",IDC_STATIC,88,60,41,12,SS_CENTERIMAGE
@@ -392,10 +392,10 @@ BEGIN
                     WS_EX_TRANSPARENT
     LTEXT           "Formatierung",IDC_STATIC,0,101,43,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,45,105,211,1
-    LTEXT           "Einrückung :",IDC_STATIC,14,117,40,12,SS_CENTERIMAGE
+    LTEXT           "Einrückung:",IDC_STATIC,14,117,40,12,SS_CENTERIMAGE
     COMBOBOX        IDC_INDENTATION,60,117,60,45,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Tab Weite : ",IDC_STATIC,14,133,40,12,SS_CENTERIMAGE
+    LTEXT           "Tab Weite: ",IDC_STATIC,14,133,40,12,SS_CENTERIMAGE
     EDITTEXT        IDC_TABWIDTH,60,133,29,12,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "Einzugsweite: ",IDC_STATIC,14,148,44,12,SS_CENTERIMAGE
     EDITTEXT        IDC_INDENTWIDTH,60,148,29,12,ES_AUTOHSCROLL | ES_NUMBER
@@ -411,7 +411,7 @@ BEGIN
                     BS_AUTORADIOBUTTON | WS_GROUP,14,15,124,9
     CONTROL         "Verwende MDI Dokumente",IDC_USE_MDI,"Button",
                     BS_AUTORADIOBUTTON,14,26,124,9
-    LTEXT           "Beim Start : ",IDC_STATIC,14,45,35,12,SS_CENTERIMAGE
+    LTEXT           "Beim Start: ",IDC_STATIC,14,45,35,12,SS_CENTERIMAGE
     COMBOBOX        IDC_STARTUP,52,45,111,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "Sprache:",IDC_STATIC,14,130,35,12,SS_CENTERIMAGE
@@ -473,7 +473,7 @@ BEGIN
                     WS_EX_TRANSPARENT
     EDITTEXT        IDC_PATH,51,144,184,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_BROWSE_PATH,238,144,14,12,NOT WS_TABSTOP
-    CONTROL         "Typ : ",IDC_STATIC,"Static",SS_SIMPLE | SS_NOPREFIX | 
+    CONTROL         "Typ: ",IDC_STATIC,"Static",SS_SIMPLE | SS_NOPREFIX | 
                     SS_CENTERIMAGE | WS_GROUP,7,159,39,12,WS_EX_TRANSPARENT
     COMBOBOX        IDC_TYPE,51,159,104,46,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
@@ -503,10 +503,10 @@ IDD_WIZARD_SOLUTIONTYPE DIALOGEX 0, 0, 329, 169
 STYLE DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    LTEXT           "Geben Sie den Namen des Projektes an :",IDC_STATIC,7,7,
+    LTEXT           "Geben Sie den Namen des Projektes an:",IDC_STATIC,7,7,
                     315,9,0,WS_EX_TRANSPARENT
     EDITTEXT        IDC_NAME,7,18,162,12,ES_AUTOHSCROLL
-    LTEXT           "Projekttyp :",IDC_STATIC,7,35,315,9,0,WS_EX_TRANSPARENT
+    LTEXT           "Projekttyp:",IDC_STATIC,7,35,315,9,0,WS_EX_TRANSPARENT
     CONTROL         "List1",IDC_LIST,"SysListView32",LVS_SINGLESEL | 
                     LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_AUTOARRANGE | 
                     LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | 
@@ -522,7 +522,7 @@ BEGIN
     PUSHBUTTON      "Abbrechen",IDCANCEL,226,24,50,14
     PUSHBUTTON      "&Aktivieren",IDC_ACTIVATE,226,46,50,14
     PUSHBUTTON      "&Schließen",IDC_CLOSE,226,63,50,14
-    LTEXT           "Fenster selektieren :",IDC_STATIC,7,7,134,11,
+    LTEXT           "Fenster selektieren:",IDC_STATIC,7,7,134,11,
                     SS_CENTERIMAGE
     CONTROL         "List2",IDC_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SHOWSELALWAYS | LVS_NOCOLUMNHEADER | 
@@ -661,7 +661,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Schließen",                   ID_TAB_CLOSE
         MENUITEM "Alle schließen",              ID_TAB_CLOSEALL
-        MENUITEM "Alle außer dieses Schließen", ID_TAB_CLOSEALLEXCEPT
+        MENUITEM "Alle außer dieses Schließen    ", ID_TAB_CLOSEALLEXCEPT
     END
 END
 
@@ -690,7 +690,7 @@ IDR_COMMANDVIEW MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "Kopieren\tCtrl+C",            ID_EDIT_COPY
+        MENUITEM "Kopieren    ",                ID_EDIT_COPY
     END
 END
 
@@ -818,7 +818,7 @@ BEGIN
     BEGIN
         MENUITEM "Löschen",                     ID_EDIT_CLEARVIEW
         MENUITEM SEPARATOR
-        MENUITEM "Kopieren",                    ID_EDIT_COPY
+        MENUITEM "Kopieren    ",                ID_EDIT_COPY
     END
 END
 
@@ -827,7 +827,7 @@ BEGIN
     POPUP "Popup"
     BEGIN
         MENUITEM "Neues Projekt hinzufügen...", ID_NEW_PROJECT
-        MENUITEM "Existierendes Projekt hinzufügen...", ID_ADD_PROJECT
+        MENUITEM "Existierendes Projekt hinzufügen...    ", ID_ADD_PROJECT
     END
 END
 
@@ -1058,7 +1058,7 @@ BEGIN
     IDS_TYPE_EXTENSION      "Enhancement"
     IDS_TYPE                "Type"
     IDS_TREE_BASIC          "BASIC"
-    IDS_CREDITS             "\n\n\n\n\n\nBVRDE\nVersion $VER$\n\nProgrammiert von \nBjarke Viksøe\n\nDeutsche Übersetzung\nDipl.-Ing. Torsten Albrecht\nE-Mail : info@AttNet.de\n\n3rd Party Komponenten\n\nScintilla Editor\nvon Neil Hodgson\n\nCryptlib\nvon Peter Gutmann\n\n\n"
+    IDS_CREDITS             "\n\n\n\n\n\nBVRDE\nVersion $VER$\n\nProgrammiert von \nBjarke Viksøe\n\nDeutsche Übersetzung\nDipl.-Ing. Torsten Albrecht\nE-Mail: info@AttNet.de\n\n3rd Party Komponenten\n\nScintilla Editor\nvon Neil Hodgson\n\nCryptlib\nvon Peter Gutmann\n\n\n"
     IDS_NEWTOOL             "<Neues Tool>"
     IDS_FILTER_EXE          "Ausführbare Dateien|*.exe;*.lnk|Alle Dateien|*.*|"
     IDS_FILTER_ALL          "Alle Dateien|*.*|Quellcode Dateien|*.c*;*.h*;*.jav*;*.vb*;*.bas*|Ausführbare Dateien|*.exe;*.lnk|"
@@ -1070,10 +1070,10 @@ BEGIN
     IDS_ERR_FILELOCKED      "Datei gesperrt\nAuf die Datei kann nicht zugegriffen werden. Ist sie gesperrt ?!"
     IDS_ERR_FILEOPEN        "Datei öffnen Fehler\nDie Datei wurde nicht gefunden oder konnte nicht geöffnet werden.\nWählen Sie eine andere Datei."
     IDS_ERR_VBSCRIPT        "Skript Komponente fehlt\nEs ist nicht möglich die VBSkript Komponente zu erstellen.\nHaben Sie eine fehlerhafte Windows Installation ?!"
-    IDS_COMMAND_HELP        "Die fologende Syntax ist erlaubt :\r\n  help - Dieser Text.\r\n  ? <expr> - Ausdruck überprüfen.\r\n  run <datei> - Ein Programm ausfrühren.\r\n  exec <datei> - Programm ausführen und die Ausgabe aufzeichnen.\r\n  print <datei> - Den Inhalt an den Drucker senden.\r\n"
+    IDS_COMMAND_HELP        "Die fologende Syntax ist erlaubt:\r\n  help - Dieser Text.\r\n  ? <expr> - Ausdruck überprüfen.\r\n  run <datei> - Ein Programm ausfrühren.\r\n  exec <datei> - Programm ausführen und die Ausgabe aufzeichnen.\r\n  print <datei> - Den Inhalt an den Drucker senden.\r\n"
     IDS_ERR_UNKNOWNCOMMAND  "Unbekannter Befehl\r\n"
     IDS_TYPEHELP            "Tippen Sie ""help"" um die verfügbaren Befehle zu sehen.\r\n"
-    IDS_ERR_SCRIPT          "Es ist ein Fehler während dem Parsen des Skriptes aufgetreten : \nQuelle: %ls\nFehler: %08X\nBeschreibung: %ls\nZeile: %ld\n"
+    IDS_ERR_SCRIPT          "Es ist ein Fehler während dem Parsen des Skriptes aufgetreten: \nQuelle: %ls\nFehler: %08X\nBeschreibung: %ls\nZeile: %ld\n"
     IDS_TREE_ASSOCIATIONS   "Dateizuordnungen"
     IDS_TREE_ABBREVIATIONS  "Abkürzungsverzeichnis"
     IDS_ASSOC_COL1          "Dateiendung"
@@ -1163,6 +1163,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_STATUS_RECMACRO     " Recording macro..."
+    IDS_ERR_REGNOPRIV       "Not allowed\nChanging the Windows Registry failed.\nChanging the file associations requires a user account with system administrator priviledges."
 END
 
 #endif    // German (Germany) resources
@@ -1927,7 +1928,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Close",                       ID_TAB_CLOSE
         MENUITEM "Close all",                   ID_TAB_CLOSEALL
-        MENUITEM "Close all except this",       ID_TAB_CLOSEALLEXCEPT
+        MENUITEM "Close all except this    ",   ID_TAB_CLOSEALLEXCEPT
     END
 END
 
@@ -1936,7 +1937,7 @@ BEGIN
     POPUP "Popup"
     BEGIN
         MENUITEM "Add New Project...",          ID_NEW_PROJECT
-        MENUITEM "Add Existing Project...",     ID_ADD_PROJECT
+        MENUITEM "Add Existing Project...    ", ID_ADD_PROJECT
     END
 END
 
@@ -1944,7 +1945,7 @@ IDR_OUTPUTVIEW MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "Cl&ear",                      ID_EDIT_CLEARVIEW
+        MENUITEM "Cl&ear    ",                  ID_EDIT_CLEARVIEW
         MENUITEM SEPARATOR
         MENUITEM "&Copy",                       ID_EDIT_COPY
     END
@@ -1954,7 +1955,7 @@ IDR_COMMANDVIEW MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "&Copy",                       ID_EDIT_COPY
+        MENUITEM "&Copy    ",                   ID_EDIT_COPY
     END
 END
 
@@ -2301,7 +2302,7 @@ BEGIN
     ID_ADD_PROJECT          "Add an existing project to solution\nAdd project"
     ID_EDIT_GOTO            "Goto..."
     ID_EDIT_DELETE          "Delete selected item\nDelete"
-    ID_VIEW_EXPLORER        "Show/Hide Solution Explorer\nExplorer"
+    ID_VIEW_EXPLORER        "Show/Hide the Solution Explorer\nExplorer"
     ID_WINDOW_VIEW          "Choose among active windows\nWindows"
     ID_WINDOW_CLOSE         "Close active window\nClose window"
     ID_WINDOW_CLOSE_ALL     "Close all open windows\nClose all"
@@ -2314,7 +2315,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     ID_VIEW_PROPERTIES      "Show Properties\nProperties"
     ID_VIEW_OUTPUT          "Show/Hide the Output window\nOutput"
-    ID_VIEW_COMMAND         "Show/Hide Command window\nCommand"
+    ID_VIEW_COMMAND         "Show/Hide the Command window\nCommand"
     ID_VIEW_OPEN            "Opens the document\\Open"
     ID_HELP_STARTPAGE       "Show Start Page\nStart Page"
     ID_HELP_SEARCH          "Search for items in documentation\nSearch"
@@ -2399,7 +2400,7 @@ BEGIN
     IDS_TYPE_EXTENSION      "Enhancement"
     IDS_TYPE                "Type"
     IDS_TREE_BASIC          "BASIC"
-    IDS_CREDITS             "\n\n\n\n\n\nBVRDE\nVersion $VER$\n\nProgramming by\nBjarke Viksøe\n\nTranslations\n\nGerman\nDipl.-Ing. Torsten Albrecht\n\n3rd Party Components\n\nScintilla Editor\nby Neil Hodgson\n\nCryptlib\nby Peter Gutmann\n\n\n"
+    IDS_CREDITS             "\n\n\n\n\n\nBVRDE\nVersion $VER$\n\nProgramming by\nBjarke Viksøe\n\nTranslations\n\nGerman\nTorsten Albrecht\n\n3rd Party Components\n\nScintilla Editor\nby Neil Hodgson\n\nCryptlib\nby Peter Gutmann\n\n\n"
     IDS_NEWTOOL             "<New Tool>"
     IDS_FILTER_EXE          "Executables|*.exe;*.lnk|All Files|*.*|"
     IDS_FILTER_ALL          "All Files|*.*|Source Files|*.c*;*.h*;*.jav*;*.vb*;*.bas*|Executables|*.exe;*.lnk|"
@@ -2505,6 +2506,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_STATUS_RECMACRO     " Recording macro..."
+    IDS_ERR_REGNOPRIV       "Not allowed\nChanging the Windows Registry failed.\nChanging the file associations requires a user account with system administrator priviledges."
 END
 
 #endif    // English (U.S.) resources

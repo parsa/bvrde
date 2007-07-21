@@ -77,22 +77,24 @@
 #define IDC_REGEXP                      1140
 #define IDC_SUBFOLDERS                  1141
 #define IDC_FOLDER                      1142
-#define ID_SC_UPDATE                    42001
-#define ID_SC_CHECKIN                   42002
-#define ID_SC_CHECKOUT                  42003
-#define ID_SC_LOGIN                     42004
-#define ID_SC_DIFFVIEW                  42005
-#define ID_SC_ADDFILE                   42006
-#define ID_SC_REMOVEFILE                42007
-#define ID_SC_STATUS                    42008
-#define ID_SC_LOGOUT                    42010
+#define IDC_SC_CHANGEDIR                1143
+#define ID_VIEW_REPOSITORY   42000
+#define ID_SC_UPDATE                    42010
+#define ID_SC_CHECKIN                   42011
+#define ID_SC_CHECKOUT                  42012
+#define ID_SC_LOGIN                     42013
+#define ID_SC_DIFFVIEW                  42014
+#define ID_SC_ADDFILE                   42015
+#define ID_SC_REMOVEFILE                42016
+#define ID_SC_STATUS                    42017
+#define ID_SC_LOGOUT                    42018
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        102
-#define _APS_NEXT_COMMAND_VALUE         42011
+#define _APS_NEXT_COMMAND_VALUE         42019
 #define _APS_NEXT_CONTROL_VALUE         1010
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

@@ -111,6 +111,7 @@ public:
       NOTIFY_CODE_HANDLER(SCN_UPDATEUI, OnUpdateUI)
       NOTIFY_CODE_HANDLER(SCN_MARGINCLICK, OnMarginClick)
       NOTIFY_CODE_HANDLER(SCN_MACRORECORD, OnMacroRecord)
+      NOTIFY_CODE_HANDLER(SCN_NEEDSHOWN, OnNeedShown)
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -149,6 +150,7 @@ public:
    LRESULT OnDwellEnd(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnCharAdded(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnMarginClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnNeedShown(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnMacroRecord(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnMacroStart(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMacroCancel(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

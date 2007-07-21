@@ -481,9 +481,7 @@ LRESULT CSqlProject::OnViewOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 
    CWaitCursor cursor;
 
-   CString sStatus;
-   sStatus.Format(IDS_STATUS_OPENDATABASE);
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_OPENDATABASE)));
 
    IView* pView = static_cast<IView*>(pElement);
    if( !pView->OpenView(0) ) GenerateError(_pDevEnv, NULL, IDS_ERR_OPENVIEW);

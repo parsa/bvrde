@@ -357,6 +357,7 @@ VOID CTextFileOM::Close()
 
 VARIANT_BOOL CTextFileOM::Save()
 {
+   if( !m_pOwner->IsOpen() ) return VARIANT_FALSE;
    return m_pOwner->Save() ? VARIANT_TRUE : VARIANT_FALSE;
 }
 

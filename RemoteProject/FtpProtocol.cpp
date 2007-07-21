@@ -16,7 +16,8 @@ class CFtpCancelThread : public CThreadImpl<CFtpCancelThread>
 {
 public:
    CFtpCancelThread(HINTERNET hInternet, DWORD dwTimeout) : 
-      m_hInternet(hInternet), m_dwTimeout(dwTimeout)
+      m_hInternet(hInternet), 
+      m_dwTimeout(dwTimeout)
    {
       m_event.Create();
       Start();
@@ -175,7 +176,7 @@ bool CFtpProtocol::Load(ISerializable* pArc)
    m_sPassword.ReleaseBuffer();
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
-   pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(128), 128);
+   pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(200), 200);
    m_sSearchPath.ReleaseBuffer();
    pArc->Read(_T("proxy"), m_sProxy.GetBufferSetLength(128), 128);
    m_sProxy.ReleaseBuffer();
@@ -247,6 +248,7 @@ bool CFtpProtocol::IsConnected() const
 CString CFtpProtocol::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
+   if( sName == _T("Type") ) return _T("FTP");
    if( sName == _T("Path") ) return m_sPath;
    if( sName == _T("SearchPath") ) return m_sSearchPath;
    if( sName == _T("Host") ) return m_sHost;
@@ -257,7 +259,6 @@ CString CFtpProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("CompatibilityMode") ) return m_bCompatibilityMode ? _T("true") : _T("false");
    if( sName == _T("Proxy") ) return m_sProxy;
    if( sName == _T("Separator") ) return _T("/");
-   if( sName == _T("Type") ) return _T("FTP");
    if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
    return _T("");
 }
@@ -290,39 +291,41 @@ bool CFtpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, D
    // Connected?
    if( !WaitForConnection() ) return false;
 
+   CString sCurDir = GetCurPath();
+
+   // Construct remote filename
+   CString sFilename = pstrFilename; 
+   if( pstrFilename[0] != '/' && sCurDir.GetLength() > 1 ) sFilename.Format(_T("%s/%s"), sCurDir, pstrFilename);
+   sFilename.Replace(_T('\\'), _T('/'));
+
    // Open file and read it
    DWORD dwFlags = INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_RELOAD;
    dwFlags |= bBinary ? FTP_TRANSFER_TYPE_BINARY : FTP_TRANSFER_TYPE_ASCII;
-   HINTERNET hFile = ::FtpOpenFile(m_hFTP, pstrFilename, GENERIC_READ, dwFlags, 0);
+   HINTERNET hFile = ::FtpOpenFile(m_hFTP, sFilename, GENERIC_READ, dwFlags, 0);
    if( hFile == NULL ) return _TranslateError();
 
-   const DWORD BUFFER_SIZE = 4096;
-   LPBYTE pBuffer = (LPBYTE) malloc(BUFFER_SIZE);
+   const SIZE_T BUFFER_SIZE = 4000;
+   CAutoFree<BYTE> buffer(BUFFER_SIZE);
    DWORD dwPos = 0;
-   DWORD dwSize = BUFFER_SIZE;
-   BYTE bBuffer[BUFFER_SIZE];
    while( true ) {
-      DWORD dwRead = 0;
-      BOOL bRes = ::InternetReadFile(hFile, bBuffer, BUFFER_SIZE, &dwRead);
+      DWORD dwBytesRead = 0;
+      BOOL bRes = ::InternetReadFile(hFile, buffer.GetData(), buffer.GetSize(), &dwBytesRead);
       if( !bRes ) {
          DWORD dwErr = ::GetLastError();
+         if( *ppOut != NULL ) { free(*ppOut);  *ppOut = NULL; }
          ::InternetCloseHandle(hFile);
          ::SetLastError(dwErr);
          return false;
       }
-      if( bRes && dwRead == 0 ) break;
-      if( dwPos + dwRead > dwSize ) {
-         pBuffer = (LPBYTE) realloc(pBuffer, dwSize + BUFFER_SIZE);
-         dwSize += BUFFER_SIZE;
-      }
-      memcpy(pBuffer + dwPos, bBuffer, dwRead);
-      dwPos += dwRead;
+      if( bRes && dwBytesRead == 0 ) break;
+      *ppOut = (LPBYTE) realloc(*ppOut, dwPos + dwBytesRead);
+      if( pdwSize != NULL ) *pdwSize += dwBytesRead;
+      memcpy(*ppOut + dwPos, buffer.GetData(), dwBytesRead);
+      dwPos += dwBytesRead;
    }
 
    ::InternetCloseHandle(hFile);
 
-   *ppOut = pBuffer;
-   if( pdwSize != NULL ) *pdwSize = dwPos;
    return true;
 }
 
@@ -340,25 +343,32 @@ bool CFtpProtocol::SaveFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE pData, DW
    // Connected?
    if( !WaitForConnection() ) return false;
 
+   CString sCurDir = GetCurPath();
+
+   // Construct remote filename
+   CString sFilename = pstrFilename; 
+   if( pstrFilename[0] != '/' && sCurDir.GetLength() > 1 ) sFilename.Format(_T("%s/%s"), sCurDir, pstrFilename);
+   sFilename.Replace(_T('\\'), _T('/'));
+
    // Create and write file...
    DWORD dwFlags = INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_RELOAD;
    dwFlags |= bBinary ? FTP_TRANSFER_TYPE_BINARY : FTP_TRANSFER_TYPE_ASCII;
-   HINTERNET hFile = ::FtpOpenFile(m_hFTP, pstrFilename, GENERIC_WRITE, dwFlags, 0);
+   HINTERNET hFile = ::FtpOpenFile(m_hFTP, sFilename, GENERIC_WRITE, dwFlags, 0);
    if( hFile == NULL ) return _TranslateError();
 
    DWORD dwPos = 0;
    while( dwSize > 0 ) {
-      DWORD dwWritten = 0;
-      BOOL bRes = ::InternetWriteFile(hFile, pData + dwPos, dwSize, &dwWritten);
+      DWORD dwBytesWritten = 0;
+      BOOL bRes = ::InternetWriteFile(hFile, pData + dwPos, dwSize, &dwBytesWritten);
       if( !bRes ) {
          DWORD dwErr = ::GetLastError();
          ::InternetCloseHandle(hFile);
          ::SetLastError(dwErr);
          return false;
       }
-      if( bRes && dwWritten == 0 ) break;
-      dwPos += dwWritten;
-      dwSize -= dwWritten;
+      if( bRes && dwBytesWritten == 0 ) break;
+      dwPos += dwBytesWritten;
+      dwSize -= dwBytesWritten;
    }
    ::InternetCloseHandle(hFile);
 

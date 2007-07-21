@@ -91,24 +91,24 @@ public:
 class ISerializable
 {
 public:
-   virtual BOOL ReadGroupBegin(LPCTSTR pstrName) = 0;
+   virtual BOOL ReadGroupBegin(LPCWSTR pstrName) = 0;
    virtual BOOL ReadGroupEnd() = 0;
-   virtual BOOL ReadItem(LPCTSTR pstrName) = 0;
-   virtual BOOL Read(LPCTSTR pstrName, LPTSTR szValue, UINT cchMax) = 0;
-   virtual BOOL Read(LPCTSTR pstrName, SYSTEMTIME& stValue) = 0;
-   virtual BOOL Read(LPCTSTR pstrName, long& lValue) = 0;
-   virtual BOOL Read(LPCTSTR pstrName, BOOL& bValue) = 0;
+   virtual BOOL ReadItem(LPCWSTR pstrName) = 0;
+   virtual BOOL Read(LPCWSTR pstrName, LPWSTR szValue, UINT cchMax) = 0;
+   virtual BOOL Read(LPCWSTR pstrName, SYSTEMTIME& stValue) = 0;
+   virtual BOOL Read(LPCWSTR pstrName, long& lValue) = 0;
+   virtual BOOL Read(LPCWSTR pstrName, BOOL& bValue) = 0;
    //
-   virtual BOOL WriteGroupBegin(LPCTSTR pstrName) = 0;
+   virtual BOOL WriteGroupBegin(LPCWSTR pstrName) = 0;
    virtual BOOL WriteGroupEnd() = 0;
-   virtual BOOL WriteItem(LPCTSTR pstrName) = 0;
-   virtual BOOL Write(LPCTSTR pstrName, LPCTSTR pstrValue) = 0;
-   virtual BOOL Write(LPCTSTR pstrName, SYSTEMTIME stValue) = 0;
-   virtual BOOL Write(LPCTSTR pstrName, long lValue) = 0;
-   virtual BOOL Write(LPCTSTR pstrName, BOOL bValue) = 0;
-   virtual BOOL WriteExternal(LPCTSTR pstrName) = 0;
+   virtual BOOL WriteItem(LPCWSTR pstrName) = 0;
+   virtual BOOL Write(LPCWSTR pstrName, LPCWSTR pstrValue) = 0;
+   virtual BOOL Write(LPCWSTR pstrName, SYSTEMTIME stValue) = 0;
+   virtual BOOL Write(LPCWSTR pstrName, long lValue) = 0;
+   virtual BOOL Write(LPCWSTR pstrName, BOOL bValue) = 0;
+   virtual BOOL WriteExternal(LPCWSTR pstrName) = 0;
    //
-   virtual BOOL Delete(LPCTSTR pstrName) = 0;
+   virtual BOOL Delete(LPCWSTR pstrName) = 0;
 };
 
 
@@ -128,7 +128,7 @@ public:
    virtual BOOL UIEnable(INT nID, BOOL bEnable, BOOL bForceUpdate = FALSE) = 0;
    virtual BOOL UISetCheck(INT nID, INT nCheck, BOOL bForceUpdate = FALSE) = 0;
    virtual BOOL UISetRadio(INT nID, BOOL bRadio, BOOL bForceUpdate = FALSE) = 0;
-   virtual BOOL UISetText(INT nID, LPCTSTR lpstrText, BOOL bForceUpdate = FALSE) = 0;
+   virtual BOOL UISetText(INT nID, LPCWSTR lpstrText, BOOL bForceUpdate = FALSE) = 0;
 };
 
 /**
@@ -155,9 +155,9 @@ public:
 class IWizardManager
 {
 public:
-   virtual BOOL AddWizardGroup(LPCTSTR pstrParent, LPCTSTR pstrName) = 0;
+   virtual BOOL AddWizardGroup(LPCWSTR pstrParent, LPCWSTR pstrName) = 0;
    virtual BOOL AddWizardPage(UINT nID, LPCPROPSHEETPAGE hPage) = 0;
-   virtual BOOL SetWizardGroup(LPCTSTR pstrName) = 0;
+   virtual BOOL SetWizardGroup(LPCWSTR pstrName) = 0;
 };
 
 
@@ -186,7 +186,7 @@ class IIdleListener
 {
 public:
    virtual void OnIdle(IUpdateUI* pUIBase) = 0;
-   virtual void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax) = 0;
+   virtual void OnGetMenuText(UINT wID, LPWSTR pstrText, int cchMax) = 0;
 };
 
 /**
@@ -221,8 +221,8 @@ public:
 class ICustomCommandListener
 {
 public:
-   virtual void OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled) = 0;
-   virtual void OnMenuCommand(LPCTSTR pstrType, LPCTSTR pstrCommand, LPCTSTR pstrArguments, LPCTSTR pstrPath, int iFlags, BOOL& bHandled) = 0;
+   virtual void OnUserCommand(LPCWSTR pstrCommand, BOOL& bHandled) = 0;
+   virtual void OnMenuCommand(LPCWSTR pstrType, LPCWSTR pstrCommand, LPCWSTR pstrArguments, LPCWSTR pstrPath, int iFlags, BOOL& bHandled) = 0;
 };
 
 /**
@@ -234,7 +234,7 @@ class IWizardListener
 {
 public:
    virtual BOOL OnInitProperties(IWizardManager* pManager, IElement* pElement) = 0;
-   virtual BOOL OnInitWizard(IWizardManager* pManager, IProject* pProject, LPCTSTR pstrName) = 0;
+   virtual BOOL OnInitWizard(IWizardManager* pManager, IProject* pProject, LPCWSTR pstrName) = 0;
    virtual BOOL OnInitOptions(IWizardManager* pManager, ISerializable* pArc) = 0;
 };
 
@@ -296,7 +296,7 @@ public:
    virtual IDispatch* GetDispatch() = 0;
    virtual LCID GetLCID() const = 0;
    //
-   virtual BOOL AddExplorerView(HWND hWnd, LPCTSTR pstrTitle, int iImage) = 0;
+   virtual BOOL AddExplorerView(HWND hWnd, LPCWSTR pstrTitle, int iImage) = 0;
    virtual BOOL RemoveExplorerView(HWND hWnd) = 0;
    virtual BOOL AddAutoHideView(HWND hWnd, IDE_DOCK_TYPE Direction, int iImage) = 0;
    virtual BOOL RemoveAutoHideView(HWND hWnd) = 0;
@@ -304,14 +304,14 @@ public:
    virtual BOOL AddDockView(HWND hWnd, IDE_DOCK_TYPE Direction, RECT rcWin) = 0;
    virtual BOOL RemoveDockView(HWND hWnd) = 0;
    virtual BOOL GetDockState(HWND hWnd, int& iState, RECT& rcWin) = 0;
-   virtual BOOL AddToolBar(HWND hWnd, LPCTSTR pstrID, LPCTSTR pstrTitle) = 0;
+   virtual BOOL AddToolBar(HWND hWnd, LPCWSTR pstrID, LPCWSTR pstrTitle) = 0;
    virtual BOOL RemoveToolBar(HWND hWnd) = 0;
    virtual BOOL ShowToolBar(HWND hWnd, BOOL bShow = TRUE, BOOL bUseDefault = TRUE) = 0;
-   virtual IViewFrame* CreateClient(LPCTSTR pstrTitle, IProject* pProject, IView* pView) = 0;
+   virtual IViewFrame* CreateClient(LPCWSTR pstrTitle, IProject* pProject, IView* pView) = 0;
    virtual BOOL DestroyClient(HWND hWnd) = 0;
    //
-   virtual IView* CreateView(LPCTSTR pstrFilename, IProject* pProject = NULL, IElement* pParent = NULL) = 0;
-   virtual IDispatch* CreateStdDispatch(LPCTSTR pstrType, IElement* pElement) = 0;
+   virtual IView* CreateView(LPCWSTR pstrFilename, IProject* pProject = NULL, IElement* pParent = NULL) = 0;
+   virtual IDispatch* CreateStdDispatch(LPCWSTR pstrType, IElement* pElement) = 0;
    //
    virtual void EnableModeless(BOOL bEnable) = 0;
    virtual HWND GetHwnd(IDE_HWND_TYPE WinType) const = 0;
@@ -324,14 +324,14 @@ public:
    virtual BOOL ShowWizard(IDE_WIZARD_TYPE Type, IProject* pProject) = 0;
    virtual BOOL ShowConfiguration(IElement* pElement) = 0;
    virtual BOOL ShowProperties(IElement* pElement, BOOL bForceVisible) = 0;
-   virtual UINT ShowMessageBox(HWND hWnd, LPCTSTR pstrMessage, LPCTSTR pstrCaption, DWORD dwFlags) = 0;
-   virtual BOOL ShowStatusText(UINT nID, LPCTSTR pstrText, BOOL bPermanent = FALSE) = 0;
+   virtual UINT ShowMessageBox(HWND hWnd, LPCWSTR pstrMessage, LPCWSTR pstrCaption, DWORD dwFlags) = 0;
+   virtual BOOL ShowStatusText(UINT nID, LPCWSTR pstrText, BOOL bPermanent = FALSE) = 0;
    virtual BOOL PlayAnimation(BOOL bStart, UINT uType) = 0;
-   virtual BOOL RecordMacro(LPCTSTR pstrText) = 0;
+   virtual BOOL RecordMacro(LPCWSTR pstrText) = 0;
    //
-   virtual BOOL SetProperty(LPCTSTR pstrKey, LPCTSTR pstrValue) = 0;
-   virtual BOOL GetProperty(LPCTSTR pstrKey, LPTSTR pstrValue, UINT cchMax) = 0;
-   virtual BOOL EnumProperties(int& iStart, LPCTSTR pstrPattern, LPTSTR pstrKey, LPTSTR pstrValue) = 0;
+   virtual BOOL SetProperty(LPCWSTR pstrKey, LPCWSTR pstrValue) = 0;
+   virtual BOOL GetProperty(LPCWSTR pstrKey, LPWSTR pstrValue, UINT cchMax) = 0;
+   virtual BOOL EnumProperties(int& iStart, LPCWSTR pstrPattern, LPWSTR pstrKey, LPWSTR pstrValue) = 0;
    //
    virtual BOOL AddAppListener(IAppMessageListener* pListener) = 0;
    virtual BOOL RemoveAppListener(IAppMessageListener* pListener) = 0;
@@ -362,8 +362,8 @@ public:
    virtual ~IElement() { };
    virtual BOOL Load(ISerializable* pArchive) = 0;
    virtual BOOL Save(ISerializable* pArchive) = 0;
-   virtual BOOL GetName(LPTSTR pstrName, UINT cchMax) const = 0;
-   virtual BOOL GetType(LPTSTR pstrType, UINT cchMax) const = 0;
+   virtual BOOL GetName(LPWSTR pstrName, UINT cchMax) const = 0;
+   virtual BOOL GetType(LPWSTR pstrType, UINT cchMax) const = 0;
    virtual IDispatch* GetDispatch() = 0;
 };
 
@@ -376,14 +376,14 @@ class ISolution : public IElement
 {
 public:
    virtual void Close() = 0;
-   virtual BOOL LoadSolution(LPCTSTR pstrFilename) = 0;
-   virtual BOOL SaveSolution(LPCTSTR pstrFilename) = 0;
+   virtual BOOL LoadSolution(LPCWSTR pstrFilename) = 0;
+   virtual BOOL SaveSolution(LPCWSTR pstrFilename) = 0;
    virtual BOOL IsDirty() const = 0;
-   virtual BOOL GetFileName(LPTSTR pstrFilename, UINT cchMax) const = 0;
+   virtual BOOL GetFileName(LPWSTR pstrFilename, UINT cchMax) const = 0;
    virtual BOOL IsLoaded() const = 0;
    virtual IProject* GetItem(INT iIndex) = 0;
    virtual INT GetItemCount() const = 0;
-   virtual BOOL AddProject(LPCTSTR pstrFilename) = 0;
+   virtual BOOL AddProject(LPCWSTR pstrFilename) = 0;
    virtual BOOL RemoveProject(IProject* pProject) = 0;
    virtual BOOL SetActiveProject(IProject* pProject) = 0;
    virtual IProject* GetActiveProject() const = 0;
@@ -398,8 +398,8 @@ public:
 class IProject : public IElement
 {
 public:
-   virtual BOOL Initialize(IDevEnv* pEnv, LPCTSTR pstrPath) = 0;
-   virtual BOOL GetClass(LPTSTR pstrType, UINT cchMax) const = 0;
+   virtual BOOL Initialize(IDevEnv* pEnv, LPCWSTR pstrPath) = 0;
+   virtual BOOL GetClass(LPWSTR pstrType, UINT cchMax) const = 0;
    virtual BOOL Close() = 0;
    virtual BOOL IsDirty() const = 0;
    virtual BOOL CreateProject() = 0;
@@ -407,7 +407,7 @@ public:
    virtual void DeactivateProject() = 0;
    virtual void ActivateUI() = 0;
    virtual void DeactivateUI() = 0;
-   virtual BOOL SetName(LPCTSTR pstrName) = 0;
+   virtual BOOL SetName(LPCWSTR pstrName) = 0;
    virtual IView* GetItem(INT iIndex) = 0;
    virtual INT GetItemCount() const = 0;
 };
@@ -425,8 +425,8 @@ public:
    virtual BOOL OpenView(long lPosition) = 0;
    virtual void CloseView() = 0;
    virtual IElement* GetParent() const = 0;
-   virtual BOOL GetFileName(LPTSTR pstrFilename, UINT cchMax) const = 0;
-   virtual BOOL SetName(LPCTSTR pstrName) = 0;
+   virtual BOOL GetFileName(LPWSTR pstrFilename, UINT cchMax) const = 0;
+   virtual BOOL SetName(LPCWSTR pstrName) = 0;
    virtual BOOL GetText(BSTR* pbstrText) = 0;
    virtual BOOL IsDirty() const = 0;
    virtual BOOL Reload() = 0;

@@ -39,7 +39,11 @@ BOOL CResultView::PreTranslateMessage(MSG* pMsg)
 void CResultView::OnIdle(IUpdateUI* pUIBase)
 {
    int nCount = 0;
-   if( m_pCurProcessingList != NULL ) nCount = m_pCurProcessingList->GetSelectedCount();
+   int iSel = m_ctrlTab.GetCurSel();
+   if( iSel != m_ctrlTab.GetItemCount() - 1 ) {
+      CListViewCtrl ctrlList = m_aLists[iSel]->m_hWnd;
+      nCount = ctrlList.GetSelectedCount();
+   }   
    pUIBase->UIEnable(ID_FILE_SAVE, TRUE);
    pUIBase->UIEnable(ID_FILE_PRINT, FALSE);
    pUIBase->UIEnable(ID_EDIT_UNDO, FALSE);
@@ -127,7 +131,6 @@ LRESULT CResultView::OnContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
    int iSel = m_ctrlTab.GetCurSel();
    if( iSel == m_ctrlTab.GetItemCount() - 1 ) return 0;
    CListViewCtrl ctrlList = m_aLists[iSel]->m_hWnd;
-   if( ctrlList.GetSelectedCount() == 0 ) return 0;
 
    CMenu menu;
    menu.LoadMenu(IDR_EDIT_LIST);
@@ -136,19 +139,25 @@ LRESULT CResultView::OnContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, 
    UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, pt, FALSE);
    if( nCmd == 0 ) return 0;
 
-   CHeaderCtrl ctrlHeader = ctrlList.GetHeader();
-   int nColumns = ctrlHeader.GetItemCount();
-   CString sText, sItem;
-   int iIndex = ctrlList.GetNextItem(-1, LVNI_SELECTED);
-   while( iIndex != -1 ) {
-      for( int i = 0; i < nColumns; i++ ) {
-         sItem = _T("");
-         ctrlList.GetItemText(iIndex, i, sItem);
-         sText += sItem + (i != nColumns - 1 ? _T("\t") : _T("\r\n"));
-      }      
-      iIndex = ctrlList.GetNextItem(iIndex, LVNI_SELECTED);
+   switch( nCmd ) {
+   case ID_EDIT_COPY:
+      {
+         CHeaderCtrl ctrlHeader = ctrlList.GetHeader();
+         int nColumns = ctrlHeader.GetItemCount();
+         CString sText, sItem;
+         int iIndex = ctrlList.GetNextItem(-1, LVNI_SELECTED);
+         while( iIndex != -1 ) {
+            for( int i = 0; i < nColumns; i++ ) {
+               sItem = _T("");
+               ctrlList.GetItemText(iIndex, i, sItem);
+               sText += sItem + (i != nColumns - 1 ? _T("\t") : _T("\r\n"));
+            }      
+            iIndex = ctrlList.GetNextItem(iIndex, LVNI_SELECTED);
+         }
+         AtlSetClipboardText(ctrlList, sText);
+      }
+      break;
    }
-   AtlSetClipboardText(ctrlList, sText);
 
    bHandled = TRUE;
    return 0;
@@ -166,7 +175,7 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
          KillTimer(BACKGROUND_TIMERID);
 
          _pDevEnv->PlayAnimation(TRUE, ANIM_TRANSFER);
-         _pDevEnv->ShowStatusText(0, CString(MAKEINTRESOURCE(IDS_SB_EXECUTING)), TRUE);
+         _pDevEnv->ShowStatusText(0, CString(MAKEINTRESOURCE(IDS_STATUS_EXECUTING)), TRUE);
 
          _RememberColumnSizes();
          _ResetLists();
@@ -186,7 +195,7 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
          m_pCurProcessingList = pList;
          m_aLists.Add(pList);
 
-         CListViewCtrl ctrlList = *pList;
+         CListViewCtrl ctrlList = pList->m_hWnd;
          ctrlList.SetFont(m_font);
          ctrlList.SetExtendedListViewStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT | LVS_EX_HEADERDRAGDROP | LVS_EX_INFOTIP);
 
@@ -313,7 +322,7 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
    case PACKET_DONE:
       {
          _pDevEnv->PlayAnimation(FALSE, ANIM_TRANSFER);
-         _pDevEnv->ShowStatusText(0, CString(MAKEINTRESOURCE(IDS_SB_DONE)), TRUE);
+         _pDevEnv->ShowStatusText(0, CString(MAKEINTRESOURCE(IDS_STATUS_DONE)), TRUE);
          SetTimer(BACKGROUND_TIMERID, BACKGROUND_TRIGGER_TIME);
       }
       break;
@@ -345,6 +354,8 @@ LRESULT CResultView::OnTabChange(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHand
 
 LRESULT CResultView::OnLink(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
 {
+   // Here we'll allow the Summery page to link back to the SQL source
+   // and set the cursor at a line position.
    ENLINK* pEnlink = (ENLINK*) pnmh;
    if( pEnlink->msg != WM_LBUTTONDOWN ) return 0;
    int iStart = pEnlink->chrg.cpMin;

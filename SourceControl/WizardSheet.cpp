@@ -19,15 +19,15 @@ LRESULT COptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_SYSTEM_CUSTOM)));
 
    long iIndex = 0;
-   if( _Commands.sType == _T("cvs") ) iIndex = SC_SYSTEM_CVS;
+   if( _Commands.sType == _T("cvs") )        iIndex = SC_SYSTEM_CVS;
    if( _Commands.sType == _T("subversion") ) iIndex = SC_SYSTEM_SUBVERSION;
-   if( _Commands.sType == _T("custom") ) iIndex = SC_SYSTEM_CUSTOM;
+   if( _Commands.sType == _T("custom") )     iIndex = SC_SYSTEM_CUSTOM;
    m_ctrlType.SetCurSel(iIndex);
 
    m_ctrlList.SubclassWindow(GetDlgItem(IDC_LIST));
    m_ctrlList.SetExtendedListStyle(PLS_EX_XPLOOK|PLS_EX_CATEGORIZED);
    m_ctrlList.SetColumnWidth(130);
-   
+
    _PopulateList();
   
    m_ctrlList.EnableWindow(_Commands.bEnabled);
@@ -118,9 +118,9 @@ int COptionsPage::OnApply()
 {
    int iIndex = m_ctrlType.GetCurSel();
    _Commands.sType = _T("none");
-   if( iIndex == SC_SYSTEM_CVS ) _Commands.sType = _T("cvs");
-   if( iIndex == SC_SYSTEM_SUBVERSION ) _Commands.sType = _T("subversion");
-   if( iIndex == SC_SYSTEM_CUSTOM ) _Commands.sType = _T("custom");
+   if( iIndex == SC_SYSTEM_CVS )         _Commands.sType = _T("cvs");
+   if( iIndex == SC_SYSTEM_SUBVERSION )  _Commands.sType = _T("subversion");
+   if( iIndex == SC_SYSTEM_CUSTOM )      _Commands.sType = _T("custom");
    _Commands.bEnabled = iIndex > 0;
 
    CComVariant v;

@@ -19,7 +19,7 @@ void CRemoteDirView::Init(CRemoteProject* pProject)
    m_pFileManager = &pProject->m_FileManager;
    m_sPath = m_pFileManager->GetParam(_T("Path"));
    m_sSeparator = m_pFileManager->GetParam(_T("Separator"));
-   m_bLocalPath = (m_sPath.Mid(1, 2) == _T(":\\"));
+   m_bWin32Path = (m_sPath.Mid(1, 2) == _T(":\\"));
    ATLASSERT(!m_sPath.IsEmpty());
    ATLASSERT(!m_sSeparator.IsEmpty());
 }
@@ -58,7 +58,7 @@ LRESULT CRemoteDirView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
    if( m_FolderImages.IsNull() ) return (LRESULT) -1;
    _AddShellIcon(m_FolderImages, _T(""), FILE_ATTRIBUTE_DIRECTORY);
    _AddShellIcon(m_FolderImages, _T(""), FILE_ATTRIBUTE_DIRECTORY, SHGFI_OPENICON);
-   _AddShellIcon(m_FolderImages, m_bLocalPath ? _T("C:\\") : _T("X:\\"), 0);
+   _AddShellIcon(m_FolderImages, m_bWin32Path ? _T("C:\\") : _T("X:\\"), 0);
    m_ctrlFolders.SetImageList(m_FolderImages);
 
    if( !m_FileImages.IsNull() ) m_FileImages.Destroy();
@@ -240,7 +240,7 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
 
    CString sHostName;
    sHostName.Format(_T("[%s]"), sHost);
-   if( m_bLocalPath ) sHostName.LoadString(IDS_LOCALDRIVE);
+   if( m_bWin32Path ) sHostName.LoadString(IDS_LOCALDRIVE);
 
    if( sPath.Right(1) != m_sSeparator ) sPath += m_sSeparator;
 
@@ -315,10 +315,14 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
       }
       if( (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0 ) iImage = 0;
       
-      m_ctrlFiles.InsertItem(LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE, 
+      UINT uState = 0;
+      if( fd.cFileName[0] == '.' ) uState = LVIS_CUT;
+      if( fd.cFileName[0] == '$' ) uState = LVIS_CUT;
+
+      m_ctrlFiles.InsertItem(LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE | LVIF_STATE, 
          i, 
          fd.cFileName, 
-         0, 0, 
+         uState, LVIS_CUT, 
          iImage, 
          fd.dwFileAttributes);
    }
@@ -339,7 +343,7 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
 
       int iPos = sPath.Find(m_sSeparator, sBuildPath.GetLength());
       if( iPos < 0 ) break;
-      if( iIndex == 0 && (iPos == 0 || m_bLocalPath) ) iPos += 1; // Make sure we capture the / or C:\ separator in the root
+      if( iIndex == 0 && (iPos == 0 || m_bWin32Path) ) iPos += 1; // Make sure we capture the / or C:\ separator in the root
       sName = sPath.Mid(sBuildPath.GetLength(), iPos - sBuildPath.GetLength());
 
       sBuildPath += sName;

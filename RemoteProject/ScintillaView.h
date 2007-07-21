@@ -23,6 +23,13 @@ public:
 
    typedef struct 
    {
+      long lStartPos;
+      long lEndPos;
+      CString sText;
+   } ERRORMARKINFO;
+
+   typedef struct 
+   {
       CString sName;
       CString sType;
       CString sScope;
@@ -51,24 +58,25 @@ public:
       CString sIncludeFile;
    } CONTEXTPOPUPINFO;
 
-   CContainedWindowT<CScintillaCtrl> m_ctrlEdit;
-   IProject* m_pProject;            // Reference to the project
-   CRemoteProject* m_pCppProject;   // Reference to the Remote CPP project (if attached)
-   IView* m_pView;                  // Reference to the view
-   CString m_sFilename;             // Name of file
-   CString m_sLanguage;             // Language
-   CString m_sOutputToken;          // Match substring for compile view
-   CString m_sDwellText;            // Current tip text
-   int m_iOutputLine;               // Last matched compile view line
-   bool m_bClearSquigglyLines;      // Remove squiggly lines?
-   bool m_bAutoIndent;              // Do we need to auto-indent text?
-   bool m_bSmartIndent;             // Do we need to smart-indent text?
-   bool m_bProtectDebugged;         // Read-Only file when debugging?
-   bool m_bAutoComplete;            // Use auto-complete?
-   bool m_bMarkErrors;              // Mark errors with squiggly lines?
-   bool m_bMouseDwell;              // Awaiting mouse-hover information?
-   TOOLTIPINFO m_TipInfo;           // Information about displayed tooltip
-   CONTEXTPOPUPINFO m_PopupInfo;    // Information about Context menu popup
+   CContainedWindowT<CScintillaCtrl> m_ctrlEdit;     // The Scintilla edit control
+   IProject* m_pProject;                             // Reference to the project
+   CRemoteProject* m_pCppProject;                    // Reference to the Remote CPP project (if attached)
+   IView* m_pView;                                   // Reference to the view
+   CString m_sFilename;                              // Name of file
+   CString m_sLanguage;                              // Language
+   CString m_sOutputToken;                           // Match substring for compile view
+   CString m_sDwellText;                             // Current tip text
+   int m_iOutputLine;                                // Last matched compile view line
+   bool m_bAutoIndent;                               // Do we need to auto-indent text?
+   bool m_bSmartIndent;                              // Do we need to smart-indent text?
+   bool m_bProtectDebugged;                          // Read-Only file when debugging?
+   bool m_bAutoComplete;                             // Use auto-complete?
+   bool m_bMarkErrors;                               // Mark errors with squiggly lines?
+   bool m_bDelayedHoverData;                         // Awaiting mouse-hover information?
+   bool m_bDwellEnds;                                // Accept tooltip timeout period?
+   TOOLTIPINFO m_TipInfo;                            // Information about displayed tooltip
+   CONTEXTPOPUPINFO m_PopupInfo;                     // Information about Context menu popup
+   CSimpleArray<ERRORMARKINFO> m_aErrorInfo;         // Remove squiggly lines?
 
    // Operations
 
@@ -97,6 +105,7 @@ public:
       COMMAND_ID_HANDLER(ID_DEBUG_STEP_SET, OnDebugSetNext)   
       COMMAND_ID_HANDLER(ID_DEBUG_EDIT_LINK, OnDebugLink)
       NOTIFY_CODE_HANDLER(SCN_CHARADDED, OnCharAdded)
+      NOTIFY_CODE_HANDLER(SCN_MODIFIED, OnModified)
       NOTIFY_CODE_HANDLER(SCN_MARGINCLICK, OnMarginClick)
       NOTIFY_CODE_HANDLER(SCN_CALLTIPCLICK, OnCallTipClick)
       NOTIFY_CODE_HANDLER(SCN_DWELLSTART, OnDwellStart)
@@ -131,6 +140,7 @@ public:
    LRESULT OnDebugLink(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnCharAdded(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnModified(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnMarginClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnCallTipClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnDwellStart(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
@@ -150,22 +160,23 @@ public:
 
    void _AutoComplete(CHAR ch);
    void _FunctionTip(CHAR ch);
-   void _ClearSquigglyLines();
-   void _MatchBraces(long lPosition);
+   void _ClearAllSquigglyLines();
+   void _ClearSquigglyLine(long lPos);
+   void _MatchBraces(long lPos);
    void _SetLineIndentation(int line, int indent);
    void _RegisterListImages();
    bool _HasSelection() const;
    bool _IsRealCppEditPos(long lPos) const;
    int _CountCommas(LPCTSTR pstrText) const;
    int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings);
-   void _ShowToolTip(long lPos, CString& sText, bool bAdjustPos, COLORREF clrText, COLORREF clrBack);
-   void _ShowMemberToolTip(long lPos, MEMBERINFO* pInfo, long lCurTip, bool bExpand, COLORREF clrBack, COLORREF clrText);
+   void _ShowToolTip(long lPos, CString sText, bool bAdjustPos, bool bAcceptTimeout, COLORREF clrText, COLORREF clrBack);
+   void _ShowMemberToolTip(long lPos, MEMBERINFO* pInfo, long lCurTip, bool bExpand, bool bAdjustPos, bool bAcceptTimeout, COLORREF clrBack, COLORREF clrText);
    bool _GetMemberInfo(long lPos, MEMBERINFO& info);
-   CString _FindBlockType(long lPosition);
+   CString _FindBlockType(long lPos);
    CString _FindIncludeUnderCursor(long lPos);
-   CString _FindTagType(const CString& sName, long lPosition);
+   CString _FindTagType(const CString& sName, long lPos);
    CString _GetSelectedText();
-   CString _GetNearText(long iPosition, bool bExcludeKeywords = true);
+   CString _GetNearText(long lPosition, bool bExcludeKeywords = true);
    inline bool _iscppchar(CHAR ch) const;
    inline bool _iscppchar(WCHAR ch) const;
 };

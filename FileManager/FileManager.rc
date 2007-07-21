@@ -148,6 +148,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_TITLE               "File Manager"
     IDS_FILES               "Files"
+    ID_VIEW_FILEMANAGER     "Show/Hide the File Manager\nFile Manager"
 END
 
 #endif    // English (U.S.) resources

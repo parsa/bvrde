@@ -64,8 +64,9 @@ public:
 protected:
    DWORD _SendInit();
    CString _ResolvePath(LPCTSTR pstrPath);
+   bool _CheckFileExists(LPCTSTR pstrFilename);
    int _ReadData(CRYPT_SESSION cryptSession, LPVOID pData, int iMaxSize);
-   bool _WriteData(CRYPT_SESSION cryptSession, LPCVOID pData, int iSize);
+   int _WriteData(CRYPT_SESSION cryptSession, LPCVOID pData, int iSize);
 
 protected:
    CString m_sHost;

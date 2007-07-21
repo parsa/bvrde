@@ -294,8 +294,8 @@ bool CMainFrame::_LoadSettings(CXmlSerializer& arc)
             _AddProperty(&arc, _T("maxErrors"), sKey + _T("maxErrors"));
          }
 
-         // We'll allow 8 styles pr file-type
-         for( long i = 1; i <= 8; i++ ) {
+         // We'll allow 15 styles pr file-type
+         for( long i = 1; i <= 15; i++ ) {
             ::wsprintf(szBuffer, _T("Style%ld"), i);
             if( arc.ReadItem(szBuffer) ) {
                sKey.Format(_T("editors.%s.style%ld."), sLanguage, i);

@@ -31,7 +31,7 @@ public:
    CFileManager* m_pFileManager;     // Reference to file protocol implementation
    CString m_sPath;                  // Current path (full)
    CString m_sSeparator;             // Directory separator character
-   bool m_bLocalPath;                // Is this a local Win32 system?
+   bool m_bWin32Path;                // Is this a local Win32 system?
 
    void Init(CRemoteProject* pProject);
    void Detach();

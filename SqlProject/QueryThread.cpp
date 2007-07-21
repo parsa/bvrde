@@ -76,9 +76,9 @@ DWORD CQueryThread::Run()
             const SQLPART& part = aParts[x];
 
             // Clean up
-            if( pDbCmd ) delete pDbCmd;
-            if( pDbRec ) delete pDbRec;
             m_pDbCmd = NULL;
+            if( pDbCmd != NULL ) delete pDbCmd;
+            if( pDbRec != NULL ) delete pDbRec;
 
             int iAffected = 0;
             short iColumns = 0;
@@ -145,7 +145,7 @@ DWORD CQueryThread::Run()
 
                   // Collect records
                   DATAPACKET* pRowInfo = new DATAPACKET(PACKET_ROWINFO, iColumns, 0, new CString[ m_nChunkSize * iColumns ]);
-               
+
                   int iPos = 0;
                   int nTotal = 0;
                   CString sValue;
@@ -259,7 +259,7 @@ DWORD CQueryThread::Run()
                   // Send finish packet
                   ::PostMessage(m_hWndNotify, WM_USER_DATA_AVAILABLE, 0, (LPARAM) new DATAPACKET(PACKET_FINISH, iColumns, iAffected));
                }
-               m_pDbCmd->Close();
+               pDbCmd->Close();
             }
          }
 
@@ -273,13 +273,14 @@ DWORD CQueryThread::Run()
       {
          // Slowly populate table/column list
          TABLEINFO* pTable = m_pDbData->EstimateNextInfoRequest();
-         if( pTable ) m_pDbData->LoadTableInfo(pTable, &Db);
+         if( pTable != NULL ) m_pDbData->LoadTableInfo(pTable, &Db);
       }
    }
 
-   if( pDbCmd ) delete pDbCmd;
-   if( pDbRec ) delete pDbRec;
    m_pDbCmd = NULL;
+
+   if( pDbCmd != NULL ) delete pDbCmd;
+   if( pDbRec != NULL ) delete pDbRec;
    Db.Close();
 
    return 0;
@@ -322,8 +323,10 @@ void CQueryThread::Disconnect()
 
 void CQueryThread::Abort()
 {
-   m_state = STATE_ABORT;
-   if( m_pDbCmd ) m_pDbCmd->Cancel();
+   __try {
+      m_state = STATE_ABORT;
+      if( m_pDbCmd != NULL ) m_pDbCmd->Cancel();
+   } __except(1) { }
 }
 
 void CQueryThread::ExecuteSql(LPCTSTR pstrSql, int lLineNum)
@@ -358,7 +361,7 @@ bool CQueryThread::IsBusy() const
 
 void CQueryThread::Cancel()
 {
-   if( m_pDbCmd && m_pDbCmd->IsOpen() ) m_pDbCmd->Cancel();
+   if( m_pDbCmd != NULL && m_pDbCmd->IsOpen() ) m_pDbCmd->Cancel();
 }
 
 BOOL CQueryThread::_SplitSQL(const CString& sSQL, int lLineNum, CSimpleArray<SQLPART>& aParts)
@@ -414,7 +417,7 @@ BOOL CQueryThread::_SplitSQL(const CString& sSQL, int lLineNum, CSimpleArray<SQL
             part.lLineNum = iStartLineNo;
             aParts.Add(part);
          }
-         sPart = "";
+         sPart = _T("");
          p += iTermLen;
          if( iTermLen > 1 ) lLineNum++;
          iStartLineNo = 0;

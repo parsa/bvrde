@@ -38,6 +38,7 @@ enum
    DEBUG_CMD_SET_RUNNING,
    DEBUG_CMD_DEBUG_START,
    DEBUG_CMD_DEBUG_STOP,
+   DEBUG_CMD_SET_BREAKPOINTS,
    DEBUG_CMD_CLEAR_BREAKPOINTS,
    DEBUG_CMD_REQUEST_BREAKPOINTS,
    DEBUG_CMD_GET_CARET_TEXT,
@@ -55,7 +56,8 @@ typedef enum LAZYACTION
    LAZY_SHOW_MESSAGE,
    LAZY_SET_STATUSBARTEXT,
    LAZY_DEBUGCOMMAND,
-   LAZY_SEND_VIEW_MESSAGE,
+   LAZY_SEND_GLOBAL_VIEW_MESSAGE,
+   LAZY_SEND_PROJECT_VIEW_MESSAGE,
    LAZY_SET_DEBUG_BREAKPOINT,
    LAZY_DEBUG_START_EVENT,
    LAZY_DEBUG_KILL_EVENT,
@@ -213,6 +215,23 @@ public:
    virtual bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList) = 0;
    virtual bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance) = 0;
    virtual bool GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult) = 0;
+};
+
+
+//////////////////////////////////////////////////////////////
+//
+
+template <typename T >
+class CAutoFree
+{
+public:
+   LPVOID pData;
+   SIZE_T cSize;
+   CAutoFree(SIZE_T iSize) { cSize = iSize; pData = malloc(iSize); };
+   ~CAutoFree() { free(pData); };
+   T* GetData() const { return static_cast<T*>(pData); };
+   T* Detach() const { T* p = pData; pData = NULL; return p; };
+   SIZE_T GetSize() { return cSize; };
 };
 
 

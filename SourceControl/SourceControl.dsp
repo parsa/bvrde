@@ -96,6 +96,10 @@ SOURCE=.\Commands.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\DiffCvsView.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Globals.cpp
 # End Source File
 # Begin Source File
@@ -182,6 +186,10 @@ SOURCE=..\IDE\BVRDE_SDK.h
 # Begin Source File
 
 SOURCE=.\Commands.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DiffCvsView.h
 # End Source File
 # Begin Source File
 

@@ -53,6 +53,7 @@ struct WIZDATA
    CString sPassword;             // Password
    CString sPath;                 // Source Path 
    CString sExtra;                // Additional commands during logon
+   CString sServerType;           // Server type
 } g_data;
 
 
@@ -77,6 +78,18 @@ static void CheckDebugPriv(HWND hWnd)
    _pDevEnv->ShowMessageBox(hWnd, CString(MAKEINTRESOURCE(IDS_ERR_DEBUGPRIV)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONWARNING);
 }
 
+static void CheckAttachConsole(HWND hWnd)
+{
+   typedef BOOL (WINAPI* PFNATTACHCONSOLE)(DWORD);
+   if( ::GetProcAddress( ::GetModuleHandle(_T("kernel32.dll")), "AttachConsole" ) != NULL ) return;
+   _pDevEnv->ShowMessageBox(hWnd, CString(MAKEINTRESOURCE(IDS_ERR_WINXP)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR);
+}
+
+static void SetShellManagerDefaults(CShellManager& sm, CString sServerType)
+{
+   if( sServerType.Find(_T("LynxOS")) >= 0 ) sm.SetParam(_T("LoginPrompt"), _T("USER"));
+}
+
 
 ///////////////////////////////////////////////////////////////
 //
@@ -90,6 +103,11 @@ LRESULT CFileTransferPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    m_ctrlUsername = GetDlgItem(IDC_USERNAME);
    m_ctrlPassword = GetDlgItem(IDC_PASSWORD);
    m_ctrlPath = GetDlgItem(IDC_PATH);
+
+   m_ctrlHost.LimitText(128);
+   m_ctrlUsername.LimitText(128);
+   m_ctrlPassword.LimitText(30);
+   m_ctrlPath.LimitText(MAX_PATH);
 
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_FTP)));
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_SFTP)));
@@ -117,7 +135,7 @@ LRESULT CFileTransferPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    if( _ttol(CWindowText(m_ctrlPort)) == 0 ) m_ctrlPort.SetWindowText(_T("21"));
 
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnTypeChange(0, 0, NULL, bDummy);
    OnTextChange(0, 0, NULL, bDummy);
 
@@ -205,7 +223,7 @@ LRESULT CFileTransferPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
 int CFileTransferPage::OnSetActive()
 {
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnTextChange(0, 0, NULL, bDummy);
    return 0;
 }
@@ -339,17 +357,27 @@ LRESULT CCompilerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    m_ctrlType = GetDlgItem(IDC_TYPE);
    m_ctrlTest = GetDlgItem(IDC_TEST);
    m_ctrlHost = GetDlgItem(IDC_HOST);
+   m_ctrlHostLabel = GetDlgItem(IDC_HOST_LABEL);
    m_ctrlPort = GetDlgItem(IDC_PORT);
    m_ctrlUsername = GetDlgItem(IDC_USERNAME);
    m_ctrlPassword = GetDlgItem(IDC_PASSWORD);
    m_ctrlPath = GetDlgItem(IDC_PATH);
    m_ctrlExtra = GetDlgItem(IDC_EXTRA);
 
+   m_ctrlHost.LimitText(128);
+   m_ctrlUsername.LimitText(128);
+   m_ctrlPassword.LimitText(30);
+   m_ctrlPath.LimitText(MAX_PATH);
+   m_ctrlExtra.LimitText(1400);
+
    m_ctrlServer.AddString(_T("Generic"));
-   m_ctrlServer.AddString(_T("LINUX (Generic)"));
+   m_ctrlServer.AddString(_T("LINUX"));
    m_ctrlServer.AddString(_T("LINUX (Ubuntu)"));
+   m_ctrlServer.AddString(_T("LINUX (Gentoo)"));
+   m_ctrlServer.AddString(_T("LINUX (Debian)"));
    m_ctrlServer.AddString(_T("LINUX (Red Hat)"));
-   m_ctrlServer.AddString(_T("UNIX (Generic)"));
+   m_ctrlServer.AddString(_T("UNIX"));
+   m_ctrlServer.AddString(_T("UNIX (AIX)"));
    m_ctrlServer.AddString(_T("UNIX (HP-UX)"));
    m_ctrlServer.AddString(_T("BSD (FreeBSD)"));
    m_ctrlServer.AddString(_T("BSD (OpenBSD)"));
@@ -357,6 +385,7 @@ LRESULT CCompilerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    m_ctrlServer.AddString(_T("Cygwin"));
    m_ctrlServer.AddString(_T("Windows"));
    m_ctrlServer.AddString(_T("MacOS"));
+   m_ctrlServer.AddString(_T("LynxOS"));
 
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TELNET)));
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_RLOGIN)));
@@ -398,7 +427,7 @@ LRESULT CCompilerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    if( sType == _T("comspec") ) iType = SHELLTRANSFER_COMSPEC;
    m_ctrlType.SetCurSel(iType);
 
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnTypeChange(0, 0, NULL, bDummy);
    OnTextChange(0, 0, NULL, bDummy);
 
@@ -418,6 +447,7 @@ LRESULT CCompilerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    CString sPath = CWindowText(m_ctrlPath);
    long lPort = _ttol(CWindowText(m_ctrlPort));
    CString sExtra = CWindowText(m_ctrlExtra);
+   CString sServerType = CWindowText(m_ctrlServer);
 
    CString sType = _T("telnet");
    switch( m_ctrlType.GetCurSel() ) {
@@ -437,7 +467,10 @@ LRESULT CCompilerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    sm.SetParam(_T("Port"), ToString(lPort));
    sm.SetParam(_T("Path"), sPath);
    sm.SetParam(_T("Extra"), sExtra);
+   sm.SetParam(_T("LoginPrompt"), m_pProject->m_CompileManager.GetParam(_T("LoginPrompt")));
+   sm.SetParam(_T("PasswordPrompt"), m_pProject->m_CompileManager.GetParam(_T("PasswordPrompt")));
    sm.SetParam(_T("ConnectTimeout"), m_pProject->m_CompileManager.GetParam(_T("ConnectTimeout")));
+   if( g_data.bIsWizard ) SetShellManagerDefaults(sm, sServerType);
    if( !sm.Start() || !sm.WaitForConnection() ) {
       DWORD dwErr = ::GetLastError();
       sm.SignalStop();
@@ -464,9 +497,13 @@ LRESULT CCompilerPage::OnTypeChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
    case SHELLTRANSFER_RLOGIN: lPort = 513; break;
    }
    if( wID != 0 ) m_ctrlPort.SetWindowText(ToString(lPort));
+   if( wID != 0 && iTypeIndex == SHELLTRANSFER_COMSPEC ) m_ctrlServer.SetCurSel(m_ctrlServer.FindString(0, _T("Cygwin")));
    m_ctrlPort.EnableWindow(iTypeIndex != SHELLTRANSFER_COMSPEC);
    m_ctrlUsername.EnableWindow(iTypeIndex != SHELLTRANSFER_COMSPEC);
    m_ctrlPassword.EnableWindow(iTypeIndex != SHELLTRANSFER_COMSPEC);
+   UINT uLabel = IDS_HOST_LABEL;
+   if( iTypeIndex == SHELLTRANSFER_COMSPEC ) uLabel = IDS_MINGWBIN_LABEL;
+   m_ctrlHostLabel.SetWindowText(CString(MAKEINTRESOURCE(uLabel)));
    g_data.iShellType = iTypeIndex;
    return 0;
 }
@@ -475,39 +512,67 @@ LRESULT CCompilerPage::OnTextChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 {
    BOOL bOK = TRUE;
    int iTypeIndex = m_ctrlType.GetCurSel();
+   if( m_ctrlHost.GetWindowTextLength() == 0 ) bOK = FALSE;
    if( m_ctrlPort.GetWindowTextLength() == 0 ) bOK = FALSE;
    if( m_ctrlUsername.GetWindowTextLength() == 0 && m_ctrlPassword.GetWindowTextLength() == 0 ) bOK = FALSE;
-   if( iTypeIndex == SHELLTRANSFER_COMSPEC ) bOK = TRUE;  // Batchfile don't need username/password
-   if( m_ctrlHost.GetWindowTextLength() == 0 ) bOK = FALSE;
+   if( iTypeIndex == SHELLTRANSFER_COMSPEC ) bOK = TRUE;  // Batchfile don't need username/password/host
    if( m_ctrlPath.GetWindowTextLength() == 0 ) bOK = FALSE;
-   CWindow(GetDlgItem(IDC_TEST)).EnableWindow(bOK);
    SetWizardButtons(bOK ? PSWIZB_BACK | PSWIZB_NEXT : PSWIZB_BACK);
+   if( m_ctrlHost.GetWindowTextLength() == 0 ) bOK = FALSE;
+   CWindow(GetDlgItem(IDC_TEST)).EnableWindow(bOK);
    return 0;
 }
 
 int CCompilerPage::OnWizardNext()
 {
+   int iTypeIndex = m_ctrlType.GetCurSel();
+   CString sHost =  CWindowText(m_ctrlHost);
    CString sPath = CWindowText(m_ctrlPath);
+   CString sExtra =  CWindowText(m_ctrlExtra);
+   CString sServerType = CWindowText(m_ctrlServer);
+  
+   // Warn when not specifying a correct path to the /bin folder when
+   // the MinGW compilation environment has been chosen.
+   if( !sHost.IsEmpty()
+       && iTypeIndex == SHELLTRANSFER_COMSPEC )
+   {
+      TCHAR szFilename[MAX_PATH];
+      _tcscpy(szFilename, sHost);
+      ::PathAppend(szFilename, _T("gdb.exe"));
+      if( !::PathFileExists(szFilename) ) {
+         if( IDNO == _pDevEnv->ShowMessageBox(m_hWnd, CString(MAKEINTRESOURCE(IDS_ERR_MINGWPATH)), CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONWARNING | MB_YESNO) ) return -1;
+      }
+   }
 
-   static bool s_bWarned = false;
-   if( !s_bWarned
-       && !sPath.IsEmpty() 
+   // Warn when no path to MinGW /bin folder is specified. This is a valid
+   // configuration but user needs to know that the system must be setup correctly.
+   if( sHost.IsEmpty()
+       && iTypeIndex == SHELLTRANSFER_COMSPEC )
+   {
+      if( IDNO == _pDevEnv->ShowMessageBox(m_hWnd, CString(MAKEINTRESOURCE(IDS_ERR_MINGWEMPTY)), CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONINFORMATION | MB_YESNO) ) return -1;
+   }
+
+   // Warn when using a project path that is not relative. It should be a
+   // complete path to the remote folder.
+   if( !sPath.IsEmpty() 
        && sPath.Left(1) != _T("/") 
        && sPath.FindOneOf(_T("\\:")) < 0 ) 
    {
       if( IDNO == _pDevEnv->ShowMessageBox(m_hWnd, CString(MAKEINTRESOURCE(IDS_ERR_RELPATH)), CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONWARNING | MB_YESNO) ) return -1;
-      s_bWarned = true;
    }
 
-   // Store the values on the first page for use in the remaining pages.
-   g_data.iShellType = m_ctrlType.GetCurSel();
-   g_data.sExtra = CWindowText(m_ctrlExtra);
+   // Store the values on the compiler page for use in the remaining pages.
+   g_data.iShellType = iTypeIndex;
+   g_data.sHost = sHost;
+   g_data.sExtra = sExtra;
+   g_data.sServerType = sServerType;
+
    return 0;
 }
 
 int CCompilerPage::OnSetActive()
 {
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnTextChange(0, 0, NULL, bDummy);
    return 0;
 }
@@ -537,8 +602,8 @@ int CCompilerPage::OnApply()
    if( sType == _T("comspec") && sPath == _T("cd $PATH$") ) sPath = _T("$DRIVE$&cd $PATH$");
 
    m_pProject->m_CompileManager.Stop();
-   m_pProject->m_CompileManager.SetParam(_T("ServerType"), sServerType);
    m_pProject->m_CompileManager.SetParam(_T("Type"), sType);
+   m_pProject->m_CompileManager.SetParam(_T("ServerType"), sServerType);
    m_pProject->m_CompileManager.SetParam(_T("Host"), sHost);
    m_pProject->m_CompileManager.SetParam(_T("Username"), sUsername);
    m_pProject->m_CompileManager.SetParam(_T("Password"), sPassword);
@@ -551,6 +616,8 @@ int CCompilerPage::OnApply()
    // This get around some of the quirks on some gnu util implementations.
    if( g_data.bIsWizard )
    {
+      SetShellManagerDefaults(m_pProject->m_CompileManager.m_ShellManager, sServerType);
+
       if( sServerType.Find(_T("UNIX")) >= 0 ) m_pProject->m_CompileManager.SetParam(_T("ProcessList"), _T("ps -ef"));
       if( sServerType.Find(_T("LINUX")) >= 0 ) m_pProject->m_CompileManager.SetParam(_T("ProcessList"), _T("ps -ef"));
 
@@ -714,20 +781,29 @@ LRESULT CDebuggerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    m_ctrlTest = GetDlgItem(IDC_TEST);
 
    m_ctrlDebugger = GetDlgItem(IDC_DEBUGGER);
-   m_ctrlDebugger.AddString(CString(MAKEINTRESOURCE(IDS_GDB)));
-   m_ctrlDebugger.SetCurSel(0);
 
    m_ctrlType = GetDlgItem(IDC_TYPE);
-   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TELNET)));
-   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_RLOGIN)));
-   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_SSH)));
-   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_COMSPEC)));
    m_ctrlHost = GetDlgItem(IDC_HOST);
+   m_ctrlHostLabel = GetDlgItem(IDC_HOST_LABEL);
    m_ctrlPort = GetDlgItem(IDC_PORT);
    m_ctrlUsername = GetDlgItem(IDC_USERNAME);
    m_ctrlPassword = GetDlgItem(IDC_PASSWORD);
    m_ctrlPath = GetDlgItem(IDC_PATH);
    m_ctrlExtra = GetDlgItem(IDC_EXTRA);
+
+   m_ctrlHost.LimitText(128);
+   m_ctrlUsername.LimitText(128);
+   m_ctrlPassword.LimitText(30);
+   m_ctrlPath.LimitText(MAX_PATH);
+   m_ctrlExtra.LimitText(1400);
+
+   m_ctrlDebugger.AddString(CString(MAKEINTRESOURCE(IDS_GDB)));
+   m_ctrlDebugger.SetCurSel(0);
+
+   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TELNET)));
+   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_RLOGIN)));
+   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_SSH)));
+   m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_COMSPEC)));
 
    m_ctrlHost.SetWindowText(m_pProject->m_DebugManager.GetParam(_T("Host")));
    m_ctrlUsername.SetWindowText(m_pProject->m_DebugManager.GetParam(_T("Username")));
@@ -763,7 +839,7 @@ LRESULT CDebuggerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    if( sType == _T("comspec") ) iType = SHELLTRANSFER_COMSPEC;
    m_ctrlType.SetCurSel(iType);
 
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnTypeChange(0, 0, NULL, bDummy);
    OnTextChange(0, 0, NULL, bDummy);
 
@@ -782,6 +858,9 @@ LRESULT CDebuggerPage::OnTypeChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
    m_ctrlPort.EnableWindow(iTypeIndex != SHELLTRANSFER_COMSPEC);
    m_ctrlUsername.EnableWindow(iTypeIndex != SHELLTRANSFER_COMSPEC);
    m_ctrlPassword.EnableWindow(iTypeIndex != SHELLTRANSFER_COMSPEC);
+   UINT uLabel = IDS_HOST_LABEL;
+   if( iTypeIndex == SHELLTRANSFER_COMSPEC ) uLabel = IDS_MINGWBIN_LABEL;
+   m_ctrlHostLabel.SetWindowText(CString(MAKEINTRESOURCE(uLabel)));
    return 0;
 }
 
@@ -789,13 +868,14 @@ LRESULT CDebuggerPage::OnTextChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 {
    BOOL bOK = TRUE;
    int iTypeIndex = m_ctrlType.GetCurSel();
+   if( m_ctrlHost.GetWindowTextLength() == 0 ) bOK = FALSE;
    if( m_ctrlPort.GetWindowTextLength() == 0 ) bOK = FALSE;
    if( m_ctrlUsername.GetWindowTextLength() == 0 && m_ctrlPassword.GetWindowTextLength() == 0 ) bOK = FALSE;
-   if( iTypeIndex == SHELLTRANSFER_COMSPEC ) bOK = TRUE;  // Batchfile don't need username/password
-   if( m_ctrlHost.GetWindowTextLength() == 0 ) bOK = FALSE;
+   if( iTypeIndex == SHELLTRANSFER_COMSPEC ) bOK = TRUE;  // Batchfile don't need username/password/host
    if( m_ctrlPath.GetWindowTextLength() == 0 ) bOK = FALSE;
-   CWindow(GetDlgItem(IDC_TEST)).EnableWindow(bOK);
    SetWizardButtons(bOK ? PSWIZB_BACK | PSWIZB_NEXT : PSWIZB_BACK);
+   if( m_ctrlHost.GetWindowTextLength() == 0 ) bOK = FALSE;
+   CWindow(GetDlgItem(IDC_TEST)).EnableWindow(bOK);
    return 0;
 }
 
@@ -831,8 +911,11 @@ LRESULT CDebuggerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    sm.SetParam(_T("Port"), ToString(lPort));
    sm.SetParam(_T("Path"), sPath);
    sm.SetParam(_T("Extra"), sExtra);
+   sm.SetParam(_T("LoginPrompt"), m_pProject->m_DebugManager.GetParam(_T("LoginPrompt")));
+   sm.SetParam(_T("PasswordPrompt"), m_pProject->m_DebugManager.GetParam(_T("PasswordPrompt")));
    sm.SetParam(_T("StartTimeout"), m_pProject->m_DebugManager.GetParam(_T("StartTimeout")));
    sm.SetParam(_T("ConnectTimeout"), m_pProject->m_DebugManager.GetParam(_T("ConnectTimeout")));
+   if( g_data.bIsWizard ) SetShellManagerDefaults(sm, g_data.sServerType);
    if( !sm.Start() || !sm.WaitForConnection() ) {
       DWORD dwErr = ::GetLastError();
       sm.SignalStop();
@@ -852,7 +935,7 @@ LRESULT CDebuggerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 
 int CDebuggerPage::OnSetActive()
 {
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnTextChange(0, 0, NULL, bDummy);
    return 0;
 }
@@ -889,9 +972,12 @@ int CDebuggerPage::OnApply()
    // Adjust some known problems...
    if( g_data.bIsWizard )
    {
+      SetShellManagerDefaults(m_pProject->m_DebugManager.m_ShellManager, g_data.sServerType);
+
       if( sType == _T("ssh") ) CheckCryptLib(m_hWnd);
       if( sType == _T("comspec") ) CheckDebugPriv(m_hWnd);
-      
+      //if( sType == _T("comspec") ) CheckAttachConsole(m_hWnd);
+
       if( sType == _T("comspec") ) {
          m_pProject->m_DebugManager.SetParam(_T("ChangeDir"), _T("$DRIVE$&cd $PATH$"));   
          m_pProject->m_DebugManager.SetParam(_T("App"), _T("$PROJECTNAME$.exe"));

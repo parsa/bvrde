@@ -17,8 +17,7 @@ CQuickWatchDlg::CQuickWatchDlg(IDevEnv* pDevEnv, CRemoteProject* pProject, LPCTS
    m_ctrlEdit(this, 1),
    m_ctrlList(this, 2),
    m_sDefault(pstrDefault),
-   m_iColumnWidth(0),
-   m_iQueryParent(0)
+   m_iColumnWidth(0)
 {      
 }
 
@@ -35,14 +34,12 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       ITEM item;
       item.sKey = _T("quickwatch");
       item.sName = m_sVariableName;
-      item.iParent = 0;
       item.iIndent = 0;
       item.bHasValue = false;
       item.bHasChildren = false;
       m_aItems.Add(item);
-      m_ctrlList.AddString((LPCTSTR) 0 );
+      m_ctrlList.AddString((LPCTSTR) 0);
       // Query item, children and value
-      m_iQueryParent = 0;
       m_sQueryVariable = _T("quickwatch");
       m_pProject->m_DebugManager.DoDebugCommand(_T("-var-list-children quickwatch"));
       m_pProject->m_DebugManager.DoDebugCommand(_T("-var-evaluate-expression quickwatch"));
@@ -62,12 +59,7 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
             for( int j = 0; j < m_ctrlList.GetCount(); j++ ) {
                if( (int) m_ctrlList.GetItemData(j) == i ) {
                   m_ctrlList.SetItemHeight(j, _GetItemHeight(i));
-                  RECT rcClient;
-                  m_ctrlList.GetClientRect(&rcClient);
-                  RECT rcItem;
-                  m_ctrlList.GetItemRect(j, &rcItem);
-                  rcItem.bottom = rcClient.bottom;
-                  m_ctrlList.InvalidateRect(&rcItem, TRUE);
+                  _InvalidateItem(j);
                   break;
                }
             }
@@ -78,7 +70,6 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       m_sQueryVariable.Empty();
       for( i = 0; i < m_aItems.GetSize(); i++ ) {
          if( !m_aItems[i].bHasValue ) {
-            m_iQueryParent = m_aItems[i].iParent;
             m_sQueryVariable = m_aItems[i].sKey;
             CString sCommand;
             sCommand.Format(_T("-var-evaluate-expression %s"), m_sQueryVariable);
@@ -96,7 +87,17 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    else if( _tcscmp(pstrType, _T("numchild")) == 0 ) 
    {
       if( m_sQueryVariable.IsEmpty() ) return;
+      // Find the parent. Fist we need to locate the parent item in the
+      // array. We may be able to deduce it from the child-key, but otherwise
+      // we have a locally stored index.
       CString sName = info.GetItem(_T("name"));
+      int iItem = 0;
+      int iIndex = _FindFromChildKey(sName, iItem);
+      if( iIndex < 0 ) iIndex = _FindFromKey(m_sQueryVariable, iItem);
+      if( iIndex < 0 ) return;
+      // Now we have the parent item; let's append the found children.
+      // FIX: Don't &-ref the 'parent' variable below since the array can grow!
+      const ITEM parent = m_aItems[iIndex];
       while( !sName.IsEmpty() ) {
          CString sExp = info.GetSubItem(_T("exp"));
          CString sType = info.GetSubItem(_T("type"));
@@ -106,28 +107,23 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
             sExp.Replace(_T("quickwatch."), _T(""));
          }
          // Add item to cache
-         int iParentPos = m_ctrlList.GetItemData(m_iQueryParent);
-         ATLASSERT(iParentPos>=0 && iParentPos<m_aItems.GetSize());
-         if( iParentPos < 0 ) return;
-         const ITEM& parent = m_aItems[iParentPos];
          ITEM item;
          item.sKey = sName;
          item.sName = sExp;
-         item.iParent = m_iQueryParent;
          item.iIndent = parent.iIndent + 1;
-         item.bHasChildren = _ttol(sNumChild) > 0;
+         item.bHasChildren = (_ttoi(sNumChild) > 0);
          item.bExpanded = false;
          item.bHasValue = false;
          m_aItems.Add(item);
          int iPos = m_aItems.GetSize() - 1;
          // Find the last item in the control with this indent
-         int iInsertAt = m_iQueryParent + 1;
+         int iInsertAt = iItem + 1;
          while( iInsertAt < m_ctrlList.GetCount() ) {
             if( m_aItems[ m_ctrlList.GetItemData(iInsertAt) ].iIndent != item.iIndent ) break;
             iInsertAt++;
          }
          // Insert item in list
-         m_ctrlList.InsertString(iInsertAt, (LPCTSTR) iPos);
+         int iItem = m_ctrlList.InsertString(iInsertAt, (LPCTSTR) iPos);
          // Look for next item
          sName = info.FindNext(_T("name"));
       }
@@ -190,16 +186,19 @@ LRESULT CQuickWatchDlg::OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 
 LRESULT CQuickWatchDlg::OnAddWatch(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-   BOOL bDummy;
-   m_pProject->OnViewWatch(0, 0, NULL, bDummy);
-   //
+   // Force the watch view into display
+   if( !m_pProject->IsWindowVisible(ID_VIEW_WATCH) ) {
+      BOOL bDummy = FALSE;
+      m_pProject->OnViewWatch(0, 0, NULL, bDummy);
+   }
+
    CString sCommand;
    LPARAM lKey = (LPARAM) ::GetTickCount();
    sCommand.Format(_T("-var-create watch%ld * \"%s\""), lKey, CWindowText(m_ctrlLine));
    m_pProject->DelayedDebugCommand(sCommand);
    sCommand = _T("-var-update *");
    m_pProject->DelayedDebugCommand(sCommand);
-   //
+
    m_pDevEnv->EnableModeless(TRUE);
    DestroyWindow();
    return 0;
@@ -317,7 +316,6 @@ void CQuickWatchDlg::_ExpandItem(int iItem)
    if( item.bExpanded ) return;
    if( !item.bHasChildren ) return;
    // Query value and children so we expand it
-   m_iQueryParent = iItem;
    m_sQueryVariable = item.sKey;
    CString sCommand;
    sCommand.Format(_T("-var-list-children %s"), item.sKey);
@@ -356,6 +354,30 @@ void CQuickWatchDlg::_CollapseItem(int iItem)
    m_sQueryVariable.Empty();
 }
 
+int CQuickWatchDlg::_FindFromKey(CString sKey, int& iItem) const
+{
+   int nCount = m_ctrlList.GetCount();
+   for( iItem = 0; iItem < nCount; iItem++ ) {
+      int iIndex = m_ctrlList.GetItemData(iItem);
+      const ITEM& item = m_aItems[iIndex];
+      if( item.sKey == sKey ) return iIndex;
+   }
+   return -1;
+}
+
+int CQuickWatchDlg::_FindFromChildKey(CString sKey, int& iItem) const
+{
+   int iPosDot = sKey.ReverseFind('.');
+   if( iPosDot < 0 ) return -1;
+   sKey = sKey.Left(iPosDot);
+   int nCount = m_ctrlList.GetCount();
+   for( iItem = 0; iItem < nCount; iItem++ ) {
+      int iIndex = m_ctrlList.GetItemData(iItem);
+      const ITEM& item = m_aItems[iIndex];
+      if( item.sKey == sKey ) return iIndex;
+   }
+   return -1;
+}
 
 // Ownerdraw
 
@@ -483,9 +505,20 @@ void CQuickWatchDlg::_CalcColumnWidth()
    }
 }
 
+void CQuickWatchDlg::_InvalidateItem(int iItem)
+{
+   RECT rcClient = { 0 };
+   m_ctrlList.GetClientRect(&rcClient);
+   RECT rcItem = { 0 };
+   m_ctrlList.GetItemRect(iItem, &rcItem);
+   rcItem.bottom = rcClient.bottom;
+   m_ctrlList.InvalidateRect(&rcItem, TRUE);
+}
+
 void CQuickWatchDlg::_UpdateButtons()
 {
    CWindow(GetDlgItem(IDOK)).EnableWindow(m_ctrlLine.GetWindowTextLength() > 0);
    CWindow(GetDlgItem(IDC_ADD_WATCH)).EnableWindow(m_ctrlLine.GetWindowTextLength() > 0);
    CButton(GetDlgItem(IDOK)).SetButtonStyle(m_ctrlLine.GetWindowTextLength() > 0 ? BS_DEFPUSHBUTTON : BS_PUSHBUTTON);
 }
+

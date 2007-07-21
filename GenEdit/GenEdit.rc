@@ -191,7 +191,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_SB_POSITION         "\t Zeile: %ld Spalte: %ld "
+    IDS_STATUS_POSITION         "\t Zeile: %ld Spalte: %ld "
     IDS_ERR_DOCUMENT        "Druckfehler\nDokument konnte nicht gedruckt werden."
     IDS_CAPTION_ERROR       "Fehler"
     IDS_CAPTION_WARNING     "Warnung"
@@ -433,7 +433,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_SB_POSITION         "\t Ln: %ld Col: %ld "
+    IDS_STATUS_POSITION         "\t Ln: %ld Col: %ld "
     IDS_ERR_DOCUMENT        "Print Error\nUnable to print document."
     IDS_CAPTION_ERROR       "Error"
     IDS_CAPTION_WARNING     "Warning"

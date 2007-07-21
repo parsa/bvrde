@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "GENEDIT_EXPORTS" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O1 /I "..\Source\Atl\Include" /I "..\Source\Wtl\Include" /I "..\Source\Wtl\Controls" /I "..\Source\Cpp\Include" /D "NDEBUG" /D "_USRDLL" /D "WIN32" /D "_WINDOWS" /D "_UNICODE" /D "GENEDIT_EXPORTS" /D "_ATL_MIN_CRT" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O1 /I "..\Source\Atl\Include" /I "..\Source\Wtl\Include" /I "..\Source\Wtl\Controls" /I "..\Source\Cpp\Include" /I "..\Source\Scintilla" /D "NDEBUG" /D "_USRDLL" /D "WIN32" /D "_WINDOWS" /D "_UNICODE" /D "GENEDIT_EXPORTS" /D "_ATL_MIN_CRT" /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x406 /d "NDEBUG"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "GENEDIT_EXPORTS" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /I "..\Source\Atl\Include" /I "..\Source\Wtl\Include" /I "..\Source\Wtl\Controls" /I "..\Source\Cpp\Include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_UNICODE" /D "_USRDLL" /D "GENEDIT_EXPORTS" /D "_ATL_MIN_CRT" /FR /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /I "..\Source\Atl\Include" /I "..\Source\Wtl\Include" /I "..\Source\Wtl\Controls" /I "..\Source\Cpp\Include" /I "..\Source\Scintilla" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_UNICODE" /D "_USRDLL" /D "GENEDIT_EXPORTS" /D "_ATL_MIN_CRT" /FR /Yu"stdafx.h" /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x406 /d "_DEBUG"
@@ -92,6 +92,22 @@ LINK32=link.exe
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Group "Scintilla core"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\PropSet.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\StyleContext.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\WindowAccessor.cxx
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\FindDlg.cpp
@@ -99,6 +115,10 @@ SOURCE=.\FindDlg.cpp
 # Begin Source File
 
 SOURCE=.\GenEdit.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\GenEdit.def
 # End Source File
 # Begin Source File
 
@@ -111,6 +131,10 @@ SOURCE=.\GotoDlg.cpp
 # Begin Source File
 
 SOURCE=.\ReplaceDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SciCpp.cpp
 # End Source File
 # Begin Source File
 
@@ -159,6 +183,58 @@ SOURCE=..\Source\WTL\Include\Scintilla.h
 # Begin Source File
 
 SOURCE=..\Source\WTL\Include\atlwinmisc.h
+# End Source File
+# End Group
+# Begin Group "Scintilla"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\Accessor.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\CharacterSet.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\ExternalLexer.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\KeyWords.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\Platform.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\PropSet.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\SciLexer.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\Scintilla.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\SString.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\StyleContext.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\SVector.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\Scintilla\WindowAccessor.h
 # End Source File
 # End Group
 # Begin Source File

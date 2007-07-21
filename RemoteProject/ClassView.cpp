@@ -388,63 +388,62 @@ void CClassView::_PopulateTree()
 
    CSimpleValArray<TAGINFO*> aList;
    m_pProject->m_TagManager.GetOuterList(aList);
-   if( aList.GetSize() > 0 ) 
-   {
-      m_ctrlTree.SetRedraw(FALSE);
 
-      // Remember the scroll position
-      int iScrollPos = m_ctrlTree.GetScrollPos(SB_VERT);
+   m_ctrlTree.SetRedraw(FALSE);
 
-      // Clear tree
-      m_ctrlTree.DeleteAllItems();  
+   // Remember the scroll position
+   int iScrollPos = m_ctrlTree.GetScrollPos(SB_VERT);
 
-      // Not locked anymore; tree is safe to access!
-      m_bLocked = false;
+   // Clear tree
+   m_ctrlTree.DeleteAllItems();  
 
-      // Insert classes and expand previously expanded branches...
-      HTREEITEM hFirstVisible = NULL;
-      TV_INSERTSTRUCT tvis = { 0 };
-      tvis.hParent = TVI_ROOT;
-      tvis.hInsertAfter = TVI_LAST;
-      tvis.item.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_CHILDREN | TVIF_PARAM;
-      tvis.item.iImage = 0;
-      tvis.item.iSelectedImage = 0;
-      tvis.item.cChildren = 1;
-      tvis.item.pszText = LPSTR_TEXTCALLBACK;
-      for( int i = 0; i < aList.GetSize(); i++ ) {
-         TAGINFO* pTag = aList[i];
-         if( pTag->Type == TAGTYPE_CLASS 
-             || pTag->Type == TAGTYPE_STRUCT ) 
-         {
-            tvis.item.lParam = (LPARAM) pTag;
-            HTREEITEM hItem = m_ctrlTree.InsertItem(&tvis);
-            for( int j = 0; j < m_aExpandedNames.GetSize(); j++ ) {
-               if( m_aExpandedNames[j] == pTag->pstrName ) {
-                  m_ctrlTree.Expand(hItem);
-                  break;
-               }
+   // Not locked anymore; tree is safe to access!
+   // We need this so we can actually insert items (with text) in the tree.
+   m_bLocked = false;
+
+   // Insert classes and expand previously expanded branches...
+   HTREEITEM hFirstVisible = NULL;
+   TV_INSERTSTRUCT tvis = { 0 };
+   tvis.hParent = TVI_ROOT;
+   tvis.hInsertAfter = TVI_LAST;
+   tvis.item.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_CHILDREN | TVIF_PARAM;
+   tvis.item.iImage = 0;
+   tvis.item.iSelectedImage = 0;
+   tvis.item.cChildren = 1;
+   tvis.item.pszText = LPSTR_TEXTCALLBACK;
+   for( int i = 0; i < aList.GetSize(); i++ ) {
+      TAGINFO* pTag = aList[i];
+      if( pTag->Type == TAGTYPE_CLASS 
+          || pTag->Type == TAGTYPE_STRUCT ) 
+      {
+         tvis.item.lParam = (LPARAM) pTag;
+         HTREEITEM hItem = m_ctrlTree.InsertItem(&tvis);
+         for( int j = 0; j < m_aExpandedNames.GetSize(); j++ ) {
+            if( m_aExpandedNames[j] == pTag->pstrName ) {
+               m_ctrlTree.Expand(hItem);
+               break;
             }
          }
       }
-
-      // Sort classes
-      TCHAR szValue[32] = { 0 };
-      _pDevEnv->GetProperty(_T("window.classview.sort"), szValue, 31);
-      if( _tcscmp(szValue, _T("no")) != 0 ) m_ctrlTree.SortChildren(TVI_ROOT);
-
-      // Insert "Globals" item
-      CString s(MAKEINTRESOURCE(IDS_GLOBALS));
-      tvis.item.pszText = (LPTSTR) (LPCTSTR) s;
-      tvis.item.iImage = 1;
-      tvis.item.iSelectedImage = 1;
-      tvis.item.lParam = 0;
-      m_ctrlTree.InsertItem(&tvis);
-
-      m_ctrlTree.SetRedraw(TRUE);
-
-      // FIX: Scrolling must be done outside WM_SETREDRAW section
-      m_ctrlTree.SetScrollPos(SB_VERT, iScrollPos, TRUE);
    }
+
+   // Sort classes
+   TCHAR szValue[32] = { 0 };
+   _pDevEnv->GetProperty(_T("window.classview.sort"), szValue, 31);
+   if( _tcscmp(szValue, _T("no")) != 0 ) m_ctrlTree.SortChildren(TVI_ROOT);
+
+   // Insert "Globals" item
+   CString s(MAKEINTRESOURCE(IDS_GLOBALS));
+   tvis.item.pszText = (LPTSTR) (LPCTSTR) s;
+   tvis.item.iImage = 1;
+   tvis.item.iSelectedImage = 1;
+   tvis.item.lParam = 0;
+   m_ctrlTree.InsertItem(&tvis);
+
+   m_ctrlTree.SetRedraw(TRUE);
+
+   // FIX: Scrolling must be done outside WM_SETREDRAW section
+   m_ctrlTree.SetScrollPos(SB_VERT, iScrollPos, TRUE);
 
    m_bPopulated = true;
    m_aExpandedNames.RemoveAll();

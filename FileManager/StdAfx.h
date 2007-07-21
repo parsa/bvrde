@@ -26,6 +26,7 @@ extern CShellModule _Module;
 
 #include "atlshellext.h"
 
+#include <atlcom.h>
 #include <atlwin.h>
 #include <atlctrls.h>
 

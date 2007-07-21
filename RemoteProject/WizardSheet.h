@@ -97,6 +97,7 @@ public:
    CComboBox m_ctrlServer;
    CComboBox m_ctrlType;
    CEdit m_ctrlHost;
+   CStatic m_ctrlHostLabel;
    CEdit m_ctrlPort;
    CEdit m_ctrlUsername;
    CEdit m_ctrlPassword;
@@ -197,6 +198,7 @@ public:
    CComboBox m_ctrlDebugger;
    CComboBox m_ctrlType;
    CEdit m_ctrlHost;
+   CStatic m_ctrlHostLabel;
    CEdit m_ctrlPort;
    CEdit m_ctrlUsername;
    CEdit m_ctrlPassword;

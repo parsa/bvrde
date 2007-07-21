@@ -131,8 +131,8 @@ public:
       HINSTANCE hInst = ::LoadLibrary(_T("MSHTML.DLL"));
       if( hInst == NULL ) return false;
       // The SHOWHTMLDIALOGFN declare is from the IE SDK.
-      SHOWHTMLDIALOGFN *pfnShowHTMLDialog = (SHOWHTMLDIALOGFN*) ::GetProcAddress(hInst, "ShowHTMLDialog");
-      if( pfnShowHTMLDialog == NULL ) return false;
+      SHOWHTMLDIALOGFN* fnShowHTMLDialog = (SHOWHTMLDIALOGFN*) ::GetProcAddress(hInst, "ShowHTMLDialog");
+      if( fnShowHTMLDialog == NULL ) return false;
 
       CComBSTR bstrFilename = L"file:///";
       bstrFilename += T2CW(pstrHtmlFilename);
@@ -144,7 +144,7 @@ public:
       CComPtr<IMoniker> spMoniker;
       HRESULT Hr = ::CreateURLMoniker(NULL, bstrFilename, &spMoniker);
       if( SUCCEEDED(Hr) ) {
-         Hr = (*pfnShowHTMLDialog)(m_hWnd, spMoniker.p, &vIn, OLE2W(bstrOptions), &vOut);
+         Hr = (*fnShowHTMLDialog)(m_hWnd, spMoniker.p, &vIn, OLE2W(bstrOptions), &vOut);
          spMoniker.Release();
       }
       ::FreeLibrary(hInst);

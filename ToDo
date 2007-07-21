@@ -57,7 +57,7 @@ Source Control:
 * Get Latest / Update
 - Diff files (visual)
 - Assign overlay icons to project files
-- Investigate other source control systems than CVS
+* Investigate other source control systems than CVS
 
 SQL:
 * Wizard to create a new SQL project
@@ -70,9 +70,9 @@ SQL:
 - Exports to HTML and XML
 * Parse comments locally
 * Multiple sql commands
-- Query dropdown
+* Query dropdown (history)
 * Configurable terminator string ("go")
-- Support warnings
+* Support warnings
 - Result font configurable
 - Right align numeric values option
 * Link from error to source
@@ -86,7 +86,7 @@ SQL:
 * Print "Row(s) affected" text
    "This command did not return data, and it did not return any rows"
 * View menu: Query / Result / Schema i meny itself (shortcuts)
-- Comment block
+* Comment block
 * Clipboard support
 
 Resource Manager:

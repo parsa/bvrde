@@ -155,25 +155,25 @@ STYLE DS_FIXEDSYS | WS_CHILD
 EXSTYLE WS_EX_CONTROLPARENT
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    LTEXT           "Spezifizieren Sie die folgenden Angaben um die Daten zu kontaktieren :",
+    LTEXT           "Spezifizieren Sie die folgenden Angaben um die Daten zu kontaktieren:",
                     IDC_STATIC,1,1,250,11
     LTEXT           "   1. Spezifizieren Sie den Server und den Datenbanknamen",
                     IDC_STATIC,1,17,250,11
-    RTEXT           "Server : ",IDC_STATIC,33,33,37,12,SS_CENTERIMAGE
+    RTEXT           "Server: ",IDC_STATIC,33,33,37,12,SS_CENTERIMAGE
     EDITTEXT        IDC_SERVER,74,33,137,12,ES_AUTOHSCROLL
-    RTEXT           "Datenbank : ",IDC_STATIC,27,49,43,12,SS_CENTERIMAGE
+    RTEXT           "Datenbank: ",IDC_STATIC,27,49,43,12,SS_CENTERIMAGE
     EDITTEXT        IDC_DATABASE,74,49,137,12,ES_AUTOHSCROLL
     LTEXT           "   2. Geben Sie die Anmeldeinformationen für den Serverlogin an",
                     IDC_STATIC,1,74,250,11
-    RTEXT           "Benutzername : ",IDC_STATIC,8,89,62,12,SS_CENTERIMAGE
+    RTEXT           "Benutzername: ",IDC_STATIC,8,89,62,12,SS_CENTERIMAGE
     EDITTEXT        IDC_USERNAME,74,89,137,12,ES_AUTOHSCROLL
-    RTEXT           "Passwort : ",IDC_STATIC,33,105,37,12,SS_CENTERIMAGE
+    RTEXT           "Passwort: ",IDC_STATIC,33,105,37,12,SS_CENTERIMAGE
     EDITTEXT        IDC_PASSWORD,74,105,137,12,ES_PASSWORD | ES_AUTOHSCROLL
     CONTROL         "Passwort speichern",IDC_SAVEPASSWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,74,123,82,8
     LTEXT           "   3. Geben Sie den initialen Katalog an, der verwendet werden soll",
                     IDC_STATIC,1,140,250,11
-    RTEXT           "Katalog : ",IDC_STATIC,33,154,37,12,SS_CENTERIMAGE
+    RTEXT           "Katalog: ",IDC_STATIC,33,154,37,12,SS_CENTERIMAGE
     EDITTEXT        IDC_CATALOG,74,154,137,12,ES_AUTOHSCROLL
 END
 
@@ -190,7 +190,7 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     LISTBOX         IDC_LIST,10,15,204,162,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Verfügbare Provider :",IDC_STATIC,1,1,250,11
+    LTEXT           "Verfügbare Provider:",IDC_STATIC,1,1,250,11
 END
 
 
@@ -349,7 +349,7 @@ BEGIN
     IDS_WIZARD_SUBTITLE_CONNECTION 
                             "Ändern der Verbindungseigenschaften für die Datenquelle."
     IDS_UNKNOWN             "Datenbank"
-    IDS_ERR_NOCONNECTION    "Keine Verbindung zur Datenbank\nVerbindung zur selektierten Datenbank fehlgeschlagen.\nDie Datenbank generierte die folgende Meldung :\n%s"
+    IDS_ERR_NOCONNECTION    "Keine Verbindung zur Datenbank\nVerbindung zur selektierten Datenbank fehlgeschlagen.\nDie Datenbank generierte die folgende Meldung:\n%s"
     IDS_STDERROR            "Nichtdefinierter Datenbankfehler."
     IDS_STATUS_OPENDATABASE " Öffne Datenverbindung..."
     IDS_ERR_OPENVIEW        "Datei öffnen Fehler\nÖffnen der Datei in einer neuen Ansicht nicht möglich."
@@ -361,7 +361,7 @@ BEGIN
     IDS_TREE_TABLES         "Tabellen"
     IDS_TREE_SYSTEMTABLES   "Systemtabellen"
     IDS_TREE_VIEWS          "Ansichten"
-    IDS_SB_EXECUTING        " Führe SQL Statement aus..."
+    IDS_STATUS_EXECUTING    " Führe SQL Statement aus..."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -420,7 +420,7 @@ BEGIN
     IDS_INFO_CLUSTERED      "Clustered"
     IDS_TAB_SUMMERY         " Summery "
     IDS_TAB_RESULT          "Ergebnis #%ld"
-    IDS_SB_DONE             " Abfrage komplett."
+    IDS_STATUS_DONE         " Abfrage komplett."
     IDS_DBERROR_FORMAT      "Abfrage fehlgeschlagen: %s\r\nFehler: %ld (0x%08X)\r\nQuelle: %s:\r\n%s"
 END
 
@@ -441,6 +441,7 @@ BEGIN
     IDS_FILTER_SQL          "SQL Dateien|*.sql|Alle Dateien|*.*|"
     IDS_CAPTION_QUESTION    "BVRDE"
     IDS_NO_ROWS_AFFECTED    "Der Befehl wird keine Daten und auch keine Zeilen zurückliefern."
+    IDS_STATUS_TABLEENUM    " Tabelle Namensinformationen erhalten… "
 END
 
 STRINGTABLE DISCARDABLE 
@@ -718,7 +719,7 @@ IDR_EDIT_LIST MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "&Copy",                       ID_EDIT_COPY
+        MENUITEM "&Copy as Text",               ID_EDIT_COPY
     END
 END
 
@@ -842,7 +843,7 @@ BEGIN
     IDS_TREE_TABLES         "Tables"
     IDS_TREE_SYSTEMTABLES   "System Tables"
     IDS_TREE_VIEWS          "Views"
-    IDS_SB_EXECUTING        " Executing SQL statement..."
+    IDS_STATUS_EXECUTING    " Executing SQL statement..."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -901,7 +902,7 @@ BEGIN
     IDS_INFO_CLUSTERED      "Clustered"
     IDS_TAB_SUMMERY         " Summery "
     IDS_TAB_RESULT          "Result #%ld"
-    IDS_SB_DONE             " Query complete."
+    IDS_STATUS_DONE         " Query complete."
     IDS_DBERROR_FORMAT      "Query failed: %s\r\nError: %ld (0x%08X)\r\nSource: %s:\r\n%s"
 END
 
@@ -922,6 +923,7 @@ BEGIN
     IDS_FILTER_SQL          "SQL files|*.sql|All Files|*.*|"
     IDS_CAPTION_QUESTION    "BVRDE"
     IDS_NO_ROWS_AFFECTED    "The command did not return data, and it did not return any rows."
+    IDS_STATUS_TABLEENUM    " Getting table name information..."
 END
 
 STRINGTABLE DISCARDABLE 

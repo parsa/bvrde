@@ -44,12 +44,15 @@ public:
       long lPos;
    };
 
+   enum { TIMERID_LOADHTML = 400 };
+
    CToolBarCtrl m_ctrlToolBar;
    CAxWindow m_wndBrowser;
    CComQIPtr<IWebBrowser2> m_spBrowser;
    CComBSTR m_bstrKeyword;
    CComBSTR m_bstrLanguage;
    CSimpleArray<PAGEINFO> m_aStack;
+   CComBSTR m_bstrHTML;
    long m_lMatchPos;
    long m_nMatchCount;
 
@@ -86,6 +89,7 @@ public:
       MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
       MESSAGE_HANDLER(WM_SIZE, OnSize)
       MESSAGE_HANDLER(WM_SETFOCUS, OnSetFocus)
+      MESSAGE_HANDLER(WM_TIMER, OnTimer)
       COMMAND_ID_HANDLER(ID_FILE_PRINT, OnFilePrint)
       COMMAND_ID_HANDLER(ID_FILE_CLOSE, OnFileClose)
       COMMAND_ID_HANDLER(ID_EDIT_FIND, OnEditFind)
@@ -98,6 +102,7 @@ public:
    LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSetFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnFilePrint(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnFileClose(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnEditFind(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

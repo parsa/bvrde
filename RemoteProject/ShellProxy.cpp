@@ -204,11 +204,13 @@ void CShellManager::PreAuthenticatedLine(LPCTSTR pstrText)
    // Try to detect server type...
    if( m_sServerType.IsEmpty() ) {
       CString s = pstrText;
-      if( s.Find(_T("Linux")) >= 0 )   m_sServerType = _T("LINUX (Generic)");
-      if( s.Find(_T("LINUX")) >= 0 )   m_sServerType = _T("LINUX (Generic)");
+      if( s.Find(_T("Linux")) >= 0 )   m_sServerType = _T("LINUX");
+      if( s.Find(_T("LINUX")) >= 0 )   m_sServerType = _T("LINUX");
       if( s.Find(_T("Windows")) >= 0 ) m_sServerType = _T("Windows");
-      if( s.Find(_T("UNIX")) >= 0 )    m_sServerType = _T("UNIX (Generic)");
+      if( s.Find(_T("Solaris")) >= 0 ) m_sServerType = _T("Solaris");
+      if( s.Find(_T("UNIX")) >= 0 )    m_sServerType = _T("UNIX");
       if( s.Find(_T("Debian")) >= 0 )  m_sServerType = _T("LINUX (Debian)");
+      if( s.Find(_T("Gentoo")) >= 0 )  m_sServerType = _T("LINUX (Gentoo)");
       if( s.Find(_T("Red Hat")) >= 0 ) m_sServerType = _T("LINUX (Red Hat)");
       if( s.Find(_T("Ubuntu")) >= 0 )  m_sServerType = _T("LINUX (Ubuntu)");
       if( s.Find(_T("HP-UX")) >= 0 )   m_sServerType = _T("UNIX (HP-UX)");

@@ -238,6 +238,7 @@ BEGIN
     IDS_TITLE               "Find in Files"
     IDS_SEARCHING           "Searching for '%s'...\r\n\r\n"
     IDS_NOMATCHES           "No matches was found.\r\n"
+    ID_EDIT_FINDFILES       "Find text in files\nFind in Files"
 END
 
 #endif    // English (U.S.) resources

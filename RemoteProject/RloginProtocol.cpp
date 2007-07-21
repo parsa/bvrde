@@ -30,6 +30,8 @@ DWORD CRloginThread::Run()
    short iPort = (short) _ttoi( m_pManager->GetParam(_T("Port")) );
    long lSpeed = _ttol( m_pManager->GetParam(_T("Speed")) );
    CString sExtraCommands = m_pManager->GetParam(_T("Extra"));
+   CString sLoginPrompt = m_pManager->GetParam(_T("LoginPrompt"));
+   CString sPasswordPrompt = m_pManager->GetParam(_T("PasswordPrompt"));
 
    if( iPort == 0 ) iPort = 513;         // default rlogin port
    if( lSpeed == 0 ) lSpeed = 38600L;    // default terminal speed
@@ -228,14 +230,14 @@ DWORD CRloginThread::Run()
                }
                ppstr++;
             }
-            if( sLine.Find(_T("LOGIN:")) >= 0 ) {
+            if( sLine.Find(sLoginPrompt) >= 0 ) {
                CLockStaticDataInit lock;
                CHAR szBuffer[200];
                ::wsprintfA(szBuffer, "%ls\r\n", sUsername);
                ::send(socket, szBuffer, strlen(szBuffer), 0);
                ::Sleep(500L);
             }
-            else if( sLine.Find(_T("PASSWORD:")) >= 0 ) {
+            else if( sLine.Find(sPasswordPrompt) >= 0 ) {
                CLockStaticDataInit lock;
                CHAR szBuffer[200];
                ::wsprintfA(szBuffer, "%ls\r\n", sPassword);
@@ -411,6 +413,8 @@ void CRloginProtocol::Clear()
    m_lSpeed = 38400L;
    m_sPath.Empty();
    m_sExtraCommands.Empty();
+   m_sLoginPrompt = _T("LOGIN");
+   m_sPasswordPrompt = _T("PASSWORD");
    m_lConnectTimeout = 8;
    m_bCanWindowSize = false;
 }
@@ -430,14 +434,20 @@ bool CRloginProtocol::Load(ISerializable* pArc)
    m_sPassword.ReleaseBuffer();
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
-   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(400), 400);
+   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(1400), 1400);
    m_sExtraCommands.ReleaseBuffer();
+   pArc->Read(_T("loginPrompt"), m_sLoginPrompt.GetBufferSetLength(100), 100);
+   m_sLoginPrompt.ReleaseBuffer();
+   pArc->Read(_T("passwordPrompt"), m_sPasswordPrompt.GetBufferSetLength(100), 100);
+   m_sPasswordPrompt.ReleaseBuffer();
    pArc->Read(_T("connectTimeout"), m_lConnectTimeout);
 
    ConvertToCrLf(m_sExtraCommands);
    m_sPassword = SecDecodePassword(m_sPassword);
-   if( m_lConnectTimeout == 0 ) m_lConnectTimeout = 8;
-   
+   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
+   if( m_sLoginPrompt.IsEmpty() ) m_sLoginPrompt = _T("LOGIN");
+   if( m_sPasswordPrompt.IsEmpty() ) m_sPasswordPrompt = _T("PASSWORD");
+
    return true;
 }
 
@@ -451,6 +461,8 @@ bool CRloginProtocol::Save(ISerializable* pArc)
    pArc->Write(_T("password"), SecEncodePassword(m_sPassword));
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("extra"), ConvertFromCrLf(m_sExtraCommands));
+   pArc->Write(_T("loginPrompt"), m_sLoginPrompt);
+   pArc->Write(_T("passwordPrompt"), m_sPasswordPrompt);
    pArc->Write(_T("connectTimeout"), m_lConnectTimeout);
    return true;
 }
@@ -494,6 +506,7 @@ bool CRloginProtocol::IsBusy() const
 CString CRloginProtocol::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
+   if( sName == _T("Type") ) return _T("RLogin");
    if( sName == _T("Path") ) return m_sPath;
    if( sName == _T("Host") ) return m_sHost;
    if( sName == _T("Username") ) return m_sUsername;
@@ -501,7 +514,8 @@ CString CRloginProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("Port") ) return ToString(m_lPort);
    if( sName == _T("Speed") ) return ToString(m_lSpeed);
    if( sName == _T("Extra") ) return m_sExtraCommands;
-   if( sName == _T("Type") ) return _T("RLogin");
+   if( sName == _T("LoginPrompt") ) return m_sLoginPrompt;
+   if( sName == _T("PasswordPrompt") ) return m_sPasswordPrompt;
    if( sName == _T("ConnectTimeout") ) return ToString(m_lConnectTimeout);
    return _T("");
 }
@@ -516,6 +530,8 @@ void CRloginProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Port") ) m_lPort = _ttol(pstrValue);
    if( sName == _T("Speed") ) m_lSpeed = _ttol(pstrValue);
    if( sName == _T("Extra") ) m_sExtraCommands = pstrValue;
+   if( sName == _T("LoginPrompt") ) m_sLoginPrompt = pstrValue;
+   if( sName == _T("PasswordPrompt") ) m_sPasswordPrompt = pstrValue;
    if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
    if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
 }

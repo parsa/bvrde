@@ -30,11 +30,31 @@ DWORD CComSpecThread::Run()
 
    ::SetThreadLocale(_pDevEnv->GetLCID());
 
+   CString sBinPath = m_pManager->GetParam(_T("Host"));
    CString sPath = m_pManager->GetParam(_T("Path"));
    CString sExtraCommands = m_pManager->GetParam(_T("Extra"));
 
+   // If user supplied a path to the MinGW /bin folder, let's make
+   // sure to actually find the needed processes there.
+   // We'll currently just look for gdb.exe since we don't know what
+   // compilation environment is eventually used.
+   if( !sBinPath.IsEmpty() ) {
+      TCHAR szFilename[MAX_PATH];
+      _tcscpy(szFilename, sBinPath);
+      ::PathAppend(szFilename, _T("gdb.exe"));
+      if( !::PathFileExists(szFilename) ) {
+         m_pManager->m_dwErrorCode = ERROR_PATH_BUSY;
+         return 0;
+      }
+      
+   }
+
    m_pManager->m_dwErrorCode = 0;
+   m_pManager->m_dwSpawnedProcessId = 0;
    m_pManager->m_bConnected = false;
+
+   // Collect sub-processes in a job
+   HANDLE hJob = ::CreateJobObject(NULL, NULL);
 
    SECURITY_ATTRIBUTES sa = { sizeof(SECURITY_ATTRIBUTES), 0, 0 };
    sa.bInheritHandle = TRUE;
@@ -54,7 +74,6 @@ DWORD CComSpecThread::Run()
    // Read handle, write handle, security attributes, number of bytes reserved for pipe - 0 default
    ::CreatePipe(&m_hPipeRead, &m_hPipeStdOut, &sa, 0);
    ::CreatePipe(&m_hPipeStdIn, &m_hPipeWrite, &sa, 0);
-
    ::SetHandleInformation(m_hPipeRead, HANDLE_FLAG_INHERIT, 0);
    ::SetHandleInformation(m_hPipeWrite, HANDLE_FLAG_INHERIT, 0);
 
@@ -72,7 +91,7 @@ DWORD CComSpecThread::Run()
            NULL, 
            NULL,
            TRUE, 
-           CREATE_NEW_CONSOLE | CREATE_NEW_PROCESS_GROUP | NORMAL_PRIORITY_CLASS,
+           CREATE_NEW_CONSOLE | CREATE_NEW_PROCESS_GROUP | NORMAL_PRIORITY_CLASS | CREATE_SUSPENDED,
            NULL,
            NULL,
            &si, 
@@ -82,8 +101,9 @@ DWORD CComSpecThread::Run()
       m_pCallback->BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_LOG_COMSPEC)));
       return 0;
    }
-
    m_dwProcessId = pi.dwProcessId;
+   ::AssignProcessToJobObject(hJob, pi.hProcess);
+   ::ResumeThread(pi.hThread); 
 
    m_pManager->m_bConnected = true;
 
@@ -95,6 +115,10 @@ DWORD CComSpecThread::Run()
    DWORD dwStartLinePos = 0;
    DWORD dwBufferSize = MAX_BUFFER_SIZE;
    VT100COLOR nColor = VT100_DEFAULT;
+
+   CString sPathEnv;
+   sPathEnv.Format(_T("SET PATH=%%PATH%%;%s"), sBinPath);
+   m_pManager->WriteData(sPathEnv);
 
    m_pManager->WriteData(sExtraCommands);
 
@@ -152,12 +176,30 @@ DWORD CComSpecThread::Run()
          if( STILL_ACTIVE != dwExitCode ) break;
       }
 
-      // TODO: Don't idle way!!! Sadly Windows will block on the FileRead() and
-      //       won't let us close the handle in the other thread.
+      // TODO: Hmm, nasty data polling delay! Sadly Windows will block on the ReadFile()
+      //       and won't let us close the handle in the other thread.
       ::Sleep(80L);
    }
 
-   // Kill it off if nessecary...
+   // Play it nicely and terminate by CTRL+C
+   m_pManager->GenerateConsoleEvent(pi.dwProcessId, CTRL_C_EVENT);
+   m_pManager->GenerateConsoleEvent(pi.dwProcessId, CTRL_CLOSE_EVENT);
+
+   // Close the stdin/stdout. This could actually also stall some applications
+   // if they're still running.
+   ::CloseHandle(m_hPipeStdIn);   m_hPipeStdIn = NULL;
+   ::CloseHandle(m_hPipeStdOut);  m_hPipeStdOut = NULL;
+   ::CloseHandle(m_hPipeRead);    m_hPipeRead = NULL;
+   ::CloseHandle(m_hPipeWrite);   m_hPipeWrite = NULL;       
+
+   m_dwProcessId = 0;
+
+   // "All those moments will be lost in time, like tears in rain. Time to die." (Roy Batty)
+   ::TerminateJobObject(hJob, 0);
+   ::CloseHandle(hJob);
+
+   // Kill it off explicitly if nessecary. The Job object should have done its
+   // toll, but we want to be sure.
    DWORD dwExitCode = 0;
    if( ::GetExitCodeProcess(pi.hProcess, &dwExitCode) ) {
       if( STILL_ACTIVE == dwExitCode ) ::TerminateProcess(pi.hProcess, 0);
@@ -165,16 +207,6 @@ DWORD CComSpecThread::Run()
 
    ::CloseHandle(pi.hProcess);
    ::CloseHandle(pi.hThread);
-   ::CloseHandle(m_hPipeStdIn);
-   ::CloseHandle(m_hPipeStdOut);
-   ::CloseHandle(m_hPipeRead);
-   ::CloseHandle(m_hPipeWrite);
-
-   m_hPipeRead = NULL;
-   m_hPipeWrite = NULL;
-   m_hPipeStdIn = NULL;
-   m_hPipeStdOut = NULL;
-   m_dwProcessId = 0;
 
    free(pBuffer);
 
@@ -200,7 +232,7 @@ CString CComSpecThread::_GetLine(LPBYTE pBuffer, DWORD dwStart, DWORD dwEnd) con
 //
 
 CComSpecProtocol::CComSpecProtocol() :
-   m_dwProcessId(0),
+   m_dwSpawnedProcessId(0),
    m_bConnected(false)
 {
    Clear();
@@ -230,9 +262,11 @@ bool CComSpecProtocol::Load(ISerializable* pArc)
    Clear();
 
    if( !pArc->ReadItem(_T("ComSpecLink")) ) return false;
+   pArc->Read(_T("bin"), m_sBinPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
+   m_sBinPath.ReleaseBuffer();
    pArc->Read(_T("path"), m_sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
    m_sPath.ReleaseBuffer();
-   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(200), 200);
+   pArc->Read(_T("extra"), m_sExtraCommands.GetBufferSetLength(1400), 1400);
    m_sExtraCommands.ReleaseBuffer();
 
    ConvertToCrLf(m_sExtraCommands);
@@ -243,6 +277,7 @@ bool CComSpecProtocol::Load(ISerializable* pArc)
 bool CComSpecProtocol::Save(ISerializable* pArc)
 {
    if( !pArc->WriteItem(_T("ComSpecLink")) ) return false;
+   pArc->Write(_T("bin"), m_sBinPath);
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("extra"), ConvertFromCrLf(m_sExtraCommands));
    return true;
@@ -262,6 +297,7 @@ bool CComSpecProtocol::Stop()
    SignalStop();
    m_thread.Stop();
    m_dwErrorCode = 0;
+   m_dwSpawnedProcessId = 0;
    m_bConnected = false;
    return true;
 }
@@ -284,9 +320,10 @@ bool CComSpecProtocol::IsBusy() const
 CString CComSpecProtocol::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
+   if( sName == _T("Type") ) return _T("comspec");
+   if( sName == _T("Host") ) return m_sBinPath;
    if( sName == _T("Path") ) return m_sPath;
    if( sName == _T("Extra") ) return m_sExtraCommands;
-   if( sName == _T("Type") ) return _T("comspec");
    if( sName == _T("Certificate") ) return _T("Windows ComSpec Link");
    return _T("");
 }
@@ -294,9 +331,10 @@ CString CComSpecProtocol::GetParam(LPCTSTR pstrName) const
 void CComSpecProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
 {
    CString sName = pstrName;
+   if( sName == _T("Host") ) m_sBinPath = pstrValue;
    if( sName == _T("Path") ) m_sPath = pstrValue;
    if( sName == _T("Extra") ) m_sExtraCommands = pstrValue;
-   if( sName == _T("ProcessID") ) m_dwProcessId = (DWORD) _ttol(pstrValue);
+   if( sName == _T("ProcessID") ) m_dwSpawnedProcessId = (DWORD) _ttol(pstrValue);
 }
 
 bool CComSpecProtocol::WriteData(LPCTSTR pstrData)
@@ -327,39 +365,12 @@ bool CComSpecProtocol::WriteSignal(BYTE bCmd)
    switch( bCmd ) {
    case TERMINAL_BREAK:
       {
-         // After many tries <sigh> it seems that the only way to send a CTRL+C to the
-         // GDB console window, is not to send it at all, but to cause the debug-break
-         // manually. It appears to be the Cygwin/MINGW wrapper that prevents the
-         // scheduling of signals from other than keyboard.
          BOOL bRes = FALSE;
-         if( !bRes && m_dwProcessId != 0 ) {
-            typedef BOOL (WINAPI *PFNDEBUGBREAKPROCESS)(HANDLE);
-            PFNDEBUGBREAKPROCESS pfnDebugBreakProcess = 
-               (PFNDEBUGBREAKPROCESS) ::GetProcAddress( ::GetModuleHandle(_T("kernel32.dll")), "DebugBreakProcess" );
-            if( pfnDebugBreakProcess != NULL ) {
-               HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, m_dwProcessId);
-               if( hProcess != NULL ) {
-                  bRes = pfnDebugBreakProcess(hProcess);
-                  ::CloseHandle(hProcess);
-               }
-            }
+         if( !bRes && m_dwSpawnedProcessId != 0 ) {
+            bRes = GenerateBreakEvent(m_dwSpawnedProcessId);
          }
-         if( !bRes && m_dwProcessId != 0 ) {
-            HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, m_dwProcessId);
-            if( hProcess != NULL ) {
-               DWORD dwThreadId = 0;
-               HANDLE hThread = ::CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE) ::GetProcAddress( ::GetModuleHandle(_T("kernel32.dll")), "DebugBreak" ), 0, 0, &dwThreadId);
-               if( hThread != NULL ) {
-                  ::CloseHandle(hThread);
-                  bRes = TRUE;
-               }
-               ::CloseHandle(hProcess);
-            }
-         }
-         if( !bRes && m_dwProcessId == 0 ) {
-            if( !::AttachConsole(m_thread.m_dwProcessId) ) return false;
-            bRes = ::GenerateConsoleCtrlEvent(CTRL_C_EVENT, m_thread.m_dwProcessId);
-            ::FreeConsole();            
+         if( !bRes && m_dwSpawnedProcessId == 0 ) {
+            bRes = GenerateConsoleEvent(m_thread.m_dwProcessId, CTRL_C_EVENT);
          }
          if( !bRes ) {
             m_pCallback->BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_LOG_GDBSTOP)));
@@ -371,10 +382,8 @@ bool CComSpecProtocol::WriteSignal(BYTE bCmd)
       {
          // While CTRL+C doesn't work with CYGWIN, CTRL+BREAK does - and it shuts
          // down most of the batch-file processing.
-         if( !::AttachConsole(m_thread.m_dwProcessId) ) return false;
-         ::GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, m_thread.m_dwProcessId);
-         ::GenerateConsoleCtrlEvent(CTRL_CLOSE_EVENT, m_thread.m_dwProcessId);
-         ::FreeConsole();
+         GenerateConsoleEvent(m_thread.m_dwProcessId, CTRL_BREAK_EVENT);
+         GenerateConsoleEvent(m_thread.m_dwProcessId, CTRL_CLOSE_EVENT);
       }
       break;
    default:
@@ -429,5 +438,119 @@ bool CComSpecProtocol::WaitForConnection()
       }
    }
    return true;
+}
+
+BOOL CComSpecProtocol::GenerateBreakEvent(DWORD dwProcessId)
+{
+   BOOL bRes = FALSE;
+   // After many tries <sigh> it seems that the only way to send a CTRL+C to the
+   // GDB console window, is not to send it at all, but to cause the debug-break
+   // manually. It appears to be the Cygwin/MinGW wrapper that prevents the
+   // scheduling of signals from other than keyboard.
+   // Outside GDB the standard procedure seems to work just fine.
+   if( !bRes ) {
+      typedef BOOL (WINAPI *PFNDEBUGBREAKPROCESS)(HANDLE);
+      PFNDEBUGBREAKPROCESS fnDebugBreakProcess = 
+         (PFNDEBUGBREAKPROCESS) ::GetProcAddress( ::GetModuleHandle(_T("kernel32.dll")), "DebugBreakProcess" );
+      if( fnDebugBreakProcess != NULL ) {
+         HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwProcessId);
+         if( hProcess != NULL ) {
+            bRes = fnDebugBreakProcess(hProcess);
+            ::CloseHandle(hProcess);
+         }
+      }
+   }
+   if( !bRes ) {
+      HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwProcessId);
+      if( hProcess != NULL ) {
+         DWORD dwThreadId = 0;
+         HANDLE hThread = ::CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE) ::GetProcAddress( ::GetModuleHandle(_T("kernel32.dll")), "DebugBreak" ), 0, 0, &dwThreadId);
+         if( hThread != NULL ) {
+            ::CloseHandle(hThread);
+            bRes = TRUE;
+         }
+         ::CloseHandle(hProcess);
+      }
+   }
+   return bRes;
+}
+
+// This nasty piece of code was snipped from www.latenighthacking.com
+// which grabs the internal kernel32.dll|CtrlRoutine() API address.
+// We assume that kernel32.dll is mapped on the same base address in
+// all processes and we run Win32. This is just the fallback method.
+HANDLE g_hCtrlEvent = NULL;
+volatile LPVOID g_pCtrlRoutineAddr = NULL;
+BOOL WINAPI TempCtrlHandler(DWORD dwCtrlType) 
+{
+   if( CTRL_C_EVENT != dwCtrlType) return FALSE;   
+   // Read the stack-base address from the x386 TEB (NtCurrentTeb)
+   // then grab the calling address.
+   //DWORD* pStackBase = (DWORD*) NtCurrentTeb()->Tib.StackBase;
+   #define TEB_STACKBASE_OFFSET 4
+   DWORD* pStackBase;
+   __asm { mov eax, fs:[TEB_STACKBASE_OFFSET] }
+   __asm { mov pStackBase, eax }
+   #define PARAM_0_OF_BASE_THEAD_START_OFFSET -3
+   g_pCtrlRoutineAddr = (LPVOID) pStackBase[PARAM_0_OF_BASE_THEAD_START_OFFSET];  // Read the parameter off the stack
+   ::SetEvent(g_hCtrlEvent);  // Signal that we got it
+   return TRUE;
+}
+
+BOOL CComSpecProtocol::GenerateConsoleEvent(DWORD dwProcessId, DWORD dwEvent)
+{
+   BOOL bRes = FALSE;
+   if( !bRes ) {
+      // First we'll try to just fire the event. This will not work
+      // because the console must be attached to our process. Maybe
+      // in future versions of Windows.
+      bRes = ::GenerateConsoleCtrlEvent(dwEvent, dwProcessId);
+   }
+   if( !bRes ) {
+      // I've discovered that on Vista we can attach the remote process'
+      // console and send the event. A good thing that we added the
+      // CREATE_NEW_PROCESS_GROUP to the process when created.
+      typedef BOOL (WINAPI* PFNATTACHCONSOLE)(DWORD);
+      PFNATTACHCONSOLE fnAttachConsole = 
+         (PFNATTACHCONSOLE) ::GetProcAddress( ::GetModuleHandle(_T("kernel32.dll")), "AttachConsole" );
+      if( fnAttachConsole != NULL ) {
+         if( fnAttachConsole(dwProcessId) ) {
+            ::GenerateConsoleCtrlEvent(dwEvent, dwProcessId);
+            ::FreeConsole();
+         }
+         bRes = TRUE;
+      }
+   }
+   if( !bRes ) {
+      // Finally we'll try to generate the event by calling into the remote
+      // process. We'll use the undocumented kernel32.dll|CtrlRoutine() API for this.
+      // First we need to snatch the CtrlRoutine() from a locally triggered event.
+      // See comments in TempCtrlHandler() above.
+      if( g_pCtrlRoutineAddr == NULL ) {
+         if( ::AllocConsole() ) {
+            g_hCtrlEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
+            ::SetConsoleCtrlHandler(TempCtrlHandler, TRUE);
+            if( ::GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0) ) ::WaitForSingleObject(g_hCtrlEvent, 4000);
+            ::SetConsoleCtrlHandler(TempCtrlHandler, FALSE);
+            ::FreeConsole();
+            ::CloseHandle(g_hCtrlEvent);
+         }
+      }
+      // Now that we have the CtrlRoutine start-address, we'll inject and run
+      // it in the remote process.
+      if( g_pCtrlRoutineAddr != NULL ) {
+         HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwProcessId);
+         if( hProcess != NULL ) {
+            DWORD dwThreadId = 0;
+            HANDLE hThread = ::CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE) g_pCtrlRoutineAddr, (LPVOID) dwEvent, 0, &dwThreadId);
+            if( hThread != NULL ) {
+               ::CloseHandle(hThread);
+               bRes = TRUE;
+            }
+            ::CloseHandle(hProcess);
+         }
+      }
+   }
+   return bRes;
 }
 

@@ -80,6 +80,7 @@ CString SecGetPassword()
 // It contains the single source code line of...
 //   static BYTE g_password[] = { 1, 2, 3, 4, 5, 6 };
 // where the numbers are the pass-phrase.
+// Put this file in the .\RemoteProject source folder.
 //
 #include "password.h"
 

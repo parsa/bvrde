@@ -27,7 +27,7 @@ The folllowing 3rd party components are used by the BVRDE project.
  http://wtl.sourceforge.net
 
  Microsoft Platform SDK
- http://msdn.microsoft.com/developer/sdk/platform.htm
+ http://support.microsoft.com/default.aspx?pr=psdk
 
  Microsoft Html Help Workshop
  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/htmlhelp/html/vsconHH1Start.asp
@@ -38,6 +38,8 @@ The folllowing 3rd party components are used by the BVRDE project.
  Cryptlib library
  http://www.cs.auckland.ac.nz/~pgut001/cryptlib/
 
+ DOC++
+ http://docpp.sourceforge.net
 
 
 Bjarke Viksøe (bviksoe@users.sourceforge.net)

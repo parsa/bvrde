@@ -62,81 +62,93 @@ DWORD CFileEnumThread::Run()
 
 HRESULT CFileEnumThread::OnIncomingLine(BSTR bstr)
 {
-   if( bstr == NULL ) return S_OK;
    if( ShouldStop() ) return E_ABORT;
-   if( m_sSourceType == "cvs" )
-   {
-      // CVS output will generally look like this:
-      //   ===================================================================
-      //   File: filename.cpp      Status: Up-to-date
-      //
-      //   Working revision:   1.3
-      //   Repository revision:   1.3   /home/CVS/myfolder/filename.cpp,v   
-      LPOLESTR p = wcsstr(bstr, L"================");
-      if( p != NULL ) {
-         FILEINFO empty;
-         m_Info = empty;
-      }
-      p = wcsstr(bstr, L"Repository revision:");
-      if( p != NULL ) {
-         if( wcslen(p) < 31 ) return S_OK;
-         CString sFile = p;
-         int iPos = sFile.ReverseFind(' ');
-         if( iPos > 0 ) sFile = sFile.Mid(iPos + 1);
-         iPos = sFile.ReverseFind(',');
-         if( iPos > 0 ) sFile = sFile.Left(iPos);
-         sFile.TrimLeft();
-         sFile.TrimRight();
-         // Add if not exists...
-         for( int i = 0; i < m_aResult.GetSize(); i++ ) if( m_aResult[i].sFilename == sFile ) return S_OK;
-         m_Info.sFilename = sFile;
-         return m_aResult.Add(m_Info) ? S_OK : E_OUTOFMEMORY;
-      }
-      p = wcsstr(bstr, L"Status: ");
-      if( p != NULL ) {
-         m_Info.sStatus = p + 8;
-      }
-      p = wcsstr(bstr, L"Working revision: ");
-      if( p != NULL ) {
-         m_Info.sVersion = _T("");
-         p += 18;
-         while( *p == ' ' ) p++;
-         while( *p != '\0' && *p != ' ' ) m_Info.sVersion += *p++;
-      }
+   if( bstr == NULL ) return S_OK;
+   if( m_sSourceType == _T("cvs") ) return _ParseCvsLine(bstr);
+   if( m_sSourceType == _T("subversion") ) return _ParseSubversionLine(bstr);
+   return S_OK;
+}
+
+HRESULT CFileEnumThread::_ParseCvsLine(BSTR bstr)
+{
+   // CVS output will generally look like this:
+   //   ===================================================================
+   //   File: filename.cpp      Status: Up-to-date
+   //
+   //   Working revision:   1.3
+   //   Repository revision:   1.3   /home/CVS/myfolder/filename.cpp,v   
+   LPOLESTR p = wcsstr(bstr, L"================");
+   if( p != NULL ) {
+      FILEINFO empty;
+      m_Info = empty;
    }
-   if( m_sSourceType == "subversion" )
+   p = wcsstr(bstr, L"Repository revision:");
+   if( p != NULL ) {
+      if( wcslen(p) < 31 ) return S_OK;
+      CString sFile = p;
+      int iPos = sFile.ReverseFind(' ');
+      if( iPos > 0 ) sFile = sFile.Mid(iPos + 1);
+      iPos = sFile.ReverseFind(',');
+      if( iPos > 0 ) sFile = sFile.Left(iPos);
+      sFile.TrimLeft();
+      sFile.TrimRight();
+      // Add if not exists...
+      for( int i = 0; i < m_aResult.GetSize(); i++ ) if( m_aResult[i].sFilename == sFile ) return S_OK;
+      m_Info.sFilename = sFile;
+      return m_aResult.Add(m_Info) ? S_OK : E_OUTOFMEMORY;
+   }
+   p = wcsstr(bstr, L"Status: ");
+   if( p != NULL ) {
+      m_Info.sStatus = p + 8;
+   }
+   p = wcsstr(bstr, L"Working revision: ");
+   if( p != NULL ) {
+      m_Info.sVersion = _T("");
+      p += 18;
+      while( *p == ' ' ) p++;
+      while( *p != '\0' && *p != ' ' ) m_Info.sVersion += *p++;
+   }
+   return S_OK;
+}
+
+HRESULT CFileEnumThread::_ParseSubversionLine(BSTR bstr)
+{
    {
       // Subversion output will generally look like this:
       //   $ svn status --show-updates --verbose wc
-      //    M           965       938 sally        wc/bar.c
-      //          *     965       922 harry        wc/foo.c
-      //   A  +         965       687 harry        wc/qax.c
-      //                965       687 harry        wc/zig.c
+      //   M          965       938 sally        wc/bar.c
+      //        *     965       922 harry        wc/foo.c
+      //   A  +       965       687 harry        wc/qax.c
+      //              965       687 harry        wc/zig.c
       if( wcslen(bstr) < 15 ) return S_OK;
       switch( bstr[0] ) {
       case ' ':
-      case 'A':
-      case 'D':
-      case 'M':
       case 'C':
-      case '!':
+      case 'M':
+      case 'D':
+      case 'U':
+      case 'A':
+      case 'I':
          WCHAR szStatus[8] = { 0 };
          wcsncpy(szStatus, bstr, 6);
          FILEINFO empty;
          m_Info = empty;
          if( wcschr(szStatus, 'C') != NULL ) m_Info.sStatus += _T("Conflict ");
-         if( wcschr(szStatus, 'D') != NULL ) m_Info.sStatus += _T("Modified ");
-         if( wcschr(szStatus, 'M') != NULL ) m_Info.sStatus += _T("Added ");
-         if( wcschr(szStatus, 'C') != NULL ) m_Info.sStatus += _T("Deleted ");
+         if( wcschr(szStatus, 'M') != NULL ) m_Info.sStatus += _T("Modified ");
+         if( szStatus[0] == 'D') m_Info.sStatus += _T("Deleted ");
+         if( szStatus[0] == 'U') m_Info.sStatus += _T("Updated ");
+         if( szStatus[0] == 'A') m_Info.sStatus += _T("Added ");
+         if( szStatus[0] == '!') m_Info.sStatus += _T("Missing ");
+         if( szStatus[0] == 'I') m_Info.sStatus += _T("Missing ");
          if( wcschr(szStatus, 'L') != NULL ) m_Info.sStatus += _T("Locked ");
-         if( wcschr(szStatus, '*') != NULL ) m_Info.sStatus = _T("Out-of-date");
-         if( wcschr(szStatus, '!') != NULL ) m_Info.sStatus = _T("Ignored");
+         if( wcschr(szStatus, '*') != NULL ) m_Info.sStatus = _T("Out-of-date ");
          LPCWSTR p = bstr + 10;
          while( *p == ' ' ) p++;
          while( *p != '\0' && *p != ' ' ) m_Info.sVersion += *p++;
          p = wcsrchr(bstr, ' ');
          if( p != NULL ) m_Info.sFilename = p + 1;
          m_Info.sFilename.TrimRight();
+         m_Info.sStatus.TrimRight();
          return m_aResult.Add(m_Info) ? S_OK : E_OUTOFMEMORY;
       }
    }
@@ -396,6 +408,8 @@ LRESULT CRepositoryView::OnListSelected(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& 
    _pDevEnv->ShowProperties(&prop, FALSE);
    return 0;
 }
+
+// Implementation
 
 HTREEITEM CRepositoryView::_FindItemInTree(HTREEITEM hItem, LPCTSTR pstrName) const
 {

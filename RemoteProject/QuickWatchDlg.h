@@ -25,7 +25,6 @@ public:
       CString sName;
       CString sType;
       CString sValue;
-      int iParent;
       int iIndent;
       bool bHasValue;
       bool bHasChildren;
@@ -41,12 +40,11 @@ public:
    IDevEnv* m_pDevEnv;
    CRemoteProject* m_pProject;
 
-   CString m_sDefault;
-   CString m_sVariableName;
-   CString m_sQueryVariable;
-   int m_iQueryParent;
-   CSimpleArray<ITEM> m_aItems;
-   int m_iColumnWidth;
+   CString m_sDefault;                         // Value which Expression field defaults to
+   CString m_sVariableName;                    // Value of current Expression
+   CString m_sQueryVariable;                   // Full name of item being processed
+   CSimpleArray<ITEM> m_aItems;                // Array of item information
+   int m_iColumnWidth;                         // Estimated column width
 
    CQuickWatchDlg(IDevEnv* pDevEnv, CRemoteProject* pProject, LPCTSTR pstrDefault);
 
@@ -98,8 +96,11 @@ public:
    void _CalcColumnWidth();
    void _UpdateButtons();
    int _GetItemHeight(int iIndex) const;
+   int _FindFromKey(CString sKey, int& iItem) const;
+   int _FindFromChildKey(CString sName, int& iItem) const;
    void _ExpandItem(int iItem);
    void _CollapseItem(int iItem);
+   void _InvalidateItem(int iItem);
 };
 
 

@@ -47,6 +47,9 @@ BOOL CDbOperations::EnumTables(COledbDatabase* pDb /*=NULL*/)
    if( !pDb->IsOpen() ) return FALSE;
    // Don't collect tables if we've already done this once
    if( m_aTables.GetSize() > 0 ) return TRUE;
+   // Temporarily change statusbar
+   // Enumerating the table takes an awfull long time on some OLE DB (ODBC) providers.
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_TABLEENUM)));
    // Lock data
    CLockStaticDataInit lock;
    // Get terms

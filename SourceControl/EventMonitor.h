@@ -5,7 +5,6 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "CheckInDlg.h"
 #include "RepositoryView.h"
 
 #include "Commands.h"
@@ -24,20 +23,12 @@ public:
          switch( LOWORD(wParam) ) {
          case ID_VIEW_REPOSITORY:
             {
-               // Create/remove repository view
-               if( !m_viewRepository.IsWindow() ) {
-                  CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
-                  TCHAR szTitle[128] = { 0 };
-                  ::LoadString(_Module.GetResourceInstance(), IDS_TITLE, szTitle, 127);
-                  DWORD dwStyle = WS_CHILD | WS_VISIBLE;
-                  m_viewRepository.Create(wndMain, CWindow::rcDefault, szTitle, dwStyle);
-                  _pDevEnv->AddAutoHideView(m_viewRepository, IDE_DOCK_LEFT, 2);
-                  _pDevEnv->ActivateAutoHideView(m_viewRepository);
-               }
-               else {
-                  _pDevEnv->RemoveAutoHideView(m_viewRepository);
-                  m_viewRepository.PostMessage(WM_CLOSE);
-               }
+               _DisplayRepositoryView();
+            }
+            break;
+         case ID_VIEW_CVSDIFF:
+            {
+               _Commands.ShowDiffView();
             }
             break;
          case ID_SC_CHECKIN:
@@ -113,7 +104,7 @@ public:
    {
       return FALSE;
    }
-   
+
    void OnIdle(IUpdateUI* pUIBase)
    {
       pUIBase->UIEnable(ID_SC_UPDATE, !_Commands.sCmdUpdate.IsEmpty());
@@ -121,7 +112,7 @@ public:
       pUIBase->UIEnable(ID_SC_CHECKOUT, !_Commands.sCmdCheckOut.IsEmpty());
       pUIBase->UIEnable(ID_SC_LOGIN, !_Commands.sCmdLogIn.IsEmpty());
       pUIBase->UIEnable(ID_SC_LOGOUT, !_Commands.sCmdLogOut.IsEmpty());
-      pUIBase->UIEnable(ID_SC_DIFFVIEW, !_Commands.sCmdDiff.IsEmpty());
+      pUIBase->UIEnable(ID_SC_DIFFVIEW, !_Commands.sCmdDiff.IsEmpty() && !_Commands.m_bIsFolder);
       pUIBase->UIEnable(ID_SC_STATUS, !_Commands.sCmdStatus.IsEmpty());
       pUIBase->UIEnable(ID_SC_ADDFILE, !_Commands.sCmdAddFile.IsEmpty());
       pUIBase->UIEnable(ID_SC_REMOVEFILE, !_Commands.sCmdRemoveFile.IsEmpty());
@@ -132,6 +123,26 @@ public:
    void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
    {
       AtlLoadString(wID, pstrText, cchMax);
+   }
+
+   // Implementation
+
+   void _DisplayRepositoryView()
+   {
+      // Create/remove repository view
+      if( !m_viewRepository.IsWindow() ) {
+         CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
+         TCHAR szTitle[128] = { 0 };
+         ::LoadString(_Module.GetResourceInstance(), IDS_TITLE, szTitle, 127);
+         DWORD dwStyle = WS_CHILD | WS_VISIBLE;
+         m_viewRepository.Create(wndMain, CWindow::rcDefault, szTitle, dwStyle);
+         _pDevEnv->AddAutoHideView(m_viewRepository, IDE_DOCK_LEFT, 2);
+         _pDevEnv->ActivateAutoHideView(m_viewRepository);
+      }
+      else {
+         _pDevEnv->RemoveAutoHideView(m_viewRepository);
+         m_viewRepository.PostMessage(WM_CLOSE);
+      }
    }
 };
 
