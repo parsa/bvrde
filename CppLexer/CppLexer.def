@@ -1,4 +1,5 @@
-NAME CppLexer.dll
+LIBRARY CppLexer.dll
 
 EXPORTS
    CppLexer_Parse
+

@@ -23,6 +23,7 @@ public:
 
    DWORD Run();
 
+   IProject* _GetProject() const;
    void _SplitResult(CString sResult, CSimpleArray<CString>& aLines) const;
 
    // ILineCallback

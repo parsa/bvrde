@@ -96,6 +96,11 @@ IDispatch* CEmptyProject::GetDispatch()
    return _pDevEnv->CreateStdDispatch(_T("Project"), this);
 }
 
+IElement* CEmptyProject::GetParent() const
+{
+   return _pDevEnv->GetSolution();
+}
+
 INT CEmptyProject::GetItemCount() const
 {
    return m_aFiles.GetSize();

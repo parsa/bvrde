@@ -108,6 +108,10 @@ SOURCE=.\HexFiles.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\HexFiles.def
+# End Source File
+# Begin Source File
+
 SOURCE=.\HexFiles.rc
 # End Source File
 # Begin Source File
@@ -182,10 +186,6 @@ SOURCE=.\Globals.h
 # Begin Source File
 
 SOURCE=.\HexEditor.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\HexFiles.def
 # End Source File
 # Begin Source File
 

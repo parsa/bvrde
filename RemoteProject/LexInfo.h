@@ -5,7 +5,39 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+class CLexInfo;
 class CRemoteProject;
+
+
+typedef struct LEXFILE
+{
+   ~LEXFILE()
+   {
+      free(pData);
+   }
+   LPTSTR pData;                         // Lex file contents
+   CString sFilename;                    // Lex filename
+   bool bIncludeInBrowser;               // Include this data in browser?
+   CSimpleValArray<TAGINFO> aTags;       // Tag references
+} LEXFILE;
+
+
+/**
+ * @class CLexThread
+ * Parse thread.
+ * This thread parses, saves and splits the file result into the internal structures
+ * used by the lex lookup algorithm.
+ */
+class CLexThread : public CThreadImpl<CLexThread>
+{
+public:
+   CRemoteProject* m_pProject;
+   CLexInfo* m_pLexInfo;
+   CString m_sFilename;
+   LPCSTR m_pstrText;
+
+   DWORD Run();
+};
 
 
 /**
@@ -21,47 +53,36 @@ public:
    CLexInfo();
    virtual ~CLexInfo();
 
-// Types
-private:
-   typedef struct 
-   {
-      LPTSTR pData;
-      CString sFilename;
-      CSimpleValArray<TAGINFO> aTags;
-      bool bIncludeInBrowser;
-   } LEXFILE;
-
 // ITagInfoHandler
 public:
    void Init(CRemoteProject* pProject);
    void Clear();
    bool IsLoaded() const;
    bool IsAvailable() const;
-   TAGTYPE GetItemType(int iIndex);
-   int FindItem(int iStart, LPCTSTR pstrName);
-   bool GetOuterList(CSimpleValArray<TAGINFO*>& aList);
-   bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList);
-   bool GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult);
-   bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance);
-   bool FindImplementation(LPCTSTR pstrName, LPCTSTR pstrOwner, CString& sFilename, long& lLineNo);
+   bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult);
+   void GetItemInfo(const TAGINFO* pTag, CTagDetails& Info);
+   bool GetOuterList(CSimpleValArray<TAGINFO*>& aResult);
+   bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult);
+   bool GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult);
 
 // Operations
 public:
-   bool MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText);
+   bool MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText, DWORD dwTimeout);
+   bool MergeTree(LPCTSTR pstrFilename, LEXFILE* pFile);
+
+   LEXFILE* _ParseFile(LPCTSTR pstrFilename) const;
+   CString _GetLexFilename(LPCTSTR pstrFilename, bool bCreatePath) const;
 
 private:
    void _LoadTags();
-   CString _GetTagParent(const TAGINFO& info) const;
-   bool _ParseFile(LPCTSTR pstrFilename, LEXFILE& file) const;
-   CString _GetLexFilename(LPCTSTR pstrFilename, bool bCreatePath) const;
+   CString _FindTagParent(const TAGINFO* pTag) const;
 
 // Data Members
 private:
-
    CRemoteProject* m_pProject;
    CSimpleArray<LEXFILE*> m_aFiles;
+   CLexThread m_thread;
    bool m_bLoaded;
-   int m_iFile;
 };
 
 

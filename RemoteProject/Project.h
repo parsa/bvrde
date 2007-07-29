@@ -52,7 +52,7 @@ public:
 public:
    CWindow m_wndMain;
    bool m_bLoaded;
-   //
+
    CFileManager m_FileManager;
    CCompileManager m_CompileManager;
    CDebugManager m_DebugManager;
@@ -97,6 +97,7 @@ public:
    BOOL Save(ISerializable* pArchive);
    BOOL GetName(LPTSTR pstrName, UINT cchMax) const;
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
+   IElement* GetParent() const;
    IDispatch* GetDispatch();
 
 // IProject
@@ -143,30 +144,30 @@ public:
 // Operations
 public:
    bool Reset();
-   bool OpenView(LPCTSTR pstrFilename, long lLineNum);
+   bool OpenView(LPCTSTR pstrFilename, int iLineNum);
    IView* FindView(LPCTSTR pstrFilename, bool bLocally = false) const;
    void SendViewMessage(UINT nCmd, LAZYDATA* pData);
    bool IsViewsDirty() const;
    bool IsWindowVisible(UINT nID) const;
    bool IsRecompileNeeded() const;
    bool GetPath(LPTSTR pstrPath, UINT cchMax) const;
-   bool GetTagInfo(LPCTSTR pstrValue, bool bAskDebugger, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/);
-   //
+
    static CClassView* GetClassView();
    static CTelnetView* GetDebugView();
    static CTelnetView* GetOutputView();
-   //
+
    void DelayedStatusBar(LPCTSTR pstrText);
-   void DelayedOpenView(LPCTSTR pstrFilename, long lLineNum);
+   void DelayedOpenView(LPCTSTR pstrFilename, int iLineNum);
    void DelayedDebugCommand(LPCTSTR pstrCommand);
    void DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UINT iFlags);
    void DelayedGuiAction(UINT iAction, HWND hWnd);
-   void DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename = NULL, long lLineNum = -1);
-   void DelayedViewMessage(WPARAM wCmd, LPCTSTR pstrFilename = NULL, long lLineNum = -1, UINT iFlags = 0);
-   void DelayedDebugBreakpoint(LPCTSTR pstrFilename, long lLineNum);
+   void DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename = NULL, int iLineNum = -1);
+   void DelayedViewMessage(WPARAM wCmd, LPCTSTR pstrFilename = NULL, int iLineNum = -1, UINT iFlags = 0);
+   void DelayedDebugBreakpoint(LPCTSTR pstrFilename, int iLineNum);
    void DelayedDebugEvent(LAZYACTION event = LAZY_DEBUG_BREAK_EVENT);
    void DelayedDebugInfo(LPCTSTR pstrCommand, CMiInfo& info);
-   //
+   void DelayedClassTreeInfo(LPCTSTR pstrFilename, LEXFILE* pFile);
+
    static void InitializeToolBars();
 
 // Message map and handlers

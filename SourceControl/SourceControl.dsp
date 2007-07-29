@@ -104,6 +104,10 @@ SOURCE=.\Globals.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ParseDiff.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\RepositoryView.cpp
 # End Source File
 # Begin Source File
@@ -157,6 +161,22 @@ SOURCE=..\Source\CPP\Include\Thread.h
 # Begin Source File
 
 SOURCE=..\Source\WTL\Controls\MruCombo.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\WTL\Controls\PropertyItem.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\WTL\Controls\PropertyItemEditors.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\WTL\Controls\PropertyItemImpl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\WTL\Controls\PropertyList.h
 # End Source File
 # End Group
 # Begin Group "Dialogs"
@@ -219,6 +239,10 @@ SOURCE=.\WizardSheet.h
 # Begin Group "Resource Files"
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+# Begin Source File
+
+SOURCE=.\Res\diff.htm
+# End Source File
 # End Group
 # End Target
 # End Project

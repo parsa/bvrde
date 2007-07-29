@@ -26,6 +26,7 @@ public:
    BOOL Save(ISerializable* pArchive);
    BOOL GetName(LPTSTR pstrName, UINT cchMax) const;
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
+   IElement* GetParent() const;
    IDispatch* GetDispatch();
 
    // IProject

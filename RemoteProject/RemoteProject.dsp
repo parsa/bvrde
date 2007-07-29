@@ -344,6 +344,10 @@ SOURCE=.\DockManager.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\Source\WTL\Controls\FunctionRtf.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\GenEdit\GenEdit.h
 # End Source File
 # Begin Source File

@@ -17,15 +17,14 @@ public:
    bool IsLoaded() const;
    bool IsAvailable() const;
    void Clear();
-   TAGTYPE GetItemType(int iIndex);
-   int FindItem(int iStart, LPCTSTR pstrName);
-   bool GetOuterList(CSimpleValArray<TAGINFO*>& aList);
-   bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList);
-   bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance);
-   bool GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult);
+   bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult);
+   void GetItemInfo(const TAGINFO* pTag, CTagDetails& Info);
+   bool GetOuterList(CSimpleValArray<TAGINFO*>& aResult);
+   bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult);
+   bool GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult);
 
    bool OpenTagInView(TAGINFO* pTag);
-   bool OpenTagInView(LPCTSTR pstrFilenameLineNo, LPCTSTR pstrMemberName);
+   bool OpenTagInView(CTagDetails& Info);
 
 public:
    enum

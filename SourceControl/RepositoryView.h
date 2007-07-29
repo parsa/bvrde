@@ -87,7 +87,7 @@ public:
    // Implementation
 
    CString _GetItemPath(HTREEITEM hItem) const;
-	void _ShowWaitingMessage(UINT nRes, COLORREF clrText);
+   void _ShowWaitingMessage(UINT nRes, COLORREF clrText);
    HTREEITEM _FindItemInTree(HTREEITEM hItem, LPCTSTR pstrName) const;
    bool _AddShellIcon(CImageListHandle& iml, LPCTSTR pstrExtension, DWORD dwFileAttribs, DWORD dwMoreFlags = 0) const;
 };

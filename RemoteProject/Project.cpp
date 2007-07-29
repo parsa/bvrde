@@ -120,6 +120,11 @@ IDispatch* CRemoteProject::GetDispatch()
    return &pThis->m_Dispatch;
 }
 
+IElement* CRemoteProject::GetParent() const
+{
+   return _pDevEnv->GetSolution();
+}
+
 INT CRemoteProject::GetItemCount() const
 {
    return m_aFiles.GetSize();
@@ -614,13 +619,13 @@ void CRemoteProject::SendViewMessage(UINT nCmd, LAZYDATA* pData)
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) m_aFiles[i]->SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, nCmd), (LPARAM) pData);
 }
 
-bool CRemoteProject::OpenView(LPCTSTR pstrFilename, long lLineNum)
+bool CRemoteProject::OpenView(LPCTSTR pstrFilename, int iLineNum)
 {
    ATLASSERT(!::IsBadStringPtr(pstrFilename,-1));
    IView* pView = FindView(pstrFilename, false);
    if( pView == NULL ) pView = _CreateDependencyFile(pstrFilename, ::PathFindFileName(pstrFilename));
    if( pView == NULL ) return false;
-   return pView->OpenView(lLineNum) == TRUE;
+   return pView->OpenView(iLineNum) == TRUE;
 }
 
 IView* CRemoteProject::FindView(LPCTSTR pstrFilename, bool bLocally /*= false*/) const
@@ -663,19 +668,6 @@ IView* CRemoteProject::FindView(LPCTSTR pstrFilename, bool bLocally /*= false*/)
       if( _tcsicmp(szSearchFile, szFilename) == 0 ) return pView;
    }
    return NULL;
-}
-
-bool CRemoteProject::GetTagInfo(LPCTSTR pstrValue, bool bAskDebugger, CSimpleArray<CString>& aResult, LPCTSTR pstrOwner /*= NULL*/)
-{
-   ATLASSERT(!::IsBadStringPtr(pstrValue,-1));
-   // NOTE: GetTagInfo() is designed so that it *may* return a result
-   //       immediately - but it may also delay the retrieval of information
-   //       (which happens when it queries debug-information from the debugger).
-   //       Because of this delay, the 'bAskDebugger' flag allows the Editor
-   //       to first present its own knowledge of the value, and then wait out
-   //       for the debugger to append its information.
-   if( bAskDebugger && m_DebugManager.IsDebugging() ) return m_DebugManager.GetTagInfo(pstrValue);
-   return m_TagManager.GetItemInfo(pstrValue, pstrOwner, TAGINFO_DECLARATION, aResult);
 }
 
 void CRemoteProject::InitializeToolBars()
@@ -1147,15 +1139,14 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
    }
 
    // New C++ files are added to class-view immediately if online-scanner
-   // is running...
+   // is also running...
    CString sFileType = GetFileTypeFromFilename(pstrName);
    if( bRemote && (sFileType == _T("cpp") || sFileType == _T("header")) ) {
       if( m_TagManager.m_LexInfo.IsAvailable() ) {
          LPSTR pstrText = NULL;
          DWORD dwSize = 0;
          if( m_FileManager.LoadFile(pstrFilename, true, (LPBYTE*) &pstrText, &dwSize) ) {
-            m_TagManager.m_LexInfo.MergeFile(pstrFilename, pstrText);
-            free(pstrText);
+            if( !m_TagManager.m_LexInfo.MergeFile(pstrFilename, pstrText, INFINITE) ) free(pstrText);
          }
       }
    }
@@ -1165,7 +1156,7 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
 
 IView* CRemoteProject::_CreateDependencyFile(LPCTSTR pstrFilename, LPCTSTR pstrName)
 {
-   // See if we can find the file...
+   // See if we can find the file.
    // The file may not be located in the project path, so we'll allow 
    // the system to search for the file.
    CString sFilename = m_FileManager.FindFile(pstrFilename);

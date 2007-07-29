@@ -36,7 +36,6 @@ public:
    virtual void ActivateUI();
    virtual void DeactivateUI();
    virtual void EnableModeless(BOOL bEnable);
-   virtual IElement* GetParent() const;
    virtual BOOL SetName(LPCTSTR pstrName);
    virtual BOOL Save();
    virtual BOOL Reload();
@@ -44,6 +43,7 @@ public:
    virtual BOOL GetFileName(LPTSTR pstrName, UINT cchMax) const;
    virtual LRESULT PostMessage(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0);
    virtual LRESULT SendMessage(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0);
+   virtual IElement* GetParent() const;
    virtual IDispatch* GetDispatch();
 
 protected:

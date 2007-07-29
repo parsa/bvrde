@@ -210,6 +210,11 @@ BOOL CSolution::GetType(LPTSTR pstrType, UINT cchMax) const
    return TRUE;
 }
 
+IElement* CSolution::GetParent() const
+{
+   return NULL;
+}
+
 IDispatch* CSolution::GetDispatch()
 {
    CSolution* pThis = const_cast<CSolution*>(this);

@@ -2,11 +2,19 @@
 #include "StdAfx.h"
 
 //
+// Scintilla:
+// Copyright 1998-2003 by Neil Hodgson <neilh@scintilla.org>
+// The Scintilla.lic file describes the conditions under which this (Scintilla) software 
+// may be distributed.
+//
+// This file:
 // This is an external C++ lexer for the Scintilla editor. It is based
-// very much on the original C++ Lexer code (19 July 2007).
+// very much on the original Scintilla C++ Lexer code (19 July 2007).
 // It adds 2 new styles: SCE_C_FUNCTIONCLASS and SCE_C_TYPEDEFCLASS
 // which colors functions and uppercased identifiers. That makes the
-// syntax coloring slightly more rich I think.
+// syntax coloring slightly more rich. A number of source files
+// have been imported directly from the Scintilla project to easily
+// create this external plugin for the editor.
 //
 
 #include "Platform.h"

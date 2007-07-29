@@ -113,44 +113,42 @@ HRESULT CFileEnumThread::_ParseCvsLine(BSTR bstr)
 
 HRESULT CFileEnumThread::_ParseSubversionLine(BSTR bstr)
 {
-   {
-      // Subversion output will generally look like this:
-      //   $ svn status --show-updates --verbose wc
-      //   M          965       938 sally        wc/bar.c
-      //        *     965       922 harry        wc/foo.c
-      //   A  +       965       687 harry        wc/qax.c
-      //              965       687 harry        wc/zig.c
-      if( wcslen(bstr) < 15 ) return S_OK;
-      switch( bstr[0] ) {
-      case ' ':
-      case 'C':
-      case 'M':
-      case 'D':
-      case 'U':
-      case 'A':
-      case 'I':
-         WCHAR szStatus[8] = { 0 };
-         wcsncpy(szStatus, bstr, 6);
-         FILEINFO empty;
-         m_Info = empty;
-         if( wcschr(szStatus, 'C') != NULL ) m_Info.sStatus += _T("Conflict ");
-         if( wcschr(szStatus, 'M') != NULL ) m_Info.sStatus += _T("Modified ");
-         if( szStatus[0] == 'D') m_Info.sStatus += _T("Deleted ");
-         if( szStatus[0] == 'U') m_Info.sStatus += _T("Updated ");
-         if( szStatus[0] == 'A') m_Info.sStatus += _T("Added ");
-         if( szStatus[0] == '!') m_Info.sStatus += _T("Missing ");
-         if( szStatus[0] == 'I') m_Info.sStatus += _T("Missing ");
-         if( wcschr(szStatus, 'L') != NULL ) m_Info.sStatus += _T("Locked ");
-         if( wcschr(szStatus, '*') != NULL ) m_Info.sStatus = _T("Out-of-date ");
-         LPCWSTR p = bstr + 10;
-         while( *p == ' ' ) p++;
-         while( *p != '\0' && *p != ' ' ) m_Info.sVersion += *p++;
-         p = wcsrchr(bstr, ' ');
-         if( p != NULL ) m_Info.sFilename = p + 1;
-         m_Info.sFilename.TrimRight();
-         m_Info.sStatus.TrimRight();
-         return m_aResult.Add(m_Info) ? S_OK : E_OUTOFMEMORY;
-      }
+   // Subversion output will generally look like this:
+   //   $ svn status --show-updates --verbose wc
+   //   M          965       938 sally        wc/bar.c
+   //        *     965       922 harry        wc/foo.c
+   //   A  +       965       687 harry        wc/qax.c
+   //              965       687 harry        wc/zig.c
+   if( wcslen(bstr) < 15 ) return S_OK;
+   switch( bstr[0] ) {
+   case ' ':
+   case 'C':
+   case 'M':
+   case 'D':
+   case 'U':
+   case 'A':
+   case 'I':
+      WCHAR szStatus[8] = { 0 };
+      wcsncpy(szStatus, bstr, 6);
+      FILEINFO empty;
+      m_Info = empty;
+      if( wcschr(szStatus, 'C') != NULL ) m_Info.sStatus += _T("Conflict ");
+      if( wcschr(szStatus, 'M') != NULL ) m_Info.sStatus += _T("Modified ");
+      if( szStatus[0] == 'D') m_Info.sStatus += _T("Deleted ");
+      if( szStatus[0] == 'U') m_Info.sStatus += _T("Updated ");
+      if( szStatus[0] == 'A') m_Info.sStatus += _T("Added ");
+      if( szStatus[0] == '!') m_Info.sStatus += _T("Missing ");
+      if( szStatus[0] == 'I') m_Info.sStatus += _T("Missing ");
+      if( wcschr(szStatus, 'L') != NULL ) m_Info.sStatus += _T("Locked ");
+      if( wcschr(szStatus, '*') != NULL ) m_Info.sStatus = _T("Out-of-date ");
+      LPCWSTR p = bstr + 10;
+      while( *p == ' ' ) p++;
+      while( *p != '\0' && *p != ' ' ) m_Info.sVersion += *p++;
+      p = wcsrchr(bstr, ' ');
+      if( p != NULL ) m_Info.sFilename = p + 1;
+      m_Info.sFilename.TrimRight();
+      m_Info.sStatus.TrimRight();
+      return m_aResult.Add(m_Info) ? S_OK : E_OUTOFMEMORY;
    }
    return S_OK;
 }
@@ -209,6 +207,10 @@ public:
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const
    {
       return _tcsncpy(pstrType, _T("Revision Info"), cchMax) > 0;
+   }
+   IElement* GetParent() const
+   {
+      return NULL;
    }
    IDispatch* GetDispatch()
    {
@@ -295,7 +297,7 @@ LRESULT CRepositoryView::OnViewOpens(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    // Build entire structure
    TCHAR szCommand[200] = { 0 };
    _pDevEnv->GetProperty(_T("sourcecontrol.browse.all"), szCommand, 199);
-	if( _tcslen(szCommand) == 0 ) _ShowWaitingMessage(IDS_NOTCONFIGURED, RGB(200,0,0));
+   if( _tcslen(szCommand) == 0 ) _ShowWaitingMessage(IDS_NOTCONFIGURED, RGB(200,0,0));
    m_thread.RunCommand(m_hWnd, szCommand, 8000L);
    return 0;
 }

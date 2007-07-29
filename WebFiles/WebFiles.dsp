@@ -121,6 +121,10 @@ SOURCE=.\WebFiles.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\WebFiles.def
+# End Source File
+# Begin Source File
+
 SOURCE=.\WebFiles.rc
 # End Source File
 # Begin Source File
@@ -206,10 +210,6 @@ SOURCE=.\resource.h
 # Begin Source File
 
 SOURCE=.\StdAfx.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\WebFiles.def
 # End Source File
 # Begin Source File
 

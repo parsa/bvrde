@@ -338,9 +338,6 @@
 #define IDC_REPLACEINSEL                1151
 #define IDC_FILENAME                    1152
 #define IDC_REFRESH                     1153
-#define ID_CLASSVIEW_GOTO               1200
-#define ID_CLASSVIEW_PROPERTIES         1201
-#define ID_CLASSVIEW_COPY               1202
 #define IDD_OPTIONS_ADVANCED            32009
 #define IDD_WIZARD_STEPS                32010
 #define ID_FILE_OPEN_WITH               40001
@@ -421,8 +418,8 @@
 #define ID_BUILD_FILEWIZARD             40116
 #define ID_DISASM_INTELSTYLE            40117
 #define ID_DISASM_SHOWSOURCE            40118
-#define ID_CLASSVIEW_SORT               40121
-#define ID_CLASSVIEW_NOSORT             40122
+#define ID_CLASSVIEW_SORT_ALPHA         40121
+#define ID_CLASSVIEW_SORT_NONE             40122
 #define ID_MEMORY_EDIT                  40123
 #define ID_MEMORY_SIZE_DWORD            40124
 #define ID_MEMORY_SIZE_WORD             40125
@@ -455,13 +452,16 @@
 #define ID_BREAKPOINTS_DISABLE          40153
 #define ID_BREAKPOINTS_DELETE           40154
 #define ID_EDIT_WORDWRAP                40155
+#define ID_CLASSVIEW_SORT_TYPE         40156
+#define ID_CLASSVIEW_PROPERTIES         40157
+#define ID_CLASSVIEW_COPY               40158
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         40156
+#define _APS_NEXT_COMMAND_VALUE         40161
 #define _APS_NEXT_CONTROL_VALUE         1039
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

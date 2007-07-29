@@ -10,11 +10,14 @@ Version 1.1:
 * New menuitem to Go To Implementation in ClassView
 * Added ability to edit values in Memory view
 * SFTP performance improved greatly
-* New tooltip info display when hovering over squiggly error markers
+* New tooltip info displayed when hovering over squiggly error markers
+* New tooltip info displayed when hovering over class tree entry
 * New dialog to set advanced breakpoints ("Ignore Count" and "Conditions")
 * New configuration to set login/password prompt for telnet/rlogin
 * Improved C++ syntax highlighting
 * Larger log display and new word-wrap option
+* Visually compare CVS diff in split-view
+* C++ lexer now takes the first path in #if/#else/#endif constructs
 
 Version 1.0b:
 * SFTP port number no longer resets

@@ -39,8 +39,8 @@ CString ConvertFromCrLf(const CString& s)
 
 // Here we store the user's password after being prompted
 // so we needn't prompt again. This implies that the same
-// password should be used for both FTP and Telnet connection!
-// BUG: It is also not a very secure thing to do!!
+// password should be used for both FTP and Telnet connections!
+// BUG: It is also not a very secure thing to leave here!!
 TCHAR g_szPassword[100];
 
 

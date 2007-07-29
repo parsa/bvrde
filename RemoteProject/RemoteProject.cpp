@@ -86,6 +86,7 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv->SetProperty(_T("file.extension.hxx"), _T("C/C++ Header"));
    _pDevEnv->SetProperty(_T("file.extension.hpp"), _T("C/C++ Header"));
    _pDevEnv->SetProperty(_T("file.extension.inl"), _T("C/C++ Source"));
+   _pDevEnv->SetProperty(_T("file.extension.inc"), _T("C/C++ Source"));
    _pDevEnv->SetProperty(_T("file.extension.bas"), _T("BASIC File"));
    _pDevEnv->SetProperty(_T("file.extension.vbs"), _T("VBScript Script File"));
    _pDevEnv->SetProperty(_T("file.extension.java"), _T("Java Source"));
@@ -161,7 +162,7 @@ IView* WINAPI Plugin_CreateView(LPCTSTR pstrFilename, IProject* pProject, IEleme
    if( bRemoteFile && pProject == NULL ) {
       pProject = _pDevEnv->GetSolution()->GetActiveProject();
    }
-   if( pProject ) {
+   if( pProject != NULL ) {
       TCHAR szType[64] = { 0 };
       pProject->GetClass(szType, 63);
       if( _tcscmp(szType, _T(PLUGIN_NAME)) == 0 ) pCppProject = (CRemoteProject*) pProject;

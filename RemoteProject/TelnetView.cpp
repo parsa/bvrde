@@ -283,7 +283,7 @@ void CTelnetView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    // Filtering out debug output?
    // BUG: We're filtering lines indiscriminately. We should really try
    //      to figure out if this is GDB prompt/output or not. 
-   //      But this is very difficult!
+   //      But this is very tricky!
    if( (m_dwFlags & TELNETVIEW_FILTERDEBUG) != 0 ) 
    {
       if( _tcsstr(pstrText, _T("232^")) != NULL ) return;

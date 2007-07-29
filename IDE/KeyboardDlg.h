@@ -243,17 +243,17 @@ public:
       map.RemoveAll();
       if( hAccel == NULL ) return false;
       ACCEL aAccel[MAX_ACCELS];
-      int nCount = ::CopyAcceleratorTable(hAccel, aAccel, sizeof(aAccel)/sizeof(ACCEL));
-      ATLASSERT(nCount<sizeof(aAccel)/sizeof(ACCEL));
+      int nCount = ::CopyAcceleratorTable(hAccel, aAccel, MAX_ACCELS);
       for( int i = 0; i < nCount; i++ ) map.Add(aAccel[i].cmd, aAccel[i]);
       return true;
    }
    HACCEL _BuildAccel(const ACCELMAP& map) const
    {
       ACCEL aAccel[MAX_ACCELS];
-      ATLASSERT(map.GetSize()<sizeof(aAccel)/sizeof(ACCEL));
-      for( int i = 0; i < map.GetSize(); i++ ) aAccel[i] = map.GetValueAt(i);
-      return ::CreateAcceleratorTable(aAccel, map.GetSize());
+      int nCount = map.GetSize();
+      if( nCount > MAX_ACCELS ) nCount = MAX_ACCELS;
+      for( int i = 0; i < nCount; i++ ) aAccel[i] = map.GetValueAt(i);
+      return ::CreateAcceleratorTable(aAccel, nCount);
    }
 
    WORD _GetHotkeyFromAccel(const ACCEL& accel) const

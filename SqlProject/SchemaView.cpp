@@ -249,7 +249,7 @@ LRESULT CSchemaView::OnTreeSelection(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHa
       break;
    case 1:
    case IDS_TREE_INFO:
-      _SetHtml(0);
+      _SetHtml();
       m_ctrlList.ShowWindow(SW_HIDE);
       m_wndInfo.ShowWindow(SW_SHOWNOACTIVATE);
       m_Splitter.SetSplitterPane(SPLIT_PANE_RIGHT, m_wndInfo);
@@ -426,11 +426,10 @@ BOOL CSchemaView::_InitHtml()
    return SUCCEEDED(Hr);
 }
 
-BOOL CSchemaView::_SetHtml(LPARAM lParam)
+BOOL CSchemaView::_SetHtml()
 {
    ATLASSERT(m_spBrowser);
-   CString sHTML;
-   if( lParam == 0 ) sHTML = AtlLoadHtmlResource(IDR_INFO);
+   CString sHTML = AtlLoadHtmlResource(IDR_INFO);
    static LPCTSTR ppstrTranslations[] =
    {
       _T("$DATABASE"),         MAKEINTRESOURCE(IDS_DATABASE),
@@ -442,7 +441,8 @@ BOOL CSchemaView::_SetHtml(LPARAM lParam)
       _T("$DBSERVER_LABEL"),   MAKEINTRESOURCE(IDS_DBSERVER_LABEL),
       NULL, NULL
    };
-   for( LPCTSTR* ppstr = ppstrTranslations; *ppstr; ppstr += 2 ) {
+   LPCTSTR* ppstr;
+   for( ppstr = ppstrTranslations; *ppstr; ppstr += 2 ) {
       if( sHTML.Find(*ppstr) >= 0 ) sHTML.Replace(*ppstr, CString(*(ppstr + 1)));
    }
    sHTML.Replace(_T("$DBNAME"), m_pDb->GetPropertyStr(DBPROPSET_DBINIT, DBPROP_INIT_DATASOURCE));
@@ -451,6 +451,12 @@ BOOL CSchemaView::_SetHtml(LPARAM lParam)
    sHTML.Replace(_T("$DBSERVER"), m_pDb->GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_SERVERNAME));
    sHTML.Replace(_T("$DBVERSION"), m_pDb->GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_DBMSVER));      
    sHTML.Replace(_T("$DBTYPE"), m_pDb->GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_DBMSNAME));
+   for( ppstr = ppstrTranslations; *ppstr; ppstr += 2 ) {
+      // <b>$DBSERVER_LABEL:</b> $DBSERVER<br>
+      CString sEmptyLine;
+      sEmptyLine.Format(_T("<b>%s:</b> <br>"), CString(*(ppstr + 1)));
+      sHTML.Replace(sEmptyLine, _T(""));
+   }
    _LoadHtml(m_spBrowser, sHTML);
    return TRUE;
 }

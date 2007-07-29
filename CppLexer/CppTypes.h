@@ -25,6 +25,7 @@ extern int verb;
 #define MACRO_SEC     0x00000080
 #define ENUM_SEC      0x00000100
 #define STRUCT_SEC    0x00000200
+#define IMPL_SEC      0x00000400
 
 #define onlyDocs 0
 
@@ -74,7 +75,6 @@ public:
    int lineNo;
 
    McString program;
-   McString file;
    
    McString type;
    McString name;

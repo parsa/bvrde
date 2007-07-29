@@ -83,8 +83,8 @@ LRESULT CRemoteProject::OnFileAddLocal(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
    IElement* pElement = _GetSelectedTreeElement(&hItem);
    if( pElement == NULL )  { bHandled = FALSE; return 0; }
 
-   // Make sure the project is saved to a file
-   // Need the project filename so we can make local filenames relative.
+   // Make sure the project is saved to a file.
+   // Need a project filename so we can make local filenames relative.
    if( m_aFiles.GetSize() == 0 ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE_ALL, 0));
 
    CTreeViewCtrl ctrlTree = _pDevEnv->GetHwnd(IDE_HWND_EXPLORER_TREE);
@@ -195,9 +195,9 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
       CString sFilename = sPath + ppstrPath;
 
       // NOTE: Before we can use PathRelativePathTo() we need to
-      //       convert back to Windows filename-slashes because it doesn't
-      //       work with unix-type slashes (/ vs \).
-      // TODO: Do a real implementation of PathRelativePathTo.
+      //       convert it back to Windows filename-slashes because the Windows API
+      //       doesn't work with unix-type slashes (/ vs \).
+      // TODO: Do a real implementation of PathRelativePathTo().
       if( sSeparator != _T("\\") ) sFilename.Replace(sSeparator, _T("\\"));
       TCHAR szName[MAX_PATH] = { 0 };
       _tcscpy(szName, sFilename);

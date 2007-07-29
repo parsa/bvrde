@@ -5,6 +5,8 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include "FunctionRtf.h"
+
 
 class CClassView : 
    public CWindowImpl<CClassView>,
@@ -16,15 +18,18 @@ public:
 
    CClassView();
 
-   bool m_bLocked;                               // Is data structures locked?
+   bool m_bLocked;                               // Are data structures locked?
    bool m_bPopulated;                            // Has tree been populated?
+   bool m_bMouseTracked;                         // Is mouse tracked?
    CRemoteProject* m_pProject;                   // Reference to project
-   TAGINFO* m_pCurrentTag;                       // Reference to selected tag item
-   CString m_sImplementationEntry;               // Reference to selected items implementation file
+   TAGINFO* m_pCurrentTag;                       // Reference to selected tag item during context-menu
+   TAGINFO* m_pCurrentHover;                     // Reference to item during hover
+   CTagDetails m_ImplTag;                        // Data about source implementation
    CSimpleArray<CString> m_aExpandedNames;       // List of exanded tree-names
 
    CImageListCtrl m_Images;
-   CTreeViewCtrl m_ctrlTree;
+   CContainedWindowT<CTreeViewCtrl> m_ctrlTree;
+   CFunctionRtfCtrl m_ctrlHoverTip;
 
    // Operations
 
@@ -39,7 +44,9 @@ public:
    // Implementation
 
    void _PopulateTree();
-   CString _GetImplementationRef(TAGINFO* pTag);
+   bool _GetImplementationRef(TAGINFO* pTag, CTagDetails& Info);
+
+   static int CALLBACK _TreeSortTypeCB(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 
    // IIdleListener
 
@@ -59,10 +66,18 @@ public:
       NOTIFY_CODE_HANDLER(TVN_ITEMEXPANDING, OnTreeExpanding)
       NOTIFY_CODE_HANDLER(TVN_ITEMEXPANDED, OnTreeExpanded)
       NOTIFY_CODE_HANDLER(TVN_GETDISPINFO, OnGetDisplayInfo)
+   ALT_MSG_MAP(1)
+      MESSAGE_HANDLER(WM_MOUSEMOVE, OnMouseMove)     
+      MESSAGE_HANDLER(WM_MOUSEHOVER, OnMouseHover)     
+      MESSAGE_HANDLER(WM_MOUSELEAVE, OnMouseLeave)     
+      NOTIFY_CODE_HANDLER(EN_REQUESTRESIZE, OnRequestResize);
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnMouseMove(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnMouseHover(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnMouseLeave(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnPopulate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnTreeDblClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeSelChanged(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
@@ -71,6 +86,7 @@ public:
    LRESULT OnTreeExpanding(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnTreeExpanded(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnGetDisplayInfo(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnRequestResize(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 };
 
 

@@ -1,4 +1,4 @@
-NAME Templates.dll
+LIBRARY Templates.dll
 
 EXPORTS
     Templates_NewFile

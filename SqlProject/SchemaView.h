@@ -56,7 +56,7 @@ public:
    // Implementation
 
    BOOL _InitHtml();
-   BOOL _SetHtml(LPARAM lParam);
+   BOOL _SetHtml();
    BOOL _FillTreeWithTables(LPARAM lParam, HTREEITEM hParent);
    BOOL _FillTreeWithFields(DATABASEOBJECT* pObj, HTREEITEM hParent);
    BOOL _LoadHtml(IUnknown* pUnk, LPCTSTR pstrHTML);

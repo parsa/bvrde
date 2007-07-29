@@ -85,8 +85,9 @@ IDR_CLASSTREE MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "Alphabetisch &sortieren    ", ID_CLASSVIEW_SORT
-        MENUITEM "Nicht sortieren",             ID_CLASSVIEW_NOSORT
+        MENUITEM "Alphabetisch &sortieren    ", ID_CLASSVIEW_SORT_ALPHA
+        MENUITEM "Typ &sortieren    ",          ID_CLASSVIEW_SORT_TYPE
+        MENUITEM "Nicht sortieren",             ID_CLASSVIEW_SORT_NONE
     END
 END
 
@@ -94,7 +95,7 @@ IDR_CLASSTREE_ITEM MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "&Gehe zu Definition",         ID_CLASSVIEW_GOTO
+        MENUITEM "&Gehe zu Definition",         ID_CLASSVIEW_GOTODECL
         MENUITEM "&Gehe zu Implementation    ", ID_CLASSVIEW_GOTOIMPL
         MENUITEM SEPARATOR
         MENUITEM "&Kopieren",                   ID_CLASSVIEW_COPY
@@ -668,8 +669,10 @@ BEGIN
                     BS_MULTILINE | WS_TABSTOP,14,86,206,18
     LTEXT           "Condition:",-1,25,111,37,10,SS_CENTERIMAGE
     EDITTEXT        IDC_CONDITION,64,110,154,12,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,244,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,244,24,50,14
+    DEFPUSHBUTTON   "OK",IDOK,239,7,55,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,239,24,55,14
+    GROUPBOX        " Info ",IDC_FRAME3,7,144,225,41
+    LTEXT           "...",IDC_INFORMATION,15,156,208,22
 END
 
 
@@ -892,7 +895,7 @@ BEGIN
     IDS_LOCAL_VARS          "Lokale Variablen"
     IDS_CAPTION_BUILD       "Erstellen"
     IDS_CAPTION_DEBUG       "Debuggen"
-    IDS_STACKLINE           "%s,  Datei='%s', Zeile=%ld"
+    IDS_STACKLINE           "%s,  Datei='%s', Zeile=%d"
     IDS_ERR_FILESAVE        "Speichern fehlgeschlagen\nDas Speichern der Datei '%s' ist fehlgeschlagen.\nDer Server gab folgenden Fehler zurück: %s\n\nWenn die Datei eine entfernte Datei ist, wird es ein Timeout Fehler sein. Dann erneut versuchen."
     IDS_STOPPED             "Angehalten"
     IDS_SIGNAL              "%s\n%s\nAddresse: %s\nFunktion: %s"
@@ -1004,7 +1007,11 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_CLASSVIEW_GOTO       "Gehe zur Memberdefinition\nGehe zur Definition"
+    ID_DEBUG_STEP_INSTRUCTION 
+                            "Als einen Assembler Schritt ausführen\nSchritt ausführen"
+    ID_CLASSVIEW_GOTODECL   "Gehe zur Memberdefinition\nGehe zur Definition"
+    ID_CLASSVIEW_GOTOIMPL   "Gehe zur Member\nGehe zur Implementation"
+    ID_CLASSVIEW_SORT_TYPE  "Einträge typ/alphabetisch sortieren\nSortieren"
     ID_CLASSVIEW_PROPERTIES "Eigenschaften anzeigen\nEigenschaften"
     ID_CLASSVIEW_COPY       "Seletierten Text kopieren\nKopieren"
 END
@@ -1051,21 +1058,14 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_DEBUG_STEP_INSTRUCTION 
-                            "Als einen Assembler Schritt ausführen\nSchritt ausführen"
-    ID_CLASSVIEW_GOTOIMPL   "Gehe zur Member\nGehe zur Implementation"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     ID_BUILD_BUILDMAKEFILE  "Ein Makefile generieren\nMakefile erstellen"
     ID_VIEW_MEMORY          "Speicheransicht anzeigen\nSpeicher"
     ID_VIEW_DISASM          "Disassembleransicht anzeigen\nDisassembler"
     ID_BUILD_FILEWIZARD     "Dateiwizard ausführen\nDateiwizard ausführen"
     ID_DISASM_INTELSTYLE    "Disassembler im Intel Stil anzeigen\nIntel Stil"
     ID_DISASM_SHOWSOURCE    "Disassember gemischt mit Quellcode anzeigen\nQuellcode anzeigen"
-    ID_CLASSVIEW_SORT       "Einträge alphabetisch sortieren\nSortieren"
-    ID_CLASSVIEW_NOSORT     "Einträge nicht sortieren\nNicht sortieren"
+    ID_CLASSVIEW_SORT_ALPHA "Einträge alphabetisch sortieren\nSortieren"
+    ID_CLASSVIEW_SORT_NONE  "Einträge nicht sortieren\nNicht sortieren"
     ID_MEMORY_EDIT          "Wert unter dem Cursor ändern\nWert ändern"
     ID_MEMORY_SIZE_DWORD    "Speicherlayout als DWORD anzeigen\nDWORD"
     ID_MEMORY_SIZE_WORD     "Speicherlayout als WORD anzeigen\nWORD"
@@ -1190,7 +1190,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_MENU_OPENINCLUDE    """%s"" öffnen"
-    IDS_MENU_OPENDECLARATION "Gehe zu Definition ""%s::%s"""
+    IDS_MENU_OPENDECLARATION "Gehe zu Definition ""%s"""
     IDS_CAPTION_DEBUGOUTPUT "Datenausgabe"
     IDS_MISC_SEARCHPATH     "Suchpfad"
     IDS_COMMAND_ARGS        "GDB Parameter"
@@ -1200,7 +1200,7 @@ BEGIN
     IDS_LOG_COMSPEC         "Unable to start local command line utility."
     IDS_COMSPEC             "Lokal / MinGW"
     IDS_LOG_GDBSTOP         "Fehler. Der GDB Debugger ist nicht in der Lage zur Laufzeit neue Haltepunkte zu setzen."
-    IDS_MENU_OPENIMPLEMENTATION "Gehe zu funktion ""%s::%s"""
+    IDS_MENU_OPENIMPLEMENTATION "Gehe zu funktion ""%s"""
     IDS_ERR_DEBUGPRIV       "No Debug Priviledges\nYou account may not be able to debug\nYou Windows user account does not seem to have sufficient DEBUG priviledges. Please contact you System Administrator."
     IDS_STATUS_DEBUG_NOSOURCE_FUNCTION 
                             " Außerhalb des Quellcodes gestoppt (aus '%s')..."
@@ -1457,8 +1457,9 @@ IDR_CLASSTREE MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "&Sort alphabetically    ",    ID_CLASSVIEW_SORT
-        MENUITEM "&Don't Sort",                 ID_CLASSVIEW_NOSORT
+        MENUITEM "&Sort alphabetically    ",    ID_CLASSVIEW_SORT_ALPHA
+        MENUITEM "&Sort by type",               ID_CLASSVIEW_SORT_TYPE
+        MENUITEM "&Don't Sort",                 ID_CLASSVIEW_SORT_NONE
     END
 END
 
@@ -2015,8 +2016,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,1,0,0
+ PRODUCTVERSION 1,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2029,25 +2030,25 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040604b0"
+        BLOCK "040904b0"
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "viksoe.dk\0"
             VALUE "FileDescription", "BVRDE Add-In RemoteProject\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "FileVersion", "1, 1, 0, 0\0"
             VALUE "InternalName", "RemoteProject\0"
             VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksoe\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "RemoteProject.pkg\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "BVRDE RemoteProject\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "ProductVersion", "1, 1, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x406, 1200
+        VALUE "Translation", 0x409, 1200
     END
 END
 
@@ -2250,7 +2251,7 @@ BEGIN
     IDS_LOCAL_VARS          "Locals"
     IDS_CAPTION_BUILD       "Build"
     IDS_CAPTION_DEBUG       "Debug"
-    IDS_STACKLINE           "%s,  file='%s', line=%ld"
+    IDS_STACKLINE           "%s,  file='%s', line=%d"
     IDS_ERR_FILESAVE        "Save Failed\nSave of file '%s' failed.\nThe server returned error: %s\n\nIf the file is a remote file, it may have been a timeout error, so try again."
     IDS_STOPPED             "Stopped"
     IDS_SIGNAL              "%s\n%s\nAddress: %s\nFunction: %s"
@@ -2362,7 +2363,18 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_CLASSVIEW_GOTO       "Go to member definition\nGo to Definition"
+    ID_DEBUG_STEP_INSTRUCTION 
+                            "Steps a single assembler instruction\nStep Instruction"
+    ID_CLASSVIEW_GOTODECL   "Go to the member declaration\nGoto Declaration"
+    ID_CLASSVIEW_GOTOIMPL   "Go to member implementation\nGoto implementation"
+    ID_BREAKPOINTS_REFRESH  "Updates the breakpoint information\nRefresh"
+    ID_BREAKPOINTS_OPEN     "Open source file where breakpoint is located\nOpen"
+    ID_BREAKPOINTS_ENABLE   "Enable breakpoint\nEnable"
+    ID_BREAKPOINTS          "Disable breakpoint\nDisable"
+    ID_BREAKPOINTS_PROPERTIES "View breakpoint properties\nProperties"
+    ID_BREAKPOINTS_DELETE   "Delete the breakpoint\nDelete"
+    ID_EDIT_WORDWRAP        "Wrap lines\nWrap lines"
+    ID_CLASSVIEW_SORT_TYPE  "Sort items by type, then alphabetically\nSort"
     ID_CLASSVIEW_PROPERTIES "Show Properties\nProperties"
     ID_CLASSVIEW_COPY       "Copy selected item text\nCopy"
 END
@@ -2412,29 +2424,14 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_DEBUG_STEP_INSTRUCTION 
-                            "Steps a single assembler instruction\nStep Instruction"
-    ID_CLASSVIEW_GOTODECL   "Go to the member declaration\nGoto Declaration"
-    ID_CLASSVIEW_GOTOIMPL   "Go to member implementation\nGoto implementation"
-    ID_BREAKPOINTS_REFRESH  "Updates the breakpoint information\nRefresh"
-    ID_BREAKPOINTS_OPEN     "Open source file where breakpoint is located\nOpen"
-    ID_BREAKPOINTS_ENABLE   "Enable breakpoint\nEnable"
-    ID_BREAKPOINTS          "Disable breakpoint\nDisable"
-    ID_BREAKPOINTS_PROPERTIES "View breakpoint properties\nProperties"
-    ID_BREAKPOINTS_DELETE   "Delete the breakpoint\nDelete"
-    ID_EDIT_WORDWRAP        "Wrap lines\nWrap lines"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     ID_BUILD_BUILDMAKEFILE  "Generate a Makefile\nBuild Makefile"
     ID_VIEW_MEMORY          "View Memory View\nMemory"
     ID_VIEW_DISASM          "View Disassembly View\nDisassembly"
     ID_BUILD_FILEWIZARD     "Run File Wizard\nRun File Wizard"
     ID_DISASM_INTELSTYLE    "Display Disassembly as Intel style\nIntel Style"
     ID_DISASM_SHOWSOURCE    "Show Dissasembly mixed with Source Code\nShow Source"
-    ID_CLASSVIEW_SORT       "Sort items alphabetically\nSort"
-    ID_CLASSVIEW_NOSORT     "Don't sort items\nDon't sort"
+    ID_CLASSVIEW_SORT_ALPHA "Sort items alphabetically\nSort"
+    ID_CLASSVIEW_SORT_NONE  "Don't sort items\nDon't sort"
     ID_MEMORY_EDIT          "Edit value under cursor\nEdit Value"
     ID_MEMORY_SIZE_DWORD    "Display memory layout as DWORD\nDWORD size"
     ID_MEMORY_SIZE_WORD     "Display memory layout as WORD\nWORD size"
@@ -2558,7 +2555,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_MENU_OPENINCLUDE    "Open ""%s"""
-    IDS_MENU_OPENDECLARATION "Go to declaration ""%s::%s"""
+    IDS_MENU_OPENDECLARATION "Go to declaration ""%s"""
     IDS_CAPTION_DEBUGOUTPUT "Console Output"
     IDS_MISC_SEARCHPATH     "Search Path"
     IDS_COMMAND_ARGS        "Debugger Args"
@@ -2568,7 +2565,7 @@ BEGIN
     IDS_LOG_COMSPEC         "Unable to start local command line utility."
     IDS_COMSPEC             "Local / MinGW"
     IDS_LOG_GDBSTOP         "Failed. The GDB debugger is not able to set new breakpoint."
-    IDS_MENU_OPENIMPLEMENTATION "Go to implementation ""%s::%s"""
+    IDS_MENU_OPENIMPLEMENTATION "Go to implementation ""%s"""
     IDS_ERR_DEBUGPRIV       "No Debug Priviledges\nYou account may not be able to debug\nYou Windows user account does not seem to have sufficient DEBUG priviledges. Please contact you System Administrator."
     IDS_STATUS_DEBUG_NOSOURCE_FUNCTION 
                             " Stopped outside source scope (at '%s')..."

@@ -20,7 +20,7 @@ public:
       CString sType;
       CString sFile;
       CString sFunc;
-      long lLineNum;
+      int iLineNum;
       BOOL bEnabled;
       CString sAddress;
       int iIgnoreCount;

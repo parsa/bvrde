@@ -129,9 +129,11 @@ VOID WINAPI Plugin_SetPopupMenu(IElement* pElement, HMENU hMenu)
    if( pElement == NULL ) return;
    bool bFound = false;
    // We'll accept everything that identifies itself as a folder
-   TCHAR szType[32] = { 0 };
-   pElement->GetType(szType, 31);
-   if( _tcscmp(szType, _T("Folder")) == 0 ) bFound = true;
+   if( !bFound ) {
+      TCHAR szType[32] = { 0 };
+      pElement->GetType(szType, 31);
+      if( _tcscmp(szType, _T("Folder")) == 0 ) bFound = true;
+   }
    // We'll also accept elements that return a filename
    if( !bFound ) {
       CComDispatchDriver dd = pElement->GetDispatch();
@@ -140,12 +142,12 @@ VOID WINAPI Plugin_SetPopupMenu(IElement* pElement, HMENU hMenu)
       dd.GetPropertyByName(OLESTR("Filename"), &v);
       if( v.vt == VT_BSTR && ::SysStringLen(v.bstrVal) > 0 ) bFound = true;
    }
-   // ...and projects that have a build command
+   // ...and projects that have an ExecCommand command
    if( !bFound ) {
       CComDispatchDriver dd = pElement->GetDispatch();
       if( dd == NULL ) return;
       DISPID DispId = 0;
-      if( SUCCEEDED(dd.GetIDOfName(L"Build", &DispId)) ) bFound = true;
+      if( SUCCEEDED(dd.GetIDOfName(L"ExecCommand", &DispId)) ) bFound = true;
    }
    if( !bFound ) return;
    // User can disable integration through settings

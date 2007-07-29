@@ -2001,7 +2001,7 @@ IDI_UP                  ICON    DISCARDABLE     "res\\up.ico"
 IDI_DOWN                ICON    DISCARDABLE     "res\\down.ico"
 IDI_DROPARROW           ICON    DISCARDABLE     "res\\droparrow.ico"
 IDI_PROJECT             ICON    DISCARDABLE     "res\\project.ico"
-IDI_REFRESH             ICON    DISCARDABLE     "res\\up1.ico"
+IDI_REFRESH             ICON    DISCARDABLE     "res\\refresh.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

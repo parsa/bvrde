@@ -88,6 +88,11 @@ BOOL CSqlProject::GetType(LPTSTR pstrType, UINT cchMax) const
    return TRUE;
 }
 
+IElement* CSqlProject::GetParent() const
+{
+   return _pDevEnv->GetSolution();
+}
+
 IDispatch* CSqlProject::GetDispatch()
 {
    return _pDevEnv->CreateStdDispatch(_T("Project"), this);

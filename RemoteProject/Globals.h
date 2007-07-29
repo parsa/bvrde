@@ -11,6 +11,7 @@
 //////////////////////////////////////////////////////////////
 //
 
+struct LEXFILE;
 class CTextFile;
 class CRemoteProject;
 
@@ -63,6 +64,7 @@ typedef enum LAZYACTION
    LAZY_DEBUG_KILL_EVENT,
    LAZY_DEBUG_BREAK_EVENT,
    LAZY_DEBUG_INFO,
+   LAZY_CLASSTREE_INFO,
 };
 
 typedef enum GUIACTION
@@ -71,7 +73,7 @@ typedef enum GUIACTION
    GUI_ACTION_CLEARVIEW,
    GUI_ACTION_PLAY_ANIMATION,
    GUI_ACTION_STOP_ANIMATION,
-	GUI_ACTION_FILE_RELOAD,
+   GUI_ACTION_FILE_RELOAD,
    GUI_ACTION_COMPILESTART,
 };
 
@@ -90,16 +92,17 @@ typedef enum VT100COLOR
    VT100_PROMPT = 1000
 };
 
-typedef struct
+typedef struct tagLAZYDATA
 {
    LAZYACTION Action;
    HWND hWnd;
    TCHAR szFilename[MAX_PATH];
-   long lLineNum;
+   int iLineNum;
    TCHAR szMessage[400];
    TCHAR szCaption[128];
    UINT iFlags;
    WPARAM wParam;
+   LEXFILE* pLexFile;
    CMiInfo MiInfo;
 } LAZYDATA;
 
@@ -110,6 +113,7 @@ typedef struct
 #define TAGINFO_COMMENT       0x00000008
 #define TAGINFO_FILENAME      0x00000010
 #define TAGINFO_LINENO        0x00000020
+#define TAGINFO_NAMESPACE     0x00000040
 
 typedef enum TAGTYPE
 {
@@ -122,6 +126,15 @@ typedef enum TAGTYPE
    TAGTYPE_MEMBER,
    TAGTYPE_ENUM,
    TAGTYPE_IMPLEMENTATION,
+   TAGTYPE_INTRINSIC,
+};
+
+typedef enum TAGPROTECTION
+{
+   TAGPROTECTION_GLOBAL = 0,
+   TAGPROTECTION_PUBLIC,
+   TAGPROTECTION_PROTECTED,
+   TAGPROTECTION_PRIVATE,
 };
 
 typedef struct tagTAGINFO
@@ -129,11 +142,27 @@ typedef struct tagTAGINFO
    TAGTYPE Type;
    LPCTSTR pstrName;
    LPCTSTR pstrFile;
-   LPCTSTR pstrToken;
-   LPCTSTR pstrFields[10];
-   short nFields;
-   long lLineNum;
+   LPCTSTR pstrOwner;
+   TAGPROTECTION Protection;
+   LPCTSTR pstrDeclaration;
+   LPCTSTR pstrNamespace;
+   LPCTSTR pstrComment;
+   int iLineNum;
 } TAGINFO;
+
+typedef struct CTagDetails
+{
+   CString sName;
+   TAGTYPE TagType;
+   TAGPROTECTION Protection;
+   CString sBase;
+   CString sMemberOfScope;
+   int iLineNum;
+   CString sDeclaration;
+   CString sFilename;
+   CString sNamespace;
+   CString sComment;
+} CTagDetails;
 
 
 //////////////////////////////////////////////////////////////
@@ -209,12 +238,11 @@ public:
    virtual void Clear() = 0;
    virtual bool IsLoaded() const = 0;
    virtual bool IsAvailable() const = 0;
-   virtual TAGTYPE GetItemType(int iIndex) = 0;
-   virtual int FindItem(int iStart, LPCTSTR pstrName) = 0;
-   virtual bool GetOuterList(CSimpleValArray<TAGINFO*>& aList) = 0;
-   virtual bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList) = 0;
-   virtual bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance) = 0;
-   virtual bool GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult) = 0;
+   virtual bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult) = 0;
+   virtual void GetItemInfo(const TAGINFO* pTag, CTagDetails& Info) = 0;
+   virtual bool GetOuterList(CSimpleValArray<TAGINFO*>& aResult) = 0;
+   virtual bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult) = 0;
+   virtual bool GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult) = 0;
 };
 
 
@@ -227,6 +255,7 @@ class CAutoFree
 public:
    LPVOID pData;
    SIZE_T cSize;
+   CAutoFree(const T* p) : pData((LPVOID)p), cSize(0) { };
    CAutoFree(SIZE_T iSize) { cSize = iSize; pData = malloc(iSize); };
    ~CAutoFree() { free(pData); };
    T* GetData() const { return static_cast<T*>(pData); };

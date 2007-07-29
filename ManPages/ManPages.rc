@@ -13,52 +13,6 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Deutsch (Deutschland) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
-#ifdef _WIN32
-LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
-#pragma code_page(1252)
-#endif //_WIN32
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_CAPTION             "man page - "
-    IDS_CAPTION_MESSAGE     "BVRDE Man Page"
-    IDS_CAPTION_ERROR       "Fehler"
-    IDS_CAPTION_QUESTION    "BVRDE Man Page"
-    IDS_ERR_NOTCONNECTED    "Fehler beim Nachschlagen der Information\nDas Projekt ist derzeit nicht mit einem entfernten Server verbunden.\nWarten Sie auf die Verbindung um es erneut zu versuchen oder prüfen Sie die Einstellungen."
-    IDS_ERR_WRONGPROJECT    "Fehler beim Nachschlagen der Information\nDieses Projekt unterstützt keine Man Pages.\nNur ein Remote C++ Projekt unterstützt Man Pages derzeit."
-    IDS_ERR_BADANSWER       "Fehler beim Nachschlagen der Information\nFalsche Antwort vom Server.\nDer Server scheint busy zu sein oder er ist anderweitig ausgelastet."
-    IDS_ERR_INVOKE          "Fehler beim Nachschlagen der Information.\r\nMethode fehlgeschlagen oder ein Timeout ist aufgetreten."
-    IDS_ERR_NOTFOUND        "Das Schlüsselwort wurde in den Hilfedateien nicht gefunden."
-    IDS_ERR_MEMORY          "Fehler beim initialisieren des Moduls\nKein freier Arbeitsspeicher."
-    IDS_CLOSE               "  Schließen  "
-    IDS_NEXT                "    >>    "
-    IDS_PREVIOUS            "    <<    "
-    IDS_BACK                "  Zurück  "
-    IDS_PRINT               "  Drucken  "
-    IDS_ERR_BADVERSION      "Fehler beim Nachschlagen der Information\nDas MAN Utility ist zu alr.\nDie Onlinehilfe benötigt den erweiterten Support von MAN und MAN2HTML auf der entfernten Maschine. Stellen Sie sicher, daß die GNU Utilities verfügbar sind."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERR_NOTSUPPORTED    "Fehler beim Nachschlagen der Information\nFunktion nicht unterstützt.\nDie Onlinehilfe benötigt den erweiterten Support von MAN und MAN2HTML auf der entfernten Maschine. Stellen Sie sicher, daß die GNU Utilities verfügbar sind."
-END
-
-#endif    // Deutsch (Deutschland) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-
-/////////////////////////////////////////////////////////////////////////////
 // Danish resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)
@@ -97,6 +51,49 @@ END
 
 
 /////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CAPTION             "man page - "
+    IDS_CAPTION_MESSAGE     "BVRDE Man Page"
+    IDS_CAPTION_ERROR       "Fehler"
+    IDS_CAPTION_QUESTION    "BVRDE Man Page"
+    IDS_ERR_NOTCONNECTED    "Fehler beim Nachschlagen der Information\nDas Projekt ist derzeit nicht mit einem entfernten Server verbunden.\nWarten Sie auf die Verbindung um es erneut zu versuchen oder prüfen Sie die Einstellungen."
+    IDS_ERR_WRONGPROJECT    "Fehler beim Nachschlagen der Information\nDieses Projekt unterstützt keine Man Pages.\nNur ein Remote C++ Projekt unterstützt Man Pages derzeit."
+    IDS_ERR_BADANSWER       "Fehler beim Nachschlagen der Information\nFalsche Antwort vom Server.\nDer Server scheint busy zu sein oder er ist anderweitig ausgelastet."
+    IDS_ERR_INVOKE          "Fehler beim Nachschlagen der Information.\r\nMethode fehlgeschlagen oder ein Timeout ist aufgetreten."
+    IDS_ERR_NOTFOUND        "Das Schlüsselwort wurde in den Hilfedateien nicht gefunden."
+    IDS_ERR_MEMORY          "Fehler beim initialisieren des Moduls\nKein freier Arbeitsspeicher."
+    IDS_CLOSE               "  Schließen  "
+    IDS_NEXT                "    >>    "
+    IDS_PREVIOUS            "    <<    "
+    IDS_BACK                "  Zurück  "
+    IDS_PRINT               "  Drucken  "
+    IDS_ERR_BADVERSION      "Fehler beim Nachschlagen der Information\nDas MAN Utility ist zu alr.\nDie Onlinehilfe benötigt den erweiterten Support von MAN und MAN2HTML auf der entfernten Maschine. Stellen Sie sicher, daß die GNU Utilities verfügbar sind."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERR_NOTSUPPORTED    "Fehler beim Nachschlagen der Information\nFunktion nicht unterstützt.\nDie Onlinehilfe benötigt den erweiterten Support von MAN und MAN2HTML auf der entfernten Maschine. Stellen Sie sicher, daß die GNU Utilities verfügbar sind."
+END
+
+#endif    // German (Germany) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
@@ -112,8 +109,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,1,0,0
+ PRODUCTVERSION 1,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -126,25 +123,25 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040604b0"
+        BLOCK "040904b0"
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "viksoe.dk\0"
             VALUE "FileDescription", "BVRDE ManPages module\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "FileVersion", "1, 1, 0, 0\0"
             VALUE "InternalName", "WebFiles\0"
             VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksøe\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "ManPages.dll\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "BVRDE ManPages\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "ProductVersion", "1, 1, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x406, 1200
+        VALUE "Translation", 0x409, 1200
     END
 END
 

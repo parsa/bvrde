@@ -19,7 +19,22 @@
 
 void CCommandThread::ChangePath()
 {
-   AddCommand(IDC_SC_CHANGEDIR, _T("cd $PATH$"));
+   CString sCommand = _T("cd $PATH");
+
+   // Attempt to lure the ChangePath command out
+   // of the project settings.
+   IProject* pProject = _GetProject();
+   if( pProject != NULL ) {
+      CComDispatchDriver dd = pProject->GetDispatch();
+      CComVariant vRet;
+      CComVariant aParams[2];
+      aParams[1] = L"Compiler";
+      aParams[0] = L"ChangeDir";
+      dd.InvokeN(OLESTR("GetParam"), aParams, 2, &vRet);
+      if( vRet.vt == VT_BSTR ) sCommand = vRet.bstrVal;
+   }
+
+   AddCommand(IDC_SC_CHANGEDIR, sCommand);
 }
 
 void CCommandThread::AddCommand(UINT nCmd, LPCTSTR pstrCommand, LONG lTimeout /*= 4000L*/)
@@ -63,7 +78,7 @@ DWORD CCommandThread::Run()
    }
    m_aCommands.RemoveAll();
    m_aCmdIds.RemoveAll();
-   
+
    // Bring up the Command View so we can see it all...
    CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
    if( bActivateOutputView ) _pDevEnv->ActivateAutoHideView(ctrlEdit);
@@ -75,14 +90,12 @@ DWORD CCommandThread::Run()
       //       sequentially.
       if( i >= 2 ) ::Sleep(1000L);
       // Send new command to remote
-      CString sCommand = aCommands[i];
-      ISolution* pSolution = _pDevEnv->GetSolution();
-      if( pSolution == NULL ) return 0;
-      IProject* pProject = pSolution->GetActiveProject();
+      IProject* pProject = _GetProject();
       if( pProject == NULL ) return 0;
       IDispatch* pDisp = pProject->GetDispatch();
       if( pDisp == NULL ) return 0;
       CComDispatchDriver dd = pDisp;
+      CString sCommand = aCommands[i];
       CComBSTR bstrCommand = sCommand;
       CComVariant aParams[3];
       aParams[2] = bstrCommand;
@@ -92,12 +105,13 @@ DWORD CCommandThread::Run()
    }
 
    // Let's look at the result
-   m_aLines.RemoveAll();
    _SplitResult(m_sResult, m_aLines);
 
    CString sMessage = _T("\r\n");
    for( i = 0; i < m_aLines.GetSize(); i++ ) {
-      sMessage += m_aLines[i];
+      CString sLine = m_aLines[i];
+      sLine.TrimRight();
+      sMessage += sLine;
       sMessage += _T("\r\n");
    }
 
@@ -121,6 +135,7 @@ DWORD CCommandThread::Run()
 
 void CCommandThread::_SplitResult(CString sResult, CSimpleArray<CString>& aLines) const
 {
+   aLines.RemoveAll();
    while( !sResult.IsEmpty() ) {
       CString sToken = sResult.SpanExcluding(_T("\n"));
       if( sToken.GetLength() == 0 ) sToken = sResult;
@@ -130,9 +145,20 @@ void CCommandThread::_SplitResult(CString sResult, CSimpleArray<CString>& aLines
       //       We'll just strip these for now. In the future we could consider
       //       only grabbing these (relevant) strings.
       if( !_Commands.sOutput.IsEmpty() ) sToken.Replace(_Commands.sOutput, _T(""));
-      sToken.TrimRight();
       aLines.Add(sToken);
    }
+}
+
+IProject* CCommandThread::_GetProject() const
+{
+   IElement* pElement = _Commands.m_pCurElement;
+   while( pElement != NULL ) {
+      WCHAR szType[60] = { 0 };
+      pElement->GetType(szType, 59);
+      if( wcscmp(szType, L"Project") == 0 ) return static_cast<IProject*>(pElement);
+      pElement = pElement->GetParent();
+   }
+   return NULL;
 }
 
 // ILineCallback
@@ -228,19 +254,16 @@ bool CScCommands::Init()
 
 bool CScCommands::SetCurElement(IElement* pElement)
 {
-   m_pCurElement = pElement;
    m_bIsFolder = false;
+   m_pCurElement = pElement;
    if( pElement == NULL ) return false;
    // Ok, figure out if the element is a container (folder)
    // or not...
    CComDispatchDriver dd = pElement->GetDispatch();
    if( dd == NULL ) return false;
-   DISPID dispItem = NULL;
-   HRESULT HrHasItem = dd.GetIDOfName(L"Item", &dispItem);
-   CComVariant vFiles;
-   dd.GetPropertyByName(OLESTR("Files"), &vFiles);
-   if( vFiles.vt == VT_EMPTY && HrHasItem == S_OK ) vFiles = dd;
-   m_bIsFolder = (vFiles.vt != VT_EMPTY);
+   DISPID dispItem = 0;
+   if( SUCCEEDED( dd.GetIDOfName(L"Item", &dispItem) ) ) m_bIsFolder = true;
+   if( SUCCEEDED( dd.GetIDOfName(L"Files", &dispItem) ) ) m_bIsFolder = true;
    return true;
 }
 
@@ -255,7 +278,7 @@ bool CScCommands::CollectFiles(CSimpleArray<CString>& aFiles)
    if( dd == NULL ) return false;
 
    // Does it have a collection of files?
-   DISPID dispItem = NULL;
+   DISPID dispItem = 0;
    HRESULT HrHasItem = dd.GetIDOfName(L"Item", &dispItem);
    CComVariant vFiles;
    dd.GetPropertyByName(OLESTR("Files"), &vFiles);
@@ -410,8 +433,8 @@ bool CScCommands::LogIn(CSimpleArray<CString>& aFiles)
       // Hmm, the cvs server blocks the input through
       // the Telnet shell. We'll not send the password right
       // away and do it in two steps (automatic delay in thread).
-      // BUG: This is very non-portable! What if there's no telnet; or a different cvs impl????
-      // BUG: FIX THIS!!!
+      // BUG: This is very non-portable! What if there's no telnet; or a different 
+      //      cvs impl???? FIX THIS!!!
       m_thread.AddCommand(ID_SC_LOGIN, sPassword, 2000);
    }
    m_thread.Start();
@@ -464,5 +487,11 @@ void CScCommands::ShowDiffView()
    CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
    CDiffCvsView* pView = new CDiffCvsView;
    pView->Create(wndMain, CWindow::rcDefault);
-   if( !pView->GeneratePage(m_pCurElement, m_thread.m_aLines) ) pView->DestroyWindow();
+   if( !pView->GeneratePage(m_pCurElement, m_thread.m_aLines) ) {
+      // Failed to produce anything to display
+      pView->DestroyWindow();
+      // Instead, display the diff output...
+      CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
+      _pDevEnv->ActivateAutoHideView(ctrlEdit);
+   }
 }

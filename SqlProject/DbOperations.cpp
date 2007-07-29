@@ -18,7 +18,7 @@ BOOL CDbOperations::ConnectDatabase(COledbDatabase* pDb, LPCTSTR pstrConnectStri
       CComPtr<IDataInitialize> spData;
       spData.CoCreateInstance(CLSID_MSDAINITIALIZE);
       if( spData == NULL ) return FALSE;
-      spData->GetDataSource(NULL, CLSCTX_INPROC_SERVER, CComBSTR(pstrConnectString), IID_IDBInitialize, (IUnknown**) &m_Db.m_spInit);
+      spData->GetDataSource(NULL, CLSCTX_INPROC_SERVER, CComBSTR(pstrConnectString), IID_IDBInitialize, (LPUNKNOWN*) &m_Db.m_spInit);
       m_Db.Connect();
    }
    // Didn't succeed? Put up error message.
@@ -54,6 +54,7 @@ BOOL CDbOperations::EnumTables(COledbDatabase* pDb /*=NULL*/)
    CLockStaticDataInit lock;
    // Get terms
    CString sTableTerm = GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_TABLETERM);
+
    // Load table list
    CComQIPtr<IDBSchemaRowset> spSchema = pDb->m_spSession;
    if( spSchema == NULL ) return FALSE;
@@ -67,10 +68,10 @@ BOOL CDbOperations::EnumTables(COledbDatabase* pDb /*=NULL*/)
       rec.GetField(1, ti.sCatalog);
       rec.GetField(2, ti.sName);
       rec.GetField(3, ti.sType);
-
-      ti.bFullInfo = false;
-      ti.dwTouched = 0;
       ti.ItemType = DBTYPE_TABLE;
+      // We didn't collect column information yet
+      ti.bFullInfo = false;
+      ti.dwTouched = 0UL;
       // NOTE: When OLEDB defines the TableTerm as the preferred way to recognize a table,
       //       we don't actually have a proper way to distinguish a view or system table.
       if( ti.sType == _T("VIEW") ) ti.ItemType = DBTYPE_VIEW;
@@ -80,7 +81,6 @@ BOOL CDbOperations::EnumTables(COledbDatabase* pDb /*=NULL*/)
       if( ti.sName.Find(_T("SYS")) == 0) ti.ItemType = DBTYPE_SYSTEMTABLE;
       if( ti.sType == sTableTerm ) ti.ItemType = DBTYPE_TABLE;
       m_aTables.Add(ti);
-
       rec.MoveNext();
    }
    rec.Close();
@@ -102,14 +102,15 @@ BOOL CDbOperations::LoadTableInfo(TABLEINFO* pTable, COledbDatabase* pDb /*=NULL
 
    pTable->bFullInfo = true;
 
-   // Does database support schemas?
+   // Does database support schema rowset?
    CComQIPtr<IDBSchemaRowset> spSchema = pDb->m_spSession;
    if( spSchema == NULL ) return FALSE;
+
    // Load columns
    CComVariant vColumnRestrictions[3];
    vColumnRestrictions[2] = pTable->sName;
    CComPtr<IRowset> spRS;
-   HRESULT Hr = spSchema->GetRowset(NULL, DBSCHEMA_COLUMNS, 3, (VARIANT*) &vColumnRestrictions, IID_IRowset, 0, NULL, (LPUNKNOWN*) &spRS);
+   HRESULT Hr = spSchema->GetRowset(NULL, DBSCHEMA_COLUMNS, 3, vColumnRestrictions, IID_IRowset, 0, NULL, (LPUNKNOWN*) &spRS);
    if( FAILED(Hr) ) return FALSE;
    COledbRecordset rec = spRS;
    while( !rec.IsEOF() ) {
@@ -134,37 +135,39 @@ BOOL CDbOperations::LoadTableInfo(TABLEINFO* pTable, COledbDatabase* pDb /*=NULL
    // Load Index infomation
    CComVariant vIndexRestrictions[5];
    vIndexRestrictions[4] = pTable->sName;
-   Hr = spSchema->GetRowset(NULL, DBSCHEMA_INDEXES , 5, (VARIANT*) &vIndexRestrictions, IID_IRowset, 0, NULL, (LPUNKNOWN*) &spRS);
+   Hr = spSchema->GetRowset(NULL, DBSCHEMA_INDEXES, 5, vIndexRestrictions, IID_IRowset, 0, NULL, (LPUNKNOWN*) &spRS);
    if( SUCCEEDED(Hr) ) {
       COledbRecordset rec = spRS;
       while( !rec.IsEOF() ) {
          INDEXINFO ii;
          ii.ItemType = DBTYPE_INDEX;
          ii.nFields = 1;
-         CString sField;
-         long lNulls = 0;
-         long lType = 0;
          rec.GetField(5, ii.sName);
          rec.GetField(6, ii.bPrimary);
          rec.GetField(7, ii.bUnique);
          rec.GetField(8, ii.bClustered);
-         rec.GetField(9, lType);
-         rec.GetField(12, lNulls);
+         rec.GetField(9, ii.lType);
+         rec.GetField(12, ii.lNulls);
          rec.GetField(16, ii.lPosition);
          rec.GetField(17, ii.sFields[0]);
+         rec.GetField(19, ii.lPropId);
          ii.sType.LoadString(IDS_STANDARD);
-         if( lType == DBPROPVAL_IT_BTREE ) ii.sType = _T("B-tree");
-         if( lType == DBPROPVAL_IT_HASH ) ii.sType = _T("Hash");
-         if( lType == DBPROPVAL_IT_CONTENT ) ii.sType = _T("Content");
+         if( ii.lType == DBPROPVAL_IT_BTREE ) ii.sType = _T("B-tree");
+         if( ii.lType == DBPROPVAL_IT_HASH ) ii.sType = _T("Hash");
+         if( ii.lType == DBPROPVAL_IT_CONTENT ) ii.sType = _T("Content");
 #ifndef DBPROPVAL_IN_ALLOWNULL
          const long DBPROPVAL_IN_ALLOWNULL = 0x00000000L;
 #endif // DBPROPVAL_IN_ALLOWNULL
-         ii.bNulls = lNulls != DBPROPVAL_IN_ALLOWNULL;
+         ii.bNulls = ii.lNulls != DBPROPVAL_IN_ALLOWNULL;
+         if( ii.sFields[0].IsEmpty() && ii.lPropId > 0 ) ii.sFields[0].Append((int)ii.lPropId);
+         // Rowset contains multiple index entries when it is defined
+         // by multiple columns.
          bool bFound = false;
          for( int i = 0; i < pTable->aIndices.GetSize(); i++ ) {
             if( pTable->aIndices[i].sName == ii.sName ) {
-               pTable->aIndices[i].sFields[ pTable->aIndices[i].nFields ] = ii.sFields[0];
-               pTable->aIndices[i].nFields++;
+               if( pTable->aIndices[i].nFields < MAX_INDEX_FIELDS ) {
+                  pTable->aIndices[i].sFields[ pTable->aIndices[i].nFields++ ] = ii.sFields[0];
+               }
                bFound = true;
                break;
             }
@@ -282,7 +285,7 @@ CString CDbOperations::ChangeProperties(HWND hWnd, LPCTSTR pstrConnectString)
    CComPtr<IDataInitialize> spData;
    if( SUCCEEDED( spData.CoCreateInstance(CLSID_MSDAINITIALIZE) ) ) {
       CComPtr<IDBInitialize> spInit;
-      spData->GetDataSource(NULL, CLSCTX_INPROC_SERVER, CComBSTR(pstrConnectString), IID_IDBInitialize, (IUnknown**) &spInit);
+      spData->GetDataSource(NULL, CLSCTX_INPROC_SERVER, CComBSTR(pstrConnectString), IID_IDBInitialize, (LPUNKNOWN*) &spInit);
       // Modify properties using prompt-dialog
       CComPtr<IDBPromptInitialize> spPrompt;
       if( SUCCEEDED( spPrompt.CoCreateInstance(CLSID_DataLinks) ) ) {

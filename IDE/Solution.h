@@ -33,6 +33,7 @@ public:
    BOOL Load(ISerializable* /*pArchive*/);
    BOOL Save(ISerializable* /*pArchive*/);
    BOOL GetFileName(LPTSTR pstrFilename, UINT cchMax) const;
+   IElement* GetParent() const;
    IDispatch* GetDispatch();
    IProject* GetItem(int iIndex);
    int GetItemCount() const;

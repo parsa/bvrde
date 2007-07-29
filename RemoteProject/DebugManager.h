@@ -91,15 +91,15 @@ public:
    bool IsDebugging() const;
 
    bool ClearBreakpoints();
-   bool AddBreakpoint(LPCTSTR pstrFilename, int iLine);
-   bool RemoveBreakpoint(LPCTSTR pstrFilename, int iLine);
+   bool AddBreakpoint(LPCTSTR pstrFilename, int iLineNum);
+   bool RemoveBreakpoint(LPCTSTR pstrFilename, int iLineNum);
    bool GetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLines) const;
    bool SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLines);
 
-   bool RunTo(LPCTSTR pstrFilename, long lLineNum);
-   bool SetNextStatement(LPCTSTR pstrFilename, long lLineNum);
+   bool RunTo(LPCTSTR pstrFilename, int iLineNum);
+   bool SetNextStatement(LPCTSTR pstrFilename, int iLineNum);
 
-   bool GetTagInfo(LPCTSTR pstrValue);
+   bool EvaluateExpression(LPCTSTR pstrValue);
 
    CString GetParam(LPCTSTR pstrName) const;
    void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue);

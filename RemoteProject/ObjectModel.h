@@ -161,8 +161,8 @@ public:
    BSTR __stdcall get_Filename();
    BSTR __stdcall get_Text();
    VARIANT_BOOL __stdcall Open();
-   VOID __stdcall Close();
    VARIANT_BOOL __stdcall Save();
+   VOID __stdcall Close();
 
    INT __stdcall get_TextLength();
    INT __stdcall get_Lines();

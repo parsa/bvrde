@@ -1189,15 +1189,15 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       return (int) ::SendMessage(m_hWnd, SCI_GETTEXTLENGTH, 0, 0L);
    }
-   int GetDirectFunction() const
+   LPVOID GetDirectFunction() const
    {
       ATLASSERT(::IsWindow(m_hWnd));
-      return (int) ::SendMessage(m_hWnd, SCI_GETDIRECTFUNCTION, 0, 0L);
+      return (LPVOID) ::SendMessage(m_hWnd, SCI_GETDIRECTFUNCTION, 0, 0L);
    }
-   int GetDirectPointer() const
+   LPVOID GetDirectPointer() const
    {
       ATLASSERT(::IsWindow(m_hWnd));
-      return (int) ::SendMessage(m_hWnd, SCI_GETDIRECTPOINTER, 0, 0L);
+      return (LPVOID) ::SendMessage(m_hWnd, SCI_GETDIRECTPOINTER, 0, 0L);
    }
    void SetOvertype(BOOL bOvertype)
    {

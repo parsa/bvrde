@@ -51,7 +51,7 @@ void CBreakpointView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          Info.sType = info.GetSubItem(_T("type"));
          Info.sFile = info.GetSubItem(_T("file"));
          Info.sFunc = info.GetSubItem(_T("func"));
-         Info.lLineNum = _ttol(info.GetSubItem(_T("line")));
+         Info.iLineNum = _ttol(info.GetSubItem(_T("line")));
          Info.bEnabled = info.GetSubItem(_T("enabled")) == _T("y");
          Info.sAddress = info.GetSubItem(_T("addr"));
          Info.iIgnoreCount = _ttoi(info.GetSubItem(_T("ignore")));
@@ -62,7 +62,7 @@ void CBreakpointView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          int iIndex = m_aItems.GetSize() - 1;
 
          CString sLocation;
-         sLocation.Format(_T("%s, %ld"), Info.sFunc, Info.lLineNum);
+         sLocation.Format(_T("%s, %d"), Info.sFunc, Info.iLineNum);
 
          int iItem = m_ctrlList.InsertItem(m_ctrlList.GetItemCount(), Info.sType);
          m_ctrlList.SetItemText(iItem, 1, Info.sFile);
@@ -163,7 +163,7 @@ LRESULT CBreakpointView::OnItemOpenSource(WORD /*wNotifyCode*/, WORD /*wID*/, HW
    int iItem = m_ctrlList.GetSelectedIndex();
    if( iItem < 0 ) return 0;
    const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
-   m_pProject->OpenView(Info.sFile, Info.lLineNum);
+   m_pProject->OpenView(Info.sFile, Info.iLineNum);
    return 0;
 }
 
@@ -172,7 +172,7 @@ LRESULT CBreakpointView::OnItemDelete(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
    int iItem = m_ctrlList.GetSelectedIndex();
    if( iItem < 0 ) return 0;
    const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
-   m_pProject->m_DebugManager.RemoveBreakpoint(Info.sFile, Info.lLineNum - 1);
+   m_pProject->m_DebugManager.RemoveBreakpoint(Info.sFile, Info.iLineNum - 1);
    BOOL bDummy = FALSE;
    OnItemRefresh(0, 0, NULL, bDummy);
    return 0;

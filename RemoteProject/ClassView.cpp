@@ -5,6 +5,7 @@
 #include "ClassView.h"
 #include "Project.h"
 #include "TagInfo.h"
+#include "AcListBox.h"
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -25,6 +26,7 @@ public:
    BOOL Save(ISerializable* pArc)
    {
       ATLASSERT(!::IsBadReadPtr(m_pTag,sizeof(TAGINFO)));
+      if( m_pTag == NULL ) return FALSE;
       CString sKind(MAKEINTRESOURCE(IDS_UNKNOWN));
       if( m_pTag->Type == TAGTYPE_CLASS ) sKind.LoadString(IDS_CLASS);
       else if( m_pTag->Type == TAGTYPE_FUNCTION ) sKind.LoadString(IDS_FUNCTION);
@@ -33,11 +35,12 @@ public:
       else if( m_pTag->Type == TAGTYPE_DEFINE ) sKind.LoadString(IDS_DEFINE);
       else if( m_pTag->Type == TAGTYPE_TYPEDEF ) sKind.LoadString(IDS_TYPEDEF);
       else if( m_pTag->Type == TAGTYPE_ENUM ) sKind.LoadString(IDS_ENUM);
+      else if( m_pTag->Type == TAGTYPE_IMPLEMENTATION ) sKind.LoadString(IDS_FUNCTION);
       pArc->Write(_T("name"), m_pTag->pstrName);
       pArc->Write(_T("type"), _T("Tag"));
       pArc->Write(_T("filename"), m_pTag->pstrFile);
       pArc->Write(_T("kind"), sKind);
-      pArc->Write(_T("match"), m_pTag->pstrToken);
+      pArc->Write(_T("match"), m_pTag->pstrDeclaration);
       return TRUE;
    }
    BOOL GetName(LPTSTR pstrName, UINT cchMax) const
@@ -48,6 +51,10 @@ public:
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const
    {
       return _tcsncpy(pstrType, _T("Tag"), cchMax) > 0;
+   }
+   IElement* GetParent() const
+   {
+      return NULL;
    }
    IDispatch* GetDispatch()
    {
@@ -61,8 +68,11 @@ public:
 // CClassView
 
 CClassView::CClassView() :
+   m_ctrlTree(this, 1),
    m_pProject(NULL), 
    m_pCurrentTag(NULL),
+   m_pCurrentHover(NULL),
+   m_bMouseTracked(false),
    m_bPopulated(false), 
    m_bLocked(false)
 {
@@ -149,6 +159,7 @@ void CClassView::Populate()
    ATLASSERT(IsWindow());
    // TAGS files already scanned and nothing was found!
    if( m_bPopulated ) return;
+   if( m_pProject == NULL ) return;
    // Change status text
    CWaitCursor cursor;
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_LOADTAG)));
@@ -160,12 +171,10 @@ void CClassView::Populate()
 
 void CClassView::Rebuild()
 {
-   // Signal that we should rebuild the tree
-   m_bPopulated = false;
-   // View is not showing right now? Delay populating the tree then.
-   if( !IsWindowVisible() ) return;
-   // Ok, do it then...
-   _PopulateTree();
+   m_bPopulated = false;             // Signal that we should rebuild the tree   
+   if( !IsWindowVisible() ) return;  // View is not showing right now? Delay populating the tree then.   
+   if( m_pProject == NULL ) return;  // Not initialized?
+   _PopulateTree();                  // Ok, do it then...
 }
 
 // Message handlers
@@ -173,9 +182,8 @@ void CClassView::Rebuild()
 LRESULT CClassView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
    m_Images.Create(IDB_CLASSVIEW, 16, 1, RGB(255,0,255));
-   DWORD dwStyle;
-   dwStyle = WS_CHILD | WS_VISIBLE | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_TRACKSELECT | TVS_INFOTIP;
-   m_ctrlTree.Create(m_hWnd, rcDefault, NULL, dwStyle);
+   DWORD dwStyle = WS_CHILD | WS_VISIBLE | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_TRACKSELECT | TVS_INFOTIP;
+   m_ctrlTree.Create(this, 1, m_hWnd, &rcDefault, NULL, dwStyle);
    m_ctrlTree.SetImageList(m_Images, TVSIL_NORMAL);
    ATLASSERT(m_ctrlTree.IsWindow());      
    return 0;
@@ -205,8 +213,7 @@ LRESULT CClassView::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
    if( m_ctrlTree.GetParentItem(hItem) == NULL ) return 0;
    TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(hItem);
    if( pTag == NULL ) return 0;
-   CString sImplRef = _GetImplementationRef(pTag);
-   if( !sImplRef.IsEmpty() ) m_pProject->m_TagManager.OpenTagInView(sImplRef, pTag->pstrName);
+   if( _GetImplementationRef(pTag, m_ImplTag) ) m_pProject->m_TagManager.OpenTagInView(m_ImplTag);
    else m_pProject->m_TagManager.OpenTagInView(pTag);
    return 0;
 }
@@ -232,7 +239,7 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
    ScreenToClient(&ptClient);
    HTREEITEM hItem = m_ctrlTree.HitTest(ptClient, NULL);
    m_pCurrentTag = hItem == NULL ? NULL : (TAGINFO*) m_ctrlTree.GetItemData(hItem);
-   m_sImplementationEntry = _GetImplementationRef(m_pCurrentTag);
+   _GetImplementationRef(m_pCurrentTag, m_ImplTag);
    // Load and show menu
    CMenu menu;
    menu.LoadMenu(hItem != NULL ? IDR_CLASSTREE_ITEM : IDR_CLASSTREE);
@@ -240,13 +247,19 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
    UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, ptPos, FALSE, this);
    // Handle result locally
    switch( nCmd ) {
-   case ID_CLASSVIEW_SORT:
+   case ID_CLASSVIEW_SORT_ALPHA:
       {
          _pDevEnv->SetProperty(_T("window.classview.sort"), _T("alpha"));
          Rebuild();
       }
       break;
-   case ID_CLASSVIEW_NOSORT:
+   case ID_CLASSVIEW_SORT_TYPE:
+      {
+         _pDevEnv->SetProperty(_T("window.classview.sort"), _T("type"));
+         Rebuild();
+      }
+      break;
+   case ID_CLASSVIEW_SORT_NONE:
       {
          _pDevEnv->SetProperty(_T("window.classview.sort"), _T("no"));
          Rebuild();
@@ -259,7 +272,7 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
       break;
    case ID_CLASSVIEW_GOTOIMPL:
       {
-         m_pProject->m_TagManager.OpenTagInView(m_sImplementationEntry, m_pCurrentTag->pstrName);
+         m_pProject->m_TagManager.OpenTagInView(m_ImplTag);
       }
       break;
    case ID_CLASSVIEW_COPY:
@@ -305,11 +318,13 @@ LRESULT CClassView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
          m_pProject->m_TagManager.GetGlobalList(aList);
       }
       else {
-         m_pProject->m_TagManager.GetMemberList(pParent->pstrName, aList, false);
+         m_pProject->m_TagManager.GetMemberList(pParent->pstrName, false, aList);
       }
       for( int i = 0; i < aList.GetSize(); i++ ) {
          const TAGINFO* pTag = aList[i];
          int iImage = pTag->Type == TAGTYPE_MEMBER ? 4 : 3;
+         if( iImage == 3 && (pTag->Protection == TAGPROTECTION_PROTECTED || pTag->Protection == TAGPROTECTION_PRIVATE) ) iImage = 5;
+         if( iImage == 4 && (pTag->Protection == TAGPROTECTION_PROTECTED || pTag->Protection == TAGPROTECTION_PRIVATE) ) iImage = 6;
          m_ctrlTree.InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM,
             LPSTR_TEXTCALLBACK, 
             iImage, iImage, 
@@ -325,7 +340,18 @@ LRESULT CClassView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
       }
       else {
          // Sort the children
-         m_ctrlTree.SortChildren(tvi.hItem);
+         TCHAR szSortValue[32] = { 0 };
+         _pDevEnv->GetProperty(_T("window.classview.sort"), szSortValue, 31);   
+         if( _tcscmp(szSortValue, _T("alpha")) == 0 ) {
+            m_ctrlTree.SortChildren(TVI_ROOT, FALSE);
+         }
+         if( _tcscmp(szSortValue, _T("type")) == 0 ) {
+            TVSORTCB tvscb = { 0 };
+            tvscb.hParent = tvi.hItem;
+            tvscb.lParam = 0;
+            tvscb.lpfnCompare = _TreeSortTypeCB;
+            m_ctrlTree.SortChildrenCB(&tvscb, FALSE);
+         }
       }
    }
    bHandled = FALSE;
@@ -358,21 +384,81 @@ LRESULT CClassView::OnGetDisplayInfo(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    return 0;
 }
 
+// Hover Tip message handler
+
+LRESULT CClassView::OnMouseMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
+   bHandled = FALSE;
+   if( !m_bMouseTracked ) {
+      TRACKMOUSEEVENT tme = { 0 };
+      tme.cbSize = sizeof(tme);
+      tme.hwndTrack = m_ctrlTree;
+      tme.dwFlags = TME_QUERY;
+      _TrackMouseEvent(&tme);
+      tme.hwndTrack = m_ctrlTree;
+      tme.dwFlags |= TME_HOVER | TME_LEAVE;
+      tme.dwHoverTime = HOVER_DEFAULT;
+      _TrackMouseEvent(&tme);
+      m_bMouseTracked = true;
+   }
+   if( m_ctrlHoverTip.IsWindow() ) m_ctrlTree.SendMessage(WM_MOUSEHOVER);
+   return 0;
+}
+
+LRESULT CClassView::OnMouseHover(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   POINT pt = { 0 };
+   ::GetCursorPos(&pt);
+   POINT ptLocal = pt;
+   m_ctrlTree.ScreenToClient(&ptLocal);
+   TVHITTESTINFO tvhti = { 0 };
+   tvhti.pt = ptLocal;
+   m_ctrlTree.HitTest(&tvhti);
+   if( (tvhti.flags & TVHT_ONITEM) == 0 ) return m_ctrlTree.SendMessage(WM_MOUSELEAVE);
+   TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(tvhti.hItem);
+   if( pTag == NULL ) return m_ctrlTree.SendMessage(WM_MOUSELEAVE);
+   if( m_pCurrentHover == pTag ) return 0;
+   if( !m_ctrlHoverTip.IsWindow() ) m_ctrlHoverTip.Create(m_ctrlTree, ::GetSysColor(COLOR_INFOBK));
+   m_ctrlHoverTip.ShowWindow(SW_HIDE);
+   while( pt.x + 200 > ::GetSystemMetrics(SM_CXSCREEN) ) pt.x -= 50;
+   m_ctrlHoverTip.MoveWindow(pt.x, pt.y + 40, 200, 40);
+   m_ctrlHoverTip.ShowItem(pTag->pstrName, pTag->pstrDeclaration, pTag->pstrComment);
+   m_pCurrentHover = pTag;
+   return 0;
+}
+
+LRESULT CClassView::OnMouseLeave(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   if( m_ctrlHoverTip.IsWindow() ) m_ctrlHoverTip.PostMessage(WM_CLOSE);
+   m_pCurrentHover = NULL;
+   m_bMouseTracked = false;
+   return 0;
+}
+
+LRESULT CClassView::OnRequestResize(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
+{
+   REQRESIZE* pRR = (REQRESIZE*) pnmh;
+   m_ctrlHoverTip.SetResize(pRR);
+   return 0;
+}
+
 // IIdleListener
 
 void CClassView::OnIdle(IUpdateUI* pUIBase)
 {   
-   TCHAR szValue[32] = { 0 };
-   _pDevEnv->GetProperty(_T("window.classview.sort"), szValue, 31);
+   TCHAR szSortValue[32] = { 0 };
+   _pDevEnv->GetProperty(_T("window.classview.sort"), szSortValue, 31);
 
    pUIBase->UIEnable(ID_CLASSVIEW_GOTODECL, m_pCurrentTag != NULL && m_pProject->FindView(m_pCurrentTag->pstrFile) != NULL);
-   pUIBase->UIEnable(ID_CLASSVIEW_GOTOIMPL, m_pCurrentTag != NULL && !m_sImplementationEntry.IsEmpty());
+   pUIBase->UIEnable(ID_CLASSVIEW_GOTOIMPL, m_pCurrentTag != NULL && !m_ImplTag.sName.IsEmpty());
    pUIBase->UIEnable(ID_CLASSVIEW_COPY, m_pCurrentTag != NULL);
    pUIBase->UIEnable(ID_CLASSVIEW_PROPERTIES, m_pCurrentTag != NULL);
-   pUIBase->UIEnable(ID_CLASSVIEW_SORT, TRUE);
-   pUIBase->UIEnable(ID_CLASSVIEW_NOSORT, TRUE);
-   pUIBase->UISetCheck(ID_CLASSVIEW_SORT, _tcscmp(szValue, _T("alpha")) == 0);
-   pUIBase->UISetCheck(ID_CLASSVIEW_NOSORT, _tcscmp(szValue, _T("no")) == 0);
+   pUIBase->UIEnable(ID_CLASSVIEW_SORT_ALPHA, TRUE);
+   pUIBase->UIEnable(ID_CLASSVIEW_SORT_TYPE, TRUE);
+   pUIBase->UIEnable(ID_CLASSVIEW_SORT_NONE, TRUE);
+   pUIBase->UISetCheck(ID_CLASSVIEW_SORT_ALPHA, _tcscmp(szSortValue, _T("alpha")) == 0);
+   pUIBase->UISetCheck(ID_CLASSVIEW_SORT_TYPE, _tcscmp(szSortValue, _T("type")) == 0);
+   pUIBase->UISetCheck(ID_CLASSVIEW_SORT_NONE, _tcscmp(szSortValue, _T("no")) == 0);
 }
 
 void CClassView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*/)
@@ -427,12 +513,10 @@ void CClassView::_PopulateTree()
       }
    }
 
-   // Sort classes
-   TCHAR szValue[32] = { 0 };
-   _pDevEnv->GetProperty(_T("window.classview.sort"), szValue, 31);
-   if( _tcscmp(szValue, _T("no")) != 0 ) m_ctrlTree.SortChildren(TVI_ROOT);
+   // Root items are always sort alphabetically
+   m_ctrlTree.SortChildren(TVI_ROOT, FALSE);
 
-   // Insert "Globals" item
+   // Insert "Globals" tree-item
    CString s(MAKEINTRESOURCE(IDS_GLOBALS));
    tvis.item.pszText = (LPTSTR) (LPCTSTR) s;
    tvis.item.iImage = 1;
@@ -449,13 +533,31 @@ void CClassView::_PopulateTree()
    m_aExpandedNames.RemoveAll();
 }
 
-CString CClassView::_GetImplementationRef(TAGINFO* pTag)
+bool CClassView::_GetImplementationRef(TAGINFO* pTag, CTagDetails& Info)
 {
-   if( pTag == NULL ) return _T("");
-   CString sFilename;
-   long lLineNum = 0;
-   if( !m_pProject->m_TagManager.m_LexInfo.FindImplementation(pTag->pstrName, pTag->pstrFields[0], sFilename, lLineNum) ) return _T("");
-   CString sRef;
-   sRef.Format(_T("%s|%ld"), sFilename, lLineNum);
-   return sRef;
+   Info.sName.Empty();
+   if( pTag == NULL ) return false;
+   CTagDetails Current;
+   m_pProject->m_TagManager.m_LexInfo.GetItemInfo(pTag, Current);
+   CString sLookupName;
+   sLookupName.Format(_T("%s%s%s"), Current.sBase, Current.sBase.IsEmpty() ? _T("") : _T("::"), Current.sName);
+   CSimpleValArray<TAGINFO*> aList;
+   m_pProject->m_TagManager.FindItem(sLookupName, NULL, false, aList);
+   for( int i = 0; i < aList.GetSize(); i++ ) {
+      if( aList[0]->Type == TAGTYPE_IMPLEMENTATION ) {
+         m_pProject->m_TagManager.GetItemInfo(aList[i], Info);
+         return true;
+      }
+   }
+   return false;
 }
+
+int CALLBACK CClassView::_TreeSortTypeCB(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+{
+   TAGINFO* pTag1 = (TAGINFO*) lParam1;
+   TAGINFO* pTag2 = (TAGINFO*) lParam2;
+   if( pTag1 == NULL || pTag2 == NULL ) return 0;
+   if( pTag1->Type != pTag2->Type ) return (int) pTag1->Type - (int) pTag2->Type;
+   return _tcscmp(pTag1->pstrName, pTag2->pstrName);
+}
+

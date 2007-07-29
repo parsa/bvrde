@@ -32,12 +32,11 @@ public:
    void Clear();
    bool IsLoaded() const;
    bool IsAvailable() const;
-   int FindItem(int iStart, LPCTSTR pstrName);
-   CTagInfo::TAGTYPE GetItemType(int iIndex);
-   bool GetOuterList(CSimpleValArray<TAGINFO*>& aList);
-   bool GetGlobalList(CSimpleValArray<TAGINFO*>& aList);
-   bool GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance);
-   bool GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult);
+   bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, CSimpleValArray<TAGINFO*>& aTags);
+   void GetItemInfo(const TAGINFO* pTag, CTagDetails& Info);
+   bool GetOuterList(CSimpleValArray<TAGINFO*>& aResult);
+   bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult);
+   bool GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult);
 
 // Operations
 public:
@@ -50,14 +49,13 @@ private:
    CSimpleArray<LPTSTR> m_aFiles;
    bool m_bLoaded;
    bool m_bSorted;
-   bool m_bClassBrowserDone;
 
 // Implementation
 private:
    bool _LoadTags();
    bool _ParseTagFile(LPTSTR pstrText);
-   TAGTYPE _GetTagType(const TAGINFO& tag) const;
-   CString _GetTagParent(const TAGINFO& tag) const;
+   void _ResolveExtraField(TAGINFO& info, LPCTSTR pstrField) const;
+   CString _FindTagParent(const TAGINFO* pTag) const;
 };
 
 

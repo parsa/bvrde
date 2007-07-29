@@ -185,8 +185,8 @@ public:
 class IIdleListener
 {
 public:
-   virtual void OnIdle(IUpdateUI* pUIBase) = 0;
-   virtual void OnGetMenuText(UINT wID, LPWSTR pstrText, int cchMax) = 0;
+   virtual VOID OnIdle(IUpdateUI* pUIBase) = 0;
+   virtual VOID OnGetMenuText(UINT wID, LPWSTR pstrText, int cchMax) = 0;
 };
 
 /**
@@ -221,8 +221,8 @@ public:
 class ICustomCommandListener
 {
 public:
-   virtual void OnUserCommand(LPCWSTR pstrCommand, BOOL& bHandled) = 0;
-   virtual void OnMenuCommand(LPCWSTR pstrType, LPCWSTR pstrCommand, LPCWSTR pstrArguments, LPCWSTR pstrPath, int iFlags, BOOL& bHandled) = 0;
+   virtual VOID OnUserCommand(LPCWSTR pstrCommand, BOOL& bHandled) = 0;
+   virtual VOID OnMenuCommand(LPCWSTR pstrType, LPCWSTR pstrCommand, LPCWSTR pstrArguments, LPCWSTR pstrPath, int iFlags, BOOL& bHandled) = 0;
 };
 
 /**
@@ -313,7 +313,7 @@ public:
    virtual IView* CreateView(LPCWSTR pstrFilename, IProject* pProject = NULL, IElement* pParent = NULL) = 0;
    virtual IDispatch* CreateStdDispatch(LPCWSTR pstrType, IElement* pElement) = 0;
    //
-   virtual void EnableModeless(BOOL bEnable) = 0;
+   virtual VOID EnableModeless(BOOL bEnable) = 0;
    virtual HWND GetHwnd(IDE_HWND_TYPE WinType) const = 0;
    virtual HMENU GetMenuHandle(IDE_HWND_TYPE WinType) const = 0;
    virtual BOOL GetPrinterInfo(HGLOBAL& hDevMode, HGLOBAL& hDevNames, RECT& rcMargins) const = 0;
@@ -364,6 +364,7 @@ public:
    virtual BOOL Save(ISerializable* pArchive) = 0;
    virtual BOOL GetName(LPWSTR pstrName, UINT cchMax) const = 0;
    virtual BOOL GetType(LPWSTR pstrType, UINT cchMax) const = 0;
+   virtual IElement* GetParent() const = 0;
    virtual IDispatch* GetDispatch() = 0;
 };
 
@@ -375,7 +376,7 @@ public:
 class ISolution : public IElement
 {
 public:
-   virtual void Close() = 0;
+   virtual VOID Close() = 0;
    virtual BOOL LoadSolution(LPCWSTR pstrFilename) = 0;
    virtual BOOL SaveSolution(LPCWSTR pstrFilename) = 0;
    virtual BOOL IsDirty() const = 0;
@@ -403,10 +404,10 @@ public:
    virtual BOOL Close() = 0;
    virtual BOOL IsDirty() const = 0;
    virtual BOOL CreateProject() = 0;
-   virtual void ActivateProject() = 0;
-   virtual void DeactivateProject() = 0;
-   virtual void ActivateUI() = 0;
-   virtual void DeactivateUI() = 0;
+   virtual VOID ActivateProject() = 0;
+   virtual VOID DeactivateProject() = 0;
+   virtual VOID ActivateUI() = 0;
+   virtual VOID DeactivateUI() = 0;
    virtual BOOL SetName(LPCWSTR pstrName) = 0;
    virtual IView* GetItem(INT iIndex) = 0;
    virtual INT GetItemCount() const = 0;
@@ -422,18 +423,17 @@ public:
 class IView : public IElement
 {
 public:
-   virtual BOOL OpenView(long lPosition) = 0;
-   virtual void CloseView() = 0;
-   virtual IElement* GetParent() const = 0;
+   virtual BOOL OpenView(LONG lLineNum) = 0;
+   virtual VOID CloseView() = 0;
    virtual BOOL GetFileName(LPWSTR pstrFilename, UINT cchMax) const = 0;
    virtual BOOL SetName(LPCWSTR pstrName) = 0;
    virtual BOOL GetText(BSTR* pbstrText) = 0;
    virtual BOOL IsDirty() const = 0;
    virtual BOOL Reload() = 0;
    virtual BOOL Save() = 0;
-   virtual void ActivateUI() = 0;
-   virtual void DeactivateUI() = 0;
-   virtual void EnableModeless(BOOL bEnable) = 0;
+   virtual VOID ActivateUI() = 0;
+   virtual VOID DeactivateUI() = 0;
+   virtual VOID EnableModeless(BOOL bEnable) = 0;
    virtual LRESULT PostMessage(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0) = 0;
    virtual LRESULT SendMessage(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0) = 0;
 };

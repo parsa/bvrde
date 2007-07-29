@@ -4,6 +4,13 @@
 
 #include "DiffCvsView.h"
 
+/*
+#include <stdlib.h>
+#include <stdio.h>
+*/
+
+#pragma code_seg( "MISC" )
+
 
 ////////////////////////////////////////////////////////
 // Operations
@@ -16,12 +23,27 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
    ATLASSERT(pElement);
 
    CWaitCursor cursor;
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_DIFFVIEW)));
 
    CComDispatchDriver dd = pElement->GetDispatch();  
    CComVariant vText;
    if( FAILED( dd.GetPropertyByName(L"Text", &vText) ) ) return FALSE;
    if( vText.vt != VT_BSTR || vText.bstrVal == NULL ) return FALSE;
-   CString sFile = vText.bstrVal;
+   CString sText = vText.bstrVal;
+   int cchText = sText.GetLength();
+
+   /*
+   DWORD dwStartTick = ::GetTickCount();
+   aLines.RemoveAll();
+   FILE* f = ::fopen("D:\\Source\\SourceForge\\bvrde\\Temp\\diff01.txt", "r");
+   while( !feof(f) ) {
+      char szLine[301] = { 0 };
+      ::fgets(szLine, 300, f);
+      CString s = szLine;
+      aLines.Add(s);
+   }
+   ::fclose(f);
+   */
 
    // Detect which type of diff output this is:
    //   Original diff
@@ -29,50 +51,107 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
    //   Unidiff
    enum { DIFF_ORIGINAL, DIFF_CONTEXT, DIFF_UNIDIFF } DiffType = DIFF_ORIGINAL;
    const int NUM_LINES_DETECT = 20;
-   int nLines = aLines.GetSize();
-   for( int i = 0; i < min(nLines, NUM_LINES_DETECT); i++ ) {
-      if( aLines[i].Left(4) == _T("*** ") ) DiffType = DIFF_CONTEXT;
-      if( aLines[i].Left(4) == _T("+++ ") ) DiffType = DIFF_UNIDIFF;
-      if( aLines[i].Left(3) == _T("@@ ") ) DiffType = DIFF_UNIDIFF;
+   int nDiffLines = aLines.GetSize();
+   for( int i = 0; i < min(nDiffLines, NUM_LINES_DETECT); i++ ) {
+      CString& sLine = aLines[i];
+      if( _tcsncmp(sLine, _T("*** "), 4) == 0 ) DiffType = DIFF_CONTEXT;
+      if( _tcsncmp(sLine, _T("+++ "), 4) == 0 ) DiffType = DIFF_UNIDIFF;
+      if( _tcsncmp(sLine, _T("@@ "), 3) == 0 ) DiffType = DIFF_UNIDIFF;
    }
 
    // Split source file into lines
    CSimpleArray<CString> aFile;
    CString sLine;
-   while( !sFile.IsEmpty() ) {
-      sLine = sFile.SpanExcluding(_T("\r\n"));
+   while( !sText.IsEmpty() ) {
+      sLine = sText.SpanExcluding(_T("\r\n"));
       aFile.Add(sLine);
       int iPos = sLine.GetLength();
-      int nLen = sFile.GetLength();
-      while( iPos < nLen && (sFile[iPos] == '\r' || sFile[iPos] == '\n') ) iPos++;
-      sFile = sFile.Mid(iPos);
+      int nLen = sText.GetLength();
+      if( iPos < nLen && sText[iPos] == '\r' ) iPos++;
+      if( iPos < nLen && sText[iPos] == '\n' ) iPos++;
+      sText = sText.Mid(iPos);
    }
 
-   CString sHTML;
-   if( DiffType == DIFF_ORIGINAL ) _ParseDiffOriginal(aFile, aLines, sHTML);
-   if( DiffType == DIFF_CONTEXT ) _ParseDiffContext(aFile, aLines, sHTML);
-   if( DiffType == DIFF_UNIDIFF ) _ParseDiffUnidiff(aFile, aLines, sHTML);
-   if( sHTML.IsEmpty() ) return FALSE;
+   // OPTI: Because of the slow CString/memory allocation in C++, we should try
+   //       to minimize the number of allocations. Let's pre-allocate some memory.
+   DIFFINFO Info;
+   int nAlloc = (cchText * 5) + (aFile.GetSize() * 80) + (aLines.GetSize() * 240);
+   Info.sHTML.GetBuffer(nAlloc);
+   Info.sHTML.ReleaseBuffer(0);
+   Info.iFirstChange = -1;
 
-   CString sPage;
+   switch( DiffType ) {
+   case DIFF_ORIGINAL:  _ParseDiffOriginal(aFile, aLines, Info); break;
+   case DIFF_CONTEXT:   _ParseDiffContext(aFile, aLines, Info); break;
+   case DIFF_UNIDIFF:   _ParseDiffUnidiff(aFile, aLines, Info); break;
+   }
+   if( Info.sHTML.IsEmpty() ) return FALSE;
+
+   SetWindowText(CString(MAKEINTRESOURCE(IDS_CAPTION_DIFF)));
+
+   CString sFileInfo;
+   _GenerateInfoHeader(sFileInfo, IDS_DIFF_LEFTFILE, Info.sLeftFileInfo);
+   _GenerateInfoHeader(sFileInfo, IDS_DIFF_RIGHTFILE, Info.sRightFileInfo);
+   _GenerateInfoHeader(sFileInfo, IDS_DIFF_GENERALFILE, Info.sGeneralFileInfo);
+   CString sFirstChange;
+   if( Info.iFirstChange > 80 ) sFirstChange.Format(IDS_DIFF_FIRSTCHANGE, Info.iFirstChange);
+   _GenerateInfoHeader(sFileInfo, sFirstChange);
+
+   /*
+   DWORD dwStopTick = ::GetTickCount();
+   ATLTRACE("TIME: %d ms\n", dwStopTick - dwStartTick);
+   ATLTRACE("ALLOC: html=%ld alloc=%ld text=%ld\n", Info.sHTML.GetLength(), nAlloc, cchText);
+   */
+
+   CString sPage = AtlLoadHtmlResource(IDR_DIFF);
+   sPage.Replace(_T("$TITLE$"), CString(MAKEINTRESOURCE(IDS_CAPTION_DIFF)));
+   sPage.Replace(_T("$INFO$"), sFileInfo);
+   sPage.Replace(_T("$TABLE$"), Info.sHTML);
+   _LoadHtml(m_spBrowser, sPage);
 
    ShowWindow(SW_NORMAL);
    return TRUE;
 }
 
-BOOL CDiffCvsView::_ParseDiffOriginal(CSimpleArray<CString>& aFile, CSimpleArray<CString>& aLines, CString& sHTML)
+CString CDiffCvsView::_Htmlize(CString s) const
 {
-   return FALSE;
+   s.Replace(_T("&"), _T("&amp;"));
+   s.Replace(_T("<"), _T("&lt;"));
+   s.Replace(_T(">"), _T("&gt;"));
+   s.Replace(_T("\""), _T("&quot;"));
+   s.Replace(_T(" "), _T("&nbsp;"));
+   s.Replace(_T("\t"), _T("&nbsp;&nbsp;&nbsp;"));
+   if( s.IsEmpty() ) s = _T("&nbsp;");
+   return s;
 }
 
-BOOL CDiffCvsView::_ParseDiffContext(CSimpleArray<CString>& aFile, CSimpleArray<CString>& aLines, CString& sHTML)
+void CDiffCvsView::_GenerateInfoHeader(CString& sHTML, CString sValue) const
 {
-   return FALSE;
+   if( sValue.IsEmpty() ) return;
+   CString sTemp;
+   sTemp.Format(_T("<tr><td>%s</td></tr>"), sValue);
+   sHTML += sTemp;
 }
 
-BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<CString>& aLines, CString& sHTML)
+void CDiffCvsView::_GenerateInfoHeader(CString& sHTML, UINT uLabel, CString sValue) const
 {
-   return FALSE;
+   if( sValue.IsEmpty() ) return;
+   CString sTemp;
+   sTemp.Format(_T("<b>%s</b> %s"), CString(MAKEINTRESOURCE(uLabel)), _Htmlize(sValue));
+   _GenerateInfoHeader(sHTML, sTemp);
+}
+
+void CDiffCvsView::_GenerateRow(CString& sHTML, CString& sTemp, int iLineNo, LPCTSTR pstrType, CString& sLeft, CString& sRight) const
+{
+   TCHAR szLineNo[12] = { 0 };
+   if( iLineNo != 0 ) ::wsprintf(szLineNo, _T("%d"), iLineNo);
+   // OPTI: We need to HTMLize the strings, but for most of the display, both sides are the same; so we
+   //       need only convert one of them in this case.
+   CString sLine1 = _Htmlize(sLeft);
+   CString sLine2 = sLeft == sRight ? sLine1 : _Htmlize(sRight);
+   // Produce the HTML table cell snippet
+   sTemp.Format(_T("<tr><td class=\"lin\">%s</td><td class=\"%s\">%s</td><td class=\"%s\">%s</td></tr>\n"), szLineNo, pstrType, sLine1, pstrType, sLine2);
+   sHTML += sTemp;
 }
 
 void CDiffCvsView::OnFinalMessage(HWND /*hWnd*/)

@@ -30,13 +30,6 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    bHandled = FALSE;
    if( m_aLazyData.GetSize() == 0 ) return 0;
 
-
-   CSimpleArray<CString> aDbgCmd;       // Collect all new debug commands in a batch
-   bool bUpdatedAlready = false;        // Make sure to trigger debug update only once
-   CString sMessage;                    // For displaying a message-box asynchroniously
-   CString sCaption;                    // -"-
-   UINT iFlags;                         // -"-
-
    // Try to obtain the semaphore
    if( !::TryEnterCriticalSection(&g_csDelayedData.m_sec) ) {
       // No need to block the thread; let's just re-post the request...
@@ -45,12 +38,19 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
       m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
       return 0;
    }
+
+   CSimpleArray<CString> aDbgCmd;       // Collect all new debug commands in a batch
+   bool bUpdatedAlready = false;        // Make sure to trigger debug update only once
+   CString sMessage;                    // For displaying a message-box asynchroniously
+   CString sCaption;                    // -"-
+   UINT iFlags;                         // -"-
+
    for( int i = 0; i < m_aLazyData.GetSize(); i++ ) {
       LAZYDATA& data = m_aLazyData[i];
       switch( data.Action ) {
       case LAZY_OPEN_VIEW:
          {
-            OpenView(data.szFilename, data.lLineNum);
+            OpenView(data.szFilename, data.iLineNum);
          }
          break;
       case LAZY_GUI_ACTION:
@@ -70,7 +70,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
                break;
             case GUI_ACTION_PLAY_ANIMATION:
                {
-                  _pDevEnv->PlayAnimation(TRUE, data.lLineNum);
+                  _pDevEnv->PlayAnimation(TRUE, data.iLineNum);
                }
                break;
             case GUI_ACTION_STOP_ANIMATION:
@@ -117,6 +117,11 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          {
             // Broadcast message to all known views in project
             for( int i = 0; i < m_aFiles.GetSize(); i++ ) m_aFiles[i]->SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
+         }
+         break;
+      case LAZY_CLASSTREE_INFO:
+         {
+            m_TagManager.m_LexInfo.MergeTree(data.szFilename, data.pLexFile);
          }
          break;
       case LAZY_DEBUGCOMMAND:
@@ -274,25 +279,25 @@ void CRemoteProject::DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UI
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
 
-void CRemoteProject::DelayedOpenView(LPCTSTR pstrFilename, long lLineNum)
+void CRemoteProject::DelayedOpenView(LPCTSTR pstrFilename, int iLineNum)
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_OPEN_VIEW;
    _tcscpy(data.szFilename, pstrFilename);
-   data.lLineNum = lLineNum;
+   data.iLineNum = iLineNum;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
 
-void CRemoteProject::DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename, long lLineNum)
+void CRemoteProject::DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename, int iLineNum)
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_GUI_ACTION;
    data.wParam = iAction;
    _tcscpy(data.szFilename, pstrFilename == NULL ? _T("") : pstrFilename);
-   data.lLineNum = lLineNum;
+   data.iLineNum = iLineNum;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
@@ -329,7 +334,7 @@ void CRemoteProject::DelayedDebugCommand(LPCTSTR pstrCommand)
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
 
-void CRemoteProject::DelayedViewMessage(WPARAM wCmd, LPCTSTR pstrFilename /*= NULL*/, long lLineNum /*= -1*/, UINT iFlags /*= 0*/)
+void CRemoteProject::DelayedViewMessage(WPARAM wCmd, LPCTSTR pstrFilename /*= NULL*/, int iLineNum /*= -1*/, UINT iFlags /*= 0*/)
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
@@ -338,19 +343,19 @@ void CRemoteProject::DelayedViewMessage(WPARAM wCmd, LPCTSTR pstrFilename /*= NU
    _tcscpy(data.szFilename, pstrFilename == NULL ? _T("") : pstrFilename);
    _tcscpy(data.szMessage, _T(""));
    _tcscpy(data.szCaption, _T(""));
-   data.lLineNum = lLineNum;
+   data.iLineNum = iLineNum;
    data.iFlags = iFlags;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
 
-void CRemoteProject::DelayedDebugBreakpoint(LPCTSTR pstrFilename, long lLineNum)
+void CRemoteProject::DelayedDebugBreakpoint(LPCTSTR pstrFilename, int iLineNum)
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_SET_DEBUG_BREAKPOINT;
    _tcscpy(data.szFilename, pstrFilename);
-   data.lLineNum = lLineNum;
+   data.iLineNum = iLineNum;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
@@ -360,6 +365,17 @@ void CRemoteProject::DelayedDebugEvent(LAZYACTION event /*= LAZY_DEBUG_BREAK_EVE
    CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = event;
+   m_aLazyData.Add(data);
+   m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
+}
+
+void CRemoteProject::DelayedClassTreeInfo(LPCTSTR pstrFilename, LEXFILE* pLexFile)
+{
+   CLockDelayedDataInit lock;
+   LAZYDATA data;
+   data.Action = LAZY_CLASSTREE_INFO;
+   data.pLexFile = pLexFile;
+   _tcscpy(data.szFilename, pstrFilename);
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }

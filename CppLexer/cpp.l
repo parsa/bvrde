@@ -35,12 +35,12 @@ static int		lastTContext;
 static int		protection   = GLOB ;
 static int		bracketCount = 0 ;
 static int		sharpCount   = 0 ;
+static int		elseCount    = 0 ;
 static Entry*		current_root = 0 ;
 static Entry*		global_root  = 0 ;
 static Entry*		current      = 0 ;
 
 static int		yyLineNr = 1 ;
-static char		yyFileName[264] ;
 static McString*	currentString ;
 
 static void msg( const char* str, const char* str2=NULL )
@@ -48,7 +48,7 @@ static void msg( const char* str, const char* str2=NULL )
 #ifdef _DEBUG
 	if( verb )
 	{
-		printf( "%s(%d):\t%s", yyFileName, yyLineNr, str ) ;
+		printf( "%d:\t%s", yyLineNr, str ) ;
 		if( str2 ) printf( "%s", str2 ) ;
 		printf( "\n" ) ;
 	}
@@ -115,8 +115,10 @@ static int yyread(char *buf,int max_size)
 %x	Round
 %x	Curly
 %x	SkipCurly
+%x	SkipRound
 %x	SkipInits
 %x	SkipDefine
+%x	SkipElse
 %x	Sharp
 
 %x	Comment
@@ -138,173 +140,173 @@ static int yyread(char *buf,int max_size)
 
 %%
 
-<*>\x06[^\x06]*\x06			{ 
-					  yyLineNr = 1 ; 
-					  int i;
-					  for( i = 0 ; yytext[i+1] != 6 ; i++ )
-						yyFileName[i] = yytext[i+1] ;
-					  yyFileName[i] = 0 ;
-					}
-
 <NextSemi>[;,]				{ BEGIN( FindMembers ) ; }
-<NextSemi>[ \t]*\"[^\n"]*\"		
+<NextSemi>\"[^\n\"]*\"
 <NextSemi>"{"				{ BEGIN( SkipCurly ) ; }
 
-<FindMembers>[ \t]*"public:"[ \t\r\n]*	{ 
+<FindMembers>"public:"			{ 
 					  current->protection = protection = PUBL ;
 					  lineCount() ;
 					}
-<FindMembers>[ \t]*"protected:"[ \t\r\n]*	{ 
+<FindMembers>"protected:"		{ 
 					  current->protection = protection = PROT ;
 					  lineCount() ;
 					}
-<FindMembers>[ \t]*"private:"[ \t\r\n]*	{ 
+<FindMembers>"private:"			{ 
 					  current->protection = protection = PRIV ;
 					  lineCount() ;
 					}
 
-<FindMembers>[ \t]*"typedef"[ \t\r\n]+"class"[ \t\r\n]+	{
+<FindMembers>"typedef"[ \t\r\n]+"class"[ \t\r\n]+	{
 					  msg( "found class    ", current->name ) ;
 					  current->section = TYPEDEF_SEC ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  current->type = "typedef class" ;
 					  current->name.clear() ;
 					  lineCount() ;
 					}
 
-<FindMembers>[ \t]*"typedef"[ \t\r\n]+"struct"[ \t\r\n]+	{
+<FindMembers>"typedef"[ \t\r\n]+"struct"[ \t\r\n]+	{
 					  msg( "found struct   ", current->name ) ;
 					  current->section = STRUCT_SEC ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  current->type = "typedef struct" ;
 					  current->name.clear() ;
 					  lastTContext = 1;
 					  lineCount() ;
 				  	  BEGIN( ClassName ) ;
 					}
-<FindMembers>[ \t]*"typedef"[ \t\r\n]+"struct"[ \t\r\n]*"{"[ \t\r\n]*	{
+<FindMembers>"typedef"[ \t\r\n]+"struct"[ \t\r\n]*"{"	{
 					  msg( "found struct   ", current->name ) ;
 					  current->section = STRUCT_SEC ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  current->type = "typedef struct" ;
 					  current->name.clear() ;
 					  lineCount() ;
-					  current->file = yyFileName ;
 					  current->startLine = yyLineNr ;
 					  lastTContext = 1;
 				  	  BEGIN( Curly ) ;
 					}
 
-<FindMembers>[ \t]*"typedef"[ \t\r\n]+"enum"[ \t\r\n]+	{
+<FindMembers>"typedef"[ \t\r\n]+"enum"[ \t\r\n]+	{
 					  msg( "found enum     ", current->name ) ;
 					  current->section = ENUM_SEC ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  current->type = "typedef enum" ;
 					  current->name.clear() ;
 					  lineCount() ;
-					  current->file = yyFileName ;
 					  current->startLine = yyLineNr ;
 					  lastTContext = 1;
 				  	  BEGIN( ClassName ) ;
 					}
 
-<FindMembers>[ \t]*"typedef"[ \t\r\n]+"enum"[ \t\r\n]*"{"[ \t\r\n]*	{
+<FindMembers>"typedef"[ \t\r\n]+"enum"[ \t\r\n]*"{"	{
 					  msg( "found struct   ", current->name ) ;
 					  current->section = ENUM_SEC ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  current->type = "typedef enum" ;
 					  current->name.clear() ;
 					  lineCount() ;
-					  current->file = yyFileName ;
 					  current->startLine = yyLineNr ;
 					  lastTContext = 1;
 				  	  BEGIN( Curly ) ;
 					}
 
-<FindMembers>[ \t]*"typedef"[ \t\r\n]+"union"[ \t\r\n]+	{
+<FindMembers>"typedef"[ \t\r\n]+"union"[ \t\r\n]+	{
 					  msg( "found union    ", current->name ) ;
 					  current->section = UNION_SEC ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  current->type = "typedef union" ;
 					  current->name.clear() ;
 					  lineCount() ;
 				  	  BEGIN( ClassName ) ;
 					}
 
-<FindMembers>[ \t]*"interface"[ \t\r\n]+ { 
+<FindMembers>"interface"[ \t\r\n]+	{ 
 					  current->section = CLASS_SEC ;
 					  addType( current ) ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  if( !current->type.empty() ) current->type += " ";
 					  current->type += "interface" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
 					}
-<FindMembers>[ \t]*"class"[ \t\r\n]+	{ 
+<FindMembers>"class"[ \t\r\n]+		{ 
 					  msg( "found class     ", current->name ) ;
 					  current->section = CLASS_SEC ;
 					  addType( current ) ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  if( !current->type.empty() ) current->type += " ";
 					  current->type += "class" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
 					}
-<FindMembers>[ \t]*"struct"[ \t\r\n]+	{ 
+<FindMembers>"struct"[ \t\r\n]+		{ 
 					  msg( "found struct    ", current->name ) ;
 					  current->section = STRUCT_SEC ;
 					  addType( current ) ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  if( !current->type.empty() ) current->type += " ";
 					  current->type += "struct" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
 					}
-<FindMembers>[ \t]*"enum"[ \t\r\n]+	{ 
+<FindMembers>"enum"[ \t\r\n]+		{ 
 					  msg( "found enum    ", current->name ) ;
 					  current->section = ENUM_SEC ;
 					  addType( current ) ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  if( !current->type.empty() ) current->type += " ";
 					  current->type += "enum" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
 					}
-<FindMembers>[ \t]*"union"[ \t\r\n]+	{ 
+<FindMembers>"union"[ \t\r\n]+		{ 
 					  current->section = UNION_SEC ;
 					  addType( current ) ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  if( !current->type.empty() ) current->type += " ";
 					  current->type += "union" ;
 					  lineCount() ;
 					  BEGIN( ClassName ) ;
 					}
-
+<FindMembers>("struct"|"class")[ \t\r\n]+[a-z_A-Z~:.0-9]+";"	{ 
+					  msg( "found forward declare  ", yytext ) ;
+					  lineCount() ;
+					}
 <FindMembers>"operator"/[^a-z_A-Z0-9]	{ 
 					  addType( current ) ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  current->name  = yytext ;
 					  BEGIN( Operator ) ;
 					}
+
+<FindMembers>"__"("declspec"|"attribute"|"attribute__")"("	{ 
+					  BEGIN( SkipRound ) ;
+					}
+
 <Operator>[^(]*				{ 
 					  current->name += yytext ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  BEGIN( FindMembers ) ;
 					}
 
 <FindMembers>"extern"[ \t]*[a-z_A-Z~:.0-9]+ { 
 					  addType( current ) ;
-				          current->lineNo = yyLineNr;
+				          current->lineNo = yyLineNr ;
 					  current->name  = yytext ;
 					}
 <FindMembers>[a-z_A-Z~:.0-9]+		{ 
 					  addType( current ) ;
-				          current->lineNo = yyLineNr;
+				          current->lineNo = yyLineNr ;
 					  current->name  = yytext ;
 					}
 
-<FindMembers>^[ \t]*"#"			{ lineCount() ; BEGIN( SkipDefine ) ; }
-<SkipDefine>.
+<FindMembers>^[ \t]*"#"			{ 
+					  msg( "found compiler.dir" ) ;
+					  lineCount() ; 
+					  BEGIN( SkipDefine ) ; 
+					}
 <SkipDefine>"//"[^\n]*
 <SkipDefine>\\[ \r\t]*\n		{ yyLineNr++ ; }
 <SkipDefine>\n				{ 
@@ -312,7 +314,19 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( FindMembers ) ;
 					}
 
-<FindMembers>^[ \t]*"using"[ \t]+	{ 
+<FindMembers>^[ \t]*"#"("else"|"elif")	{ 
+					  msg( "found #ELSE" ) ; 
+					  BEGIN( SkipElse ) ; 
+					}
+<SkipElse>"//"[^\n]*
+<SkipElse>^[ \t]*"#"("if"|"ifdef"|"ifndef")	{ elseCount++ ; }
+<SkipElse>^[ \t]*"#endif"		{ if( elseCount > 0 )
+					    --elseCount ;
+					  else
+					    BEGIN( FindMembers ) ;
+					}
+
+<FindMembers>"using"[ \t]+		{ 
 					  current->type = "using " ;
 					  BEGIN( Define ) ;
 					}
@@ -322,7 +336,7 @@ static int yyread(char *buf,int max_size)
 					}
 <Define>[a-z_A-Z:.0-9]+			{ 
 					  current->name = yytext ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  BEGIN( DefineEnd ) ;
 					}
 <DefineEnd>[ \t]			{ BEGIN( DefineEnd ) ; }
@@ -333,96 +347,74 @@ static int yyread(char *buf,int max_size)
 <DefineEnd,DefineEnded>\\\n		{ yyLineNr++ ; }
 <DefineEnd,DefineEnded>\\\r\n		{ yyLineNr++ ; }
 <DefineEnd,DefineEnded>\n		{ 
-					  if( current->done == onlyDocs )
-					  {
-					    current->section = MACRO_SEC ;
-					    current->lineNo = yyLineNr;
-					    msg( "found macro    ", current->name ) ;
-					    current_root->addSubEntry( current ) ;
-					    current = new Entry ;
-					    current->protection = protection ;
-					  }
-					  else
-					  {
-					    current->name.clear() ;
-					    current->type.clear() ;
-					  }
+					  current->section = MACRO_SEC ;
+					  current->lineNo = yyLineNr ;
+					  msg( "found macro    ", current->name ) ;
+					  current_root->addSubEntry( current ) ;
+					  current = new Entry ;
+					  current->protection = protection ;
 					  yyLineNr++ ;
 					  BEGIN( FindMembers ) ;
 					}
 
 <FindMembers>[*&]+			{ 
 					  current->name += yytext ; 
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					}
 
 <FindMembers>[;=,]			{ 
 					  BEGIN( FindMembers ) ;
 					  if( current->lineNo == 0 ) current->lineNo = yyLineNr + 1;
 					  msg( "found variable ", current->name ) ;
-					  if( current->done == onlyDocs )
-					  {
-					    if( current->section != TYPEDEF_SEC )
-						    current->section = VARIABLE_SEC ;
-					    current_root->addSubEntry( current ) ;
-					    current = new Entry ;
-					    current->protection = protection ;
-					  }
-					  else
-					  {
-					    current->section = EMPTY_SEC ;
-					    current->name.clear() ;
-					    current->type.clear() ;
-					    current->args.clear() ;
-					  }
+					  if( current->section != TYPEDEF_SEC )
+					    current->section = VARIABLE_SEC ;
+					  current_root->addSubEntry( current ) ;
+					  current = new Entry ;
+					  current->protection = protection ;
 					  if( *yytext == '=' )
 					    BEGIN( NextSemi ) ;
 					}
 
 <FindMembers>"["			{ 
 					  current->args += yytext ;
-					  sharpCount=1;
 					  BEGIN( Array ) ;
 					}
 <Array>"]"				{ 
 					  current->args += *yytext ;
-					  if( --sharpCount<=0 )
-						BEGIN( FindMembers ) ;
+					  if( sharpCount > 0 )
+					    --sharpCount ;
+					  else
+					    BEGIN( FindMembers ) ;
 					}
 <Array>"["				{ 
 					  current->args += *yytext ;
-					  sharpCount++;	
+					  ++sharpCount ;	
 					}
 <Array>.				{ current->args += *yytext ; }
 
 <FindMembers>"<"			{ 
 					  addType( current ) ;
 					  current->type += *yytext ;
-					  sharpCount=1;
 					  BEGIN( Sharp ) ;
 					}
 <Sharp>">"				{ 
 					  current->type += *yytext ;
-					  if (--sharpCount<=0)
-	                                     BEGIN( FindMembers ) ;
+					  if( sharpCount > 0 )
+					    --sharpCount ;
+					  else
+	                                    BEGIN( FindMembers ) ;
 					}
 <Sharp>"<"				{ 
 					  current->type += *yytext ;
-					  sharpCount++;	
+					  ++sharpCount ;
 					}
 <Sharp>.				{ current->type += *yytext ; }
 
 <Curly>[^\n{}\"/]*			{ current->program += yytext ; }
 <Curly>"//"[^\n]*\n			{ current->program += yytext ; ++yyLineNr ; }
-<Curly>\"[^\n"]*\"			{ current->program += yytext ; }
-<Curly>"/*"\**[ \t]*			{ 
+<Curly>\"[^\n\"]*\"			{ current->program += yytext ; }
+<Curly>"/*"\**				{ 
 					  current->program += yytext ;
-					  lastContext = Curly ;
-					  BEGIN( Comment ) ;
-					}
-<Curly>"/*"\**[ \t]*\n			{ 
-					  current->program += yytext ;
-					  ++yyLineNr ;
 					  lastContext = Curly ;
 					  BEGIN( Comment ) ;
 					}
@@ -444,21 +436,13 @@ static int yyread(char *buf,int max_size)
 					    {
 					      BEGIN( TypedefName ) ;
 					    }
-					    else if( current->done == onlyDocs )
+					    else
 					    {
 					      int section = current->section;
 					      current_root->addNextEntry( current ) ;
 					      current = new Entry ;
 					      current->protection = protection ;
 					      if( section == CLASS_SEC ) current->protection = GLOB ;
-					      BEGIN( NextSemi ) ;
-					    }
-					    else
-					    {
-					      current->name.clear() ;
-					      current->type.clear() ;
-					      current->args.clear() ;
-					      current->section = EMPTY_SEC ;
 					      BEGIN( NextSemi ) ;
 					    }
 					  }
@@ -469,16 +453,18 @@ static int yyread(char *buf,int max_size)
 					}
 <Curly>.				{ current->program += yytext ; }
 
-<FindMembers>"("			{ 
-					  current->args = yytext ;
+<FindMembers>[ \t\r\n]*"("[ \t\r\n]*	{ 
+					  lineCount() ; 
+					  current->args = "(" ;
 					  BEGIN( Round ) ;
 					}
 <Round>"("				{ 
 					  current->args += *yytext ;
 					  ++bracketCount ;
 					}
-<Round>")"				{ 
-					  current->args += *yytext ;
+<Round>[ \t\r\n]*")"			{ 
+					  lineCount() ; 
+					  current->args += ')' ;
 					  if( bracketCount > 0 )
 					    --bracketCount ;
 					  else
@@ -499,26 +485,19 @@ static int yyread(char *buf,int max_size)
 					  current->type += current->name ;
 					  current->name  = current->args ;
 					  current->args  = yytext ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					  BEGIN( Round ) ;
 					}
 <Function>[:;{]				{ 
 					  msg( "found method   ", current->name ) ;
-					  if( current->done == onlyDocs )
-					  {
-					    current->section = FUNCTION_SEC ;
-					    current_root->addSubEntry(current);
-					    current = new Entry ;
-					    current->protection = protection ;
-					  }
-					  else
-					  {
-					    current->name.clear() ;
-					    current->type.clear() ;
-					    current->args.clear() ;
-					  }
-					  if( *yytext == '{' )
+					  current->section = FUNCTION_SEC ;
+					  if( *yytext == '{' && current->protection == GLOB ) current->section = IMPL_SEC;
+					  current_root->addSubEntry(current);
+					  current = new Entry ;
+					  current->protection = protection ;
+					  if( *yytext == '{' ) {
 					      BEGIN( SkipCurly ) ;
+					  }
 					  else if( *yytext == ':' )
 					      BEGIN( SkipInits ) ;
 					  else
@@ -526,9 +505,9 @@ static int yyread(char *buf,int max_size)
 					}
 
 <SkipInits>"{"				{ BEGIN( SkipCurly ) ; }
+<SkipInits>";"				{ BEGIN( FindMembers ) ; }
 
-<SkipCurly>[ \t\r\n]*"/""/"+[\r]*\n	{ lineCount() ; }
-<SkipCurly>\"[^\n"]*\"
+<SkipCurly>\"[^\n\"]*\"
 <SkipCurly>"{"				{ ++bracketCount ; }
 <SkipCurly>"}"				{ 
 					  if( bracketCount > 0 )
@@ -537,36 +516,34 @@ static int yyread(char *buf,int max_size)
 					    BEGIN( FindMembers ) ;
 					}
 
-<Bases,ClassName>";"			{ 
-					  if( current->done == onlyDocs )
-					  {
-					    current->section = VARIABLE_SEC ;
-					    current_root->addSubEntry(current);
-					    current = new Entry ;
-					    current->protection = protection ;
-					  }
+<SkipRound>\"[^\n\"]*\"
+<SkipRound>"("				{ ++bracketCount ; }
+<SkipRound>")"				{ 
+					  if( bracketCount > 0 )
+					    --bracketCount ;
 					  else
-					  {
-					    current->section = EMPTY_SEC ;
-					    current->type.clear() ;
-					    current->name.clear() ;
-					    current->args.clear() ;
-					  }
+					    BEGIN( FindMembers ) ;
+					}
+
+<Bases,ClassName>";"			{ 
+					  current->section = VARIABLE_SEC ;
+					  current_root->addSubEntry(current);
+					  current = new Entry ;
+					  current->protection = protection ;
 					  BEGIN( FindMembers ) ;
 					}
 <ClassName>[a-z_A-Z0-9\[\]*&]+		{ 
 					  if( !current->type.empty() && !current->name.empty() ) current->type += " " ;
 					  current->type += current->name ;
 				  	  current->name = yytext ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 					}
 <ClassName>[ \t]*":"[ \t]*		{ 
 					  current->args = " :" ;
 					  BEGIN( Bases ) ;
 					}
-<Bases,ClassName>[ \t]*"{"[ \t]*	{ 
-					  current->file = yyFileName ;
-				  	  if( current->lineNo == 0 ) current->lineNo = yyLineNr;
+<Bases,ClassName>[ \t]*"{"		{ 
+				  	  if( current->lineNo == 0 ) current->lineNo = yyLineNr ;
 					  current->startLine = yyLineNr ;
 				  	  msg( "found name     ", current->name ) ;
 				  	  BEGIN( Curly ) ;
@@ -578,6 +555,7 @@ static int yyread(char *buf,int max_size)
 					}
 <Bases>","				{ current->args += ',' ; }
 
+<Comment>"//"				{ current->program += yytext ; }
 <Comment>\n				{ 
 					  current->program += yytext ;
 					  yyLineNr++ ;
@@ -592,7 +570,7 @@ static int yyread(char *buf,int max_size)
 					  if( !current->type.empty() && !current->name.empty() ) current->type += " " ;
 					  current->type += current->name ;
 				  	  current->name = yytext ;
-					  current->lineNo = yyLineNr;
+					  current->lineNo = yyLineNr ;
 		
 				          lastTContext = 0;
 					  msg( "found name     ", current->name ) ;
@@ -626,14 +604,13 @@ static int yyread(char *buf,int max_size)
 <FindMembers>[ \t\r\n]*"///"[ \t]*	{ 
 					  lineCount() ;
 					  if( !current->doc.empty()
-						  ||  !current->memo.empty() )
+					    ||  !current->memo.empty() )
 					  {
 						msg( "found doc entry" ) ;
-						current->lineNo = yyLineNr;
+						current->lineNo = yyLineNr ;
 						current_root->addSubEntry( current ) ;
 						current = new Entry ;
 					  }
-					  current->done = onlyDocs ;
 					  BEGIN( Cxx_Memo ) ;
 					}
 <Cxx_Memo>.*				{ current->memo += yytext ; }
@@ -656,14 +633,16 @@ static int yyread(char *buf,int max_size)
 					      ||  !current->memo.empty() )
 					  {
 					     msg( "found doc entry" ) ;
-					     current->lineNo = yyLineNr;
+					     current->lineNo = yyLineNr ;
 					     current_root->addSubEntry( current ) ;
 					     current = new Entry ;
 					  }
-					  current->done = onlyDocs ;
 					  BEGIN( Doc ) ;
 					}
-<VerbDoc,Doc>\n[ \t]*"*"+"/"		{ yyLineNr++; BEGIN( FindMembers ) ; }
+<VerbDoc,Doc>\n[ \t]*"*"+"/"		{ 
+					  yyLineNr++; 
+					  BEGIN( FindMembers ) ; 
+					}
 <Doc>"\\begin{verbatim}"		{ 
 					  current->doc += yytext ;
 					  BEGIN( VerbDoc ) ;
@@ -780,6 +759,8 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( SkipComment ) ;
 					}
 <SkipComment>"*/"			{ BEGIN( lastCContext ) ; }
+<SkipComment>"//"
+<SkipComment>\"[^\n\"]*\"
 <*>"//"					{ 
 					  lastCContext = YY_START ;
 					  BEGIN( SkipCxxComment ) ;
@@ -820,8 +801,7 @@ void callcpplex()
 {
 	cpplex() ;
 	if( ( !current->name.empty()  ||  !current->program.empty()  ||
-		  !current->memo.empty()  ||  !current->doc.empty() )
-		&&  current->done == onlyDocs )
+		  !current->memo.empty()  ||  !current->doc.empty() ) )
 	{
 		if( current->section == EMPTY_SEC )
 			current->section = VARIABLE_SEC ;
@@ -849,7 +829,6 @@ void parseCppClasses(Entry* rt)
 			cpprestart( cppin ) ;
 			BEGIN( FindMembers ) ;
 			current_root = cr ;
-			strcpy( yyFileName, cr->file ) ;
 			yyLineNr = cr->startLine ;
 			current->type.clear() ;
 			current->name.clear() ;
@@ -879,9 +858,9 @@ void parseCpp(Entry* rt)
 	protection    = GLOB ;
 	current       = new Entry ;
 	yyLineNr      = 1 ;
-	yyFileName[0] = '\0' ;
 	bracketCount  = 0 ;
 	sharpCount    = 0 ;
+	elseCount     = 0 ;
 	lastTContext  = 0 ;
 
 	inputString   = rt->program ;

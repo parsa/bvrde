@@ -68,7 +68,7 @@ public:
 public:
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const;
    BOOL Reload();
-   BOOL OpenView(long lLineNum);
+   BOOL OpenView(LONG lLineNum);
    void CloseView();
    IDispatch* GetDispatch();
 };
@@ -96,7 +96,7 @@ public:
    BOOL Reload();
    BOOL Save();
    BOOL IsDirty() const;
-   BOOL OpenView(long lLineNum);
+   BOOL OpenView(LONG lLineNum);
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const;  
    BOOL GetText(BSTR* pbstrText);
    BOOL GetFileName(LPTSTR pstrName, UINT cchMax) const;

@@ -43,6 +43,14 @@ public:
    CComQIPtr<IWebBrowser2> m_spBrowser;
    CComBSTR m_bstrHTML;
 
+   typedef struct tagDIFFINFO {
+      CString sHTML;                    // HTML with cells
+      CString sGeneralFileInfo;         // File information (general)
+      CString sLeftFileInfo;            // File information (left view)
+      CString sRightFileInfo;           // File information (right view)
+      int iFirstChange;                 // Line number of first change
+   } DIFFINFO;
+
    BOOL GeneratePage(IElement* pElement, CSimpleArray<CString>& aLines);
    void OnFinalMessage(HWND hWnd);
 
@@ -51,9 +59,13 @@ public:
 
    BOOL _LoadHtml(IUnknown* pUnk, LPCWSTR pstrHTML);
 
-   BOOL _ParseDiffOriginal(CSimpleArray<CString>& aFile, CSimpleArray<CString>& aLines, CString& sHTML);
-   BOOL _ParseDiffContext(CSimpleArray<CString>& aFile, CSimpleArray<CString>& aLines, CString& sHTML);
-   BOOL _ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<CString>& aLines, CString& sHTML);
+   BOOL _ParseDiffOriginal(CSimpleArray<CString>& aFile, CSimpleArray<CString>& aLines, DIFFINFO& Info);
+   BOOL _ParseDiffContext(CSimpleArray<CString>& aFile, CSimpleArray<CString>& aLines, DIFFINFO& Info);
+   BOOL _ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<CString>& aLines, DIFFINFO& Info);
+   CString _Htmlize(CString s) const;
+   void _GenerateInfoHeader(CString& sHTML, CString sValue) const;
+   void _GenerateInfoHeader(CString& sHTML, UINT uLabel, CString sValue) const;
+   void _GenerateRow(CString& sResult, CString& sTemp, int iLineNo, LPCTSTR pstrType, CString& sLeft, CString& sRight) const;
 
    // Dispatch handlers
 

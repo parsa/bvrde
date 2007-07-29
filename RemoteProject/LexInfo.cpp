@@ -11,9 +11,49 @@
 
 
 /////////////////////////////////////////////////////////////////////////////
+// CLexThread
+
+DWORD CLexThread::Run()
+{
+   USES_CONVERSION;
+
+   CAutoFree<CHAR> free(m_pstrText);
+
+   // Load the CppLexer module
+   CString sModule;
+   sModule.Format(_T("%sCppLexer.dll"), CModulePath());
+   static HINSTANCE s_hInst = ::LoadLibrary(sModule);
+
+   CString sLexFilename = m_pLexInfo->_GetLexFilename(m_sFilename, true);
+   if( sLexFilename.IsEmpty() ) return 0;
+
+   // Lex the text and write to a lex file.
+   // It's not unlikely that the parse fails since it could stop at
+   // normal syntax errors and less obvious LALR failures! In
+   // this case we'll just ignore the content...
+   typedef BOOL (APIENTRY* LPFNPARSE)(LPCSTR,LPCSTR,LPCWSTR);
+   LPFNPARSE fnParse = (LPFNPARSE) ::GetProcAddress(s_hInst, "CppLexer_Parse");
+   ATLASSERT(fnParse);
+   if( fnParse == NULL ) return 0;
+   BOOL bRes = FALSE;
+   ATLTRY( bRes = fnParse(T2CA(m_sFilename), m_pstrText, sLexFilename) );
+   if( !bRes ) return 0;
+
+   // Get the new file into structured form
+   LEXFILE* pFile = m_pLexInfo->_ParseFile(m_sFilename);
+   if( pFile == NULL ) return 0;
+
+   // Submit tree update to project
+   m_pProject->DelayedClassTreeInfo(m_sFilename, pFile);
+
+   return 0;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
 // CLexInfo
 
-CLexInfo::CLexInfo() : m_bLoaded(false), m_iFile(-1)
+CLexInfo::CLexInfo() : m_bLoaded(false)
 {
 }
 
@@ -39,44 +79,27 @@ bool CLexInfo::IsAvailable() const
    return _tcscmp(szBuffer, _T("true")) == 0;
 }
 
-bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
+bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText, DWORD dwTimeout)
 {
    ATLASSERT(m_pProject);
-   
-   USES_CONVERSION;
 
-   // Load the CppLexer module
-   CString sModule;
-   sModule.Format(_T("%sCppLexer.dll"), CModulePath());
-   static HINSTANCE s_hInst = NULL;
-   if( s_hInst == NULL ) s_hInst = ::LoadLibrary(sModule);
-   if( s_hInst == NULL ) return false;
-
-   // FIX: Empty files do appear as NULL text.
+   // FIX: Empty files do appear as NULL text
    if( pstrText == NULL ) return false;
+   if( pstrText[0] == '\0' ) return false;
 
-   CString sLexFilename = _GetLexFilename(pstrFilename, true);
-   if( sLexFilename.IsEmpty() ) return false;
+   m_thread.Stop();
+   m_thread.m_pLexInfo = this;
+   m_thread.m_pProject = m_pProject;
+   m_thread.m_sFilename = pstrFilename;
+   m_thread.m_pstrText = pstrText;   // NOTE: The thread owns the 'pstrText' data now!
+   m_thread.Start();
+   m_thread.WaitForThread(dwTimeout);
 
-   // Lex the text and write to the file.
-   // It's not unlikely that the parse fails since it could stop at
-   // normal syntax errors and less obvious LALR failures! In
-   // this case we'll just ignore the content...
-   typedef BOOL (APIENTRY* LPFNPARSE)(LPCSTR,LPCSTR,LPCWSTR);
-   LPFNPARSE fnParse = (LPFNPARSE) ::GetProcAddress(s_hInst, "CppLexer_Parse");
-   ATLASSERT(fnParse);
-   if( fnParse == NULL ) return false;
-   BOOL bRes = FALSE;
-   ATLTRY( bRes = fnParse(T2CA(pstrFilename), pstrText, sLexFilename) );
-   if( !bRes ) return false;
+   return true;
+}
 
-   // Get the new file into structured form
-   LEXFILE* pFile = new LEXFILE;
-   if( !_ParseFile(pstrFilename, *pFile) ) {
-      delete pFile;
-      return false;
-   }
-
+bool CLexInfo::MergeTree(LPCTSTR pstrFilename, LEXFILE* pFile)
+{
    // Since we're changing the parse data, and the ClassView references
    // this data, we must *lock* it down so it doesn't use the old pointers...
    m_pProject->GetClassView()->Lock();
@@ -85,7 +108,7 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
    bool bFound = false;
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       if( m_aFiles[i]->sFilename == pstrFilename ) {
-         free(m_aFiles[i]->pData);
+         delete m_aFiles[i];
          m_aFiles[i] = pFile;
          bFound = true;
          break;
@@ -105,221 +128,133 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText)
 
 void CLexInfo::Clear()
 {
-   for( int i = 0; i < m_aFiles.GetSize(); i++ ) free(m_aFiles[i]->pData);
+   for( int i = 0; i < m_aFiles.GetSize(); i++ ) delete m_aFiles[i];
    m_aFiles.RemoveAll();
 }
 
-TAGTYPE CLexInfo::GetItemType(int iIndex)
-{
-   ATLASSERT(m_iFile>=0);
-   ATLASSERT(m_aFiles.GetSize()>0);
-   return m_aFiles[m_iFile]->aTags[iIndex].Type;
-}
-
-int CLexInfo::FindItem(int iStart, LPCTSTR pstrName)
+bool CLexInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult)
 {
    ATLASSERT(!::IsBadStringPtr(pstrName,-1));
 
    if( !m_bLoaded ) _LoadTags();
-   if( m_aFiles.GetSize() == 0 ) return -1;
-
-   ATLASSERT(iStart>=0);
-
-   if( iStart == 0 )
-   {
-      m_iFile = -1;
-      for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
-         const LEXFILE& file = *m_aFiles[i];
-         // Binary search on sorted list
-         int min = 0;
-         int max = file.aTags.GetSize();
-         int n = max / 2; 
-         while( min < max ) { 
-            int cmp = _tcscmp(pstrName, file.aTags[n].pstrName); 
-            if( cmp == 0 ) break;
-            if( cmp < 0 ) max = n; else min = n + 1;
-            n = (min + max) / 2;
-         }
-         // Find first instance of the particular string
-         if( min >= max ) continue;
-         if( _tcscmp(pstrName, file.aTags[n].pstrName) != 0 ) continue;
-         while( n > 0 && _tcscmp(pstrName, file.aTags[n - 1].pstrName) == 0 ) n--;
-         m_iFile = i;
-         return n;
-      }
-   }
-   else
-   {
-      ATLASSERT(m_iFile>=0 && m_iFile<m_aFiles.GetSize());
-      // Scan rest of file sequentially
-      const LEXFILE& file = *m_aFiles[m_iFile];
-      int nCount = file.aTags.GetSize();
-      for( int iIndex = iStart; iIndex < nCount; iIndex++ ) {
-         int cmp = _tcscmp(file.aTags[iIndex].pstrName, pstrName);
-         if( cmp == 0 ) return iIndex;
-         if( cmp > 0 ) break;  // The file is sorted, so it's OK to give up
-      }
-      // Scan the other files too
-      for( int i = m_iFile + 1; i < m_aFiles.GetSize(); i++ ) {
-         const LEXFILE& file = *m_aFiles[i];
-         // Binary search on sorted list
-         int min = 0;
-         int max = file.aTags.GetSize();
-         int n = max / 2; 
-         while( min < max ) { 
-            int cmp = _tcscmp(pstrName, file.aTags[n].pstrName); 
-            if( cmp == 0 ) break;
-            if( cmp < 0 ) max = n; else min = n + 1;
-            n = (min + max) / 2;
-         }
-         // Find first instance of the particular string
-         if( min >= max ) continue;
-         if( _tcscmp(pstrName, file.aTags[n].pstrName) != 0 ) continue;
-         while( n > 0 && _tcscmp(pstrName, file.aTags[n - 1].pstrName) == 0 ) n--;
-         m_iFile = i;
-         return n;
-      }
-   }
-   return -1;
-}
-
-bool CLexInfo::GetItemInfo(LPCTSTR pstrName, LPCTSTR pstrOwner, DWORD dwInfoType, CSimpleArray<CString>& aResult)
-{
-   if( !m_bLoaded ) _LoadTags();
    if( m_aFiles.GetSize() == 0 ) return false;
 
-   // Now, let's look up information about the member...
-   CString sResult;
+   CString sParentType;
+   LPCTSTR pstrParent = NULL;   // Owner's parent (inheritance)
+   if( pstrOwner != NULL && bInheritance ) {
+      CSimpleValArray<TAGINFO*> aOwner;
+      if( FindItem(pstrOwner, NULL, false, aOwner) ) {
+         sParentType = _FindTagParent(aOwner[0]);
+         if( !sParentType.IsEmpty() ) pstrParent = sParentType;
+      }
+   }
+
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
-      const LEXFILE& file = *m_aFiles[i];
+      const LEXFILE* pFile = m_aFiles[i];
       // Binary search on sorted list
-      int nCount = file.aTags.GetSize();
       int min = 0;
-      int max = nCount;
+      int max = pFile->aTags.GetSize();
       int n = max / 2; 
       while( min < max ) { 
-         int cmp = _tcscmp(pstrName, file.aTags[n].pstrName); 
+         int cmp = _tcscmp(pstrName, pFile->aTags[n].pstrName); 
          if( cmp == 0 ) break;
          if( cmp < 0 ) max = n; else min = n + 1;
          n = (min + max) / 2;
       }
-      // Find first instance of the particular string
+      // Find instance range of the particular string
       if( min >= max ) continue;
-      if( _tcscmp(pstrName, file.aTags[n].pstrName) != 0 ) continue;
-      while( n > 0 && _tcscmp(pstrName, file.aTags[n - 1].pstrName) == 0 ) n--;
-      // Scan this file for occurances
-      while( true ) {
-         const TAGINFO& info = m_aFiles[i]->aTags[n];
+      if( _tcscmp(pstrName, pFile->aTags[n].pstrName) != 0 ) continue;
+      while( n > 0 && _tcscmp(pstrName, pFile->aTags[n - 1].pstrName) == 0 ) n--;
+      while( n < max && _tcscmp(pstrName, pFile->aTags[n].pstrName) == 0 ) {
+         bool bFound = (pstrOwner == NULL)
+                       || (pstrOwner != NULL && (_tcscmp(pFile->aTags[n].pstrOwner, pstrOwner) == 0))
+                       || (pstrParent != NULL && (_tcscmp(pFile->aTags[n].pstrOwner, pstrParent) == 0));
+         if( bFound ) {
+            TAGINFO* pTag = &m_aFiles[i]->aTags.GetData()[n];
+            aResult.Add(pTag);
+         }
+         n++;
+      }
+   }
+   return aResult.GetSize() > 0;
+}
+
+void CLexInfo::GetItemInfo(const TAGINFO* pTag, CTagDetails& Info)
+{
+   if( pTag == NULL ) return;
+   Info.sName = pTag->pstrName;
+   Info.TagType = pTag->Type;
+   Info.Protection = pTag->Protection;
+   Info.sBase = pTag->pstrOwner;
+   Info.iLineNum = pTag->iLineNum;
+   Info.sDeclaration = pTag->pstrDeclaration;
+   Info.sFilename = pTag->pstrFile;
+   Info.sNamespace = pTag->pstrNamespace;
+   Info.sComment = pTag->pstrComment;
+   Info.sMemberOfScope = _T("");
+}
+
+bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aResult)
+{
+   if( !m_bLoaded ) _LoadTags();
+   if( m_aFiles.GetSize() == 0 ) return false;
+
+   // List all classes available in TAG file...
+   // NOTE: This is doing a full filescan!
+   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
+      const LEXFILE* pFile = m_aFiles[i];
+      if( !pFile->bIncludeInBrowser ) continue;
+      int nCount = pFile->aTags.GetSize();
+      for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
+         const TAGINFO& info = pFile->aTags[iIndex];
+         if( info.pstrFile == NULL ) continue;
          switch( info.Type ) {
          case TAGTYPE_ENUM:
          case TAGTYPE_CLASS:
          case TAGTYPE_STRUCT:
-         case TAGTYPE_MEMBER:
          case TAGTYPE_TYPEDEF:
-         case TAGTYPE_FUNCTION:
-            // Owner has to match...
-            if( pstrOwner != NULL && _tcscmp(pstrOwner, info.pstrFields[0]) != 0 ) break;
-            // So this is our function signature.
-            // Yearh I know... it's a bit crappy to return the result in a |-separated string,
-            // but apparently there was some problems with wrapping a structure inside an ATL array.
-            // TODO: We really should look at this once again...
-            sResult = _T("");
-            if( (dwInfoType & TAGINFO_NAME) != 0 ) {
-               if( !sResult.IsEmpty() ) sResult += '|';
-               sResult += info.pstrName;
-            }
-            if( (dwInfoType & TAGINFO_TYPE) != 0 ) {
-               if( !sResult.IsEmpty() ) sResult += '|';
-               sResult.Append((int)info.Type);
-            }
-            if( (dwInfoType & TAGINFO_DECLARATION) != 0 ) {
-               if( !sResult.IsEmpty() ) sResult += '|';
-               sResult += info.pstrToken;
-            }
-            if( (dwInfoType & TAGINFO_COMMENT) != 0 ) {
-               if( !sResult.IsEmpty() ) sResult += '|';
-               if( info.nFields > 1 ) sResult += info.pstrFields[1];
-            }
-            if( (dwInfoType & TAGINFO_FILENAME) != 0 ) {
-               if( !sResult.IsEmpty() ) sResult += '|';
-               if( info.nFields > 1 ) sResult += info.pstrFile;
-            }
-            if( (dwInfoType & TAGINFO_LINENO) != 0 ) {
-               if( !sResult.IsEmpty() ) sResult += '|';
-               sResult.Append((int)info.lLineNum);
-            }
-            aResult.Add(sResult);
+            TAGINFO* pTag = &m_aFiles[i]->aTags.GetData()[iIndex];
+            aResult.Add(pTag);
+            break;
          }
-         for( n++; n < nCount; n++ ) {
-            int cmp = _tcscmp(file.aTags[n].pstrName, pstrName);
-            if( cmp == 0 ) break;
-            if( cmp > 0 ) n = nCount;
-         }
-         if( n >= nCount ) break;
       }
    }
 
    return aResult.GetSize() > 0;
 }
 
-bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aList)
+bool CLexInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aResult)
 {
    if( !m_bLoaded ) _LoadTags();
    if( m_aFiles.GetSize() == 0 ) return false;
 
-   // List all classes available in TAG file...
+   // List all globals available in TAG file.
+   // Actually we list all types - even if they are defined locally, since
+   // our Class View tree does not allow multiple expansion levels.
    // NOTE: This is doing a full filescan!
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
-      const LEXFILE& file = *m_aFiles[i];
-      if( !file.bIncludeInBrowser ) continue;
-      int nCount = file.aTags.GetSize();
+      const LEXFILE* pFile = m_aFiles[i];
+      if( !pFile->bIncludeInBrowser ) continue;
+      int nCount = pFile->aTags.GetSize();
       for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
-         const TAGINFO& info = file.aTags[iIndex];
-         if( info.pstrFile == NULL ) continue;
-         switch( info.Type ) {
-         case TAGTYPE_CLASS:
-         case TAGTYPE_STRUCT:
-         case TAGTYPE_TYPEDEF:
-            TAGINFO* pTag = &m_aFiles[i]->aTags.m_aT[iIndex];
-            aList.Add(pTag);
-            break;
-         }
-      }
-   }
-
-   return aList.GetSize() > 0;
-}
-
-bool CLexInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aList)
-{
-   if( !m_bLoaded ) _LoadTags();
-   if( m_aFiles.GetSize() == 0 ) return false;
-
-   // List all globals available in TAG file...
-   // NOTE: This is doing a full filescan!
-   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
-      const LEXFILE& file = *m_aFiles[i];
-      if( !file.bIncludeInBrowser ) continue;
-      int nCount = file.aTags.GetSize();
-      for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
-         const TAGINFO& info = file.aTags[iIndex];
+         const TAGINFO& info = pFile->aTags[iIndex];
          // Must not be parent of something
-         if( info.pstrFields[0][0] != '\0' ) continue;
+         if( info.pstrOwner[0] != '\0' ) continue;
          if( info.pstrFile == NULL ) continue;
          // Functions and variables are accepted
          switch( info.Type ) {
          case TAGTYPE_MEMBER:
          case TAGTYPE_FUNCTION:
-            TAGINFO* pTag = &m_aFiles[i]->aTags.m_aT[iIndex];
-            aList.Add(pTag);
+            TAGINFO* pTag = &m_aFiles[i]->aTags.GetData()[iIndex];
+            aResult.Add(pTag);
          }
       }
    }
 
-   return aList.GetSize() > 0;
+   return aResult.GetSize() > 0;
 }
 
-bool CLexInfo::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList, bool bInheritance)
+bool CLexInfo::GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult)
 {
    if( !m_bLoaded ) _LoadTags();
    if( m_aFiles.GetSize() == 0 ) return false;
@@ -327,81 +262,32 @@ bool CLexInfo::GetMemberList(LPCTSTR pstrType, CSimpleValArray<TAGINFO*>& aList,
    // List all classes available in TAG file...
    // NOTE: This is doing a full filescan!
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
-      const LEXFILE& file = *m_aFiles[i];
-      int nCount = file.aTags.GetSize();
+      const LEXFILE* pFile = m_aFiles[i];
+      int nCount = pFile->aTags.GetSize();
       for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
-         const TAGINFO& info = file.aTags[iIndex];
-         if( _tcscmp(info.pstrFields[0], pstrType) == 0 ) {
-            TAGINFO* pTag = &m_aFiles[i]->aTags.m_aT[iIndex];
-            aList.Add(pTag);
+         const TAGINFO& info = pFile->aTags[iIndex];
+         if( _tcscmp(info.pstrOwner, pstrType) == 0 ) {
+            TAGINFO* pTag = &m_aFiles[i]->aTags.GetData()[iIndex];
+            aResult.Add(pTag);
          }
       }
    }
 
    // Scan parent class as well?
    if( bInheritance ) {
-      int iTypeIndex = FindItem(0, pstrType);
-      if( iTypeIndex >= 0 ) {
-         const TAGINFO& info = m_aFiles[m_iFile]->aTags[iTypeIndex];
-         CString sParent = _GetTagParent(info);
-         if( !sParent.IsEmpty() ) GetMemberList(sParent, aList, false);
+      CSimpleValArray<TAGINFO*> aParentTags;
+      if( FindItem(pstrType, NULL, false, aParentTags) ) {
+         CString sParent = _FindTagParent(aParentTags[0]);
+         if( !sParent.IsEmpty() ) GetMemberList(sParent, false, aResult);
       }
    }
 
-   return aList.GetSize() > 0;
-}
-
-bool CLexInfo::FindImplementation(LPCTSTR pstrName, LPCTSTR pstrOwner, CString& sFilename, long& lLineNum)
-{
-   if( !m_bLoaded ) _LoadTags();
-   if( m_aFiles.GetSize() == 0 ) return false;
-
-   CString sName;
-   sName.Format(_T("%s::%s"), pstrOwner, pstrName);
-
-   // Now, let's look up information about the member...
-   CString sResult;
-   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
-      const LEXFILE& file = *m_aFiles[i];
-      // Binary search on sorted list
-      int nCount = file.aTags.GetSize();
-      int min = 0;
-      int max = nCount;
-      int n = max / 2; 
-      while( min < max ) { 
-         int cmp = _tcscmp(sName, file.aTags[n].pstrName); 
-         if( cmp == 0 ) break;
-         if( cmp < 0 ) max = n; else min = n + 1;
-         n = (min + max) / 2;
-      }
-      // Find first instance of the particular string
-      if( min >= max ) continue;
-      if( _tcscmp(sName, file.aTags[n].pstrName) != 0 ) continue;
-      while( n > 0 && _tcscmp(sName, file.aTags[n - 1].pstrName) == 0 ) n--;
-      // Scan this file for occurances
-      while( true ) {
-         const TAGINFO& info = m_aFiles[i]->aTags[n];
-         switch( info.Type ) {
-         case TAGTYPE_IMPLEMENTATION:
-            sFilename = info.pstrFile;
-            lLineNum = info.lLineNum;
-            return true;
-         }
-         for( n++; n < nCount; n++ ) {
-            int cmp = _tcscmp(file.aTags[n].pstrName, sName);
-            if( cmp == 0 ) break;
-            if( cmp > 0 ) n = nCount;
-         }
-         if( n >= nCount ) break;
-      }
-   }
-
-   return false;
+   return aResult.GetSize() > 0;
 }
 
 // Implementation
 
-CString CLexInfo::_GetTagParent(const TAGINFO& info) const
+CString CLexInfo::_FindTagParent(const TAGINFO* pTag) const
 {
    // Extract inheritance type.
    // HACK: We simply scoop up the "class CFoo : public CBar" text from
@@ -410,20 +296,21 @@ CString CLexInfo::_GetTagParent(const TAGINFO& info) const
    static LPCTSTR pstrTokens[] = 
    {
       _T("public"),
+      _T("protected"),
+      _T("private"),
       _T("typedef"),
+      _T("virtual"),
+      _T(" : "),
       NULL
    };
-   LPCTSTR* ppstrToken = pstrTokens;
-   while( *ppstrToken ) {
-      LPCTSTR p = _tcsstr(info.pstrToken, *ppstrToken);
-      if( p ) {
-         p += _tcslen(*ppstrToken);
-         while( _istspace(*p) ) p++;
-         CString sName;
-         while( _istalnum(*p) || *p == '_' ) sName += *p++;
-         return sName;      
-      }
-      ppstrToken++;
+   for( LPCTSTR* ppstrToken = pstrTokens; *ppstrToken != NULL; ppstrToken++ ) {
+      LPCTSTR p = _tcsstr(pTag->pstrDeclaration, *ppstrToken);
+      if( p == NULL ) continue;
+      p += _tcslen(*ppstrToken);
+      while( _istspace(*p) ) p++;
+      CString sName;
+      while( _istalnum(*p) || *p == '_' ) sName += *p++;
+      return sName;      
    }
    return _T("");
 }
@@ -450,22 +337,18 @@ void CLexInfo::_LoadTags()
       CString sFileName;
       pView->GetFileName(sFileName.GetBufferSetLength(MAX_PATH), MAX_PATH);
       sFileName.ReleaseBuffer();
-      LEXFILE* pFile = new LEXFILE;
-      if( _ParseFile(sFileName, *pFile) ) m_aFiles.Add(pFile); else delete pFile;
+      LEXFILE* pFile = _ParseFile(sFileName);
+      if( pFile != NULL ) m_aFiles.Add(pFile);
    }
 
    // Look for the global lex file (contains standard/system functions).
    // We're dealing specially with the "CommonLex" filename as it will contain
    // a great deal of precompiler header information.
    if( m_aFiles.GetSize() > 0 ) {
-      LEXFILE* pFile = new LEXFILE;
-      CString sName = _T("CommonLex");
-      if( _ParseFile(sName, *pFile) ) {
+      LEXFILE* pFile = _ParseFile(_T("CommonLex"));
+      if( pFile != NULL ) {
          pFile->bIncludeInBrowser = false;
          m_aFiles.Add(pFile); 
-      }
-      else {
-         delete pFile;
       }
    }
 }
@@ -517,15 +400,24 @@ CString CLexInfo::_GetLexFilename(LPCTSTR pstrFilename, bool bCreatePath) const
    }
 }
 
-bool CLexInfo::_ParseFile(LPCTSTR pstrFilename, LEXFILE& file) const
+LEXFILE* CLexInfo::_ParseFile(LPCTSTR pstrFilename) const
 {
    USES_CONVERSION;
 
    CString sLexFilename = _GetLexFilename(pstrFilename, false);
-   if( sLexFilename.IsEmpty() ) return false;
+   if( sLexFilename.IsEmpty() ) return NULL;
+
+   LEXFILE* pFile = new LEXFILE;
+   if( pFile == NULL ) return NULL;
+   pFile->pData = NULL;
+
+   LEXFILE& file = *pFile;
 
    CFile f;
-   if( !f.Open(sLexFilename) ) return false;
+   if( !f.Open(sLexFilename) ) {
+      delete pFile;
+      return NULL;
+   }
    DWORD dwSize = f.GetSize();
    LPSTR pstrData = (LPSTR) malloc(dwSize + 1);
    f.Read(pstrData, dwSize);
@@ -543,7 +435,7 @@ bool CLexInfo::_ParseFile(LPCTSTR pstrFilename, LEXFILE& file) const
    LPCTSTR pstrFile = NULL;
    LPCTSTR pstrNamePart = NULL;
 
-   while( *p ) {
+   while( *p != '\0' ) {
       TAGINFO info = { TAGTYPE_UNKNOWN, 0 };
       if( *p == '#' ) {
          pstrFile = p + 1;
@@ -569,44 +461,53 @@ bool CLexInfo::_ParseFile(LPCTSTR pstrFilename, LEXFILE& file) const
          case 't': info.Type = TAGTYPE_TYPEDEF; break;
          case 's': info.Type = TAGTYPE_STRUCT; break;
          case 'e': info.Type = TAGTYPE_ENUM; break;
-         case 'i': info.Type = TAGTYPE_IMPLEMENTATION; break;
+         case 'x': info.Type = TAGTYPE_IMPLEMENTATION; break;
          default:  info.Type = TAGTYPE_UNKNOWN;
          }
-         p++;  // Skip protection
+         switch( *p++ ) {
+         case 'p': info.Protection = TAGPROTECTION_PUBLIC; break;
+         case 'r': info.Protection = TAGPROTECTION_PROTECTED; break;
+         case 'i': info.Protection = TAGPROTECTION_PRIVATE; break;
+         default:  info.Protection = TAGPROTECTION_GLOBAL;
+         }
          p++;
          //
-         info.pstrToken = p;
+         info.pstrDeclaration = p;
          p = _tcschr(p, '|');
          if( p == NULL ) break;
          *p++ = '\0';
          //
-         info.pstrFields[0] = p;
+         info.pstrOwner = p;
+         p = _tcschr(p, '|');
+         if( p == NULL ) break;
+         *p++ = '\0';
+         //
+         info.pstrNamespace = p;
          p = _tcschr(p, '|');
          if( p == NULL ) break;
          *p++ = '\0';
          //
          LPTSTR pend = _tcschr(p, '|');
          if (pend) *pend = '\0';
-         info.lLineNum = _ttol(p);
+         info.iLineNum = _ttoi(p);
          if( pend == NULL ) break;
          p = pend+1;
          //
-         info.pstrFields[1] = p;
+         info.pstrComment = p;
          p = _tcschr(p, '\n');
          if( p == NULL ) break;
          *p++ = '\0';
          //
          info.pstrFile = pstrNamePart;
-         info.nFields = 2;
          file.aTags.Add(info);
       }
    }
 
    if( pstrFile == NULL || file.aTags.GetSize() == 0 ) {
-      free(file.pData);
-      return false;
+      delete pFile;
+      return NULL;
    }
 
-   return true;
+   return pFile;
 }
 

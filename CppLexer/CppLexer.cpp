@@ -61,9 +61,7 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
       else if( cr->section == VARIABLE_SEC ) type = 'v';
       else if( cr->section == MACRO_SEC ) type = 'd';
       else if( cr->section == ENUM_SEC ) type = 'e';
-
-      // Assume this to be the implementation of the member
-      if( cr->name.find("::") != std::string::npos ) type = 'i', cr->args = "";
+      else if( cr->section == IMPL_SEC ) type = 'x';
 
       char prot = 'g';
       if( cr->protection == PUBL ) prot = 'p';
@@ -79,7 +77,7 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
       std::replace(cr->args.begin(), cr->args.end(), '|', '¦');
 
       static char szBuffer[1025] = { 0 };
-      ::wsprintfA(szBuffer, "%s|%c%c|%s%s%s%s|%s|%ld|%hs\n", 
+      ::wsprintfA(szBuffer, "%s|%c%c|%s%s%s%s|%s||%ld|%s\n", 
          cr->name.c_str(),  
          type,
          prot,
@@ -87,7 +85,7 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
          cr->type.empty() ? "" : " ",
          cr->name.c_str(),
          cr->args.c_str(),
-         parent->name == cr->name ? "" : parent->name.c_str(),
+         parent->name == cr->name && parent->section == cr->section ? "" : parent->name.c_str(),
          (long) cr->lineNo,
          cr->doc.c_str());
 

@@ -66,7 +66,7 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Tag Support",-1,0,0,43,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,4,207,1
@@ -215,7 +215,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Tag Support",-1,0,0,43,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,4,207,1
@@ -282,8 +282,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,1,0,0
+ PRODUCTVERSION 1,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -296,25 +296,25 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040604b0"
+        BLOCK "040904b0"
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "viksoe.dk\0"
             VALUE "FileDescription", "BVRDE Add-In WebFiles\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "FileVersion", "1, 1, 0, 0\0"
             VALUE "InternalName", "WebFiles\0"
             VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksøe\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "WebFiles.pkg\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "BVRDE WebFiles\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "ProductVersion", "1, 1, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x406, 1200
+        VALUE "Translation", 0x409, 1200
     END
 END
 

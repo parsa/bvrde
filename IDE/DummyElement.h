@@ -32,6 +32,10 @@ public:
    {
       return _tcsncpy(pstrType, m_sType, cchMax) > 0;
    }  
+   IElement* GetParent() const
+   {
+      return NULL;
+   }
    IDispatch* GetDispatch()
    {
       return NULL;

@@ -116,9 +116,12 @@ DWORD CComSpecThread::Run()
    DWORD dwBufferSize = MAX_BUFFER_SIZE;
    VT100COLOR nColor = VT100_DEFAULT;
 
-   CString sPathEnv;
-   sPathEnv.Format(_T("SET PATH=%%PATH%%;%s"), sBinPath);
-   m_pManager->WriteData(sPathEnv);
+   // Adding the path to the compile tools is important
+   if( !sBinPath.IsEmpty() ) {
+      CString sPathEnv;
+      sPathEnv.Format(_T("SET PATH=%%PATH%%;%s"), sBinPath);
+      m_pManager->WriteData(sPathEnv);
+   }
 
    m_pManager->WriteData(sExtraCommands);
 

@@ -11,7 +11,8 @@ typedef enum
    DBTYPE_TABLE,
    DBTYPE_VIEW,
    DBTYPE_SYSTEMTABLE,
-   DBTYPE_SP,
+   DBTYPE_TEMPTABLE,
+   DBTYPE_STOREDPROCEDURE,
    DBTYPE_FIELD,
    DBTYPE_INDEX,
 } DATABASETYPE;
@@ -27,8 +28,19 @@ typedef struct tagDATABASEINFO : DATABASEOBJECT
    CString sVendor;
 } DATABASEINFO;
 
-typedef struct tagFIELDINFO : DATABASEOBJECT
+typedef struct FIELDINFO : DATABASEOBJECT
 {
+   FIELDINFO()
+   {
+      lType = 0;
+      lPosition = 0;
+      lFlags = 0;
+      bNullable = false;
+      bHasDefault = false;
+      lLength = 0;
+      lPrecision = 0;
+      lDigits = 0;
+   }
    long lType;
    long lPosition;
    long lFlags;
@@ -40,16 +52,33 @@ typedef struct tagFIELDINFO : DATABASEOBJECT
    long lDigits;
 } FIELDINFO;
 
-typedef struct tagINDEXINFO : DATABASEOBJECT
+enum { MAX_INDEX_FIELDS = 10 };
+
+typedef struct INDEXINFO : DATABASEOBJECT
 {
+   INDEXINFO()
+   {
+      bPrimary = false;
+      bUnique = false;
+      bClustered = false;
+      bNulls = false;
+      lPosition = 0;
+      lNulls = 0;
+      lType = 0;
+      lPropId = 0;
+      nFields = 0;
+   }
    bool bPrimary;
    bool bUnique;
    bool bClustered;
    bool bNulls;
    long lPosition;
+   long lNulls;
+   long lType;
    CString sType;
+   long lPropId;
    int nFields;
-   CString sFields[10];
+   CString sFields[MAX_INDEX_FIELDS];
 } INDEXINFO;
 
 typedef struct tagTABLEINFO : DATABASEOBJECT

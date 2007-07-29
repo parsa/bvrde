@@ -331,23 +331,23 @@ bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLin
    return true;
 }
 
-bool CDebugManager::RunTo(LPCTSTR pstrFilename, long lLineNum)
+bool CDebugManager::RunTo(LPCTSTR pstrFilename, int iLineNum)
 {
    ATLASSERT(IsDebugging());
    CString sCommand;
-   sCommand.Format(_T("-exec-until %s:%ld"), pstrFilename, lLineNum);
+   sCommand.Format(_T("-exec-until %s:%d"), pstrFilename, iLineNum);
    return DoDebugCommand(sCommand);
 }
 
-bool CDebugManager::SetNextStatement(LPCTSTR pstrFilename, long lLineNum)
+bool CDebugManager::SetNextStatement(LPCTSTR pstrFilename, int iLineNum)
 {
    ATLASSERT(IsDebugging());
    CString sCommand;
-   sCommand.Format(_T("-break-insert -t %s:%ld"), pstrFilename, lLineNum);
+   sCommand.Format(_T("-break-insert -t %s:%d"), pstrFilename, iLineNum);
    DoDebugCommand(sCommand);
    // BUG: Argh, GDB MI doesn't come with a proper "SetNextStatement"
    //      command. The best we can do is to try to jump in the local file!
-   sCommand.Format(_T("-interpreter-exec console \"jump %ld\""), lLineNum);
+   sCommand.Format(_T("-interpreter-exec console \"jump %d\""), iLineNum);
    DoDebugCommand(sCommand);
    return true;
 }
@@ -469,7 +469,7 @@ bool CDebugManager::RunContinue()
    return DoDebugCommand(_T("-exec-continue"));
 }
 
-bool CDebugManager::GetTagInfo(LPCTSTR pstrValue)
+bool CDebugManager::EvaluateExpression(LPCTSTR pstrValue)
 {
    ATLASSERT(!::IsBadStringPtr(pstrValue,-1));
    // We must be debugging to talk to the debugger
@@ -830,9 +830,9 @@ void CDebugManager::_ParseNewFrame(CMiInfo& info)
       // We'll attempt to bring the source file into view and
       // place the "current line" marker at the breaked position.
       bool bKnownFile = m_pProject->FindView(sFilename, true) != NULL;
-      long lLineNum = _ttol(info.GetItem(_T("line"), _T("frame")));
-      m_pProject->DelayedOpenView(sFilename, lLineNum);
-      m_pProject->DelayedViewMessage(DEBUG_CMD_SET_CURLINE, sFilename, lLineNum);
+      int iLineNum = _ttoi(info.GetItem(_T("line"), _T("frame")));
+      m_pProject->DelayedOpenView(sFilename, iLineNum);
+      m_pProject->DelayedViewMessage(DEBUG_CMD_SET_CURLINE, sFilename, iLineNum);
       CString sText;
       if( bKnownFile ) sText.LoadString(IDS_STATUS_DEBUG_BREAKPOINT);
       else if( sFunction.IsEmpty() ) sText.LoadString(IDS_STATUS_DEBUG_NOFILE);

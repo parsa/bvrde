@@ -3,6 +3,7 @@
 // Used by SourceControl.rc
 //
 #define IDR_SOURCECONTROL               101
+#define IDR_DIFF                        102
 #define IDD_FINDFILES                   105
 #define IDD_CHECKIN                     105
 #define IDD_OPTIONS_COMMANDS            218
@@ -69,6 +70,13 @@
 #define IDS_BUILDING                    1043
 #define IDS_NOTCONFIGURED               1044
 #define IDS_SYSTEM_SUBVERSION           1045
+#define IDS_CAPTION_DIFF                1046
+#define IDS_DIFF_LEFTFILE               1047
+#define IDS_DIFF_RIGHTFILE              1048
+#define IDS_EMPTY                       1049
+#define IDS_DIFF_FIRSTCHANGE            1050
+#define IDS_STATUS_DIFFVIEW             1051
+#define IDS_DIFF_GENERALFILE            1052
 #define IDC_FINDTEXT                    1137
 #define IDC_WHOLEWORD                   1138
 #define IDC_KEEPOUT                     1138
@@ -78,7 +86,7 @@
 #define IDC_SUBFOLDERS                  1141
 #define IDC_FOLDER                      1142
 #define IDC_SC_CHANGEDIR                1143
-#define ID_VIEW_REPOSITORY   42000
+#define ID_VIEW_REPOSITORY              42000
 #define ID_SC_UPDATE                    42010
 #define ID_SC_CHECKIN                   42011
 #define ID_SC_CHECKOUT                  42012
@@ -93,7 +101,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        102
+#define _APS_NEXT_RESOURCE_VALUE        103
 #define _APS_NEXT_COMMAND_VALUE         42019
 #define _APS_NEXT_CONTROL_VALUE         1010
 #define _APS_NEXT_SYMED_VALUE           101

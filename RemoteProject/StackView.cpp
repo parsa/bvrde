@@ -67,10 +67,10 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          CString sAddr = info.GetSubItem(_T("addr"));
          CString sFilename = info.GetSubItem(_T("file"));
          if( sFilename.IsEmpty() ) sFilename = info.GetSubItem(_T("from"));
-         long lLineNum = _ttol(info.GetSubItem(_T("line")));
+         long iLineNum = _ttoi(info.GetSubItem(_T("line")));
          CString sText;
-         sText.Format(IDS_STACKLINE, sFunction, sFilename, lLineNum);
-         if( lLineNum == 0 ) sText.Format(IDS_STACKLINE3, sFunction, sFilename, sAddr);
+         sText.Format(IDS_STACKLINE, sFunction, sFilename, iLineNum);
+         if( iLineNum == 0 ) sText.Format(IDS_STACKLINE3, sFunction, sFilename, sAddr);
          if( sFunction == _T("??") ) sText.Format(IDS_STACKLINE2, sFunction, sAddr);
          m_ctrlStack.AddString(sText);
          sLevel = info.FindNext(_T("level"));
@@ -142,8 +142,8 @@ LRESULT CStackView::OnListDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    int iLinePos = sLine.Find(_T("line="));
    if( iFilePos < 0 || iLinePos < 0 ) return 0;
    CString sFile = sLine.Mid(iFilePos + 6).SpanExcluding(_T("'"));
-   long lLineNum = _ttol(sLine.Mid(iLinePos + 5));
-   m_pProject->OpenView(sFile, lLineNum);
+   int iLineNum = _ttoi(sLine.Mid(iLinePos + 5));
+   m_pProject->OpenView(sFile, iLineNum);
    return 0;
 }
 

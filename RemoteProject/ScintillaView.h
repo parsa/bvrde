@@ -21,8 +21,16 @@ public:
 
    CScintillaView();
 
+   typedef enum MEMBERMATCHMODE
+   {
+      MATCH_NORMAL = 0,
+      MATCH_ALLOW_PARTIAL,
+      MATCH_LHS,
+   };
+
    typedef struct 
    {
+      int iLineNum;
       long lStartPos;
       long lEndPos;
       CString sText;
@@ -52,9 +60,8 @@ public:
 
    typedef struct 
    {
-      CString sMemberName;
-      CString sFuncDecl;
-      CString sFuncImpl;
+      CTagDetails DeclTag;
+      CTagDetails ImplTag;
       CString sIncludeFile;
    } CONTEXTPOPUPINFO;
 
@@ -65,8 +72,6 @@ public:
    CString m_sFilename;                              // Name of file
    CString m_sLanguage;                              // Language
    CString m_sOutputToken;                           // Match substring for compile view
-   CString m_sDwellText;                             // Current tip text
-   int m_iOutputLine;                                // Last matched compile view line
    bool m_bAutoIndent;                               // Do we need to auto-indent text?
    bool m_bSmartIndent;                              // Do we need to smart-indent text?
    bool m_bProtectDebugged;                          // Read-Only file when debugging?
@@ -158,8 +163,8 @@ public:
 
    // Implementation
 
-   void _AutoComplete(CHAR ch);
-   void _FunctionTip(CHAR ch);
+   void _AutoComplete(int ch);
+   void _FunctionTip(int ch);
    void _ClearAllSquigglyLines();
    void _ClearSquigglyLine(long lPos);
    void _MatchBraces(long lPos);
@@ -170,15 +175,17 @@ public:
    int _CountCommas(LPCTSTR pstrText) const;
    int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings);
    void _ShowToolTip(long lPos, CString sText, bool bAdjustPos, bool bAcceptTimeout, COLORREF clrText, COLORREF clrBack);
-   void _ShowMemberToolTip(long lPos, MEMBERINFO* pInfo, long lCurTip, bool bExpand, bool bAdjustPos, bool bAcceptTimeout, COLORREF clrBack, COLORREF clrText);
-   bool _GetMemberInfo(long lPos, MEMBERINFO& info);
+   void _ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCurTip, bool bFilterMembers, bool bExpand, bool bAdjustPos, bool bAcceptTimeout, COLORREF clrBack, COLORREF clrText);
+   bool _GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMODE Mode = MATCH_NORMAL);
    CString _FindBlockType(long lPos);
    CString _FindIncludeUnderCursor(long lPos);
-   CString _FindTagType(const CString& sName, long lPos);
+   bool _FindLocalVariableType(const CString& sName, long lPos, CTagDetails& Info);
+   CString _UndecorateType(CString sType);
    CString _GetSelectedText();
    CString _GetNearText(long lPosition, bool bExcludeKeywords = true);
-   inline bool _iscppchar(CHAR ch) const;
-   inline bool _iscppchar(WCHAR ch) const;
+   inline bool _iswhitechar(int ch) const;
+   inline bool _iscppchar(int ch) const;
+   inline bool _iscppcharw(WCHAR ch) const;
 };
 
 
