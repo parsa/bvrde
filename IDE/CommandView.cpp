@@ -65,7 +65,7 @@ public:
    {
       ATLASSERT(m_pMainFrame);
       ATLASSERT(m_ctrlEdit.IsWindow());
-      ::SetThreadLocale(g_pDevEnv->GetLCID());
+      g_pDevEnv->SetThreadLanguage();
       // NOTE: Cannot initialize as multi-threaded; see Q287087
       CCoInitialize cominit;
       // Lock view before executing

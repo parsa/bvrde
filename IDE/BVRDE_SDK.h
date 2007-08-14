@@ -294,7 +294,7 @@ public:
    virtual ISolution* GetSolution() const = 0;
    virtual IView* GetActiveView() const = 0;
    virtual IDispatch* GetDispatch() = 0;
-   virtual LCID GetLCID() const = 0;
+   virtual LCID SetThreadLanguage() = 0;
    //
    virtual BOOL AddExplorerView(HWND hWnd, LPCWSTR pstrTitle, int iImage) = 0;
    virtual BOOL RemoveExplorerView(HWND hWnd) = 0;

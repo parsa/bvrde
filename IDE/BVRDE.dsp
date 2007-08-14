@@ -556,6 +556,10 @@ SOURCE=.\res\question.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\refresh.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\saveanim.bmp
 # End Source File
 # Begin Source File

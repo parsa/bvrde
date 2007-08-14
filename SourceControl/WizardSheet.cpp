@@ -12,7 +12,7 @@
 ///////////////////////////////////////////////////////////////
 //
 
-LRESULT COptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+LRESULT CMainOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    m_ctrlType = GetDlgItem(IDC_TYPE);
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_SYSTEM_NONE)));
@@ -37,7 +37,7 @@ LRESULT COptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
    return 0;
 }
 
-LRESULT COptionsPage::OnTypeChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+LRESULT CMainOptionsPage::OnTypeChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
    int iIndex = m_ctrlType.GetCurSel();
 
@@ -72,7 +72,7 @@ LRESULT COptionsPage::OnTypeChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOO
       _Commands.sCmdRemoveFile = _T("remove -f");
       _Commands.sCmdLogIn = _T("login");
       _Commands.sCmdLogOut = _T("logout");
-      _Commands.sCmdDiff = _T("diff");
+      _Commands.sCmdDiff = _T("diff -c");
       _Commands.sCmdStatus = _T("status -v");
       _Commands.sOptRecursive = _T("-R");
       _Commands.sOptStickyTag = _T("-A");
@@ -80,8 +80,8 @@ LRESULT COptionsPage::OnTypeChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOO
       _Commands.sOptUpdateDirs = _T("-dP");
       _Commands.sOptBranch = _T("-j");
       _Commands.sOptCommon = _T("");
-      _Commands.sBrowseAll = _T("cvs -q status");
-      _Commands.sBrowseSingle = _T("cvs -l status $PATH$");
+      _Commands.sBrowseAll = _T("-q status");
+      _Commands.sBrowseSingle = _T("-l status $PATH$");
       break;
    case SC_SYSTEM_SUBVERSION:
       _Commands.sProgram = _T("svn");
@@ -101,8 +101,8 @@ LRESULT COptionsPage::OnTypeChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOO
       _Commands.sOptUpdateDirs = _T("--non-recursive");
       _Commands.sOptBranch = _T("");
       _Commands.sOptCommon = _T("--non-interactive");
-      _Commands.sBrowseAll = _T("svn --non-interactive --show-updates ");
-      _Commands.sBrowseSingle = _T("svn -N --non-interactive --show-updates $PATH$");
+      _Commands.sBrowseAll = _T("--non-interactive --show-updates ");
+      _Commands.sBrowseSingle = _T("-N --non-interactive --show-updates $PATH$");
       break;
    }
 
@@ -111,12 +111,12 @@ LRESULT COptionsPage::OnTypeChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOO
    return 0;
 }
 
-int COptionsPage::OnSetActive()
+int CMainOptionsPage::OnSetActive()
 {
    return 0;
 }
 
-int COptionsPage::OnApply()
+int CMainOptionsPage::OnApply()
 {
    int iIndex = m_ctrlType.GetCurSel();
    _Commands.sType = _T("none");
@@ -192,25 +192,30 @@ int COptionsPage::OnApply()
    {
       m_pArc->Write(_T("type"), _Commands.sType);
       m_pArc->Write(_T("enable"), _Commands.bEnabled ? _T("true") : _T("false"));
-      m_pArc->Write(_T("output"), _Commands.sOutput);
-      m_pArc->Write(_T("program"), _Commands.sProgram);
-      m_pArc->Write(_T("checkin"), _Commands.sCmdCheckIn);
-      m_pArc->Write(_T("checkout"), _Commands.sCmdCheckOut);
-      m_pArc->Write(_T("update"), _Commands.sCmdUpdate);
-      m_pArc->Write(_T("addfile"), _Commands.sCmdAddFile);
-      m_pArc->Write(_T("removefile"), _Commands.sCmdRemoveFile);
-      m_pArc->Write(_T("status"), _Commands.sCmdStatus);
-      m_pArc->Write(_T("diff"), _Commands.sCmdDiff);
-      m_pArc->Write(_T("login"), _Commands.sCmdLogIn);
-      m_pArc->Write(_T("logout"), _Commands.sCmdLogOut);
-      m_pArc->Write(_T("message"), _Commands.sOptMessage);
-      m_pArc->Write(_T("recursive"), _Commands.sOptRecursive);
-      m_pArc->Write(_T("sticky"), _Commands.sOptStickyTag);
-      m_pArc->Write(_T("general"), _Commands.sOptCommon);
-      m_pArc->Write(_T("browseAll"), _Commands.sBrowseAll);
-      m_pArc->Write(_T("browseSingle"), _Commands.sBrowseSingle);
+      
+      if( m_pArc->ReadGroupBegin(_T("Settings")) ) {
+         m_pArc->Write(_T("output"), _Commands.sOutput);
+         m_pArc->Write(_T("program"), _Commands.sProgram);
+         m_pArc->Write(_T("checkin"), _Commands.sCmdCheckIn);
+         m_pArc->Write(_T("checkout"), _Commands.sCmdCheckOut);
+         m_pArc->Write(_T("update"), _Commands.sCmdUpdate);
+         m_pArc->Write(_T("addfile"), _Commands.sCmdAddFile);
+         m_pArc->Write(_T("removefile"), _Commands.sCmdRemoveFile);
+         m_pArc->Write(_T("status"), _Commands.sCmdStatus);
+         m_pArc->Write(_T("diff"), _Commands.sCmdDiff);
+         m_pArc->Write(_T("login"), _Commands.sCmdLogIn);
+         m_pArc->Write(_T("logout"), _Commands.sCmdLogOut);
+         m_pArc->Write(_T("message"), _Commands.sOptMessage);
+         m_pArc->Write(_T("recursive"), _Commands.sOptRecursive);
+         m_pArc->Write(_T("sticky"), _Commands.sOptStickyTag);
+         m_pArc->Write(_T("general"), _Commands.sOptCommon);
+         m_pArc->Write(_T("browseAll"), _Commands.sBrowseAll);
+         m_pArc->Write(_T("browseSingle"), _Commands.sBrowseSingle);
+         m_pArc->ReadGroupEnd();
+      }
       m_pArc->ReadGroupEnd();
    }
+   m_pArc->ReadGroupEnd();
 
    // HACK: To clear the iterator cache
    m_pArc->ReadGroupEnd();
@@ -218,7 +223,7 @@ int COptionsPage::OnApply()
    return PSNRET_NOERROR;
 }
 
-void COptionsPage::_PopulateList()
+void CMainOptionsPage::_PopulateList()
 {
    CString sName;
    CString sValue;
@@ -299,3 +304,103 @@ void COptionsPage::_PopulateList()
 
    m_ctrlList.EnableWindow(_Commands.bEnabled!=false);
 }
+
+
+////////////////////////////////////////////////////////////////////////
+//
+
+LRESULT CDiffOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   m_ctrlFace.SubclassWindow(GetDlgItem(IDC_FONT));
+   m_ctrlFontSize = GetDlgItem(IDC_FONTSIZE);
+   m_ctrlWordWrap = GetDlgItem(IDC_WORDWRAP);
+   m_ctrlListUnchanged = GetDlgItem(IDC_LISTUNCHANGED);
+
+   m_ctrlFace.SetFont(AtlGetDefaultGuiFont());
+   m_ctrlFace.SetExtendedFontStyle(FPS_EX_TYPEICON | FPS_EX_FIXEDBOLD);
+   m_ctrlFace.Dir();
+
+   TCHAR szBuffer[80] = { 0 };
+   _pDevEnv->GetProperty(_T("sourcecontrol.diffview.wordwrap"), szBuffer, 79);
+   m_ctrlWordWrap.SetCheck(_tcscmp(szBuffer, _T("true")) == 0 ? BST_CHECKED : BST_UNCHECKED);
+   _pDevEnv->GetProperty(_T("sourcecontrol.diffview.listUnchanged"), szBuffer, 79);
+   m_ctrlListUnchanged.SetCheck(_tcscmp(szBuffer, _T("true")) == 0 ? BST_CHECKED : BST_UNCHECKED);
+   _pDevEnv->GetProperty(_T("sourcecontrol.diffview.font"), szBuffer, 79);
+   m_ctrlFace.SelectString(0, szBuffer);  
+   BOOL bDummy = FALSE;
+   OnFontChange(0, 0, NULL, bDummy);
+   _pDevEnv->GetProperty(_T("sourcecontrol.diffview.fontsize"), szBuffer, 79);
+   m_ctrlFontSize.SelectString(0, szBuffer);
+
+   return 0;
+}
+
+LRESULT CDiffOptionsPage::OnFontChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   CClientDC dc = m_hWnd;
+   int iIndex = m_ctrlFace.GetCurSel();
+   if( iIndex >= 0 ) {
+      CSimpleArray<long> aSizes;
+      LOGFONT lfOrig;
+      TEXTMETRIC tmOrig;
+      m_ctrlFace.GetLogFont(iIndex, lfOrig);
+      m_ctrlFace.GetTextMetrics(iIndex, tmOrig);
+      if( (tmOrig.tmPitchAndFamily & (TMPF_TRUETYPE|TMPF_VECTOR)) != 0 ) {
+         static long truetypesize[] = { 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36 };
+         for( int i = 0; i < sizeof(truetypesize)/sizeof(int); i++ ) aSizes.Add(truetypesize[i]);
+      }
+      else {
+         for( int i = 8; i <= 36; i++ ) {
+            CLogFont lf = lfOrig;
+            lf.SetHeight(i, dc);
+            CFont font;
+            font.CreateFontIndirect(&lf);
+            TEXTMETRIC tm;
+            dc.GetTextMetrics(&tm);
+            bool bFound = false;
+            for( int j = 0; j < aSizes.GetSize(); j++ ) {
+               if( aSizes[j] == tm.tmHeight ) bFound = true;
+            }
+            if( !bFound ) aSizes.Add(tm.tmHeight);
+         }
+      }
+      while( m_ctrlFontSize.GetCount() > 0 ) m_ctrlFontSize.DeleteString(0);
+      for( int i = 0; i < aSizes.GetSize(); i++ ) {
+         CString s;
+         s.Format(_T("%ld"), aSizes[i]);
+         m_ctrlFontSize.AddString(s);
+      }
+   }
+   bHandled = FALSE;
+   return 0;
+}
+
+int CDiffOptionsPage::OnSetActive()
+{
+   return 0;
+}
+
+int CDiffOptionsPage::OnApply()
+{
+   if( m_pArc->ReadGroupBegin(_T("SourceControl")) ) 
+   {
+      if( m_pArc->ReadGroupBegin(_T("DiffView")) ) {
+         TCHAR szFaceName[100];
+         _tcscpy(szFaceName, CWindowText(m_ctrlFace));
+         if( m_ctrlFace.GetCurSel() >= 0 ) m_ctrlFace.GetLBText(m_ctrlFace.GetCurSel(), szFaceName);
+         m_pArc->Write(_T("font"), szFaceName);
+         m_pArc->Write(_T("fontsize"), _ttol(CWindowText(m_ctrlFontSize)));
+         m_pArc->Write(_T("wordwrap"), m_ctrlWordWrap.GetCheck() == BST_CHECKED);
+         m_pArc->Write(_T("listUnchanged"), m_ctrlListUnchanged.GetCheck() == BST_CHECKED);
+         m_pArc->ReadGroupEnd();
+      }
+      m_pArc->ReadGroupEnd();
+   }
+   m_pArc->ReadGroupEnd();
+
+   // HACK: To clear the iterator cache
+   m_pArc->ReadGroupEnd();
+
+   return PSNRET_NOERROR;
+}
+

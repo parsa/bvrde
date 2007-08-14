@@ -203,6 +203,26 @@ BEGIN
                     ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
 END
 
+IDD_OPTIONS_DIFF DIALOG DISCARDABLE  0, 0, 256, 179
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "&Font:",IDC_STATIC,6,16,16,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_FONT,26,15,147,76,CBS_DROPDOWN | 
+                    CBS_OWNERDRAWVARIABLE | CBS_SORT | CBS_HASSTRINGS | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Size:",IDC_STATIC,6,33,15,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_FONTSIZE,26,33,41,60,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Use Word Wrap",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,56,78,13
+    CONTROL         "Display unchanged sections / entire file",
+                    IDC_LISTUNCHANGED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    10,70,174,13
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,34,4,221,1
+    LTEXT           "Diff View",IDC_STATIC,0,0,32,9
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -247,6 +267,11 @@ BEGIN
         RIGHTMARGIN, 277
         TOPMARGIN, 7
         BOTTOMMARGIN, 124
+    END
+
+    IDD_OPTIONS_DIFF, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 177
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -350,6 +375,9 @@ BEGIN
     IDS_DIFF_FIRSTCHANGE    "<font color=""#a030a0"" size=""-1"">First change is near line %d</font>"
     IDS_STATUS_DIFFVIEW     " Creating diff view..."
     IDS_DIFF_GENERALFILE    "File:"
+    IDS_TREE_DIFF           "Diff Settings"
+    IDS_LEFTLINE            " Zeile: %d"
+    IDS_RIGHTLINE           " Zeile: %d"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -367,6 +395,11 @@ BEGIN
     ID_SC_REMOVEFILE        "Datei vom Quellcodekontrollsystem entfernen\nDatei entfernen"
     ID_SC_STATUS            "Dateistatus anzeigen\nStatus"
     ID_SC_LOGOUT            "Aus dem Quellcodekontrollsystem ausloggen\nLogout"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_NOPROJECT           "Source Control system cannot find a suitable active project."
 END
 
 #endif    // German (Germany) resources
@@ -478,6 +511,26 @@ BEGIN
                     ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
 END
 
+IDD_OPTIONS_DIFF DIALOG DISCARDABLE  0, 0, 256, 179
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "&Font:",IDC_STATIC,6,16,16,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_FONT,26,15,147,76,CBS_DROPDOWN | 
+                    CBS_OWNERDRAWVARIABLE | CBS_SORT | CBS_HASSTRINGS | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Size:",IDC_STATIC,6,33,15,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_FONTSIZE,26,33,41,60,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Use Word Wrap",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,56,78,13
+    CONTROL         "Display unchanged sections / entire file",
+                    IDC_LISTUNCHANGED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    10,70,174,13
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,34,4,221,1
+    LTEXT           "Diff View",IDC_STATIC,0,0,32,9
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -523,6 +576,11 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 124
     END
+
+    IDD_OPTIONS_DIFF, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 177
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -559,6 +617,13 @@ END
 //
 
 IDR_DIFF                HTML    DISCARDABLE     "res/diff.htm"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_OVERLAY             BITMAP  DISCARDABLE     "res/overlay.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -632,6 +697,9 @@ BEGIN
     IDS_DIFF_FIRSTCHANGE    "<font color=""#a030a0"" size=""-1"">First change is near line %d</font>"
     IDS_STATUS_DIFFVIEW     " Creating diff view..."
     IDS_DIFF_GENERALFILE    "File:"
+    IDS_TREE_DIFF           "Diff Settings"
+    IDS_LEFTLINE            " Line: %d"
+    IDS_RIGHTLINE           " Line: %d"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -650,6 +718,11 @@ BEGIN
     ID_SC_REMOVEFILE        "Remove file from Source Control\nRemove File"
     ID_SC_STATUS            "Show File Status\nStatus"
     ID_SC_LOGOUT            "Log out of Source Control\nLogout"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_NOPROJECT           "Source Control system cannot find a suitable active project."
 END
 
 #endif    // English (U.S.) resources

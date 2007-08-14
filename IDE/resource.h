@@ -180,6 +180,7 @@
 #define IDS_OPENFILES                   255
 #define IDS_STATUS_RECMACRO             256
 #define IDS_ERR_REGNOPRIV               257
+#define IDS_TREE_FOLDING                258
 #define IDD_MSGBOX                      263
 #define IDI_MSG_INFORMATION             264
 #define IDI_MSG_WARNING                 265
@@ -275,6 +276,10 @@
 #define IDC_LAUNCH                      1087
 #define IDC_BROWSE                      1088
 #define IDC_GREYED                      1089
+#define IDC_COMPACT                     1090
+#define IDC_COMMENT                     1091
+#define IDC_PREPROCESSOR                1092
+#define IDC_ELSE                        1093
 #define IDC_TEXT                        1148
 #define IDC_DONT_SHOW                   1197
 #define IDC_DESCRIPTION                 1198
@@ -295,6 +300,7 @@
 #define IDD_MACROBIND                   32013
 #define IDD_CONFIG_SOUNDS               32014
 #define IDD_OPTIONS_MAPPINGS            32015
+#define IDD_OPTIONS_FOLDING             32016
 #define ID_WINDOW_NEXT                  32796
 #define ID_WINDOW_PREVIOUS              32797
 #define ID_TOOLS_ADDIN_MANAGER          32803
@@ -349,7 +355,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        243
 #define _APS_NEXT_COMMAND_VALUE         32875
-#define _APS_NEXT_CONTROL_VALUE         1090
+#define _APS_NEXT_CONTROL_VALUE         1092
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

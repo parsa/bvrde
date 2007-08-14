@@ -46,16 +46,26 @@ static bool SingleInstance()
    return true;
 }
 
-static void SetLanguage(CMainFrame* pMain)
+static LCID FindUserLanguage()
 {
+   LCID lcid = ::GetThreadLocale();
+   LANGID lang = LANGIDFROMLCID(lcid);
    CRegSerializer reg;
-   if( !reg.Open(REG_BVRDE) ) return;
-   if( !reg.ReadGroupBegin(_T("Settings")) ) return;
-   TCHAR szBuffer[64] = { 0 };
-   reg.Read(_T("language"), szBuffer, 63);
-   if( _tcscmp(szBuffer, _T("en")) == 0 ) ::SetThreadLocale(MAKELCID(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), SORT_DEFAULT));
-   if( _tcscmp(szBuffer, _T("de")) == 0 ) ::SetThreadLocale(MAKELCID(MAKELANGID(LANG_GERMAN, SUBLANG_GERMAN), SORT_DEFAULT));
-   pMain->m_Locale = ::GetThreadLocale();
+   if( reg.Open(REG_BVRDE) ) {
+      if( reg.ReadGroupBegin(_T("Settings")) ) {
+         TCHAR szBuffer[16] = { 0 };
+         reg.Read(_T("language"), szBuffer, 15);
+         if( _tcscmp(szBuffer, _T("en")) == 0 ) {
+            lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
+            lcid = MAKELCID(lang, SORT_DEFAULT);
+         }
+         if( _tcscmp(szBuffer, _T("de")) == 0 ) {
+            lang = MAKELANGID(LANG_GERMAN, SUBLANG_GERMAN);
+            lcid = MAKELCID(lang, SORT_DEFAULT);
+         }
+      }
+   }
+   return lcid;
 }
 
 
@@ -88,7 +98,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    // Change the language now; this is a setting in the registry because
    // we'd like all message-boxes (even errors at this stage) to appear
    // in the correct language.
-   SetLanguage(&wndMain);
+   wndMain.m_Locale = FindUserLanguage();
+   wndMain.SetThreadLanguage();
 
    // Show splash screen
    CSplashWindow splash;
@@ -107,7 +118,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    CMessageLoop msgloop;
    _Module.AddMessageLoop(&msgloop);
 
-   // Create out global Solution reference
+   // Create our global Solution reference
    g_pSolution = new CSolution();
 
    // Create main window

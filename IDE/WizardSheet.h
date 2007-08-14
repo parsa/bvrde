@@ -263,6 +263,32 @@ public:
 ////////////////////////////////////////////////////////////////////////
 //
 
+class CFoldingOptionsPage : public CPropertyPageImpl<CFoldingOptionsPage>
+{
+public:
+   enum { IDD = IDD_OPTIONS_FOLDING };
+
+   IDevEnv* m_pDevEnv;
+   ISerializable* m_pArc;
+
+   // Overloads
+
+   int OnApply();
+
+   // Message map and handlers
+
+   BEGIN_MSG_MAP(CFoldingOptionsPage)
+      MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
+      CHAIN_MSG_MAP( CPropertyPageImpl<CFoldingOptionsPage> )
+   END_MSG_MAP()
+
+   LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+};
+
+
+////////////////////////////////////////////////////////////////////////
+//
+
 class CColorsOptionsPage : public CPropertyPageImpl<CColorsOptionsPage>
 {
 public:

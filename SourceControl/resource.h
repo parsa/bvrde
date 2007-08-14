@@ -4,12 +4,14 @@
 //
 #define IDR_SOURCECONTROL               101
 #define IDR_DIFF                        102
+#define IDB_OVERLAY                     103
 #define IDD_FINDFILES                   105
 #define IDD_CHECKIN                     105
 #define IDD_OPTIONS_COMMANDS            218
 #define IDD_CVS_LOGIN                   219
 #define IDD_ADDFILE                     220
 #define IDD_UPDATE                      221
+#define IDD_OPTIONS_DIFF                222
 #define IDS_TITLE                       1000
 #define IDC_FILES                       1000
 #define IDC_LIST                        1000
@@ -35,7 +37,9 @@
 #define IDS_COMMAND_UPDATE              1009
 #define IDC_BRANCHTEXT                  1009
 #define IDS_COMMAND_LOGIN               1010
+#define IDC_WORDWRAP                    1010
 #define IDS_COMMAND_LOGOUT              1011
+#define IDC_LISTUNCHANGED               1011
 #define IDS_COMMAND_STATUS              1012
 #define IDS_COMMAND_DIFF                1013
 #define IDS_COMMAND_ADDFILE             1014
@@ -56,6 +60,7 @@
 #define IDS_MISC_OUTPUT                 1029
 #define IDS_GROUP_MISC                  1030
 #define IDS_SYSTEM_CUSTOM               1031
+#define IDC_FONTSIZE                    1031
 #define IDS_TYPE_LOCAL                  1032
 #define IDS_TYPE_EXT                    1033
 #define IDS_TYPE_PSERVER                1034
@@ -77,6 +82,11 @@
 #define IDS_DIFF_FIRSTCHANGE            1050
 #define IDS_STATUS_DIFFVIEW             1051
 #define IDS_DIFF_GENERALFILE            1052
+#define IDS_TREE_DIFF                   1053
+#define IDS_LEFTLINE                    1054
+#define IDS_RIGHTLINE                   1055
+#define IDS_NOPROJECT                   1056
+#define IDC_FONT                        1066
 #define IDC_FINDTEXT                    1137
 #define IDC_WHOLEWORD                   1138
 #define IDC_KEEPOUT                     1138
@@ -101,9 +111,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        103
+#define _APS_NEXT_RESOURCE_VALUE        104
 #define _APS_NEXT_COMMAND_VALUE         42019
-#define _APS_NEXT_CONTROL_VALUE         1010
+#define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -72,6 +72,15 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
       sText = sText.Mid(iPos);
    }
 
+   TCHAR szFaceName[80] = { 0 };
+   TCHAR szFontSize[80] = { 0 };
+   _pDevEnv->GetProperty(_T("sourcecontrol.diffview.font"), szFaceName, 79);
+   _pDevEnv->GetProperty(_T("sourcecontrol.diffview.fontsize"), szFontSize, 79);
+   TCHAR szWordWrap[16] = { 0 };
+   TCHAR szListUnchanged[16] = { 0 };
+   _pDevEnv->GetProperty(_T("sourcecontrol.diffview.wordwrap"), szWordWrap, 15);
+   _pDevEnv->GetProperty(_T("sourcecontrol.diffview.listUnchanged"), szListUnchanged, 15);
+
    // OPTI: Because of the slow CString/memory allocation in C++, we should try
    //       to minimize the number of allocations. Let's pre-allocate some memory.
    DIFFINFO Info;
@@ -79,6 +88,8 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
    Info.sHTML.GetBuffer(nAlloc);
    Info.sHTML.ReleaseBuffer(0);
    Info.iFirstChange = -1;
+   Info.bWordWrap = (_tcscmp(szWordWrap, _T("true")) == 0);
+   Info.bListUnchanged = (_tcscmp(szListUnchanged, _T("true")) == 0);
 
    switch( DiffType ) {
    case DIFF_ORIGINAL:  _ParseDiffOriginal(aFile, aLines, Info); break;
@@ -105,53 +116,25 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
 
    CString sPage = AtlLoadHtmlResource(IDR_DIFF);
    sPage.Replace(_T("$TITLE$"), CString(MAKEINTRESOURCE(IDS_CAPTION_DIFF)));
+   sPage.Replace(_T("$FONT$"), szFaceName);
+   sPage.Replace(_T("$FONT-SIZE$"), szFontSize);
+   sPage.Replace(_T("$WRAP$"), Info.bWordWrap ? _T("normal") : _T("nowrap"));
+   sPage.Replace(_T("$OVERFLOW$"), Info.bWordWrap ? _T("auto") : _T("hidden"));   
    sPage.Replace(_T("$INFO$"), sFileInfo);
    sPage.Replace(_T("$TABLE$"), Info.sHTML);
    _LoadHtml(m_spBrowser, sPage);
 
+   int iCharWidth = 0;
+   CClientDC dc = m_hWnd;
+   dc.GetCharWidth('X', 'X', &iCharWidth);
+
+   int cxScreen = ::GetSystemMetrics(SM_CXSCREEN) * 80 / 100;
+   if( cxScreen > iCharWidth * 170 ) cxScreen = iCharWidth * 170;
+   ResizeClient(cxScreen, -1);
+   CenterWindow();
+
    ShowWindow(SW_NORMAL);
    return TRUE;
-}
-
-CString CDiffCvsView::_Htmlize(CString s) const
-{
-   s.Replace(_T("&"), _T("&amp;"));
-   s.Replace(_T("<"), _T("&lt;"));
-   s.Replace(_T(">"), _T("&gt;"));
-   s.Replace(_T("\""), _T("&quot;"));
-   s.Replace(_T(" "), _T("&nbsp;"));
-   s.Replace(_T("\t"), _T("&nbsp;&nbsp;&nbsp;"));
-   if( s.IsEmpty() ) s = _T("&nbsp;");
-   return s;
-}
-
-void CDiffCvsView::_GenerateInfoHeader(CString& sHTML, CString sValue) const
-{
-   if( sValue.IsEmpty() ) return;
-   CString sTemp;
-   sTemp.Format(_T("<tr><td>%s</td></tr>"), sValue);
-   sHTML += sTemp;
-}
-
-void CDiffCvsView::_GenerateInfoHeader(CString& sHTML, UINT uLabel, CString sValue) const
-{
-   if( sValue.IsEmpty() ) return;
-   CString sTemp;
-   sTemp.Format(_T("<b>%s</b> %s"), CString(MAKEINTRESOURCE(uLabel)), _Htmlize(sValue));
-   _GenerateInfoHeader(sHTML, sTemp);
-}
-
-void CDiffCvsView::_GenerateRow(CString& sHTML, CString& sTemp, int iLineNo, LPCTSTR pstrType, CString& sLeft, CString& sRight) const
-{
-   TCHAR szLineNo[12] = { 0 };
-   if( iLineNo != 0 ) ::wsprintf(szLineNo, _T("%d"), iLineNo);
-   // OPTI: We need to HTMLize the strings, but for most of the display, both sides are the same; so we
-   //       need only convert one of them in this case.
-   CString sLine1 = _Htmlize(sLeft);
-   CString sLine2 = sLeft == sRight ? sLine1 : _Htmlize(sRight);
-   // Produce the HTML table cell snippet
-   sTemp.Format(_T("<tr><td class=\"lin\">%s</td><td class=\"%s\">%s</td><td class=\"%s\">%s</td></tr>\n"), szLineNo, pstrType, sLine1, pstrType, sLine2);
-   sHTML += sTemp;
 }
 
 void CDiffCvsView::OnFinalMessage(HWND /*hWnd*/)
@@ -218,6 +201,56 @@ BOOL CDiffCvsView::_LoadHtml(IUnknown* pUnk, LPCWSTR pstrHTML)
       }
    }
    return SUCCEEDED(Hr);
+}
+
+CString CDiffCvsView::_Htmlize(CString s) const
+{
+   s.Replace(_T("&"), _T("&amp;"));
+   s.Replace(_T("<"), _T("&lt;"));
+   s.Replace(_T(">"), _T("&gt;"));
+   s.Replace(_T("\""), _T("&quot;"));
+   s.Replace(_T(" "), _T("&nbsp;"));
+   s.Replace(_T("\t"), _T("&nbsp;&nbsp;&nbsp;"));
+   if( s.IsEmpty() ) s = _T("&nbsp;");
+   return s;
+}
+
+void CDiffCvsView::_GenerateInfoHeader(CString& sHTML, CString sValue) const
+{
+   if( sValue.IsEmpty() ) return;
+   CString sTemp;
+   sTemp.Format(_T("<tr><td>%s</td></tr>"), sValue);
+   sHTML += sTemp;
+}
+
+void CDiffCvsView::_GenerateInfoHeader(CString& sHTML, UINT uLabel, CString sValue) const
+{
+   if( sValue.IsEmpty() ) return;
+   CString sTemp;
+   sTemp.Format(_T("<b>%s</b> %s"), CString(MAKEINTRESOURCE(uLabel)), _Htmlize(sValue));
+   _GenerateInfoHeader(sHTML, sTemp);
+}
+
+void CDiffCvsView::_GenerateSectionHeader(CString& sHTML, int iLeftStart, int iRightStart) const
+{
+   CString sLeft, sRight;
+   sLeft.Format(IDS_LEFTLINE, iLeftStart);
+   sRight.Format(IDS_RIGHTLINE, iRightStart);
+   CString sTemp;
+   _GenerateRow(sHTML, sTemp, 0, _T("hdr"), sLeft, sRight);
+}
+
+void CDiffCvsView::_GenerateRow(CString& sHTML, CString& sTemp, int iLineNo, LPCTSTR pstrType, CString& sLeft, CString& sRight) const
+{
+   TCHAR szLineNo[12] = { 0 };
+   if( iLineNo != 0 ) ::wsprintf(szLineNo, _T("%d"), iLineNo);
+   // OPTI: We need to HTMLize the strings, but for most of the display, both sides are the same; so we
+   //       need only convert one of them in this case.
+   CString sLine1 = _Htmlize(sLeft);
+   CString sLine2 = sLeft == sRight ? sLine1 : _Htmlize(sRight);
+   // Produce the HTML table cell snippet
+   sTemp.Format(_T("<tr><td class=\"lin\">%s</td><td class=\"%s\">%s</td><td class=\"%s\">%s</td></tr>\n"), szLineNo, pstrType, sLine1, pstrType, sLine2);
+   sHTML += sTemp;
 }
 
 

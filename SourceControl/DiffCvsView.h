@@ -49,6 +49,8 @@ public:
       CString sLeftFileInfo;            // File information (left view)
       CString sRightFileInfo;           // File information (right view)
       int iFirstChange;                 // Line number of first change
+      bool bWordWrap;                   // Word wrap lines
+      bool bListUnchanged;              // List unchanged sections
    } DIFFINFO;
 
    BOOL GeneratePage(IElement* pElement, CSimpleArray<CString>& aLines);
@@ -65,6 +67,7 @@ public:
    CString _Htmlize(CString s) const;
    void _GenerateInfoHeader(CString& sHTML, CString sValue) const;
    void _GenerateInfoHeader(CString& sHTML, UINT uLabel, CString sValue) const;
+   void _GenerateSectionHeader(CString& sHTML, int iLeftStart, int iRightStart) const;
    void _GenerateRow(CString& sResult, CString& sTemp, int iLineNo, LPCTSTR pstrType, CString& sLeft, CString& sRight) const;
 
    // Dispatch handlers

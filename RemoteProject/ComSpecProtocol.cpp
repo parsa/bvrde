@@ -28,7 +28,7 @@ DWORD CComSpecThread::Run()
    ATLASSERT(m_pManager);
    ATLASSERT(m_pCallback);
 
-   ::SetThreadLocale(_pDevEnv->GetLCID());
+   _pDevEnv->SetThreadLanguage();
 
    CString sBinPath = m_pManager->GetParam(_T("Host"));
    CString sPath = m_pManager->GetParam(_T("Path"));

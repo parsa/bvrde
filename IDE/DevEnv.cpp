@@ -16,8 +16,23 @@ DWORD CMainFrame::GetVersion() const
    return MAKELPARAM(1, 0);
 }
 
-LCID CMainFrame::GetLCID() const
+LCID CMainFrame::SetThreadLanguage()
 {
+   // On Windows Vista we have to use the SetThreadUILanguage() for this to work.
+   // The MSDN docs suggests that this is also needed for ealier version, but
+   // it appears to work.
+   OSVERSIONINFO ver = { sizeof(ver) };
+   ::GetVersionEx(&ver);
+   if( ver.dwMajorVersion >= 6 ) {
+      LANGID lang = LANGIDFROMLCID(m_Locale);
+      typedef LANGID (WINAPI *PFNSETTHREADUILANGUAGE)(LCID);
+      PFNSETTHREADUILANGUAGE pfnSetThreadUILanguage = 
+         (PFNSETTHREADUILANGUAGE) ::GetProcAddress( ::GetModuleHandle(_T("kernel32.dll")), "SetThreadUILanguage");
+      if( pfnSetThreadUILanguage ) pfnSetThreadUILanguage(lang);
+   }
+   else {
+      ::SetThreadLocale(m_Locale);
+   }
    return m_Locale;
 }
 

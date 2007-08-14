@@ -59,11 +59,16 @@ public:
    BOOL OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    {
       pManager->AddWizardGroup(CString(MAKEINTRESOURCE(IDS_TREE_ROOT)), CString(MAKEINTRESOURCE(IDS_TREE_SOURCECONTROL)));
-      static COptionsPage s_pageOptions;
-      static CString sTitle = MAKEINTRESOURCE(IDS_TREE_COMMANDS);
-      s_pageOptions.SetTitle((LPCTSTR)sTitle);
-      s_pageOptions.m_pArc = pArc;
-      pManager->AddWizardPage(s_pageOptions.IDD, s_pageOptions);
+      static CMainOptionsPage s_pageMainOptions;
+      static CDiffOptionsPage s_pageDiffOptions;
+      static CString sMainTitle = MAKEINTRESOURCE(IDS_TREE_COMMANDS);
+      static CString sDiffTitle = MAKEINTRESOURCE(IDS_TREE_DIFF);
+      s_pageMainOptions.SetTitle((LPCTSTR)sMainTitle);
+      s_pageMainOptions.m_pArc = pArc;
+      pManager->AddWizardPage(s_pageMainOptions.IDD, s_pageMainOptions);
+      s_pageDiffOptions.SetTitle((LPCTSTR)sDiffTitle);
+      s_pageDiffOptions.m_pArc = pArc;
+      pManager->AddWizardPage(s_pageDiffOptions.IDD, s_pageDiffOptions);
       return TRUE;
    }
 };
@@ -117,7 +122,7 @@ VOID WINAPI Plugin_SetMenu(HMENU hMenu)
    hMenu = ::GetSubMenu(hMenu, 2);
    hMenu = ::GetSubMenu(hMenu, 2);
    TCHAR szTitle[128] = { 0 };
-   ::LoadString(_Module.GetResourceInstance(), IDS_REPOSITORY, szTitle, 127);
+   AtlLoadString(IDS_REPOSITORY, szTitle, 127);
    ::AppendMenu(hMenu, MF_STRING, ID_VIEW_REPOSITORY, szTitle);
 }
 

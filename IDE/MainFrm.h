@@ -319,7 +319,7 @@ public:
    ISolution* GetSolution() const;
    IView* GetActiveView() const;
    IDispatch* GetDispatch();
-   LCID GetLCID() const;
+   LCID SetThreadLanguage();
    //
    BOOL AddExplorerView(HWND hWnd, LPCTSTR pstrTitle, int iImage);
    BOOL RemoveExplorerView(HWND hWnd);

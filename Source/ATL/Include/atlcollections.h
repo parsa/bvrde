@@ -150,17 +150,17 @@ public:
       struct ITEM* pNext;
    };
    ITEM** m_aT;
-   int m_nSize;
+   int m_nBuckets;
 
    CHashMap(int nSize = 83)
    {
-      m_nSize = nSize;
+      m_nBuckets = nSize;
       m_aT = new ITEM*[nSize];
       memset(m_aT, 0, nSize * sizeof(ITEM*));
    }
    ~CHashMap()
    {
-      int len = m_nSize;
+      int len = m_nBuckets;
       while( len-- ) {
          ITEM* pItem = m_aT[len];
          while( pItem ) {
@@ -177,11 +177,11 @@ public:
       delete [] m_aT;
       m_aT = new ITEM*[nSize];
       memset(m_aT, 0, nSize * sizeof(ITEM*));
-      m_nSize = nSize;
+      m_nBuckets = nSize;
    }
    bool Find(const TKey& Key, TItem** ppData = NULL) const
    {
-      UINT slot = HashKey(Key) % m_nSize;
+      UINT slot = HashKey(Key) % m_nBuckets;
       for( const ITEM* pItem = m_aT[slot]; pItem; pItem = pItem->pNext ) {
          if( pItem->Key == Key ) {
             if( ppData ) *ppData = &pItem->Data;
@@ -192,7 +192,7 @@ public:
    }
    bool Lookup(const TKey& Key, TItem& Data) const
    {
-      UINT slot = HashKey(Key) % m_nSize;
+      UINT slot = HashKey(Key) % m_nBuckets;
       for( const ITEM* pItem = m_aT[slot]; pItem; pItem = pItem->pNext ) {
          if( pItem->Key == Key ) {
             Data = pItem->Data;
@@ -210,7 +210,7 @@ public:
          return false;
       }
       // Add first in bucket
-      UINT slot = HashKey(Key) % m_nSize;
+      UINT slot = HashKey(Key) % m_nBuckets;
       ITEM* pItem = new ITEM;
       pItem->Key = Key;
       pItem->Data = Item;
@@ -220,7 +220,7 @@ public:
    }
    bool Set(const TKey& Key, const TItem& Data)
    {
-      UINT slot = HashKey(Key) % m_nSize;
+      UINT slot = HashKey(Key) % m_nBuckets;
       // Modify existing item
       for( ITEM* pItem = m_aT[slot]; pItem; pItem = pItem->pNext ) {
          if( pItem->Key == Key ) {
@@ -233,7 +233,7 @@ public:
    }
    bool Remove(const TKey& Key)
    {
-      UINT slot = HashKey(Key) % m_nSize;
+      UINT slot = HashKey(Key) % m_nBuckets;
       ITEM** ppItem = &m_aT[slot];
       while( *ppItem ) {
          if( (*ppItem)->Key == Key ) {
@@ -249,7 +249,7 @@ public:
    int GetSize() const
    {
       int nCount = 0;
-      int len = m_nSize;
+      int len = m_nBuckets;
       while( len-- ) {
          for( const ITEM* pItem = m_aT[len]; pItem; pItem = pItem->pNext ) nCount++;
       }
@@ -258,7 +258,7 @@ public:
    bool GetItemAt(int iIndex, TKey& Key, TItem& Data) const
    {
       int pos = 0;
-      int len = m_nSize;
+      int len = m_nBuckets;
       while( len-- ) {
          for( const ITEM* pItem = m_aT[len]; pItem; pItem = pItem->pNext ) {
             if( pos++ == iIndex ) {

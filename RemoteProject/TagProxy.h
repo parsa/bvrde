@@ -23,17 +23,9 @@ public:
    bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult);
    bool GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult);
 
-   bool OpenTagInView(TAGINFO* pTag);
-   bool OpenTagInView(CTagDetails& Info);
+   bool OpenTagInView(const CTagDetails& Info);
 
 public:
-   enum
-   {
-      LEXTYPE_UNKNOWN,
-      LEXTYPE_CTAGS,
-      LEXTYPE_LEX,
-   } m_LexType;
-
    CRemoteProject* m_pProject;
    CTagInfo m_TagInfo;
    CLexInfo m_LexInfo;

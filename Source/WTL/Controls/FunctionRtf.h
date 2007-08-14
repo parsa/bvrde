@@ -36,6 +36,7 @@ public:
    HWND Create(HWND hWndParent, COLORREF clrBack)
    {
       m_hWndParent = hWndParent;
+      // Create control window (as hidden)
       CRichEditCtrl::Create(hWndParent, rcDefault, NULL, WS_POPUP | ES_MULTILINE | ES_READONLY, WS_EX_TOOLWINDOW);
       ModifyStyleEx(WS_EX_CLIENTEDGE, WS_EX_STATICEDGE);
       SetFont(AtlGetDefaultGuiFont());
@@ -57,7 +58,7 @@ public:
       RECT rcSize = pRR->rc;
       ::InflateRect(&rcSize, 0, 8);
       rcWindow.bottom = rcWindow.top + (rcSize.bottom - rcSize.top);
-      SetWindowPos(HWND_TOPMOST, &rcWindow, SWP_NOMOVE | SWP_SHOWWINDOW | SWP_NOACTIVATE);
+      SetWindowPos(HWND_TOPMOST, &rcWindow, SWP_NOMOVE | SWP_NOACTIVATE);
    }
    void ShowItem(LPCTSTR pstrName, LPCTSTR pstrDeclaration, LPCTSTR pstrComment)
    {
@@ -72,6 +73,7 @@ public:
       sText.Replace(_T("  "), _T(" "));
       sText.Replace(' ', 0xA0);
       sText.Replace(_T(",\xA0"), _T(", "));
+      sText.Replace(_T("=\xA0"), _T("= "));
       sText.Replace(_T("("), _T("( "));    sText.Replace(_T("( \xA0"), _T("( "));
       sText.Replace(_T(")"), _T("\xA0)")); sText.Replace(_T("\xA0\xA0)"), _T("\xA0)"));
       int cchDeclLen = sText.GetLength();
@@ -101,8 +103,9 @@ public:
       _ColorText(sText, _T("static"),   CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
       _ColorText(sText, _T("volatile"), CFM_ITALIC, BlendRGB(clrText, RGB(255,0,128), 20));
       _ColorText(sText, _T("virtual"),  0, BlendRGB(clrText, RGB(255,0,128), 20));
+      _ColorText(sText, _T("="),        0, BlendRGB(clrText, RGB(0,0,128), 20));
       _ColorArgs(sText, 0, BlendRGB(clrText, RGB(0,0,255), 20));
-      _ColorText(sText, sComment, 0, RGB(130,130,130));
+      _ColorText(sText, sComment,       0, RGB(130,130,130));
       // Now we will indent the declaration if it spans muliple lines.
       SetSel(0, cchDeclLen);
       PARAFORMAT2 pf;
@@ -110,11 +113,13 @@ public:
       pf.dwMask = PFM_OFFSET;
       pf.dxOffset = 150;
       SetParaFormat(pf);
-      // Finally we can ask the RichEdit it resize itself
+      // We ask the RichEdit it resize itself once last time
       // to its optimal size. This will also show the window
       // once again.
       SetSel(-1, -1);
       CRichEditCtrl::RequestResize();
+      // Finally we can show the window...
+      ShowWindow(SW_SHOWNOACTIVATE);
    }
 
    void _ColorArgs(CString& sText, BYTE iEffect, COLORREF clrText)

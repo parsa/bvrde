@@ -64,12 +64,12 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 // Dialog
 //
 
-IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
+IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Tag Support",-1,0,0,43,9
-    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,4,207,1
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,4,209,1
     CONTROL         "Autovervollständigungs Feauture verwenden",
                     IDC_AUTOCOMPLETE,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
                     WS_TABSTOP,14,15,192,10,WS_EX_TRANSPARENT
@@ -213,12 +213,12 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Dialog
 //
 
-IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
+IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Tag Support",-1,0,0,43,9
-    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,4,207,1
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,4,209,1
     CONTROL         "Use Auto Completion feature",IDC_AUTOCOMPLETE,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,120,10,
                     WS_EX_TRANSPARENT

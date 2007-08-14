@@ -549,7 +549,7 @@ static int yyread(char *buf,int max_size)
 				  	  BEGIN( Curly ) ;
 					}
 <Bases>[a-z_A-Z*.<>0-9]+		{ 
-					  current->extends.append( new McString(yytext) ) ;
+					  current->extends.append(yytext) ;
 					  if( !current->args.empty() ) current->args += " " ;
 					  current->args += yytext ;
 					}
@@ -683,7 +683,6 @@ static int yyread(char *buf,int max_size)
 
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@see"[ \t\r\n]*	{
 					  lineCount() ;
-					  current->see.append( new McString ) ;
 					  BEGIN( See ) ;
 					}
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@author"[ \t\r\n]*	{
@@ -694,12 +693,10 @@ static int yyread(char *buf,int max_size)
 					  BEGIN( Version ) ; }
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@param"[ \t\r\n]*	{
 					  lineCount() ;
-					  current->param.append( new McString  ) ;
 					  BEGIN( Param ) ;
 					}
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@exception"[ \t\r\n]*	{
 					  lineCount() ;
-					  current->exception.append( new McString ) ;
 					  BEGIN( Exception ) ;
 					}
 <Author,Version,See,Type,Args,Param,Exception,Memo,Return,CppMemo,CppDoc>^"@return"[ \t\r\n]*	{

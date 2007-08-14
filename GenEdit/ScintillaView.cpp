@@ -276,7 +276,7 @@ LRESULT CScintillaView::OnMarginClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 {
    SCNotification* pSCN = (SCNotification*) pnmh;
    if( pSCN->margin == 2 ) {
-      int iLine = LineFromPosition(pSCN->position);
+      int iLineNum = LineFromPosition(pSCN->position);
       int iCount = GetLineCount();
       if( (pSCN->modifiers & SCMOD_CTRL) != 0 ) {
          for( int i = 1; i <= iCount; i++ ) if( GetFoldExpanded(i) ) ToggleFold(i);
@@ -285,7 +285,7 @@ LRESULT CScintillaView::OnMarginClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
          for( int i = 1; i <= iCount; i++ ) if( !GetFoldExpanded(i) ) ToggleFold(i);
       }
       else {
-         ToggleFold(iLine);
+         ToggleFold(iLineNum);
       }
    }
    bHandled = FALSE;
@@ -368,12 +368,13 @@ void CScintillaView::_AutoText(CHAR ch)
 
    // Cancel auto-text tip if displayed already or insert replacement-text 
    // if needed.
-   if( m_bAutoTextDisplayed ) {
+   if( m_bAutoTextDisplayed ) 
+   {
       if( ch == '\t' || ch == '\0xFF' ) {
          USES_CONVERSION;
          long lPos = GetCurrentPos();
-         int iLine = LineFromPosition(lPos);
-         int iIndent = GetLineIndentation(iLine);
+         int iLineNum = LineFromPosition(lPos);
+         int iIndent = GetLineIndentation(iLineNum);
          // Extract text-replacement
          CString sText = s_sAutoText;
          int iCaretPos = sText.Find('$');
@@ -388,8 +389,8 @@ void CScintillaView::_AutoText(CHAR ch)
          SetSel(s_lSuggestPos, lPos);
          ReplaceSel(T2CA(sText));
          while( nLines > 0 ) {
-            iLine++; nLines--;
-            _SetLineIndentation(iLine, iIndent);
+            iLineNum++; nLines--;
+            _SetLineIndentation(iLineNum, iIndent);
          }
          // Place the caret
          // BUG: Because of the indent reposition above we have some difficulty
@@ -466,7 +467,8 @@ void CScintillaView::_AutoSuggest(CHAR ch)
    static CString s_sSuggestWord;
    // Cancel suggestion tip if displayed already.
    // Do actual text-replacement if needed.
-   if( m_bSuggestionDisplayed ) {
+   if( m_bSuggestionDisplayed ) 
+   {
       if( ch == '\t' ) {
          USES_CONVERSION;
          long lPos = GetCurrentPos();
@@ -790,15 +792,16 @@ void CScintillaView::_MaintainTags(CHAR ch)
 
    // Special rules before comments
 
-   if( ch == '\n' ) {
+   if( ch == '\n' ) 
+   {
+      int iLineNum = LineFromPosition(lPosition);
+      if( iLineNum == 0 ) return;
+      CHAR szText[30] = { 0 };
+      if( GetLineLength(iLineNum - 1) >= sizeof(szText) - 1 ) return;
+      GetLine(iLineNum - 1, szText);
       //
       // Automatically close JavaDoc-style comments
-      //
-      int iLine = LineFromPosition(lPosition);
-      if( iLine == 0 ) return;
-      CHAR szText[30] = { 0 };
-      if( GetLineLength(iLine - 1) >= sizeof(szText) - 1 ) return;
-      GetLine(iLine - 1, szText);
+      //     
       CString sText = szText;
       sText.TrimLeft();
       sText.TrimRight(_T("\r\n"));
@@ -806,8 +809,8 @@ void CScintillaView::_MaintainTags(CHAR ch)
       {
          BeginUndoAction();
          ReplaceSel("* \r\n*/");
-         _SetLineIndentation(iLine, GetLineIndentation(iLine - 1) + 1);
-         _SetLineIndentation(iLine + 1, GetLineIndentation(iLine - 1) + 1);
+         _SetLineIndentation(iLineNum, GetLineIndentation(iLineNum - 1) + 1);
+         _SetLineIndentation(iLineNum + 1, GetLineIndentation(iLineNum - 1) + 1);
          LineUp();
          LineEnd();
          EndUndoAction();
@@ -816,13 +819,15 @@ void CScintillaView::_MaintainTags(CHAR ch)
       //
       // Trim empty line
       //
+      sText = szText;
+      sText.TrimRight(_T("\r\n"));
       if( !sText.IsEmpty() ) 
       {
          // Line was not empty; let's see when we trim the string...
          sText.TrimLeft();
          if( sText.IsEmpty() ) {
-            int iStart = PositionFromLine(iLine - 1);
-            int iLength = GetLineLength(iLine - 1);
+            int iStart = PositionFromLine(iLineNum - 1);
+            int iLength = GetLineLength(iLineNum - 1);
             if( iLength > 0 ) {
                BeginUndoAction();
                SetSel(iStart, iStart + iLength);
@@ -880,10 +885,10 @@ void CScintillaView::_MaintainTags(CHAR ch)
       // Auto-close braces in C-like languages
       //
       // Grab current line for inspection
-      int iLine = LineFromPosition(lPosition);
+      int iLineNum = LineFromPosition(lPosition);
       CHAR szText[256] = { 0 };
-      if( GetLineLength(iLine) >= sizeof(szText) - 1 ) return;
-      GetLine(iLine, szText);
+      if( GetLineLength(iLineNum) >= sizeof(szText) - 1 ) return;
+      GetLine(iLineNum, szText);
       CString sText = szText;
       sText.TrimLeft();
       sText.TrimRight();
@@ -892,8 +897,8 @@ void CScintillaView::_MaintainTags(CHAR ch)
          BeginUndoAction();
          ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n\r\n}" : "\n\n}");
          SetSel(lPosition, lPosition);
-         _SetLineIndentation(iLine + 1, GetLineIndentation(iLine) + GetIndent());
-         _SetLineIndentation(iLine + 2, GetLineIndentation(iLine));
+         _SetLineIndentation(iLineNum + 1, GetLineIndentation(iLineNum) + GetIndent());
+         _SetLineIndentation(iLineNum + 2, GetLineIndentation(iLineNum));
          LineUp();
          LineEnd();
          EndUndoAction();
@@ -956,13 +961,13 @@ CString CScintillaView::_FindOpenXmlTag(LPCSTR pstrText, int nSize) const
  * The indentation can be a little tricky in Scintilla because if there is a
  * text selection we should try to preserve it after the indent.
  */
-void CScintillaView::_SetLineIndentation(int iLine, int iIndent)
+void CScintillaView::_SetLineIndentation(int iLineNum, int iIndent)
 {
    if( iIndent < 0 ) return;
    CharacterRange cr = GetSelection();
-   int posBefore = GetLineIndentPosition(iLine);
-   SetLineIndentation(iLine, iIndent);
-   int posAfter = GetLineIndentPosition(iLine);
+   int posBefore = GetLineIndentPosition(iLineNum);
+   SetLineIndentation(iLineNum, iIndent);
+   int posAfter = GetLineIndentPosition(iLineNum);
    int posDifference = posAfter - posBefore;
    if( posAfter >= posBefore ) {
       // Move selection forward
@@ -1083,11 +1088,11 @@ CString CScintillaView::_GetNearText(long lPosition)
 {
    // Get the "word" text under the caret
    if( lPosition < 0 ) return _T("");
-   int iLine = LineFromPosition(lPosition);
+   int iLineNum = LineFromPosition(lPosition);
    CHAR szText[256] = { 0 };
-   if( GetLineLength(iLine) >= sizeof(szText) ) return _T("");
-   GetLine(iLine, szText);
-   int iStart = lPosition - PositionFromLine(iLine);
+   if( GetLineLength(iLineNum) >= sizeof(szText) ) return _T("");
+   GetLine(iLineNum, szText);
+   int iStart = lPosition - PositionFromLine(iLineNum);
    while( iStart > 0 && _iseditchar(szText[iStart - 1]) ) iStart--;
    if( !_iseditchar(szText[iStart]) ) return _T("");
    if( isdigit(szText[iStart]) ) return _T("");
@@ -1216,7 +1221,7 @@ bool CScintillaView::_IsValidInsertPos(long lPos) const
 
 bool CScintillaView::_iseditchar(char ch) const
 {
-   return isalnum(ch) || ch == '_' || ch == '$';
+   return isalnum(ch) || ch == '_' || ch == '$' || ch == '~';
 }
 
 

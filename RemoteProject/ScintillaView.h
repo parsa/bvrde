@@ -90,6 +90,7 @@ public:
    BOOL Init(CRemoteProject* pCppProject, IProject* pProject, IView* pView, LPCTSTR pstrFilename, LPCTSTR pstrLanguage);
    BOOL GetText(LPSTR& pstrText);
    BOOL SetText(LPCSTR pstrText);
+   int FindText(UINT iFlags, LPCTSTR pstrText, bool bShowWarnings);
 
    // Message map and handlers
 
@@ -173,7 +174,6 @@ public:
    bool _HasSelection() const;
    bool _IsRealCppEditPos(long lPos) const;
    int _CountCommas(LPCTSTR pstrText) const;
-   int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings);
    void _ShowToolTip(long lPos, CString sText, bool bAdjustPos, bool bAcceptTimeout, COLORREF clrText, COLORREF clrBack);
    void _ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCurTip, bool bFilterMembers, bool bExpand, bool bAdjustPos, bool bAcceptTimeout, COLORREF clrBack, COLORREF clrText);
    bool _GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMODE Mode = MATCH_NORMAL);

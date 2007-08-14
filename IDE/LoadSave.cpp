@@ -238,6 +238,14 @@ bool CMainFrame::_LoadSettings(CXmlSerializer& arc)
          _AddProperty(&arc, _T("caretWidth"), sKey + _T("caretWidth"));
       }
 
+      if( arc.ReadItem(_T("Folding")) ) {
+         sKey = _T("editors.folding.");
+         _AddProperty(&arc, _T("compact"), sKey + _T("compact"));
+         _AddProperty(&arc, _T("atComment"), sKey + _T("atComment"));
+         _AddProperty(&arc, _T("atElse"), sKey + _T("atElse"));
+         _AddProperty(&arc, _T("atPreprocessor"), sKey + _T("atPreprocessor"));
+      }
+
       // BUG: Design-flaw: All editor properties must be declared here
       //      even for custom projects/pages.
       // TODO: Route loading to generic algorithm or propagate to plugins.
@@ -318,26 +326,38 @@ bool CMainFrame::_LoadSettings(CXmlSerializer& arc)
    if( arc.ReadGroupBegin(_T("SourceControl")) ) 
    {
       _AddProperty(&arc, _T("type"), _T("sourcecontrol.type"));
-      _AddProperty(&arc, _T("output"), _T("sourcecontrol.output"));
       _AddProperty(&arc, _T("enable"), _T("sourcecontrol.enable"));
-      _AddProperty(&arc, _T("program"), _T("sourcecontrol.program"));
-      _AddProperty(&arc, _T("checkin"), _T("sourcecontrol.cmd.checkin"));
-      _AddProperty(&arc, _T("checkout"), _T("sourcecontrol.cmd.checkout"));
-      _AddProperty(&arc, _T("update"), _T("sourcecontrol.cmd.update"));
-      _AddProperty(&arc, _T("addfile"), _T("sourcecontrol.cmd.addfile"));
-      _AddProperty(&arc, _T("removefile"), _T("sourcecontrol.cmd.removefile"));
-      _AddProperty(&arc, _T("status"), _T("sourcecontrol.cmd.status"));
-      _AddProperty(&arc, _T("diff"), _T("sourcecontrol.cmd.diff"));
-      _AddProperty(&arc, _T("login"), _T("sourcecontrol.cmd.login"));
-      _AddProperty(&arc, _T("logout"), _T("sourcecontrol.cmd.logout"));
-      _AddProperty(&arc, _T("message"), _T("sourcecontrol.opt.message"));
-      _AddProperty(&arc, _T("recursive"), _T("sourcecontrol.opt.recursive"));
-      _AddProperty(&arc, _T("sticky"), _T("sourcecontrol.opt.sticky"));
-      _AddProperty(&arc, _T("updatedirs"), _T("sourcecontrol.opt.updatedirs"));
-      _AddProperty(&arc, _T("branch"), _T("sourcecontrol.opt.branch"));
-      _AddProperty(&arc, _T("general"), _T("sourcecontrol.opt.general"));
-      _AddProperty(&arc, _T("browseAll"), _T("sourcecontrol.browse.all"));
-      _AddProperty(&arc, _T("browseSingle"), _T("sourcecontrol.browse.single"));
+      if( arc.ReadGroupBegin(_T("Settings")) ) 
+      {
+         _AddProperty(&arc, _T("output"), _T("sourcecontrol.output"));
+         _AddProperty(&arc, _T("program"), _T("sourcecontrol.program"));
+         _AddProperty(&arc, _T("checkin"), _T("sourcecontrol.cmd.checkin"));
+         _AddProperty(&arc, _T("checkout"), _T("sourcecontrol.cmd.checkout"));
+         _AddProperty(&arc, _T("update"), _T("sourcecontrol.cmd.update"));
+         _AddProperty(&arc, _T("addfile"), _T("sourcecontrol.cmd.addfile"));
+         _AddProperty(&arc, _T("removefile"), _T("sourcecontrol.cmd.removefile"));
+         _AddProperty(&arc, _T("status"), _T("sourcecontrol.cmd.status"));
+         _AddProperty(&arc, _T("diff"), _T("sourcecontrol.cmd.diff"));
+         _AddProperty(&arc, _T("login"), _T("sourcecontrol.cmd.login"));
+         _AddProperty(&arc, _T("logout"), _T("sourcecontrol.cmd.logout"));
+         _AddProperty(&arc, _T("message"), _T("sourcecontrol.opt.message"));
+         _AddProperty(&arc, _T("recursive"), _T("sourcecontrol.opt.recursive"));
+         _AddProperty(&arc, _T("sticky"), _T("sourcecontrol.opt.sticky"));
+         _AddProperty(&arc, _T("updatedirs"), _T("sourcecontrol.opt.updatedirs"));
+         _AddProperty(&arc, _T("branch"), _T("sourcecontrol.opt.branch"));
+         _AddProperty(&arc, _T("general"), _T("sourcecontrol.opt.general"));
+         _AddProperty(&arc, _T("browseAll"), _T("sourcecontrol.browse.all"));
+         _AddProperty(&arc, _T("browseSingle"), _T("sourcecontrol.browse.single"));
+         arc.ReadGroupEnd();
+      }
+      if( arc.ReadGroupBegin(_T("DiffView")) ) 
+      {
+         _AddProperty(&arc, _T("font"), _T("sourcecontrol.diffview.font"));
+         _AddProperty(&arc, _T("fontsize"), _T("sourcecontrol.diffview.fontsize"));
+         _AddProperty(&arc, _T("wordwrap"), _T("sourcecontrol.diffview.wordwrap"));
+         _AddProperty(&arc, _T("listUnchanged"), _T("sourcecontrol.diffview.listUnchanged"));
+         arc.ReadGroupEnd();
+      }
       arc.ReadGroupEnd();
    }
 
@@ -536,8 +556,9 @@ void CMainFrame::_AddProperty(ISerializable* pArc, LPCTSTR pstrAttribute, LPCTST
    ATLASSERT(!::IsBadStringPtr(pstrAttribute,-1));
    ATLASSERT(!::IsBadStringPtr(pstrKey,-1));
    ATLASSERT(pArc);
-   static TCHAR szValue[2048] = { 0 };
+   TCHAR szValue[2048];
    szValue[0] = '\0';
+   szValue[2047] = '\0';
    pArc->Read(pstrAttribute, szValue, 2047);
    SetProperty(pstrKey, szValue);
 }

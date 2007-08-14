@@ -160,6 +160,14 @@ SOURCE=..\Source\CPP\Include\Thread.h
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=..\Source\WTL\Controls\ColorCombo.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\WTL\Controls\FontCombo.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\Source\WTL\Controls\MruCombo.h
 # End Source File
 # Begin Source File
@@ -242,6 +250,10 @@ SOURCE=.\WizardSheet.h
 # Begin Source File
 
 SOURCE=.\Res\diff.htm
+# End Source File
+# Begin Source File
+
+SOURCE=.\overlay.bmp
 # End Source File
 # End Group
 # End Target

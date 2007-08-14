@@ -445,12 +445,12 @@ BEGIN
     PUSHBUTTON      "",IDC_REFRESH,226,3,15,15,BS_ICON
 END
 
-IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
+IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Integration",-1,0,0,38,9
-    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,46,4,212,1
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,41,4,216,1
     CONTROL         "Keine Datentips anzeigen",IDC_NOTIPS,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,125,10,
                     WS_EX_TRANSPARENT
@@ -473,7 +473,7 @@ BEGIN
                     IDC_BREAKPOINTLINES,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
                     WS_TABSTOP,14,81,156,10,WS_EX_TRANSPARENT
     LTEXT           "Tag Support",-1,0,98,43,9
-    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,49,102,208,1
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,44,102,213,1
     CONTROL         "Verwende Autovervollständigungs Erweiterung",
                     IDC_AUTOCOMPLETE,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
                     WS_TABSTOP,14,112,166,10,WS_EX_TRANSPARENT
@@ -1746,9 +1746,9 @@ BEGIN
                     IDC_SUBNOTE,7,67,204,20,SS_NOPREFIX,WS_EX_TRANSPARENT
 END
 
-IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 263, 153
+IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Integration",-1,0,0,38,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,46,4,212,1
@@ -2555,7 +2555,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_MENU_OPENINCLUDE    "Open ""%s"""
-    IDS_MENU_OPENDECLARATION "Go to declaration ""%s"""
+    IDS_MENU_OPENDECLARATION "Go to declaration of ""%s"""
     IDS_CAPTION_DEBUGOUTPUT "Console Output"
     IDS_MISC_SEARCHPATH     "Search Path"
     IDS_COMMAND_ARGS        "Debugger Args"
@@ -2565,7 +2565,7 @@ BEGIN
     IDS_LOG_COMSPEC         "Unable to start local command line utility."
     IDS_COMSPEC             "Local / MinGW"
     IDS_LOG_GDBSTOP         "Failed. The GDB debugger is not able to set new breakpoint."
-    IDS_MENU_OPENIMPLEMENTATION "Go to implementation ""%s"""
+    IDS_MENU_OPENIMPLEMENTATION "Go to implementation of ""%s"""
     IDS_ERR_DEBUGPRIV       "No Debug Priviledges\nYou account may not be able to debug\nYou Windows user account does not seem to have sufficient DEBUG priviledges. Please contact you System Administrator."
     IDS_STATUS_DEBUG_NOSOURCE_FUNCTION 
                             " Stopped outside source scope (at '%s')..."

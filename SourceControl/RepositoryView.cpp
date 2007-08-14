@@ -20,15 +20,16 @@ void CFileEnumThread::RunCommand(HWND hWnd, LPCTSTR pstrCommand, LONG lTimeout)
    m_sCommand = pstrCommand;
    m_lTimeout = lTimeout;
    // Figure out which source control product we'll meet
-   TCHAR szCommand[200] = { 0 };
-   _pDevEnv->GetProperty(_T("sourcecontrol.type"), szCommand, 199);
+   TCHAR szCommand[128] = { 0 };
+   _pDevEnv->GetProperty(_T("sourcecontrol.type"), szCommand, 127);
    m_sSourceType = szCommand;
+   // Run the thread...
    Start();
 }
 
 DWORD CFileEnumThread::Run()
 {
-   ::SetThreadLocale(_pDevEnv->GetLCID());
+   _pDevEnv->SetThreadLanguage();
 
    CCoInitialize cominit;
 
@@ -36,7 +37,10 @@ DWORD CFileEnumThread::Run()
    ISolution* pSolution = _pDevEnv->GetSolution();
    if( pSolution == NULL ) return 0;
    IProject* pProject = pSolution->GetActiveProject();
-   if( pProject == NULL ) return 0;
+   if( pProject == NULL ) {
+      ::PostMessage(m_hWnd, WM_APP_ENUMFAILED, 0, 0L);
+      return 0;
+   }
    IDispatch* pDisp = pProject->GetDispatch();   
    CComDispatchDriver dd = pDisp;
    CComVariant vRet;
@@ -100,6 +104,7 @@ HRESULT CFileEnumThread::_ParseCvsLine(BSTR bstr)
    p = wcsstr(bstr, L"Status: ");
    if( p != NULL ) {
       m_Info.sStatus = p + 8;
+      m_Info.sStatus.TrimRight();
    }
    p = wcsstr(bstr, L"Working revision: ");
    if( p != NULL ) {
@@ -107,6 +112,7 @@ HRESULT CFileEnumThread::_ParseCvsLine(BSTR bstr)
       p += 18;
       while( *p == ' ' ) p++;
       while( *p != '\0' && *p != ' ' ) m_Info.sVersion += *p++;
+      m_Info.sVersion.TrimRight();
    }
    return S_OK;
 }
@@ -227,7 +233,7 @@ LRESULT CRepositoryView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 {
    SetFont(AtlGetDefaultGuiFont());
 
-   // Create controls
+   // Create controls...
    DWORD dwStyle;
    dwStyle = TVS_HASBUTTONS | TVS_INFOTIP | TVS_HASLINES | TVS_SHOWSELALWAYS | WS_CHILD | WS_VISIBLE | WS_TABSTOP;
    m_ctrlFolders.Create(m_hWnd, rcDefault, NULL, dwStyle, WS_EX_CLIENTEDGE, IDC_SFOLDERS);
@@ -242,6 +248,7 @@ LRESULT CRepositoryView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    int nSmallCx = ::GetSystemMetrics(SM_CXSMICON);
    int nSmallCy = ::GetSystemMetrics(SM_CYSMICON);
 
+   // Generate file images...
    if( !m_FolderImages.IsNull() ) m_FolderImages.Destroy();
    m_FolderImages.Create(nSmallCx, nSmallCy, ILC_COLOR32 | ILC_MASK, 4, 0);
    if( m_FolderImages.IsNull() ) return -1;
@@ -250,15 +257,23 @@ LRESULT CRepositoryView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    _AddShellIcon(m_FolderImages, _T("C:\\"), 0UL);
    m_ctrlFolders.SetImageList(m_FolderImages, TVSIL_NORMAL);
 
-   if( !m_FileImages.IsNull() ) m_FolderImages.Destroy();
+   if( !m_FileImages.IsNull() ) m_FileImages.Destroy();
    m_FileImages.Create(nSmallCx, nSmallCy, ILC_COLOR32 | ILC_MASK, 8, 0);
    if( m_FileImages.IsNull() ) return -1;
    _AddShellIcon(m_FileImages, _T(".tmp"), FILE_ATTRIBUTE_NORMAL);
    m_ctrlFiles.SetImageList(m_FileImages, LVSIL_SMALL);
 
+   if( m_OverlayImages.IsNull() ) m_OverlayImages.Create(IDB_OVERLAY, 16, 0, RGB(255,255,255));
+   m_FileImages.AddIcon(m_OverlayImages.GetIcon(0, ILD_TRANSPARENT));
+   m_FileImages.AddIcon(m_OverlayImages.GetIcon(1, ILD_TRANSPARENT));
+   m_FileImages.AddIcon(m_OverlayImages.GetIcon(2, ILD_TRANSPARENT));
+   m_FileImages.SetOverlayImage(1, 1);
+   m_FileImages.SetOverlayImage(2, 2);
+   m_FileImages.SetOverlayImage(3, 3);
+
    // Prepare ListView
    TCHAR szTitle[128] = { 0 };
-   ::LoadString(_Module.GetResourceInstance(), IDS_FILES, szTitle, 127);
+   AtlLoadString(IDS_FILES, szTitle, 127);
    m_ctrlFiles.InsertColumn(0, szTitle, LVCFMT_LEFT, 200, 0);
 
    m_clrWarning = RGB(0,0,200);
@@ -295,10 +310,23 @@ LRESULT CRepositoryView::OnViewOpens(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    // Show idle message
    if( m_thread.m_aResult.GetSize() == 0 ) _ShowWaitingMessage(IDS_BUILDING, RGB(0,0,200));
    // Build entire structure
+   TCHAR szProgram[200] = { 0 };
    TCHAR szCommand[200] = { 0 };
+   _pDevEnv->GetProperty(_T("sourcecontrol.program"), szProgram, 199);
    _pDevEnv->GetProperty(_T("sourcecontrol.browse.all"), szCommand, 199);
-   if( _tcslen(szCommand) == 0 ) _ShowWaitingMessage(IDS_NOTCONFIGURED, RGB(200,0,0));
-   m_thread.RunCommand(m_hWnd, szCommand, 8000L);
+   if( _tcslen(szCommand) == 0 ) {
+      _ShowWaitingMessage(IDS_NOTCONFIGURED, RGB(200,0,0));
+      return 0;
+   }
+   CString sCommand;
+   sCommand.Format(_T("%s %s"), szProgram, szCommand);
+   m_thread.RunCommand(m_hWnd, sCommand, 8000L);
+   return 0;
+}
+
+LRESULT CRepositoryView::OnFileEnumFailed(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   _ShowWaitingMessage(IDS_NOPROJECT, RGB(200,0,0));
    return 0;
 }
 
@@ -311,6 +339,7 @@ LRESULT CRepositoryView::OnFileEnumDone(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    CWindowRedraw files = m_ctrlFiles;
    CWindowRedraw folders = m_ctrlFolders;
 
+   // The root item is the source control system's name
    if( m_ctrlFolders.GetRootItem() == NULL ) {
       TCHAR szType[128] = { 0 };
       _pDevEnv->GetProperty(_T("sourcecontrol.type"), szType, 127);
@@ -320,7 +349,9 @@ LRESULT CRepositoryView::OnFileEnumDone(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    m_ctrlFiles.DeleteAllItems();
 
    for( int i = 0; i < m_thread.m_aResult.GetSize(); i++ ) {
-      CString sFilename = m_thread.m_aResult[i].sFilename;
+      const FILEINFO& Info = m_thread.m_aResult[i];
+      CString sFilename = Info.sFilename;
+      CString sStatus = Info.sStatus;
       // Take the return string, muffle it from C:\temp\... to /temp/...
       // and build the tree structure. We're adding nodes to the tree always.
       sFilename.Replace('\\', '/');
@@ -336,8 +367,20 @@ LRESULT CRepositoryView::OnFileEnumDone(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
             CString sPath = _GetItemPath(hParent);
             if( m_sSelPath.IsEmpty() ) m_sSelPath = sPath;
             if( sPath != m_sSelPath ) continue;
-            int iItem = m_ctrlFiles.InsertItem(LVIF_TEXT | LVIF_IMAGE, m_ctrlFiles.GetItemCount(), sPart, 0, 0, 0, 0L);
-            m_ctrlFiles.SetItemData(iItem, i);
+            int iImage = 0;
+            int iOverlay = 0;
+            if( sStatus.Find(_T("Modified")) >= 0 )    iOverlay = 1;
+            if( sStatus.Find(_T("Patch")) >= 0 )       iOverlay = 2;
+            if( sStatus.Find(_T("Out-of-date")) >= 0 ) iOverlay = 2;
+            if( sStatus.Find(_T("Conflict")) >= 0 )    iOverlay = 3;
+            if( sStatus.Find(_T("Deleted")) >= 0 )     iOverlay = 3;
+            UINT uState = INDEXTOOVERLAYMASK(iOverlay);
+            m_ctrlFiles.InsertItem(LVIF_TEXT | LVIF_IMAGE | LVIF_STATE | LVIF_PARAM, 
+               m_ctrlFiles.GetItemCount(), 
+               sPart, 
+               uState, LVIS_OVERLAYMASK, 
+               iImage, 
+               (LPARAM) i);
             m_ctrlFolders.Expand(hParent);
             m_ctrlFolders.SelectItem(hParent);
          }
@@ -363,9 +406,12 @@ LRESULT CRepositoryView::OnSelChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
    CWaitCursor cursor;
    m_ctrlFiles.DeleteAllItems();
    m_sSelPath = sPath;
+   TCHAR szProgram[200] = { 0 };
    TCHAR szCommand[200] = { 0 };
+   _pDevEnv->GetProperty(_T("sourcecontrol.program"), szProgram, 199);
    _pDevEnv->GetProperty(_T("sourcecontrol.browse.single"), szCommand, 199);
-   CString sCommand = szCommand;
+   CString sCommand;
+   sCommand.Format(_T("%s %s"), szProgram, szCommand);
    sCommand.Replace(_T("$PATH$"), m_sSelPath);
    m_thread.RunCommand(m_hWnd, sCommand, 1000L);
    return 0;
@@ -405,9 +451,20 @@ LRESULT CRepositoryView::OnListSelected(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& 
    if( iIndex < 0 ) return 0;
    int iItem = m_ctrlFiles.GetItemData(iIndex);
    if( iItem >= m_thread.m_aResult.GetSize() ) return 0;
-   FILEINFO info = m_thread.m_aResult[iItem];
-   CTagElement prop = &info;
+   FILEINFO Info = m_thread.m_aResult[iItem];
+   CTagElement prop = &Info;
    _pDevEnv->ShowProperties(&prop, FALSE);
+   return 0;
+}
+
+LRESULT CRepositoryView::OnListDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+{
+   int iIndex = m_ctrlFiles.GetSelectedIndex();
+   if( iIndex < 0 ) return 0;
+   int iItem = m_ctrlFiles.GetItemData(iIndex);
+   if( iItem >= m_thread.m_aResult.GetSize() ) return 0;
+   FILEINFO Info = m_thread.m_aResult[iItem];
+   _pDevEnv->CreateView(Info.sFilename);
    return 0;
 }
 
@@ -457,7 +514,7 @@ void CRepositoryView::_ShowWaitingMessage(UINT nRes, COLORREF clrText)
    m_ctrlFolders.DeleteAllItems();
    m_ctrlFiles.DeleteAllItems();
    m_ctrlBuilding.SetWindowText(CString(MAKEINTRESOURCE(nRes)));
-   m_ctrlBuilding.ShowWindow(SW_SHOW);
+   m_ctrlBuilding.ShowWindow(SW_SHOWNOACTIVATE);
    m_ctrlBuilding.Invalidate();
 }
 

@@ -23,7 +23,7 @@ DWORD CSshThread::Run()
    ATLASSERT(m_pManager);
    ATLASSERT(m_pCallback);
 
-   ::SetThreadLocale(_pDevEnv->GetLCID());
+   _pDevEnv->SetThreadLanguage();
 
    CRYPT_SESSION& cryptSession = (CRYPT_SESSION&) m_pManager->m_cryptSession;
    ATLASSERT(cryptSession==0);

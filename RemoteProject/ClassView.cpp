@@ -14,9 +14,9 @@
 class CTagElement : public IElement
 {
 public:
-   TAGINFO* m_pTag;
+   CTagDetails Info;
 
-   CTagElement(TAGINFO* pTag) : m_pTag(pTag) 
+   CTagElement(const CTagDetails& Tag) : Info(Tag) 
    {
    }
    BOOL Load(ISerializable* /*pArc*/)
@@ -25,28 +25,27 @@ public:
    }
    BOOL Save(ISerializable* pArc)
    {
-      ATLASSERT(!::IsBadReadPtr(m_pTag,sizeof(TAGINFO)));
-      if( m_pTag == NULL ) return FALSE;
       CString sKind(MAKEINTRESOURCE(IDS_UNKNOWN));
-      if( m_pTag->Type == TAGTYPE_CLASS ) sKind.LoadString(IDS_CLASS);
-      else if( m_pTag->Type == TAGTYPE_FUNCTION ) sKind.LoadString(IDS_FUNCTION);
-      else if( m_pTag->Type == TAGTYPE_STRUCT ) sKind.LoadString(IDS_STRUCT);
-      else if( m_pTag->Type == TAGTYPE_MEMBER ) sKind.LoadString(IDS_MEMBER);
-      else if( m_pTag->Type == TAGTYPE_DEFINE ) sKind.LoadString(IDS_DEFINE);
-      else if( m_pTag->Type == TAGTYPE_TYPEDEF ) sKind.LoadString(IDS_TYPEDEF);
-      else if( m_pTag->Type == TAGTYPE_ENUM ) sKind.LoadString(IDS_ENUM);
-      else if( m_pTag->Type == TAGTYPE_IMPLEMENTATION ) sKind.LoadString(IDS_FUNCTION);
-      pArc->Write(_T("name"), m_pTag->pstrName);
+      switch( Info.TagType ) {
+      case TAGTYPE_CLASS:          sKind.LoadString(IDS_CLASS); break;
+      case TAGTYPE_FUNCTION:       sKind.LoadString(IDS_FUNCTION); break;
+      case TAGTYPE_STRUCT:         sKind.LoadString(IDS_STRUCT); break;
+      case TAGTYPE_MEMBER:         sKind.LoadString(IDS_MEMBER); break;
+      case TAGTYPE_DEFINE:         sKind.LoadString(IDS_DEFINE); break;
+      case TAGTYPE_TYPEDEF:        sKind.LoadString(IDS_TYPEDEF); break;
+      case TAGTYPE_ENUM:           sKind.LoadString(IDS_ENUM); break;
+      case TAGTYPE_IMPLEMENTATION: sKind.LoadString(IDS_FUNCTION); break;
+      }
+      pArc->Write(_T("name"), Info.sName);
       pArc->Write(_T("type"), _T("Tag"));
-      pArc->Write(_T("filename"), m_pTag->pstrFile);
+      pArc->Write(_T("filename"), Info.sFilename);
       pArc->Write(_T("kind"), sKind);
-      pArc->Write(_T("match"), m_pTag->pstrDeclaration);
+      pArc->Write(_T("match"), Info.sRegExMatch.IsEmpty() ? Info.sDeclaration : Info.sRegExMatch);
       return TRUE;
    }
    BOOL GetName(LPTSTR pstrName, UINT cchMax) const
    {
-      if( m_pTag == NULL ) return FALSE;
-      return _tcsncpy(pstrName, m_pTag->pstrName, cchMax) > 0;
+      return _tcsncpy(pstrName, Info.sName, cchMax) > 0;
    }
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const
    {
@@ -70,7 +69,6 @@ public:
 CClassView::CClassView() :
    m_ctrlTree(this, 1),
    m_pProject(NULL), 
-   m_pCurrentTag(NULL),
    m_pCurrentHover(NULL),
    m_bMouseTracked(false),
    m_bPopulated(false), 
@@ -213,8 +211,12 @@ LRESULT CClassView::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
    if( m_ctrlTree.GetParentItem(hItem) == NULL ) return 0;
    TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(hItem);
    if( pTag == NULL ) return 0;
-   if( _GetImplementationRef(pTag, m_ImplTag) ) m_pProject->m_TagManager.OpenTagInView(m_ImplTag);
-   else m_pProject->m_TagManager.OpenTagInView(pTag);
+   CTagDetails Current;
+   CTagDetails ImplTag;
+   m_pProject->m_TagManager.GetItemInfo(pTag, Current);
+   _GetImplementationRef(Current, ImplTag);
+   if( !ImplTag.sName.IsEmpty() ) m_pProject->m_TagManager.OpenTagInView(ImplTag);
+   else m_pProject->m_TagManager.OpenTagInView(Current);
    return 0;
 }
 
@@ -225,7 +227,9 @@ LRESULT CClassView::OnTreeSelChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    if( lpNMTV->itemNew.hItem == NULL ) return 0;
    TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(lpNMTV->itemNew.hItem);
    if( pTag == NULL ) return 0;
-   CTagElement prop = pTag;
+   CTagDetails Info;
+   m_pProject->m_TagManager.GetItemInfo(pTag, Info);
+   CTagElement prop = Info;
    _pDevEnv->ShowProperties(&prop, FALSE);
    return 0;
 }
@@ -238,9 +242,14 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
    POINT ptClient = ptPos;
    ScreenToClient(&ptClient);
    HTREEITEM hItem = m_ctrlTree.HitTest(ptClient, NULL);
-   m_pCurrentTag = hItem == NULL ? NULL : (TAGINFO*) m_ctrlTree.GetItemData(hItem);
-   _GetImplementationRef(m_pCurrentTag, m_ImplTag);
-   // Load and show menu
+   // In case we clicked on a tree-item we'll lookup information
+   // about the tag and its implementation status
+   TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(hItem);
+   CTagDetails Info;
+   m_pProject->m_TagManager.GetItemInfo(pTag, Info);
+   m_SelectedTag = Info;
+   _GetImplementationRef(m_SelectedTag, m_SelectedImpl);
+   // Load and show menu...
    CMenu menu;
    menu.LoadMenu(hItem != NULL ? IDR_CLASSTREE_ITEM : IDR_CLASSTREE);
    CMenuHandle submenu = menu.GetSubMenu(0);
@@ -267,12 +276,12 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
       break;
    case ID_CLASSVIEW_GOTODECL:
       {
-         m_pProject->m_TagManager.OpenTagInView(m_pCurrentTag);
+         m_pProject->m_TagManager.OpenTagInView(m_SelectedTag);
       }
       break;
    case ID_CLASSVIEW_GOTOIMPL:
       {
-         m_pProject->m_TagManager.OpenTagInView(m_ImplTag);
+         m_pProject->m_TagManager.OpenTagInView(m_SelectedImpl);
       }
       break;
    case ID_CLASSVIEW_COPY:
@@ -284,7 +293,7 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
       break;
    case ID_CLASSVIEW_PROPERTIES:
       {
-         CTagElement prop = m_pCurrentTag;
+         CTagElement prop = m_SelectedTag;
          _pDevEnv->ShowProperties(&prop, TRUE);
       }
       break;
@@ -294,10 +303,10 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
 
 LRESULT CClassView::OnTreeBeginDrag(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
+   USES_CONVERSION;
    LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
    CString sText;
    m_ctrlTree.GetItemText(lpNMTV->itemNew.hItem, sText);
-   USES_CONVERSION;
    CComObject<CSimpleDataObj>* pObj = NULL;
    if( FAILED( CComObject<CSimpleDataObj>::CreateInstance(&pObj) ) ) return 0;
    if( FAILED( pObj->SetTextData(T2CA(sText)) ) ) return 0;
@@ -407,6 +416,8 @@ LRESULT CClassView::OnMouseMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 
 LRESULT CClassView::OnMouseHover(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+   // Check if the tree-item below cursor changed; we may want to
+   // display a tooltip below the cursor.
    POINT pt = { 0 };
    ::GetCursorPos(&pt);
    POINT ptLocal = pt;
@@ -419,10 +430,14 @@ LRESULT CClassView::OnMouseHover(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
    if( pTag == NULL ) return m_ctrlTree.SendMessage(WM_MOUSELEAVE);
    if( m_pCurrentHover == pTag ) return 0;
    if( !m_ctrlHoverTip.IsWindow() ) m_ctrlHoverTip.Create(m_ctrlTree, ::GetSysColor(COLOR_INFOBK));
+   // Position, resize and show the tooltip
    m_ctrlHoverTip.ShowWindow(SW_HIDE);
-   while( pt.x + 200 > ::GetSystemMetrics(SM_CXSCREEN) ) pt.x -= 50;
-   m_ctrlHoverTip.MoveWindow(pt.x, pt.y + 40, 200, 40);
-   m_ctrlHoverTip.ShowItem(pTag->pstrName, pTag->pstrDeclaration, pTag->pstrComment);
+   const INT TOOLTIP_WIDTH = 260;
+   while( pt.x + TOOLTIP_WIDTH > ::GetSystemMetrics(SM_CXSCREEN) ) pt.x -= 30;
+   m_ctrlHoverTip.MoveWindow(pt.x, pt.y + 40, TOOLTIP_WIDTH, 40);
+   CTagDetails Info;
+   m_pProject->m_TagManager.GetItemInfo(pTag, Info);
+   m_ctrlHoverTip.ShowItem(Info.sName, Info.sDeclaration, Info.sComment);
    m_pCurrentHover = pTag;
    return 0;
 }
@@ -446,13 +461,15 @@ LRESULT CClassView::OnRequestResize(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandl
 
 void CClassView::OnIdle(IUpdateUI* pUIBase)
 {   
+   BOOL bTagIsSelected = !m_SelectedTag.sName.IsEmpty();
+
    TCHAR szSortValue[32] = { 0 };
    _pDevEnv->GetProperty(_T("window.classview.sort"), szSortValue, 31);
 
-   pUIBase->UIEnable(ID_CLASSVIEW_GOTODECL, m_pCurrentTag != NULL && m_pProject->FindView(m_pCurrentTag->pstrFile) != NULL);
-   pUIBase->UIEnable(ID_CLASSVIEW_GOTOIMPL, m_pCurrentTag != NULL && !m_ImplTag.sName.IsEmpty());
-   pUIBase->UIEnable(ID_CLASSVIEW_COPY, m_pCurrentTag != NULL);
-   pUIBase->UIEnable(ID_CLASSVIEW_PROPERTIES, m_pCurrentTag != NULL);
+   pUIBase->UIEnable(ID_CLASSVIEW_GOTODECL, bTagIsSelected && m_pProject->FindView(m_SelectedTag.sFilename) != NULL);
+   pUIBase->UIEnable(ID_CLASSVIEW_GOTOIMPL, bTagIsSelected && !m_SelectedImpl.sName.IsEmpty());
+   pUIBase->UIEnable(ID_CLASSVIEW_COPY, bTagIsSelected);
+   pUIBase->UIEnable(ID_CLASSVIEW_PROPERTIES,bTagIsSelected);
    pUIBase->UIEnable(ID_CLASSVIEW_SORT_ALPHA, TRUE);
    pUIBase->UIEnable(ID_CLASSVIEW_SORT_TYPE, TRUE);
    pUIBase->UIEnable(ID_CLASSVIEW_SORT_NONE, TRUE);
@@ -533,18 +550,16 @@ void CClassView::_PopulateTree()
    m_aExpandedNames.RemoveAll();
 }
 
-bool CClassView::_GetImplementationRef(TAGINFO* pTag, CTagDetails& Info)
+bool CClassView::_GetImplementationRef(const CTagDetails& Current, CTagDetails& Info)
 {
    Info.sName.Empty();
-   if( pTag == NULL ) return false;
-   CTagDetails Current;
-   m_pProject->m_TagManager.m_LexInfo.GetItemInfo(pTag, Current);
+   if( Current.sName.IsEmpty() ) return false;
    CString sLookupName;
    sLookupName.Format(_T("%s%s%s"), Current.sBase, Current.sBase.IsEmpty() ? _T("") : _T("::"), Current.sName);
    CSimpleValArray<TAGINFO*> aList;
    m_pProject->m_TagManager.FindItem(sLookupName, NULL, false, aList);
    for( int i = 0; i < aList.GetSize(); i++ ) {
-      if( aList[0]->Type == TAGTYPE_IMPLEMENTATION ) {
+      if( aList[i]->Type == TAGTYPE_IMPLEMENTATION ) {
          m_pProject->m_TagManager.GetItemInfo(aList[i], Info);
          return true;
       }

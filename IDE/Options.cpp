@@ -26,6 +26,7 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    static CMappingsOptionsPage s_pageMappings;
    static CAutoTextOptionsPage s_pageAutoText;
    static CEditorsOptionsPage s_pageEditors;
+   static CFoldingOptionsPage s_pageFolding;
    static CColorsOptionsPage s_pageCppColors;
    static CFormattingOptionsPage s_pageCppFormat;
    static CColorsOptionsPage s_pageJavaColors;
@@ -61,6 +62,7 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    static CString sMappings(MAKEINTRESOURCE(IDS_TREE_MAPPINGS));
    static CString sAutoText(MAKEINTRESOURCE(IDS_TREE_AUTOTEXT));
    static CString sDocuments(MAKEINTRESOURCE(IDS_TREE_DOCUMENTS));
+   static CString sFolding(MAKEINTRESOURCE(IDS_TREE_FOLDING));
    static CString sColors(MAKEINTRESOURCE(IDS_TREE_COLORS));
    static CString sFormat(MAKEINTRESOURCE(IDS_TREE_FORMATTING));
 
@@ -82,6 +84,9 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    s_pageEditors.SetTitle((LPCTSTR)sGeneral);
    s_pageEditors.m_pDevEnv = this;
    s_pageEditors.m_pArc = pArc;
+   s_pageFolding.SetTitle((LPCTSTR)sFolding);
+   s_pageFolding.m_pDevEnv = this;
+   s_pageFolding.m_pArc = pArc;
    s_pageCppColors.SetTitle((LPCTSTR)sColors);
    s_pageCppColors.m_sLanguage = _T("cpp");
    s_pageCppColors.m_pDevEnv = this;
@@ -209,6 +214,7 @@ BOOL CMainFrame::OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    CString sEditors(MAKEINTRESOURCE(IDS_TREE_EDITORS));
    pManager->AddWizardGroup(sRoot, sEditors);
    pManager->AddWizardPage(s_pageEditors.IDD, s_pageEditors);
+   pManager->AddWizardPage(s_pageFolding.IDD, s_pageFolding);
    //
    pManager->AddWizardGroup(sEditors, CString(MAKEINTRESOURCE(IDS_TREE_CPP)));
    pManager->AddWizardPage(s_pageCppColors.IDD, s_pageCppColors);

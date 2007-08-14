@@ -98,7 +98,7 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText, DWORD dwTimeout)
    return true;
 }
 
-bool CLexInfo::MergeTree(LPCTSTR pstrFilename, LEXFILE* pFile)
+bool CLexInfo::MergeIntoTree(LPCTSTR pstrFilename, LEXFILE* pFile)
 {
    // Since we're changing the parse data, and the ClassView references
    // this data, we must *lock* it down so it doesn't use the old pointers...
@@ -187,9 +187,10 @@ void CLexInfo::GetItemInfo(const TAGINFO* pTag, CTagDetails& Info)
    Info.Protection = pTag->Protection;
    Info.sBase = pTag->pstrOwner;
    Info.iLineNum = pTag->iLineNum;
+   Info.sNamespace = pTag->pstrNamespace;
+   Info.sRegExMatch = pTag->pstrRegExMatch;
    Info.sDeclaration = pTag->pstrDeclaration;
    Info.sFilename = pTag->pstrFile;
-   Info.sNamespace = pTag->pstrNamespace;
    Info.sComment = pTag->pstrComment;
    Info.sMemberOfScope = _T("");
 }
@@ -434,9 +435,10 @@ LEXFILE* CLexInfo::_ParseFile(LPCTSTR pstrFilename) const
 
    LPCTSTR pstrFile = NULL;
    LPCTSTR pstrNamePart = NULL;
+   static LPCTSTR pstrEmpty = _T("");
 
    while( *p != '\0' ) {
-      TAGINFO info = { TAGTYPE_UNKNOWN, 0 };
+      TAGINFO info;
       if( *p == '#' ) {
          pstrFile = p + 1;
          p = _tcschr(p, '\n');
@@ -447,6 +449,9 @@ LEXFILE* CLexInfo::_ParseFile(LPCTSTR pstrFilename) const
          p++;
       }
       else {
+         info.TagSource = TAGSOURCE_LEX;
+         info.pstrRegExMatch = pstrEmpty;
+         //
          info.pstrName = p;
          p = _tcschr(p, '|');
          if( p == NULL ) break;
@@ -461,6 +466,7 @@ LEXFILE* CLexInfo::_ParseFile(LPCTSTR pstrFilename) const
          case 't': info.Type = TAGTYPE_TYPEDEF; break;
          case 's': info.Type = TAGTYPE_STRUCT; break;
          case 'e': info.Type = TAGTYPE_ENUM; break;
+         case 'n': info.Type = TAGTYPE_NAMESPACE; break;
          case 'x': info.Type = TAGTYPE_IMPLEMENTATION; break;
          default:  info.Type = TAGTYPE_UNKNOWN;
          }

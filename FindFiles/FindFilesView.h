@@ -38,7 +38,7 @@ public:
    DWORD Run()
    {
       ATLASSERT(m_ctrlEdit.IsWindow());
-      ::SetThreadLocale(_pDevEnv->GetLCID());
+      _pDevEnv->SetThreadLanguage();
       CCoInitialize cominit;
       m_nMatches = 0;
       // Title

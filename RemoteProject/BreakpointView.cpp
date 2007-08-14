@@ -209,7 +209,7 @@ LRESULT CBreakpointView::OnItemRefresh(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
    // Asking to refresh will also update our internal list.
    // We'll have to ask the views to update too I guess.
    m_pProject->DelayedDebugCommand(_T("-break-list"));
-   m_pProject->DelayedViewMessage(DEBUG_CMD_SET_BREAKPOINTS);
+   m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_SET_BREAKPOINTS);
    return 0;
 }
 

@@ -491,10 +491,16 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    TCHAR szBuffer[64] = { 0 };
    int cchBuffer = 63;
 
+   m_pDevEnv->GetProperty(_T("editors.general.eolMode"), szBuffer, cchBuffer);
+   if( _tcscmp(szBuffer, _T("cr")) == 0 ) SetEOLMode(SC_EOL_CR);
+   else if( _tcscmp(szBuffer, _T("lf")) == 0 ) SetEOLMode(SC_EOL_LF);
+   else if( _tcscmp(szBuffer, _T("crlf")) == 0 ) SetEOLMode(SC_EOL_CRLF);
+
    sKey.Format(_T("editors.%s."), m_sLanguage);
 
    bool bValue;
    int iValue;
+   char szValue[64] = { 0 };
 
    bValue = false;
    if( m_pDevEnv->GetProperty(sKey + _T("showLines"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
@@ -598,6 +604,24 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    if( m_pDevEnv->GetProperty(sKey + _T("markCaretLine"), szBuffer, cchBuffer) ) bValue = _tcscmp(szBuffer, _T("true")) == 0;
    SetCaretLineVisible(bValue);
    SetCaretLineBack(clrBackShade);
+
+   sKey = _T("editors.folding.");
+
+   strcpy(szValue, "0");
+   if( m_pDevEnv->GetProperty(sKey + _T("compact"), szBuffer, cchBuffer) ) strcpy(szValue, _tccmp(szBuffer, _T("true")) == 0 ? "1" : "0");
+   SetProperty("fold.compact", szValue);
+
+   strcpy(szValue, "0");
+   if( m_pDevEnv->GetProperty(sKey + _T("atPreprocessor"), szBuffer, cchBuffer) ) strcpy(szValue, _tccmp(szBuffer, _T("true")) == 0 ? "1" : "0");
+   SetProperty("fold.preprocessor", szValue);
+
+   strcpy(szValue, "0");
+   if( m_pDevEnv->GetProperty(sKey + _T("atComment"), szBuffer, cchBuffer) ) strcpy(szValue, _tccmp(szBuffer, _T("true")) == 0 ? "1" : "0");
+   SetProperty("fold.comment", szValue);
+
+   strcpy(szValue, "0");
+   if( m_pDevEnv->GetProperty(sKey + _T("atElse"), szBuffer, cchBuffer) ) strcpy(szValue, _tccmp(szBuffer, _T("true")) == 0 ? "1" : "0");
+   SetProperty("fold.at.else", szValue);
 
    SetEdgeColumn(80);         // Place the right edge (if visible)
    UsePopUp(FALSE);           // We'll do our own context menu

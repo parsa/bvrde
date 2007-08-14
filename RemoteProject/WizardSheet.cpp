@@ -90,6 +90,26 @@ static void SetShellManagerDefaults(CShellManager& sm, CString sServerType)
    if( sServerType.Find(_T("LynxOS")) >= 0 ) sm.SetParam(_T("LoginPrompt"), _T("USER"));
 }
 
+static void SetCompileManagerDefaults(CCompileManager& cm, CString sServerType, int iShellType)
+{
+   if( sServerType.Find(_T("UNIX")) >= 0 ) cm.SetParam(_T("ProcessList"), _T("ps -ef"));
+   if( sServerType.Find(_T("LINUX")) >= 0 ) cm.SetParam(_T("ProcessList"), _T("ps -ef"));
+   // In Cygwin mode, we're dealing with Windows syntax
+   if( iShellType == SHELLTRANSFER_COMSPEC ) {
+      cm.SetParam(_T("ChangeDir"), _T("$DRIVE$&cd $PATH$"));
+      cm.SetParam(_T("DebugExport"), _T("SET DEBUG_OPTIONS=-g -D_DEBUG"));
+      cm.SetParam(_T("ReleaseExport"), _T("SET DEBUG_OPTIONS="));
+   }
+}
+
+static void SetDebugManagerDefaults(CDebugManager& dm, CString sServerType, int iShellType)
+{
+   if( iShellType == SHELLTRANSFER_COMSPEC ) {
+      dm.SetParam(_T("ChangeDir"), _T("$DRIVE$&cd $PATH$"));   
+      dm.SetParam(_T("App"), _T("$PROJECTNAME$.exe"));
+   }
+}
+
 
 ///////////////////////////////////////////////////////////////
 //
@@ -120,7 +140,7 @@ LRESULT CFileTransferPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    m_ctrlType.SetCurSel(iTypeIndex);
 
    g_data.bIsWizard = false;
-   g_data.iFileTransferType = m_ctrlType.GetCurSel();
+   g_data.iFileTransferType = iTypeIndex;
    g_data.sHost.Empty();
    g_data.sUsername.Empty();
    g_data.sPassword.Empty();
@@ -421,11 +441,13 @@ LRESULT CCompilerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    m_ctrlServer.SelectString(0, sServerType);
    if( m_ctrlServer.GetCurSel() < 0 ) m_ctrlServer.SetCurSel(0);
 
-   int iType = SHELLTRANSFER_TELNET;
-   if( sType == _T("ssh") )    iType = SHELLTRANSFER_SSH;
-   if( sType == _T("rlogin") ) iType = SHELLTRANSFER_RLOGIN;
-   if( sType == _T("comspec") ) iType = SHELLTRANSFER_COMSPEC;
-   m_ctrlType.SetCurSel(iType);
+   int iTypeIndex = SHELLTRANSFER_TELNET;
+   if( sType == _T("ssh") )     iTypeIndex = SHELLTRANSFER_SSH;
+   if( sType == _T("rlogin") )  iTypeIndex = SHELLTRANSFER_RLOGIN;
+   if( sType == _T("comspec") ) iTypeIndex = SHELLTRANSFER_COMSPEC;
+   m_ctrlType.SetCurSel(iTypeIndex);
+
+   g_data.iShellType = iTypeIndex;
 
    BOOL bDummy = FALSE;
    OnTypeChange(0, 0, NULL, bDummy);
@@ -439,6 +461,8 @@ LRESULT CCompilerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    CWaitCursor cursor;
    m_ctrlTest.EnableWindow(FALSE);
 
+   int iTypeIndex = m_ctrlType.GetCurSel();
+
    SecClearPassword();
 
    CString sHost = CWindowText(m_ctrlHost);
@@ -450,13 +474,13 @@ LRESULT CCompilerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    CString sServerType = CWindowText(m_ctrlServer);
 
    CString sType = _T("telnet");
-   switch( m_ctrlType.GetCurSel() ) {
+   switch( iTypeIndex ) {
    case SHELLTRANSFER_SSH:     sType = _T("ssh"); break;
    case SHELLTRANSFER_RLOGIN:  sType = _T("rlogin"); break;
    case SHELLTRANSFER_COMSPEC: sType = _T("comspec"); break;
    }
 
-   if( sType == _T("ssh") ) CheckCryptLib(m_hWnd);
+   if( iTypeIndex == SHELLTRANSFER_SSH ) CheckCryptLib(m_hWnd);
 
    CShellManager sm;
    sm.Init(m_pProject);
@@ -493,8 +517,8 @@ LRESULT CCompilerPage::OnTypeChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
    int iTypeIndex = m_ctrlType.GetCurSel();
    long lPort = 23;
    switch( iTypeIndex ) {
-   case SHELLTRANSFER_SSH: lPort = 22; break;
-   case SHELLTRANSFER_RLOGIN: lPort = 513; break;
+   case SHELLTRANSFER_SSH:     lPort = 22; break;
+   case SHELLTRANSFER_RLOGIN:  lPort = 513; break;
    }
    if( wID != 0 ) m_ctrlPort.SetWindowText(ToString(lPort));
    if( wID != 0 && iTypeIndex == SHELLTRANSFER_COMSPEC ) m_ctrlServer.SetCurSel(m_ctrlServer.FindString(0, _T("Cygwin")));
@@ -598,9 +622,6 @@ int CCompilerPage::OnApply()
    case SHELLTRANSFER_COMSPEC: sType = _T("comspec"); break;
    }
 
-   // Adjust some known problems...
-   if( sType == _T("comspec") && sPath == _T("cd $PATH$") ) sPath = _T("$DRIVE$&cd $PATH$");
-
    m_pProject->m_CompileManager.Stop();
    m_pProject->m_CompileManager.SetParam(_T("Type"), sType);
    m_pProject->m_CompileManager.SetParam(_T("ServerType"), sServerType);
@@ -610,24 +631,17 @@ int CCompilerPage::OnApply()
    m_pProject->m_CompileManager.SetParam(_T("Port"), ToString(lPort));
    m_pProject->m_CompileManager.SetParam(_T("Path"), sPath);
    m_pProject->m_CompileManager.SetParam(_T("Extra"), sExtra);
-   m_pProject->m_CompileManager.Start();
-
    // Adjust some commands based on the server type.
    // This get around some of the quirks on some gnu util implementations.
-   if( g_data.bIsWizard )
-   {
+   if( g_data.bIsWizard ) {
       SetShellManagerDefaults(m_pProject->m_CompileManager.m_ShellManager, sServerType);
+      SetCompileManagerDefaults(m_pProject->m_CompileManager, sServerType, iTypeIndex);
+   }
+   m_pProject->m_CompileManager.Start();
 
-      if( sServerType.Find(_T("UNIX")) >= 0 ) m_pProject->m_CompileManager.SetParam(_T("ProcessList"), _T("ps -ef"));
-      if( sServerType.Find(_T("LINUX")) >= 0 ) m_pProject->m_CompileManager.SetParam(_T("ProcessList"), _T("ps -ef"));
-
-      if( sType == _T("ssh") ) CheckCryptLib(m_hWnd);
-      
-      if( sType == _T("comspec") ) {
-         m_pProject->m_CompileManager.SetParam(_T("ChangeDir"), _T("$DRIVE$&cd $PATH$"));
-         m_pProject->m_CompileManager.SetParam(_T("DebugExport"), _T("SET DEBUG_OPTIONS=-g -D_DEBUG"));
-         m_pProject->m_CompileManager.SetParam(_T("ReleaseExport"), _T("SET DEBUG_OPTIONS="));
-      }
+   // Finally some file checking...
+   if( g_data.bIsWizard ) {
+      if( iTypeIndex == SHELLTRANSFER_SSH ) CheckCryptLib(m_hWnd);     
    }
 
    return PSNRET_NOERROR;
@@ -697,6 +711,12 @@ LRESULT CCompilerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    sValue = m_pProject->m_CompileManager.GetParam(_T("ConnectTimeout"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 30));
 
+   return 0;
+}
+
+int CCompilerCommandsPage::OnSetActive()
+{   
+   m_ctrlList.SetItemEnabled(m_ctrlList.FindProperty(30), g_data.iShellType != SHELLTRANSFER_COMSPEC);
    return 0;
 }
 
@@ -833,11 +853,11 @@ LRESULT CDebuggerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
       }
    }
 
-   int iType = SHELLTRANSFER_TELNET;
-   if( sType == _T("ssh") )    iType = SHELLTRANSFER_SSH;
-   if( sType == _T("rlogin") ) iType = SHELLTRANSFER_RLOGIN;
-   if( sType == _T("comspec") ) iType = SHELLTRANSFER_COMSPEC;
-   m_ctrlType.SetCurSel(iType);
+   int iTypeIndex = SHELLTRANSFER_TELNET;
+   if( sType == _T("ssh") )     iTypeIndex = SHELLTRANSFER_SSH;
+   if( sType == _T("rlogin") )  iTypeIndex = SHELLTRANSFER_RLOGIN;
+   if( sType == _T("comspec") ) iTypeIndex = SHELLTRANSFER_COMSPEC;
+   m_ctrlType.SetCurSel(iTypeIndex);
 
    BOOL bDummy = FALSE;
    OnTypeChange(0, 0, NULL, bDummy);
@@ -884,6 +904,8 @@ LRESULT CDebuggerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    CWaitCursor cursor;
    m_ctrlTest.EnableWindow(FALSE);
 
+   int iTypeIndex = m_ctrlType.GetCurSel();
+
    SecClearPassword();
 
    CString sHost = CWindowText(m_ctrlHost);
@@ -894,13 +916,13 @@ LRESULT CDebuggerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    CString sExtra = CWindowText(m_ctrlExtra);
 
    CString sType = _T("telnet");
-   switch( m_ctrlType.GetCurSel() ) {
+   switch( iTypeIndex ) {
    case SHELLTRANSFER_SSH:     sType = _T("ssh"); break;
    case SHELLTRANSFER_RLOGIN:  sType = _T("rlogin"); break;
    case SHELLTRANSFER_COMSPEC: sType = _T("comspec"); break;
    }
 
-   if( sType == _T("ssh") ) CheckCryptLib(m_hWnd);
+   if( iTypeIndex == SHELLTRANSFER_SSH ) CheckCryptLib(m_hWnd);
 
    CShellManager sm;
    sm.Init(m_pProject);
@@ -973,17 +995,12 @@ int CDebuggerPage::OnApply()
    if( g_data.bIsWizard )
    {
       SetShellManagerDefaults(m_pProject->m_DebugManager.m_ShellManager, g_data.sServerType);
+      SetDebugManagerDefaults(m_pProject->m_DebugManager, g_data.sServerType, iTypeIndex);
 
-      if( sType == _T("ssh") ) CheckCryptLib(m_hWnd);
-      if( sType == _T("comspec") ) CheckDebugPriv(m_hWnd);
-      //if( sType == _T("comspec") ) CheckAttachConsole(m_hWnd);
-
-      if( sType == _T("comspec") ) {
-         m_pProject->m_DebugManager.SetParam(_T("ChangeDir"), _T("$DRIVE$&cd $PATH$"));   
-         m_pProject->m_DebugManager.SetParam(_T("App"), _T("$PROJECTNAME$.exe"));
-      }
+      if( iTypeIndex == SHELLTRANSFER_SSH ) CheckCryptLib(m_hWnd);
+      if( iTypeIndex == SHELLTRANSFER_COMSPEC ) CheckDebugPriv(m_hWnd);
    }
-   
+
    return PSNRET_NOERROR;
 }
 
@@ -1043,6 +1060,13 @@ LRESULT CDebuggerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    return 0;
 }
 
+int CDebuggerCommandsPage::OnSetActive()
+{   
+   m_ctrlList.SetItemEnabled(m_ctrlList.FindProperty(20), g_data.iShellType != SHELLTRANSFER_COMSPEC);
+   m_ctrlList.SetItemEnabled(m_ctrlList.FindProperty(21), g_data.iShellType != SHELLTRANSFER_COMSPEC);
+   return 0;
+}
+
 int CDebuggerCommandsPage::OnApply()
 {
    ATLASSERT(m_pProject);
@@ -1095,15 +1119,15 @@ LRESULT CAdvancedEditOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/,
    CString sKey;
    sKey.Format(_T("editors.%s."), m_sLanguage);
    SET_CHECK(IDC_NOTIPS, sKey + _T("noTips"));
-   SET_CHECK(IDC_PROTECTFILES, sKey + _T("protectDebugged"));
-   SET_CHECK(IDC_MATCHBRACES, sKey + _T("matchBraces"));
-   SET_CHECK(IDC_AUTOCOMPLETE, sKey + _T("autoComplete"));
-   SET_CHECK(IDC_CLASSBROWSER, sKey + _T("classBrowser"));
-   SET_CHECK(IDC_ONLINESCANNER, sKey + _T("onlineScanner"));
-   SET_CHECK(IDC_AUTOSUGGEST, sKey + _T("autoSuggest"));
-   SET_CHECK(IDC_AUTOCLOSE, sKey + _T("autoClose"));
-   SET_CHECK(IDC_MARKERRORS, sKey + _T("markErrors"));
-   SET_CHECK(IDC_BREAKPOINTLINES, sKey + _T("breakpointLines"));
+   SET_CHECK(IDC_PROTECTFILES,     sKey + _T("protectDebugged"));
+   SET_CHECK(IDC_MATCHBRACES,      sKey + _T("matchBraces"));
+   SET_CHECK(IDC_AUTOCOMPLETE,     sKey + _T("autoComplete"));
+   SET_CHECK(IDC_CLASSBROWSER,     sKey + _T("classBrowser"));
+   SET_CHECK(IDC_ONLINESCANNER,    sKey + _T("onlineScanner"));
+   SET_CHECK(IDC_AUTOSUGGEST,      sKey + _T("autoSuggest"));
+   SET_CHECK(IDC_AUTOCLOSE,        sKey + _T("autoClose"));
+   SET_CHECK(IDC_MARKERRORS,       sKey + _T("markErrors"));
+   SET_CHECK(IDC_BREAKPOINTLINES,  sKey + _T("breakpointLines"));
 
    return 0;
 }
@@ -1118,15 +1142,15 @@ int CAdvancedEditOptionsPage::OnApply()
          if( m_sLanguage == szLanguage ) {
             m_pArc->Delete(_T("Advanced"));
             m_pArc->WriteItem(_T("Advanced"));
-            WRITE_CHECKBOX(IDC_NOTIPS, _T("noTips"));
-            WRITE_CHECKBOX(IDC_PROTECTFILES, _T("protectDebugged"));
-            WRITE_CHECKBOX(IDC_MATCHBRACES, _T("matchBraces"));
-            WRITE_CHECKBOX(IDC_AUTOCOMPLETE, _T("autoComplete"));
-            WRITE_CHECKBOX(IDC_CLASSBROWSER, _T("classBrowser"));
-            WRITE_CHECKBOX(IDC_ONLINESCANNER, _T("onlineScanner"));
-            WRITE_CHECKBOX(IDC_AUTOSUGGEST, _T("autoSuggest"));
-            WRITE_CHECKBOX(IDC_AUTOCLOSE, _T("autoClose"));
-            WRITE_CHECKBOX(IDC_MARKERRORS, _T("markErrors"));
+            WRITE_CHECKBOX(IDC_NOTIPS,          _T("noTips"));
+            WRITE_CHECKBOX(IDC_PROTECTFILES,    _T("protectDebugged"));
+            WRITE_CHECKBOX(IDC_MATCHBRACES,     _T("matchBraces"));
+            WRITE_CHECKBOX(IDC_AUTOCOMPLETE,    _T("autoComplete"));
+            WRITE_CHECKBOX(IDC_CLASSBROWSER,    _T("classBrowser"));
+            WRITE_CHECKBOX(IDC_ONLINESCANNER,   _T("onlineScanner"));
+            WRITE_CHECKBOX(IDC_AUTOSUGGEST,     _T("autoSuggest"));
+            WRITE_CHECKBOX(IDC_AUTOCLOSE,       _T("autoClose"));
+            WRITE_CHECKBOX(IDC_MARKERRORS,      _T("markErrors"));
             WRITE_CHECKBOX(IDC_BREAKPOINTLINES, _T("breakpointLines"));
          }
          m_pArc->ReadGroupEnd();

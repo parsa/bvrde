@@ -22,7 +22,8 @@ CQueryThread::CQueryThread(CDbOperations* pDbData) :
 
 DWORD CQueryThread::Run()
 {
-   ::SetThreadLocale(_pDevEnv->GetLCID());
+   _pDevEnv->SetThreadLanguage();
+
    ::SetMessageQueue(100);  // HACK: For the sake of any OLE DB dependencies
 
    CCoInitialize cominit;

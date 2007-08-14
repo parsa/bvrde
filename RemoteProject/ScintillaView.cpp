@@ -140,7 +140,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    // Get active breakpoints for this file.
    // We call this here because WM_SETTINGCHANGE is one of the messages
    // sent at startup, and a new view should display its breakpoints.
-   if( m_pCppProject != NULL ) m_pCppProject->DelayedViewMessage(DEBUG_CMD_SET_BREAKPOINTS);
+   if( m_pCppProject != NULL ) m_pCppProject->DelayedGlobalViewMessage(DEBUG_CMD_SET_BREAKPOINTS);
 
    SendMessageToDescendants(WM_SETTINGCHANGE);
 
@@ -227,7 +227,7 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
       else 
       {
          CTagDetails Info;
-         if( _GetMemberInfo(lPos, Info) && !Info.sMemberOfScope.IsEmpty() ) {
+         if( _GetMemberInfo(lPos, Info) && !Info.sFilename.IsEmpty() ) {
             CString sImplLookup;
             sImplLookup.Format(_T("%s%s%s"), Info.sBase, Info.sBase.IsEmpty() ? _T("") : _T("::"), Info.sName);
             // Insert "Open Declaration" menu item
@@ -539,8 +539,7 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
       {
          // Locate text in source file.
          // Primarily used in "Go To Declaration" functionality.
-         USES_CONVERSION;
-         _FindNext(FR_DOWN | FR_WRAP | pData->iFlags, T2CA(pData->szFilename), false);
+         FindText(FR_DOWN | FR_WRAP | (UINT) pData->iFlags, pData->szFilename, false);
       }
       break;
    case DEBUG_CMD_FOLDCURSOR:
@@ -567,7 +566,7 @@ LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
       _FunctionTip(pSCN->ch);
       break;
    }
-   
+
    _AutoComplete(pSCN->ch);
 
    bHandled = FALSE;
@@ -704,18 +703,17 @@ LRESULT CScintillaView::OnAutoExpand(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
    // Do we need to add the starting function brace?
    SCNotification* pSCN = (SCNotification*) pnmh;
    if( m_pCppProject == NULL ) return 0;
-   long lOffset = 3;
-   if( m_ctrlEdit.GetCharAt(pSCN->lParam - 1) == '.' ) lOffset = 2;
-   CTagDetails Info;
-   if( !_GetMemberInfo(pSCN->lParam - lOffset, Info, MATCH_ALLOW_PARTIAL) ) return 0;
+   CTagDetails ParentInfo;
+   if( !_GetMemberInfo(pSCN->lParam, ParentInfo, MATCH_ALLOW_PARTIAL) ) return 0;
    CSimpleValArray<TAGINFO*> aList;
-   m_pCppProject->m_TagManager.FindItem(CString(pSCN->text), Info.sBase, true, aList);
+   m_pCppProject->m_TagManager.FindItem(CString(pSCN->text), ParentInfo.sBase, true, aList);
    if( aList.GetSize() == 0 ) return 0;
    CTagDetails MemberInfo;
    m_pCppProject->m_TagManager.GetItemInfo(aList[0], MemberInfo);
    CString sText;
    if( MemberInfo.sDeclaration.Find('(') >= 0 ) sText = _T("(");
    if( MemberInfo.sDeclaration.Find(_T("()")) >= 0 ) sText = _T("()");
+   if( MemberInfo.sDeclaration.Find(_T("( )")) >= 0 ) sText = _T("()");
    // HACK: Insert text as delayed. The notification SCN_AUTOCSELECTION is fored 
    // before the insertion of the actual character.
    for( int i = 0; i < sText.GetLength(); i++ ) {
@@ -850,13 +848,19 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
  * This method is usually called during a Find or Find/Replace operation,
  * and locates a substring in the text.
  */
-int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings)
+int CScintillaView::FindText(UINT uFlags, LPCTSTR pstrPattern, bool bShowWarnings)
 {
-   int iLength = strlen(pstrText);
-   if( iLength == 0 ) return -1;
+   USES_CONVERSION;
+   LPCSTR pstrText = T2CA(pstrPattern);
+   int cchText = strlen(pstrText);
+   if( cchText == 0 ) return -1;
 
-   bool bDirectionDown = (iFlags & FR_DOWN) != 0;
-   bool bInSelection = (iFlags & FR_INSEL) != 0;
+   bool bDirectionDown = (uFlags & FR_DOWN) != 0;
+   bool bInSelection = (uFlags & FR_INSEL) != 0;
+
+   TCHAR szBuffer[16] = { 0 };
+   _pDevEnv->GetProperty(_T("gui.document.findMessages"), szBuffer, 15);
+   if( _tcscmp(szBuffer, _T("true")) != 0 ) bShowWarnings = false;
 
    CharacterRange cr = m_ctrlEdit.GetSelection();
    int startPosition = cr.cpMax;
@@ -867,17 +871,17 @@ int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings)
    }
    if( bInSelection ) {
       ATLASSERT(cr.cpMin!=cr.cpMax);
-      if( cr.cpMin == cr.cpMax ) return -1;
+      if( cr.cpMin >= cr.cpMax ) return -1;
       startPosition = cr.cpMin;
       endPosition = cr.cpMax;
-      iFlags &= ~FR_WRAP;
+      uFlags &= ~FR_WRAP;
    }
 
    m_ctrlEdit.SetTargetStart(startPosition);
    m_ctrlEdit.SetTargetEnd(endPosition);
-   m_ctrlEdit.SetSearchFlags(iFlags);
-   int iFindPos = m_ctrlEdit.SearchInTarget(iLength, pstrText);
-   if( iFindPos == -1 && (iFlags & FR_WRAP) != 0 ) {
+   m_ctrlEdit.SetSearchFlags((int)uFlags);
+   int iFindPos = m_ctrlEdit.SearchInTarget(cchText, pstrText);
+   if( iFindPos == -1 && (uFlags & FR_WRAP) != 0 ) {
       // Failed to find in indicated direction,
       // so search from the beginning (forward) or from the end (reverse) unless wrap is false
       if( !bDirectionDown ) {
@@ -890,19 +894,17 @@ int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings)
       }
       m_ctrlEdit.SetTargetStart(startPosition);
       m_ctrlEdit.SetTargetEnd(endPosition);
-      iFindPos = m_ctrlEdit.SearchInTarget(iLength, pstrText);
+      iFindPos = m_ctrlEdit.SearchInTarget(cchText, pstrText);
    }
    if( iFindPos == -1 ) {
       // Bring up another Find dialog
-      TCHAR szBuffer[32] = { 0 };
-      _pDevEnv->GetProperty(_T("gui.document.findMessages"), szBuffer, 31);
-      if( _tcscmp(szBuffer, _T("true")) != 0 ) bWarnings = false;
-      if( bWarnings ) {
+      if( bShowWarnings ) {
          CString sMsg;
          sMsg.Format(IDS_FINDFAILED, CString(pstrText));
          _pDevEnv->ShowMessageBox(m_hWnd, (LPCTSTR) sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONINFORMATION);
-         HWND hWndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
-         ::PostMessage(hWndMain, WM_COMMAND, MAKEWPARAM(ID_EDIT_FIND, 0), 0L);
+         // Bring up the Find Text window again...
+         CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
+         wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_EDIT_FIND, 0), 0L);
       }
    } 
    else {
@@ -1119,6 +1121,8 @@ bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMOD
    while( _iswhitechar(ch) ) ch = m_ctrlEdit.GetCharAt(++lEndPos);
    int chEnd = ch;
 
+   // When we're testing a right-hand-side expression we can deduce
+   // the type if the left-hand-side is an enumeration.
    if( chDelim == '=' ) 
    {
       // Recurse to get types of members before equal-sign
@@ -1135,7 +1139,10 @@ bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMOD
          }
       }
    }
-   else
+
+   // There's always a chance that this is a locally defined variable.
+   // We can try to catch the definition in the source code block.
+   if( sParentType.IsEmpty() )
    {
       // BUG: The _FindLocalVariableType() method has the unfortunate property that it
       //      also returns the return-type of class member declarations. We'll make
@@ -1159,16 +1166,20 @@ bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMOD
       }
    }
 
+   // If we have seen the identifier is a member of a container, then check that.
+   // We need information about the container.
    if( !sParentName.IsEmpty() ) 
    {
-      // We have seen the identifier is a member of a container.
-      // We need information about the container.
       CSimpleValArray<TAGINFO*> aResult;
       if( aResult.GetSize() == 0 && !sBlockScope.IsEmpty() ) m_pCppProject->m_TagManager.FindItem(sParentName, sBlockScope, true, aResult);
       if( aResult.GetSize() == 0 ) m_pCppProject->m_TagManager.FindItem(sParentName, _T(""), false, aResult);
       bool bFound = false;
-      for( int i = 0; !bFound && i < aResult.GetSize(); i++ ) {
-         switch( aResult[i]->Type ) {
+      for( int i1 = 0; !bFound && i1 < aResult.GetSize(); i1++ ) {
+         switch( aResult[i1]->Type ) {
+         case TAGTYPE_NAMESPACE:
+            sParentName = sParentType = sParentScope = _T("");
+            bFound = true;
+            break;
          case TAGTYPE_CLASS:
          case TAGTYPE_STRUCT:
          case TAGTYPE_TYPEDEF:
@@ -1177,12 +1188,12 @@ bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMOD
             break;
          }
       }
-      for( int j = 0; !bFound && j < aResult.GetSize(); j++ ) {
-         switch( aResult[j]->Type ) {
+      for( int i2 = 0; !bFound && i2 < aResult.GetSize(); i2++ ) {
+         switch( aResult[i2]->Type ) {
          case TAGTYPE_MEMBER:
          case TAGTYPE_FUNCTION:
             CTagDetails ParentTag;
-            m_pCppProject->m_TagManager.GetItemInfo(aResult[j], ParentTag);
+            m_pCppProject->m_TagManager.GetItemInfo(aResult[i2], ParentTag);
             sParentType = _UndecorateType(ParentTag.sDeclaration);
             sParentScope.Empty();
             bFound = true;
@@ -1203,7 +1214,7 @@ bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMOD
       case TAGTYPE_STRUCT:
       case TAGTYPE_TYPEDEF:
          m_pCppProject->m_TagManager.GetItemInfo(aResult[i1], Info);
-         Info.sMemberOfScope = Info.sName;
+         Info.sMemberOfScope = _T("");
          return true;
       }
    }
@@ -1238,6 +1249,7 @@ bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMOD
       Info.sBase = sParentType;
       Info.sMemberOfScope = _T("");
       Info.TagType = TAGTYPE_MEMBER;
+      Info.Protection = TAGPROTECTION_GLOBAL;
       Info.sFilename = _T("");
       Info.iLineNum = -1;
       Info.sDeclaration.Format(_T("%s %s"), sParentType, sName);
@@ -1250,6 +1262,7 @@ bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMOD
       Info.sBase = sBlockScope;
       Info.sMemberOfScope = _T("");
       Info.TagType = TAGTYPE_MEMBER;
+      Info.Protection = TAGPROTECTION_GLOBAL;
       Info.sFilename = _T("");
       Info.iLineNum = -1;
       Info.sDeclaration = _T("");
@@ -1350,6 +1363,8 @@ CString CScintillaView::_UndecorateType(CString sType)
    // Stript trailing stuff
    int iPos = sType.FindOneOf(_T(" \t(*&"));
    if( iPos > 0 ) sType = sType.Left(iPos);
+   iPos = sType.Find(_T("::"));
+   if( iPos > 0 ) sType = sType.Mid(iPos + 2);
    return sType;
 }
 
@@ -1418,6 +1433,10 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
          if( iEndPos > 0 && sLine[iEndPos - 1] == ',' ) {
             iEndPos = 0;
             while( isspace(sLine[iEndPos]) ) iEndPos++;
+            int iTestPos = iEndPos;
+            while( _iscppcharw(sLine[iTestPos]) ) iTestPos++;
+            while( sLine[iTestPos] == ':' ) iEndPos = ++iTestPos;
+            for( ; iTestPos < iEndPos; iTestPos++ ) if( sLine[iTestPos] == ';' ) return false;
          }
 
          // Extract the type string
@@ -1453,12 +1472,12 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
          CSimpleValArray<TAGINFO*> aTags;
          m_pCppProject->m_TagManager.FindItem(sType, NULL, false, aTags);
          for( int i = 0; i < aTags.GetSize(); i++ ) {
-            switch( aTags[0]->Type ) {
+            switch( aTags[i]->Type ) {
             case TAGTYPE_ENUM:
             case TAGTYPE_CLASS:
             case TAGTYPE_STRUCT:
             case TAGTYPE_TYPEDEF:
-               m_pCppProject->m_TagManager.GetItemInfo(aTags[0], Info);
+               m_pCppProject->m_TagManager.GetItemInfo(aTags[i], Info);
                return true;
             }
          }
@@ -1514,6 +1533,13 @@ void CScintillaView::_ShowToolTip(long lPos, CString sText, bool bAdjustPos, boo
 {
    const int MAX_LINE_WIDTH = 90;         // in chars
    const int SUGGESTED_LINE_WIDTH = 60;
+
+   if( sText.IsEmpty() ) return;
+
+   // CTAGS defines have excessive spaces in the text
+   sText.Replace(_T("    "), _T(" "));
+   sText.Replace(_T("   "), _T(" "));
+   sText.Replace(_T("  "), _T(" "));
 
    m_ctrlEdit.CallTipCancel();
    m_ctrlEdit.CallTipSetFore(clrText);
@@ -1785,12 +1811,12 @@ int CScintillaView::_CountCommas(LPCTSTR pstrText) const
 
 bool CScintillaView::_iscppchar(int ch) const
 {
-   return isalnum(ch) || ch == '_';
+   return isalnum(ch) || ch == '_' || ch == '~';
 }
 
 bool CScintillaView::_iscppcharw(WCHAR ch) const
 {
-   return iswalnum(ch) || ch == '_';
+   return iswalnum(ch) || ch == '_' || ch == '~';
 }
 
 bool CScintillaView::_iswhitechar(int ch) const

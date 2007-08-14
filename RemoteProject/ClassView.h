@@ -18,13 +18,13 @@ public:
 
    CClassView();
 
+   CRemoteProject* m_pProject;                   // Reference to project
    bool m_bLocked;                               // Are data structures locked?
    bool m_bPopulated;                            // Has tree been populated?
    bool m_bMouseTracked;                         // Is mouse tracked?
-   CRemoteProject* m_pProject;                   // Reference to project
-   TAGINFO* m_pCurrentTag;                       // Reference to selected tag item during context-menu
+   CTagDetails m_SelectedTag;                    // Data about selected tag item during context-menu
+   CTagDetails m_SelectedImpl;                   // Data about source implementation
    TAGINFO* m_pCurrentHover;                     // Reference to item during hover
-   CTagDetails m_ImplTag;                        // Data about source implementation
    CSimpleArray<CString> m_aExpandedNames;       // List of exanded tree-names
 
    CImageListCtrl m_Images;
@@ -44,7 +44,7 @@ public:
    // Implementation
 
    void _PopulateTree();
-   bool _GetImplementationRef(TAGINFO* pTag, CTagDetails& Info);
+   bool _GetImplementationRef(const CTagDetails& Current, CTagDetails& Info);
 
    static int CALLBACK _TreeSortTypeCB(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 

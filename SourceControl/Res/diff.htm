@@ -16,8 +16,8 @@
 {
 	table-layout: fixed;
 	width: 100%;
-	font-family: verdana, arial;
-	font-size: 8pt;
+	font-family: $FONT$, verdana, arial;
+	font-size: $FONT-SIZE$pt;
 }
 .lin
 {
@@ -28,33 +28,44 @@
 .nom
 {
 	width: 50%;
-	overflow: hidden;
-	white-space: nowrap;
+	overflow: $OVERFLOW$;
+	white-space: $WRAP$;
 	text-overflow: ellipsis;
 }
 .ins
 {
 	background-color: #a0ffa0;
 	width: 50%;
-	overflow: hidden;
-	white-space: nowrap;
+	overflow: $OVERFLOW$;
+	white-space: $WRAP$;
 	text-overflow: ellipsis;
 }
 .del
 {
 	background-color: #ffa0a0;
 	width: 50%;
-	overflow: hidden;
-	white-space: nowrap;
+	overflow: $OVERFLOW$;
+	white-space: $WRAP$;
 	text-overflow: ellipsis;
 }
 .mod
 {
 	background-color: #b0b0f0;
 	width: 50%;
-	overflow: hidden;
-	white-space: nowrap;
+	overflow: $OVERFLOW$;
+	white-space: $WRAP$;
 	text-overflow: ellipsis;
+}
+.hdr
+{
+	background-color: #bbbbbb;
+	width: 50%;
+	font-weight: bold;
+	overflow: $OVERFLOW$;
+	white-space: $WRAP$;
+	text-overflow: ellipsis;
+	padding-top: 3;
+	padding-bottom: 3;
 }
 </style>
 </head>

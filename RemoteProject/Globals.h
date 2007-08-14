@@ -59,6 +59,7 @@ typedef enum LAZYACTION
    LAZY_DEBUGCOMMAND,
    LAZY_SEND_GLOBAL_VIEW_MESSAGE,
    LAZY_SEND_PROJECT_VIEW_MESSAGE,
+   LAZY_SEND_ACTIVE_VIEW_MESSAGE,
    LAZY_SET_DEBUG_BREAKPOINT,
    LAZY_DEBUG_START_EVENT,
    LAZY_DEBUG_KILL_EVENT,
@@ -127,6 +128,7 @@ typedef enum TAGTYPE
    TAGTYPE_ENUM,
    TAGTYPE_IMPLEMENTATION,
    TAGTYPE_INTRINSIC,
+   TAGTYPE_NAMESPACE,
 };
 
 typedef enum TAGPROTECTION
@@ -137,17 +139,26 @@ typedef enum TAGPROTECTION
    TAGPROTECTION_PRIVATE,
 };
 
+typedef enum TAGSOURCE
+{
+   TAGSOURCE_UNKNOWN,
+   TAGSOURCE_CTAGS,
+   TAGSOURCE_LEX,
+};
+
 typedef struct tagTAGINFO
 {
-   TAGTYPE Type;
-   LPCTSTR pstrName;
-   LPCTSTR pstrFile;
-   LPCTSTR pstrOwner;
-   TAGPROTECTION Protection;
-   LPCTSTR pstrDeclaration;
-   LPCTSTR pstrNamespace;
-   LPCTSTR pstrComment;
-   int iLineNum;
+   TAGTYPE Type;                    // Tag type (class/struct/etc)
+   LPCTSTR pstrName;                // Name of tag
+   LPCTSTR pstrFile;                // Filename of tag
+   LPCTSTR pstrOwner;               // Owner type
+   TAGPROTECTION Protection;        // Access identifier (public/protected/etc)
+   TAGSOURCE TagSource;             // What produced this tag (lex/ctags/etc)
+   LPCTSTR pstrDeclaration;         // Member declaration
+   LPCTSTR pstrNamespace;           // Namespace
+   LPCTSTR pstrRegExMatch;          // Regular.expression for lookup in file
+   LPCTSTR pstrComment;             // Comment
+   int iLineNum;                    // Line number
 } TAGINFO;
 
 typedef struct CTagDetails
@@ -159,6 +170,7 @@ typedef struct CTagDetails
    CString sMemberOfScope;
    int iLineNum;
    CString sDeclaration;
+   CString sRegExMatch;
    CString sFilename;
    CString sNamespace;
    CString sComment;

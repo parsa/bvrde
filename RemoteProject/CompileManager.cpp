@@ -15,7 +15,7 @@
 
 DWORD CRebuildThread::Run()
 {
-   ::SetThreadLocale(_pDevEnv->GetLCID());
+   _pDevEnv->SetThreadLanguage();
 
    CCoInitialize cominit;
 
@@ -79,7 +79,9 @@ DWORD CCompileThread::Run()
    ATLASSERT(m_pProject);
    ATLASSERT(m_pManager);
 
-   ::SetThreadLocale(_pDevEnv->GetLCID());
+   _pDevEnv->SetThreadLanguage();
+
+   CCoInitialize cominit;
 
    while( !ShouldStop() ) 
    {
@@ -301,7 +303,7 @@ bool CCompileManager::Stop()
 void CCompileManager::SignalStop()
 {
    m_pProject->DelayedGuiAction(GUI_ACTION_STOP_ANIMATION);
-   m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_STOP);
+   m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_COMPILE_STOP);
    m_ShellManager.SignalStop();
    m_CompileThread.SignalStop();
    m_event.SetEvent();
@@ -640,7 +642,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
       // The DEBUG_CMD_COMPILE_START event will cause this class to attach
       // itself as a listener for compiler output. It's delayed to the main
       // GUI thread to prevent horrendous dead-lock situations.
-      m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_START);
+      m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_COMPILE_START);
    }
 
    // Finally signal that we have new data
@@ -718,7 +720,7 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
          m_pProject->DelayedStatusBar(sStatus);
       }
       m_pProject->DelayedGuiAction(GUI_ACTION_STOP_ANIMATION);
-      m_pProject->DelayedViewMessage(DEBUG_CMD_COMPILE_STOP);
+      m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_COMPILE_STOP);
       // Play annoying build sound
       if( (m_Flags & COMPFLAG_BUILDSESSION) != 0 ) ::PlaySound(_T("BVRDE_BuildSucceeded"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
       else ::PlaySound(_T("BVRDE_CommandComplete"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);

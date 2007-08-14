@@ -162,7 +162,8 @@ public:
    void DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UINT iFlags);
    void DelayedGuiAction(UINT iAction, HWND hWnd);
    void DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename = NULL, int iLineNum = -1);
-   void DelayedViewMessage(WPARAM wCmd, LPCTSTR pstrFilename = NULL, int iLineNum = -1, UINT iFlags = 0);
+   void DelayedLocalViewMessage(WPARAM wCmd, LPCTSTR pstrFilename = NULL, int iLineNum = -1, UINT iFlags = 0);
+   void DelayedGlobalViewMessage(WPARAM wCmd, LPCTSTR pstrFilename = NULL, int iLineNum = -1, UINT iFlags = 0);
    void DelayedDebugBreakpoint(LPCTSTR pstrFilename, int iLineNum);
    void DelayedDebugEvent(LAZYACTION event = LAZY_DEBUG_BREAK_EVENT);
    void DelayedDebugInfo(LPCTSTR pstrCommand, CMiInfo& info);

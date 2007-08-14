@@ -17,7 +17,7 @@ DWORD CTelnetThread::Run()
    ATLASSERT(m_pManager);
    ATLASSERT(m_pCallback);
 
-   ::SetThreadLocale(_pDevEnv->GetLCID());
+   _pDevEnv->SetThreadLanguage();
 
    CSocket& socket = m_pManager->m_socket;
 

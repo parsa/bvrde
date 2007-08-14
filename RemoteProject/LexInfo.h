@@ -68,7 +68,7 @@ public:
 // Operations
 public:
    bool MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText, DWORD dwTimeout);
-   bool MergeTree(LPCTSTR pstrFilename, LEXFILE* pFile);
+   bool MergeIntoTree(LPCTSTR pstrFilename, LEXFILE* pFile);
 
    LEXFILE* _ParseFile(LPCTSTR pstrFilename) const;
    CString _GetLexFilename(LPCTSTR pstrFilename, bool bCreatePath) const;

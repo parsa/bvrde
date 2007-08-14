@@ -429,7 +429,7 @@ VARIANT_BOOL CTextFileOM::FindText(BSTR Text)
    if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    USES_CONVERSION;
    if( Text == NULL ) Text = L"";
-   int iPos = m_pOwner->m_view._FindNext(FR_DOWN | FR_WRAP, OLE2CA(Text), false);
+   int iPos = m_pOwner->m_view.FindText(FR_DOWN | FR_WRAP, CString(Text), false);
    if( iPos >= 0 ) m_pOwner->m_view.m_ctrlEdit.EnsureVisible(iPos);
    return iPos >= 0 ? VARIANT_TRUE : VARIANT_FALSE;
 }

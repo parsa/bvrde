@@ -279,18 +279,8 @@ int CSolutionFinishPage::OnWizardFinish()
    { TCHAR szBuf[32] = { 0 }; m_pDevEnv->GetProperty(prop, szBuf, 31); \
      if( _tcscmp(szBuf, _T("true"))==0 ) CButton(GetDlgItem(id)).Click(); }
 
-#define GET_CHECK(id, prop) \
-   m_pDevEnv->SetProperty(prop, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"))
-
-#define TRANSFER_PROP(name, prop) \
-   { TCHAR szBuf[32] = { 0 }; m_pDevEnv->GetProperty(prop, szBuf, 31); \
-     m_pArc->Write(name, szBuf); }
-
 #define WRITE_CHECKBOX(id, name) \
      m_pArc->Write(name, CButton(GetDlgItem(id)).GetCheck() == BST_CHECKED ? _T("true") : _T("false"));
-
-#define WRITE_TEXT(id, name) \
-     m_pArc->Write(name, CWindowText(GetDlgItem(id)));
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -317,6 +307,7 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    m_ctrlStartup.AddString(CString(MAKEINTRESOURCE(IDS_STARTUP_LAST)));
    m_ctrlStartup.AddString(CString(MAKEINTRESOURCE(IDS_STARTUP_OPENFILE)));
    m_ctrlStartup.AddString(CString(MAKEINTRESOURCE(IDS_STARTUP_BLANK)));
+
    m_pDevEnv->GetProperty(_T("gui.main.start"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("lastsolution")) == 0 ) m_ctrlStartup.SetCurSel(1);
    else if( _tcscmp(szBuffer, _T("openfile")) == 0 ) m_ctrlStartup.SetCurSel(2);
@@ -326,6 +317,7 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_DEFAULT)));
    m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_ENGLISH)));
    m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_GERMAN)));
+
    m_pDevEnv->GetProperty(_T("gui.main.language"), szBuffer, 31);
    if( _tcscmp(szBuffer, _T("en")) == 0 ) m_ctrlLanguage.SetCurSel(1);
    else if( _tcscmp(szBuffer, _T("de")) == 0 ) m_ctrlLanguage.SetCurSel(2);
@@ -348,26 +340,26 @@ LRESULT CGeneralOptionsPage::OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM l
 
 int CGeneralOptionsPage::OnApply()
 {
+   TCHAR szClientType[32] = { 0 };
+   _tcscpy(szClientType, _T("tabbed"));
+   if( m_ctrlMdi.GetCheck() == BST_CHECKED ) _tcscpy(szClientType, _T("mdi"));
+
+   TCHAR szStartType[32] = { 0 };
+   _tcscpy(szStartType, _T("startpage"));
+   if( m_ctrlStartup.GetCurSel() == 1 ) _tcscpy(szStartType, _T("lastsolution"));
+   if( m_ctrlStartup.GetCurSel() == 2 ) _tcscpy(szStartType, _T("openfile"));
+   if( m_ctrlStartup.GetCurSel() == 3 ) _tcscpy(szStartType, _T("blank"));
+   m_pDevEnv->SetProperty(_T("gui.main.start"), szStartType);
+
    TCHAR szBuffer[32] = { 0 };
-
-   _tcscpy(szBuffer, _T("tabbed"));
-   if( m_ctrlMdi.GetCheck() == BST_CHECKED ) _tcscpy(szBuffer, _T("mdi"));
-   m_pDevEnv->SetProperty(_T("gui.main.client"), szBuffer);
-
-   _tcscpy(szBuffer, _T("startpage"));
-   if( m_ctrlStartup.GetCurSel() == 1 ) _tcscpy(szBuffer, _T("lastsolution"));
-   if( m_ctrlStartup.GetCurSel() == 2 ) _tcscpy(szBuffer, _T("openfile"));
-   if( m_ctrlStartup.GetCurSel() == 3 ) _tcscpy(szBuffer, _T("blank"));
-   m_pDevEnv->SetProperty(_T("gui.main.start"), szBuffer);
-
    _tcscpy(szBuffer, _T("def"));
    if( m_ctrlLanguage.GetCurSel() == 1 ) _tcscpy(szBuffer, _T("en"));
    if( m_ctrlLanguage.GetCurSel() == 2 ) _tcscpy(szBuffer, _T("de"));
    m_pDevEnv->SetProperty(_T("gui.main.language"), szBuffer);
 
    m_pArc->ReadItem(_T("Gui"));
-   TRANSFER_PROP(_T("client"), _T("gui.main.client"));
-   TRANSFER_PROP(_T("start"), _T("gui.main.start"));
+   m_pArc->Write(_T("client"), szClientType);
+   m_pArc->Write(_T("start"), szStartType);
 
    return PSNRET_NOERROR;
 }
@@ -378,24 +370,24 @@ int CGeneralOptionsPage::OnApply()
 
 LRESULT CDocumentsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-   SET_CHECK(IDC_READONLY, _T("gui.document.protectReadOnly"));
+   SET_CHECK(IDC_READONLY,      _T("gui.document.protectReadOnly"));
    SET_CHECK(IDC_DETECT_CHANGE, _T("gui.document.detectChange"));
-   SET_CHECK(IDC_AUTOLOAD, _T("gui.document.autoLoad"));
-   SET_CHECK(IDC_FINDTEXT, _T("gui.document.findText"));
-   SET_CHECK(IDC_FINDMESSAGES, _T("gui.document.findMessages"));
-   SET_CHECK(IDC_CLEARUNDO, _T("gui.document.clearUndo"));
+   SET_CHECK(IDC_AUTOLOAD,      _T("gui.document.autoLoad"));
+   SET_CHECK(IDC_FINDTEXT,      _T("gui.document.findText"));
+   SET_CHECK(IDC_FINDMESSAGES,  _T("gui.document.findMessages"));
+   SET_CHECK(IDC_CLEARUNDO,     _T("gui.document.clearUndo"));
    return 0;
 }
 
 int CDocumentsOptionsPage::OnApply()
 {
    m_pArc->ReadItem(_T("Document"));
-   WRITE_CHECKBOX(IDC_READONLY, _T("protectReadOnly"));
+   WRITE_CHECKBOX(IDC_READONLY,      _T("protectReadOnly"));
    WRITE_CHECKBOX(IDC_DETECT_CHANGE, _T("detectChange"));
-   WRITE_CHECKBOX(IDC_AUTOLOAD, _T("autoLoad"));
-   WRITE_CHECKBOX(IDC_FINDTEXT, _T("findText"));
-   WRITE_CHECKBOX(IDC_FINDMESSAGES, _T("findMessages"));
-   WRITE_CHECKBOX(IDC_CLEARUNDO, _T("clearUndo"));
+   WRITE_CHECKBOX(IDC_AUTOLOAD,      _T("autoLoad"));
+   WRITE_CHECKBOX(IDC_FINDTEXT,      _T("findText"));
+   WRITE_CHECKBOX(IDC_FINDMESSAGES,  _T("findMessages"));
+   WRITE_CHECKBOX(IDC_CLEARUNDO,     _T("clearUndo"));
    return PSNRET_NOERROR;
 }
 
@@ -747,9 +739,9 @@ int CAutoTextOptionsPage::OnApply()
          if( szName[0] != '\0' ) {
             if( m_pArc->WriteGroupBegin(_T("Text")) ) {
                m_pArc->Write(_T("name"), szName);
-               const int cchMax = 400;
+               const int MAX_AUTOTEXT_LENGTH = 400;
                CString sText;
-               m_pDevEnv->GetProperty(sKey + _T("text"), sText.GetBufferSetLength(cchMax), cchMax);
+               m_pDevEnv->GetProperty(sKey + _T("text"), sText.GetBufferSetLength(MAX_AUTOTEXT_LENGTH), MAX_AUTOTEXT_LENGTH);
                sText.ReleaseBuffer();
                sText.Replace(_T("\r\n"), _T("\\n"));
                sText.Replace(_T("\t"), _T("\\t"));
@@ -840,6 +832,99 @@ void CAutoTextOptionsPage::_UpdateButtons()
    m_ctrlDelete.EnableWindow(iSel >= 0 && sName.GetLength() > 0);
    m_ctrlName.EnableWindow(iSel >= 0);
    m_ctrlText.EnableWindow(iSel >= 0);
+}
+
+
+////////////////////////////////////////////////////////////////////////
+//
+
+LRESULT CEditorsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   m_ctrlEOL = GetDlgItem(IDC_EOL);
+   m_ctrlCaretWidth = GetDlgItem(IDC_CARETWIDTH);
+
+   CString sKey = _T("editors.general.");
+   SET_CHECK(IDC_SAVETOOL,   sKey + _T("saveBeforeTool"));
+   SET_CHECK(IDC_SAVEPROMPT, sKey + _T("savePrompt"));
+   SET_CHECK(IDC_SHOWEDGE,   sKey + _T("showEdge"));
+   SET_CHECK(IDC_BOTTOMLESS, sKey + _T("bottomless"));
+   SET_CHECK(IDC_CARETLINE,  sKey + _T("markCaretLine"));
+
+   m_ctrlCaretWidth.SetLimitText(1);
+
+   m_ctrlEOL.AddString(_T("CR"));
+   m_ctrlEOL.AddString(_T("LF"));
+   m_ctrlEOL.AddString(_T("CR + LF"));
+   m_ctrlEOL.AddString(CString(MAKEINTRESOURCE(IDS_AUTOMATIC)));
+
+   TCHAR szBuffer[32];
+   m_pDevEnv->GetProperty(sKey + _T("caretWidth"), szBuffer, 31);
+   SetDlgItemInt(IDC_CARETWIDTH, max(1, _ttol(szBuffer)));
+
+   m_pDevEnv->GetProperty(sKey + _T("eolMode"), szBuffer, 31);
+   if( _tcscmp(szBuffer, _T("cr")) == 0 ) m_ctrlEOL.SetCurSel(0);
+   else if( _tcscmp(szBuffer, _T("lf")) == 0 ) m_ctrlEOL.SetCurSel(1);
+   else if( _tcscmp(szBuffer, _T("crlf")) == 0 ) m_ctrlEOL.SetCurSel(2);
+   else m_ctrlEOL.SetCurSel(3);
+
+   return 0;
+}
+
+int CEditorsOptionsPage::OnApply()
+{
+   TCHAR szEolMode[32];
+   _tcscpy(szEolMode, _T("auto"));
+   if( m_ctrlEOL.GetCurSel() == 0 ) _tcscpy(szEolMode, _T("cr"));
+   if( m_ctrlEOL.GetCurSel() == 1 ) _tcscpy(szEolMode, _T("lf"));
+   if( m_ctrlEOL.GetCurSel() == 2 ) _tcscpy(szEolMode, _T("crlf"));
+
+   long lCaretWidth = _ttol(CWindowText(m_ctrlCaretWidth));
+
+   if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
+   {
+      m_pArc->ReadItem(_T("General"));
+      WRITE_CHECKBOX(IDC_SAVETOOL,   _T("saveBeforeTool"));
+      WRITE_CHECKBOX(IDC_SAVEPROMPT, _T("savePrompt"));
+      WRITE_CHECKBOX(IDC_SHOWEDGE,   _T("showEdge"));
+      WRITE_CHECKBOX(IDC_BOTTOMLESS, _T("bottomless"));
+      WRITE_CHECKBOX(IDC_CARETLINE,  _T("markCaretLine"));
+      m_pArc->Write(_T("eolMode"), szEolMode);
+      m_pArc->Write(_T("caretWidth"), lCaretWidth);
+      m_pArc->ReadGroupEnd();
+   }
+
+   // HACK: To clear the iterator cache
+   m_pArc->ReadGroupEnd();
+   
+   return PSNRET_NOERROR;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+//
+
+LRESULT CFoldingOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   SET_CHECK(IDC_COMPACT,      _T("editors.folding.compact"));
+   SET_CHECK(IDC_COMMENT,      _T("editors.folding.atComment"));
+   SET_CHECK(IDC_PREPROCESSOR, _T("editors.folding.atPreprocessor"));
+   SET_CHECK(IDC_ELSE,         _T("editors.folding.atElse"));
+   return 0;
+}
+
+int CFoldingOptionsPage::OnApply()
+{
+   if( m_pArc->ReadGroupBegin(_T("Editors")) ) {
+      m_pArc->ReadItem(_T("Folding"));
+      WRITE_CHECKBOX(IDC_COMPACT,      _T("compact"));
+      WRITE_CHECKBOX(IDC_COMMENT,      _T("atComment"));
+      WRITE_CHECKBOX(IDC_PREPROCESSOR, _T("atPreprocessor"));
+      WRITE_CHECKBOX(IDC_ELSE,         _T("atElse"));
+      m_pArc->ReadGroupEnd();
+   }
+   // HACK: To clear the iterator cache
+   m_pArc->ReadGroupEnd();
+   return PSNRET_NOERROR;
 }
 
 
@@ -1060,35 +1145,6 @@ int CColorsOptionsPage::OnApply()
 {
    ATLASSERT(m_pArc);
 
-   for( long i = 0; i < m_ctrlList.GetCount(); i++ ) {
-      TCHAR szBuffer[32];
-      CString sKey;
-      sKey.Format(_T("editors.%s.style%ld."), m_sLanguage, i + 1);
-
-      m_pDevEnv->SetProperty(sKey + _T("name"), m_aFonts[i].szTitle);
-      //
-      m_pDevEnv->SetProperty(sKey + _T("font"), m_aFonts[i].szFaceName);
-      //
-      ::wsprintf(szBuffer, _T("%d"), m_aFonts[i].iHeight);
-      m_pDevEnv->SetProperty(sKey + _T("height"), szBuffer);
-      //
-      ::wsprintf(szBuffer, _T("#%02X%02X%02X"), 
-         GetRValue(m_aFonts[i].clrText),
-         GetGValue(m_aFonts[i].clrText),
-         GetBValue(m_aFonts[i].clrText));
-      m_pDevEnv->SetProperty(sKey + _T("color"), szBuffer);
-      //
-      ::wsprintf(szBuffer, _T("#%02X%02X%02X"), 
-         GetRValue(m_aFonts[i].clrBack),
-         GetGValue(m_aFonts[i].clrBack),
-         GetBValue(m_aFonts[i].clrBack));
-      m_pDevEnv->SetProperty(sKey + _T("back"), szBuffer);
-      //
-      m_pDevEnv->SetProperty(sKey + _T("bold"), m_aFonts[i].bBold ? _T("true") : _T("false"));
-      //
-      m_pDevEnv->SetProperty(sKey + _T("italic"), m_aFonts[i].bItalic ? _T("true") : _T("false"));
-   }
-
    if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
    {
       while( m_pArc->ReadGroupBegin(_T("Editor")) ) {
@@ -1098,17 +1154,29 @@ int CColorsOptionsPage::OnApply()
             for( long i = 0; i < m_ctrlList.GetCount(); i++ ) {
                CString sTag;
                sTag.Format(_T("Style%ld"), i + 1);
-               m_pArc->Delete(sTag);
-               m_pArc->WriteItem(sTag);
-               CString sKey;
-               sKey.Format(_T("editors.%s.style%ld."), m_sLanguage, i + 1);
-               TRANSFER_PROP(_T("name"), sKey + _T("name"));
-               TRANSFER_PROP(_T("font"), sKey + _T("font"));
-               TRANSFER_PROP(_T("height"), sKey + _T("height"));
-               TRANSFER_PROP(_T("color"), sKey + _T("color"));
-               TRANSFER_PROP(_T("back"), sKey + _T("back"));
-               TRANSFER_PROP(_T("bold"), sKey + _T("bold"));
-               TRANSFER_PROP(_T("italic"), sKey + _T("italic"));
+               m_pArc->ReadItem(sTag);
+
+               const STYLEFONT& Info = m_aFonts[i]; 
+
+               TCHAR szTextColor[32];
+               ::wsprintf(szTextColor, _T("#%02X%02X%02X"), 
+                  GetRValue(Info.clrText),
+                  GetGValue(Info.clrText),
+                  GetBValue(Info.clrText));
+
+               TCHAR szBackColor[32];
+               ::wsprintf(szBackColor, _T("#%02X%02X%02X"), 
+                  GetRValue(Info.clrBack),
+                  GetGValue(Info.clrBack),
+                  GetBValue(Info.clrBack));
+
+               m_pArc->Write(_T("name"), Info.szTitle);
+               m_pArc->Write(_T("font"), Info.szFaceName);
+               m_pArc->Write(_T("height"), (long) Info.iHeight);
+               m_pArc->Write(_T("color"), szTextColor);
+               m_pArc->Write(_T("back"), szBackColor);
+               m_pArc->Write(_T("bold"), Info.bBold == true);
+               m_pArc->Write(_T("italic"), Info.bItalic == true);
             }
          }
          m_pArc->ReadGroupEnd();
@@ -1125,6 +1193,7 @@ int CColorsOptionsPage::OnApply()
 void CColorsOptionsPage::_UpdateValues()
 {
    int iIndex = m_ctrlList.GetCurSel();
+   if( iIndex < 0 ) return;
    _tcscpy(m_aFonts[iIndex].szFaceName, CWindowText(m_ctrlFace));
    if( m_ctrlFace.GetCurSel() >= 0 ) {
       m_ctrlFace.GetLBText(m_ctrlFace.GetCurSel(), m_aFonts[iIndex].szFaceName);
@@ -1191,14 +1260,14 @@ LRESULT CFormattingOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, L
 
    CString sKey;
    sKey.Format(_T("editors.%s."), m_sLanguage);
-   SET_CHECK(IDC_MARGINS, sKey + _T("showMargins"));
-   SET_CHECK(IDC_FOLDING, sKey + _T("showFolding"));
-   SET_CHECK(IDC_LINENUMBERS, sKey + _T("showLines"));
-   SET_CHECK(IDC_WORDWRAP, sKey + _T("wordWrap"));
+   SET_CHECK(IDC_MARGINS,      sKey + _T("showMargins"));
+   SET_CHECK(IDC_FOLDING,      sKey + _T("showFolding"));
+   SET_CHECK(IDC_LINENUMBERS,  sKey + _T("showLines"));
+   SET_CHECK(IDC_WORDWRAP,     sKey + _T("wordWrap"));
    SET_CHECK(IDC_BACKUNINDENT, sKey + _T("backUnindent"));
-   SET_CHECK(IDC_TABINDENT, sKey + _T("tabIndent"));
-   SET_CHECK(IDC_USETABS, sKey + _T("useTabs"));
-   SET_CHECK(IDC_INDENTS, sKey + _T("showIndents"));
+   SET_CHECK(IDC_TABINDENT,    sKey + _T("tabIndent"));
+   SET_CHECK(IDC_USETABS,      sKey + _T("useTabs"));
+   SET_CHECK(IDC_INDENTS,      sKey + _T("showIndents"));
 
    TCHAR szBuffer[32];
    m_pDevEnv->GetProperty(sKey + _T("tabWidth"), szBuffer, 31);
@@ -1216,25 +1285,13 @@ LRESULT CFormattingOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, L
 
 int CFormattingOptionsPage::OnApply()
 {
-   CString sKey;
-   sKey.Format(_T("editors.%s."), m_sLanguage);
-   GET_CHECK(IDC_MARGINS, sKey + _T("showMargins"));
-   GET_CHECK(IDC_FOLDING, sKey + _T("showFolding"));
-   GET_CHECK(IDC_INDENTS, sKey + _T("showIndents"));
-   GET_CHECK(IDC_LINENUMBERS, sKey + _T("showLines"));
-   GET_CHECK(IDC_WORDWRAP, sKey + _T("wordWrap"));
-   GET_CHECK(IDC_BACKUNINDENT, sKey + _T("backUnindent"));
-   GET_CHECK(IDC_TABINDENT, sKey + _T("tabIndent"));
-   GET_CHECK(IDC_USETABS, sKey + _T("useTabs"));
+   TCHAR szIndentMode[32];
+   _tcscpy(szIndentMode, _T("none"));
+   if( m_ctrlIndentMode.GetCurSel() == 1 ) _tcscpy(szIndentMode, _T("auto"));
+   if( m_ctrlIndentMode.GetCurSel() == 2 ) _tcscpy(szIndentMode, _T("smart"));
 
-   TCHAR szBuffer[32];
-   _tcscpy(szBuffer, _T("none"));
-   if( m_ctrlIndentMode.GetCurSel() == 1 ) _tcscpy(szBuffer, _T("auto"));
-   if( m_ctrlIndentMode.GetCurSel() == 2 ) _tcscpy(szBuffer, _T("smart"));
-   m_pDevEnv->SetProperty(sKey + _T("indentMode"), szBuffer);
-
-   m_pDevEnv->SetProperty(sKey + _T("tabWidth"), CWindowText(m_ctrlTabWidth));
-   m_pDevEnv->SetProperty(sKey + _T("indentWidth"), CWindowText(m_ctrlIndentWidth));
+   long lTabWidth = _ttol(CWindowText(m_ctrlTabWidth));
+   long lIndentWidth = _ttol(CWindowText(m_ctrlIndentWidth));
 
    if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
    {
@@ -1242,19 +1299,18 @@ int CFormattingOptionsPage::OnApply()
          TCHAR szLanguage[32] = { 0 };
          m_pArc->Read(_T("name"), szLanguage, 31);
          if( m_sLanguage == szLanguage ) {
-            m_pArc->Delete(_T("Visuals"));
-            m_pArc->WriteItem(_T("Visuals"));
-            TRANSFER_PROP(_T("showMargins"), sKey + _T("showMargins"));
-            TRANSFER_PROP(_T("showFolding"), sKey + _T("showFolding"));
-            TRANSFER_PROP(_T("showIndents"), sKey + _T("showIndents"));
-            TRANSFER_PROP(_T("showLines"), sKey + _T("showLines"));
-            TRANSFER_PROP(_T("wordWrap"), sKey + _T("wordWrap"));
-            TRANSFER_PROP(_T("backUnindent"), sKey + _T("backUnindent"));
-            TRANSFER_PROP(_T("tabIndent"), sKey + _T("tabIndent"));
-            TRANSFER_PROP(_T("useTabs"), sKey + _T("useTabs"));
-            TRANSFER_PROP(_T("indentMode"), sKey + _T("indentMode"));
-            TRANSFER_PROP(_T("tabWidth"), sKey + _T("tabWidth"));
-            TRANSFER_PROP(_T("indentWidth"), sKey + _T("indentWidth"));
+            m_pArc->ReadItem(_T("Visuals"));
+            WRITE_CHECKBOX(IDC_MARGINS,      _T("showMargins"));
+            WRITE_CHECKBOX(IDC_FOLDING,      _T("showFolding"));
+            WRITE_CHECKBOX(IDC_LINENUMBERS,  _T("showLines"));
+            WRITE_CHECKBOX(IDC_WORDWRAP,     _T("wordWrap"));
+            WRITE_CHECKBOX(IDC_BACKUNINDENT, _T("backUnindent"));
+            WRITE_CHECKBOX(IDC_TABINDENT,    _T("tabIndent"));
+            WRITE_CHECKBOX(IDC_USETABS,      _T("useTabs"));
+            WRITE_CHECKBOX(IDC_INDENTS,      _T("showIndents"));
+            m_pArc->Write(_T("indentMode"), szIndentMode);
+            m_pArc->Write(_T("tabWidth"), lTabWidth);
+            m_pArc->Write(_T("indentWidth"), lTabWidth);
          }
          m_pArc->ReadGroupEnd();
       }
@@ -1264,80 +1320,6 @@ int CFormattingOptionsPage::OnApply()
    // HACK: To clear the iterator cache
    m_pArc->ReadGroupEnd();
 
-   return PSNRET_NOERROR;
-}
-
-
-////////////////////////////////////////////////////////////////////////
-//
-
-LRESULT CEditorsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-{
-   m_ctrlEOL = GetDlgItem(IDC_EOL);
-   m_ctrlCaretWidth = GetDlgItem(IDC_CARETWIDTH);
-
-   CString sKey = _T("editors.general.");
-   SET_CHECK(IDC_SAVETOOL, sKey + _T("saveBeforeTool"));
-   SET_CHECK(IDC_SAVEPROMPT, sKey + _T("savePrompt"));
-   SET_CHECK(IDC_SHOWEDGE, sKey + _T("showEdge"));
-   SET_CHECK(IDC_BOTTOMLESS, sKey + _T("bottomless"));
-   SET_CHECK(IDC_CARETLINE, sKey + _T("markCaretLine"));
-
-   m_ctrlCaretWidth.SetLimitText(1);
-
-   m_ctrlEOL.AddString(_T("CR"));
-   m_ctrlEOL.AddString(_T("LF"));
-   m_ctrlEOL.AddString(_T("CR + LF"));
-   m_ctrlEOL.AddString(CString(MAKEINTRESOURCE(IDS_AUTOMATIC)));
-
-   TCHAR szBuffer[32];
-   m_pDevEnv->GetProperty(sKey + _T("caretWidth"), szBuffer, 31);
-   SetDlgItemInt(IDC_CARETWIDTH, max(1, _ttol(szBuffer)));
-
-   m_pDevEnv->GetProperty(sKey + _T("eolMode"), szBuffer, 31);
-   if( _tcscmp(szBuffer, _T("cr")) == 0 ) m_ctrlEOL.SetCurSel(0);
-   else if( _tcscmp(szBuffer, _T("lf")) == 0 ) m_ctrlEOL.SetCurSel(1);
-   else if( _tcscmp(szBuffer, _T("crlf")) == 0 ) m_ctrlEOL.SetCurSel(2);
-   else m_ctrlEOL.SetCurSel(3);
-
-   return 0;
-}
-
-int CEditorsOptionsPage::OnApply()
-{
-   CString sKey = _T("editors.general.");
-   GET_CHECK(IDC_SAVETOOL, sKey + _T("saveBeforeTool"));
-   GET_CHECK(IDC_SAVEPROMPT, sKey + _T("savePrompt"));
-   GET_CHECK(IDC_SHOWEDGE, sKey + _T("showEdge"));
-   GET_CHECK(IDC_BOTTOMLESS, sKey + _T("bottomless"));
-   GET_CHECK(IDC_CARETLINE, sKey + _T("markCaretLine"));
-
-   TCHAR szBuffer[32];
-   _tcscpy(szBuffer, _T("auto"));
-   if( m_ctrlEOL.GetCurSel() == 0 ) _tcscpy(szBuffer, _T("cr"));
-   if( m_ctrlEOL.GetCurSel() == 1 ) _tcscpy(szBuffer, _T("lf"));
-   if( m_ctrlEOL.GetCurSel() == 2 ) _tcscpy(szBuffer, _T("crlf"));
-   m_pDevEnv->SetProperty(sKey + _T("eolMode"), szBuffer);
-
-   m_pDevEnv->SetProperty(sKey + _T("caretWidth"), CWindowText(m_ctrlCaretWidth));
-
-   if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
-   {
-      m_pArc->Delete(_T("General"));
-      m_pArc->WriteItem(_T("General"));
-      TRANSFER_PROP(_T("saveBeforeTool"), sKey + _T("saveBeforeTool"));
-      TRANSFER_PROP(_T("savePrompt"), sKey + _T("savePrompt"));
-      TRANSFER_PROP(_T("showEdge"), sKey + _T("showEdge"));
-      TRANSFER_PROP(_T("bottomless"), sKey + _T("bottomless"));
-      TRANSFER_PROP(_T("markCaretLine"), sKey + _T("markCaretLine"));
-      TRANSFER_PROP(_T("eolMode"), sKey + _T("eolMode"));
-      TRANSFER_PROP(_T("caretWidth"), sKey + _T("caretWidth"));
-      m_pArc->ReadGroupEnd();
-   }
-
-   // HACK: To clear the iterator cache
-   m_pArc->ReadGroupEnd();
-   
    return PSNRET_NOERROR;
 }
 

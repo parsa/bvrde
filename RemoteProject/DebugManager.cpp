@@ -228,7 +228,7 @@ bool CDebugManager::ClearBreakpoints()
    // We can now safely remove our internal breakpoint list
    // and signal to the view to do the same...
    m_aBreakpoints.RemoveAll();
-   m_pProject->DelayedViewMessage(DEBUG_CMD_CLEAR_BREAKPOINTS);
+   m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_CLEAR_BREAKPOINTS);
    return true;
 }
 
@@ -770,7 +770,7 @@ void CDebugManager::_ClearLink()
 {
    if( m_bDebugging ) {
       m_pProject->DelayedDebugEvent(LAZY_DEBUG_KILL_EVENT);
-      m_pProject->DelayedViewMessage(DEBUG_CMD_SET_CURLINE);
+      m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_SET_CURLINE);
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUG_STOPPED)));
    }
    m_ShellManager.RemoveLineListener(this);
@@ -832,7 +832,7 @@ void CDebugManager::_ParseNewFrame(CMiInfo& info)
       bool bKnownFile = m_pProject->FindView(sFilename, true) != NULL;
       int iLineNum = _ttoi(info.GetItem(_T("line"), _T("frame")));
       m_pProject->DelayedOpenView(sFilename, iLineNum);
-      m_pProject->DelayedViewMessage(DEBUG_CMD_SET_CURLINE, sFilename, iLineNum);
+      m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_SET_CURLINE, sFilename, iLineNum);
       CString sText;
       if( bKnownFile ) sText.LoadString(IDS_STATUS_DEBUG_BREAKPOINT);
       else if( sFunction.IsEmpty() ) sText.LoadString(IDS_STATUS_DEBUG_NOFILE);
@@ -842,7 +842,7 @@ void CDebugManager::_ParseNewFrame(CMiInfo& info)
    else
    {
       // Debugger stopped at a location without debug information.
-      m_pProject->DelayedViewMessage(DEBUG_CMD_SET_CURLINE);
+      m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_SET_CURLINE);
       CString sText(MAKEINTRESOURCE(IDS_STATUS_DEBUG_NOSOURCE));
       if( !sFunction.IsEmpty() ) sText.Format(IDS_STATUS_DEBUG_NOSOURCE_FUNCTION, sFunction);
       m_pProject->DelayedStatusBar(sText);
@@ -936,7 +936,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
    // App is running again...
    if( sCommand == _T("running") ) {
       m_bBreaked = false;
-      m_pProject->DelayedViewMessage(DEBUG_CMD_SET_RUNNING);
+      m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_SET_RUNNING);
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUGGING)));
       return;
    }

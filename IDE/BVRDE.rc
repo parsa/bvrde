@@ -304,12 +304,12 @@ BEGIN
                     SS_CENTERIMAGE | SS_SUNKEN
 END
 
-IDD_OPTIONS_DOCUMENTS DIALOGEX 0, 0, 259, 153
+IDD_OPTIONS_DOCUMENTS DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Dokumenteneinstellungen",IDC_STATIC,0,0,61,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,67,4,191,1
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,67,4,190,1
     CONTROL         "Schreibgeschützte Dateien schützen",IDC_READONLY,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,164,10,
                     WS_EX_TRANSPARENT
@@ -323,7 +323,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,51,
                     120,10,WS_EX_TRANSPARENT
     LTEXT           "Suchen und ersetzen",IDC_STATIC,0,80,70,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,74,83,185,1
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,74,83,183,1
     CONTROL         "Suchtext vom Editor initialisieren",IDC_FINDTEXT,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,96,120,10,
                     WS_EX_TRANSPARENT
@@ -332,9 +332,9 @@ BEGIN
                     WS_EX_TRANSPARENT
 END
 
-IDD_OPTIONS_EDITORS DIALOGEX 0, 0, 263, 153
+IDD_OPTIONS_EDITORS DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Einstellungen",IDC_STATIC,0,0,46,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,48,4,210,1
@@ -354,7 +354,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,59,120,10,
                     WS_EX_TRANSPARENT
     LTEXT           "Konfiguration",IDC_STATIC,0,83,43,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,49,87,208,1
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,49,88,209,1
     LTEXT           "EOL Modus:",IDC_STATIC,14,99,42,12,SS_CENTERIMAGE
     COMBOBOX        IDC_EOL,60,99,93,51,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
@@ -362,9 +362,9 @@ BEGIN
     EDITTEXT        IDC_CARETWIDTH,60,115,21,12,ES_AUTOHSCROLL | ES_NUMBER
 END
 
-IDD_OPTIONS_FORMATTING DIALOGEX 0, 0, 257, 168
+IDD_OPTIONS_FORMATTING DIALOGEX 0, 0, 258, 168
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Visuelle Ansicht",IDC_STATIC,0,0,52,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,55,4,202,1
@@ -391,7 +391,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,123,15,120,10,
                     WS_EX_TRANSPARENT
     LTEXT           "Formatierung",IDC_STATIC,0,101,43,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,45,105,211,1
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,45,105,212,1
     LTEXT           "Einrückung:",IDC_STATIC,14,117,40,12,SS_CENTERIMAGE
     COMBOBOX        IDC_INDENTATION,60,117,60,45,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
@@ -401,7 +401,7 @@ BEGIN
     EDITTEXT        IDC_INDENTWIDTH,60,148,29,12,ES_AUTOHSCROLL | ES_NUMBER
 END
 
-IDD_OPTIONS_GENERAL DIALOG DISCARDABLE  0, 0, 263, 153
+IDD_OPTIONS_GENERAL DIALOG DISCARDABLE  0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg"
 BEGIN
@@ -432,9 +432,9 @@ BEGIN
                     IDC_STATIC,0,0,261,16
 END
 
-IDD_OPTIONS_PRINTING DIALOGEX 0, 0, 259, 153
+IDD_OPTIONS_PRINTING DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Drucken",-1,0,0,28,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,32,4,226,1
@@ -527,6 +527,24 @@ BEGIN
     CONTROL         "List2",IDC_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SHOWSELALWAYS | LVS_NOCOLUMNHEADER | 
                     LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,20,205,158
+END
+
+IDD_OPTIONS_FOLDING DIALOGEX 0, 0, 259, 153
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Folding",IDC_STATIC,0,0,27,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,30,4,228,1
+    CONTROL         "Use compact folding",IDC_COMPACT,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Fold at comments",IDC_COMMENT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,14,28,133,10,WS_EX_TRANSPARENT
+    CONTROL         "Fold at preprocessor",IDC_PREPROCESSOR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,39,133,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Fold at else",IDC_ELSE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,14,50,133,10,WS_EX_TRANSPARENT
 END
 
 
@@ -623,6 +641,11 @@ BEGIN
         BOTTOMMARGIN, 218
     END
 
+    IDD_OPTIONS_FORMATTING, DIALOG
+    BEGIN
+        RIGHTMARGIN, 257
+    END
+
     IDD_TOOLS, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -642,6 +665,11 @@ BEGIN
         RIGHTMARGIN, 276
         TOPMARGIN, 7
         BOTTOMMARGIN, 178
+    END
+
+    IDD_OPTIONS_FOLDING, DIALOG
+    BEGIN
+        RIGHTMARGIN, 258
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1371,7 +1399,7 @@ BEGIN
     PUSHBUTTON      "Remove",IDC_REMOVE,223,26,50,14
 END
 
-IDD_OPTIONS_GENERAL DIALOG DISCARDABLE  0, 0, 263, 168
+IDD_OPTIONS_GENERAL DIALOG DISCARDABLE  0, 0, 258, 168
 STYLE DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg"
 BEGIN
@@ -1393,12 +1421,12 @@ BEGIN
                     147,126,104,21
 END
 
-IDD_OPTIONS_DOCUMENTS DIALOGEX 0, 0, 259, 153
+IDD_OPTIONS_DOCUMENTS DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Document Settings",IDC_STATIC,0,0,61,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,67,4,191,1
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,67,4,190,1
     CONTROL         "Protect Read-Only files",IDC_READONLY,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,120,10,
                     WS_EX_TRANSPARENT
@@ -1412,7 +1440,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,51,120,10,
                     WS_EX_TRANSPARENT
     LTEXT           "Find and Replace",IDC_STATIC,0,80,57,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,62,83,197,1
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,62,83,195,1
     CONTROL         "Initialize Find Text from Editor",IDC_FINDTEXT,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,96,120,10,
                     WS_EX_TRANSPARENT
@@ -1463,9 +1491,9 @@ BEGIN
                     SS_CENTERIMAGE | SS_SUNKEN
 END
 
-IDD_OPTIONS_FORMATTING DIALOGEX 0, 0, 257, 168
+IDD_OPTIONS_FORMATTING DIALOGEX 0, 0, 258, 168
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Visuals",IDC_STATIC,0,0,26,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,31,4,226,1
@@ -1489,7 +1517,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,123,15,120,10,
                     WS_EX_TRANSPARENT
     LTEXT           "Formatting",IDC_STATIC,0,101,35,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,39,105,217,1
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,39,105,218,1
     LTEXT           "Indentation: ",IDC_STATIC,14,117,40,12,SS_CENTERIMAGE
     COMBOBOX        IDC_INDENTATION,60,117,60,45,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
@@ -1499,9 +1527,9 @@ BEGIN
     EDITTEXT        IDC_INDENTWIDTH,60,148,29,12,ES_AUTOHSCROLL | ES_NUMBER
 END
 
-IDD_OPTIONS_EDITORS DIALOGEX 0, 0, 263, 153
+IDD_OPTIONS_EDITORS DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Settings",IDC_STATIC,0,0,26,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,33,4,225,1
@@ -1519,7 +1547,7 @@ BEGIN
     CONTROL         "Mark Caret Line",IDC_CARETLINE,"Button",BS_AUTOCHECKBOX | 
                     WS_GROUP | WS_TABSTOP,14,59,120,10,WS_EX_TRANSPARENT
     LTEXT           "Configuration",IDC_STATIC,0,83,43,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,49,87,208,1
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,49,88,209,1
     LTEXT           "EOL mode:",IDC_STATIC,14,99,43,12,SS_CENTERIMAGE
     COMBOBOX        IDC_EOL,60,99,68,51,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
@@ -1527,9 +1555,9 @@ BEGIN
     EDITTEXT        IDC_CARETWIDTH,60,115,21,12,ES_AUTOHSCROLL | ES_NUMBER
 END
 
-IDD_OPTIONS_PRINTING DIALOGEX 0, 0, 259, 153
+IDD_OPTIONS_PRINTING DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Printing",-1,0,0,26,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,30,4,228,1
@@ -1673,6 +1701,24 @@ BEGIN
                     IDC_STATIC,0,0,261,16
 END
 
+IDD_OPTIONS_FOLDING DIALOGEX 0, 0, 258, 153
+STYLE DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Folding",IDC_STATIC,0,0,27,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,30,4,228,1
+    CONTROL         "Use compact folding",IDC_COMPACT,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,15,120,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Fold at comments",IDC_COMMENT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,14,28,133,10,WS_EX_TRANSPARENT
+    CONTROL         "Fold at preprocessor",IDC_PREPROCESSOR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,39,133,10,
+                    WS_EX_TRANSPARENT
+    CONTROL         "Fold at else",IDC_ELSE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,14,50,133,10,WS_EX_TRANSPARENT
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1751,6 +1797,11 @@ BEGIN
     IDD_OPTIONS_GENERAL, DIALOG
     BEGIN
         BOTTOMMARGIN, 153
+    END
+
+    IDD_OPTIONS_FORMATTING, DIALOG
+    BEGIN
+        RIGHTMARGIN, 257
     END
 
     IDD_CONFIG_MACROS, DIALOG
@@ -2507,6 +2558,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_STATUS_RECMACRO     " Recording macro..."
     IDS_ERR_REGNOPRIV       "Not allowed\nChanging the Windows Registry failed.\nChanging the file associations requires a user account with system administrator priviledges."
+    IDS_TREE_FOLDING        "Folding"
 END
 
 #endif    // English (U.S.) resources

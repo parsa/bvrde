@@ -135,16 +135,26 @@ void CTagInfo::GetItemInfo(const TAGINFO* pTag, CTagDetails& Info)
    Info.sBase = pTag->pstrOwner;
    Info.iLineNum = pTag->iLineNum;
    Info.sDeclaration = pTag->pstrDeclaration;
-   Info.sFilename = pTag->pstrFile;
+   Info.sRegExMatch = pTag->pstrRegExMatch;
    Info.sNamespace = pTag->pstrNamespace;
    Info.sComment = pTag->pstrComment;
+   Info.sFilename = pTag->pstrFile;
    Info.sMemberOfScope = _T("");
    // CTAGS and similar will output regular expression stuff that
    // isn't even valid with Scintilla's reg.ex parser. So we strip
    // pre/post reg.ex stuff.
+   Info.sRegExMatch.TrimLeft(_T("/$~^* \t.,;"));
+   Info.sRegExMatch.TrimRight(_T("/$~^* \t.,;"));
+   Info.sRegExMatch.Replace(_T("\\/"), _T("/"));
+   Info.sDeclaration.Replace(_T("\\/"), _T("/"));
    Info.sDeclaration.TrimLeft(_T("/$~^* \t.,;"));
    Info.sDeclaration.TrimRight(_T("/$~^* \t.,;"));
-   Info.sDeclaration.Replace(_T("\\/"), _T("/"));
+   int iPos = Info.sDeclaration.Find(_T("// "));
+   if( iPos > 0 ) {
+      Info.sComment = Info.sDeclaration.Mid(iPos + 3);
+      Info.sDeclaration = Info.sDeclaration.Left(iPos);
+      Info.sDeclaration.TrimRight();
+   }
 }
 
 bool CTagInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aResult)
@@ -265,6 +275,7 @@ bool CTagInfo::_LoadTags()
    // tag files to load. This prevent repeated attempts to
    // load the files in the future.
    m_bLoaded = true;
+   m_bSorted = true;
 
    // Look for all files in the project that contains the name "TAGS"...
    int i;
@@ -297,15 +308,14 @@ bool CTagInfo::_LoadTags()
       }
    }
 
+   if( m_aFiles.GetSize() > 1 ) m_bSorted = false;
+
    // Check if list is sorted.
    // NOTE: When multiple files are encountered we cannot rely
    //       on the list being sorted because we don't merge the files.
    //       This will significantly slow down the processing!!
-   // BUG: This is a lame attempt to detect if the list is sorted.
-   // TODO: Base this on CTAG meta/header-information instead.
-   m_bSorted = m_aFiles.GetSize() == 1;
-   for( i = 0; m_bSorted && i < m_aTags.GetSize() - 51; i += 50 ) {
-      if( _tcscmp(m_aTags[i].pstrName, m_aTags[i + 50].pstrName) > 0 ) m_bSorted = false;
+   for( i = 0; m_bSorted && i < m_aTags.GetSize(); i += 50 ) {
+      if( _tcscmp(m_aTags[i].pstrName, m_aTags[i].pstrName) > 0 ) m_bSorted = false;
    }
 
    return true;
@@ -326,9 +336,12 @@ bool CTagInfo::_ParseTagFile(LPTSTR pstrText)
       pstrNext++;
 
       // Ignore comments
-      if( *pstrText == '!' ) continue;
+      if( *pstrText == '!' ) {
+         if( _tcsstr(pstrText, _T("!_TAG_FILE_SORTED\t0")) != NULL ) m_bSorted = false;
+         continue;
+      }
 
-      // Parse tag structure
+      // Parse tag structure...
       TAGINFO info;
 
       LPTSTR p = _tcschr(pstrText, '\t');
@@ -350,16 +363,24 @@ bool CTagInfo::_ParseTagFile(LPTSTR pstrText)
       if( p == NULL ) continue;
       *p = '\0';
       if( *(p - 2) == ';' ) *(p - 2) = '\0';
+      info.pstrRegExMatch = pstrText;
       info.pstrDeclaration = pstrText;
 
       // Prefill before parsing extra fields
       static LPCTSTR pstrEmpty = _T("");
       info.Type = TAGTYPE_UNKNOWN;
+      info.TagSource = TAGSOURCE_CTAGS;
       info.Protection = TAGPROTECTION_GLOBAL;
       info.pstrOwner = pstrEmpty;
       info.pstrComment = pstrEmpty;
       info.pstrNamespace = pstrEmpty;
       info.iLineNum = -1;
+
+      if( _istdigit(info.pstrDeclaration[0]) ) {
+         info.iLineNum = _ttoi(info.pstrDeclaration);
+         info.pstrDeclaration = pstrEmpty;
+         info.pstrRegExMatch = pstrEmpty;
+      }
 
       // Parse the optional properties
       pstrText = p + 1;
@@ -371,7 +392,9 @@ bool CTagInfo::_ParseTagFile(LPTSTR pstrText)
          pstrText = p + 1;
       }
 
-      if( _istdigit(info.pstrDeclaration[0]) ) info.iLineNum = _ttoi(info.pstrDeclaration);
+      // Correct to weird things in the fields
+      p = _tcsstr(info.pstrOwner, _T("::<ano"));
+      if( p != NULL ) *p = '\0';
 
       m_aTags.Add(info);
    }
@@ -436,5 +459,8 @@ void CTagInfo::_ResolveExtraField(TAGINFO& info, LPCTSTR pstrField) const
    {
       if( _tcsncmp(pstrField, _T("signature:"), 10) == 0 ) info.pstrDeclaration = pstrField + 10;
    }
+   // Resolve line-number. Sample format:
+   //    line:54
+   if( _tcsncmp(pstrField, _T("line:"), 5) == 0 ) info.iLineNum = _ttoi(pstrField + 5);
 }
 

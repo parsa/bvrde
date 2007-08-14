@@ -52,7 +52,7 @@ CString CCommandThread::GetResult() const
 
 DWORD CCommandThread::Run()
 {
-   ::SetThreadLocale(_pDevEnv->GetLCID());
+   _pDevEnv->SetThreadLanguage();
 
    CCoInitialize cominit;
 

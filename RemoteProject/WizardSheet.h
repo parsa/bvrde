@@ -142,6 +142,7 @@ public:
 
    // Overloads
 
+   int OnSetActive();
    int OnApply();
 
    // Message map and handlers
@@ -242,6 +243,7 @@ public:
 
    // Overloads
 
+   int OnSetActive();
    int OnApply();
 
    // Message map and handlers

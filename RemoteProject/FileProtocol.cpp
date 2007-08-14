@@ -165,11 +165,13 @@ bool CFileProtocol::SetCurPath(LPCTSTR pstrPath)
    _tcscpy(szPath, pstrPath);
    ::PathRemoveBackslash(szPath);
    if( ::PathIsRelative(szPath) ) {
-      // FIX: Windows doesn't seem to return a good error explanation
       if( ::GetLastError() == 0 ) ::SetLastError(ERROR_CANT_RESOLVE_FILENAME);
       return false;
    }
-   if( !::PathIsDirectory(szPath) ) return false;
+   if( !::PathIsDirectory(szPath) ) {
+      if( ::GetLastError() == 0 ) ::SetLastError(ERROR_PATH_NOT_FOUND);
+      return false;
+   }
    m_sCurDir = szPath;
    return true;
 }

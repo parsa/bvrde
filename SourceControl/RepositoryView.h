@@ -6,9 +6,10 @@
 #endif // _MSC_VER > 1000
 
 
-#define IDC_SFOLDERS     100
-#define IDC_SFILES       101
-#define WM_APP_ENUMDONE  WM_APP + 44
+#define IDC_SFOLDERS       100
+#define IDC_SFILES         101
+#define WM_APP_ENUMDONE    WM_APP + 44
+#define WM_APP_ENUMFAILED  WM_APP + 45
 
 
 typedef struct tagFILEINFO
@@ -55,6 +56,7 @@ class CRepositoryView : public CWindowImpl<CRepositoryView>
 public:
    CImageListCtrl m_FolderImages;
    CImageListCtrl m_FileImages;
+   CImageListCtrl m_OverlayImages;
    CTreeViewCtrl m_ctrlFolders;
    CListViewCtrl m_ctrlFiles;
    CStatic m_ctrlBuilding;
@@ -66,12 +68,14 @@ public:
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
       MESSAGE_HANDLER(WM_SIZE, OnSize)
       MESSAGE_HANDLER(WM_APP_ENUMDONE, OnFileEnumDone)
+      MESSAGE_HANDLER(WM_APP_ENUMFAILED, OnFileEnumFailed)
       MESSAGE_HANDLER(WM_COMPACTING, OnViewOpens)
       MESSAGE_HANDLER(WM_CTLCOLORSTATIC, OnCtlColorStatic)
       NOTIFY_HANDLER(IDC_SFOLDERS, TVN_SELCHANGED, OnSelChanged)
       NOTIFY_HANDLER(IDC_SFOLDERS, TVN_ITEMEXPANDED, OnItemExpanded)      
       NOTIFY_HANDLER(IDC_SFILES, LVN_KEYDOWN, OnListKeyDown)
       NOTIFY_HANDLER(IDC_SFILES, LVN_ITEMCHANGED, OnListSelected)
+      NOTIFY_HANDLER(IDC_SFILES, NM_DBLCLK, OnListDblClick)
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -79,10 +83,12 @@ public:
    LRESULT OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnViewOpens(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnFileEnumDone(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnFileEnumFailed(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSelChanged(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnItemExpanded(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnListKeyDown(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnListSelected(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnListDblClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 
    // Implementation
 

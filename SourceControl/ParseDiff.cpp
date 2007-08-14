@@ -46,11 +46,17 @@ BOOL CDiffCvsView::_ParseDiffOriginal(CSimpleArray<CString>& aFile, CSimpleArray
                int iRightStart = _ttoi(++p);
                while( _istdigit(*p) ) p++;
                if( *p == ',' ) iRightRange = _ttoi(++p) - iRightStart + 1;
-               while( iLineNo < iRightStart - 1 && iLineNo < nFileLines ) {
-                  _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
-                  iLineNo++;
+               if( Info.bListUnchanged ) {
+                  while( iLineNo < iRightStart - 1 && iLineNo < nFileLines ) {
+                     _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
+                     iLineNo++;
+                  }
+                  if( Info.iFirstChange < 0 ) Info.iFirstChange = iLineNo;
                }
-               if( Info.iFirstChange < 0 ) Info.iFirstChange = iLineNo;
+               else {
+                  _GenerateSectionHeader(sHTML, iLeftStart, iRightStart);
+                  iLineNo = iRightStart - 1;
+               }
             }
          }
          break;
@@ -139,9 +145,11 @@ BOOL CDiffCvsView::_ParseDiffOriginal(CSimpleArray<CString>& aFile, CSimpleArray
          break;
       }
    }
-   while( iLineNo > 0 && iLineNo < nFileLines ) {
-      _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
-      iLineNo++;
+   if( Info.bListUnchanged ) {
+      while( iLineNo > 0 && iLineNo < nFileLines ) {
+         _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
+         iLineNo++;
+      }
    }
    return (iLineNo > 0);
 }
@@ -225,11 +233,17 @@ BOOL CDiffCvsView::_ParseDiffContext(CSimpleArray<CString>& aFile, CSimpleArray<
                         break;
                      }
                   }
-                  while( iLineNo < iRightStart - 1 && iLineNo < nFileLines ) {
-                     _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
-                     iLineNo++;
+                  if( Info.bListUnchanged ) {
+                     while( iLineNo < iRightStart - 1 && iLineNo < nFileLines ) {
+                        _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
+                        iLineNo++;
+                     }
+                     if( Info.iFirstChange < 0 ) Info.iFirstChange = iLineNo;
                   }
-                  if( Info.iFirstChange < 0 ) Info.iFirstChange = iLineNo;
+                  else {
+                     _GenerateSectionHeader(sHTML, iLeftStart, iRightStart);
+                     iLineNo = iRightStart - 1;
+                  }
                }
             }
             else if( _tcsncmp(sLine1, _T("--- "), 4) == 0 )
@@ -240,11 +254,17 @@ BOOL CDiffCvsView::_ParseDiffContext(CSimpleArray<CString>& aFile, CSimpleArray<
                iRightRange = 1;
                while( _istdigit(*p) ) p++;
                if( *p == ',' ) iRightRange = _ttoi(++p) - iRightStart + 1;
-               while( iLineNo < iRightStart - 1 && iLineNo < nFileLines ) {
-                  _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
-                  iLineNo++;
+               if( Info.bListUnchanged ) {
+                  while( iLineNo < iRightStart - 1 && iLineNo < nFileLines ) {
+                     _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
+                     iLineNo++;
+                  }
+                  if( Info.iFirstChange < 0 ) Info.iFirstChange = iLineNo;
                }
-               if( Info.iFirstChange < 0 ) Info.iFirstChange = iLineNo;
+               else {
+                  if( iDualChunkPos == 0 ) _GenerateSectionHeader(sHTML, iLeftStart, iRightStart);
+                  iLineNo = iRightStart - 1;
+               }
                if( iDualChunkPos > 0 ) i = iDualChunkPos, iRightRange = 0, iDualChunkPos = 0;
             }
             else if( sLine1[0] == ' ' && (sLine2[0] == ' ' || sLine2[0] == 'x') )
@@ -291,9 +311,11 @@ BOOL CDiffCvsView::_ParseDiffContext(CSimpleArray<CString>& aFile, CSimpleArray<
          }
       }
    }
-   while( iLineNo > 0 && iLineNo < nFileLines ) {
-      _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
-      iLineNo++;
+   if( Info.bListUnchanged ) {
+      while( iLineNo > 0 && iLineNo < nFileLines ) {
+         _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
+         iLineNo++;
+      }
    }
    return (iLineNo > 0);
 }
@@ -333,6 +355,7 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
                p += 2;
                while( _istspace(*p) ) p++;
                if( *p == '-' ) p++;
+               int iLeftStart = _ttoi(p);
                while( _istdigit(*p) ) p++;
                if( *p == ',' ) iLeftRange = _ttoi(++p);
                while( _istdigit(*p) ) p++;
@@ -341,11 +364,17 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
                if( *p == '+' ) iRightStart = _ttoi(++p);
                while( _istdigit(*p) ) p++;
                if( *p == ',' ) iRightRange = _ttoi(++p);
-               while( iLineNo < iRightStart - 1 && iLineNo < nFileLines ) {
-                  _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
-                  iLineNo++;
+               if( Info.bListUnchanged ) {
+                  while( iLineNo < iRightStart - 1 && iLineNo < nFileLines ) {
+                     _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
+                     iLineNo++;
+                  }
+                  if( Info.iFirstChange < 0 ) Info.iFirstChange = iLineNo;
                }
-               if( Info.iFirstChange < 0 ) Info.iFirstChange = iLineNo;
+               else {
+                  _GenerateSectionHeader(sHTML, iLeftStart, iRightStart);
+                  iLineNo = iRightStart - 1;
+               }
                State = STATE_MERGE;
             }
          }
@@ -404,9 +433,11 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
          break;
       }
    }
-   while( iLineNo > 0 && iLineNo < nFileLines ) {
-      _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
-      iLineNo++;
+   if( Info.bListUnchanged ) {
+      while( iLineNo > 0 && iLineNo < nFileLines ) {
+         _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
+         iLineNo++;
+      }
    }
    return (iLineNo > 0);
 }

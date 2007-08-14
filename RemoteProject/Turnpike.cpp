@@ -119,9 +119,16 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             for( int i = 0; i < m_aFiles.GetSize(); i++ ) m_aFiles[i]->SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
          }
          break;
+      case LAZY_SEND_ACTIVE_VIEW_MESSAGE:
+         {
+            // Broadcast message to all known views in project
+            CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
+            wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
+         }
+         break;
       case LAZY_CLASSTREE_INFO:
          {
-            m_TagManager.m_LexInfo.MergeTree(data.szFilename, data.pLexFile);
+            m_TagManager.m_LexInfo.MergeIntoTree(data.szFilename, data.pLexFile);
          }
          break;
       case LAZY_DEBUGCOMMAND:
@@ -132,7 +139,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
       case LAZY_DEBUG_START_EVENT:
          {
             // Notify all views
-            DelayedViewMessage(DEBUG_CMD_DEBUG_START);
+            DelayedGlobalViewMessage(DEBUG_CMD_DEBUG_START);
 
             // Open up all debugger view requested
             if( m_DockManager.IsAutoShown(m_viewWatch, _T("showWatch")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
@@ -149,7 +156,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
       case LAZY_DEBUG_KILL_EVENT:
          {
             // Notify all views
-            DelayedViewMessage(DEBUG_CMD_DEBUG_STOP);
+            DelayedGlobalViewMessage(DEBUG_CMD_DEBUG_STOP);
 
             // If we're closing the debug session, then dispose
             // all debug views as well...
@@ -334,11 +341,26 @@ void CRemoteProject::DelayedDebugCommand(LPCTSTR pstrCommand)
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
 
-void CRemoteProject::DelayedViewMessage(WPARAM wCmd, LPCTSTR pstrFilename /*= NULL*/, int iLineNum /*= -1*/, UINT iFlags /*= 0*/)
+void CRemoteProject::DelayedGlobalViewMessage(WPARAM wCmd, LPCTSTR pstrFilename /*= NULL*/, int iLineNum /*= -1*/, UINT iFlags /*= 0*/)
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_SEND_GLOBAL_VIEW_MESSAGE;
+   data.wParam = wCmd;
+   _tcscpy(data.szFilename, pstrFilename == NULL ? _T("") : pstrFilename);
+   _tcscpy(data.szMessage, _T(""));
+   _tcscpy(data.szCaption, _T(""));
+   data.iLineNum = iLineNum;
+   data.iFlags = iFlags;
+   m_aLazyData.Add(data);
+   m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
+}
+
+void CRemoteProject::DelayedLocalViewMessage(WPARAM wCmd, LPCTSTR pstrFilename /*= NULL*/, int iLineNum /*= -1*/, UINT iFlags /*= 0*/)
+{
+   CLockDelayedDataInit lock;
+   LAZYDATA data;
+   data.Action = LAZY_SEND_ACTIVE_VIEW_MESSAGE;
    data.wParam = wCmd;
    _tcscpy(data.szFilename, pstrFilename == NULL ? _T("") : pstrFilename);
    _tcscpy(data.szMessage, _T(""));
