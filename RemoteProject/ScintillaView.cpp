@@ -1458,6 +1458,8 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
             _T("float"),
             _T("double"),
             _T("void"),
+            _T("signed"),
+            _T("unsigned"),
             NULL
          };
          for( LPCTSTR* ppTypes = ppstrKnownTypes; *ppTypes != NULL; ppTypes++ ) {
@@ -1536,7 +1538,7 @@ void CScintillaView::_ShowToolTip(long lPos, CString sText, bool bAdjustPos, boo
 
    if( sText.IsEmpty() ) return;
 
-   // CTAGS defines have excessive spaces in the text
+   // CTAGS declarations may have excessive spaces in the text
    sText.Replace(_T("    "), _T(" "));
    sText.Replace(_T("   "), _T(" "));
    sText.Replace(_T("  "), _T(" "));
@@ -1645,7 +1647,7 @@ void CScintillaView::_ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCur
       }
    }
 
-   // Which tip to display
+   // Which tip to display?
    m_TipInfo.lCurTip = lCurTip % m_TipInfo.aDecl.GetSize();
 
    // Multiple entries? Let's allow browsing the tip texts
@@ -1758,7 +1760,7 @@ CString CScintillaView::_GetNearText(long lPos, bool bExcludeKeywords /*= true*/
    // Is it really an identifier?
    if( !_iscppchar(szText[iStart]) ) return _T("");
    if( isdigit(szText[iStart]) ) return _T("");
-   // Let's find the end then
+   // Let's find the end then...
    int iEnd = iStart;
    while( szText[iEnd] != '\0' && _iscppchar(szText[iEnd + 1]) ) iEnd++;
    szText[iEnd + 1] = '\0';

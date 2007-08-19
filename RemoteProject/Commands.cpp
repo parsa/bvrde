@@ -7,6 +7,7 @@
 
 #include "ArgumentsDlg.h"
 #include "RemoteFileDlg.h"
+#include "RebuildLexDlg.h"
 #include "AttachProcessDlg.h"
 
 #include "ViewSerializer.h"
@@ -719,10 +720,19 @@ LRESULT CRemoteProject::OnBuildCheckSyntax(WORD /*wNotifyCode*/, WORD /*wID*/, H
    return 0;
 }
 
-LRESULT CRemoteProject::OnBuildTags(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CRemoteProject::OnBuildCTags(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
    return m_CompileManager.DoAction(_T("BuildTags"));
+}
+
+LRESULT CRemoteProject::OnBuildLexTags(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+   CRebuildLexDlg dlg;
+   dlg.Init(this);
+   dlg.DoModal();
+   return 0;
 }
 
 LRESULT CRemoteProject::OnBuildMakefile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)

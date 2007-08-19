@@ -412,6 +412,10 @@ SOURCE=.\QuickWatchDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\RebuildLexDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\RemoteFileDlg.h
 # End Source File
 # End Group

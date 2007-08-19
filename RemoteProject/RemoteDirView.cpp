@@ -292,6 +292,8 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
          { _T("makefile"), 6 },
          { _T("xml"),      4 },
          { _T("html"),     5 },
+         { _T("asp"),      5 },
+         { _T("php"),      5 },
          { _T("bash"),     6 },
          { NULL, NULL }
       };

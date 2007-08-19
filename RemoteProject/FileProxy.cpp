@@ -43,8 +43,8 @@ bool CFileManager::Load(ISerializable* pArc)
    }
    if( m_pProtocol ) delete m_pProtocol;
    m_pProtocol = NULL;
-   if( m_sType == _T("ftp") ) m_pProtocol = new CFtpProtocol();
-   else if( m_sType == _T("sftp") ) m_pProtocol = new CSftpProtocol();
+   if( m_sType == _T("ftp") )          m_pProtocol = new CFtpProtocol();
+   else if( m_sType == _T("sftp") )    m_pProtocol = new CSftpProtocol();
    else if( m_sType == _T("network") ) m_pProtocol = new CFileProtocol();
    else return false;
 
@@ -114,8 +114,8 @@ void CFileManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
       if( m_pProtocol ) delete m_pProtocol;
       m_pProtocol = NULL;
       m_sType = pstrValue;
-      if( m_sType == _T("ftp") ) m_pProtocol = new CFtpProtocol();
-      else if( m_sType == _T("sftp") ) m_pProtocol = new CSftpProtocol();
+      if( m_sType == _T("ftp") )          m_pProtocol = new CFtpProtocol();
+      else if( m_sType == _T("sftp") )    m_pProtocol = new CSftpProtocol();
       else if( m_sType == _T("network") ) m_pProtocol = new CFileProtocol();
    }
    // Just pass the parameter on to the actual protocol

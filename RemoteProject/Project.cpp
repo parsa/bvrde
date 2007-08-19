@@ -132,7 +132,7 @@ INT CRemoteProject::GetItemCount() const
 
 IView* CRemoteProject::GetItem(INT iIndex)
 {
-   if( iIndex < 0 || iIndex > m_aFiles.GetSize() ) return NULL;
+   if( iIndex < 0 || iIndex >= m_aFiles.GetSize() ) return NULL;
    return m_aFiles[iIndex];
 }
 
@@ -334,6 +334,7 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_BUILD_REBUILD, !bCompiling);
    pUIBase->UIEnable(ID_BUILD_SOLUTION, !bCompiling);   
    pUIBase->UIEnable(ID_BUILD_CLEAN, !bCompiling);
+   pUIBase->UIEnable(ID_BUILD_LEXTAGS, !bCompiling);
    pUIBase->UIEnable(ID_BUILD_BUILDTAGS, !bCompiling);
    pUIBase->UIEnable(ID_BUILD_BUILDMAKEFILE, !bBusy);
    pUIBase->UIEnable(ID_BUILD_FILEWIZARD, pElement != NULL && !bBusy && !bIsFolder);   

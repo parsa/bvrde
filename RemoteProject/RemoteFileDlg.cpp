@@ -359,19 +359,22 @@ bool CRemoteFileDlg::_PopulateView(LPCTSTR pstrPath)
       }
       if( !bFound ) continue;
 
+      CString sFileType = GetFileTypeFromFilename(sFilename);
       sFilename.MakeUpper();
       int iImage = 3;
-      if( sFilename.Find(_T("MAK")) == 0 ) iImage = 5;
-      if( sFilename.Find(_T(".TXT")) > 0) iImage = 1;
-      if( sFilename.Find(_T(".LOG")) > 0) iImage = 1;
-      if( sFilename.Find(_T(".CFG")) > 0) iImage = 1;
-      if( sFilename.Find(_T(".C")) > 0 ) iImage = 4;
-      if( sFilename.Find(_T(".H")) > 0 ) iImage = 4;
-      if( sFilename.Find(_T(".EC")) > 0 ) iImage = 4;
-      if( sFilename.Find(_T(".PC")) > 0 ) iImage = 4;
-      if( sFilename.Find(_T(".SH")) > 0 ) iImage = 5;
-      if( sFilename.Find(_T(".MAK")) > 0 ) iImage = 5;
-      if( sFilename.Find(_T(".HTM")) > 0 ) iImage = 6;
+      if( sFileType == _T("cpp") )         iImage = 4;
+      if( sFileType == _T("header") )      iImage = 4;
+      if( sFileType == _T("java") )        iImage = 4;
+      if( sFileType == _T("pascal") )      iImage = 4;
+      if( sFileType == _T("makefile") )    iImage = 5;
+      if( sFileType == _T("bash") )        iImage = 5;
+      if( sFileType == _T("asp") )         iImage = 6;
+      if( sFileType == _T("php") )         iImage = 6;
+      if( sFileType == _T("html") )        iImage = 6;
+      if( sFilename.Find(_T(".TXT")) > 0 ) iImage = 1;
+      if( sFilename.Find(_T(".LOG")) > 0 ) iImage = 1;
+      if( sFilename.Find(_T(".CFG")) > 0 ) iImage = 1;
+      if( sFilename.Find(_T(".INI")) > 0 ) iImage = 1;
       if( (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0 ) iImage = 0;
       m_ctrlList.InsertItem(LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE, 
          i, 

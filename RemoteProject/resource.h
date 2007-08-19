@@ -312,6 +312,7 @@
 #define IDC_AUTOCOMPLETE                1039
 #define IDC_NOCLASSBROWSER              1040
 #define IDC_CLASSBROWSER                1040
+#define IDC_PROGRESS                    1040
 #define IDC_ONLINESCANNER               1041
 #define IDC_MATCHBRACES                 1042
 #define IDC_AUTOSUGGEST                 1043
@@ -340,6 +341,7 @@
 #define IDC_REFRESH                     1153
 #define IDD_OPTIONS_ADVANCED            32009
 #define IDD_WIZARD_STEPS                32010
+#define IDD_REBUILDLEX                  32011
 #define ID_FILE_OPEN_WITH               40001
 #define ID_FILE_COMPILE                 40002
 #define ID_FILE_DELETE                  40003
@@ -419,7 +421,7 @@
 #define ID_DISASM_INTELSTYLE            40117
 #define ID_DISASM_SHOWSOURCE            40118
 #define ID_CLASSVIEW_SORT_ALPHA         40121
-#define ID_CLASSVIEW_SORT_NONE             40122
+#define ID_CLASSVIEW_SORT_NONE          40122
 #define ID_MEMORY_EDIT                  40123
 #define ID_MEMORY_SIZE_DWORD            40124
 #define ID_MEMORY_SIZE_WORD             40125
@@ -452,17 +454,18 @@
 #define ID_BREAKPOINTS_DISABLE          40153
 #define ID_BREAKPOINTS_DELETE           40154
 #define ID_EDIT_WORDWRAP                40155
-#define ID_CLASSVIEW_SORT_TYPE         40156
+#define ID_CLASSVIEW_SORT_TYPE          40156
 #define ID_CLASSVIEW_PROPERTIES         40157
 #define ID_CLASSVIEW_COPY               40158
+#define ID_BUILD_LEXTAGS                40161
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         40161
-#define _APS_NEXT_CONTROL_VALUE         1039
+#define _APS_NEXT_COMMAND_VALUE         40162
+#define _APS_NEXT_CONTROL_VALUE         1041
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

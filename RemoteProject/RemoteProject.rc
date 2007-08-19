@@ -192,6 +192,8 @@ BEGIN
             POPUP "Erweitert"
             BEGIN
                 MENUITEM "&CTAGS erstellen",            ID_BUILD_BUILDTAGS
+                MENUITEM "&Browse info erstellen",      ID_BUILD_LEXTAGS
+                MENUITEM SEPARATOR
                 MENUITEM "&Makefile erstellen",         ID_BUILD_BUILDMAKEFILE
 
                 MENUITEM "Datei Wizard ausführen",      ID_BUILD_FILEWIZARD
@@ -447,7 +449,7 @@ END
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Integration",-1,0,0,38,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,41,4,216,1
@@ -675,6 +677,20 @@ BEGIN
     LTEXT           "...",IDC_INFORMATION,15,156,208,22
 END
 
+IDD_REBUILDLEX DIALOG DISCARDABLE  0, 0, 241, 90
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Rebuilding Lex Information"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,95,69,50,14
+    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,
+                    37,227,16
+    LTEXT           "Rebuilding Lex file information...",IDC_TITLE,7,7,151,
+                    12
+    CONTROL         "",-1,"Static",SS_ETCHEDHORZ,7,60,227,1
+    LTEXT           "...",IDC_FILENAME,7,26,171,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -774,6 +790,14 @@ BEGIN
         RIGHTMARGIN, 294
         TOPMARGIN, 7
         BOTTOMMARGIN, 185
+    END
+
+    IDD_REBUILDLEX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 234
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 83
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1219,6 +1243,11 @@ BEGIN
     IDS_ERR_WINXP           "Windows XP erfordert.\nDiese Eigenschaft erfordert neueres Windows.\nDiese Eigenschaft ist auf Windows XP oder besseres nur vorhanden. "
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BUILD_LEXTAGS        "Rebuild the lex information\nRebuild lex"
+END
+
 #endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1348,10 +1377,12 @@ BEGIN
             MENUITEM SEPARATOR
             POPUP "Additional"
             BEGIN
-                MENUITEM "Build &CTAGS",                ID_BUILD_BUILDTAGS
+                MENUITEM "Build &CTAGS information",    ID_BUILD_BUILDTAGS
+                MENUITEM "Rebuild &Browse Information", ID_BUILD_LEXTAGS
+                MENUITEM SEPARATOR
                 MENUITEM "Create &Makefile",            ID_BUILD_BUILDMAKEFILE
 
-                MENUITEM "Run File Wizard",             ID_BUILD_FILEWIZARD
+                MENUITEM "Run File &Wizard",            ID_BUILD_FILEWIZARD
             END
             MENUITEM SEPARATOR
             MENUITEM "Stop Build\tCtrl+Break",      ID_BUILD_STOP
@@ -1748,7 +1779,7 @@ END
 
 IDD_OPTIONS_ADVANCED DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Integration",-1,0,0,38,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,46,4,212,1
@@ -1846,6 +1877,20 @@ BEGIN
     LTEXT           "...",IDC_INFORMATION,15,156,208,22
     DEFPUSHBUTTON   "OK",IDOK,244,7,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,244,24,50,14
+END
+
+IDD_REBUILDLEX DIALOG DISCARDABLE  0, 0, 241, 90
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Rebuilding Lex Information"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,95,69,50,14
+    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,
+                    37,227,16
+    LTEXT           "Rebuilding Lex file information...",IDC_TITLE,7,7,151,
+                    12
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,60,227,1
+    LTEXT           "...",IDC_FILENAME,7,26,183,8
 END
 
 
@@ -1948,6 +1993,14 @@ BEGIN
         RIGHTMARGIN, 294
         TOPMARGIN, 7
         BOTTOMMARGIN, 185
+    END
+
+    IDD_REBUILDLEX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 234
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 83
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -2582,6 +2635,11 @@ BEGIN
     IDS_BREAKPOINTHIT       "This breakpoint has been hit %d times.\r\n"
     IDS_BREAKPOINTTEMP      "This is a temporary breakpoint.\r\n"
     IDS_ERR_WINXP           "Windows XP required\nThis feature requires a newer Windows\nThis feature is only available on Windows XP or better."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_BUILD_LEXTAGS        "Rebuild the lex information\nRebuild lex"
 END
 
 #endif    // English (U.S.) resources

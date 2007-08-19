@@ -215,7 +215,8 @@ public:
       COMMAND_ID_HANDLER(ID_BUILD_CHECKSYNTAX, OnBuildCheckSyntax)
       COMMAND_ID_HANDLER(ID_BUILD_BUILDMAKEFILE, OnBuildMakefile)
       COMMAND_ID_HANDLER(ID_BUILD_FILEWIZARD, OnBuildFileWizard)
-      COMMAND_ID_HANDLER(ID_BUILD_BUILDTAGS, OnBuildTags)
+      COMMAND_ID_HANDLER(ID_BUILD_BUILDTAGS, OnBuildCTags)
+      COMMAND_ID_HANDLER(ID_BUILD_LEXTAGS, OnBuildLexTags)
       COMMAND_ID_HANDLER(ID_BUILD_STOP, OnBuildStop)
       COMMAND_ID_HANDLER(ID_PROCESS, OnProcess)
       NOTIFY_CODE_HANDLER(TBN_DROPDOWN, OnToolBarDropDown)
@@ -265,7 +266,8 @@ public:
    LRESULT OnBuildSolution(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnBuildCompile(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnBuildCheckSyntax(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
-   LRESULT OnBuildTags(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnBuildCTags(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnBuildLexTags(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnBuildMakefile(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnBuildFileWizard(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnBuildStop(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

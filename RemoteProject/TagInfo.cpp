@@ -282,7 +282,7 @@ bool CTagInfo::_LoadTags()
    for( i = 0; i < m_pProject->GetItemCount(); i++ ) {
       IView* pView = m_pProject->GetItem(i);
       CString sName;
-      pView->GetName(sName.GetBufferSetLength(128), 128);
+      pView->GetName(sName.GetBufferSetLength(MAX_PATH), MAX_PATH);
       sName.ReleaseBuffer();
       sName.MakeUpper();
       if( sName.Find(_T("TAGS")) >= 0 ) 
