@@ -32,19 +32,6 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
    CString sText = vText.bstrVal;
    int cchText = sText.GetLength();
 
-   /*
-   DWORD dwStartTick = ::GetTickCount();
-   aLines.RemoveAll();
-   FILE* f = ::fopen("D:\\Source\\SourceForge\\bvrde\\Temp\\diff01.txt", "r");
-   while( !feof(f) ) {
-      char szLine[301] = { 0 };
-      ::fgets(szLine, 300, f);
-      CString s = szLine;
-      aLines.Add(s);
-   }
-   ::fclose(f);
-   */
-
    // Detect which type of diff output this is:
    //   Original diff
    //   Context diff
@@ -104,15 +91,11 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
    _GenerateInfoHeader(sFileInfo, IDS_DIFF_LEFTFILE, Info.sLeftFileInfo);
    _GenerateInfoHeader(sFileInfo, IDS_DIFF_RIGHTFILE, Info.sRightFileInfo);
    _GenerateInfoHeader(sFileInfo, IDS_DIFF_GENERALFILE, Info.sGeneralFileInfo);
-   CString sFirstChange;
-   if( Info.iFirstChange > 80 ) sFirstChange.Format(IDS_DIFF_FIRSTCHANGE, Info.iFirstChange);
-   _GenerateInfoHeader(sFileInfo, sFirstChange);
-
-   /*
-   DWORD dwStopTick = ::GetTickCount();
-   ATLTRACE("TIME: %d ms\n", dwStopTick - dwStartTick);
-   ATLTRACE("ALLOC: html=%ld alloc=%ld text=%ld\n", Info.sHTML.GetLength(), nAlloc, cchText);
-   */
+   if( Info.iFirstChange > 80 ) {
+      CString sFirstChange;
+      sFirstChange.Format(IDS_DIFF_FIRSTCHANGE, Info.iFirstChange);
+      _GenerateInfoHeader(sFileInfo, sFirstChange);
+   }
 
    CString sPage = AtlLoadHtmlResource(IDR_DIFF);
    sPage.Replace(_T("$TITLE$"), CString(MAKEINTRESOURCE(IDS_CAPTION_DIFF)));
@@ -128,13 +111,13 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
    CClientDC dc = m_hWnd;
    dc.GetCharWidth('X', 'X', &iCharWidth);
 
+   // Resize window to 4/5 of screen width, but not too large...
    int cxScreen = ::GetSystemMetrics(SM_CXSCREEN) * 80 / 100;
    if( cxScreen > iCharWidth * 170 ) cxScreen = iCharWidth * 170;
    ResizeClient(cxScreen, -1);
    CenterWindow();
 
-   ShowWindow(SW_NORMAL);
-   return TRUE;
+   return ShowWindow(SW_NORMAL);
 }
 
 void CDiffCvsView::OnFinalMessage(HWND /*hWnd*/)

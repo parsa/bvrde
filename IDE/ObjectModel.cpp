@@ -110,7 +110,7 @@ VOID CApplicationOM::Quit()
 BSTR CApplicationOM::GetProperty(BSTR Name)
 {
    CString sValue;
-   m_pOwner->GetProperty(CString(Name), sValue.GetBufferSetLength(256), 256);
+   m_pOwner->GetProperty(CString(Name), sValue.GetBufferSetLength(1024), 1024);
    sValue.ReleaseBuffer();
    return sValue.AllocSysString();
 }

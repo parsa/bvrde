@@ -55,6 +55,8 @@ public:
 
    DWORD Run();
 
+   bool IsQueueEmpty();
+
    CRemoteProject* m_pProject;
    CCompileManager* m_pManager;
    CComAutoCriticalSection m_cs;           /// Thread synch lock

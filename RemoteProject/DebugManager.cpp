@@ -380,7 +380,8 @@ bool CDebugManager::RunNormal()
    // the session to terminate.
    CTelnetView* pView = m_pProject->GetDebugView();
    pView->Clear();
-   pView->Init(&m_ShellManager, TELNETVIEW_TERMINATEONCLOSE);
+   pView->Init(&m_ShellManager);
+   pView->ModifyFlags(0, TELNETVIEW_TERMINATEONCLOSE);
    RECT rcLogWin = { 120, 120, 800 + 120, 600 + 120 };   // TODO: Memorize this position
    _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_HIDE, rcLogWin);
    _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_FLOAT, rcLogWin);
@@ -577,7 +578,7 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands)
    // Initialize and hide the debug-log output window
    CTelnetView* pView = m_pProject->GetDebugView();
    pView->Clear();
-   pView->Init(&m_ShellManager, 0);
+   pView->Init(&m_ShellManager);
    RECT rcLogWin = { 120, 120, 800 + 120, 600 + 120 };   
    _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_HIDE, rcLogWin);
 
@@ -585,7 +586,8 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands)
    // The start event will show the view based on user's preferences.
    CTelnetView* pOutput = m_pProject->GetOutputView();
    pOutput->Clear();
-   pOutput->Init(&m_ShellManager, TELNETVIEW_FILTERDEBUG);
+   pOutput->Init(&m_ShellManager);
+   pOutput->ModifyFlags(0, TELNETVIEW_FILTERDEBUG);
    if( pOutput->IsWindow() ) _pDevEnv->AddDockView(pOutput->m_hWnd, IDE_DOCK_HIDE, rcLogWin);
 
    // Prepare session

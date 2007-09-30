@@ -1310,7 +1310,7 @@ int CFormattingOptionsPage::OnApply()
             WRITE_CHECKBOX(IDC_INDENTS,      _T("showIndents"));
             m_pArc->Write(_T("indentMode"), szIndentMode);
             m_pArc->Write(_T("tabWidth"), lTabWidth);
-            m_pArc->Write(_T("indentWidth"), lTabWidth);
+            m_pArc->Write(_T("indentWidth"), lIndentWidth);
          }
          m_pArc->ReadGroupEnd();
       }

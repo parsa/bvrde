@@ -46,10 +46,6 @@ BOOL CSqlProject::Load(ISerializable* pArc)
    pArc->Read(_T("name"), m_sName.GetBufferSetLength(128), 128);
    m_sName.ReleaseBuffer();
 
-   CString sStatus;
-   sStatus.Format(IDS_STATUS_LOADING, m_sName);
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus);
-
    if( !_LoadSettings(pArc) ) return FALSE;
    if( !_LoadConnections(pArc) ) return FALSE;
 
@@ -134,7 +130,7 @@ BOOL CSqlProject::CreateProject()
    HTREEITEM hRoot = ctrlTree.GetRootItem();
    HTREEITEM hProject = ctrlTree.InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM, 
       szName, 
-      6, 6, 
+      IDE_TREEIMAGE_PROJECT, IDE_TREEIMAGE_PROJECT, 
       0, 0,
       (LPARAM) this,
       hRoot, 
@@ -144,7 +140,7 @@ BOOL CSqlProject::CreateProject()
       m_aViews[i]->GetName(szName, MAX_PATH);
       HTREEITEM hItem = ctrlTree.InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM, 
          szName, 
-         10, 10, 
+         IDE_TREEIMAGE_DATABASE, IDE_TREEIMAGE_DATABASE, 
          0, 0,
          (LPARAM) m_aViews[i],
          hProject, 

@@ -14,7 +14,7 @@ class CRebuildLexThread : public CThreadImpl<CRebuildLexThread>
 public:
    CRemoteProject* pProject;     // Reference to project
    CWindow wndParent;            // Reference to dialog
-   TCHAR szFilename[MAX_PATH];   // There are defined pr instance because the name-part is
+   TCHAR szFilename[MAX_PATH];   // These are defined pr instance because the name-part is
    LPCTSTR pstrNamePart;         // used in both thread and dialog
 
    DWORD Run()

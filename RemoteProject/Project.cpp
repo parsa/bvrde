@@ -188,7 +188,7 @@ BOOL CRemoteProject::CreateProject()
    HTREEITEM hRoot = ctrlTree.GetRootItem();
    HTREEITEM hItem = ctrlTree.InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM, 
          sName, 
-         6, 6, 
+         IDE_TREEIMAGE_PROJECT, IDE_TREEIMAGE_PROJECT, 
          0, 0,
          (LPARAM) this,
          hRoot, TVI_LAST);
@@ -892,16 +892,30 @@ int CRemoteProject::_GetElementImage(IElement* pElement) const
    ATLASSERT(pElement);
    TCHAR szType[64] = { 0 };
    pElement->GetType(szType, 63);
-   if( _tcscmp(szType, _T("Folder")) == 0 ) return IMAGE_FOLDER;
-   if( _tcscmp(szType, _T("CPP")) == 0 ) return IMAGE_CPP;
-   if( _tcscmp(szType, _T("XML")) == 0 ) return IMAGE_XML;
-   if( _tcscmp(szType, _T("Java")) == 0 ) return IMAGE_JAVA;
-   if( _tcscmp(szType, _T("HTML")) == 0 ) return IMAGE_HTML;
-   if( _tcscmp(szType, _T("BASIC")) == 0 ) return IMAGE_BASIC;
-   if( _tcscmp(szType, _T("Header")) == 0 ) return IMAGE_HEADER;
-   if( _tcscmp(szType, _T("ShellScript")) == 0 ) return IMAGE_BASH;
-   if( _tcscmp(szType, _T("Makefile")) == 0 ) return IMAGE_MAKEFILE;
-   return IMAGE_TEXT;
+   typedef struct tagFILEIMAGE {
+      LPCTSTR pstr;
+      IDE_PROJECTTREE_IMAGE Image;
+   } FILEIMAGE;
+   static FILEIMAGE ppstrFileTypes[] = {
+      { _T("Folder"),      IDE_TREEIMAGE_FOLDER_CLOSED },
+      { _T("CPP"),         IDE_TREEIMAGE_CPP },
+      { _T("Header"),      IDE_TREEIMAGE_HEADER },
+      { _T("Makefile"),    IDE_TREEIMAGE_MAKEFILE },
+      { _T("XML"),         IDE_TREEIMAGE_XML },
+      { _T("HTML"),        IDE_TREEIMAGE_HTML },
+      { _T("ASP Scrip"),   IDE_TREEIMAGE_HTML },
+      { _T("PHP"),         IDE_TREEIMAGE_HTML },
+      { _T("Java"),        IDE_TREEIMAGE_JAVA },
+      { _T("BASIC"),       IDE_TREEIMAGE_BASIC },
+      { _T("ShellScript"), IDE_TREEIMAGE_BASH },
+      { _T("Pascal"),      IDE_TREEIMAGE_SCRIPT },
+      { _T("Python"),      IDE_TREEIMAGE_SCRIPT },
+      { NULL, IDE_TREEIMAGE_LAST }
+   };
+   for( int i = 0; ppstrFileTypes[i].pstr != NULL; i++ ) {
+      if( _tcscmp(szType, ppstrFileTypes[i].pstr) == 0 ) return (int) ppstrFileTypes[i].Image;
+   }
+   return IDE_TREEIMAGE_TEXT;
 }
 
 bool CRemoteProject::_ShouldProcessMessage() const

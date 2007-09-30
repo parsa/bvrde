@@ -48,11 +48,12 @@ public:
 
    // Operations
 
-   void Init(CShellManager* pTelnet, DWORD dwFlags = 0);
+   void Init(CShellManager* pTelnet);
    void Close();
    void Clear();
    DWORD GetFlags() const;
    void SetFlags(DWORD dwFlags);
+   void ModifyFlags(DWORD dwRemove, DWORD dwAdd);
    void SetColors(COLORREF clrText, COLORREF clrBack);
    void SetLineCount(int iMaxLines);
 

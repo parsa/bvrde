@@ -160,7 +160,7 @@ public:
    void DelayedOpenView(LPCTSTR pstrFilename, int iLineNum);
    void DelayedDebugCommand(LPCTSTR pstrCommand);
    void DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UINT iFlags);
-   void DelayedGuiAction(UINT iAction, HWND hWnd);
+   void DelayedGuiAction(UINT iAction, IDE_HWND_TYPE WindowType);
    void DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename = NULL, int iLineNum = -1);
    void DelayedLocalViewMessage(WPARAM wCmd, LPCTSTR pstrFilename = NULL, int iLineNum = -1, UINT iFlags = 0);
    void DelayedGlobalViewMessage(WPARAM wCmd, LPCTSTR pstrFilename = NULL, int iLineNum = -1, UINT iFlags = 0);
@@ -281,20 +281,6 @@ public:
 
 // Implementation
 protected:
-   enum
-   {
-      IMAGE_FOLDER = 0,
-      IMAGE_TEXT = 4,
-      IMAGE_JAVA = 3,
-      IMAGE_BASIC = 10,
-      IMAGE_HEADER = 41,
-      IMAGE_CPP = 15,
-      IMAGE_XML = 17,
-      IMAGE_HTML = 18,
-      IMAGE_BASH = 39,
-      IMAGE_MAKEFILE = 28,
-   };
-
    void _InitializeData();
    bool _ShouldProcessMessage() const;
    bool _LoadSettings(ISerializable* pArc);

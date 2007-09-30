@@ -343,7 +343,7 @@ void CQuickWatchDlg::_CollapseItem(int iItem)
       aDeletes.Add(i);
    }
    // HACK: We cannot remove the items because the list-control
-   //       relies on it ordering. We'll just mark it invalid.
+   //       relies on its ordering. We'll just mark it invalid.
    for( int x = aDeletes.GetSize() - 1; x >= 0; --x ) {
       int iIndex = aDeletes[x];
       ITEM& child = m_aItems[ m_ctrlList.GetItemData(iIndex) ];

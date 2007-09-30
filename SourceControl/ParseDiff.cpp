@@ -23,11 +23,11 @@ BOOL CDiffCvsView::_ParseDiffOriginal(CSimpleArray<CString>& aFile, CSimpleArray
    int iRightRange = 0;                     // Diff right range count
    int nFileLines = aFile.GetSize();        // Number of lines in file
    int nDiffLines = aLines.GetSize();       // Number of lines in diff output
-   for( int i = 0; i < nDiffLines && iLineNo < nFileLines; i++ ) {
+   for( int i = 0; i < nDiffLines && iLineNo < nFileLines; ) {
       switch( State ) {
       case STATE_IGNORE:
          {
-            CString& sLine = aLines[i];
+            CString& sLine = aLines[i++];
             if( _tcsncmp(sLine, _T("diff "), 5) == 0 ) {
                Info.sGeneralFileInfo = sLine.Mid(5);
             }
@@ -75,7 +75,6 @@ BOOL CDiffCvsView::_ParseDiffOriginal(CSimpleArray<CString>& aFile, CSimpleArray
                }
             }
             State = STATE_IGNORE;
-            i--;  // Because the for-loop post-increments too
          }
          break;
       case STATE_DELETE:
@@ -93,7 +92,6 @@ BOOL CDiffCvsView::_ParseDiffOriginal(CSimpleArray<CString>& aFile, CSimpleArray
                }
             }
             State = STATE_IGNORE;
-            i--;  // Because the for-loop post-increments too
          }
          break;
       case STATE_MERGE:
@@ -140,7 +138,6 @@ BOOL CDiffCvsView::_ParseDiffOriginal(CSimpleArray<CString>& aFile, CSimpleArray
                }
             }
             State = STATE_IGNORE;
-            i--;  // Because the for-loop post-increments too
          }
          break;
       }
@@ -337,11 +334,11 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
    int iRightRange = 0;                     // Diff right range count
    int nFileLines = aFile.GetSize();        // Number of lines in file
    int nDiffLines = aLines.GetSize();       // Number of lines in diff output
-   for( int i = 0; i < nDiffLines && iLineNo < nFileLines; i++ ) {
+   for( int i = 0; i < nDiffLines && iLineNo < nFileLines; ) {
       switch( State ) {
       case STATE_IGNORE:
          {
-            CString& sLine = aLines[i];
+            CString& sLine = aLines[i++];
             if( _tcsncmp(sLine, _T("--- "), 4) == 0 ) {
                Info.sLeftFileInfo = sLine.Mid(4);
             }
@@ -428,7 +425,6 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
                }
             }
             State = STATE_IGNORE;
-            i--;  // Because the for-loop post-increments too
          }
          break;
       }

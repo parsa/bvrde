@@ -306,7 +306,7 @@ END
 
 IDD_OPTIONS_DOCUMENTS DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Dokumenteneinstellungen",IDC_STATIC,0,0,61,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,67,4,190,1
@@ -334,7 +334,7 @@ END
 
 IDD_OPTIONS_EDITORS DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Einstellungen",IDC_STATIC,0,0,46,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,48,4,210,1
@@ -364,7 +364,7 @@ END
 
 IDD_OPTIONS_FORMATTING DIALOGEX 0, 0, 258, 168
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Visuelle Ansicht",IDC_STATIC,0,0,52,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,55,4,202,1
@@ -434,7 +434,7 @@ END
 
 IDD_OPTIONS_PRINTING DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Drucken",-1,0,0,28,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,32,4,226,1
@@ -1423,7 +1423,7 @@ END
 
 IDD_OPTIONS_DOCUMENTS DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Document Settings",IDC_STATIC,0,0,61,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,67,4,190,1
@@ -1493,7 +1493,7 @@ END
 
 IDD_OPTIONS_FORMATTING DIALOGEX 0, 0, 258, 168
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Visuals",IDC_STATIC,0,0,26,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,31,4,226,1
@@ -1529,7 +1529,7 @@ END
 
 IDD_OPTIONS_EDITORS DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Settings",IDC_STATIC,0,0,26,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,33,4,225,1
@@ -1557,7 +1557,7 @@ END
 
 IDD_OPTIONS_PRINTING DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Printing",-1,0,0,26,9
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,30,4,228,1
@@ -1703,7 +1703,7 @@ END
 
 IDD_OPTIONS_FOLDING DIALOGEX 0, 0, 258, 153
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Folding",IDC_STATIC,0,0,27,9
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,30,4,228,1
@@ -2135,8 +2135,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,1,0,0
- PRODUCTVERSION 1,1,0,0
+ FILEVERSION 1,1,0,1
+ PRODUCTVERSION 1,1,0,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2154,14 +2154,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Viksoe.dk\0"
             VALUE "FileDescription", "BVRDE - Bjarke Viksoe's Remote Development Environment\0"
-            VALUE "FileVersion", "1, 1, 0, 0\0"
+            VALUE "FileVersion", "1, 1, 0, 1\0"
             VALUE "InternalName", "BVRDE\0"
             VALUE "LegalCopyright", "Copyright 2003 - 2007 Bjarke Viksoe\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "BVRDE.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "BVRDE\0"
-            VALUE "ProductVersion", "1, 1, 0, 0\0"
+            VALUE "ProductVersion", "1, 1, 0, 1\0"
             VALUE "SpecialBuild", "\0"
         END
     END

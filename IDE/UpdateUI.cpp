@@ -14,6 +14,9 @@ void CMainFrame::UIReset()
    IProject* pCurProject = g_pSolution->GetActiveProject();
 
    // Set all menus and toolbars back to default
+   // The call to UIClear() will reset all enabled/disabled states for
+   // the standard menu/toolbar items. A few of them should however be
+   // turned on.
    UIClear();
    UISetCheck(ID_VIEW_TOOLBAR, m_DefaultToolBar.IsWindowVisible());
    UISetCheck(ID_VIEW_STATUS_BAR, m_StatusBar.IsWindowVisible());
@@ -126,8 +129,8 @@ void CMainFrame::_AddDropDownButton(CToolBarCtrl tb, UINT nID)
    tb.SetExtendedStyle(TBSTYLE_EX_DRAWDDARROWS); 
 
    TBBUTTONINFO tbi = { 0 };
-   tbi.cbSize  = sizeof(TBBUTTONINFO);
-   tbi.dwMask  = TBIF_STYLE;
+   tbi.cbSize = sizeof(TBBUTTONINFO);
+   tbi.dwMask = TBIF_STYLE;
    tb.GetButtonInfo(nID, &tbi);
    tbi.fsStyle |= BTNS_WHOLEDROPDOWN;
    tb.SetButtonInfo(nID, &tbi);
@@ -139,7 +142,7 @@ void CMainFrame::_AddTextButton(CToolBarCtrl tb, UINT nID, UINT nRes)
 
    TBBUTTONINFO tbi = { 0 };
    tbi.cbSize = sizeof(TBBUTTONINFO),
-   tbi.dwMask  = TBIF_STYLE;
+   tbi.dwMask = TBIF_STYLE;
    tb.GetButtonInfo(nID, &tbi);
    tbi.dwMask = TBIF_STYLE | TBIF_TEXT;
    tbi.fsStyle |= TBSTYLE_AUTOSIZE | BTNS_SHOWTEXT;
@@ -156,6 +159,12 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 
    __try
    {
+      // The AppListener is a catch-all type, which will allow the client (listener) to process 
+      // all Windows messages even before the main message pump will translate it. It should not
+      // be used loosely by plugins, but unfortunately the current set of plugins hook it
+      // extensively.
+      // TODO: Separate IAppMessageListener::PreTranslateMessage() and IAppMessageListener::OnAppMessage()
+      //       since most client will just hook it for the WM_COMMAND messages.
       for( int i = m_aAppListeners.GetSize() - 1; i >= 0; --i ) if( m_aAppListeners[i]->PreTranslateMessage(pMsg) ) return TRUE;
    }
    __except(1)

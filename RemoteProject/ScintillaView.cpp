@@ -212,8 +212,8 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    if( lPos < cr.cpMin || lPos > cr.cpMax ) m_ctrlEdit.GotoPos(lPos);
 
    if( !m_pCppProject->m_DebugManager.IsDebugging() ) {
-      // Is there an include directive under the cursor or a member that we can look?
-      // up. Add additional menu-items to edit menu.
+      // Is there an include directive under the cursor or a member that we can look
+      // up? Add additional menu-items to edit menu.
       CString sMenuText;
       CMenuHandle menu = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
       CMenuHandle submenu = menu.GetSubMenu(1);
@@ -653,7 +653,7 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 
    // Assume we can show tooltip for text below cursor.
    // Get text around cursor
-   if( !_IsRealCppEditPos(lPos) ) return 0;   
+   if( !_IsRealCppEditPos(lPos, true) ) return 0;   
    CString sText;
    CharacterRange cr = m_ctrlEdit.GetSelection();
    if( lPos >= cr.cpMin && lPos <= cr.cpMax ) sText = _GetSelectedText();
@@ -956,8 +956,8 @@ void CScintillaView::_AutoComplete(int ch)
    // Don't popup too close to start
    if( lPos < 10 ) bShow = false;
    // Don't auto-complete inside comments & strings
-   if( !_IsRealCppEditPos(lPos - 1) ) bShow = false;
-   if( !_IsRealCppEditPos(lPos - 2) ) bShow = false;
+   if( !_IsRealCppEditPos(lPos - 1, false) ) bShow = false;
+   if( !_IsRealCppEditPos(lPos - 2, false) ) bShow = false;
    // So, does it show?
    if( !bShow ) return;
 
@@ -1776,7 +1776,7 @@ CString CScintillaView::_GetNearText(long lPos, bool bExcludeKeywords /*= true*/
  * The editor does not allow auto-completion inside comments
  * or strings (literals).
  */
-bool CScintillaView::_IsRealCppEditPos(long lPos) const
+bool CScintillaView::_IsRealCppEditPos(long lPos, bool bIncludeNonIdentifiers) const
 {
    if( lPos <= 0 ) return false;
    switch( m_ctrlEdit.GetStyleAt(lPos) ) {
@@ -1786,7 +1786,12 @@ bool CScintillaView::_IsRealCppEditPos(long lPos) const
    case SCE_C_COMMENTDOC:
    case SCE_C_COMMENTLINE:
    case SCE_C_COMMENTLINEDOC:
+   case SCE_C_COMMENTDOCKEYWORD:
+   case SCE_C_COMMENTDOCKEYWORDERROR:
       return false;
+   case SCE_C_UUID:
+   case SCE_C_NUMBER:
+      return bIncludeNonIdentifiers;
    default:
       return true;
    }

@@ -58,14 +58,14 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             switch( data.wParam ) {
             case GUI_ACTION_CLEARVIEW:
                {
-                  CRichEditCtrl ctrlEdit = data.hWnd;
-                  ctrlEdit.SetWindowText(_T(""));
+                  CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(data.WindowType);
+                  if( ctrlEdit.IsWindow() ) ctrlEdit.SetWindowText(_T(""));
                }
                break;
             case GUI_ACTION_ACTIVATEVIEW:
                {
-                  CRichEditCtrl ctrlEdit = data.hWnd;
-                  _pDevEnv->ActivateAutoHideView(ctrlEdit);
+                  CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(data.WindowType);
+                  if( ctrlEdit.IsWindow() ) _pDevEnv->ActivateAutoHideView(ctrlEdit);
                }
                break;
             case GUI_ACTION_PLAY_ANIMATION:
@@ -94,8 +94,9 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          break;
       case LAZY_SHOW_MESSAGE:
          {
-            // BUG: Multiple popup-messages will not be displayed
-            //      because we overwrite the text variables here.
+            // NOTE: Multiple popup-messages will not be displayed because 
+            //       we overwrite the text variables here. Don't bother user
+            //       with multiple nonsense.
             sMessage = data.szMessage;
             sCaption = data.szCaption;
             iFlags = data.iFlags;
@@ -108,7 +109,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          break;
       case LAZY_SEND_GLOBAL_VIEW_MESSAGE:
          {
-            // Broadcast message to all known views in solution
+            // Broadcast message to all shown views in solution
             CWindow wndMdiClient = _pDevEnv->GetHwnd(IDE_HWND_MDICLIENT);
             wndMdiClient.SendMessageToDescendants(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
          }
@@ -121,9 +122,8 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          break;
       case LAZY_SEND_ACTIVE_VIEW_MESSAGE:
          {
-            // Broadcast message to all known views in project
-            CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
-            wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
+            // Send message to active view in project
+            m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
          }
          break;
       case LAZY_CLASSTREE_INFO:
@@ -246,7 +246,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
                // Pass information to active editor, since it might be mouse hover information...
                // NOTE: Must use SendMessage() rather than delayed message because
                //       of scope of 'data' structure.
-               data.Action = LAZY_SEND_GLOBAL_VIEW_MESSAGE;
+               data.Action = LAZY_SEND_ACTIVE_VIEW_MESSAGE;
                data.wParam = DEBUG_CMD_HOVERINFO;
                m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
                break;
@@ -278,6 +278,8 @@ void CRemoteProject::DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UI
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
+   ATLASSERT(_tcslen(pstrMessage)<(sizeof(data.szCaption)/sizeof(TCHAR))-1);
+   ATLASSERT(_tcslen(pstrCaption)<(sizeof(data.szMessage)/sizeof(TCHAR))-1);
    data.Action = LAZY_SHOW_MESSAGE;
    _tcscpy(data.szCaption, pstrCaption);
    _tcscpy(data.szMessage, pstrMessage);
@@ -309,13 +311,13 @@ void CRemoteProject::DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename, int iL
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
 
-void CRemoteProject::DelayedGuiAction(UINT iAction, HWND hWnd)
+void CRemoteProject::DelayedGuiAction(UINT iAction, IDE_HWND_TYPE WindowType)
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_GUI_ACTION;
    data.wParam = iAction;
-   data.hWnd = hWnd;
+   data.WindowType = WindowType;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
@@ -324,6 +326,7 @@ void CRemoteProject::DelayedStatusBar(LPCTSTR pstrText)
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
+   ATLASSERT(_tcslen(pstrText)<(sizeof(data.szMessage)/sizeof(TCHAR))-1);
    data.Action = LAZY_SET_STATUSBARTEXT;
    _tcscpy(data.szMessage, pstrText);
    m_aLazyData.Add(data);

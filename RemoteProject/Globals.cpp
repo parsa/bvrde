@@ -347,16 +347,13 @@ CString GetFileTypeFromFilename(LPCTSTR pstrFilename)
    // Find file type based on file known extensions
    CString sFilename = pstrFilename;
    sFilename.MakeLower();
-   TCHAR szExtension[MAX_PATH];
-   _tcscpy(szExtension, sFilename);
-   CString sExtension = ::PathFindExtension(szExtension);
+   CString sExtension = ::PathFindExtension(sFilename);
    CString sKey;
    sKey.Format(_T("file.mappings%s"), sExtension);  // NOTE: Extension includes a dot char.
    TCHAR szValue[100] = { 0 };
    if( _pDevEnv->GetProperty(sKey, szValue, 99) ) return szValue;  
-   if( sExtension == _T(".") ) return _T("makefile");
-   if( sFilename.Find(_T("make")) >= 0 ) return _T("makefile");
-   if( sFilename.Find(_T(".mak")) >= 0 ) return _T("makefile");
+   CString sName = ::PathFindFileName(sFilename);
+   if( sName.Find(_T("make")) == 0 ) return _T("makefile");
    return _T("text");
 }
 
@@ -369,19 +366,19 @@ CTextFile* CreateViewFromFilename(IDevEnv* pDevEnv,
 {
    // Create new view object from type
    CString sType = GetFileTypeFromFilename(pstrFilename);
-   if( sType == _T("cpp") ) return new CCppFile(pCppProject, pProject, pParent);
-   if( sType == _T("header") ) return new CHeaderFile(pCppProject, pProject, pParent);
-   if( sType == _T("bash") ) return new CBashFile(pCppProject, pProject, pParent);
+   if( sType == _T("cpp") )      return new CCppFile(pCppProject, pProject, pParent);
+   if( sType == _T("header") )   return new CHeaderFile(pCppProject, pProject, pParent);
+   if( sType == _T("bash") )     return new CBashFile(pCppProject, pProject, pParent);
    if( sType == _T("makefile") ) return new CMakeFile(pCppProject, pProject, pParent);
-   if( sType == _T("java") ) return new CJavaFile(pCppProject, pProject, pParent);
-   if( sType == _T("basic") ) return new CBasicFile(pCppProject, pProject, pParent);
-   if( sType == _T("pascal") ) return new CPascalFile(pCppProject, pProject, pParent);
-   if( sType == _T("python") ) return new CPythonFile(pCppProject, pProject, pParent);
-   if( sType == _T("perl") ) return new CPerlFile(pCppProject, pProject, pParent);
-   if( sType == _T("xml") ) return new CXmlFile(pCppProject, pProject, pParent);
-   if( sType == _T("html") ) return new CHtmlFile(pCppProject, pProject, pParent);
-   if( sType == _T("php") ) return new CPhpFile(pCppProject, pProject, pParent);
-   if( sType == _T("asp") ) return new CAspFile(pCppProject, pProject, pParent);
+   if( sType == _T("java") )     return new CJavaFile(pCppProject, pProject, pParent);
+   if( sType == _T("basic") )    return new CBasicFile(pCppProject, pProject, pParent);
+   if( sType == _T("pascal") )   return new CPascalFile(pCppProject, pProject, pParent);
+   if( sType == _T("python") )   return new CPythonFile(pCppProject, pProject, pParent);
+   if( sType == _T("perl") )     return new CPerlFile(pCppProject, pProject, pParent);
+   if( sType == _T("xml") )      return new CXmlFile(pCppProject, pProject, pParent);
+   if( sType == _T("html") )     return new CHtmlFile(pCppProject, pProject, pParent);
+   if( sType == _T("php") )      return new CPhpFile(pCppProject, pProject, pParent);
+   if( sType == _T("asp") )      return new CAspFile(pCppProject, pProject, pParent);
    return new CTextFile(pCppProject, pProject, pParent);
 }
 

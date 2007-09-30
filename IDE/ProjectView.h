@@ -111,7 +111,7 @@ public:
       CString sSolution(MAKEINTRESOURCE(IDS_SOLUTION));
       hRoot = m_ctrlTree.InsertItem(TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM, 
          sSolution, 
-         5, 5, 
+         IDE_TREEIMAGE_SOLUTION, IDE_TREEIMAGE_SOLUTION, 
          0, 0,
          (LPARAM) g_pSolution,
          TVI_ROOT, TVI_LAST);

@@ -99,8 +99,9 @@ DWORD CCompileThread::Run()
          m_aCommands.RemoveAt(0);
       }
       // Assign flags to active session
+      m_pManager->m_Flags = 0;
       while( m_aFlags.GetSize() > 0 ) {
-         m_pManager->m_Flags = m_aFlags[0];
+         m_pManager->m_Flags |= m_aFlags[0];
          m_aFlags.RemoveAt(0);
       }
       m_cs.Unlock();
@@ -135,10 +136,15 @@ DWORD CCompileThread::Run()
       }
 
       // Idle wait for completion before accepting new prompt commands...
-      while( m_pManager->IsBusy() && m_aCommands.GetSize() == 0 ) ::Sleep(200L);
+      while( m_pManager->IsBusy() && IsQueueEmpty() ) ::Sleep(200L);
    }
 
    return 0;
+}
+
+bool CCompileThread::IsQueueEmpty()
+{
+   return m_aCommands.GetSize() == 0;
 }
 
 
@@ -332,9 +338,8 @@ bool CCompileManager::DoRebuild()
 {
    if( m_RebuildThread.IsRunning() ) return false;
    // Clear the compile output window
-   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_OUTPUTVIEW);
-   m_pProject->DelayedGuiAction(GUI_ACTION_CLEARVIEW, ctrlEdit);
-   m_pProject->DelayedGuiAction(GUI_ACTION_ACTIVATEVIEW, ctrlEdit);
+   m_pProject->DelayedGuiAction(GUI_ACTION_CLEARVIEW, IDE_HWND_OUTPUTVIEW);
+   m_pProject->DelayedGuiAction(GUI_ACTION_ACTIVATEVIEW, IDE_HWND_OUTPUTVIEW);
    // Start thread
    m_RebuildThread.Stop();
    m_RebuildThread.m_pProject = m_pProject;
@@ -566,7 +571,6 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
 
    CWaitCursor cursor;
    CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
-   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_OUTPUTVIEW);
 
    m_sProcessName = pstrName;
 
@@ -634,8 +638,8 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    if( (Flags & (COMPFLAG_IGNOREOUTPUT | COMPFLAG_COMMANDMODE)) == 0 ) {
       // We should clean the compile output panel and bring it up
       if( (Flags & COMPFLAG_SILENT) == 0 ) {
-         m_pProject->DelayedGuiAction(GUI_ACTION_CLEARVIEW, ctrlEdit);
-         m_pProject->DelayedGuiAction(GUI_ACTION_ACTIVATEVIEW, ctrlEdit);
+         m_pProject->DelayedGuiAction(GUI_ACTION_CLEARVIEW, IDE_HWND_OUTPUTVIEW);
+         m_pProject->DelayedGuiAction(GUI_ACTION_ACTIVATEVIEW, IDE_HWND_OUTPUTVIEW);
       }
       // Notify views that an actual compiler session is starting.
       // A "compiler session" may be any makefile or direct gcc issued command.
@@ -665,7 +669,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    if( (Flags & COMPFLAG_COMMANDMODE) != 0 ) {
       const DWORD COMMAND_MODE_TIMEOUT = 8;
       DWORD dwStartTick = ::GetTickCount();
-      while( m_CompileThread.m_aCommands.GetSize() > 0 ) {
+      while( !m_CompileThread.IsQueueEmpty() ) {
          ::Sleep(50L);
          if( ::GetTickCount() - dwStartTick > COMMAND_MODE_TIMEOUT * 100UL ) break;         
       }

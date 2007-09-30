@@ -17,8 +17,8 @@ Most compile error are solved by making sure that you have installed the latest 
 of the 3rd party projects mentioned below.
 
 One sub-project, the RemoteProject, will not compile unless you manually add a
-password.cpp file to the solution. More information can be found in the 
-Globals.h source file for that project.
+password.h file to the solution. More information can be found in the 
+Globals.cpp source file for that project.
 
 
     Links

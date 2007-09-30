@@ -43,13 +43,12 @@ CTelnetView::~CTelnetView()
 
 #pragma code_seg( "VIEW" )
 
-void CTelnetView::Init(CShellManager* pShell, DWORD dwFlags /*= 0*/)
+void CTelnetView::Init(CShellManager* pShell)
 {
    ATLASSERT(pShell);
    Close();
    Clear();
    m_pShell = pShell;
-   m_dwFlags = dwFlags;
    m_pShell->AddLineListener(this);
 }
 
@@ -67,6 +66,11 @@ DWORD CTelnetView::GetFlags() const
 void CTelnetView::SetFlags(DWORD dwFlags)
 {
    m_dwFlags = dwFlags;
+}
+
+void CTelnetView::ModifyFlags(DWORD dwRemove, DWORD dwAdd)
+{
+   m_dwFlags = (m_dwFlags & ~dwRemove) | dwAdd;
 }
 
 void CTelnetView::SetColors(COLORREF clrText, COLORREF clrBack)

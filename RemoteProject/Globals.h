@@ -50,6 +50,25 @@ enum
    DEBUG_CMD_COMPILE_STOP,
 };
 
+typedef enum VT100COLOR
+{
+   VT100_DEFAULT = 0,
+   VT100_HIDDEN = 8,
+   VT100_BLACK = 30,
+   VT100_RED = 31,
+   VT100_GREEN = 32,
+   VT100_YELLOW = 33,
+   VT100_BLUE = 34,
+   VT100_MAGENTA = 35,
+   VT100_CYAN = 36,
+   VT100_WHITE = 37,
+   VT100_PROMPT = 1000
+};
+
+
+//////////////////////////////////////////////////////////////
+//
+
 typedef enum LAZYACTION
 {
    LAZY_OPEN_VIEW = 1,
@@ -78,21 +97,6 @@ typedef enum GUIACTION
    GUI_ACTION_COMPILESTART,
 };
 
-typedef enum VT100COLOR
-{
-   VT100_DEFAULT = 0,
-   VT100_HIDDEN = 8,
-   VT100_BLACK = 30,
-   VT100_RED = 31,
-   VT100_GREEN = 32,
-   VT100_YELLOW = 33,
-   VT100_BLUE = 34,
-   VT100_MAGENTA = 35,
-   VT100_CYAN = 36,
-   VT100_WHITE = 37,
-   VT100_PROMPT = 1000
-};
-
 typedef struct tagLAZYDATA
 {
    LAZYACTION Action;
@@ -103,10 +107,14 @@ typedef struct tagLAZYDATA
    TCHAR szCaption[128];
    UINT iFlags;
    WPARAM wParam;
+   IDE_HWND_TYPE WindowType;
    LEXFILE* pLexFile;
    CMiInfo MiInfo;
 } LAZYDATA;
 
+
+//////////////////////////////////////////////////////////////
+//
 
 #define TAGINFO_NAME          0x00000001
 #define TAGINFO_DECLARATION   0x00000002
