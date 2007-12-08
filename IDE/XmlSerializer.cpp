@@ -103,7 +103,10 @@ BOOL CXmlSerializer::Open(IXMLDOMDocument* pDoc, LPCTSTR pstrTitle, LPCTSTR pstr
 BOOL CXmlSerializer::Save()
 {
    ATLASSERT(!m_sFilename.IsEmpty());
-   if( FAILED( m_spDoc->save(CComVariant(m_sFilename)) ) ) return FALSE;
+   if( FAILED( m_spDoc->save(CComVariant(m_sFilename)) ) ) {
+      ::SetLastError(ERROR_WRITE_FAULT);
+      return FALSE;
+   }
    return TRUE;
 }
 

@@ -8,7 +8,9 @@
 #include "MainFrm.h"
 #include "Macro.h"
 
-#pragma code_seg( "DIALOGS" )
+#if _MSC_VER < 1300
+	#pragma code_seg( "DIALOGS" )
+#endif
 
 #include "AboutDlg.h"
 #include "MacrosDlg.h"
@@ -53,26 +55,22 @@ LRESULT CMainFrame::OnToolsOptions(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    if( !arc.Open(_T("Settings"), sFilename) ) return 0;
    COptionsDlg dlg(this, NULL, &arc);
    UINT nRes = dlg.DoModal();
-   if( nRes == IDOK ) {
-      CWaitCursor cursor;
-      CLockWindowUpdate lock = m_hWnd;
-      // Save settings back to XML file
-      arc.Save();
-      arc.Close();
-      // Re-open archive and load settings...
-      if( !arc.Open(_T("Settings"), sFilename) ) return 0;
-      if( !_LoadSettings(arc) ) return 0;
-      arc.Close();
-      // Need to show MDI container/CoolTabs?
-      TCHAR szBuffer[64] = { 0 };
-      GetProperty(_T("gui.main.client"), szBuffer, 63);
-      m_MDIContainer.SetVisible(_tcscmp(szBuffer, _T("mdi")) != 0);
-      // Update view layout
-      UpdateLayout();
-      // Allow all views to repaint/reformat
-      CWindow wndMDIClient = m_hWndMDIClient;
-      wndMDIClient.SendMessageToDescendants(WM_SETTINGCHANGE);
-   }
+   CWaitCursor cursor;
+   CLockWindowUpdate lock = m_hWnd;
+   // Re-open archive and load settings...
+   arc.Close();
+   if( !arc.Open(_T("Settings"), sFilename) ) return 0;
+   if( !_LoadSettings(arc) ) return 0;
+   arc.Close();
+   // Need to show MDI container/CoolTabs?
+   TCHAR szBuffer[64] = { 0 };
+   GetProperty(_T("gui.main.client"), szBuffer, 63);
+   m_MDIContainer.SetVisible(_tcscmp(szBuffer, _T("mdi")) != 0);
+   // Update view layout
+   UpdateLayout();
+   // Allow all views to repaint/reformat
+   CWindow wndMDIClient = m_hWndMDIClient;
+   wndMDIClient.SendMessageToDescendants(WM_SETTINGCHANGE);
    arc.Close();
    return 0;
 }

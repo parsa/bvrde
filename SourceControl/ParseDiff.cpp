@@ -334,6 +334,7 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
    int iRightRange = 0;                     // Diff right range count
    int nFileLines = aFile.GetSize();        // Number of lines in file
    int nDiffLines = aLines.GetSize();       // Number of lines in diff output
+   bool bSeemMod = false;
    for( int i = 0; i < nDiffLines && iLineNo < nFileLines; ) {
       switch( State ) {
       case STATE_IGNORE:
@@ -387,6 +388,7 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
                      ATLASSERT(iLeftRange>0 && iRightRange>0);
                      _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), sLine.Mid(1), sLine.Mid(1));
                      iLeftRange--; iRightRange--; iLineNo++;
+                     bSeemMod = false;
                   }
                   break;
                case '-':
@@ -400,6 +402,7 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
                      {
                         _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("mod"), sLine.Mid(1), aLines[i + nMinusLines + iRightSkip].Mid(1));
                         iLeftRange--; iRightRange--; iRightSkip++; iLineNo++;
+                        bSeemMod = true;
                      }
                      else 
                      {
@@ -417,7 +420,7 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
                      }
                      else 
                      {
-                        _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("ins"), sEmpty, sLine.Mid(1));
+                        _GenerateRow(sHTML, sTemp, iLineNo + 1, bSeemMod ? _T("mod2") : _T("ins"), sEmpty, sLine.Mid(1));
                         iRightRange--; iLineNo++;
                      }
                   }
@@ -425,6 +428,7 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
                }
             }
             State = STATE_IGNORE;
+            bSeemMod = false;
          }
          break;
       }

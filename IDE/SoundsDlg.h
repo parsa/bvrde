@@ -32,8 +32,11 @@ public:
       DWORD dwMajorVersion = 0;
       DWORD dwMinorVersion = 0;
       AtlGetShellVersion(&dwMajorVersion, &dwMinorVersion);
+      int iPageIndex = 0;
+      if( dwMajorVersion >= 6 ) iPageIndex = 1;
+      if( dwMajorVersion >= 7 ) iPageIndex = 2;
       TCHAR szCommand[200] = { 0 };
-      ::wsprintf(szCommand, _T("shell32.dll,Control_RunDLL mmsys.cpl,,%ld"), dwMajorVersion < 6 ? 0L : 1L);
+      ::wsprintf(szCommand, _T("shell32.dll,Control_RunDLL mmsys.cpl,,%d"), iPageIndex);
       ::ShellExecute(m_pMainFrame->m_hWnd, _T("open"), _T("rundll32.exe"), szCommand, NULL, SW_SHOWNORMAL);
       return 0;
    }

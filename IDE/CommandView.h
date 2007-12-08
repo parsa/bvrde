@@ -29,7 +29,6 @@ public:
    // Implementation
 
    CString _ParseLine() const;
-   CString _GetSystemErrorText(DWORD dwErr) const;
    void _ExecAndCapture(LPCTSTR pstrCommandLine);
 
    // Message map and handlers

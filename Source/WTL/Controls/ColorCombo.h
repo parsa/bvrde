@@ -167,7 +167,7 @@ public:
          dc.SetTextColor(RGB(255,255,255));
          dc.DrawText(szCustom, -1, &rc, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
       }
-#endif
+#endif // IDS_CUSTOM
    }
 };
 

@@ -16,7 +16,7 @@
 /////////////////////////////////////////////////////
 // Globals
 
-void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, DWORD dwEffects = 0, COLORREF clrText = 0)
+void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, DWORD dwEffects = 0, COLORREF clrText = RGB(0,0,0))
 {
    ATLASSERT(ctrlEdit.IsWindow());
    ATLASSERT(!::IsBadStringPtr(pstrText,-1));
@@ -48,6 +48,24 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, D
    ctrlEdit.SetSelectionCharFormat(cf);
    ctrlEdit.HideSelection(FALSE);
    ctrlEdit.SetSel(-1, -1);
+}
+
+CString GetSystemErrorText(DWORD dwErr)
+{
+   LPVOID lpMsgBuf = NULL;
+   ::FormatMessage( 
+       FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+       FORMAT_MESSAGE_FROM_SYSTEM | 
+       FORMAT_MESSAGE_IGNORE_INSERTS,
+       NULL,
+       dwErr,
+       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+       (LPTSTR) &lpMsgBuf,
+       0,
+       NULL);
+   CString s = (LPCTSTR) lpMsgBuf;
+   if( lpMsgBuf != NULL ) ::LocalFree(lpMsgBuf);
+   return s;
 }
 
 
@@ -198,7 +216,7 @@ void CCommandView::_ExecAndCapture(LPCTSTR pstrCommandLine)
            &si, 
            &pi);
    if( !bRunning ) {
-      AppendRtfText(m_hWnd, _GetSystemErrorText(::GetLastError()), CFM_COLOR, 0, COLOR_RED);
+      AppendRtfText(m_hWnd, GetSystemErrorText(::GetLastError()), CFM_COLOR, 0, COLOR_RED);
    }
 
    while( bRunning ) {
@@ -231,24 +249,6 @@ void CCommandView::_ExecAndCapture(LPCTSTR pstrCommandLine)
    ::CloseHandle(hPipeWrite);
    ::CloseHandle(hRead2);
    ::CloseHandle(hWriteSubProcess);
-}
-
-CString CCommandView::_GetSystemErrorText(DWORD dwErr) const
-{
-   LPVOID lpMsgBuf = NULL;
-   ::FormatMessage( 
-       FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-       FORMAT_MESSAGE_FROM_SYSTEM | 
-       FORMAT_MESSAGE_IGNORE_INSERTS,
-       NULL,
-       dwErr,
-       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-       (LPTSTR) &lpMsgBuf,
-       0,
-       NULL);
-   CString s = (LPCTSTR) lpMsgBuf;
-   if( lpMsgBuf != NULL ) ::LocalFree(lpMsgBuf);
-   return s;
 }
 
 // Message handlers
@@ -422,13 +422,13 @@ void CCommandView::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
       if( pstrArgs != NULL && *pstrArgs != '\0' ) *(pstrArgs - 1) = '\0';
       ::PathUnquoteSpaces(szBuffer);
       DWORD dwRes = (DWORD) ::ShellExecute(m_hWnd, _T("open"), szBuffer, pstrArgs, NULL, SW_SHOW);
-      if( dwRes <= 32 ) AppendRtfText(m_hWnd, _GetSystemErrorText(dwRes), CFM_COLOR, 0, COLOR_RED);
+      if( dwRes <= 32 ) AppendRtfText(m_hWnd, GetSystemErrorText(dwRes), CFM_COLOR, 0, COLOR_RED);
       bHandled = TRUE;
    }
    else if( _tcsncmp(pstrCommand, _T("print "), 6) == 0 )
    {
       DWORD dwRes = (DWORD) ::ShellExecute(m_hWnd, _T("print"), pstrCommand + 6, NULL, NULL, SW_SHOW);
-      if( dwRes <= 32 ) AppendRtfText(m_hWnd, _GetSystemErrorText(dwRes), CFM_COLOR, 0, COLOR_RED);
+      if( dwRes <= 32 ) AppendRtfText(m_hWnd, GetSystemErrorText(dwRes), CFM_COLOR, 0, COLOR_RED);
       bHandled = TRUE;
    }
    else if( _tcsnicmp(pstrCommand, _T("exec "), 5) == 0 )

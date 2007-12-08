@@ -15,6 +15,8 @@
 #define _WIN32_IE         0x0501
 
 #define _CRT_SECURE_NO_DEPRECATE
+#define _CRT_NONSTDC_NO_WARNINGS
+#define _CRT_NON_CONFORMING_SWPRINTFS
 
 
 #include <atlbase.h>

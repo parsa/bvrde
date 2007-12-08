@@ -1,3 +1,6 @@
+Version 1.x:
+* Sources now compile against VisualStudio.NET 2008
+
 Version 1.1:
 * Finally MinGW support (local Windows .exe compilation). This
   is still in its initial stage though (WinXP only)

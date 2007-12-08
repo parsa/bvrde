@@ -4,11 +4,6 @@
 
 #include "DiffCvsView.h"
 
-/*
-#include <stdlib.h>
-#include <stdio.h>
-*/
-
 #pragma code_seg( "MISC" )
 
 

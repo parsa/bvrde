@@ -392,8 +392,8 @@ bool CTagInfo::_ParseTagFile(LPTSTR pstrText)
          pstrText = p + 1;
       }
 
-      // Correct to weird things in the fields
-      p = _tcsstr(info.pstrOwner, _T("::<ano"));
+      // Correct weird things in the fields
+      p = const_cast<LPTSTR>(_tcsstr(info.pstrOwner, _T("::<ano")));
       if( p != NULL ) *p = '\0';
 
       m_aTags.Add(info);

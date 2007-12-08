@@ -73,7 +73,7 @@ public:
    // Dispatch handlers
 
    BEGIN_SINK_MAP(CDiffCvsView)
-      SINK_ENTRY_INFO(1, DIID_DWebBrowserEvents2, DISPID_DOCUMENTCOMPLETE, __DocumentComplete, &DocumentCompleteInfo)
+      SINK_ENTRY_INFO(1, DIID_DWebBrowserEvents2, DISPID_DOCUMENTCOMPLETE, &__DocumentComplete, &DocumentCompleteInfo)
    END_SINK_MAP()
 
    void __stdcall __DocumentComplete(/*[in]*/ IDispatch* pDisp, 

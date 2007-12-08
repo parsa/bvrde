@@ -191,12 +191,12 @@ BEGIN
             MENUITEM SEPARATOR
             POPUP "Erweitert"
             BEGIN
-                MENUITEM "&CTAGS erstellen",            ID_BUILD_BUILDTAGS
-                MENUITEM "&Browse info erstellen",      ID_BUILD_LEXTAGS
-                MENUITEM SEPARATOR
                 MENUITEM "&Makefile erstellen",         ID_BUILD_BUILDMAKEFILE
 
                 MENUITEM "Datei Wizard ausführen",      ID_BUILD_FILEWIZARD
+                MENUITEM SEPARATOR
+                MENUITEM "&CTAGS erstellen",            ID_BUILD_BUILDTAGS
+                MENUITEM "&Browse info erstellen",      ID_BUILD_LEXTAGS
             END
             MENUITEM SEPARATOR
             MENUITEM "Erstellen anhalten\tCtrl+Break", ID_BUILD_STOP
@@ -1377,12 +1377,12 @@ BEGIN
             MENUITEM SEPARATOR
             POPUP "Additional"
             BEGIN
-                MENUITEM "Build &CTAGS information",    ID_BUILD_BUILDTAGS
-                MENUITEM "Rebuild &Browse Information", ID_BUILD_LEXTAGS
-                MENUITEM SEPARATOR
                 MENUITEM "Create &Makefile",            ID_BUILD_BUILDMAKEFILE
 
                 MENUITEM "Run File &Wizard",            ID_BUILD_FILEWIZARD
+                MENUITEM SEPARATOR
+                MENUITEM "Build &CTAGS information",    ID_BUILD_BUILDTAGS
+                MENUITEM "Rebuild &Browse Information", ID_BUILD_LEXTAGS
             END
             MENUITEM SEPARATOR
             MENUITEM "Stop Build\tCtrl+Break",      ID_BUILD_STOP

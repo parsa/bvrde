@@ -278,8 +278,8 @@ void CRemoteProject::DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UI
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
-   ATLASSERT(_tcslen(pstrMessage)<(sizeof(data.szCaption)/sizeof(TCHAR))-1);
-   ATLASSERT(_tcslen(pstrCaption)<(sizeof(data.szMessage)/sizeof(TCHAR))-1);
+   ATLASSERT(_tcslen(pstrCaption)<(sizeof(data.szCaption)/sizeof(TCHAR))-1);
+   ATLASSERT(_tcslen(pstrMessage)<(sizeof(data.szMessage)/sizeof(TCHAR))-1);
    data.Action = LAZY_SHOW_MESSAGE;
    _tcscpy(data.szCaption, pstrCaption);
    _tcscpy(data.szMessage, pstrMessage);

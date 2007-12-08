@@ -534,7 +534,7 @@ LRESULT CMainFrame::OnFileRecent(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
    m_mru.MoveToTop(wID);
    // Open solution file
    if( !SendMessage(WM_APP_LOADSOLUTION, 0, (LPARAM) szFile) ) {
-      // Failed to load? Remove from MRU list
+      // Failed to load? Remove from MRU list now.
       m_mru.RemoveFromList(wID);
    }
    m_mru.WriteToRegistry(REG_BVRDE _T("\\Mru"));
@@ -549,6 +549,7 @@ LRESULT CMainFrame::OnFileExit(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 
 LRESULT CMainFrame::OnFileOpenSolution(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
+   // Show the Solution Type Picker dialog
    CChooseSolutionDlg dlg;
    dlg.Init(this);
    if( dlg.DoModal() != IDOK ) return 0;
@@ -916,6 +917,7 @@ LRESULT CMainFrame::OnMacroPlay(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
 
 LRESULT CMainFrame::OnMacroSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
+   USES_CONVERSION;
    SendMessage(WM_COMMAND, MAKEWPARAM(ID_MACRO_CANCEL, 0));
    CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_SAVEMACRO));
    CString sFilter(MAKEINTRESOURCE(IDS_FILTER_MACRO));
@@ -927,7 +929,6 @@ LRESULT CMainFrame::OnMacroSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndC
    dlg.m_ofn.Flags &= ~OFN_ENABLEHOOK;
    dlg.m_ofn.lpstrInitialDir = sPath;
    if( dlg.DoModal(m_hWnd) != IDOK ) return 0;
-   USES_CONVERSION;
    CFile f;
    if( !f.Create(dlg.m_ofn.lpstrFile) ) return 0;
    f.Write(T2CA(m_sMacro), m_sMacro.GetLength());
@@ -1253,6 +1254,7 @@ LRESULT CMainFrame::OnRebarRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
    CDummyElement Element(_T("Popup"), _T("ToolBarMenu"));
    UINT nCmd = g_pDevEnv->ShowPopupMenu(&Element, menu, pt, FALSE);
    if( nCmd == 0 ) return 0;
+   ATLASSERT(nCmd>=0x1000);
    // Toolbar name was clicked; now show/hide it
    CLockWindowUpdate lock = m_hWnd;
    HWND hWnd = m_aToolBars[nCmd - 0x1000].hWnd;

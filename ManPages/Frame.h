@@ -68,8 +68,8 @@ public:
    // Dispatch handlers
 
    BEGIN_SINK_MAP(CFrameWindow)
-      SINK_ENTRY_INFO(1, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, __BeforeNavigate2, &BeforeNavigate2Info)
-      SINK_ENTRY_INFO(1, DIID_DWebBrowserEvents2, DISPID_DOCUMENTCOMPLETE, __DocumentComplete, &DocumentCompleteInfo)
+      SINK_ENTRY_INFO(1, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, &__BeforeNavigate2, &BeforeNavigate2Info)
+      SINK_ENTRY_INFO(1, DIID_DWebBrowserEvents2, DISPID_DOCUMENTCOMPLETE, &__DocumentComplete, &DocumentCompleteInfo)
    END_SINK_MAP()
 
    void __stdcall __BeforeNavigate2(/*[in]*/ IDispatch* pDisp, 

@@ -386,10 +386,10 @@ public:
       if( m_ctrlConsoleOutput.GetCheck() == BST_CHECKED ) lFlags |= TOOLFLAGS_CONSOLEOUTPUT;
       CString sType;
       switch( m_ctrlType.GetCurSel() ) {
-      case TYPE_LOCAL: sType = _T("local"); break;
+      case TYPE_LOCAL:    sType = _T("local"); break;
       case TYPE_COMPILER: sType = _T("compiler"); break;
       case TYPE_DEBUGGER: sType = _T("debugger"); break;
-      case TYPE_SQL: sType = _T("sql"); break;
+      case TYPE_SQL:      sType = _T("sql"); break;
       }
       pTool->sTitle = CWindowText(m_ctrlTitle);
       pTool->sCommand = CWindowText(m_ctrlCommand);

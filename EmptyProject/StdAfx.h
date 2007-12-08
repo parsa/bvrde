@@ -15,6 +15,7 @@
 #define NOCRYPT				// Disable include of wincrypt.h
 #define _WINSOCKAPI_       // Don't include WinSOCK v1
 #define _CRT_SECURE_NO_DEPRECATE
+#define _CRT_NON_CONFORMING_SWPRINTFS
 #define _WTL_NEW_PAGE_NOTIFY_HANDLERS
 
 #include <atlbase.h>

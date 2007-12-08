@@ -435,7 +435,7 @@ bool CDebugManager::RunDebug()
    aList.Add(sCommand);   
    sCommand.Format(_T("%s %s"), m_sDebuggerExecutable, m_sDebuggerArgs);
    aList.Add(sCommand);   
-   if( !_AttachDebugger(aList) ) return false;
+   if( !_AttachDebugger(aList, false) ) return false;
    // Start debugging session
    sCommand.Format(_T("-exec-arguments %s"), m_sAppArgs);
    DoDebugCommand(sCommand);
@@ -459,7 +459,7 @@ bool CDebugManager::AttachProcess(long lPID)
    //sCommand.Format(_T("-target-attach %ld"), lPID);
    sCommand.Format(_T("%s -i=mi --pid=%ld"), m_sDebuggerExecutable, lPID);
    aList.Add(sCommand);   
-   return _AttachDebugger(aList);
+   return _AttachDebugger(aList, true);
 }
 
 bool CDebugManager::RunContinue()
@@ -556,7 +556,7 @@ void CDebugManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
  * This method runs the debugger on the remote server and hooks up
  * output display, environment settings and command interaction.
  */
-bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands)
+bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExternalProcess)
 {
    // Launch the remote process in debug mode and switch
    // editor state to debugging.
@@ -672,7 +672,7 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands)
 
    // If there are no breakpoints defined, then let's
    // set a breakpoint in the main function
-   if( m_aBreakpoints.GetSize() == 0 ) {
+   if( !bExternalProcess && m_aBreakpoints.GetSize() == 0 ) {
       CString sCommand;
       sCommand.Format(_T("-break-insert -t %s"), m_sDebugMain);
       DoDebugCommand(sCommand);

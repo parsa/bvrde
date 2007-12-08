@@ -22,14 +22,14 @@ public:
    {
       m_psp = psp;
       ATLASSERT(m_hWnd==NULL);
-      if( m_psp.dwFlags & PSP_USECALLBACK ) m_psp.pfnCallback(m_hWnd, PSPCB_CREATE, &m_psp);
+      if( (m_psp.dwFlags & PSP_USECALLBACK) != 0 ) m_psp.pfnCallback(m_hWnd, PSPCB_CREATE, &m_psp);
       CWindow wnd = ::CreateDialogParam(m_psp.hInstance, 
          m_psp.pszTemplate, 
          hWndParent, 
          m_psp.pfnDlgProc, 
          NULL);
       ATLASSERT(wnd.IsWindow());
-      ATLASSERT(wnd.GetStyle() & WS_CHILD);
+      ATLASSERT((wnd.GetStyle() & WS_CHILD)!=0);
       m_hWnd = wnd;
       return m_hWnd;
    }
@@ -61,7 +61,7 @@ class COptionsDlg :
 public:
    enum { IDD = IDD_OPTIONS };
 
-   COptionsDlg(CMainFrame* pMainFrame, IElement* pElement = NULL, ISerializable* pArc = NULL) :
+   COptionsDlg(CMainFrame* pMainFrame, IElement* pElement = NULL, CXmlSerializer* pArc = NULL) :
       m_pMainFrame(pMainFrame),
       m_pElement(pElement),
       m_pArc(pArc)
@@ -70,7 +70,7 @@ public:
 
    CMainFrame* m_pMainFrame;
    IElement* m_pElement;
-   ISerializable* m_pArc;
+   CXmlSerializer* m_pArc;
 
    CTreeViewCtrl m_ctrlTree;
    CImageListCtrl m_Images;
@@ -190,7 +190,7 @@ public:
    }
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
-      BOOL bDummy;
+      BOOL bDummy = FALSE;
       OnApply(0, 0, NULL, bDummy);
       EndDialog(wID);
       return 0;
@@ -204,6 +204,10 @@ public:
    {
       CWaitCursor cursor;
       _SendNotifications(PSN_APPLY);
+      if( !m_pArc->Save() ) {
+         CString sMessage = GetSystemErrorText(::GetLastError());
+         return m_pMainFrame->ShowMessageBox(m_hWnd, sMessage, CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
+      }
       if( wID == IDC_APPLY ) CWindow(GetParent()).SendMessage(WM_SETTINGCHANGE);
       return 0;
    }
@@ -211,7 +215,7 @@ public:
    {
       LPNMTREEVIEW lpnmtv = (LPNMTREEVIEW) pnmh;
       HTREEITEM hChild = m_ctrlTree.GetChildItem(lpnmtv->itemNew.hItem);
-      if( hChild ) {
+      if( hChild != NULL ) {
          TVITEM item = { 0 };
          item.hItem = lpnmtv->itemNew.hItem;
          item.mask = TVIF_IMAGE;
@@ -250,12 +254,12 @@ public:
    }
    HTREEITEM _FindTreeItem(HTREEITEM hItem, LPCTSTR pstrName)
    {
-      while( hItem ) {
+      while( hItem != NULL ) {
          CString sName;
          m_ctrlTree.GetItemText(hItem, sName);
          if( sName == pstrName ) return hItem;
          HTREEITEM hNext;
-         if( (hNext = _FindTreeItem(m_ctrlTree.GetChildItem(hItem), pstrName)) ) return hNext;
+         if( (hNext = _FindTreeItem(m_ctrlTree.GetChildItem(hItem), pstrName)) != NULL ) return hNext;
          hItem = m_ctrlTree.GetNextSiblingItem(hItem);
       }
       return NULL;

@@ -5,7 +5,9 @@
 #include "MainFrm.h"
 #include "WizardSheet.h"
 
-#pragma code_seg( "WIZARDS" )
+#if _MSC_VER < 1300
+	#pragma code_seg( "WIZARDS" )
+#endif
 
 
 BOOL CMainFrame::OnInitProperties(IWizardManager* /*pManager*/, IElement* /*pElement*/)

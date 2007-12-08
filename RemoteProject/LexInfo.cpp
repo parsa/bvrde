@@ -95,6 +95,11 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText, DWORD dwTimeout)
    m_thread.Start();
    m_thread.WaitForThread(dwTimeout);
 
+   // And here we leave the c++ file parsing. The file contents has been 
+   // sent to a separate thread which will do the parsing and eventually
+   // notify the GUI thread to call MergeIntoTree() to re-populate the
+   // ClassView tree.
+
    return true;
 }
 
@@ -319,7 +324,7 @@ CString CLexInfo::_FindTagParent(const TAGINFO* pTag) const
 void CLexInfo::_LoadTags()
 {
    // NOTE: Now what is GUI stuff doing here? Well, we're delay-loading much of this
-   //       stuff so we can't really preditct when the tag files will load.
+   //       stuff so we can't really predict when the tag files will load.
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_LOADTAG)));
 
    Clear();

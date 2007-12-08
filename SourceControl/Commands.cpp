@@ -5,6 +5,8 @@
 #include "Globals.h"
 #include "Commands.h"
 
+#pragma code_seg( "MISC" )
+
 #include "UpdateDlg.h"
 #include "AddFileDlg.h"
 #include "CheckInDlg.h"

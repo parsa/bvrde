@@ -5,7 +5,9 @@
 #include "Macro.h"
 #include "MainFrm.h"
 
-#pragma code_seg( "DIALOGS" )
+#if _MSC_VER < 1300
+	#pragma code_seg( "DIALOGS" )
+#endif
 
 #define SCRIPT_PROGID  L"VBScript"
 
@@ -146,7 +148,7 @@ STDMETHODIMP CMacro::OnScriptError(IActiveScriptError* pScriptError)
    ATLASSERT(m_pMainFrame);
    EXCEPINFO e = { 0 };
    pScriptError->GetExceptionInfo(&e);
-   if( m_pExcepInfo) {
+   if( m_pExcepInfo != NULL ) {
       *m_pExcepInfo = e;
    }
    else {

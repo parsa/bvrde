@@ -131,7 +131,7 @@ public:
    LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       KillTimer(TIMERID);
-      PostQuitMessage(0);
+      PostQuitMessage(0);   // Quit this thread's msg-loop
       DestroyWindow();
       return 0;
    }

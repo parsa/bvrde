@@ -16,6 +16,7 @@
 #define _RICHEDIT_VER     0x0200
 
 #define _CRT_SECURE_NO_DEPRECATE
+#define _CRT_NON_CONFORMING_SWPRINTFS
 
 
 #include <atlbase.h>

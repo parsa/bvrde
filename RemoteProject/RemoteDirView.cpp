@@ -307,13 +307,13 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
          { _T(".EXE"), 7 },
          { NULL, NULL }
       };
-      int i;
+      int j;
       int iImage = 3;
-      for( i = 0; ppstrFileTypes[i].pstr != NULL; i++ ) {
-         if( sFileType == ppstrFileTypes[i].pstr ) iImage = ppstrFileTypes[i].iImage;
+      for( j = 0; ppstrFileTypes[j].pstr != NULL; j++ ) {
+         if( sFileType == ppstrFileTypes[j].pstr ) iImage = ppstrFileTypes[j].iImage;
       }
-      for( i = 0; ppstrFileExt[i].pstr != NULL; i++ ) {
-         if( sFilename.Find(ppstrFileExt[i].pstr) > 0 ) iImage = ppstrFileExt[i].iImage;
+      for( j = 0; ppstrFileExt[j].pstr != NULL; j++ ) {
+         if( sFilename.Find(ppstrFileExt[j].pstr) > 0 ) iImage = ppstrFileExt[j].iImage;
       }
       if( (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0 ) iImage = 0;
       

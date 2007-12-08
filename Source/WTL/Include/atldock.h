@@ -1077,7 +1077,8 @@ public:
       }
 
       // Place splitters in each child panel (except in the last one)
-      for( int i = 0; i < nPanes - 1; i++ ) {
+      int i;
+	  for( i = 0; i < nPanes - 1; i++ ) {
          ::SendMessage(m_map[i]->hwndDocked, WM_DOCK_SETSPLITTER, DEFAULT_SPLITTER_SIZE, 0L);
       }
       // The last panel does not have a splitter

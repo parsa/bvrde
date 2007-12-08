@@ -83,38 +83,38 @@ struct _ATL_DISPATCH_ENTRY
       static const _ATL_DISPATCH_ENTRY<_atl_disp_classtype> _dispmap[] = {
 
 #define DISP_METHOD_ID(func, dispid, vtRet, nCnt, vtArgs) \
-   { OLESTR(#func), dispid, DISPATCH_METHOD, vtRet, nCnt, { vtArgs }, VT_EMPTY, (void (__stdcall _atl_disp_classtype::*)())func },
+   { OLESTR(#func), dispid, DISPATCH_METHOD, vtRet, nCnt, { vtArgs }, VT_EMPTY, (void (__stdcall _atl_disp_classtype::*)())&func },
 
 #define DISP_METHOD(func, vtRet, nCnt, vtArgs) \
    DISP_METHOD_ID(func, DISPID_UNKNOWN, vtRet, nCnt, vtArgs)
 
 #define DISP_METHOD0_ID(func, dispid, vtRet) \
-   { OLESTR(#func), dispid, DISPATCH_METHOD, vtRet, 0, { VTS_EMPTY }, VT_EMPTY, (void (__stdcall _atl_disp_classtype::*)())func },
+   { OLESTR(#func), dispid, DISPATCH_METHOD, vtRet, 0, { VTS_EMPTY }, VT_EMPTY, (void (__stdcall _atl_disp_classtype::*)())&func },
 
 #define DISP_METHOD0(func, vtRet) \
    DISP_METHOD0_ID(func, DISPID_UNKNOWN, vtRet)
 
 #define DISP_METHOD1_ID(func, dispid, vtRet, vtArg) \
-   { OLESTR(#func), dispid, DISPATCH_METHOD, vtRet, 1, NULL, vtArg, (void (__stdcall _atl_disp_classtype::*)())func },
+   { OLESTR(#func), dispid, DISPATCH_METHOD, vtRet, 1, NULL, vtArg, (void (__stdcall _atl_disp_classtype::*)())&func },
 
 #define DISP_METHOD1(func, vtRet, vtArg) \
    DISP_METHOD1_ID(func, DISPID_UNKNOWN, vtRet, vtArg)
 
 #define DISP_PROP_ID(member, dispid, vt) \
-   { OLESTR(#member), dispid, DISPATCH_PROPERTYGET, vt, 0, { VTS_EMPTY }, VT_EMPTY, (void (__stdcall _atl_disp_classtype::*)())get_##member }, \
-   { OLESTR(#member), DISPID_PROPERTYPUT, DISPATCH_PROPERTYPUT, VT_EMPTY, 1, NULL, vt, (void (__stdcall _atl_disp_classtype::*)())put_##member },
+   { OLESTR(#member), dispid, DISPATCH_PROPERTYGET, vt, 0, { VTS_EMPTY }, VT_EMPTY, (void (__stdcall _atl_disp_classtype::*)())&get_##member }, \
+   { OLESTR(#member), DISPID_PROPERTYPUT, DISPATCH_PROPERTYPUT, VT_EMPTY, 1, NULL, vt, (void (__stdcall _atl_disp_classtype::*)())&put_##member },
 
 #define DISP_PROP(member, vt) \
    DISP_PROP_ID(member, DISPID_UNKNOWN, vt)
 
 #define DISP_PROPGET_ID(member, dispid, vt) \
-   { OLESTR(#member), dispid, DISPATCH_PROPERTYGET, vt, 0, { VTS_EMPTY }, VT_EMPTY, (void (__stdcall _atl_disp_classtype::*)())get_##member },
+   { OLESTR(#member), dispid, DISPATCH_PROPERTYGET, vt, 0, { VTS_EMPTY }, VT_EMPTY, (void (__stdcall _atl_disp_classtype::*)())&get_##member },
 
 #define DISP_PROPGET(member, vt) \
    DISP_PROPGET_ID(member, DISPID_UNKNOWN, vt)
 
 #define DISP_PROPPUT_ID(member, dispid, vt) \
-   { OLESTR(#member), dispid, DISPATCH_PROPERTYPUT, VT_EMPTY, 1, NULL, vt, (void (__stdcall _atl_disp_classtype::*)())put_##member },
+   { OLESTR(#member), dispid, DISPATCH_PROPERTYPUT, VT_EMPTY, 1, NULL, vt, (void (__stdcall _atl_disp_classtype::*)())&put_##member },
 
 #define DISP_PROPPUT(member, vt) \
    DISP_PROPPUT_ID(member, DISPID_UNKNOWN, vt)
@@ -140,10 +140,16 @@ public:
       //       add/remove the "ATL::" namespace qualifiers in front 
       //       of the InlineIsEqualGUID() methods below.
       //       This is due to a problem in old MS Platform SDK releases.
-      if( ATL::InlineIsEqualGUID(riid, *pdiid) || 
-          InlineIsEqualUnknown(riid) ||
-          ATL::InlineIsEqualGUID(riid, IID_IDispatch) )
-      {
+#if _MSC_VER < 1310
+	   if( ATL::InlineIsEqualGUID(riid, *pdiid) || 
+           InlineIsEqualUnknown(riid) ||
+           ATL::InlineIsEqualGUID(riid, IID_IDispatch) )
+#else
+	   if( InlineIsEqualGUID(riid, *pdiid) || 
+           InlineIsEqualUnknown(riid) ||
+           InlineIsEqualGUID(riid, IID_IDispatch) )
+#endif
+	   {
          if( ppvObject==NULL ) return E_POINTER;
          *ppvObject = this;
          AddRef();

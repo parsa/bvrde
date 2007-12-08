@@ -5,7 +5,9 @@
 #include "MainFrm.h"
 #include "WizardSheet.h"
 
-#pragma code_seg( "WIZARDS" )
+#if _MSC_VER < 1300
+	#pragma code_seg( "WIZARDS" )
+#endif
 
 #define LISTITEM_SELECTED(pnmlv)    ( ((pnmlv->uOldState & LVIS_SELECTED)==0) && ((pnmlv->uNewState & LVIS_SELECTED)!=0) )
 

@@ -565,5 +565,5 @@ CString CSolution::_GetComErrorText() const
    if( spErr == NULL ) return _T("");
    CComBSTR bstrText;
    spErr->GetDescription(&bstrText);
-   return bstrText;
+   return bstrText.m_str;
 }

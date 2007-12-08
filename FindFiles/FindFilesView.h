@@ -50,7 +50,8 @@ public:
       // Need to postfix with pattern-match for folder      
       TCHAR szFolder[MAX_PATH];
       size_t cchFolder = _tcslen(m_szFolder);
-      for( size_t i = 0, x = 0; i < cchFolder; i++ ) {
+      size_t x = 0;
+	  for( size_t i = 0; i < cchFolder; i++ ) {
          if( m_szFolder[i] == '\"' ) continue;
          if( m_szFolder[i] == ' ' ) szFolder[x++] = '?';
          else szFolder[x++] = m_szFolder[i];

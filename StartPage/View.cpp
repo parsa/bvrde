@@ -56,8 +56,7 @@ void CStartPageView::_AttachRecentProjectList()
             //     }
             //  </SCRIPT>
             //
-            IDispatch* pProject = _pDevEnv->GetDispatch();
-            CComDispatchDriver ddProject = pProject;
+            CComDispatchDriver ddProject = _pDevEnv->GetDispatch();
             CComVariant vResult;
             ddProject.GetPropertyByName(L"RecentProjects", &vResult);
             if( vResult.vt != VT_DISPATCH ) return;
@@ -312,6 +311,7 @@ void __stdcall CStartPageView::__BeforeNavigate2(/*[in]*/ IDispatch* pDisp,
       CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
       CString sFilename = bstrURL + 10;
       sFilename.TrimRight(_T("/"));
+      sFilename.Replace(_T("%20"), _T(" "));
       // Send private message instead of calling LoadSolution() directly because
       // it doesn't update the MRU history...
       enum { WM_APP_LOADSOLUTION = WM_APP + 1000 };

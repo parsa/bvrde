@@ -140,7 +140,7 @@ public:
          if( m_iPidLinePos < 0 ) m_iPidLinePos = sUpperLine.Find(_T(" PID "));
          if( m_iPidLinePos < 0 ) {
             m_iPidLinePos = sUpperLine.Find(_T("PID "));
-            if( m_iPidLinePos != 0 ) return S_OK;
+            if( m_iPidLinePos != 0 ) return S_OK;  // Entry not found; abort.
          }
          PIDINFO Info;
          Info.sLine = sLine;

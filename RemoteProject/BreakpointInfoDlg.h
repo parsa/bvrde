@@ -66,6 +66,7 @@ public:
    LRESULT OnOk(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CString sCommand;
+      // Set or clear "Ignore count"
       if( m_ctrlIgnoreCountCheck.GetCheck() == BST_CHECKED ) {
          sCommand.Format(_T("-break-after %d %d"), m_Info.iBrkNr, _ttoi(CWindowText(m_ctrlIgnoreCount)));
          m_pProject->m_DebugManager.DoDebugCommand(sCommand);
@@ -74,12 +75,13 @@ public:
          sCommand.Format(_T("-break-after %d %d"), m_Info.iBrkNr, 0);
          m_pProject->m_DebugManager.DoDebugCommand(sCommand);
       }
+      // Set or clear "Break condition"
       if( m_ctrlConditionCheck.GetCheck() == BST_CHECKED ) {
          sCommand.Format(_T("-break-condition %d %s"), m_Info.iBrkNr, CWindowText(m_ctrlCondition));
          m_pProject->m_DebugManager.DoDebugCommand(sCommand);
       }
       else if( !m_Info.sCondition.IsEmpty() ) {
-         sCommand.Format(_T("-break-condition %d %s"), m_Info.iBrkNr, _T("1=1"));
+         sCommand.Format(_T("-break-condition %d"), m_Info.iBrkNr);
          m_pProject->m_DebugManager.DoDebugCommand(sCommand);
       }
       m_pProject->m_DebugManager.DoDebugCommand(_T("-break-list"));

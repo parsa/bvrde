@@ -31,5 +31,8 @@ enum
 #define SOLUTIONDIR  "Solutions"
 
 
+CString GetSystemErrorText(DWORD dwErr);
+
+
 #endif // !defined(AFX_GLOBALS_H__20030310_FB96_93A6_D313_0080AD509054__INCLUDED_)
 
