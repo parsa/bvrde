@@ -105,9 +105,9 @@ bool CTagManager::OpenTagInView(const CTagDetails& Info)
       // Line-numbers have first priority. We don't parse lineno. from
       // CTAGS files because they are too unreliable, but we will get
       // them from our own realtime C++ lexer.
-      return m_pProject->OpenView(Info.sFilename, Info.iLineNum);
+      return m_pProject->OpenView(Info.sFilename, Info.iLineNum, false);
    }
-   else if( m_pProject->OpenView(Info.sFilename, 0) ) {
+   else if( m_pProject->OpenView(Info.sFilename, 0, false) ) {
       // If we don't have line-numbers, we'll just open the file
       // and search in it for the member name/declaration/reg.ex expression.
       // Hopefully one of the matches and the first appearance will be the stuff 

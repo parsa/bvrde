@@ -53,7 +53,7 @@ LRESULT CMainFrame::OnToolsOptions(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    CString sFilename = GetSettingsFilename();
    CXmlSerializer arc;
    if( !arc.Open(_T("Settings"), sFilename) ) return 0;
-   COptionsDlg dlg(this, NULL, &arc);
+   COptionsDlg dlg(this, &arc, NULL);
    UINT nRes = dlg.DoModal();
    CWaitCursor cursor;
    CLockWindowUpdate lock = m_hWnd;

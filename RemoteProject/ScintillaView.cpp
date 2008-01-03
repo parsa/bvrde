@@ -323,7 +323,7 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 LRESULT CScintillaView::OnEditOpenInclude(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {   
    CWaitCursor cursor;
-   if( !m_pCppProject->OpenView(m_PopupInfo.sIncludeFile, 0) ) ::MessageBeep((UINT)-1);
+   m_pCppProject->OpenView(m_PopupInfo.sIncludeFile, 0, true);
    return 0;
 }
 

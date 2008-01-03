@@ -46,8 +46,8 @@ public:
 
    void Init(CRemoteProject* pProject);
    bool WantsData();
-   void PopulateView(CSimpleArray<CString>& aDbgCmd);
    void SetInfo(LPCTSTR pstrType, CMiInfo& info);
+   void EvaluateView(CSimpleArray<CString>& aDbgCmd);
 
    int _GetPageSize() const;
 

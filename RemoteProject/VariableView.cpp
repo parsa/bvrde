@@ -32,11 +32,6 @@ bool CVariableView::WantsData()
    return true;
 }
 
-int CVariableView::GetCurSel() const
-{
-   return m_ctrlTab.GetCurSel();
-}
-
 void CVariableView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
    if( _tcscmp(pstrType, _T("locals")) == 0 
@@ -67,6 +62,14 @@ void CVariableView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          sName = info.FindNext(_T("name"));
       }
       m_ctrlList.SetCurSel(iItem);
+   }
+}
+
+void CVariableView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
+{
+   switch( m_ctrlTab.GetCurSel() ) {
+   case 0:  aDbgCmd.Add(CString(_T("-stack-list-locals 1"))); break;
+   case 1:  aDbgCmd.Add(CString(_T("-stack-list-arguments 1 0 0"))); break;
    }
 }
 

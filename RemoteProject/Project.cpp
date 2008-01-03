@@ -620,13 +620,17 @@ void CRemoteProject::SendViewMessage(UINT nCmd, LAZYDATA* pData)
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) m_aFiles[i]->SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, nCmd), (LPARAM) pData);
 }
 
-bool CRemoteProject::OpenView(LPCTSTR pstrFilename, int iLineNum)
+bool CRemoteProject::OpenView(LPCTSTR pstrFilename, int iLineNum, bool bShowError)
 {
    ATLASSERT(!::IsBadStringPtr(pstrFilename,-1));
    IView* pView = FindView(pstrFilename, false);
    if( pView == NULL ) pView = _CreateDependencyFile(pstrFilename, ::PathFindFileName(pstrFilename));
    if( pView == NULL ) return false;
-   return pView->OpenView(iLineNum) == TRUE;
+   if( pView->OpenView(iLineNum) ) return true;
+   DWORD dwErr = ::GetLastError();
+   if( dwErr == ERROR_FILE_NOT_FOUND ) return true;
+   if( bShowError ) GenerateError(_pDevEnv, NULL, IDS_ERR_OPENVIEW, dwErr);
+   return false;
 }
 
 IView* CRemoteProject::FindView(LPCTSTR pstrFilename, bool bLocally /*= false*/) const

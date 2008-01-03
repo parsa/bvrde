@@ -9,6 +9,20 @@
 
 
 ////////////////////////////////////////////////////////
+// CRememberErr
+
+class CRememberErr
+{
+public:
+   DWORD m_dwErr;
+   CRememberErr() : m_dwErr(0) { };
+   ~CRememberErr() { if( m_dwErr != 0 ) ::SetLastError(m_dwErr); };
+   BOOL SetLastError(DWORD dwErr) { m_dwErr = dwErr; return FALSE; };
+   BOOL GrabError() { m_dwErr = ::GetLastError(); return FALSE; };
+};
+
+
+////////////////////////////////////////////////////////
 // CViewImpl
 
 CViewImpl::CViewImpl(CRemoteProject* pCppProject, IProject* pProject, IElement* pParent) : 
@@ -216,16 +230,17 @@ BOOL CTextFile::Save()
    ATLASSERT(m_view.IsWindow());
    if( !m_view.IsWindow() ) return TRUE;
 
+   CRememberErr err;
+
    LPSTR pstrText = NULL;
-   if( !m_view.GetText(pstrText) ) return FALSE;
+   if( !m_view.GetText(pstrText) ) return err.GrabError();
 
    if( m_pCppProject != NULL && m_sLocation == _T("remote") ) 
    {
       // File is remote so we must use a file transfer protocol
       if( !m_pCppProject->m_FileManager.SaveFile(m_sFilename, true, (LPBYTE) pstrText, strlen(pstrText)) ) {
-         DWORD dwErr = ::GetLastError();
+         err.GrabError();
          free(pstrText);
-         ::SetLastError(dwErr);
          return FALSE;
       }
    }
@@ -234,9 +249,8 @@ BOOL CTextFile::Save()
       // File is a local file; we can save it using standard Win32 calls...
       CFile f;
       if( !f.Create(_GetRealFilename()) ) {
-         DWORD dwErr = ::GetLastError();
+         err.GrabError();
          free(pstrText);
-         ::SetLastError(dwErr);
          return FALSE;
       }
       f.Write(pstrText, strlen(pstrText));
@@ -300,6 +314,8 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
 {
    ATLASSERT(*pbstrText==NULL);
 
+   CRememberErr err;
+   
    // View is open, so grab the text from the editor...
    if( m_wndFrame.IsWindow() ) 
    {
@@ -317,11 +333,13 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
          DWORD dwSize = 0;
          LPBYTE pData = NULL;
          if( !m_pCppProject->m_FileManager.LoadFile(m_sFilename, true, &pData, &dwSize) ) {
+            err.GrabError();
             if( pData != NULL ) free(pData);
             return FALSE;
          }
 
          if( !_IsValidFile(pData, dwSize) ) {
+            err.SetLastError(ERROR_BAD_FORMAT);
             free(pData);
             _pDevEnv->ShowMessageBox(_pDevEnv->GetHwnd(IDE_HWND_MAIN), CString(MAKEINTRESOURCE(IDS_ERR_FILEENCODING)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
             return FALSE;
@@ -331,7 +349,7 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
          //      so we duplicate the buffer once again.
          LPSTR pstrData = (LPSTR) malloc(dwSize + 1);
          ATLASSERT(pstrData);
-         if( pstrData == NULL ) return FALSE;
+         if( pstrData == NULL ) return err.SetLastError(ERROR_OUTOFMEMORY);
          memcpy(pstrData, pData, dwSize);
          pstrData[dwSize] = '\0';
 
@@ -344,24 +362,21 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
       {
          // View is a local file; just load it...
          CFile f;
-         if( !f.Open(_GetRealFilename()) ) return FALSE;
+         if( !f.Open(_GetRealFilename()) ) return err.GrabError();
          DWORD dwSize = f.GetSize();
          LPSTR pstrData = (LPSTR) malloc(dwSize + 1);
          ATLASSERT(pstrData);
-         if( pstrData == NULL ) {
-            ::SetLastError(ERROR_OUTOFMEMORY);
-            return FALSE;
-         }
+         if( pstrData == NULL ) return err.SetLastError(ERROR_OUTOFMEMORY);
          if( !f.Read(pstrData, dwSize) ) {
-            DWORD dwErr = ::GetLastError();
+            err.GrabError();
             free(pstrData);
-            ::SetLastError(dwErr);
             return FALSE;
          }
          pstrData[dwSize] = '\0';
          f.Close();
 
          if( !_IsValidFile( (LPBYTE) pstrData, dwSize ) ) {
+            err.SetLastError(ERROR_BAD_FORMAT);
             _pDevEnv->ShowMessageBox(_pDevEnv->GetHwnd(IDE_HWND_MAIN), CString(MAKEINTRESOURCE(IDS_ERR_FILEENCODING)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
             free(pstrData);
             return FALSE;
@@ -388,6 +403,8 @@ BOOL CTextFile::IsOpen() const
 
 BOOL CTextFile::OpenView(long lLineNum)
 {
+   CRememberErr err;
+
    if( m_wndFrame.IsWindow() ) 
    {
       // View already open. Just set focus to the window.
@@ -403,7 +420,7 @@ BOOL CTextFile::OpenView(long lLineNum)
       // As a little hack we allow the file to be opened if we request a line-number
       // as 0! This allows empty pages to be opened and later saved.
       CComBSTR bstrText;
-      if( !GetText(&bstrText) && lLineNum > 0 ) return FALSE;
+      if( !GetText(&bstrText) && lLineNum > 0 ) return err.GrabError();
       CString sText = bstrText;
 
       CString sName;
@@ -412,10 +429,7 @@ BOOL CTextFile::OpenView(long lLineNum)
 
       IViewFrame* pFrame = _pDevEnv->CreateClient(sName, m_pProject, this);
       ATLASSERT(pFrame);
-      if( pFrame == NULL ) {
-         ::SetLastError(ERROR_OUTOFMEMORY);
-         return FALSE;
-      }
+      if( pFrame == NULL ) return err.SetLastError(ERROR_OUTOFMEMORY);
       m_wndFrame = pFrame->GetHwnd();
       m_view.Init(m_pCppProject, m_pProject, this, m_sFilename, m_sLanguage);
       m_view.Create(m_wndFrame, CWindow::rcDefault, NULL, WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
@@ -429,10 +443,7 @@ BOOL CTextFile::OpenView(long lLineNum)
       int nLen = sText.GetLength();
       LPSTR pstrData = (LPSTR) malloc((nLen * 2) + 1);
       ATLASSERT(pstrData);
-      if( pstrData == NULL ) {
-         ::SetLastError(ERROR_OUTOFMEMORY);
-         return FALSE;
-      }
+      if( pstrData == NULL ) return err.SetLastError(ERROR_OUTOFMEMORY);
       AtlW2AHelper(pstrData, sText, (nLen * 2) + 1);
       m_view.SetText(pstrData);
       free(pstrData);

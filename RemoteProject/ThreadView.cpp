@@ -61,6 +61,11 @@ void CThreadView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    }
 }
 
+void CThreadView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
+{
+   aDbgCmd.Add(CString(_T("-thread-list-ids")));
+}
+
 
 /////////////////////////////////////////////////////////////////////////
 // Implementation

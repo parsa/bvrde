@@ -41,6 +41,7 @@ public:
    void Init(CRemoteProject* pProject);
    bool WantsData();
    void SetInfo(LPCTSTR pstrType, CMiInfo& info);
+   void EvaluateView(CSimpleArray<CString>& aDbgCmd);
 
    // Message map and handlers
 

@@ -144,7 +144,7 @@ public:
 // Operations
 public:
    bool Reset();
-   bool OpenView(LPCTSTR pstrFilename, int iLineNum);
+   bool OpenView(LPCTSTR pstrFilename, int iLineNum, bool bShowError);
    IView* FindView(LPCTSTR pstrFilename, bool bLocally = false) const;
    void SendViewMessage(UINT nCmd, LAZYDATA* pData);
    bool IsViewsDirty() const;

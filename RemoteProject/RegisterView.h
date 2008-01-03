@@ -25,7 +25,7 @@ public:
    void Init(CRemoteProject* pProject);
    bool WantsData();
    void SetInfo(LPCTSTR pstrType, CMiInfo& info);
-   int GetNameCount() const;
+   void EvaluateView(CSimpleArray<CString>& aDbgCmd);
 
    // Message map and handlers
 

@@ -83,6 +83,11 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    }
 }
 
+void CStackView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
+{
+   aDbgCmd.Add(CString(_T("-stack-list-frames")));
+}
+
 
 /////////////////////////////////////////////////////////////////////////
 // Implementation
@@ -128,6 +133,7 @@ LRESULT CStackView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
 LRESULT CStackView::OnListDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    ATLASSERT(m_pProject);
+   CWaitCursor cursor;
    int iIndex = m_ctrlStack.GetCurSel();
    if( iIndex < 0 ) return 0;
    // Select the stack frame
@@ -143,7 +149,7 @@ LRESULT CStackView::OnListDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    if( iFilePos < 0 || iLinePos < 0 ) return 0;
    CString sFile = sLine.Mid(iFilePos + 6).SpanExcluding(_T("'"));
    int iLineNum = _ttoi(sLine.Mid(iLinePos + 5));
-   m_pProject->OpenView(sFile, iLineNum);
+   m_pProject->OpenView(sFile, iLineNum, true);
    return 0;
 }
 

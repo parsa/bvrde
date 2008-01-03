@@ -28,6 +28,7 @@ void CFileProtocol::Clear()
 {
    m_sPath.Empty();
    m_sSearchPath.Empty();
+   m_bCompatibilityMode = FALSE;
 }
 
 bool CFileProtocol::Load(ISerializable* pArc)
@@ -39,6 +40,7 @@ bool CFileProtocol::Load(ISerializable* pArc)
    m_sPath.ReleaseBuffer();
    pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(200), 200);
    m_sSearchPath.ReleaseBuffer();
+   pArc->Read(_T("compatibility"), m_bCompatibilityMode);
 
    m_sPath.TrimRight(_T("\\"));
 
@@ -50,6 +52,7 @@ bool CFileProtocol::Save(ISerializable* pArc)
    if( !pArc->WriteItem(_T("MappedDrive")) ) return false;
    pArc->Write(_T("path"), m_sPath);
    pArc->Write(_T("searchPath"), m_sSearchPath);
+   pArc->Write(_T("compatibility"), m_bCompatibilityMode);
    return true;
 }
 
@@ -86,6 +89,7 @@ CString CFileProtocol::GetParam(LPCTSTR pstrName) const
    if( sName == _T("SearchPath") ) return m_sSearchPath;
    if( sName == _T("Separator") ) return _T("\\");
    if( sName == _T("Certificate") ) return _T("Windows Network Drive");
+   if( sName == _T("CompatibilityMode") ) return m_bCompatibilityMode ? _T("true") : _T("false");
    return _T("");
 }
 
@@ -94,6 +98,7 @@ void CFileProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    CString sName = pstrName;
    if( sName == _T("Path") ) m_sPath = pstrValue;
    if( sName == _T("SearchPath") ) m_sSearchPath = pstrValue;
+   if( sName == _T("CompatibilityMode") ) m_bCompatibilityMode = _tcscmp(pstrValue, _T("true")) == 0;
    m_sPath.TrimRight(_T("\\"));
 }
 

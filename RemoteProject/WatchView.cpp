@@ -151,11 +151,8 @@ void CWatchView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    }
 }
 
-void CWatchView::EvaluateValues(CSimpleArray<CString>& aDbgCmd)
+void CWatchView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
 {
-   if( !IsWindow() ) return;
-   if( !IsWindowVisible() ) return;
-
    CString sCommand = _T("-var-update *");
    aDbgCmd.Add(sCommand);
 
@@ -259,7 +256,7 @@ bool CWatchView::DoDrop(LPDATAOBJECT pDataObj)
    m_pProject->DelayedDebugCommand(sCommand);
 
    CSimpleArray<CString> aDbgCmd;
-   EvaluateValues(aDbgCmd);
+   EvaluateView(aDbgCmd);
    for( int i = 0; i < aDbgCmd.GetSize(); i++ ) m_pProject->DelayedDebugCommand(aDbgCmd[i]);
 
    SetFocus();
@@ -310,7 +307,7 @@ LRESULT CWatchView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
    }
 
    CSimpleArray<CString> aDbgCmd;
-   EvaluateValues(aDbgCmd);
+   EvaluateView(aDbgCmd);
    for( int i = 0; i < aDbgCmd.GetSize(); i++ ) m_pProject->DelayedDebugCommand(aDbgCmd[i]);
 
    return 0;

@@ -9,6 +9,14 @@
 /////////////////////////////////////////////////////////////////
 // CMiInfo
 
+CMiInfo::CMiInfo(const CMiInfo& src) :
+   m_iSearchIndex(-1),
+   m_pstrData(NULL),
+   m_plRefCount(NULL)
+{
+   Copy(src);
+}
+
 CMiInfo::CMiInfo(LPCTSTR pstrInput /*= NULL*/) :
    m_iSearchIndex(-1),
    m_pstrData(NULL),
@@ -26,11 +34,9 @@ CMiInfo::~CMiInfo()
 
 void CMiInfo::Release()
 {
-   if( m_pstrData == NULL ) return;
    // TODO: Really need to better protect the data members
    //       with a thread-lock.
-   if( ::InterlockedDecrement(m_plRefCount) == 0 ) {
-      free(m_pstrData);
+   if( m_plRefCount != NULL && ::InterlockedDecrement(m_plRefCount) == 0 ) {
       free(m_plRefCount);
    }
    m_pstrData = NULL;
@@ -46,21 +52,22 @@ bool CMiInfo::Parse(LPCTSTR pstrInput)
    if( *pstrInput == ',' ) pstrInput++;
    // We're using a slightly complicated (and naive) buffer/reference-counting scheme
    // to keep the data alive as long as its being used.
+   // Here we allocate the buffer for the parse string + 4 bytes for the ref.count.
+   // The parse string is copied to the memory location after the ref.count.
    DWORD dwLength = (_tcslen(pstrInput) + 1) * sizeof(TCHAR);
-   m_pstrData = (LPTSTR) malloc(dwLength);
-   m_plRefCount = (LONG*) malloc(sizeof(LONG));
-   ATLASSERT(m_pstrData);
+   m_plRefCount = (LONG*) malloc(dwLength + sizeof(LONG));
    ATLASSERT(m_plRefCount);
-   if( m_pstrData == NULL || m_plRefCount == NULL ) return false;
+   if( m_plRefCount == NULL ) return false;
    //
-   memcpy(m_pstrData, pstrInput, dwLength);
    *m_plRefCount = 1L;
+   m_pstrData = (LPTSTR) (m_plRefCount + 1);
+   memcpy(m_pstrData, pstrInput, dwLength);
    //
 #ifdef _DEBUG
    ::OutputDebugString(_T("GDB: "));
    ::OutputDebugString(pstrInput);
    ::OutputDebugString(_T("\n"));
-#endif
+#endif // _DEBUG
    if( *pstrInput == '\0' ) return true;
    return _ParseString(m_pstrData, 0, _T(""), _T(""), 0);
 }
@@ -118,15 +125,13 @@ CString CMiInfo::FindNext(LPCTSTR pstrKey,
 void CMiInfo::Copy(const CMiInfo& src)
 {
    Release();
-   ATLASSERT(src.m_pstrData);
-   ATLASSERT(src.m_plRefCount);
    m_pstrData = src.m_pstrData;
    m_plRefCount = src.m_plRefCount;
    for( int i = 0; i < src.m_aItems.GetSize(); i++ ) {
       MIINFO mi = src.m_aItems[i];
       m_aItems.Add(mi);
    }
-   ::InterlockedIncrement(m_plRefCount);
+   if( m_plRefCount != NULL ) ::InterlockedIncrement(m_plRefCount);
 }
 
 // Implementation

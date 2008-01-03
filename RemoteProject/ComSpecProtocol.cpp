@@ -112,6 +112,7 @@ DWORD CComSpecThread::Run()
    LPBYTE pBuffer = (LPBYTE) malloc(MAX_BUFFER_SIZE);
    BYTE bReadBuffer[MAX_BUFFER_SIZE + 2] = { 0 };
    DWORD dwPos = 0;
+   DWORD dwSleep = 25;
    DWORD dwStartLinePos = 0;
    DWORD dwBufferSize = MAX_BUFFER_SIZE;
    VT100COLOR nColor = VT100_DEFAULT;
@@ -172,16 +173,18 @@ DWORD CComSpecThread::Run()
             }
          }
       }
+      else {
+         // TODO: Hmm, nasty data polling delay! Sadly Windows will block on the ReadFile()
+         //       and won't let us close the handle in the other thread.
+         ::Sleep(dwSleep);
+         if( dwSleep < 100 ) dwSleep *= 2;
+      }
 
       // Check for process death...
       DWORD dwExitCode = 0;
       if( ::GetExitCodeProcess(pi.hProcess, &dwExitCode) ) {
          if( STILL_ACTIVE != dwExitCode ) break;
       }
-
-      // TODO: Hmm, nasty data polling delay! Sadly Windows will block on the ReadFile()
-      //       and won't let us close the handle in the other thread.
-      ::Sleep(80L);
    }
 
    // Play it nicely and terminate by CTRL+C
@@ -518,10 +521,12 @@ BOOL CComSpecProtocol::GenerateConsoleEvent(DWORD dwProcessId, DWORD dwEvent)
          (PFNATTACHCONSOLE) ::GetProcAddress( ::GetModuleHandle(_T("kernel32.dll")), "AttachConsole" );
       if( fnAttachConsole != NULL ) {
          if( fnAttachConsole(dwProcessId) ) {
-            ::GenerateConsoleCtrlEvent(dwEvent, dwProcessId);
+            bRes = ::GenerateConsoleCtrlEvent(dwEvent, dwProcessId);
             ::FreeConsole();
          }
-         bRes = TRUE;
+         // FIX: If we saw AttachConsole() we're on Vista and cannot assume that
+         //      the hack below can work because system libraries are moved in memory.
+         return bRes;
       }
    }
    if( !bRes ) {

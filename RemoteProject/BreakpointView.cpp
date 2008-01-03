@@ -89,6 +89,11 @@ void CBreakpointView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    }
 }
 
+void CBreakpointView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
+{
+   aDbgCmd.Add(CString(_T("-break-list")));
+}
+
 
 /////////////////////////////////////////////////////////////////////////
 // Message handlers
@@ -163,7 +168,7 @@ LRESULT CBreakpointView::OnItemOpenSource(WORD /*wNotifyCode*/, WORD /*wID*/, HW
    int iItem = m_ctrlList.GetSelectedIndex();
    if( iItem < 0 ) return 0;
    const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
-   m_pProject->OpenView(Info.sFile, Info.iLineNum);
+   m_pProject->OpenView(Info.sFile, Info.iLineNum, true);
    return 0;
 }
 

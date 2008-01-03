@@ -39,27 +39,6 @@ bool CDisasmView::WantsData()
    return true;
 }
 
-void CDisasmView::PopulateView(CSimpleArray<CString>& aDbgCmd)
-{
-   // Offset management
-   if( !m_bDontResetOffset ) m_lOffset = 0;
-   m_bDontResetOffset = false;
-   // First change display style if needed; then request assembler listing
-   if( m_iLastStyle != (BYTE) m_bIntelStyle ) {
-      CString sCommand;
-      sCommand.Format(_T("-gdb-set disassembly-flavor %s"), m_bIntelStyle ? _T("intel") : _T("att"));
-      aDbgCmd.Add(sCommand);
-      m_iLastStyle = (BYTE) m_bIntelStyle;
-   }
-   // Request disassembly listing from debugger
-   CString sCommand;
-   sCommand.Format(_T("-data-disassemble -s \"$pc + %ld\" -e \"$pc + %ld\" -- %ld"), 
-      m_lOffset,
-      m_lOffset + _GetPageSize(),
-      m_bShowSource ? 1L : 0L);
-   aDbgCmd.Add(sCommand);
-}
-
 void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
    if( _tcscmp(pstrType, _T("cwd")) == 0 ) 
@@ -95,9 +74,9 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
             }
             sFunction = sLocation;
          }
-         // Build up disassembly line in RTF text.
+         // Construct disassembly line in RTF text.
          // We mark resolved address names with grey text.
-         // Assembly lined marked as bad are coloured red.
+         // Assembly lines marked as bad are coloured red.
          sDisasm = info.GetSubItem(_T("inst"));
          sDisasm.Replace(_T("\\"), _T("\\\\ "));
          sDisasm.Replace(_T("{"), _T("\\{ "));
@@ -125,15 +104,25 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    }
 }
 
-// Implementation
-
-DWORD CALLBACK CDisasmView::_EditStreamCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)
+void CDisasmView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
 {
-   STREAMCOOKIE* cookie = (STREAMCOOKIE*) dwCookie;
-   *pcb = min(cb, (LONG) _tcslen(cookie->pstr + cookie->pos));
-   AtlW2AHelper( (LPSTR) pbBuff, cookie->pstr + cookie->pos, (int) *pcb );
-   cookie->pos += *pcb;
-   return *pcb >= 0 ? 0 : 1;
+   // Offset management
+   if( !m_bDontResetOffset ) m_lOffset = 0;
+   m_bDontResetOffset = false;
+   // First change display style if needed; then request assembler listing
+   if( m_iLastStyle != (BYTE) m_bIntelStyle ) {
+      CString sCommand;
+      sCommand.Format(_T("-gdb-set disassembly-flavor %s"), m_bIntelStyle ? _T("intel") : _T("att"));
+      aDbgCmd.Add(sCommand);
+      m_iLastStyle = (BYTE) m_bIntelStyle;
+   }
+   // Request disassembly listing from debugger
+   CString sCommand;
+   sCommand.Format(_T("-data-disassemble -s \"$pc + %ld\" -e \"$pc + %ld\" -- %ld"), 
+      m_lOffset,
+      m_lOffset + _GetPageSize(),
+      m_bShowSource ? 1L : 0L);
+   aDbgCmd.Add(sCommand);
 }
 
 
@@ -267,7 +256,18 @@ void CDisasmView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*
 {
 }
 
+
+/////////////////////////////////////////////////////////////////////////
 // Implementation
+
+DWORD CALLBACK CDisasmView::_EditStreamCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)
+{
+   STREAMCOOKIE* cookie = (STREAMCOOKIE*) dwCookie;
+   *pcb = min(cb, (LONG) _tcslen(cookie->pstr + cookie->pos));
+   AtlW2AHelper( (LPSTR) pbBuff, cookie->pstr + cookie->pos, (int) *pcb );
+   cookie->pos += *pcb;
+   return *pcb >= 0 ? 0 : 1;
+}
 
 int CDisasmView::_GetPageSize() const
 {

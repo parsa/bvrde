@@ -30,9 +30,9 @@ CSimpleArray<CPlugin> g_aPlugins;               /// Collection of plugins
 
 /**
  * The Settings Loader thread.
- * This thread loads the program configuration asynchroniously.
+ * This thread loads the program configuration asynchronously.
  * It fetches the window position information so the main window can display
- * as the very first this. It even preloads various system DLLs to boost 
+ * as the very first thing. It even preloads various system DLLs to boost 
  * startup performance.
  */
 class CSettingsLoaderThread : public CThreadImpl<CSettingsLoaderThread>

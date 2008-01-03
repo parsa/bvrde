@@ -207,7 +207,7 @@ LRESULT CRemoteDirView::OnItemOpen(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
    }
    else {
       ATLASSERT(m_pProject);
-      m_pProject->OpenView(m_sPath + sFilename, 0);
+      m_pProject->OpenView(m_sPath + sFilename, 0, true);
    }
    return 0;
 }

@@ -29,7 +29,7 @@ public:
    void Init(CRemoteProject* pProject);
    bool WantsData();
    void SetInfo(LPCTSTR pstrType, CMiInfo& info);
-   int GetCurSel() const;
+   void EvaluateView(CSimpleArray<CString>& aDbgCmd);
 
    // Message map and handlers
 

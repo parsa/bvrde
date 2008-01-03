@@ -34,7 +34,12 @@ bool CRegisterView::WantsData()
 
 void CRegisterView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
-   if( _tcscmp(pstrType, _T("register-names")) == 0 ) 
+   if( _tcscmp(pstrType, _T("cwd")) == 0 ) 
+   {
+      m_aNames.RemoveAll();
+      m_aValues.RemoveAll();
+   }
+   else if( _tcscmp(pstrType, _T("register-names")) == 0 ) 
    {
       m_aNames.RemoveAll();
       m_aValues.RemoveAll();
@@ -57,6 +62,7 @@ void CRegisterView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          sValue = info.FindNext(_T("number"));
       }
       // Update display
+      SetRedraw(FALSE);
       ResetContent();
       CString sText;
       int nCount = m_aNames.GetSize();
@@ -64,14 +70,20 @@ void CRegisterView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          sText.Format(IDS_REGISTER, m_aNames[i], m_aValues[i]);
          AddString(sText);
       }
+      SetRedraw(TRUE);
       if( !m_bInitialResize ) PostMessage(WM_SIZE);
       m_bInitialResize = true;
    }
 }
 
-int CRegisterView::GetNameCount() const
+void CRegisterView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
 {
-   return m_aNames.GetSize();
+   // Do we need to get the register names?
+   if( m_aNames.GetSize() == 0 ) {
+      aDbgCmd.Add(CString(_T("-data-list-register-names")));
+   }
+   // Populate register values
+   aDbgCmd.Add(CString(_T("-data-list-register-values N")));
 }
 
 

@@ -266,16 +266,17 @@ LRESULT CRemoteProject::OnViewOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 
    IView* pView = static_cast<IView*>(pElement);
    if( !pView->OpenView(1) ) {
+      DWORD dwErr = ::GetLastError();
+      HWND hWnd = ::GetActiveWindow();
       // View didn't exist. Let's ask the user if he wants to create a new file
-      // with that name.
-      if( ::GetLastError() == ERROR_FILE_NOT_FOUND ) {
-         HWND hWnd = ::GetActiveWindow();
+      // with that name...
+      if( dwErr == ERROR_FILE_NOT_FOUND ) {
          if( IDYES == _pDevEnv->ShowMessageBox(hWnd, CString(MAKEINTRESOURCE(IDS_CREATEFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), MB_YESNO | MB_ICONQUESTION) ) {
             _CreateNewRemoteFile(hWnd, pView);
          }
       }
       else {
-         GenerateError(_pDevEnv, NULL, IDS_ERR_OPENVIEW);
+         GenerateError(_pDevEnv, hWnd, IDS_ERR_OPENVIEW, dwErr);
          m_FileManager.Stop();
          m_FileManager.Start();
       }

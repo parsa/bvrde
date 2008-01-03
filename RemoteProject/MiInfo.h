@@ -18,6 +18,7 @@
 class CMiInfo
 {
 public:
+   CMiInfo(const CMiInfo& src);
    CMiInfo(LPCTSTR pstrInput = NULL);
    ~CMiInfo();
 

@@ -131,24 +131,26 @@ public:
          //     UID   PID  PPID  C    STIME TTY       TIME COMMAND
          //    bvik 12271 12270  0 09:36:31 pts/tb    0:00 -bash
          //    bvik 12327 12271  2 09:38:22 pts/tb    0:00 ps -f
-         // We'll assume 5 digits for the PID entry.
+         // We'll assume 5/6 digits for the PID entry.
          // The format varies greatly between platforms, but there seems
          // to be a consensus of using a right-aligned PID column.
          CString sUpperLine = sLine;
          sUpperLine.MakeUpper();
-         m_iPidLinePos = sUpperLine.Find(_T("  PID "));
+         m_iPidLinePos = sUpperLine.Find(_T("   PID "));
+         if( m_iPidLinePos < 0 ) m_iPidLinePos = sUpperLine.Find(_T("  PID "));
          if( m_iPidLinePos < 0 ) m_iPidLinePos = sUpperLine.Find(_T(" PID "));
          if( m_iPidLinePos < 0 ) {
             m_iPidLinePos = sUpperLine.Find(_T("PID "));
-            if( m_iPidLinePos != 0 ) return S_OK;  // Entry not found; abort.
+            if( m_iPidLinePos != 0 ) return S_OK;  // Entry not found; abort!
          }
+         // Add the column description as the first result
          PIDINFO Info;
          Info.sLine = sLine;
          Info.lPid = 0;
          m_aList.Add(Info);
          return S_OK;
       }
-      // See if we can extract the PIDL value and then add
+      // See if we can extract the PID value and then add
       // it to the result list...
       if( (int) cchLen <= m_iPidLinePos ) return S_OK;
       long lPid = _wtol(bstr + m_iPidLinePos);

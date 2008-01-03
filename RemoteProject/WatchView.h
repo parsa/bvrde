@@ -27,9 +27,9 @@ public:
 
    void Init(CRemoteProject* pProject);
    bool WantsData();
-   void EvaluateValues(CSimpleArray<CString>& aDbgCmd);
    void ActivateWatches();
    void SetInfo(LPCTSTR pstrType, CMiInfo& info);
+   void EvaluateView(CSimpleArray<CString>& aDbgCmd);
 
    bool DoDrop(LPDATAOBJECT pDataObj);
 

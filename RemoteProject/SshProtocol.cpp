@@ -138,7 +138,7 @@ DWORD CSshThread::Run()
 
    VT100COLOR nColor = VT100_DEFAULT;
    bool bNextIsPrompt = false;
-   DWORD dwSleep = 20;
+   DWORD dwSleep = 25;
 
    while( !ShouldStop() ) {
 
@@ -147,11 +147,11 @@ DWORD CSshThread::Run()
       if( status == 0 && iRead == 0 ) {
          // TODO: Hmm, nasty data polling delay! But CryptLib seems to be somehow broken
          //       when enabling its read-timeout. Data appears to lag or simple disappear.
-         if( dwSleep <= 100 ) dwSleep *= 2;
          ::Sleep(dwSleep);
+         if( dwSleep < 100 ) dwSleep *= 2;
          continue;
       }
-      dwSleep = 50;
+      dwSleep = 25;
       if( status == CRYPT_ERROR_TIMEOUT ) continue;
       if( cryptSession == 0 ) break;
       if( cryptStatusError(status) ) break;

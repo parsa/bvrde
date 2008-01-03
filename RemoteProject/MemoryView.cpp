@@ -83,6 +83,8 @@ void CMemoryView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    }
 }
 
+
+/////////////////////////////////////////////////////////////////////////
 // Implementation
 
 DWORD CALLBACK CMemoryView::_EditStreamCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)
@@ -127,6 +129,8 @@ void CMemoryView::_UpdateDisplay()
    m_pProject->DelayedDebugCommand(sCommand);
 }
 
+
+/////////////////////////////////////////////////////////////////////////
 // Message handlers
 
 LRESULT CMemoryView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

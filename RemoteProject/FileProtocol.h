@@ -43,6 +43,7 @@ protected:
    CString m_sPath;
    CString m_sCurDir;
    CString m_sSearchPath;
+   BOOL m_bCompatibilityMode;
    //
    bool m_bCancel;
    bool m_bConnected;

@@ -50,7 +50,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
       switch( data.Action ) {
       case LAZY_OPEN_VIEW:
          {
-            OpenView(data.szFilename, data.iLineNum);
+            OpenView(data.szFilename, data.iLineNum, false);
          }
          break;
       case LAZY_GUI_ACTION:
@@ -142,15 +142,15 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             DelayedGlobalViewMessage(DEBUG_CMD_DEBUG_START);
 
             // Open up all debugger view requested
-            if( m_DockManager.IsAutoShown(m_viewWatch, _T("showWatch")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
-            if( m_DockManager.IsAutoShown(m_viewStack, _T("showStack")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
-            if( m_DockManager.IsAutoShown(m_viewThread, _T("showThread")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
-            if( m_DockManager.IsAutoShown(m_viewRegister, _T("showRegister")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
-            if( m_DockManager.IsAutoShown(m_viewMemory, _T("showMemory")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
+            if( m_DockManager.IsAutoShown(m_viewWatch, _T("showWatch")) )             m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
+            if( m_DockManager.IsAutoShown(m_viewStack, _T("showStack")) )             m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
+            if( m_DockManager.IsAutoShown(m_viewThread, _T("showThread")) )           m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
+            if( m_DockManager.IsAutoShown(m_viewRegister, _T("showRegister")) )       m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
+            if( m_DockManager.IsAutoShown(m_viewMemory, _T("showMemory")) )           m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
             if( m_DockManager.IsAutoShown(m_viewDisassembly, _T("showDisassembly")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
-            if( m_DockManager.IsAutoShown(m_viewVariable, _T("showVariable")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
-            if( m_DockManager.IsAutoShown(m_viewBreakpoint, _T("showBreakpoint")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
-            if( m_DockManager.IsAutoShown(m_viewOutput, _T("showOutput")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DEBUGOUTPUT, 0));
+            if( m_DockManager.IsAutoShown(m_viewVariable, _T("showVariable")) )       m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
+            if( m_DockManager.IsAutoShown(m_viewBreakpoint, _T("showBreakpoint")) )   m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
+            if( m_DockManager.IsAutoShown(m_viewOutput, _T("showOutput")) )           m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DEBUGOUTPUT, 0));
          }
          break;
       case LAZY_DEBUG_KILL_EVENT:
@@ -171,15 +171,15 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             m_DockManager.SetInfo(m_viewBreakpoint, _T("showBreakpoint"));
             m_DockManager.SetInfo(m_viewOutput, _T("showOutput"));
 
-            if( m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
-            if( m_viewStack.IsWindow() && m_viewStack.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
-            if( m_viewThread.IsWindow() && m_viewThread.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
-            if( m_viewRegister.IsWindow() && m_viewRegister.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
-            if( m_viewMemory.IsWindow() && m_viewMemory.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
+            if( m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible() )             m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
+            if( m_viewStack.IsWindow() && m_viewStack.IsWindowVisible() )             m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
+            if( m_viewThread.IsWindow() && m_viewThread.IsWindowVisible() )           m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
+            if( m_viewRegister.IsWindow() && m_viewRegister.IsWindowVisible() )       m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
+            if( m_viewMemory.IsWindow() && m_viewMemory.IsWindowVisible() )           m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
             if( m_viewDisassembly.IsWindow() && m_viewDisassembly.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
-            if( m_viewVariable.IsWindow() && m_viewVariable.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
-            if( m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
-            if( m_viewOutput.IsWindow() && m_viewOutput.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DEBUGOUTPUT, 0));
+            if( m_viewVariable.IsWindow() && m_viewVariable.IsWindowVisible() )       m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
+            if( m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible() )   m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
+            if( m_viewOutput.IsWindow() && m_viewOutput.IsWindowVisible() )           m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DEBUGOUTPUT, 0));
          }
          break;
       case LAZY_DEBUG_BREAK_EVENT:
@@ -192,37 +192,13 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             if( bUpdatedAlready ) break;
             bUpdatedAlready = true;
 
-            if( m_viewBreakpoint.WantsData() ) {
-               aDbgCmd.Add(CString(_T("-break-list")));
-            }
-            if( m_viewWatch.WantsData() ) {
-               m_viewWatch.EvaluateValues(aDbgCmd);
-            }
-            if( m_viewThread.WantsData() || m_viewStack.WantsData() ) {
-               aDbgCmd.Add(CString(_T("-thread-list-ids")));
-            }
-            if( m_viewStack.WantsData() ) {
-               aDbgCmd.Add(CString(_T("-stack-list-frames")));
-            }
-            if( m_viewDisassembly.WantsData() ) {
-               m_viewDisassembly.PopulateView(aDbgCmd);
-            }
-            if( m_viewVariable.WantsData() ) {
-               switch( m_viewVariable.GetCurSel() ) {
-               case 0:
-                  aDbgCmd.Add(CString(_T("-stack-list-locals 1")));
-                  break;
-               case 1:
-                  aDbgCmd.Add(CString(_T("-stack-list-arguments 1 0 0")));
-                  break;                   
-               }
-            }
-            if( m_viewRegister.WantsData() ) {
-               if( m_viewRegister.GetNameCount() == 0 ) {
-                  aDbgCmd.Add(CString(_T("-data-list-register-names")));
-               }
-               aDbgCmd.Add(CString(_T("-data-list-register-values N")));
-            }
+            if( m_viewBreakpoint.WantsData() )  m_viewBreakpoint.EvaluateView(aDbgCmd);
+            if( m_viewWatch.WantsData() )       m_viewWatch.EvaluateView(aDbgCmd);
+            if( m_viewThread.WantsData() || m_viewStack.WantsData() ) m_viewThread.EvaluateView(aDbgCmd);
+            if( m_viewStack.WantsData() )       m_viewStack.EvaluateView(aDbgCmd);
+            if( m_viewDisassembly.WantsData() ) m_viewDisassembly.EvaluateView(aDbgCmd);
+            if( m_viewVariable.WantsData() )    m_viewVariable.EvaluateView(aDbgCmd);
+            if( m_viewRegister.WantsData() )    m_viewRegister.EvaluateView(aDbgCmd);
          }
          break;
       case LAZY_DEBUG_INFO:
@@ -232,14 +208,14 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             // Most of these messages originates from the LAZY_DEBUG_BREAK_EVENT handling
             // above anyway.
 
-            if( m_viewStack.WantsData() ) m_viewStack.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewWatch.WantsData() ) m_viewWatch.SetInfo(data.szMessage, data.MiInfo);               
-            if( m_viewThread.WantsData() ) m_viewThread.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewRegister.WantsData() ) m_viewRegister.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewMemory.WantsData() ) m_viewMemory.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewStack.WantsData() )       m_viewStack.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewWatch.WantsData() )       m_viewWatch.SetInfo(data.szMessage, data.MiInfo);               
+            if( m_viewThread.WantsData() )      m_viewThread.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewRegister.WantsData() )    m_viewRegister.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewMemory.WantsData() )      m_viewMemory.SetInfo(data.szMessage, data.MiInfo);
             if( m_viewDisassembly.WantsData() ) m_viewDisassembly.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewVariable.WantsData() ) m_viewVariable.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewBreakpoint.WantsData() ) m_viewBreakpoint.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewVariable.WantsData() )    m_viewVariable.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewBreakpoint.WantsData() )  m_viewBreakpoint.SetInfo(data.szMessage, data.MiInfo);
             if( m_pQuickWatchDlg && m_pQuickWatchDlg->IsWindow() && m_pQuickWatchDlg->IsWindowVisible() ) m_pQuickWatchDlg->SetInfo(data.szMessage, data.MiInfo);
 
             if( _tcscmp(data.szMessage, _T("value")) == 0 ) {

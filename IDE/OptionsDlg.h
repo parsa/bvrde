@@ -61,7 +61,7 @@ class COptionsDlg :
 public:
    enum { IDD = IDD_OPTIONS };
 
-   COptionsDlg(CMainFrame* pMainFrame, IElement* pElement = NULL, CXmlSerializer* pArc = NULL) :
+   COptionsDlg(CMainFrame* pMainFrame, CXmlSerializer* pArc, IElement* pElement) :
       m_pMainFrame(pMainFrame),
       m_pElement(pElement),
       m_pArc(pArc)
@@ -160,8 +160,12 @@ public:
       ATLASSERT(m_hRoot!=NULL);
 
       // Allow listeners to add their own pages
+      // There are two modes: Project Setting and Program Options
+      // In one mode we have a project element, in the other we have
+      // an archive for the XML file.
       for( int i = 0; i < m_pMainFrame->m_aWizardListeners.GetSize(); i++ ) {
          if( m_pElement == NULL ) {
+            ATLASSERT(m_pArc!=NULL);
             m_pMainFrame->m_aWizardListeners[i]->OnInitOptions(this, m_pArc);
          }
          else {
@@ -204,9 +208,11 @@ public:
    {
       CWaitCursor cursor;
       _SendNotifications(PSN_APPLY);
-      if( !m_pArc->Save() ) {
-         CString sMessage = GetSystemErrorText(::GetLastError());
-         return m_pMainFrame->ShowMessageBox(m_hWnd, sMessage, CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
+      if( m_pArc != NULL ) {
+         if( !m_pArc->Save() ) {
+            CString sMessage = GetSystemErrorText(::GetLastError());
+            return m_pMainFrame->ShowMessageBox(m_hWnd, sMessage, CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
+         }
       }
       if( wID == IDC_APPLY ) CWindow(GetParent()).SendMessage(WM_SETTINGCHANGE);
       return 0;

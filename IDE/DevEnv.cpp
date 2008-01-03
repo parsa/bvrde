@@ -343,7 +343,7 @@ BOOL CMainFrame::ShowConfiguration(IElement* pElement)
    ATLASSERT(pElement);
    if( pElement == NULL ) return FALSE;
    CLockStaticDataInit lock;
-   COptionsDlg dlg(this, pElement);
+   COptionsDlg dlg(this, NULL, pElement);
    UINT nRes = dlg.DoModal();
    return nRes == IDOK;
 }
