@@ -183,9 +183,9 @@ public:
    CString _UndecorateType(CString sType);
    CString _GetSelectedText();
    CString _GetNearText(long lPosition, bool bExcludeKeywords = true);
-   inline bool _iswhitechar(int ch) const;
-   inline bool _iscppchar(int ch) const;
-   inline bool _iscppcharw(WCHAR ch) const;
+   bool _iswhitechar(int ch) const;
+   bool _iscppchar(int ch) const;
+   bool _iscppcharw(WCHAR ch) const;
 };
 
 

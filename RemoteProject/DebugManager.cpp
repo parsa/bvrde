@@ -53,6 +53,7 @@ CDebugManager::CDebugManager() :
    m_bSeenExit(false),
    m_bDebugging(false),
    m_bCommandMode(false),
+   m_bDebugEvents(false),
    m_dblDebuggerVersion(0.0),
    m_nIgnoreErrors(0),
    m_nIgnoreBreaks(0)
@@ -459,7 +460,11 @@ bool CDebugManager::AttachProcess(long lPID)
    //sCommand.Format(_T("-target-attach %ld"), lPID);
    sCommand.Format(_T("%s -i=mi --pid=%ld"), m_sDebuggerExecutable, lPID);
    aList.Add(sCommand);   
-   return _AttachDebugger(aList, true);
+   if( !_AttachDebugger(aList, true) ) return false;
+   // The sessions starts as halted; update views
+   m_bBreaked = true;
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
+   return true;
 }
 
 bool CDebugManager::RunContinue()
@@ -491,7 +496,7 @@ bool CDebugManager::EvaluateExpression(LPCTSTR pstrValue)
 bool CDebugManager::DoDebugCommand(LPCTSTR pstrText)
 {
    ATLASSERT(!::IsBadStringPtr(pstrText,-1));
-   // We must be debugging to execute anything
+   // We must be debugging to execute anything!
    if( !IsDebugging() ) return false;
    // HACK: We're having trouble with echoing
    //       our own strings, so we'll check for a brief
@@ -618,6 +623,7 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
    // We should detect a clean exit for this session...
    m_bRunning = true;
    m_bSeenExit = false;
+   m_bDebugEvents = false;
 
    sStatus.LoadString(IDS_STATUS_DEBUGGING);
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
@@ -664,7 +670,10 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
 
    // Initialize some GDB settings depending on connection type
    CString sShellType = m_ShellManager.GetParam(_T("Type"));
-   if( sShellType == _T("comspec") ) DoDebugCommand(_T("-gdb-set debugevents on"));  
+   if( sShellType == _T("comspec") ) {
+      DoDebugCommand(_T("-gdb-set debugevents on"));  
+      m_bDebugEvents = true;
+   }
 
    // This is one of the first commands we send; views can interpret the reply (cwd) as 
    // a "startup" command.
@@ -954,10 +963,12 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
    if( sCommand == _T("error") ) {
       // Ignore errors might have been requested, so fulfill thy wish...
       if( m_nIgnoreErrors > 0 ) return;
-      // Extract error description and display it
+      // Extract error description and display it formatted nicely
       CMiInfo info = sLine;
       CString sMessage;
       sMessage.Format(IDS_ERR_DEBUG, info.GetItem(_T("msg")));
+      int iPos = sMessage.Find(_T(". "));
+      if( iPos > 0 ) sMessage.Format(_T("%s\n%s"), sMessage.Left(iPos + 1), sMessage.Mid(iPos + 2));
       m_pProject->DelayedMessage(sMessage, CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
       return;
    }
@@ -1065,9 +1076,15 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
    // For some targets we really wish to know the PID of the running program.
    // Settings debugevent reporting on seems to be the only way to trigger this
    // in GDB.
-   if( sLine.Find(_T("do_initial_child_stuff")) >= 0 ) {
+   if( m_bDebugEvents && sLine.Find(_T("do_initial_child_stuff")) >= 0 ) {
       m_ShellManager.SetParam(_T("ProcessID"), sLine.Mid(sLine.Find(_T("process")) + 7));
       DoDebugCommand(_T("-gdb-set debugevents off"));
+      m_bDebugEvents = false;
+   }
+   if( m_bDebugEvents && sLine.Find(_T("kernel event for pid=")) >= 0 ) {
+      m_ShellManager.SetParam(_T("ProcessID"), sLine.Mid(sLine.Find(_T("pid=")) + 4));
+      DoDebugCommand(_T("-gdb-set debugevents off"));
+      m_bDebugEvents = false;
    }
    // Outputting directly to the Command View if we're
    // in "command mode" (user entered custom command at prompt or scripting).

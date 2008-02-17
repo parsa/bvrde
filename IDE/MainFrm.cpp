@@ -527,7 +527,7 @@ LRESULT CMainFrame::OnFileRecent(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 {
    // Get file name from the MRU list
    TCHAR szFile[MAX_PATH + 1] = { 0 };
-   if( !m_mru.GetFromList(wID, szFile) ) {
+   if( !m_mru.GetFromList(wID, szFile, MAX_PATH) ) {
       ::MessageBeep(MB_ICONERROR);
       return 0;
    }

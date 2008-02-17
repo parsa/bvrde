@@ -56,6 +56,7 @@ private:
    bool m_bCommandMode;                        // In Command mode?
    bool m_bRunning;                            // Process or debugger is running?
    bool m_bSeenExit;                           // Did we see a proper GDB exit?
+   bool m_bDebugEvents;                        // Listens for GDB debug events?
    CString m_sVarName;                         // Data-evaluation variable name
    //
    CString m_sCommandCD;

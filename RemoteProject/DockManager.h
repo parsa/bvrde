@@ -63,6 +63,21 @@ public:
       _pDevEnv->GetProperty(szProperty, szValue, 31);
       return _tcscmp(szValue, _T("true")) == 0;
    }
+
+   bool OpenView(HWND hWndMain, HWND hWndView, LPCTSTR pstrProperty, UINT nCmd)
+   {
+      ATLASSERT(::IsWindow(hWndMain));
+      if( !IsAutoShown(hWndView, pstrProperty) ) return false;
+      return ::SendMessage(hWndMain, WM_COMMAND, MAKEWPARAM(nCmd, 0), 0L) == TRUE;
+   }
+   bool CloseView(HWND hWndMain, HWND hWndView, LPCTSTR pstrProperty, UINT nCmd)
+   {
+      ATLASSERT(::IsWindow(hWndMain));
+      SetInfo(hWndView, pstrProperty);
+      if( !::IsWindow(hWndView) ) return false;
+      if( !::IsWindowVisible(hWndView) )  return false;
+      return ::SendMessage(hWndMain, WM_COMMAND, MAKEWPARAM(nCmd, 0), 0L) == TRUE;
+   }
 };
 
 

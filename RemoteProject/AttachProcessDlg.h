@@ -105,7 +105,7 @@ public:
       COLORREF clrBack = ::GetSysColor(COLOR_WINDOW);
       COLORREF clrText = ::GetSysColor(COLOR_WINDOWTEXT);
       if( lpDIS->itemID == 0 ) clrBack = ::GetSysColor(COLOR_BTNFACE);
-      if( sText.Find(m_sProcessName) >= 0 ) clrText = ::GetSysColor(COLOR_HIGHLIGHTTEXT);
+      if( sText.Find(m_sProcessName) >= 0 ) clrText = ::GetSysColor(COLOR_HIGHLIGHT);
       if( (lpDIS->itemState & (ODS_SELECTED|ODS_FOCUS)) != 0 ) {
          clrText = ::GetSysColor(COLOR_HIGHLIGHTTEXT);
          clrBack = ::GetSysColor(COLOR_HIGHLIGHT);

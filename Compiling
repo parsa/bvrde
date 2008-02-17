@@ -9,7 +9,7 @@ to compile with the later Visual Studio.NET version. You must however import
 the DSW project files to do this.
 
 Installation of Microsoft Windows Template Library (WTL), the HTML Help Workshop
-and Microsoft Platform SDK is required. Links for these libraries are available below.
+and Microsoft Windows SDK is required. Links for these libraries are available below.
 
 To compile the projects, you should use the "Batch Build" option in Developer Studio.
 This will build all the projects in the solution in the correct order.
@@ -19,6 +19,11 @@ of the 3rd party projects mentioned below.
 One sub-project, the RemoteProject, will not compile unless you manually add a
 password.h file to the solution. More information can be found in the 
 Globals.cpp source file for that project.
+
+The source distribution does not contain all the required binary files to
+successfully run the application. You can copy the remaining files 
+(such as CL32.DLL, SciLexer.DLL and BVRDE.XML) from the binary distribution 
+to the \Bin folder to allow the application to run.
 
 
     Links

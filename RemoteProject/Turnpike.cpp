@@ -122,7 +122,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          break;
       case LAZY_SEND_ACTIVE_VIEW_MESSAGE:
          {
-            // Send message to active view in project
+            // Send message to active view in editor
             m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
          }
          break;
@@ -142,15 +142,15 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             DelayedGlobalViewMessage(DEBUG_CMD_DEBUG_START);
 
             // Open up all debugger view requested
-            if( m_DockManager.IsAutoShown(m_viewWatch, _T("showWatch")) )             m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
-            if( m_DockManager.IsAutoShown(m_viewStack, _T("showStack")) )             m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
-            if( m_DockManager.IsAutoShown(m_viewThread, _T("showThread")) )           m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
-            if( m_DockManager.IsAutoShown(m_viewRegister, _T("showRegister")) )       m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
-            if( m_DockManager.IsAutoShown(m_viewMemory, _T("showMemory")) )           m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
-            if( m_DockManager.IsAutoShown(m_viewDisassembly, _T("showDisassembly")) ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
-            if( m_DockManager.IsAutoShown(m_viewVariable, _T("showVariable")) )       m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
-            if( m_DockManager.IsAutoShown(m_viewBreakpoint, _T("showBreakpoint")) )   m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
-            if( m_DockManager.IsAutoShown(m_viewOutput, _T("showOutput")) )           m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DEBUGOUTPUT, 0));
+            m_DockManager.OpenView(m_wndMain, m_viewWatch,       _T("showWatch"),       ID_VIEW_WATCH);
+            m_DockManager.OpenView(m_wndMain, m_viewStack,       _T("showStack"),       ID_VIEW_CALLSTACK);
+            m_DockManager.OpenView(m_wndMain, m_viewThread,      _T("showThread"),      ID_VIEW_THREADS);
+            m_DockManager.OpenView(m_wndMain, m_viewRegister,    _T("showRegister"),    ID_VIEW_REGISTERS);
+            m_DockManager.OpenView(m_wndMain, m_viewMemory,      _T("showMemory"),      ID_VIEW_MEMORY);
+            m_DockManager.OpenView(m_wndMain, m_viewDisassembly, _T("showDisassembly"), ID_VIEW_DISASM);
+            m_DockManager.OpenView(m_wndMain, m_viewVariable,    _T("showVariable"),    ID_VIEW_VARIABLES);
+            m_DockManager.OpenView(m_wndMain, m_viewBreakpoint,  _T("showBreakpoint"),  ID_VIEW_BREAKPOINTS);
+            m_DockManager.OpenView(m_wndMain, m_viewOutput,      _T("showOutput"),      ID_VIEW_DEBUGOUTPUT);
          }
          break;
       case LAZY_DEBUG_KILL_EVENT:
@@ -160,26 +160,15 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 
             // If we're closing the debug session, then dispose
             // all debug views as well...
-
-            m_DockManager.SetInfo(m_viewWatch, _T("showWatch"));
-            m_DockManager.SetInfo(m_viewStack, _T("showStack"));
-            m_DockManager.SetInfo(m_viewThread, _T("showThread"));
-            m_DockManager.SetInfo(m_viewRegister, _T("showRegister"));
-            m_DockManager.SetInfo(m_viewMemory, _T("showMemory"));
-            m_DockManager.SetInfo(m_viewDisassembly, _T("showDisassembly"));
-            m_DockManager.SetInfo(m_viewVariable, _T("showVariable"));
-            m_DockManager.SetInfo(m_viewBreakpoint, _T("showBreakpoint"));
-            m_DockManager.SetInfo(m_viewOutput, _T("showOutput"));
-
-            if( m_viewWatch.IsWindow() && m_viewWatch.IsWindowVisible() )             m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_WATCH, 0));
-            if( m_viewStack.IsWindow() && m_viewStack.IsWindowVisible() )             m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_CALLSTACK, 0));
-            if( m_viewThread.IsWindow() && m_viewThread.IsWindowVisible() )           m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_THREADS, 0));
-            if( m_viewRegister.IsWindow() && m_viewRegister.IsWindowVisible() )       m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_REGISTERS, 0));
-            if( m_viewMemory.IsWindow() && m_viewMemory.IsWindowVisible() )           m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_MEMORY, 0));
-            if( m_viewDisassembly.IsWindow() && m_viewDisassembly.IsWindowVisible() ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DISASM, 0));
-            if( m_viewVariable.IsWindow() && m_viewVariable.IsWindowVisible() )       m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_VARIABLES, 0));
-            if( m_viewBreakpoint.IsWindow() && m_viewBreakpoint.IsWindowVisible() )   m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_BREAKPOINTS, 0));
-            if( m_viewOutput.IsWindow() && m_viewOutput.IsWindowVisible() )           m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_DEBUGOUTPUT, 0));
+            m_DockManager.CloseView(m_wndMain, m_viewWatch,       _T("showWatch"),       ID_VIEW_WATCH);
+            m_DockManager.CloseView(m_wndMain, m_viewStack,       _T("showStack"),       ID_VIEW_CALLSTACK);
+            m_DockManager.CloseView(m_wndMain, m_viewThread,      _T("showThread"),      ID_VIEW_THREADS);
+            m_DockManager.CloseView(m_wndMain, m_viewRegister,    _T("showRegister"),    ID_VIEW_REGISTERS);
+            m_DockManager.CloseView(m_wndMain, m_viewMemory,      _T("showMemory"),      ID_VIEW_MEMORY);
+            m_DockManager.CloseView(m_wndMain, m_viewDisassembly, _T("showDisassembly"), ID_VIEW_DISASM);
+            m_DockManager.CloseView(m_wndMain, m_viewVariable,    _T("showVariable"),    ID_VIEW_VARIABLES);
+            m_DockManager.CloseView(m_wndMain, m_viewBreakpoint,  _T("showBreakpoint"),  ID_VIEW_BREAKPOINTS);
+            m_DockManager.CloseView(m_wndMain, m_viewOutput,      _T("showOutput"),      ID_VIEW_DEBUGOUTPUT);
          }
          break;
       case LAZY_DEBUG_BREAK_EVENT:

@@ -277,7 +277,10 @@ bool CTagInfo::_LoadTags()
    m_bLoaded = true;
    m_bSorted = true;
 
-   // Look for all files in the project that contains the name "TAGS"...
+   // Look for all files in the project that starts with the name "TAGS".
+   // BUG: We can accidentially load a perfectly good C++ files named "tags" but
+   //      the parser will test for a valid ctags file. It will however slow things
+   //      down.
    int i;
    for( i = 0; i < m_pProject->GetItemCount(); i++ ) {
       IView* pView = m_pProject->GetItem(i);

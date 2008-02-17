@@ -126,6 +126,10 @@ SOURCE=.\ScintillaView.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ScintillaViewLookup.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\StackView.cpp
 # End Source File
 # Begin Source File

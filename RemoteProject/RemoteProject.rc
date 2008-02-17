@@ -1393,7 +1393,8 @@ BEGIN
         POPUP "&Debug"
         BEGIN
             MENUITEM "&Start\tF5",                  ID_DEBUG_START
-            MENUITEM "Start with Debugger\tCtrl+F5", ID_DEBUG_DEBUG
+            MENUITEM "Start with Debugger            \tCtrl+F5", 
+                                                    ID_DEBUG_DEBUG
             MENUITEM "Stop Debugging\tShift+F5",    ID_DEBUG_STOP
             MENUITEM "&Break\tCtrl+Break",          ID_DEBUG_BREAK
             MENUITEM SEPARATOR

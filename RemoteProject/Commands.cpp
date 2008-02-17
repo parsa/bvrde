@@ -724,7 +724,9 @@ LRESULT CRemoteProject::OnBuildCheckSyntax(WORD /*wNotifyCode*/, WORD /*wID*/, H
 LRESULT CRemoteProject::OnBuildCTags(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
-   return m_CompileManager.DoAction(_T("BuildTags"));
+   m_CompileManager.DoAction(_T("BuildTags"));
+   m_TagManager.m_TagInfo.Clear();
+   return 0;
 }
 
 LRESULT CRemoteProject::OnBuildLexTags(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
