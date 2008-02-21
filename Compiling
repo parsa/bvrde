@@ -33,7 +33,7 @@ The folllowing links are needed or useful for compiling the projects:
  Microsoft WTL library
  http://wtl.sourceforge.net
 
- Microsoft Platform SDK
+ Microsoft Windows SDK
  http://support.microsoft.com/default.aspx?pr=psdk
 
  Microsoft Html Help Workshop
@@ -55,7 +55,7 @@ If you get errors about a missing atlres.h or atlapp.h file you have not install
 the WTL library properly.
 
 If you get errors concerning the WinInet "FtpCommand" method, you have not 
-updated your MS Platform SDK files or configured it properly.
+updated your MS Windows SDK files or configured it properly.
 Alternatively remove the offending line from the FtpProtocol.cpp file.
 
 The sub-project, RemoteProject, will not compile unless you manually add a
@@ -64,10 +64,10 @@ Globals.cpp source file.
 
 Compile errors regarding an unknown ATL namespace prefix can be
 corrected directly in the atldispa.h source by removing the prefix
-as described in the comments or updating your Platform SDK.
+as described in the comments or updating your Windows SDK.
 
 Compile errors about the undefined LPNMREBARCHEVRON is also
-solved by updating to the latest Platform SDK headers.
+solved by updating to the latest Windows SDK headers.
 
 Compile errors regarding missing CLogFont classes mean that you did
 not update your WTL library to the latest version. My former helper classes
@@ -88,7 +88,7 @@ Compiling under Visual Studio.NET will generate a number of warnings. You
 may ignore these warnings.
 
 Compile errors mentioning "___security_cookie" may be related to the /GS
-switch in the latest Visual Studio.NET compiler family. To sucessfully 
+switch in the Visual Studio.NET 2005 compiler family. To sucessfully 
 compile you should disable the "Buffer Security Check" setting.
 
 The realtime C++ lexer, "cpp.l", needs a lex/yacc utility to compile. It 

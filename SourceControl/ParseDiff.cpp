@@ -169,6 +169,7 @@ BOOL CDiffCvsView::_ParseDiffContext(CSimpleArray<CString>& aFile, CSimpleArray<
    int iRightStart = 0;                     // Diff right start
    int iRightRange = 0;                     // Diff right range count
    int iDualChunkPos = 0;                   // Index in lines array of dual-chunk
+   bool bSeenMod = false;                   // Seen modified line in batch?
    int nFileLines = aFile.GetSize();        // Number of lines in file
    int nDiffLines = aLines.GetSize();       // Number of lines in diff output
    for( int i = 0; i < nDiffLines && iLineNo < nFileLines; i++ ) {
@@ -200,6 +201,7 @@ BOOL CDiffCvsView::_ParseDiffContext(CSimpleArray<CString>& aFile, CSimpleArray<
                while( _istdigit(*p) ) p++;
                if( *p == ',' ) iLeftRange = _ttoi(++p) - iLeftStart + 1;
                // Find the start of the other chunk-half
+               bSeenMod = false;
                iRightStart = 0;
                iDualChunkPos = 0;
                if( aLines[i + 1].Left(4) != _T("--- ") ) 
@@ -263,6 +265,7 @@ BOOL CDiffCvsView::_ParseDiffContext(CSimpleArray<CString>& aFile, CSimpleArray<
                   iLineNo = iRightStart - 1;
                }
                if( iDualChunkPos > 0 ) i = iDualChunkPos, iRightRange = 0, iDualChunkPos = 0;
+               bSeenMod = false;
             }
             else if( sLine1[0] == ' ' && (sLine2[0] == ' ' || sLine2[0] == 'x') )
             {
@@ -270,23 +273,24 @@ BOOL CDiffCvsView::_ParseDiffContext(CSimpleArray<CString>& aFile, CSimpleArray<
                _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), aFile[iLineNo], aFile[iLineNo]);
                iLeftRange--; iRightRange--; iLineNo++;
                if( iDualChunkPos > 0 ) iDualChunkPos++;
+               bSeenMod = false;
             }
             else if( sLine1[0] == '+' )
             {
                ATLASSERT(iRightRange>0);
-               _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("ins"), sEmpty, sLine1.Mid(2));
+               _GenerateRow(sHTML, sTemp, iLineNo + 1, bSeenMod ? _T("mod2") : _T("ins"), sEmpty, sLine1.Mid(2));
                iRightRange--; iLineNo++;
             }
             else if( sLine2[0] == '+' )
             {
                ATLASSERT(iRightRange>0);
-               _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("ins"), sEmpty, sLine2.Mid(2));
+               _GenerateRow(sHTML, sTemp, iLineNo + 1, bSeenMod ? _T("mod2") : _T("ins"), sEmpty, sLine2.Mid(2));
                iRightRange--; iLineNo++; iDualChunkPos++; i--;
             }
             else if( sLine1[0] == '-' )
             {
                ATLASSERT(iLeftRange>0);
-               _GenerateRow(sHTML, sTemp, 0, _T("del"), sLine1.Mid(2), sEmpty);
+               _GenerateRow(sHTML, sTemp, 0, bSeenMod ? _T("mod2") : _T("del"), sLine1.Mid(2), sEmpty);
                iLeftRange--;
             }
             else if( sLine1[0] == '!' )
@@ -294,15 +298,16 @@ BOOL CDiffCvsView::_ParseDiffContext(CSimpleArray<CString>& aFile, CSimpleArray<
                if( sLine2[0] == '!' ) {
                   _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("mod"), sLine1.Mid(2), sLine2.Mid(2));
                   iLeftRange--; iRightRange--; iLineNo++; iDualChunkPos++;
+                  bSeenMod = true;
                }
                else {
-                  _GenerateRow(sHTML, sTemp, 0, _T("del"), sLine1.Mid(2), sEmpty);
+                  _GenerateRow(sHTML, sTemp, 0, bSeenMod ? _T("mod2") : _T("del"), sLine1.Mid(2), sEmpty);
                   iLeftRange--;
                }
             }
             else if( sLine2[0] == '!' )
             {
-               _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("ins"), sEmpty, sLine2.Mid(2));
+               _GenerateRow(sHTML, sTemp, iLineNo + 1, bSeenMod ? _T("mod2") : _T("ins"), sEmpty, sLine2.Mid(2));
                iRightRange--; iLineNo++; iDualChunkPos++; i--;
             }
          }
@@ -334,7 +339,7 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
    int iRightRange = 0;                     // Diff right range count
    int nFileLines = aFile.GetSize();        // Number of lines in file
    int nDiffLines = aLines.GetSize();       // Number of lines in diff output
-   bool bSeemMod = false;
+   bool bSeenMod = false;                   // Seen modified line in batch?
    for( int i = 0; i < nDiffLines && iLineNo < nFileLines; ) {
       switch( State ) {
       case STATE_IGNORE:
@@ -374,6 +379,7 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
                   iLineNo = iRightStart - 1;
                }
                State = STATE_MERGE;
+               bSeenMod = false;
             }
          }
          break;
@@ -388,7 +394,7 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
                      ATLASSERT(iLeftRange>0 && iRightRange>0);
                      _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("nom"), sLine.Mid(1), sLine.Mid(1));
                      iLeftRange--; iRightRange--; iLineNo++;
-                     bSeemMod = false;
+                     bSeenMod = false;
                   }
                   break;
                case '-':
@@ -402,7 +408,7 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
                      {
                         _GenerateRow(sHTML, sTemp, iLineNo + 1, _T("mod"), sLine.Mid(1), aLines[i + nMinusLines + iRightSkip].Mid(1));
                         iLeftRange--; iRightRange--; iRightSkip++; iLineNo++;
-                        bSeemMod = true;
+                        bSeenMod = true;
                      }
                      else 
                      {
@@ -420,7 +426,7 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
                      }
                      else 
                      {
-                        _GenerateRow(sHTML, sTemp, iLineNo + 1, bSeemMod ? _T("mod2") : _T("ins"), sEmpty, sLine.Mid(1));
+                        _GenerateRow(sHTML, sTemp, iLineNo + 1, bSeenMod ? _T("mod2") : _T("ins"), sEmpty, sLine.Mid(1));
                         iRightRange--; iLineNo++;
                      }
                   }
@@ -428,7 +434,7 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
                }
             }
             State = STATE_IGNORE;
-            bSeemMod = false;
+            bSeenMod = false;
          }
          break;
       }

@@ -112,7 +112,8 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
    ResizeClient(cxScreen, -1);
    CenterWindow();
 
-   return ShowWindow(SW_NORMAL);
+   ShowWindow(SW_NORMAL);
+   return TRUE;
 }
 
 void CDiffCvsView::OnFinalMessage(HWND /*hWnd*/)

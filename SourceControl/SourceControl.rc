@@ -54,8 +54,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,1,0,0
- PRODUCTVERSION 1,1,0,0
+ FILEVERSION 1,2,0,0
+ PRODUCTVERSION 1,2,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -73,14 +73,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "viksoe.dk\0"
             VALUE "FileDescription", "BVRDE Add-In Source Control\0"
-            VALUE "FileVersion", "1, 1, 0, 0\0"
+            VALUE "FileVersion", "1, 2, 0, 0\0"
             VALUE "InternalName", "SourceControl\0"
             VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksøe\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "FindFiles.pkg\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "BVRDE Source Control\0"
-            VALUE "ProductVersion", "1, 1, 0, 0\0"
+            VALUE "ProductVersion", "1, 2, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -173,7 +173,7 @@ END
 
 IDD_OPTIONS_COMMANDS DIALOGEX 0, 0, 256, 179
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LISTBOX         IDC_LIST,0,21,255,156,LBS_OWNERDRAWVARIABLE | 
                     LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | WS_VSCROLL | 
@@ -442,7 +442,7 @@ END
 
 IDD_OPTIONS_COMMANDS DIALOGEX 0, 0, 256, 179
 STYLE DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LISTBOX         IDC_LIST,0,21,255,156,LBS_OWNERDRAWVARIABLE | 
                     LBS_NOINTEGRALHEIGHT | NOT WS_BORDER | WS_VSCROLL | 

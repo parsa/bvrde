@@ -2135,8 +2135,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,1,0,1
- PRODUCTVERSION 1,1,0,1
+ FILEVERSION 1,2,0,0
+ PRODUCTVERSION 1,2,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2154,14 +2154,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Viksoe.dk\0"
             VALUE "FileDescription", "BVRDE - Bjarke Viksoe's Remote Development Environment\0"
-            VALUE "FileVersion", "1, 1, 0, 1\0"
+            VALUE "FileVersion", "1, 2, 0, 0\0"
             VALUE "InternalName", "BVRDE\0"
-            VALUE "LegalCopyright", "Copyright 2003 - 2007 Bjarke Viksoe\0"
+            VALUE "LegalCopyright", "Copyright 2003 - 2008 Bjarke Viksoe\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "BVRDE.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "BVRDE\0"
-            VALUE "ProductVersion", "1, 1, 0, 1\0"
+            VALUE "ProductVersion", "1, 2, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
