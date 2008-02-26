@@ -208,10 +208,12 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
 
    // Place cursor at mouse if not clicked inside a selection
    long lPos = m_ctrlEdit.PositionFromPoint(ptLocal.x, ptLocal.y);
+   int iLineNum = m_ctrlEdit.LineFromPosition(lPos);
    CharacterRange cr = m_ctrlEdit.GetSelection();
    if( lPos < cr.cpMin || lPos > cr.cpMax ) m_ctrlEdit.GotoPos(lPos);
 
-   if( !m_pCppProject->m_DebugManager.IsDebugging() ) {
+   if( !m_pCppProject->m_DebugManager.IsDebugging() ) 
+   {
       // Is there an include directive under the cursor or a member that we can look
       // up? Add additional menu-items to edit menu.
       CString sMenuText;
@@ -228,22 +230,29 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
       {
          CTagDetails Info;
          if( _GetMemberInfo(lPos, Info) && !Info.sFilename.IsEmpty() ) {
+            // Construct implementation prototype and see if we have any information
+            // about it...
             CString sImplLookup;
             sImplLookup.Format(_T("%s%s%s"), Info.sBase, Info.sBase.IsEmpty() ? _T("") : _T("::"), Info.sName);
-            // Insert "Open Declaration" menu item
-            m_PopupInfo.DeclTag = Info;
-            int iMenuIdx = 0;
-            sMenuText.Format(IDS_MENU_OPENDECLARATION, sImplLookup);
-            submenu.InsertMenu(iMenuIdx++, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENDECLARATION, sMenuText);
-            // Insert "Open Implementation" menu item
             CSimpleValArray<TAGINFO*> aImplResult;
-            if( m_pCppProject->m_TagManager.FindItem(sImplLookup, NULL, false, aImplResult) ) {
-               if( aImplResult[0]->Type == TAGTYPE_IMPLEMENTATION ) {
-                  CTagDetails Info;
-                  m_pCppProject->m_TagManager.GetItemInfo(aImplResult[0], m_PopupInfo.ImplTag);
-                  sMenuText.Format(IDS_MENU_OPENIMPLEMENTATION, sImplLookup);
-                  submenu.InsertMenu(iMenuIdx++, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENIMPLEMENTATION, sMenuText);
-               }
+            m_pCppProject->m_TagManager.FindItem(sImplLookup, NULL, false, aImplResult);
+            // Insert "Open Declaration" menu item
+            int iMenuIdx = 0;
+            if( !(m_sFilename.Find(Info.sFilename) >= 0 && Info.iLineNum == iLineNum + 1) ) 
+            {
+               m_PopupInfo.DeclTag = Info;
+               sMenuText.Format(IDS_MENU_OPENDECLARATION, sImplLookup);
+               submenu.InsertMenu(iMenuIdx++, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENDECLARATION, sMenuText);
+            }
+            // Insert "Open Implementation" menu item
+            if( aImplResult.GetSize() > 0 
+                && aImplResult[0]->Type == TAGTYPE_IMPLEMENTATION 
+                && !(m_sFilename.Find(aImplResult[0]->pstrFile) >= 0 && aImplResult[0]->iLineNum == iLineNum + 1) ) 
+            {
+               CTagDetails Info;
+               m_pCppProject->m_TagManager.GetItemInfo(aImplResult[0], m_PopupInfo.ImplTag);
+               sMenuText.Format(IDS_MENU_OPENIMPLEMENTATION, sImplLookup);
+               submenu.InsertMenu(iMenuIdx++, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENIMPLEMENTATION, sMenuText);
             }
          }
       }
@@ -251,16 +260,17 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
       // We'll ignore all our previous work to position the menu...
       return 0;
    }
-
-   // We're in debug mode and should display the debug menu.
-   CMenu menu;
-   menu.LoadMenu(IDR_EDIT_DEBUG);
-   ATLASSERT(menu.IsMenu());
-   CMenuHandle submenu = menu.GetSubMenu(0);
-   _pDevEnv->ShowPopupMenu(NULL, submenu, pt);
-
-   bHandled = TRUE;
-   return 0;
+   else
+   {
+      // We're in debug mode and should display the debug menu.
+      CMenu menu;
+      menu.LoadMenu(IDR_EDIT_DEBUG);
+      ATLASSERT(menu.IsMenu());
+      CMenuHandle submenu = menu.GetSubMenu(0);
+      _pDevEnv->ShowPopupMenu(NULL, submenu, pt);
+      bHandled = TRUE;
+      return 0;
+   }
 }
 
 LRESULT CScintillaView::OnSetEditFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -323,7 +333,7 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 LRESULT CScintillaView::OnEditOpenInclude(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {   
    CWaitCursor cursor;
-   m_pCppProject->OpenView(m_PopupInfo.sIncludeFile, 0, true);
+   m_pCppProject->OpenView(m_PopupInfo.sIncludeFile, 1, true);
    return 0;
 }
 

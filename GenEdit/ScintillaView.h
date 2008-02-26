@@ -32,8 +32,8 @@ public:
 
    IDevEnv* m_pDevEnv;
    CContainedWindow m_wndParent;
-   CString m_sFilename;
-   CString m_sLanguage;
+   CString m_sFilename;             // Name of remote file
+   CString m_sLanguage;             // Language syntax of this file
    bool m_bAutoIndent;              // Do we need to auto-indent text?
    bool m_bSmartIndent;             // Do we need to smart-indent text?
    bool m_bMatchBraces;             // Show brach matching?

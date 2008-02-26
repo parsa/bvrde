@@ -279,14 +279,14 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
          CString sText = pPacket->pstrData[0];
          sText += _T("\r\n\r\n");
          m_ctrlEdit.SetSel(-1, -1);
-         CHARRANGE crStart;
+         CHARRANGE crStart = { 0 };
          m_ctrlEdit.GetSel(crStart);
          m_ctrlEdit.ReplaceSel(sText);
-         CHARRANGE crEnd;
+         CHARRANGE crEnd = { 0 };
          m_ctrlEdit.GetSel(crEnd);
          int iPos = sText.Find('\r');
          CString sPrefix(MAKEINTRESOURCE(IDS_DBERROR_FAILED));         
-         CHARFORMAT cf;
+         CHARFORMAT cf = { 0 };
          cf.cbSize = sizeof(CHARFORMAT);
          cf.dwMask = CFM_LINK;;
          cf.dwEffects = CFE_LINK;

@@ -103,6 +103,7 @@ BOOL CSqlProject::GetClass(LPTSTR pstrType, UINT cchMax) const
 BOOL CSqlProject::IsDirty() const
 {
    if( m_bIsDirty ) return TRUE;
+   for( int i = 0; i < m_aViews.GetSize(); i++ ) if( m_aViews[i]->IsDirty() ) return TRUE;
    return FALSE;
 }
 

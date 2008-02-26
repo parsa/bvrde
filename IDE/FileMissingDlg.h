@@ -43,6 +43,7 @@ public:
          return 0;
       }
       CDCHandle dc( (HDC) wParam );
+      DefWindowProc();
       dc.SetBkMode(TRANSPARENT);
       return (LRESULT) (HBRUSH) ( AtlGetStockBrush(WHITE_BRUSH) );
    }

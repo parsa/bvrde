@@ -1,6 +1,7 @@
 Version 1.x:
 * Source now compiles against Visual Studio.NET 2008
 * Improved visual diff. display in Source Control
+* Improved SQL editor & database integration
 
 Version 1.1:
 * Finally MinGW support (local Windows .exe compilation). This

@@ -209,7 +209,7 @@ public:
 class IViewMessageListener
 {
 public:
-   virtual LRESULT OnViewMessage(IView* pView, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) = 0;
+   virtual LRESULT OnViewMessage(IView* pView, MSG* pMsg, BOOL& bHandled) = 0;
 };
 
 /**

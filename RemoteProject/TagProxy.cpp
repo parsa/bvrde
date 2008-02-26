@@ -107,7 +107,7 @@ bool CTagManager::OpenTagInView(const CTagDetails& Info)
       // them from our own realtime C++ lexer.
       return m_pProject->OpenView(Info.sFilename, Info.iLineNum, false);
    }
-   else if( m_pProject->OpenView(Info.sFilename, 0, false) ) {
+   else if( m_pProject->OpenView(Info.sFilename, 1, false) ) {
       // If we don't have line-numbers, we'll just open the file
       // and search in it for the member name/declaration/reg.ex expression.
       // Hopefully one of the matches and the first appearance will be the stuff 

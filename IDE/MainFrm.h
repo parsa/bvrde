@@ -166,6 +166,7 @@ public:
       MESSAGE_RANGE_HANDLER(0x0000, 0xFFFF, OnMessage)
       // Standard processing
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
+      MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
       MESSAGE_HANDLER(WM_CLOSE, OnClose)
       MESSAGE_HANDLER(WM_COPYDATA, OnCopyData)
       MESSAGE_HANDLER(WM_MENUSELECT, OnMenuSelect)
@@ -243,6 +244,7 @@ public:
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnMenuSelect(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnDropFiles(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

@@ -65,24 +65,19 @@ public:
    }
    LRESULT OnOk(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
-      CString sCommand;
       // Set or clear "Ignore count"
       if( m_ctrlIgnoreCountCheck.GetCheck() == BST_CHECKED ) {
-         sCommand.Format(_T("-break-after %d %d"), m_Info.iBrkNr, _ttoi(CWindowText(m_ctrlIgnoreCount)));
-         m_pProject->m_DebugManager.DoDebugCommand(sCommand);
+         m_pProject->m_DebugManager.DoDebugCommandV(_T("-break-after %d %d"), m_Info.iBrkNr, _ttoi(CWindowText(m_ctrlIgnoreCount)));
       }
       else if( m_Info.iIgnoreCount > 0 ) {
-         sCommand.Format(_T("-break-after %d %d"), m_Info.iBrkNr, 0);
-         m_pProject->m_DebugManager.DoDebugCommand(sCommand);
+         m_pProject->m_DebugManager.DoDebugCommandV(_T("-break-after %d %d"), m_Info.iBrkNr, 0);
       }
       // Set or clear "Break condition"
       if( m_ctrlConditionCheck.GetCheck() == BST_CHECKED ) {
-         sCommand.Format(_T("-break-condition %d %s"), m_Info.iBrkNr, CWindowText(m_ctrlCondition));
-         m_pProject->m_DebugManager.DoDebugCommand(sCommand);
+         m_pProject->m_DebugManager.DoDebugCommandV(_T("-break-condition %d %s"), m_Info.iBrkNr, CWindowText(m_ctrlCondition));
       }
       else if( !m_Info.sCondition.IsEmpty() ) {
-         sCommand.Format(_T("-break-condition %d"), m_Info.iBrkNr);
-         m_pProject->m_DebugManager.DoDebugCommand(sCommand);
+         m_pProject->m_DebugManager.DoDebugCommandV(_T("-break-condition %d"), m_Info.iBrkNr);
       }
       m_pProject->m_DebugManager.DoDebugCommand(_T("-break-list"));
       EndDialog(wID);

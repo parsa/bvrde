@@ -35,14 +35,14 @@ CShellManager::CShellManager() :
 
 CShellManager::~CShellManager()
 {
-   if( m_pProtocol ) delete m_pProtocol;
+   if( m_pProtocol != NULL ) delete m_pProtocol;
 }
 
 void CShellManager::Init(CRemoteProject* pProject, IShellCallback* pCallback /*= NULL*/)
 {
    ATLASSERT(pProject);
    m_pProject = pProject;
-   if( m_pProtocol ) m_pProtocol->Init(pProject, this);
+   if( m_pProtocol != NULL ) m_pProtocol->Init(pProject, this);
 }
 
 void CShellManager::Clear()
@@ -64,7 +64,7 @@ bool CShellManager::Load(ISerializable* pArc)
       m_sType = szType;
       m_sServerType = szServerType;
    }
-   if( m_pProtocol ) delete m_pProtocol;
+   if( m_pProtocol != NULL ) delete m_pProtocol;
    m_pProtocol = NULL;
    if( m_sType == _T("telnet") )       m_pProtocol = new CTelnetProtocol();
    else if( m_sType == _T("rlogin") )  m_pProtocol = new CRloginProtocol();
@@ -144,7 +144,7 @@ void CShellManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    CString sName = pstrName;
    // Changing connection type?
    if( sName == _T("Type") ) {
-      if( m_pProtocol ) delete m_pProtocol;
+      if( m_pProtocol != NULL ) delete m_pProtocol;
       m_pProtocol = NULL;
       m_sType = pstrValue;
       if( m_sType == _T("telnet") )       m_pProtocol = new CTelnetProtocol();

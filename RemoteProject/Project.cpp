@@ -527,10 +527,8 @@ void CRemoteProject::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
          // We'll plunge into a horrible idle loop as we expect the command
          // to execute quickly. This may not be the case so we'll let the
          // command execute asynchroniously...
-         CString sCommand;
          m_DebugManager.SetParam(_T("InCommand"), _T("true"));
-         sCommand.Format(_T("-interpreter-exec console \"%s\""), pstrCommand + 4);
-         m_DebugManager.DoDebugCommand(sCommand);
+         m_DebugManager.DoDebugCommandV(_T("-interpreter-exec console \"%s\""), pstrCommand + 4);
          m_DebugManager.DoDebugCommand(_T(""));
          DWORD dwStartTime = ::GetTickCount();
          while( m_DebugManager.GetParam(_T("InCommand")) == _T("true") ) {
@@ -628,7 +626,6 @@ bool CRemoteProject::OpenView(LPCTSTR pstrFilename, int iLineNum, bool bShowErro
    if( pView == NULL ) return false;
    if( pView->OpenView(iLineNum) ) return true;
    DWORD dwErr = ::GetLastError();
-   if( dwErr == ERROR_FILE_NOT_FOUND ) return true;
    if( bShowError ) GenerateError(_pDevEnv, NULL, IDS_ERR_OPENVIEW, dwErr);
    return false;
 }

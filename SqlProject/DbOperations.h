@@ -114,7 +114,8 @@ public:
    void MarkTable(LPCTSTR pstrName);
    TABLEINFO* EstimateNextInfoRequest();
    
-   CString ChangeProperties(HWND hWnd, LPCTSTR pstrConnectString);
+   BOOL ChangeProperties(HWND hWnd, LPCTSTR pstrConnectString, CString& sResult);
+
    CString GetPropertyStr(const GUID& guid, DBPROPID propid) const;
    CComVariant GetProperty(const GUID& guid, DBPROPID propid) const;
 };

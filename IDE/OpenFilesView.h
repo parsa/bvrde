@@ -78,11 +78,14 @@ public:
    {
       return 0;
    }
-   LRESULT OnViewCreated(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+   LRESULT OnViewCreated(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
-      CWindow wndFrame = (HWND) wParam;
-      IView* pView = (IView*) lParam;
+      CWindow wndFrame = (HWND) lParam;
       if( !wndFrame.IsWindow() ) return 0;
+      CWinProp prop = wndFrame;
+      IView* pView = NULL;
+      prop.GetProperty(_T("View"), pView);
+      if( pView == NULL ) return 0;
       // BUG: Cleanup
       int nItems = m_ctrlList.GetItemCount();
       while( nItems == 0 && m_Images.GetImageCount() > 0 ) m_Images.Remove(0);
@@ -94,7 +97,7 @@ public:
       int iImage = m_Images.AddIcon(hIcon);
       // Create list item
       TCHAR szName[200] = { 0 };
-      pView->GetName(szName, (sizeof(szName)/sizeof(TCHAR)) - 1);
+      pView->GetName(szName, (sizeof(szName) / sizeof(TCHAR)) - 1);
       int iItem = m_ctrlList.InsertItem(m_ctrlList.GetItemCount(), szName, iImage);
       m_ctrlList.SetItemData(iItem, (DWORD_PTR) pView);
       return 0;
@@ -110,16 +113,14 @@ public:
 
    // IViewMessageListener
 
-   LRESULT OnViewMessage(IView* pView, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+   LRESULT OnViewMessage(IView* pView, MSG* pMsg, BOOL& bHandled)
    {
       // Delay the update of our list, since the view may need
       // a little time to update the new MDIChild icon.
-      // BUG: There's a slight risk that 'pView' goes out of scope between
-      //      the posting and handling of the user message!!
       bHandled = FALSE;
       if( !IsWindow() ) return 0;
-      if( uMsg == WM_CREATE ) PostMessage(WM_USER_VIEW_CREATE, wParam, (LPARAM) pView);
-      if( uMsg == WM_CLOSE ) PostMessage(WM_USER_VIEW_DESTROY, 0, (LPARAM) pView);
+      if( pMsg->message == WM_CREATE ) PostMessage(WM_USER_VIEW_CREATE, 0, (LPARAM) pMsg->hwnd);
+      if( pMsg->message == WM_CLOSE ) PostMessage(WM_USER_VIEW_DESTROY, 0, (LPARAM) pView);
       return 0;
    }
 };

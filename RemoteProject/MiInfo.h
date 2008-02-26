@@ -41,10 +41,10 @@ private:
       LPCTSTR pstrValue;
       short iIndex;
    };
-   LPTSTR m_pstrData;
-   LONG* m_plRefCount;
-   CSimpleValArray<MIINFO> m_aItems;
-   int m_iSearchIndex;
+   LPTSTR m_pstrData;                       /// Original MI string
+   LONG* m_plRefCount;                      /// Reference count
+   CSimpleValArray<MIINFO> m_aItems;        /// Parsed structures
+   int m_iSearchIndex;                      /// Current search index
 
    void _ConvertToPlainText(LPTSTR pstrText);
    bool _FindBlockEnd(LPTSTR pstrText, int& iPos) const;

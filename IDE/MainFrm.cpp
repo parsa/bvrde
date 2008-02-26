@@ -213,10 +213,16 @@ LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
    // Don't leave as fullscreen
    if( m_bFullScreen ) SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_FULLSCREEN, 0));
 
-   // At last save UI settings
+   // At last save UI settings...
    _SaveUIState();   
    _SaveSettings();
 
+   bHandled = FALSE;
+   return 0;
+}
+
+LRESULT CMainFrame::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
    m_AnimateImages.Destroy();
 
    // Make sure we're not bothered by pre-translate messaging and
@@ -1090,7 +1096,7 @@ LRESULT CMainFrame::OnUserViewMessage(UINT /*uMsg*/, WPARAM wParam, LPARAM lPara
    LPMSG pMsg = (LPMSG) lParam;
    bHandled = FALSE;
    for( int i = m_aViewListeners.GetSize() - 1; i >= 0; --i ) {
-      LRESULT lRes = m_aViewListeners[i]->OnViewMessage((IView*)wParam, pMsg->message, pMsg->wParam, pMsg->lParam, bHandled);
+      LRESULT lRes = m_aViewListeners[i]->OnViewMessage((IView*) wParam, pMsg, bHandled);
       if( bHandled ) return lRes;
    }
    return 0;

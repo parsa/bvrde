@@ -47,8 +47,8 @@ LRESULT CChildFrame::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
    prop.SetProperty(_T("View"), m_pView);
    prop.SetProperty(_T("Frame"), this);
 
-   BOOL bDummy;
-   OnViewMessage(uMsg, (WPARAM) m_hWnd, lParam, bDummy);
+   BOOL bDummy = FALSE;
+   OnViewMessage(uMsg, wParam, lParam, bDummy);
 
    bHandled = FALSE;
    return TRUE;
@@ -61,7 +61,7 @@ LRESULT CChildFrame::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
    // TODO: Don't use WM_QUERYENDSESSION for this.
    if( ::SendMessage(m_hWndClient, WM_QUERYENDSESSION, 0, 0x80000000) == 0 ) return 0;
 
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnViewMessage(uMsg, wParam, lParam, bDummy);
 
    bHandled = FALSE;

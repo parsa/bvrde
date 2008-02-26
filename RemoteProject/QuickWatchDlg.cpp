@@ -71,9 +71,7 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       for( i = 0; i < m_aItems.GetSize(); i++ ) {
          if( !m_aItems[i].bHasValue ) {
             m_sQueryVariable = m_aItems[i].sKey;
-            CString sCommand;
-            sCommand.Format(_T("-var-evaluate-expression %s"), m_sQueryVariable);
-            m_pProject->m_DebugManager.DoDebugCommand(sCommand);
+            m_pProject->m_DebugManager.DoDebugCommandV(_T("-var-evaluate-expression %s"), m_sQueryVariable);
             // NOTE: We break out now because we can only handle
             //       one variable pr debugger MI round-trip.
             //       The cause is the lack of information in the GDB "value" response
@@ -317,12 +315,9 @@ void CQuickWatchDlg::_ExpandItem(int iItem)
    if( !item.bHasChildren ) return;
    // Query value and children so we expand it
    m_sQueryVariable = item.sKey;
-   CString sCommand;
-   sCommand.Format(_T("-var-list-children %s"), item.sKey);
-   m_pProject->m_DebugManager.DoDebugCommand(sCommand);
+   m_pProject->m_DebugManager.DoDebugCommandV(_T("-var-list-children %s"), item.sKey);
    // Set off value evaluation run...
-   sCommand.Format(_T("-var-evaluate-expression %s"), item.sKey);
-   m_pProject->m_DebugManager.DoDebugCommand(sCommand);
+   m_pProject->m_DebugManager.DoDebugCommandV(_T("-var-evaluate-expression %s"), item.sKey);
    // Mark branch as expanded
    item.bExpanded = true;
 }
@@ -469,9 +464,8 @@ void CQuickWatchDlg::_CreateVariable()
    // Add new watch in GDB
    m_sVariableName = CWindowText(m_ctrlEdit);
    m_sVariableName.Remove(' ');
-   CString sCommand;
-   sCommand.Format(_T("-var-create quickwatch * %s"), m_sVariableName);
-   m_pProject->m_DebugManager.DoDebugCommand(sCommand);
+   m_sVariableName.Remove('%');
+   m_pProject->m_DebugManager.DoDebugCommandV(_T("-var-create quickwatch * %s"), m_sVariableName);
    // Add to history
    if( m_ctrlLine.FindStringExact(-1, m_sVariableName) == CB_ERR ) m_ctrlLine.AddString(m_sVariableName);
 }

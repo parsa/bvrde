@@ -154,6 +154,9 @@ bool CLexInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, 
       }
    }
 
+   CSimpleValArray<TAGINFO*> aResult1;
+   CSimpleValArray<TAGINFO*> aResult2;
+   CSimpleValArray<TAGINFO*> aResult3;
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       const LEXFILE* pFile = m_aFiles[i];
       // Binary search on sorted list
@@ -170,17 +173,28 @@ bool CLexInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, 
       if( min >= max ) continue;
       if( _tcscmp(pstrName, pFile->aTags[n].pstrName) != 0 ) continue;
       while( n > 0 && _tcscmp(pstrName, pFile->aTags[n - 1].pstrName) == 0 ) n--;
+      // Add all instances if they have the right owner/inheritance/global scope.
+      // We'll like the directly owned members at the top of the list.
       while( n < max && _tcscmp(pstrName, pFile->aTags[n].pstrName) == 0 ) {
-         bool bFound = (pstrOwner == NULL)
-                       || (pstrOwner != NULL && (_tcscmp(pFile->aTags[n].pstrOwner, pstrOwner) == 0))
-                       || (pstrParent != NULL && (_tcscmp(pFile->aTags[n].pstrOwner, pstrParent) == 0));
-         if( bFound ) {
-            TAGINFO* pTag = &m_aFiles[i]->aTags.GetData()[n];
-            aResult.Add(pTag);
+         if( pstrOwner != NULL && _tcscmp(pFile->aTags[n].pstrOwner, pstrOwner) == 0 ) {
+            TAGINFO* pTag = &pFile->aTags.GetData()[n];
+            aResult1.Add(pTag);
+         }
+         else if( pstrParent != NULL && _tcscmp(pFile->aTags[n].pstrOwner, pstrParent) == 0 ) {
+            TAGINFO* pTag = &pFile->aTags.GetData()[n];
+            aResult2.Add(pTag);
+         }
+         else if( pstrOwner == NULL ) {
+            TAGINFO* pTag = &pFile->aTags.GetData()[n];
+            aResult3.Add(pTag);
          }
          n++;
       }
    }
+   for( int x1 = 0; x1 < aResult1.GetSize(); x1++ ) aResult.Add(aResult1[x1]);
+   for( int x2 = 0; x2 < aResult2.GetSize(); x2++ ) aResult.Add(aResult2[x2]);
+   for( int x3 = 0; x3 < aResult3.GetSize(); x3++ ) aResult.Add(aResult3[x3]);
+
    return aResult.GetSize() > 0;
 }
 
@@ -219,7 +233,7 @@ bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aResult)
          case TAGTYPE_CLASS:
          case TAGTYPE_STRUCT:
          case TAGTYPE_TYPEDEF:
-            TAGINFO* pTag = &m_aFiles[i]->aTags.GetData()[iIndex];
+            TAGINFO* pTag = &pFile->aTags.GetData()[iIndex];
             aResult.Add(pTag);
             break;
          }
@@ -251,7 +265,7 @@ bool CLexInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aResult)
          switch( info.Type ) {
          case TAGTYPE_MEMBER:
          case TAGTYPE_FUNCTION:
-            TAGINFO* pTag = &m_aFiles[i]->aTags.GetData()[iIndex];
+            TAGINFO* pTag = &pFile->aTags.GetData()[iIndex];
             aResult.Add(pTag);
          }
       }
@@ -273,7 +287,7 @@ bool CLexInfo::GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArra
       for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
          const TAGINFO& info = pFile->aTags[iIndex];
          if( _tcscmp(info.pstrOwner, pstrType) == 0 ) {
-            TAGINFO* pTag = &m_aFiles[i]->aTags.GetData()[iIndex];
+            TAGINFO* pTag = &pFile->aTags.GetData()[iIndex];
             aResult.Add(pTag);
          }
       }

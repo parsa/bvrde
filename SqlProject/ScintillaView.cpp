@@ -31,7 +31,7 @@ void CScintillaView::Init(CSqlProject* pProject, CView* pView)
    m_bAutoCompleteNext = true;
    m_pProject = pProject;
    m_pView = pView;
-   // Kick in timer
+   // Kick in timer...
    SetTimer(TIMER_ID, 2000L);
 }
 
@@ -165,7 +165,8 @@ LRESULT CScintillaView::OnEditAutoComplete(WORD /*wNotifyCode*/, WORD /*wID*/, H
 LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
    SCNotification* pSCN = (SCNotification*) pnmh;
-   // Autocomplete now?
+   
+   // Auto-complete now?
    switch( pSCN->ch ) {
    case ' ':
    case '.':
@@ -178,6 +179,10 @@ LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
       if( m_bAutoCompleteNext ) _AutoComplete(pSCN->ch, 1);
       m_bAutoCompleteNext = false;
    }
+   
+   // Postpone background processing until we are idle?
+   if( m_bBackgroundLoad ) SetTimer(TIMER_ID, 2000L); 
+
    bHandled = FALSE;
    return 0;
 }
@@ -257,18 +262,22 @@ void CScintillaView::_AutoComplete(CHAR ch, int iLenEntered)
    // Allow popups?
    if( !m_bAutoComplete ) return;
 
+   int i = 0;
+
    // Analyze the SQL
    SQLANALYZE Info;
    _AnalyseText(Info, iLenEntered);
 
-   // Mark all known tables so background thread can update
-   // with column information
-   int i = 0;
+   // Mark all discovered tables so background thread can update
+   // with column information.
    for( i = 0; i < Info.aTables.GetSize(); i++ ) m_pView->MarkTable(Info.aTables[i]);
 
    // Did scanner determine that next item is a database object?
    if( !Info.bIsObjectNext ) {
-      // No, but let background load some more table information
+      // No, but let us load some more table information.
+      // This is how we control the loading of table information when the "background
+      // processing" option is not enabled. If it is, we will further delay the
+      // timer as the user types stuff.
       if( Info.aTables.GetSize() > 0 ) SetTimer(TIMER_ID, 2000L);
       return;
    }
@@ -294,11 +303,11 @@ void CScintillaView::_AutoComplete(CHAR ch, int iLenEntered)
    };
 
    CString sTable;
-   int Display = LIST_NONE;
+   int iDisplay = LIST_NONE;
 
    switch( Info.PrevKeyword ) {
    case SQL_CONTEXT_START:
-      Display = LIST_KEYWORDS;
+      iDisplay = LIST_KEYWORDS;
       break;
    case SQL_CONTEXT_FIELD:
    case SQL_CONTEXT_OPERATOR:
@@ -308,56 +317,56 @@ void CScintillaView::_AutoComplete(CHAR ch, int iLenEntered)
 
          iPos = _FindItem(Info.aAlias, Info.sPrevKeyword);
          if( iPos >= 0 ) {
-            Display = LIST_FIELDS;
+            iDisplay = LIST_FIELDS;
             sTable = (iPos & 0x01) != 0 ? Info.aAlias[iPos] : Info.aAlias[iPos + 1];
             break;
          }
          iPos = _FindItem(aAllTables, Info.sPrevKeyword);
          if( iPos >= 0 ) {
-            Display = LIST_FIELDS;
+            iDisplay = LIST_FIELDS;
             sTable = aAllTables[iPos];
             break;
          }
          if( Info.aTables.GetSize() == 1 ) {
-            Display = LIST_FIELDS;
+            iDisplay = LIST_FIELDS;
             sTable = Info.aTables[0];
             break;
          }
 
          if( ch != '.' )
          {
-            Display = LIST_TABLES | LIST_ALIAS;
+            iDisplay = LIST_TABLES | LIST_ALIAS;
          }
       }
       break;
    case SQL_CONTEXT_TABLE:
       {
-         Display = LIST_TABLES | LIST_OWNERS;
-         if( _FindItem(aAllOwners, Info.sPrevKeyword) >= 0 ) Display = LIST_TABLES;
+         iDisplay = LIST_TABLES | LIST_OWNERS;
+         if( _FindItem(aAllOwners, Info.sPrevKeyword) >= 0 ) iDisplay = LIST_TABLES;
       }
       break;
    }
 
-   if( Display == LIST_NONE ) return;
+   if( iDisplay == LIST_NONE ) return;
 
    // Collect popup list items
    CSimpleArray<CString> aList;
-   if( Display & LIST_OWNERS ) {
+   if( (iDisplay & LIST_OWNERS) != 0 ) {
       for( i = 0; i < aAllOwners.GetSize(); i++ ) aList.Add(aAllOwners[i] + _T("?0"));
    }
-   if( Display & LIST_TABLES ) {
+   if( (iDisplay & LIST_TABLES) != 0 ) {
       for( i = 0; i < aAllTables.GetSize(); i++ ) aList.Add(aAllTables[i] + _T("?1"));
    }
-   if( Display & LIST_ALIAS ) {
+   if( (iDisplay & LIST_ALIAS) != 0 ) {
       for( i = 0; i < Info.aAlias.GetSize(); i++ ) aList.Add(Info.aAlias[i] + ((i & 0x01) != 0 ? _T("?1") : _T("?2")));
       if( aList.GetSize() == 0 ) for( i = 0; i < Info.aTables.GetSize(); i++ ) aList.Add(Info.aTables[i] + _T("?1"));
    }
-   if( Display & LIST_FIELDS ) {
-      int iStartIndex = aList.GetSize();
-      m_pView->GetColumnList(sTable, aList);
-      for( i = iStartIndex; i < aList.GetSize(); i++ ) aList[i] = aList[i] + _T("?3");
+   if( (iDisplay & LIST_FIELDS) != 0 ) {
+      CSimpleArray<CString> aMembers;
+      m_pView->GetColumnList(sTable, aMembers);
+      for( i = 0; i < aMembers.GetSize(); i++ ) aList.Add(aMembers[i] + _T("?3"));
    }
-   if( Display & LIST_KEYWORDS ) {
+   if( (iDisplay & LIST_KEYWORDS) != 0 ) {
       aList.Add(CString(_T("SELECT?4")));
       aList.Add(CString(_T("INSERT?4")));
       aList.Add(CString(_T("DELETE?4")));
@@ -378,6 +387,8 @@ void CScintillaView::_AutoComplete(CHAR ch, int iLenEntered)
 
    // Create popup contents
    CString sList;
+   sList.GetBuffer(aList.GetSize() * 40);
+   sList.ReleaseBuffer();
    for( i = 0; i < aList.GetSize(); i++ ) {
       sList += aList[i];
       sList += _T(" ");
@@ -393,11 +404,14 @@ void CScintillaView::_AutoComplete(CHAR ch, int iLenEntered)
 
 void CScintillaView::_AnalyseText(SQLANALYZE& Info, int iLenEntered)
 {
+   USES_CONVERSION;
+
    Info.bIsObjectNext = false;
    Info.PrevKeyword = SQL_CONTEXT_UNKNOWN;
 
    TCHAR szTerminator[8] = { 0 };
-   _pDevEnv->GetProperty(_T("editors.sql.terminator"), szTerminator, 7);
+   _pDevEnv->GetProperty(_T("editors.sql.terminator"), szTerminator, (sizeof(szTerminator) / sizeof(TCHAR)) - 1);
+   LPCSTR pstrTerminator = T2CA(szTerminator);
 
    // Grab the last 256 characters or so
    long lPos = GetCurrentPos();
@@ -408,24 +422,30 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info, int iLenEntered)
    if( nMax < 0 ) nMax = 0;
    GetTextRange(nMin, nMax, szText);
 
-   if( lPos == 1 ) {
+   // Enable keyword popup if at the beginning of the text
+   if( nMin == 0 ) {
       Info.bIsObjectNext = true;
       Info.PrevKeyword = SQL_CONTEXT_START;
-      return;
    }
+
+   LPSTR p;
+   bool bQuote;
+   CString sTable;
+   CString sKeyword;
 
    // Do an optimistic scan of the SQL text to determine the
    // tables and alias definitions. Not a very exhaustive search.
    // BUG: Does not handle "<alias>" or [<name>] at all!
-   CString sTable;
-   CString sKeyword;
-   LPSTR p = szText;
-   bool bQuote = false;
-   while( *p != '\0' ) {
-
-      // Skip comment
-      if( *p == '-' && *(p + 1) == '-' ) while( *p && *p != '\n' ) p++;
-      if( *p == '/' && *(p + 1) == '*' ) while( *p && !(*p == '*' && *(p + 1) == '/') ) p++;
+   p = szText;
+   lPos = nMin;
+   bQuote = false;
+   while( *p != '\0' ) 
+   {
+      // Skip comments and stuff
+      while( *p != '\0' && !_IsRealSqlEditPos(lPos, true) ) {
+         p++; lPos++;
+         Info.bIsObjectNext = false;
+      }
 
       // Collect data for keyword
       if( _issqlchar(*p) ) {
@@ -444,14 +464,16 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info, int iLenEntered)
 
       if( *p == '.' || *p == ',' ) Info.bIsObjectNext = true;
 
-      p++;
+      p++; lPos++;
 
       if( !_issqlchar(*p) && sKeyword.GetLength() > 0 ) 
       {
-         if( sKeyword.CompareNoCase(szTerminator) == 0 ) {
+         bool bWasTerminated = sKeyword.CompareNoCase(szTerminator) == 0
+            || ( *p == szTerminator[0] && szTerminator[1] == '\0' );
+         if( bWasTerminated ) {
             Info.aTables.RemoveAll();
             Info.aAlias.RemoveAll();
-            Info.sPrevTable = "";
+            Info.sPrevTable = _T("");
             Info.bIsObjectNext = true;
             Info.PrevKeyword = SQL_CONTEXT_START;
          }
@@ -485,9 +507,10 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info, int iLenEntered)
       }
    }
 
-   // Parse the next few bytes of text as well to
+   // Parse the next few characters of text as well to
    // see if we can recognize more table names.
-   nMin = lPos+ iLenEntered;
+   lPos = GetCurrentPos();
+   nMin = lPos + iLenEntered;
    nMax = lPos + iLenEntered + 100;
    if( nMin > GetTextLength() ) nMin = GetTextLength();
    if( nMax > GetTextLength() ) nMax = GetTextLength();
@@ -495,17 +518,19 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info, int iLenEntered)
    ::ZeroMemory(szText, sizeof(szText));
    GetTextRange(nMin, nMax, szText);
 
-   sKeyword = _T("");
+   lPos = nMin;
    bQuote = false;
+   sKeyword = _T("");
 
    SQLKEYWORD CurKeyword = SQL_CONTEXT_UNKNOWN;
    bool bCurIsObjectNext = false;
    p = szText;
-   while( *p != '\0' ) {
-
-      // Skip comment
-      if( *p == '-' && *(p + 1) == '-' ) while( *p && *p != '\n' ) p++;
-      if( *p == '/' && *(p + 1) == '*' ) while( *p && !(*p == '*' && *(p + 1) == '/') ) p++;
+   while( *p != '\0' ) 
+   {
+      // Skip comments and stuff
+      while( *p != '\0' && !_IsRealSqlEditPos(lPos, true) ) {
+         p++; lPos++;
+      }
 
       // Collect data for keyword
       if( _issqlchar(*p)  ) {
@@ -519,14 +544,14 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info, int iLenEntered)
       }
       else {
          // Need to exit as early as possible so we don't parse the SQL statement that follows.
-         // BUG: Need to match with entire terminator string.
-         if( *p == szTerminator[0] ) break;
+         if( strncmp(p, pstrTerminator, strlen(pstrTerminator)) == 0 ) break;
+         if( sKeyword == szTerminator ) break;
          sKeyword = _T("");
       }
 
       if( *p == ',' || *p == '.' ) bCurIsObjectNext = true;
 
-      p++;
+      p++; lPos++;
 
       if( !_issqlchar(*p) && sKeyword.GetLength() > 0 )
       {
@@ -613,6 +638,33 @@ int CScintillaView::_ScintillaCompare(LPCTSTR src, LPCTSTR dst) const
 bool CScintillaView::_issqlchar(CHAR ch) const
 {
    return isalpha(ch) || ch == '_';
+}
+
+/**
+ * Determines if the current position allows auto-completion.
+ * The editor does not allow auto-completion inside comments
+ * or strings (literals).
+ */
+bool CScintillaView::_IsRealSqlEditPos(long lPos, bool bIncludeNonIdentifiers) const
+{
+   if( lPos < 0 ) return false;
+   int x = GetStyleAt(lPos); x;
+   switch( GetStyleAt(lPos) ) {
+   case SCE_SQL_CHARACTER:
+   case SCE_SQL_COMMENT:
+   case SCE_SQL_COMMENTDOC:
+   case SCE_SQL_COMMENTLINE:
+   case SCE_SQL_COMMENTLINEDOC:
+   case SCE_SQL_COMMENTDOCKEYWORD:
+   case SCE_SQL_COMMENTDOCKEYWORDERROR:
+   case SCE_SQL_SQLPLUS_COMMENT:
+      return false;
+   case SCE_SQL_NUMBER:
+   case SCE_SQL_OPERATOR:
+      return bIncludeNonIdentifiers;
+   default:
+      return true;
+   }
 }
 
 

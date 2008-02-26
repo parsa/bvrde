@@ -13,23 +13,30 @@ CDbOperations::CDbOperations() :
 BOOL CDbOperations::ConnectDatabase(COledbDatabase* pDb, LPCTSTR pstrConnectString)
 {
    // If not already connected, try now...
-   if( !m_Db.IsOpen() ) 
-   {
+   if( !m_Db.IsOpen() ) {
       CComPtr<IDataInitialize> spData;
       spData.CoCreateInstance(CLSID_MSDAINITIALIZE);
       if( spData == NULL ) return FALSE;
       spData->GetDataSource(NULL, CLSCTX_INPROC_SERVER, CComBSTR(pstrConnectString), IID_IDBInitialize, (LPUNKNOWN*) &m_Db.m_spInit);
       m_Db.Connect();
    }
-   // Didn't succeed? Put up error message.
-   if( !m_Db.IsOpen() )
-   {     
+   // Didn't succeed? Put up error message...
+   if( !m_Db.IsOpen() ) {     
       CString sError;
       if( m_Db.GetErrors()->GetCount() > 0 ) {
          m_Db.GetErrors()->GetError(0)->GetMessage(sError.GetBufferSetLength(400), 400);
          sError.ReleaseBuffer();
       }
-      if( sError.GetLength() == 0 ) sError.LoadString(IDS_STDERROR);
+      else {
+         CComPtr<IErrorInfo> spError;
+         ::GetErrorInfo(0, &spError);
+         if( spError != NULL ) {
+            CComBSTR bstrError;
+            spError->GetDescription(&bstrError);
+            sError = bstrError;
+         }
+      }
+      if( sError.IsEmpty() ) sError.LoadString(IDS_STDERROR);
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_ERROR));
       CString sMsg;
       sMsg.Format(IDS_ERR_NOCONNECTION, sError);
@@ -45,14 +52,16 @@ BOOL CDbOperations::EnumTables(COledbDatabase* pDb /*=NULL*/)
    // Make sure database is connected
    if( pDb == NULL ) pDb = &m_Db;
    if( !pDb->IsOpen() ) return FALSE;
+
    // Don't collect tables if we've already done this once
    if( m_aTables.GetSize() > 0 ) return TRUE;
-   // Temporarily change statusbar
+
+   // Temporarily change statusbar.
    // Enumerating the table takes an awfull long time on some OLE DB (ODBC) providers.
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_TABLEENUM)));
-   // Lock data
+
+   // Lock data and get terms...
    CLockStaticDataInit lock;
-   // Get terms
    CString sTableTerm = GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_TABLETERM);
 
    // Load table list
@@ -72,7 +81,7 @@ BOOL CDbOperations::EnumTables(COledbDatabase* pDb /*=NULL*/)
       // We didn't collect column information yet
       ti.bFullInfo = false;
       ti.dwTouched = 0UL;
-      // NOTE: When OLEDB defines the TableTerm as the preferred way to recognize a table,
+      // NOTE: When OLEDB defines the TableTerm as the preferred way to recognize a table, however
       //       we don't actually have a proper way to distinguish a view or system table.
       if( ti.sType == _T("VIEW") ) ti.ItemType = DBTYPE_VIEW;
       if( ti.sType == _T("SYNONYM") ) ti.ItemType = DBTYPE_VIEW;
@@ -98,8 +107,12 @@ BOOL CDbOperations::LoadTableInfo(TABLEINFO* pTable, COledbDatabase* pDb /*=NULL
    // Make sure database is connected
    if( pDb == NULL ) pDb = &m_Db;
    if( !pDb->IsOpen() ) return FALSE;
+
+   // If we already have this information, no need to query the database
+   // again...
    if( pTable->aFields.GetSize() > 0 ) return TRUE;
 
+   // We flag that we've made an attempt to load the data
    pTable->bFullInfo = true;
 
    // Does database support schema rowset?
@@ -275,9 +288,10 @@ BOOL CDbOperations::GetColumnList(LPCTSTR pstrTable, CSimpleArray<CString>& aLis
    return FALSE;
 }
 
-CString CDbOperations::ChangeProperties(HWND hWnd, LPCTSTR pstrConnectString)
+BOOL CDbOperations::ChangeProperties(HWND hWnd, LPCTSTR pstrConnectString, CString& sResult)
 {
    // Default back to old connection string
+   BOOL bRes = FALSE;
    CString sRes = pstrConnectString;
    // Close any existing database
    m_Db.Close();
@@ -305,9 +319,10 @@ CString CDbOperations::ChangeProperties(HWND hWnd, LPCTSTR pstrConnectString)
             if( SUCCEEDED( spData.CoCreateInstance(CLSID_MSDAINITIALIZE) ) ) {
                LPOLESTR pwstr = NULL;
                spData->GetInitializationString(spInit, VARIANT_TRUE, &pwstr);
-               if( pwstr ) {
+               if( pwstr != NULL ) {
                   sRes = pwstr;
                   ::CoTaskMemFree(pwstr);
+                  bRes = TRUE;
                }
             }
          }
@@ -315,7 +330,7 @@ CString CDbOperations::ChangeProperties(HWND hWnd, LPCTSTR pstrConnectString)
    }
    // Reconnect with new properties
    ConnectDatabase(&m_Db, sRes);
-   return sRes;
+   return bRes;
 }
 
 CComVariant CDbOperations::GetProperty(const GUID& guid, DBPROPID propid) const

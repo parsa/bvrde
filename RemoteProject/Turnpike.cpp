@@ -40,7 +40,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    }
 
    CSimpleArray<CString> aDbgCmd;       // Collect all new debug commands in a batch
-   bool bUpdatedAlready = false;        // Make sure to trigger debug update only once
+   bool bUpdateEvent = false;           // Make sure to trigger debug view update only once
    CString sMessage;                    // For displaying a message-box asynchroniously
    CString sCaption;                    // -"-
    UINT iFlags;                         // -"-
@@ -175,19 +175,9 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          {
             // Debugger stopped at some point (breakpoint, user break, etc).
             // Let's update the debug views with fresh values.
-
             // NOTE: This is a rather expensive operation so we'll at least try not to repeat
-            //       it in this batch.
-            if( bUpdatedAlready ) break;
-            bUpdatedAlready = true;
-
-            if( m_viewBreakpoint.WantsData() )  m_viewBreakpoint.EvaluateView(aDbgCmd);
-            if( m_viewWatch.WantsData() )       m_viewWatch.EvaluateView(aDbgCmd);
-            if( m_viewThread.WantsData() || m_viewStack.WantsData() ) m_viewThread.EvaluateView(aDbgCmd);
-            if( m_viewStack.WantsData() )       m_viewStack.EvaluateView(aDbgCmd);
-            if( m_viewDisassembly.WantsData() ) m_viewDisassembly.EvaluateView(aDbgCmd);
-            if( m_viewVariable.WantsData() )    m_viewVariable.EvaluateView(aDbgCmd);
-            if( m_viewRegister.WantsData() )    m_viewRegister.EvaluateView(aDbgCmd);
+            //       it in this batch. The actual update is started outside this loop...
+            bUpdateEvent = true;
          }
          break;
       case LAZY_DEBUG_INFO:
@@ -219,6 +209,19 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          }
          break;
       }
+   }
+
+   // Need to refresh debug views?
+   if( bUpdateEvent ) 
+   {
+      ATLTRACE("DEBUG VIEW REFRESH\n");
+      if( m_viewBreakpoint.WantsData() )  m_viewBreakpoint.EvaluateView(aDbgCmd);
+      if( m_viewWatch.WantsData() )       m_viewWatch.EvaluateView(aDbgCmd);
+      if( m_viewThread.WantsData() || m_viewStack.WantsData() ) m_viewThread.EvaluateView(aDbgCmd);
+      if( m_viewStack.WantsData() )       m_viewStack.EvaluateView(aDbgCmd);
+      if( m_viewDisassembly.WantsData() ) m_viewDisassembly.EvaluateView(aDbgCmd);
+      if( m_viewVariable.WantsData() )    m_viewVariable.EvaluateView(aDbgCmd);
+      if( m_viewRegister.WantsData() )    m_viewRegister.EvaluateView(aDbgCmd);
    }
 
    // Empty queue

@@ -45,19 +45,19 @@ public:
 
 private:
    CRemoteProject* m_pProject;
-   CSimpleMap<CString, long> m_aBreakpoints;   // Breakpoints; key=<filename:lineno> value=<break-nr>
-   CEvent m_eventAck;                          // New debug information is available?
-   volatile int m_nDebugAck;                   // No of debug acknoledge
-   volatile int m_nLastAck;                    // Last known acknoledge
-   volatile int m_nIgnoreErrors;               // Ignore GDB error report?
-   volatile int m_nIgnoreBreaks;               // Ignore doing visual updates when breaking?
-   bool m_bBreaked;                            // Is debugging, but currently breaked?
-   bool m_bDebugging;                          // Is currently debugging?
-   bool m_bCommandMode;                        // In Command mode?
-   bool m_bRunning;                            // Process or debugger is running?
-   bool m_bSeenExit;                           // Did we see a proper GDB exit?
-   bool m_bDebugEvents;                        // Listens for GDB debug events?
-   CString m_sVarName;                         // Data-evaluation variable name
+   CSimpleMap<CString, long> m_aBreakpoints;   /// Breakpoints; key=<filename:lineno> value=<break-nr>
+   CEvent m_eventAck;                          /// New debug information is available?
+   volatile int m_nDebugAck;                   /// No of debug acknoledge
+   volatile int m_nLastAck;                    /// Last known acknoledge
+   volatile int m_nIgnoreErrors;               /// Ignore GDB error report?
+   volatile int m_nIgnoreBreaks;               /// Ignore doing visual updates when breaking?
+   bool m_bBreaked;                            /// Is debugging, but currently breaked?
+   bool m_bDebugging;                          /// Is currently debugging?
+   bool m_bCommandMode;                        /// In Command mode?
+   bool m_bRunning;                            /// Process or debugger is running?
+   bool m_bSeenExit;                           /// Did we see a proper GDB exit?
+   bool m_bDebugEvents;                        /// Listens for GDB debug events?
+   CString m_sVarName;                         /// Data-evaluation variable name
    //
    CString m_sCommandCD;
    CString m_sAppExecutable;
@@ -83,6 +83,7 @@ public:
    bool RunDebug();
    bool Break();
    bool DoDebugCommand(LPCTSTR pstrText);
+   bool DoDebugCommandV(LPCTSTR pstrText, ...);
    bool DoSignal(BYTE bCmd);
    void ProgramStop();
    void SignalStop();

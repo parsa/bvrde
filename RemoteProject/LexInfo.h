@@ -15,10 +15,10 @@ typedef struct LEXFILE
    {
       free(pData);
    }
-   LPTSTR pData;                         // Lex file contents
-   CString sFilename;                    // Lex filename
-   bool bIncludeInBrowser;               // Include this data in browser?
-   CSimpleValArray<TAGINFO> aTags;       // Tag references
+   LPTSTR pData;                         /// Lex file contents
+   CString sFilename;                    /// Lex filename
+   bool bIncludeInBrowser;               /// Include this data in browser?
+   CSimpleValArray<TAGINFO> aTags;       /// Tag references
 } LEXFILE;
 
 
@@ -49,6 +49,7 @@ public:
  */
 class CLexInfo : public ITagHandler
 {
+friend CLexThread;
 public:
    CLexInfo();
    virtual ~CLexInfo();
@@ -70,12 +71,11 @@ public:
    bool MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText, DWORD dwTimeout);
    bool MergeIntoTree(LPCTSTR pstrFilename, LEXFILE* pFile);
 
-   LEXFILE* _ParseFile(LPCTSTR pstrFilename) const;
-   CString _GetLexFilename(LPCTSTR pstrFilename, bool bCreatePath) const;
-
 private:
    void _LoadTags();
    CString _FindTagParent(const TAGINFO* pTag) const;
+   LEXFILE* _ParseFile(LPCTSTR pstrFilename) const;
+   CString _GetLexFilename(LPCTSTR pstrFilename, bool bCreatePath) const;
 
 // Data Members
 private:

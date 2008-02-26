@@ -28,8 +28,6 @@
 #define IDS_TREE_BINARY                 1016
 #define IDC_AUTOCOMPLETE                1039
 #define IDC_READONLY                    1039
-#define IDC_CLOSETAGS                   1040
-#define IDC_AUTOCASE                    1041
 #define IDD_OPTIONS_HEXEDITOR           32010
 #define ID_EDIT_UPPERCASE               40029
 #define ID_EDIT_LOWERCASE               40030

@@ -42,6 +42,7 @@
 #define IDS_WIZARD_SUBTITLE_CONNECTION  1009
 #define IDC_LIMITERRORS                 1009
 #define IDS_UNKNOWN                     1010
+#define IDC_CASEMODE                    1010
 #define IDS_ERR_NOCONNECTION            1011
 #define IDS_STDERROR                    1012
 #define IDS_STATUS_OPENDATABASE         1013
@@ -131,6 +132,10 @@
 #define IDS_CAPTION_QUESTION            1085
 #define IDS_NO_ROWS_AFFECTED            1086
 #define IDS_STATUS_TABLEENUM            1087
+#define IDS_UPPERCASE                   1088
+#define IDS_LOWERCASE                   1089
+#define IDS_MIXEDCASE                   1090
+#define IDS_UNCHANGED                   1091
 #define IDD_OPTIONS_ADVANCED            32009
 #define ID_FILE_DELETE                  40003
 #define ID_FILE_ADD_REMOTE              40004
@@ -177,7 +182,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40425
-#define _APS_NEXT_CONTROL_VALUE         1008
+#define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

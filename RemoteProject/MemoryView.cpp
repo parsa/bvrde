@@ -344,13 +344,9 @@ LRESULT CMemoryInlineEdit::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
       CString sType = _T("char");
       if( m_pMemoryView->m_iDisplaySize == 4 ) sType = _T("short");
       if( m_pMemoryView->m_iDisplaySize == 8 ) sType = _T("long");
-      CString sCommand;
-      sCommand.Format(_T("-var-create memvarzzz * \"*(%s *)(%s + %ld)\""), sType, m_sAddress, m_lByteOffset);
-      m_pProject->m_DebugManager.DoDebugCommand(sCommand);
-      sCommand.Format(_T("-var-assign memvarzzz %s"), sValue);
-      m_pProject->m_DebugManager.DoDebugCommand(sCommand);
-      sCommand.Format(_T("-var-delete memvarzzz"));
-      m_pProject->m_DebugManager.DoDebugCommand(sCommand);
+      m_pProject->m_DebugManager.DoDebugCommandV(_T("-var-create memvarzzz * \"*(%s *)(%s + %ld)\""), sType, m_sAddress, m_lByteOffset);
+      m_pProject->m_DebugManager.DoDebugCommandV(_T("-var-assign memvarzzz %s"), sValue);
+      m_pProject->m_DebugManager.DoDebugCommand(_T("-var-delete memvarzzz"));
       m_pMemoryView->_UpdateDisplay();
    }
    bHandled = FALSE;

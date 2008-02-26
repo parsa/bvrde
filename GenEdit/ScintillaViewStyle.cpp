@@ -48,6 +48,8 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    SetStyleBits(5);
 
+   int iWordStyle = STYLE_DEFAULT;
+
    if( m_sLanguage == _T("cpp") ) 
    {
       // Make really sure it's the CPP language. We'll use our
@@ -87,6 +89,7 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
          -1, -1,
       };
       ppStyles = aCppStyles;
+      iWordStyle = SCE_C_WORD2;
 
       // Create custom word- & brace highlight-styles from default
       syntax[11] = syntax[1];
@@ -274,17 +277,18 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
          SCE_SQL_DEFAULT,        0,
          SCE_SQL_WORD,           1,
          SCE_SQL_IDENTIFIER,     2,
+         SCE_SQL_STRING,         2,
          SCE_SQL_COMMENT,        3,
          SCE_SQL_COMMENTLINE,    3,
          SCE_SQL_COMMENTDOC,     3,
          SCE_SQL_NUMBER,         4,
          SCE_SQL_OPERATOR,       4,
-         SCE_SQL_STRING,         5,
          SCE_SQL_CHARACTER,      5,
          SCE_SQL_WORD2,          5,
          -1, -1,
       };
       ppStyles = aSqlStyles;
+      iWordStyle = SCE_SQL_WORD;
    }
    else if( m_sLanguage == _T("xml") ) 
    {
@@ -583,6 +587,11 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    m_bAutoCase = false;
    if( m_pDevEnv->GetProperty(sKey + _T("autoCase"), szBuffer, cchBuffer) ) m_bAutoCase = _tcscmp(szBuffer, _T("true")) == 0;
+
+   strcpy(szValue, "unchanged");
+   if( m_pDevEnv->GetProperty(sKey + _T("caseMode"), szBuffer, cchBuffer) ) strcpy(szValue, T2CA(szBuffer));
+   if( iWordStyle != STYLE_DEFAULT && strcmp(szValue, "upper") == 0 ) StyleSetCase(iWordStyle, SC_CASE_UPPER);
+   if( iWordStyle != STYLE_DEFAULT && strcmp(szValue, "lower") == 0 ) StyleSetCase(iWordStyle, SC_CASE_LOWER);
 
    m_bAutoSuggest = false;
    if( m_pDevEnv->GetProperty(sKey + _T("autoSuggest"), szBuffer, cchBuffer) ) m_bAutoSuggest = _tcscmp(szBuffer, _T("true")) == 0;

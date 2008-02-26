@@ -279,7 +279,7 @@ BOOL CView::Run(BOOL bSelectedTextOnly)
       SaveHistory(sText);
    }
 
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    m_view.SetCurSel(1);
    m_view.OnTabChange(0, NULL, bDummy);
 
@@ -290,7 +290,11 @@ BOOL CView::Run(BOOL bSelectedTextOnly)
 
 BOOL CView::ChangeProperties(HWND hWnd)
 {
-   m_sConnectString = CDbOperations::ChangeProperties(hWnd, m_sConnectString);
+   CString sResult;
+   if( CDbOperations::ChangeProperties(hWnd, m_sConnectString, sResult) ) {
+      m_sConnectString = sResult;
+      m_bIsDirty = TRUE;
+   }
    return TRUE;
 }
 

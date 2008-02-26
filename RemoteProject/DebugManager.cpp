@@ -216,12 +216,12 @@ bool CDebugManager::ClearBreakpoints()
       if( m_aBreakpoints.GetSize() > 0 ) {
          bool bRestartApp = _PauseDebugger();
          // We're going to delete the breakpoints in GDB itself first
-         CString sCommand = _T("-break-delete");
+         CString sArgs;
          for( long i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
-            sCommand += _T(" ");
-            sCommand.Append(m_aBreakpoints.GetValueAt(i));
+            if( i > 0 ) sArgs += _T(" ");
+            sArgs.Append(m_aBreakpoints.GetValueAt(i));
          }
-         DoDebugCommand(sCommand);
+         DoDebugCommandV(_T("-break-delete %s"), sArgs);
          DoDebugCommand(_T("-break-list"));
          if( bRestartApp ) _ResumeDebugger();
       }
@@ -249,9 +249,7 @@ bool CDebugManager::AddBreakpoint(LPCTSTR pstrFilename, int iLineNum)
       // Attempt to halt app if currently running
       bool bRestartApp = _PauseDebugger();
       // Send GDB commands
-      CString sCommand;
-      sCommand.Format(_T("-break-insert %s"), sText);
-      if( !DoDebugCommand(sCommand) ) return false;
+      if( !DoDebugCommandV(_T("-break-insert %s"), sText) ) return false;
       if( !DoDebugCommand(_T("-break-list")) ) return false;
       // Warn about GDB's inability to add ASYNC breakpoints
       if( !IsBreaked() ) {
@@ -278,9 +276,7 @@ bool CDebugManager::RemoveBreakpoint(LPCTSTR pstrFilename, int iLineNum)
          long lNumber = m_aBreakpoints.Lookup(sText);
          bool bRestartApp = _PauseDebugger();
          // We have it; let's ask GDB to delete the breakpoint
-         CString sCommand;
-         sCommand.Format(_T("-break-delete %ld"), lNumber);
-         if( !DoDebugCommand(sCommand) ) return false;
+         if( !DoDebugCommandV(_T("-break-delete %ld"), lNumber) ) return false;
          if( !DoDebugCommand(_T("-break-list")) ) return false;
          if( bRestartApp ) _ResumeDebugger();
       }
@@ -335,21 +331,16 @@ bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLin
 bool CDebugManager::RunTo(LPCTSTR pstrFilename, int iLineNum)
 {
    ATLASSERT(IsDebugging());
-   CString sCommand;
-   sCommand.Format(_T("-exec-until %s:%d"), pstrFilename, iLineNum);
-   return DoDebugCommand(sCommand);
+   return DoDebugCommandV(_T("-exec-until %s:%d"), pstrFilename, iLineNum);
 }
 
 bool CDebugManager::SetNextStatement(LPCTSTR pstrFilename, int iLineNum)
 {
    ATLASSERT(IsDebugging());
-   CString sCommand;
-   sCommand.Format(_T("-break-insert -t %s:%d"), pstrFilename, iLineNum);
-   DoDebugCommand(sCommand);
+   DoDebugCommandV(_T("-break-insert -t %s:%d"), pstrFilename, iLineNum);
    // BUG: Argh, GDB MI doesn't come with a proper "SetNextStatement"
    //      command. The best we can do is to try to jump in the local file!
-   sCommand.Format(_T("-interpreter-exec console \"jump %d\""), iLineNum);
-   DoDebugCommand(sCommand);
+   DoDebugCommandV(_T("-interpreter-exec console \"jump %d\""), iLineNum);
    return true;
 }
 
@@ -438,8 +429,7 @@ bool CDebugManager::RunDebug()
    aList.Add(sCommand);   
    if( !_AttachDebugger(aList, false) ) return false;
    // Start debugging session
-   sCommand.Format(_T("-exec-arguments %s"), m_sAppArgs);
-   DoDebugCommand(sCommand);
+   DoDebugCommandV(_T("-exec-arguments %s"), m_sAppArgs);
    return DoDebugCommand(_T("-exec-run"));
 }
 
@@ -487,15 +477,13 @@ bool CDebugManager::EvaluateExpression(LPCTSTR pstrValue)
    CString sValue = pstrValue;
    sValue.Replace(_T("\\"), _T("\\\\"));
    sValue.Replace(_T("\""), _T("\\\""));
-   CString sCommand;
-   sCommand.Format(_T("-data-evaluate-expression \"%s\""), sValue);
-   DoDebugCommand(sCommand);
+   DoDebugCommandV(_T("-data-evaluate-expression \"%s\""), sValue);
    return true;  // We don't know if there will be data available!! Just be happy about it.
 }
 
-bool CDebugManager::DoDebugCommand(LPCTSTR pstrText)
+bool CDebugManager::DoDebugCommand(LPCTSTR pstrCommand)
 {
-   ATLASSERT(!::IsBadStringPtr(pstrText,-1));
+   ATLASSERT(!::IsBadStringPtr(pstrCommand,-1));
    // We must be debugging to execute anything!
    if( !IsDebugging() ) return false;
    // HACK: We're having trouble with echoing
@@ -512,7 +500,17 @@ bool CDebugManager::DoDebugCommand(LPCTSTR pstrText)
    m_eventAck.WaitForEvent(COMMAND_SEQUENCE_TIMEOUT_MS);
    m_eventAck.ResetEvent();
    // Translate command and send it
-   return m_ShellManager.WriteData(_TranslateCommand(pstrText));
+   return m_ShellManager.WriteData(_TranslateCommand(pstrCommand));
+}
+
+bool CDebugManager::DoDebugCommandV(LPCTSTR pstrCommand, ...)
+{
+   va_list args;
+   va_start(args, pstrCommand);
+   CString sCommand;
+   sCommand.FormatV(pstrCommand, args);
+   va_end(args);
+   return DoDebugCommand(sCommand);
 }
 
 bool CDebugManager::DoSignal(BYTE bCmd)
@@ -682,18 +680,14 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
    // If there are no breakpoints defined, then let's
    // set a breakpoint in the main function
    if( !bExternalProcess && m_aBreakpoints.GetSize() == 0 ) {
-      CString sCommand;
-      sCommand.Format(_T("-break-insert -t %s"), m_sDebugMain);
-      DoDebugCommand(sCommand);
+      DoDebugCommandV(_T("-break-insert -t %s"), m_sDebugMain);
    }
 
    // Set known breakpoints.
    // This includes newly updated breakpoints from active views and
    // old breakpoints from the list.
    for( int b = 0; b < m_aBreakpoints.GetSize(); b++ ) {
-      CString sCommand;
-      sCommand.Format(_T("-break-insert %s"), m_aBreakpoints.GetKeyAt(b));
-      DoDebugCommand(sCommand);
+      DoDebugCommandV(_T("-break-insert %s"), m_aBreakpoints.GetKeyAt(b));
    }
 
    // Set the GDB search paths. The user can here add additional search paths
@@ -709,11 +703,8 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
          s = s.Mid(sToken.GetLength() + 1);
          sToken = s.SpanExcluding(_T(";,"));
       }
-      CString sCommand;
-      sCommand.Format(_T("-environment-directory %s"), sPaths);
-      DoDebugCommand(sCommand);
-      sCommand.Format(_T("-environment-path %s"), sPaths);
-      DoDebugCommand(sCommand);
+      DoDebugCommandV(_T("-environment-directory %s"), sPaths);
+      DoDebugCommandV(_T("-environment-path %s"), sPaths);
    }
 
    return true;

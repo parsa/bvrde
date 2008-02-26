@@ -104,6 +104,7 @@ public:
          return 0;
       }
       CDCHandle dc = (HDC) wParam;
+      DefWindowProc();
       dc.SetTextColor(::GetSysColor(COLOR_3DDKSHADOW));
       dc.SetBkMode(TRANSPARENT);
       return (LRESULT) ::GetSysColorBrush(COLOR_BTNFACE);

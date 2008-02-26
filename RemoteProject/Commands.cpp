@@ -281,6 +281,7 @@ LRESULT CRemoteProject::OnViewOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
          m_FileManager.Start();
       }
    }
+
    return 0;
 }
 

@@ -289,6 +289,7 @@ bool CMainFrame::_LoadSettings(CXmlSerializer& arc)
             _AddProperty(&arc, _T("markErrors"), sKey + _T("markErrors"));
             _AddProperty(&arc, _T("breakpointLines"), sKey + _T("breakpointLines"));
             _AddProperty(&arc, _T("autoCase"), sKey + _T("autoCase"));
+            _AddProperty(&arc, _T("caseMode"), sKey + _T("caseMode"));
             _AddProperty(&arc, _T("autoComplete"), sKey + _T("autoComplete"));
             _AddProperty(&arc, _T("autoSuggest"), sKey + _T("autoSuggest"));
             _AddProperty(&arc, _T("classBrowser"), sKey + _T("classBrowser"));

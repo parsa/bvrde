@@ -121,6 +121,9 @@ public:
       EndDialog(wID);
       return 0;
    }
+
+   // Implementation
+
    CString _GetFileVersion(LPCTSTR pstrFilename) const
    {
       DWORD dwHandle = 0;

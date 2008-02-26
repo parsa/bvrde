@@ -80,6 +80,9 @@ bool CTagInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, 
       }
    }
 
+   CSimpleValArray<TAGINFO*> aResult1;
+   CSimpleValArray<TAGINFO*> aResult2;
+   CSimpleValArray<TAGINFO*> aResult3;
    if( m_bSorted )
    {
       // Binary search on sorted list
@@ -97,12 +100,17 @@ bool CTagInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, 
       if( _tcscmp(pstrName, m_aTags[n].pstrName) != 0 ) return false;
       while( n > 0 && _tcscmp(pstrName, m_aTags[n - 1].pstrName) == 0 ) n--;
       while( n < max && _tcscmp(pstrName, m_aTags[n].pstrName) == 0 ) {
-         bool bFound = (pstrOwner == NULL)
-                       || (pstrOwner != NULL && (_tcscmp(m_aTags[n].pstrOwner, pstrOwner) == 0))
-                       || (pstrParent != NULL && (_tcscmp(m_aTags[n].pstrOwner, pstrParent) == 0));
-         if( bFound ) {
+         if( pstrOwner != NULL && _tcscmp(m_aTags[n].pstrOwner, pstrOwner) == 0 ) {
             TAGINFO* pTag = &m_aTags.GetData()[n];
-            aResult.Add(pTag);
+            aResult1.Add(pTag);
+         }
+         else if( pstrParent != NULL && _tcscmp(m_aTags[n].pstrOwner, pstrParent) == 0 ) {
+            TAGINFO* pTag = &m_aTags.GetData()[n];
+            aResult2.Add(pTag);
+         }
+         else if( pstrOwner == NULL ) {
+            TAGINFO* pTag = &m_aTags.GetData()[n];
+            aResult3.Add(pTag);
          }
          n++;
       }
@@ -111,19 +119,28 @@ bool CTagInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, 
    {
       // Scan list sequentially
       int nCount = m_aTags.GetSize();
-      for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
-         if( _tcscmp(m_aTags[iIndex].pstrName, pstrName) == 0 ) {
-            bool bFound = (pstrOwner == NULL)
-                          || (pstrOwner != NULL && (_tcscmp(m_aTags[iIndex].pstrOwner, pstrOwner) == 0))
-                          || (pstrParent != NULL && (_tcscmp(m_aTags[iIndex].pstrOwner, pstrParent) == 0));
-            if( bFound ) {
-               TAGINFO* pTag = &m_aTags.GetData()[iIndex];
-               aResult.Add(pTag);
+      for( int n = 0; n < nCount; n++ ) {
+         if( _tcscmp(m_aTags[n].pstrName, pstrName) == 0 ) {
+            if( pstrOwner != NULL && _tcscmp(m_aTags[n].pstrOwner, pstrOwner) == 0 ) {
+               TAGINFO* pTag = &m_aTags.GetData()[n];
+               aResult1.Add(pTag);
+            }
+            else if( pstrParent != NULL && _tcscmp(m_aTags[n].pstrOwner, pstrParent) == 0 ) {
+               TAGINFO* pTag = &m_aTags.GetData()[n];
+               aResult2.Add(pTag);
+            }
+            else if( pstrOwner == NULL ) {
+               TAGINFO* pTag = &m_aTags.GetData()[n];
+               aResult3.Add(pTag);
             }
          }
       }
    }
-   return true;
+   for( int x1 = 0; x1 < aResult1.GetSize(); x1++ ) aResult.Add(aResult1[x1]);
+   for( int x2 = 0; x2 < aResult2.GetSize(); x2++ ) aResult.Add(aResult2[x2]);
+   for( int x3 = 0; x3 < aResult3.GetSize(); x3++ ) aResult.Add(aResult3[x3]);
+
+   return aResult.GetSize() > 0;
 }
 
 void CTagInfo::GetItemInfo(const TAGINFO* pTag, CTagDetails& Info)

@@ -58,13 +58,11 @@ bool CMiInfo::Parse(LPCTSTR pstrInput)
    m_plRefCount = (LONG*) malloc(dwLength + sizeof(LONG));
    ATLASSERT(m_plRefCount);
    if( m_plRefCount == NULL ) return false;
-   //
    *m_plRefCount = 1L;
    m_pstrData = (LPTSTR) (m_plRefCount + 1);
    memcpy(m_pstrData, pstrInput, dwLength);
-   //
 #ifdef _DEBUG
-   ::OutputDebugString(_T("GDB: "));
+   ::OutputDebugString(_T("DBG: "));
    ::OutputDebugString(pstrInput);
    ::OutputDebugString(_T("\n"));
 #endif // _DEBUG

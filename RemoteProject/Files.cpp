@@ -272,7 +272,7 @@ BOOL CTextFile::Save()
 BOOL CTextFile::Reload()
 {
    if( IsOpen() ) _pDevEnv->DestroyClient(m_wndFrame);
-   return OpenView(0);
+   return OpenView(1);
 }
 
 void CTextFile::ActivateUI()

@@ -21,7 +21,7 @@ CFileManager::CFileManager() :
 
 CFileManager::~CFileManager()
 {
-   if( m_pProtocol ) delete m_pProtocol;
+   if( m_pProtocol != NULL ) delete m_pProtocol;
 }
 
 void CFileManager::Clear()
@@ -41,7 +41,7 @@ bool CFileManager::Load(ISerializable* pArc)
       pArc->Read(_T("method"), szType, 63);
       m_sType = szType;
    }
-   if( m_pProtocol ) delete m_pProtocol;
+   if( m_pProtocol != NULL ) delete m_pProtocol;
    m_pProtocol = NULL;
    if( m_sType == _T("ftp") )          m_pProtocol = new CFtpProtocol();
    else if( m_sType == _T("sftp") )    m_pProtocol = new CSftpProtocol();
@@ -111,7 +111,7 @@ void CFileManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    CString sName = pstrName;
    // Changing connection type?
    if( sName == _T("Type") ) {
-      if( m_pProtocol ) delete m_pProtocol;
+      if( m_pProtocol != NULL ) delete m_pProtocol;
       m_pProtocol = NULL;
       m_sType = pstrValue;
       if( m_sType == _T("ftp") )          m_pProtocol = new CFtpProtocol();

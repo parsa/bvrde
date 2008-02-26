@@ -455,6 +455,11 @@ LRESULT CAdvancedEditOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/,
    CEdit ctrlEdit = GetDlgItem(IDC_TERMINATOR);
    ctrlEdit.SetLimitText(4);
 
+   CComboBox ctrlCombo = GetDlgItem(IDC_CASEMODE);
+   ctrlCombo.AddString(CString(MAKEINTRESOURCE(IDS_UNCHANGED)));
+   ctrlCombo.AddString(CString(MAKEINTRESOURCE(IDS_UPPERCASE)));
+   ctrlCombo.AddString(CString(MAKEINTRESOURCE(IDS_LOWERCASE)));
+
    TCHAR szBuffer[64] = { 0 };
    _pDevEnv->GetProperty(sKey + _T("terminator"), szBuffer, 63);
    SetDlgItemText(IDC_TERMINATOR, szBuffer);
@@ -466,6 +471,12 @@ LRESULT CAdvancedEditOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/,
    _pDevEnv->GetProperty(sKey + _T("maxErrors"), szBuffer, 63);
    SetDlgItemInt(IDC_MAXERRORS, _ttol(szBuffer));
    if( _ttol(szBuffer) > 0 ) CheckDlgButton(IDC_LIMITERRORS, BST_CHECKED); else SetDlgItemInt(IDC_MAXERRORS, 10);
+
+   _tcscpy(szBuffer, _T("unchanged"));
+   _pDevEnv->GetProperty(sKey + _T("caseMode"), szBuffer, 63);
+   if( _tcscmp(szBuffer, _T("upper")) == 0 ) ctrlCombo.SetCurSel(1);
+   else if( _tcscmp(szBuffer, _T("lower")) == 0 ) ctrlCombo.SetCurSel(2);
+   else ctrlCombo.SetCurSel(0);
 
    _UpdateButtons();
 
@@ -490,6 +501,12 @@ int CAdvancedEditOptionsPage::OnApply()
    long lMaxErrors = 0;
    if( IsDlgButtonChecked(IDC_LIMITERRORS) ) lMaxErrors = GetDlgItemInt(IDC_MAXERRORS);
 
+   CComboBox ctrlCombo = GetDlgItem(IDC_CASEMODE);
+   TCHAR szCaseMode[64];
+   _tcscpy(szCaseMode, _T("unchanged"));
+   if( ctrlCombo.GetCurSel() == 1 ) _tcscpy(szCaseMode, _T("upper"));
+   if( ctrlCombo.GetCurSel() == 2 ) _tcscpy(szCaseMode, _T("lower"));
+
    if( m_pArc->ReadGroupBegin(_T("Editors")) ) 
    {
       while( m_pArc->ReadGroupBegin(_T("Editor")) ) {
@@ -507,6 +524,7 @@ int CAdvancedEditOptionsPage::OnApply()
             m_pArc->Write(_T("terminator"), szTerminator);
             m_pArc->Write(_T("maxRecords"), lMaxRecords);
             m_pArc->Write(_T("maxErrors"), lMaxErrors);
+            m_pArc->Write(_T("caseMode"), szCaseMode);
          }
          m_pArc->ReadGroupEnd();
       }
