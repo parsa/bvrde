@@ -557,7 +557,7 @@ BOOL CEmptyProject::GetPath(LPTSTR pstrPath, UINT cchMax) const
 
 bool CEmptyProject::OpenView(LPCTSTR pstrFilename, long lLineNum)
 {
-   IView* pView = FindView(pstrFilename, FALSE);
+   IView* pView = FindView(pstrFilename, false);
    if( pView == NULL ) return false;
    return pView->OpenView(lLineNum) == TRUE;
 }

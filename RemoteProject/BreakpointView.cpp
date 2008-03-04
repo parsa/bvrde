@@ -73,14 +73,6 @@ void CBreakpointView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          
          sNumber = info.FindNext(_T("number"), _T("bkpt"));
       }
-      if( iOldSel == -1 ) {
-         // No selection yet? Let's take the oppotunity to
-         // resize the column headers...
-         m_ctrlList.SetColumnWidth(0, 90);
-         m_ctrlList.SetColumnWidth(1, 100);
-         m_ctrlList.SetColumnWidth(2, 120);
-         m_ctrlList.SetColumnWidth(3, 100);
-      }
       m_ctrlList.SelectItem(iOldSel);
       m_ctrlList.SetRedraw(TRUE);
       m_ctrlList.Invalidate();
@@ -107,6 +99,11 @@ LRESULT CBreakpointView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_BRKCOL2)), 1);
    m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_BRKCOL3)), 2);
    m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_BRKCOL4)), 3);
+   int cx = (int) LOWORD(GetDialogBaseUnits());
+   m_ctrlList.SetColumnWidth(0, 12 * cx);
+   m_ctrlList.SetColumnWidth(1, 13 * cx);
+   m_ctrlList.SetColumnWidth(2, 14 * cx);
+   m_ctrlList.SetColumnWidth(3, 12 * cx);
    bHandled = FALSE;
    return 0;
 }

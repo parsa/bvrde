@@ -47,6 +47,7 @@ void CVariableView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          //       that a user will be able to edit the value, hence the
          //       crappy string-character test below.
          BOOL bEnable = TRUE;
+         if( sValue == _T("RECORD") ) bEnable = FALSE;
          if( sValue.Find(_T("...")) >= 0 ) bEnable = FALSE;
          TCHAR chFirst = '\0';
          TCHAR chLast = '\0';
@@ -84,7 +85,8 @@ LRESULT CVariableView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 
    m_ctrlList.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL);
    ATLASSERT(m_ctrlList.IsWindow());
-   m_ctrlList.SetColumnWidth(120);
+   int cx = (int) LOWORD(GetDialogBaseUnits());
+   m_ctrlList.SetColumnWidth(cx * 15);
 
    CString sTab;
    TCITEM item = { 0 };
@@ -133,7 +135,7 @@ LRESULT CVariableView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    m_ctrlList.GetItemValue(lpNMPI->prop, &vValue);
    vValue.ChangeType(VT_BSTR);
 
-   // Assign the value
+   // Assign the value...
    CString sCommand;
    sCommand.Format(_T("-gdb-set variable %s=%ls"), szName, vValue.bstrVal);
    m_pProject->DelayedDebugCommand(sCommand);
@@ -142,3 +144,4 @@ LRESULT CVariableView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 
    return 0;
 }
+

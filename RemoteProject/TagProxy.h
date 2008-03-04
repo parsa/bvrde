@@ -13,19 +13,24 @@
 class CTagManager : public ITagHandler
 {
 public:
+   // ITagHandler
+
    void Init(CRemoteProject* pProject);
    bool IsLoaded() const;
    bool IsAvailable() const;
    void Clear();
-   bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult);
    void GetItemInfo(const TAGINFO* pTag, CTagDetails& Info);
    bool GetOuterList(CSimpleValArray<TAGINFO*>& aResult);
    bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult);
-   bool GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult);
+   bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult);
+   bool GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult);
+
+   // Operations
 
    bool OpenTagInView(const CTagDetails& Info);
 
 public:
+   // Data members
    CRemoteProject* m_pProject;
    CTagInfo m_TagInfo;
    CLexInfo m_LexInfo;

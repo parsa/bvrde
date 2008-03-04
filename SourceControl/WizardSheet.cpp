@@ -28,7 +28,8 @@ LRESULT CMainOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 
    m_ctrlList.SubclassWindow(GetDlgItem(IDC_LIST));
    m_ctrlList.SetExtendedListStyle(PLS_EX_XPLOOK|PLS_EX_CATEGORIZED);
-   m_ctrlList.SetColumnWidth(130);
+   int cx = (int) LOWORD(GetDialogBaseUnits());
+   m_ctrlList.SetColumnWidth(16 * cx);
 
    _PopulateList();
   
@@ -123,7 +124,7 @@ int CMainOptionsPage::OnApply()
    if( iIndex == SC_SYSTEM_CVS )         _Commands.sType = _T("cvs");
    if( iIndex == SC_SYSTEM_SUBVERSION )  _Commands.sType = _T("subversion");
    if( iIndex == SC_SYSTEM_CUSTOM )      _Commands.sType = _T("custom");
-   _Commands.bEnabled = iIndex > 0;
+   _Commands.bEnabled = (iIndex > 0);
 
    CComVariant v;
    v.Clear();

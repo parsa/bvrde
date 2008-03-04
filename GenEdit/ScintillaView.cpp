@@ -555,7 +555,10 @@ void CScintillaView::_AutoComplete(CHAR ch)
       CString sKeywords;
       m_pDevEnv->GetProperty(sProperty, sKeywords.GetBufferSetLength(2048), 2048);
       sKeywords.ReleaseBuffer();
-      //
+      // Reserve string buffer
+      sList.GetBuffer(sKeywords.GetLength() / 4);
+      sList.ReleaseBuffer(0);
+      // Create auto-completion list
       TCHAR cLetter = (TCHAR) GetCharAt(lPos - 1);
       TCHAR szFind[] = { ' ', (TCHAR) tolower(cLetter), '\0' };
       int iPos = sKeywords.Find(szFind, 0);
@@ -567,7 +570,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
             sList += sKeywords[iPos];
             iPos++;
          }
-         sList += ' ';
+         sList += '|';
          iPos = sKeywords.Find(szFind, iPos - 1);
       }
       if( m_bAutoCase ) sList.MakeLower();
@@ -616,11 +619,14 @@ void CScintillaView::_AutoComplete(CHAR ch)
          _AddUnqiue(aList, _T("this"));
          AutoCSetFillUps("[");
       }
-      // Add XML specific
+      // Add XML specific items...
       if( m_sLanguage == _T("xml") )
       {
-         AutoCSetFillUps(">");
+         AutoCSetFillUps("/>");
       }
+      // Reserve string buffer
+      sList.GetBuffer(aList.GetSize() * 20);
+      sList.ReleaseBuffer(0);
       // Sort the list
       for( int a = 0; a < aList.GetSize(); a++ ) {
          for( int b = a + 1; b < aList.GetSize(); b++ ) {
@@ -634,13 +640,14 @@ void CScintillaView::_AutoComplete(CHAR ch)
          }
       }
       // Build Scrintilla string
-      for( int i = 0; i < aList.GetSize(); i++ ) sList += aList[i] + ' ';
+      for( int i = 0; i < aList.GetSize(); i++ ) sList += aList[i] + '|';
    }
    // Display popup list
-   sList.TrimRight();
+   sList.TrimRight(_T("|"));
    if( sList.IsEmpty() ) return;
    ClearRegisteredImages();
    AutoCSetMaxHeight(6);
+   AutoCSetSeparator('|');
    AutoCSetIgnoreCase(FALSE);
    AutoCShow(1, T2CA(sList));
 }

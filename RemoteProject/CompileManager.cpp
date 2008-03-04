@@ -755,7 +755,7 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    sinfo.fMask = SIF_ALL;
    ctrlEdit.GetScrollInfo(SB_VERT, &sinfo);
 
-   CHARRANGE cr;
+   CHARRANGE cr = { 0 };
    ctrlEdit.GetSel(cr);
    ctrlEdit.HideSelection(TRUE);
 
@@ -768,7 +768,7 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       ctrlEdit.ReplaceSel(_T(""));
    }
 
-   // Append text
+   // Append text...
    ctrlEdit.SetSel(-1, -1);
    LONG iStartPos = 0;
    LONG iDummy = 0;
@@ -810,7 +810,9 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    // Mark prompts...
    // Some lines that look like prompts aren't really prompts.
    if( _tcschr(m_sPromptPrefix, *pstrText) != NULL ) cf.dwEffects |= CFE_BOLD;
+   if( *pstrText == '[' && _tcsstr(pstrText, _T("]$ ")) != NULL ) cf.dwEffects |= CFE_BOLD;
    if( _tcsstr(pstrText, _T(" $ ")) != NULL && _tcschr(pstrText, ':') != NULL ) cf.dwEffects |= CFE_BOLD;
+   if( _tcsstr(pstrText, _T("-bash")) == pstrText && _tcschr(pstrText, '$') != NULL ) cf.dwEffects |= CFE_BOLD;
    if( *pstrText == '/' && _tcschr(pstrText, ':') != NULL ) cf.dwEffects &= ~CFE_BOLD;
    if( *pstrText == '/' && _tcsstr(pstrText, _T(" line ")) != NULL ) cf.dwEffects &= ~CFE_BOLD;
    if( nColor == VT100_PROMPT ) cf.dwEffects |= CFE_BOLD;
@@ -820,7 +822,7 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 
    // Count the number of lines in the text
    int nLines = 0;
-   while( *pstrText && *pstrText++ == '\n' ) nLines++;
+   while( *pstrText != '\0' && *pstrText++ == '\n' ) nLines++;
 
    if( iStartPos != cr.cpMin ) {
       ctrlEdit.SetSel(cr); 

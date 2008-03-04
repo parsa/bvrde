@@ -9,6 +9,7 @@
 #include "RemoteFileDlg.h"
 #include "RebuildLexDlg.h"
 #include "AttachProcessDlg.h"
+#include "AttachCoreFileDlg.h"
 
 #include "ViewSerializer.h"
 
@@ -621,9 +622,19 @@ LRESULT CRemoteProject::OnDebugProcesses(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
    if( m_DebugManager.IsDebugging() ) return 0;
    CAttachProcessDlg dlg;
-   dlg.Init(this, m_DebugManager.GetParam(L"App"));
+   dlg.Init(this, m_DebugManager.GetParam(_T("App")));
    if( dlg.DoModal() != IDOK ) return 0;
    return m_DebugManager.AttachProcess(dlg.GetSelectedPid());
+}
+
+LRESULT CRemoteProject::OnDebugCoreFile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+   if( m_DebugManager.IsDebugging() ) return 0;
+   CAttachCoreFileDlg dlg;
+   dlg.Init(this, m_DebugManager.GetParam(_T("CoreProcess")), m_DebugManager.GetParam(_T("CoreFile")));
+   if( dlg.DoModal() != IDOK ) return 0;
+   return m_DebugManager.AttachCoreFile(dlg.GetSelectedProcess(), dlg.GetSelectedCoreFile());
 }
 
 LRESULT CRemoteProject::OnDebugArguments(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)

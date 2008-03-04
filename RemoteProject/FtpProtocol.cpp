@@ -312,7 +312,7 @@ bool CFtpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, D
       BOOL bRes = ::InternetReadFile(hFile, buffer.GetData(), buffer.GetSize(), &dwBytesRead);
       if( !bRes ) {
          DWORD dwErr = ::GetLastError();
-         if( *ppOut != NULL ) { free(*ppOut);  *ppOut = NULL; }
+         if( *ppOut != NULL ) { free(*ppOut); *ppOut = NULL; }
          ::InternetCloseHandle(hFile);
          ::SetLastError(dwErr);
          return false;
@@ -413,8 +413,7 @@ bool CFtpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool bUseCac
    if( hFind == NULL ) return false;
    while( true ) {
       aFiles.Add(fd);
-      BOOL bRes = ::InternetFindNextFile(hFind, &fd);
-      if( !bRes ) break;
+      if( !::InternetFindNextFile(hFind, &fd) ) break;
    }   
    ::InternetCloseHandle(hFind);
    return true;

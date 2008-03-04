@@ -327,7 +327,9 @@ LRESULT CClassView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
          m_pProject->m_TagManager.GetGlobalList(aList);
       }
       else {
-         m_pProject->m_TagManager.GetMemberList(pParent->pstrName, false, aList);
+         // NOTE: We are only collection members attached directly to the
+         //       base so we will not list inherited members here.
+         m_pProject->m_TagManager.GetMemberList(pParent->pstrName, 0, ::GetTickCount() + 1000, aList);
       }
       for( int i = 0; i < aList.GetSize(); i++ ) {
          const TAGINFO* pTag = aList[i];
@@ -397,7 +399,6 @@ LRESULT CClassView::OnGetDisplayInfo(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 
 LRESULT CClassView::OnMouseMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-   bHandled = FALSE;
    if( !m_bMouseTracked ) {
       TRACKMOUSEEVENT tme = { 0 };
       tme.cbSize = sizeof(tme);
@@ -411,6 +412,7 @@ LRESULT CClassView::OnMouseMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
       m_bMouseTracked = true;
    }
    if( m_ctrlHoverTip.IsWindow() ) m_ctrlTree.SendMessage(WM_MOUSEHOVER);
+   bHandled = FALSE;
    return 0;
 }
 
@@ -461,13 +463,13 @@ LRESULT CClassView::OnRequestResize(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandl
 
 void CClassView::OnIdle(IUpdateUI* pUIBase)
 {   
-   BOOL bTagIsSelected = !m_SelectedTag.sName.IsEmpty();
+   BOOL bTagIsSelected = !m_SelectedTag.sName.IsEmpty();  // Real Tag is selected in tree (not "Globals" folder, etc)
 
    TCHAR szSortValue[32] = { 0 };
    _pDevEnv->GetProperty(_T("window.classview.sort"), szSortValue, 31);
 
-   pUIBase->UIEnable(ID_CLASSVIEW_GOTODECL, bTagIsSelected && m_pProject->FindView(m_SelectedTag.sFilename) != NULL);
-   pUIBase->UIEnable(ID_CLASSVIEW_GOTOIMPL, bTagIsSelected && !m_SelectedImpl.sName.IsEmpty());
+   pUIBase->UIEnable(ID_CLASSVIEW_GOTODECL, bTagIsSelected && m_pProject->FindView(m_SelectedTag.sFilename, false) != NULL);
+   pUIBase->UIEnable(ID_CLASSVIEW_GOTOIMPL, bTagIsSelected && m_pProject->FindView(m_SelectedImpl.sFilename, false) != NULL);
    pUIBase->UIEnable(ID_CLASSVIEW_COPY, bTagIsSelected);
    pUIBase->UIEnable(ID_CLASSVIEW_PROPERTIES,bTagIsSelected);
    pUIBase->UIEnable(ID_CLASSVIEW_SORT_ALPHA, TRUE);
@@ -553,11 +555,12 @@ void CClassView::_PopulateTree()
 bool CClassView::_GetImplementationRef(const CTagDetails& Current, CTagDetails& Info)
 {
    Info.sName.Empty();
+   Info.sFilename.Empty();
    if( Current.sName.IsEmpty() ) return false;
    CString sLookupName;
    sLookupName.Format(_T("%s%s%s"), Current.sBase, Current.sBase.IsEmpty() ? _T("") : _T("::"), Current.sName);
    CSimpleValArray<TAGINFO*> aList;
-   m_pProject->m_TagManager.FindItem(sLookupName, NULL, false, aList);
+   m_pProject->m_TagManager.FindItem(sLookupName, NULL, 0, ::GetTickCount() + 500, aList);
    for( int i = 0; i < aList.GetSize(); i++ ) {
       if( aList[i]->Type == TAGTYPE_IMPLEMENTATION ) {
          m_pProject->m_TagManager.GetItemInfo(aList[i], Info);

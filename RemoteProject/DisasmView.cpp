@@ -82,6 +82,7 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          sDisasm.Replace(_T("{"), _T("\\{ "));
          sDisasm.Replace(_T("}"), _T("\\} "));
          sDisasm.Replace(_T("(bad)"), _T("\\cf3 (bad)\\cf0 "));
+         sDisasm.Replace(_T("bad address"), _T("\\cf3 bad address\\cf0 "));
          if( sDisasm.Find('<') > 0 ) {
             sDisasm.Replace(_T("<"), _T("\\cf2  <"));
             sDisasm += _T("\\cf0 ");

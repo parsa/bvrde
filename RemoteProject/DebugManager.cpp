@@ -7,6 +7,9 @@
 #include "Project.h"
 #include "MiInfo.h"
 
+#include "GdbAdaptor.h"
+#include "DbxAdaptor.h"
+
 #pragma code_seg( "MISC" )
 
 
@@ -21,11 +24,16 @@ void CDebugStopThread::Init(CDebugManager* pManager)
 
 DWORD CDebugStopThread::Run()
 {
+   // This is a thread designed to wait a short while for the debugged
+   // process to exit cleanly. If the debugged process refuses we will
+   // need to force a termination of the entire shell session.
    const int TERMINATE_AFTER_SECONDS = 3;
-   for( int i = 0; !ShouldStop() && i < TERMINATE_AFTER_SECONDS * 2; i++ ) {
+   for( int i = 0; !ShouldStop() && i < TERMINATE_AFTER_SECONDS * 1000; i += 200 ) {
       if( !m_pManager->IsBusy() ) break;
-      ::Sleep(500UL);
+      ::Sleep(200UL);
    }
+   // If its still alive after waiting this long, we'll
+   // need to force a termination.
    if( m_pManager->IsBusy() ) m_pManager->SignalStop();
    return 0;
 }
@@ -48,6 +56,7 @@ struct CLockBreakpointData
 
 CDebugManager::CDebugManager() :
    m_pProject(NULL),
+   m_pAdaptor(NULL),
    m_bBreaked(false),
    m_bRunning(false),
    m_bSeenExit(false),
@@ -80,11 +89,14 @@ void CDebugManager::Clear()
 {
    m_ShellManager.Clear();
 
+   m_sDebuggerType = _T("gdb");
    m_sCommandCD = _T("cd $PATH$");
    m_sAppExecutable = _T("./$PROJECTNAME$");
    m_sAppArgs = _T("");
    m_sDebuggerExecutable = _T("gdb");
-   m_sDebuggerArgs = _T("-i=mi ./$PROJECTNAME$");
+   m_sAttachExe = _T("-i=mi ./$PROJECTNAME$");
+   m_sAttachPid = _T("-i=mi -pid $PID$");
+   m_sAttachCore = _T("-i=mi $PROCESS$ $COREFILE$");
    m_sDebugMain = _T("main");
    m_lStartTimeout = 4;
    m_bMaintainSession = FALSE;
@@ -105,11 +117,18 @@ bool CDebugManager::Load(ISerializable* pArc)
    pArc->Read(_T("args"), m_sAppArgs.GetBufferSetLength(300), 300);
    m_sAppArgs.ReleaseBuffer();
 
-   if( !pArc->ReadItem(_T("GDB")) ) return false;
+   if( !pArc->ReadItem(_T("DbgConfig")) ) 
+      if( !pArc->ReadItem(_T("GDB")) ) return false;
+   pArc->Read(_T("type"), m_sDebuggerType.GetBufferSetLength(32), 32);
+   m_sDebuggerType.ReleaseBuffer();
    pArc->Read(_T("app"), m_sDebuggerExecutable.GetBufferSetLength(200), 200);
    m_sDebuggerExecutable.ReleaseBuffer();
-   pArc->Read(_T("args"), m_sDebuggerArgs.GetBufferSetLength(300), 300);
-   m_sDebuggerArgs.ReleaseBuffer();
+   pArc->Read(_T("args"), m_sAttachExe.GetBufferSetLength(300), 300);
+   m_sAttachExe.ReleaseBuffer();
+   pArc->Read(_T("core"), m_sAttachCore.GetBufferSetLength(300), 300);
+   m_sAttachCore.ReleaseBuffer();
+   pArc->Read(_T("pid"), m_sAttachPid.GetBufferSetLength(300), 300);
+   m_sAttachPid.ReleaseBuffer();
    pArc->Read(_T("main"), m_sDebugMain.GetBufferSetLength(64), 64);
    m_sDebugMain.ReleaseBuffer();
    pArc->Read(_T("searchPath"), m_sSearchPath.GetBufferSetLength(200), 200);
@@ -118,6 +137,9 @@ bool CDebugManager::Load(ISerializable* pArc)
    pArc->Read(_T("maintainSession"), m_bMaintainSession);
 
    if( m_lStartTimeout <= 0 ) m_lStartTimeout = 4;
+   if( m_sDebuggerType.IsEmpty() ) m_sDebuggerType = _T("gdb");
+   if( m_sAttachPid.IsEmpty() ) m_sAttachPid = _T("-i=mi -pid $PID$");
+   if( m_sAttachCore.IsEmpty() ) m_sAttachCore = _T("-i=mi $PROCESS$ $COREFILE$");
 
    if( !pArc->ReadGroupEnd() ) return false;
    return true;
@@ -134,9 +156,12 @@ bool CDebugManager::Save(ISerializable* pArc)
    pArc->Write(_T("app"), m_sAppExecutable);
    pArc->Write(_T("args"), m_sAppArgs);
 
-   if( !pArc->WriteItem(_T("GDB")) ) return false;
+   if( !pArc->WriteItem(_T("DbgConfig")) ) return false;
+   pArc->Write(_T("type"), m_sDebuggerType);
    pArc->Write(_T("app"), m_sDebuggerExecutable);
-   pArc->Write(_T("args"), m_sDebuggerArgs);
+   pArc->Write(_T("args"), m_sAttachExe);
+   pArc->Write(_T("core"), m_sAttachCore);
+   pArc->Write(_T("pid"), m_sAttachPid);
    pArc->Write(_T("main"), m_sDebugMain);
    pArc->Write(_T("searchPath"), m_sSearchPath);
    pArc->Write(_T("startTimeout"), m_lStartTimeout);
@@ -151,7 +176,7 @@ void CDebugManager::ProgramStop()
    // Get out of debugger prompt
    if( m_bDebugging ) {
       _PauseDebugger();
-      DoDebugCommand(_T("-gdb-exit"));   
+      DoDebugCommand(_T("-gdb-exit"));
    }
    // If we maintain the session we don't actually terminate the connection
    // but retain it until the next time. Otherwise we exit the terminal to disconnect
@@ -319,7 +344,7 @@ bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLin
          continue;
       }
    }
-   // Add all the new breakpoints
+   // Add all the new breakpoints...
    CString sText;
    for( i = 0; i < aLines.GetSize(); i++ ) {
       sText.Format(_T("%s:%d"), pstrFilename, aLines[i] + 1);
@@ -338,9 +363,7 @@ bool CDebugManager::SetNextStatement(LPCTSTR pstrFilename, int iLineNum)
 {
    ATLASSERT(IsDebugging());
    DoDebugCommandV(_T("-break-insert -t %s:%d"), pstrFilename, iLineNum);
-   // BUG: Argh, GDB MI doesn't come with a proper "SetNextStatement"
-   //      command. The best we can do is to try to jump in the local file!
-   DoDebugCommandV(_T("-interpreter-exec console \"jump %d\""), iLineNum);
+   DoDebugCommandV(_T("-exec-jump %s:%d"), pstrFilename, iLineNum);
    return true;
 }
 
@@ -425,7 +448,7 @@ bool CDebugManager::RunDebug()
    CSimpleArray<CString> aList;
    CString sCommand = m_sCommandCD;
    aList.Add(sCommand);   
-   sCommand.Format(_T("%s %s"), m_sDebuggerExecutable, m_sDebuggerArgs);
+   sCommand.Format(_T("%s %s"), m_sDebuggerExecutable, m_sAttachExe);
    aList.Add(sCommand);   
    if( !_AttachDebugger(aList, false) ) return false;
    // Start debugging session
@@ -443,12 +466,32 @@ bool CDebugManager::AttachProcess(long lPID)
    CSimpleArray<CString> aList;
    CString sCommand = m_sCommandCD;
    aList.Add(sCommand);   
-   // FIX: The MI interface does not yet support the "-target-attach" command
-   //      and using the "--pid" command-line argument tends to prompt for
-   //      "press RETURN to continue". Since this is all we got, we'll have
-   //      to detect this and press RETURN...
-   //sCommand.Format(_T("-target-attach %ld"), lPID);
-   sCommand.Format(_T("%s -i=mi --pid=%ld"), m_sDebuggerExecutable, lPID);
+   sCommand.Format(_T("%s %s"), m_sDebuggerExecutable, m_sAttachPid);
+   sCommand.Replace(_T("$PID$"), ToString(lPID));
+   aList.Add(sCommand);   
+   if( !_AttachDebugger(aList, true) ) return false;
+   // The sessions starts as halted; update views
+   m_bBreaked = true;
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_BREAK_EVENT);
+   return true;
+}
+
+/**
+ * Debugs a specific core file on the remote server.
+ * Starts the debugger and attaches to a specific core file.
+ */
+bool CDebugManager::AttachCoreFile(LPCTSTR pstrProcess, LPCTSTR pstrCoreFilename)
+{  
+   // Remember these for the next time...
+   m_sCoreProcess = pstrProcess;
+   m_sCoreFile = pstrCoreFilename;
+   // Launch the remote process from a PID (Process ID)
+   CSimpleArray<CString> aList;
+   CString sCommand = m_sCommandCD;
+   aList.Add(sCommand);   
+   sCommand.Format(_T("%s %s"), m_sDebuggerExecutable, m_sAttachCore);
+   sCommand.Replace(_T("$PROCESS$"), pstrProcess);
+   sCommand.Replace(_T("$COREFILE$"), pstrCoreFilename);
    aList.Add(sCommand);   
    if( !_AttachDebugger(aList, true) ) return false;
    // The sessions starts as halted; update views
@@ -522,15 +565,20 @@ bool CDebugManager::DoSignal(BYTE bCmd)
 CString CDebugManager::GetParam(LPCTSTR pstrName) const
 {
    CString sName = pstrName;
+   if( sName == _T("DebuggerType") ) return m_sDebuggerType;
    if( sName == _T("ChangeDir") ) return m_sCommandCD;
    if( sName == _T("App") ) return m_sAppExecutable;
    if( sName == _T("AppArgs") ) return m_sAppArgs;
    if( sName == _T("Debugger") ) return m_sDebuggerExecutable;
-   if( sName == _T("DebuggerArgs") ) return m_sDebuggerArgs;
+   if( sName == _T("AttachExe") ) return m_sAttachExe;
+   if( sName == _T("AttachCore") ) return m_sAttachCore;
+   if( sName == _T("AttachPid") ) return m_sAttachPid;
    if( sName == _T("DebugMain") ) return m_sDebugMain;
    if( sName == _T("SearchPath") ) return m_sSearchPath;
    if( sName == _T("StartTimeout") ) return ToString(m_lStartTimeout);
    if( sName == _T("MaintainSession") ) return m_bMaintainSession ? _T("true") : _T("false");
+   if( sName == _T("CoreProcess") ) return m_sCoreProcess;
+   if( sName == _T("CoreFile") ) return m_sCoreFile;
    if( sName == _T("InCommand") ) return m_bCommandMode ? _T("true") : _T("false");
    return m_ShellManager.GetParam(pstrName);
 }
@@ -538,15 +586,20 @@ CString CDebugManager::GetParam(LPCTSTR pstrName) const
 void CDebugManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
 {
    CString sName = pstrName;
+   if( sName == _T("DebuggerType") ) m_sDebuggerType = pstrValue;
    if( sName == _T("ChangeDir") ) m_sCommandCD = pstrValue;
    if( sName == _T("App") ) m_sAppExecutable = pstrValue;
    if( sName == _T("AppArgs") ) m_sAppArgs = pstrValue;
    if( sName == _T("Debugger") ) m_sDebuggerExecutable = pstrValue;
-   if( sName == _T("DebuggerArgs") ) m_sDebuggerArgs = pstrValue;
+   if( sName == _T("AttachExe") ) m_sAttachExe = pstrValue;
+   if( sName == _T("AttachCore") ) m_sAttachCore = pstrValue;
+   if( sName == _T("AttachPid") ) m_sAttachPid = pstrValue;
    if( sName == _T("DebugMain") ) m_sDebugMain = pstrValue;
    if( sName == _T("SearchPath") ) m_sSearchPath = pstrValue;
    if( sName == _T("StartTimeout") ) m_lStartTimeout = _ttol(pstrValue);
    if( sName == _T("MaintainSession") ) m_bMaintainSession = _tcscmp(pstrValue, _T("true")) == 0;
+   if( sName == _T("CoreProcess") ) m_sCoreProcess = pstrValue;
+   if( sName == _T("CoreFile") ) m_sCoreFile = pstrValue;
    if( sName == _T("InCommand") ) m_bCommandMode = _tcscmp(pstrValue, _T("true")) == 0;
    m_ShellManager.SetParam(pstrName, pstrValue);  
    if( m_lStartTimeout <= 0 ) m_lStartTimeout = 4;
@@ -592,6 +645,15 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
    pOutput->Init(&m_ShellManager);
    pOutput->ModifyFlags(0, TELNETVIEW_FILTERDEBUG);
    if( pOutput->IsWindow() ) _pDevEnv->AddDockView(pOutput->m_hWnd, IDE_DOCK_HIDE, rcLogWin);
+
+   // Create the debugger adaptor that will translate input/output
+   // into the GDB MI which we support internally.
+   if( m_pAdaptor != NULL ) delete m_pAdaptor;
+   m_pAdaptor = NULL;
+   if( m_sDebuggerType == _T("gdb") ) m_pAdaptor = new CGdbAdaptor();
+   if( m_sDebuggerType == _T("dbx") ) m_pAdaptor = new CDbxAdaptor();
+   if( m_pAdaptor == NULL ) return false;
+   m_pAdaptor->Init(m_pProject);
 
    // Prepare session
    m_ShellManager.AddLineListener(this);
@@ -710,13 +772,18 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
    return true;
 }
 
+/**
+ * Idle wait until debugger is seen starting.
+ * Waits for a debugger process to launch and acknowledge its existance
+ * by sending its first prompt.
+ */
 bool CDebugManager::_WaitForDebuggerStart()
 {
    // Wait for for the first debugger acknowledgement (GDB prompt)
    DWORD dwStartTick = ::GetTickCount();
    while( ::GetTickCount() - dwStartTick < m_lStartTimeout * 1000UL ) {
       PumpIdleMessages(200L);
-      if( m_nDebugAck > 0 ) return true;
+      if( m_eventAck.WaitForEvent(0) ) return true;
    }
    return false;
 }
@@ -731,7 +798,9 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
    // sequences, but that may change in the future. So far we just hardcode the (randomly 
    // picked) number: 232.
    CString sCommand = pstrCommand;
-   if( pstrCommand[0] == '-' ) sCommand.Format(_T("232%s"), pstrCommand);
+   if( pstrCommand[0] == '-' && m_pAdaptor != NULL ) {
+      sCommand = m_pAdaptor->TransformInput(pstrCommand);
+   }
 
    TCHAR szProjectName[128] = { 0 };
    m_pProject->GetName(szProjectName, 127);
@@ -741,7 +810,7 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
    sCommand.Replace(_T("$PATH$"), m_ShellManager.GetParam(_T("Path")));
    sCommand.Replace(_T("$DRIVE$"), m_ShellManager.GetParam(_T("Path")).Left(2));
    sCommand.Replace(_T("\\n"), _T("\r\n"));
-   if( pstrParam ) {
+   if( pstrParam != NULL ) {
       TCHAR szName[MAX_PATH + 1] = { 0 };
       _tcscpy(szName, pstrParam);
       sCommand.Replace(_T("$FILEPATH$"), szName);
@@ -770,12 +839,18 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
  */
 void CDebugManager::_ClearLink()
 {
+   // Send event that we have stopped
    if( m_bDebugging ) {
       m_pProject->DelayedDebugEvent(LAZY_DEBUG_KILL_EVENT);
       m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_SET_CURLINE);
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUG_STOPPED)));
    }
+   // Detach adaptor
+   if( m_pAdaptor != NULL ) delete m_pAdaptor;
+   m_pAdaptor = NULL;
+   // Detach listener
    m_ShellManager.RemoveLineListener(this);
+   // Clear state
    m_bCommandMode = false;
    m_bDebugging = false;
    m_bRunning = false;
@@ -1079,13 +1154,11 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
    }
    // Outputting directly to the Command View if we're
    // in "command mode" (user entered custom command at prompt or scripting).
-   // TODO: We really need this to be delayed to prevent thread dead-lock
    if( m_bCommandMode ) {
       CString sText = sLine.Mid(1, sLine.GetLength() - 2);
       sText.Replace(_T("\\n"), _T("\r\n"));
       sText.Replace(_T("\\t"), _T("\t"));
-      CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
-      AppendRtfText(ctrlEdit, sText);
+      m_pProject->DelayedGuiAction(GUI_ACTION_APPENDVIEW, IDE_HWND_COMMANDVIEW, sText);
    }
 }
 
@@ -1095,13 +1168,11 @@ void CDebugManager::_ParseTargetOutput(LPCTSTR pstrText)
    if( sLine.IsEmpty() ) return;
    // Outputting directly to the Command View if we're
    // in "command mode" (user entered custom command at prompt or scripting).
-   // TODO: We really need this to be delayed to prevent thread dead-lock
    if( m_bCommandMode ) {
       CString sText = sLine.Mid(1, sLine.GetLength() - 2);
       sText.Replace(_T("\\n"), _T("\r\n"));
       sText.Replace(_T("\\t"), _T("\t"));
-      CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
-      AppendRtfText(ctrlEdit, sText);
+      m_pProject->DelayedGuiAction(GUI_ACTION_APPENDVIEW, IDE_HWND_COMMANDVIEW, sText);
    }
 }
 
@@ -1172,6 +1243,10 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    ATLASSERT(!::IsBadStringPtr(pstrText,-1));
    // Only if debugging.
    if( !m_bDebugging ) return;
+   // Transform to MI format
+   if( m_pAdaptor == NULL ) return;
+   CString sText = m_pAdaptor->TransformOutput(pstrText);
+   pstrText = sText;
    // Count number of debug prompts (=acknoledgements)
    if( _tcsncmp(pstrText, _T("(gdb"), 4) == 0 ) {
       m_bCommandMode = false;
@@ -1194,9 +1269,9 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    // handle the situation by adding a command-handshake (see 
    // DoDebugCommand()) and by looking for substrings.
    LPCTSTR pstr = _tcsstr(pstrText, _T("232^"));
-   if( pstr ) _ParseResultRecord(pstr + 4);
+   if( pstr != NULL ) _ParseResultRecord(pstr + 4);
    pstr = _tcsstr(pstrText, _T("232*"));
-   if( pstr ) _ParseOutOfBand(pstr + 4);
+   if( pstr != NULL ) _ParseOutOfBand(pstr + 4);
    // ...and happily ignore everything else!
 }
 

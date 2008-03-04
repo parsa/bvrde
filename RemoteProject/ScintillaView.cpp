@@ -229,13 +229,13 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
       else 
       {
          CTagDetails Info;
-         if( _GetMemberInfo(lPos, Info) && !Info.sFilename.IsEmpty() ) {
+         if( _GetMemberInfo(lPos, Info, 500, MATCH_NORMAL) && !Info.sFilename.IsEmpty() ) {
             // Construct implementation prototype and see if we have any information
             // about it...
             CString sImplLookup;
             sImplLookup.Format(_T("%s%s%s"), Info.sBase, Info.sBase.IsEmpty() ? _T("") : _T("::"), Info.sName);
             CSimpleValArray<TAGINFO*> aImplResult;
-            m_pCppProject->m_TagManager.FindItem(sImplLookup, NULL, false, aImplResult);
+            m_pCppProject->m_TagManager.FindItem(sImplLookup, NULL, 0, ::GetTickCount() + 100, aImplResult);
             // Insert "Open Declaration" menu item
             int iMenuIdx = 0;
             if( !(m_sFilename.Find(Info.sFilename) >= 0 && Info.iLineNum == iLineNum + 1) ) 
@@ -504,6 +504,7 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
          // Primarily used by the "QuickWatch" functionality.
          CString sText = _GetSelectedText();
          if( sText.IsEmpty() ) sText = _GetNearText(m_ctrlEdit.GetCurrentPos());
+         ::ZeroMemory(pData->szMessage, sizeof(pData->szMessage));
          _tcsncpy(pData->szMessage, sText, (sizeof(pData->szMessage) / sizeof(TCHAR)) - 1);
       }
       break;
@@ -688,7 +689,7 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    // Ask lexer to deliver info also; the lexer can
    // give us information about type and decoration.
    CTagDetails Info;
-   if( !_GetMemberInfo(lPos, Info) ) return 0;
+   if( !_GetMemberInfo(lPos, Info, 1000, MATCH_NORMAL) ) return 0;
 
    // Show tooltip. Even if the debugger returns delayed information we
    // still show the name immediately. If the debugger finally arrives
@@ -714,9 +715,9 @@ LRESULT CScintillaView::OnAutoExpand(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
    SCNotification* pSCN = (SCNotification*) pnmh;
    if( m_pCppProject == NULL ) return 0;
    CTagDetails ParentInfo;
-   if( !_GetMemberInfo(pSCN->lParam, ParentInfo, MATCH_ALLOW_PARTIAL) ) return 0;
+   if( !_GetMemberInfo(pSCN->lParam, ParentInfo, 300, MATCH_ALLOW_PARTIAL) ) return 0;
    CSimpleValArray<TAGINFO*> aList;
-   m_pCppProject->m_TagManager.FindItem(CString(pSCN->text), ParentInfo.sBase, true, aList);
+   m_pCppProject->m_TagManager.FindItem(CString(pSCN->text), ParentInfo.sBase, 99, ::GetTickCount() + 100, aList);
    if( aList.GetSize() == 0 ) return 0;
    CTagDetails MemberInfo;
    m_pCppProject->m_TagManager.GetItemInfo(aList[0], MemberInfo);
@@ -724,8 +725,12 @@ LRESULT CScintillaView::OnAutoExpand(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
    if( MemberInfo.sDeclaration.Find('(') >= 0 ) sText = _T("(");
    if( MemberInfo.sDeclaration.Find(_T("()")) >= 0 ) sText = _T("()");
    if( MemberInfo.sDeclaration.Find(_T("( )")) >= 0 ) sText = _T("()");
-   // HACK: Insert text as delayed. The notification SCN_AUTOCSELECTION is fored 
-   // before the insertion of the actual character.
+   // FIX: Scintilla will add its auto-character if you press ( in the dropdown
+   //      and we need to prevent this. SHIFT+( indicates fill-up is used.
+   //      See http://sourceforge.net/tracker/index.php?aid=1763109&group_id=2439&atid=352439
+   if( ::GetKeyState(VK_LSHIFT) < 0 ) sText.TrimLeft(_T("("));
+   // HACK: Insert text as delayed. The notification SCN_AUTOCSELECTION is encouraged
+   //       before the insertion of addition fill-up characters.
    for( int i = 0; i < sText.GetLength(); i++ ) {
       m_ctrlEdit.PostMessage(WM_CHAR, sText.GetAt(i), 0);
    }
@@ -971,12 +976,17 @@ void CScintillaView::_AutoComplete(int ch)
    // So, does it show?
    if( !bShow ) return;
 
-   CTagDetails Info;
-   if( !_GetMemberInfo(lPos, Info, MATCH_ALLOW_PARTIAL) ) return;
+   // Get information about type under cursor
+   const DWORD DEEP_TIMEOUT_MS = 400;
+   DWORD dwTimeout = ::GetTickCount() + DEEP_TIMEOUT_MS;
 
-   // Yippie, we found one!!!
+   CTagDetails Info;
+   if( !_GetMemberInfo(lPos, Info, DEEP_TIMEOUT_MS, MATCH_ALLOW_PARTIAL) ) return;
+
+   // Yippie, we found something!!!
+
    CSimpleValArray<TAGINFO*> aList;
-   m_pCppProject->m_TagManager.GetMemberList(Info.sBase, true, aList);
+   m_pCppProject->m_TagManager.GetMemberList(Info.sBase, 99, dwTimeout, aList);
 
    // We'll not allow 0 nor more than 300 items in the list.
    // This prevents a global-scope dropdown which would be horrible slow!
@@ -1005,22 +1015,26 @@ void CScintillaView::_AutoComplete(int ch)
    sList.GetBuffer(nCount * 40);
    sList.ReleaseBuffer(0);
    TCHAR szText[200] = { 0 };
+   SIZE_T cchText = 200 - 4;
    for( int i = 0; i < nCount; i++ ) {
       // Avoid duplicated names in list
       if( i > 0 && _tcscmp(aList[i]->pstrName, aList[i - 1]->pstrName) == 0 ) continue;
       // Don't include operator overloads
       if( !_iscppcharw(aList[i]->pstrName[0]) ) continue;
+      if( _tcschr(aList[i]->pstrName, ' ') != NULL ) continue;
       // Add this baby...
-      _tcsncpy(szText, aList[i]->pstrName, (sizeof(szText) / sizeof(TCHAR)) - 4);
-      _tcscat(szText, aList[i]->Type == TAGTYPE_MEMBER ? _T("?0 ") : _T("?1 "));
+      _tcsncpy(szText, aList[i]->pstrName, cchText);
+      szText[cchText] = '\0';
+      _tcscat(szText, aList[i]->Type == TAGTYPE_MEMBER ? _T("?0|") : _T("?1|"));
       sList += szText;
    }
-   sList.TrimRight();
+   sList.TrimRight(_T("|"));
 
    // Display auto-completion popup
    _RegisterListImages();
    m_ctrlEdit.AutoCSetMaxHeight(8);
    m_ctrlEdit.AutoCSetFillUps("([");
+   m_ctrlEdit.AutoCSetSeparator('|');
    m_ctrlEdit.AutoCSetIgnoreCase(FALSE);
    m_ctrlEdit.AutoCShow(Info.sName.GetLength(), T2CA(sList));
 
@@ -1034,7 +1048,7 @@ void CScintillaView::_AutoComplete(int ch)
 }
 
 /**
- * Show function tip.
+ * Show function declaration tool-tip.
  * Attempts to determine the function syntax of the currently entered
  * function call (if any).
  */
@@ -1051,7 +1065,7 @@ void CScintillaView::_FunctionTip(int ch)
    // Get information about the function below
    CTagDetails Info;
    long lPos = m_ctrlEdit.GetCurrentPos() - 2;
-   if( !_GetMemberInfo(lPos, Info) ) return;
+   if( !_GetMemberInfo(lPos, Info, 300, MATCH_NORMAL) ) return;
    // Show tooltip
    _ShowMemberToolTip(lPos, &Info, 0, true, false, false, false, RGB(0,0,0), RGB(255,255,255));
 }
@@ -1187,7 +1201,7 @@ void CScintillaView::_ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCur
       // Collect declarations...
       m_TipInfo.aDecl.RemoveAll();
       CSimpleValArray<TAGINFO*> aResult;
-      m_pCppProject->m_TagManager.FindItem(m_TipInfo.sMemberName, m_TipInfo.sMemberType, true, aResult);
+      m_pCppProject->m_TagManager.FindItem(m_TipInfo.sMemberName, m_TipInfo.sMemberType, 99, ::GetTickCount() + 300, aResult);
       for( int i = 0; i < aResult.GetSize(); i++ ) {
          CTagDetails TagDecl;
          m_pCppProject->m_TagManager.GetItemInfo(aResult[i], TagDecl);

@@ -296,6 +296,7 @@ void CTelnetView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       if( _tcsncmp(pstrText, _T("&\""), 2) == 0 ) return;
       if( _tcsncmp(pstrText, _T("~\""), 2) == 0 ) return;
       if( _tcsncmp(pstrText, _T("(gdb"), 4) == 0 ) return;
+      if( _tcsncmp(pstrText, _T("(dbx"), 4) == 0 ) return;
       // Transform target output...
       // TODO: Figure out if we really need this here?
       TCHAR szOutput[400];
@@ -309,6 +310,7 @@ void CTelnetView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    }
 
    if( _tcsncmp(pstrText, _T("(gdb"), 4) == 0 ) nColor = VT100_BLUE;
+   if( _tcsncmp(pstrText, _T("(dbx"), 4) == 0 ) nColor = VT100_BLUE;
 
    // NOTE: Since lines may very well arrive from another thread we'll
    //       have to protect the data members.

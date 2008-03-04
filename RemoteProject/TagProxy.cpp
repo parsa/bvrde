@@ -33,16 +33,17 @@ void CTagManager::Clear()
  * Return a list of possible matches.
  * This returns a list of tags that matches the name - and optionally the owner.
  * Use 'pstrOwner' to identify the type of the owner - or NULL for global search.
- * Use 'bInheritance' flag to look further into the inheritance tree for matches.
+ * Use 'iInheritance' flag to look further into the inheritance tree for matches.
+ * Use the 'dwTimeout' argument to limit the time searching for a match.
  * This function can return multiple matches. It will only return a result from
  * the Online Lexer or the CTAGS file - in that order - both never both.
  */
-bool CTagManager::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult)
+bool CTagManager::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult)
 {
    if( pstrName == NULL ) return false;
    if( _tcslen(pstrName) == 0 ) return false;
-   if( m_LexInfo.FindItem(pstrName, pstrOwner, bInheritance, aResult) ) return true;
-   if( m_TagInfo.FindItem(pstrName, pstrOwner, bInheritance, aResult) ) return true;
+   if( m_LexInfo.FindItem(pstrName, pstrOwner, iInheritance, dwTimeout, aResult) ) return true;
+   if( m_TagInfo.FindItem(pstrName, pstrOwner, iInheritance, dwTimeout, aResult) ) return true;
    return false;
 }
 
@@ -84,12 +85,12 @@ bool CTagManager::GetGlobalList(CSimpleValArray<TAGINFO*>& aResult)
 /**
  * Get members of a specific class or structure.
  */
-bool CTagManager::GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult)
+bool CTagManager::GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult)
 {
    if( pstrType == NULL ) return false;
    if( _tcslen(pstrType) == 0 ) return false;
-   if( m_LexInfo.GetMemberList(pstrType, bInheritance, aResult) ) return true;
-   if( m_TagInfo.GetMemberList(pstrType, bInheritance, aResult) ) return true;
+   if( m_LexInfo.GetMemberList(pstrType, iInheritance, dwTimeout, aResult) ) return true;
+   if( m_TagInfo.GetMemberList(pstrType, iInheritance, dwTimeout, aResult) ) return true;
    return false;
 }
 

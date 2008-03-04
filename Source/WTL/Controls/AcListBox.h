@@ -104,7 +104,7 @@ public:
       m_wndInfo.MoveWindow(&rcInfo, FALSE);
       // Look up information about this member
       CSimpleValArray<TAGINFO*> aList;
-      m_pProject->m_TagManager.FindItem(sItem, m_sType, true, aList);
+      m_pProject->m_TagManager.FindItem(sItem, m_sType, 99, ::GetTickCount() + 200, aList);
       if( aList.GetSize() == 0 ) return;
       CTagDetails Info;
       m_pProject->m_TagManager.GetItemInfo(aList[0], Info);

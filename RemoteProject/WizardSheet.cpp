@@ -39,6 +39,12 @@ enum
    SHELLTRANSFER_COMSPEC,
 };
 
+enum
+{
+   DEBUGGERTYPE_GDB = 0,
+   DEBUGGERTYPE_DBX,
+};
+
 // This structure contains the choices of the initial page's settings, so
 // that we can pick similar settings on the remaining page in Wizard-mode.
 // Meaning Telnet automatically picks FTP, SSH leads to SFTP, etc.
@@ -102,11 +108,27 @@ static void SetCompileManagerDefaults(CCompileManager& cm, CString sServerType, 
    }
 }
 
-static void SetDebugManagerDefaults(CDebugManager& dm, CString sServerType, int iShellType)
+static void SetDebugManagerDefaults(CDebugManager& dm, CString sServerType, CString sDebuggerType, int iShellType)
 {
    if( iShellType == SHELLTRANSFER_COMSPEC ) {
       dm.SetParam(_T("ChangeDir"), _T("$DRIVE$&cd $PATH$"));   
       dm.SetParam(_T("App"), _T("$PROJECTNAME$.exe"));
+   }
+   else {
+      dm.SetParam(_T("ChangeDir"), _T("cd $PATH$"));
+      dm.SetParam(_T("App"), _T("./$PROJECTNAME$"));
+   }
+   if( sDebuggerType == _T("gdb") ) {
+      dm.SetParam(_T("Debugger"), _T("gdb"));
+      dm.SetParam(_T("AttachExe"), _T("-i=mi ./$PROJECTNAME$"));
+      dm.SetParam(_T("AttachCore"), _T("-i=mi $PROCESS$ -c $COREFILE$"));
+      dm.SetParam(_T("AttachPid"), _T("-i=mi -pid $PID$"));
+   }
+   if( sDebuggerType == _T("dbx") ) {
+      dm.SetParam(_T("Debugger"), _T("dbx"));
+      dm.SetParam(_T("AttachExe"), _T("./$PROJECTNAME$"));
+      dm.SetParam(_T("AttachCore"), _T("- $COREFILE$"));
+      dm.SetParam(_T("AttachPid"), _T("- $PID$"));
    }
 }
 
@@ -250,6 +272,15 @@ int CFileTransferPage::OnSetActive()
 
 int CFileTransferPage::OnWizardNext()
 {
+   CString sPath = CWindowText(m_ctrlPath);
+
+   // Warn when using a project path that too short; don't have good results
+   // when using root or no path...
+   if( sPath == _T("/") || sPath.IsEmpty() ) 
+   {
+      if( IDNO == _pDevEnv->ShowMessageBox(m_hWnd, CString(MAKEINTRESOURCE(IDS_ERR_RELPATH)), CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONWARNING | MB_YESNO) ) return -1;
+   }
+
    // Store the values on the first page for use in the remaining pages.
    // Notice how this is done in the WizardNext event - which is not called
    // when we're showing the Property Pages, but only during the Wizard.
@@ -300,7 +331,8 @@ LRESULT CFileOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 {
    m_ctrlList.SubclassWindow(GetDlgItem(IDC_LIST));
    m_ctrlList.SetExtendedListStyle(PLS_EX_XPLOOK|PLS_EX_CATEGORIZED);
-   m_ctrlList.SetColumnWidth(130);
+   int cx = (int) LOWORD(GetDialogBaseUnits());
+   m_ctrlList.SetColumnWidth(16 * cx);
    
    CString sName;
    CString sValue;
@@ -419,7 +451,7 @@ LRESULT CCompilerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    m_ctrlPort.SetWindowText(m_pProject->m_CompileManager.GetParam(_T("Port")));
    m_ctrlExtra.SetWindowText(m_pProject->m_CompileManager.GetParam(_T("Extra")));
 
-   CString sType = m_pProject->m_CompileManager.GetParam(_T("Type"));
+   CString sShellType = m_pProject->m_CompileManager.GetParam(_T("Type"));
    CString sServerType = m_pProject->m_CompileManager.GetParam(_T("ServerType"));
 
    // If this is the first time we're visiting the page, fill
@@ -432,7 +464,7 @@ LRESULT CCompilerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
       m_ctrlPassword.SetWindowText(g_data.sPassword);
       m_ctrlPath.SetWindowText(g_data.sPath);
       if( g_data.iFileTransferType == FILETRANSFER_SFTP ) {
-         sType = _T("ssh");
+         sShellType = _T("ssh");
          m_ctrlPort.SetWindowText(_T("22"));
       }
    }
@@ -442,9 +474,9 @@ LRESULT CCompilerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    if( m_ctrlServer.GetCurSel() < 0 ) m_ctrlServer.SetCurSel(0);
 
    int iTypeIndex = SHELLTRANSFER_TELNET;
-   if( sType == _T("ssh") )     iTypeIndex = SHELLTRANSFER_SSH;
-   if( sType == _T("rlogin") )  iTypeIndex = SHELLTRANSFER_RLOGIN;
-   if( sType == _T("comspec") ) iTypeIndex = SHELLTRANSFER_COMSPEC;
+   if( sShellType == _T("ssh") )     iTypeIndex = SHELLTRANSFER_SSH;
+   if( sShellType == _T("rlogin") )  iTypeIndex = SHELLTRANSFER_RLOGIN;
+   if( sShellType == _T("comspec") ) iTypeIndex = SHELLTRANSFER_COMSPEC;
    m_ctrlType.SetCurSel(iTypeIndex);
 
    g_data.iShellType = iTypeIndex;
@@ -473,18 +505,18 @@ LRESULT CCompilerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    CString sExtra = CWindowText(m_ctrlExtra);
    CString sServerType = CWindowText(m_ctrlServer);
 
-   CString sType = _T("telnet");
+   CString sShellType = _T("telnet");
    switch( iTypeIndex ) {
-   case SHELLTRANSFER_SSH:     sType = _T("ssh"); break;
-   case SHELLTRANSFER_RLOGIN:  sType = _T("rlogin"); break;
-   case SHELLTRANSFER_COMSPEC: sType = _T("comspec"); break;
+   case SHELLTRANSFER_SSH:     sShellType = _T("ssh"); break;
+   case SHELLTRANSFER_RLOGIN:  sShellType = _T("rlogin"); break;
+   case SHELLTRANSFER_COMSPEC: sShellType = _T("comspec"); break;
    }
 
    if( iTypeIndex == SHELLTRANSFER_SSH ) CheckCryptLib(m_hWnd);
 
    CShellManager sm;
    sm.Init(m_pProject);
-   sm.SetParam(_T("Type"), sType);
+   sm.SetParam(_T("Type"), sShellType);
    sm.SetParam(_T("Host"), sHost);
    sm.SetParam(_T("Username"), sUsername);
    sm.SetParam(_T("Password"), sPassword);
@@ -615,15 +647,15 @@ int CCompilerPage::OnApply()
    long lPort = _ttol(CWindowText(m_ctrlPort));
    CString sExtra = CWindowText(m_ctrlExtra);
 
-   CString sType = _T("telnet");
+   CString sShellType = _T("telnet");
    switch( iTypeIndex ) {
-   case SHELLTRANSFER_SSH:     sType = _T("ssh"); break;
-   case SHELLTRANSFER_RLOGIN:  sType = _T("rlogin"); break;
-   case SHELLTRANSFER_COMSPEC: sType = _T("comspec"); break;
+   case SHELLTRANSFER_SSH:     sShellType = _T("ssh"); break;
+   case SHELLTRANSFER_RLOGIN:  sShellType = _T("rlogin"); break;
+   case SHELLTRANSFER_COMSPEC: sShellType = _T("comspec"); break;
    }
 
    m_pProject->m_CompileManager.Stop();
-   m_pProject->m_CompileManager.SetParam(_T("Type"), sType);
+   m_pProject->m_CompileManager.SetParam(_T("Type"), sShellType);
    m_pProject->m_CompileManager.SetParam(_T("ServerType"), sServerType);
    m_pProject->m_CompileManager.SetParam(_T("Host"), sHost);
    m_pProject->m_CompileManager.SetParam(_T("Username"), sUsername);
@@ -655,7 +687,8 @@ LRESULT CCompilerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 {
    m_ctrlList.SubclassWindow(GetDlgItem(IDC_LIST));
    m_ctrlList.SetExtendedListStyle(PLS_EX_XPLOOK | PLS_EX_CATEGORIZED);
-   m_ctrlList.SetColumnWidth(130);
+   int cx = (int) LOWORD(GetDialogBaseUnits());
+   m_ctrlList.SetColumnWidth(16 * cx);
    
    CString sName;
    CString sValue;
@@ -818,6 +851,7 @@ LRESULT CDebuggerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    m_ctrlExtra.LimitText(1400);
 
    m_ctrlDebugger.AddString(CString(MAKEINTRESOURCE(IDS_GDB)));
+   m_ctrlDebugger.AddString(CString(MAKEINTRESOURCE(IDS_DBX)));
    m_ctrlDebugger.SetCurSel(0);
 
    m_ctrlType.AddString(CString(MAKEINTRESOURCE(IDS_TELNET)));
@@ -832,7 +866,8 @@ LRESULT CDebuggerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    m_ctrlPort.SetWindowText(m_pProject->m_DebugManager.GetParam(_T("Port")));
    m_ctrlExtra.SetWindowText(m_pProject->m_DebugManager.GetParam(_T("Extra")));
 
-   CString sType = m_pProject->m_DebugManager.GetParam(_T("Type"));
+   CString sShellType = m_pProject->m_DebugManager.GetParam(_T("Type"));
+   CString sDebuggerType = m_pProject->m_DebugManager.GetParam(_T("DebuggerType"));
 
    // If this is the first time we're visiting the page, fill
    // out some defaults...
@@ -845,19 +880,26 @@ LRESULT CDebuggerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
       m_ctrlPath.SetWindowText(g_data.sPath);
       m_ctrlExtra.SetWindowText(g_data.sExtra);
       if( g_data.iFileTransferType == FILETRANSFER_SFTP || g_data.iShellType == SHELLTRANSFER_SSH ) {
-         sType = _T("ssh");
+         sShellType = _T("ssh");
          m_ctrlPort.SetWindowText(_T("22"));
       }
       if( g_data.iShellType == SHELLTRANSFER_COMSPEC ) {
-         sType = _T("comspec");
+         sShellType = _T("comspec");
+      }
+      if( g_data.sServerType == _T("Solaris") ) {
+         sDebuggerType = _T("dbx");
       }
    }
 
    int iTypeIndex = SHELLTRANSFER_TELNET;
-   if( sType == _T("ssh") )     iTypeIndex = SHELLTRANSFER_SSH;
-   if( sType == _T("rlogin") )  iTypeIndex = SHELLTRANSFER_RLOGIN;
-   if( sType == _T("comspec") ) iTypeIndex = SHELLTRANSFER_COMSPEC;
+   if( sShellType == _T("ssh") )     iTypeIndex = SHELLTRANSFER_SSH;
+   if( sShellType == _T("rlogin") )  iTypeIndex = SHELLTRANSFER_RLOGIN;
+   if( sShellType == _T("comspec") ) iTypeIndex = SHELLTRANSFER_COMSPEC;
    m_ctrlType.SetCurSel(iTypeIndex);
+
+   int iDebuggerIndex = DEBUGGERTYPE_GDB;
+   if( sDebuggerType == _T("dbx") ) iDebuggerIndex = DEBUGGERTYPE_DBX;
+   m_ctrlDebugger.SetCurSel(iDebuggerIndex);
 
    BOOL bDummy = FALSE;
    OnTypeChange(0, 0, NULL, bDummy);
@@ -871,7 +913,7 @@ LRESULT CDebuggerPage::OnTypeChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
    int iTypeIndex = m_ctrlType.GetCurSel();
    long lPort = 23;
    switch( iTypeIndex ) {
-   case SHELLTRANSFER_SSH: lPort = 22; break;
+   case SHELLTRANSFER_SSH:    lPort = 22; break;
    case SHELLTRANSFER_RLOGIN: lPort = 513; break;
    }
    if( wID != 0 ) m_ctrlPort.SetWindowText(ToString(lPort));
@@ -905,6 +947,7 @@ LRESULT CDebuggerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    m_ctrlTest.EnableWindow(FALSE);
 
    int iTypeIndex = m_ctrlType.GetCurSel();
+   int iDebuggerIndex = m_ctrlDebugger.GetCurSel();
 
    SecClearPassword();
 
@@ -915,18 +958,24 @@ LRESULT CDebuggerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
    long lPort = _ttol(CWindowText(m_ctrlPort));
    CString sExtra = CWindowText(m_ctrlExtra);
 
-   CString sType = _T("telnet");
+   CString sShellType = _T("telnet");
    switch( iTypeIndex ) {
-   case SHELLTRANSFER_SSH:     sType = _T("ssh"); break;
-   case SHELLTRANSFER_RLOGIN:  sType = _T("rlogin"); break;
-   case SHELLTRANSFER_COMSPEC: sType = _T("comspec"); break;
+   case SHELLTRANSFER_SSH:     sShellType = _T("ssh"); break;
+   case SHELLTRANSFER_RLOGIN:  sShellType = _T("rlogin"); break;
+   case SHELLTRANSFER_COMSPEC: sShellType = _T("comspec"); break;
+   }
+
+   CString sDebuggerType = _T("gdb");
+   switch( iDebuggerIndex ) {
+   case DEBUGGERTYPE_DBX:      sDebuggerType = _T("dbx"); break;
    }
 
    if( iTypeIndex == SHELLTRANSFER_SSH ) CheckCryptLib(m_hWnd);
 
    CShellManager sm;
    sm.Init(m_pProject);
-   sm.SetParam(_T("Type"), sType);
+   sm.SetParam(_T("DebuggerType"), sDebuggerType);
+   sm.SetParam(_T("Type"), sShellType);
    sm.SetParam(_T("Host"), sHost);
    sm.SetParam(_T("Username"), sUsername);
    sm.SetParam(_T("Password"), sPassword);
@@ -967,6 +1016,7 @@ int CDebuggerPage::OnApply()
    ATLASSERT(m_pProject);
 
    int iTypeIndex = m_ctrlType.GetCurSel();
+   int iDebuggerIndex = m_ctrlDebugger.GetCurSel();
 
    CString sHost = CWindowText(m_ctrlHost);
    CString sUsername = CWindowText(m_ctrlUsername);
@@ -975,15 +1025,21 @@ int CDebuggerPage::OnApply()
    long lPort = _ttol(CWindowText(m_ctrlPort));
    CString sExtra = CWindowText(m_ctrlExtra);
 
-   CString sType = _T("telnet");
+   CString sShellType = _T("telnet");
    switch( iTypeIndex ) {
-   case SHELLTRANSFER_SSH:     sType = _T("ssh"); break;
-   case SHELLTRANSFER_RLOGIN:  sType = _T("rlogin"); break;
-   case SHELLTRANSFER_COMSPEC: sType = _T("comspec"); break;
+   case SHELLTRANSFER_SSH:     sShellType = _T("ssh"); break;
+   case SHELLTRANSFER_RLOGIN:  sShellType = _T("rlogin"); break;
+   case SHELLTRANSFER_COMSPEC: sShellType = _T("comspec"); break;
+   }
+
+   CString sDebuggerType = _T("gdb");
+   switch( iDebuggerIndex ) {
+   case DEBUGGERTYPE_DBX:      sDebuggerType = _T("dbx"); break;
    }
 
    m_pProject->m_DebugManager.Stop();
-   m_pProject->m_DebugManager.SetParam(_T("Type"), sType);
+   m_pProject->m_DebugManager.SetParam(_T("DebuggerType"), sDebuggerType);
+   m_pProject->m_DebugManager.SetParam(_T("Type"), sShellType);
    m_pProject->m_DebugManager.SetParam(_T("Host"), sHost);
    m_pProject->m_DebugManager.SetParam(_T("Username"), sUsername);
    m_pProject->m_DebugManager.SetParam(_T("Password"), sPassword);
@@ -995,7 +1051,7 @@ int CDebuggerPage::OnApply()
    if( g_data.bIsWizard )
    {
       SetShellManagerDefaults(m_pProject->m_DebugManager.m_ShellManager, g_data.sServerType);
-      SetDebugManagerDefaults(m_pProject->m_DebugManager, g_data.sServerType, iTypeIndex);
+      SetDebugManagerDefaults(m_pProject->m_DebugManager, g_data.sServerType, sDebuggerType, iTypeIndex);
 
       if( iTypeIndex == SHELLTRANSFER_SSH ) CheckCryptLib(m_hWnd);
       if( iTypeIndex == SHELLTRANSFER_COMSPEC ) CheckDebugPriv(m_hWnd);
@@ -1012,7 +1068,8 @@ LRESULT CDebuggerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 {
    m_ctrlList.SubclassWindow(GetDlgItem(IDC_LIST));
    m_ctrlList.SetExtendedListStyle(PLS_EX_XPLOOK|PLS_EX_CATEGORIZED);
-   m_ctrlList.SetColumnWidth(130);
+   int cx = (int) LOWORD(GetDialogBaseUnits());
+   m_ctrlList.SetColumnWidth(16 * cx);
    
    CString sName;
    CString sValue;
@@ -1036,11 +1093,17 @@ LRESULT CDebuggerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
    sValue = m_pProject->m_DebugManager.GetParam(_T("Debugger"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 10));
    sName.LoadString(IDS_COMMAND_ARGS);
-   sValue = m_pProject->m_DebugManager.GetParam(_T("DebuggerArgs"));
+   sValue = m_pProject->m_DebugManager.GetParam(_T("AttachExe"));
    m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 11));
+   sName.LoadString(IDS_COMMAND_CORE);
+   sValue = m_pProject->m_DebugManager.GetParam(_T("AttachCore"));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 12));
+   sName.LoadString(IDS_COMMAND_PID);
+   sValue = m_pProject->m_DebugManager.GetParam(_T("AttachPid"));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 13));
    sName.LoadString(IDS_COMMAND_MAIN);
    sValue = m_pProject->m_DebugManager.GetParam(_T("DebugMain"));
-   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 12));
+   m_ctrlList.AddItem(PropCreateSimple(sName, sValue, 14));
 
    sName.LoadString(IDS_MISC);
    m_ctrlList.AddItem(PropCreateCategory(sName));
@@ -1087,9 +1150,15 @@ int CDebuggerCommandsPage::OnApply()
    m_pProject->m_DebugManager.SetParam(_T("Debugger"), CString(v.bstrVal));
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(11), &v);
-   m_pProject->m_DebugManager.SetParam(_T("DebuggerArgs"), CString(v.bstrVal));
+   m_pProject->m_DebugManager.SetParam(_T("AttachExe"), CString(v.bstrVal));
    v.Clear();
    m_ctrlList.GetItemValue(m_ctrlList.FindProperty(12), &v);
+   m_pProject->m_DebugManager.SetParam(_T("AttachCore"), CString(v.bstrVal));
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(13), &v);
+   m_pProject->m_DebugManager.SetParam(_T("AttachPid"), CString(v.bstrVal));
+   v.Clear();
+   m_ctrlList.GetItemValue(m_ctrlList.FindProperty(14), &v);
    m_pProject->m_DebugManager.SetParam(_T("DebugMain"), CString(v.bstrVal));
 
    v.Clear();

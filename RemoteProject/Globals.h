@@ -91,6 +91,7 @@ typedef enum GUIACTION
 {
    GUI_ACTION_ACTIVATEVIEW = 1,
    GUI_ACTION_CLEARVIEW,
+   GUI_ACTION_APPENDVIEW,
    GUI_ACTION_PLAY_ANIMATION,
    GUI_ACTION_STOP_ANIMATION,
    GUI_ACTION_FILE_RELOAD,
@@ -203,6 +204,14 @@ public:
    virtual void PreAuthenticatedLine(LPCTSTR pstrText) = 0;
 };
 
+class IDebuggerAdaptor
+{
+public:
+   virtual void Init(CRemoteProject* pProject) = 0;
+   virtual CString TransformInput(LPCTSTR pstrInput) = 0;
+   virtual CString TransformOutput(LPCTSTR pstrOutput) = 0;
+};
+
 class IRemoteCommandProtocol
 {
 public:
@@ -258,11 +267,11 @@ public:
    virtual void Clear() = 0;
    virtual bool IsLoaded() const = 0;
    virtual bool IsAvailable() const = 0;
-   virtual bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult) = 0;
    virtual void GetItemInfo(const TAGINFO* pTag, CTagDetails& Info) = 0;
    virtual bool GetOuterList(CSimpleValArray<TAGINFO*>& aResult) = 0;
    virtual bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult) = 0;
-   virtual bool GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult) = 0;
+   virtual bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult) = 0;
+   virtual bool GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult) = 0;
 };
 
 

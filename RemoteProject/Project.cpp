@@ -353,6 +353,7 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_DEBUG_CLEAR_BREAKPOINTS, TRUE);
    pUIBase->UIEnable(ID_DEBUG_QUICKWATCH, FALSE);
    pUIBase->UIEnable(ID_DEBUG_PROCESSES, !bBusy);
+   pUIBase->UIEnable(ID_DEBUG_COREFILE, !bBusy);
    pUIBase->UIEnable(ID_DEBUG_ARGUMENTS, !bDebugging);
 
    pUIBase->UIEnable(ID_VIEW_COMPILE_LOG, TRUE);
@@ -516,7 +517,7 @@ void CRemoteProject::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
       }
       bHandled = TRUE;
    }
-   if( _tcsncmp(pstrCommand, _T("gdb "), 4) == 0 ) 
+   if( _tcsncmp(pstrCommand, _T("dbg "), 4) == 0 ) 
    {
       if( !m_DebugManager.IsDebugging() ) {
          // Debug session not connected?
@@ -528,7 +529,9 @@ void CRemoteProject::OnUserCommand(LPCTSTR pstrCommand, BOOL& bHandled)
          // to execute quickly. This may not be the case so we'll let the
          // command execute asynchroniously...
          m_DebugManager.SetParam(_T("InCommand"), _T("true"));
-         m_DebugManager.DoDebugCommandV(_T("-interpreter-exec console \"%s\""), pstrCommand + 4);
+         CString sCommand = pstrCommand + 4;
+         sCommand.Replace(_T("\""), _T("\\\""));
+         m_DebugManager.DoDebugCommandV(_T("-interpreter-exec console \"%s\""), sCommand);
          m_DebugManager.DoDebugCommand(_T(""));
          DWORD dwStartTime = ::GetTickCount();
          while( m_DebugManager.GetParam(_T("InCommand")) == _T("true") ) {
@@ -639,8 +642,16 @@ IView* CRemoteProject::FindView(LPCTSTR pstrFilename, bool bLocally /*= false*/)
    ::PathStripPath(szSearchFile);
    // No need to look for dummy filenames
    if( _tcslen(pstrFilename) < 2 ) return false;
-   // Scan through all views and see if there's a filename-match
-   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
+   // Scan through all views and see if there's a filepath-match
+   int i;
+   for( i = 0; i < m_aFiles.GetSize(); i++ ) {
+      IView* pView = m_aFiles[i];
+      TCHAR szFilename[MAX_PATH + 1] = { 0 };
+      pView->GetFileName(szFilename, MAX_PATH);
+      if( _tcsicmp(pstrFilename, szFilename) == 0 ) return pView;
+   }
+   // Scan again and see if there's a filename-match
+   for( i = 0; i < m_aFiles.GetSize(); i++ ) {
       IView* pView = m_aFiles[i];
       TCHAR szFilename[MAX_PATH + 1] = { 0 };
       pView->GetFileName(szFilename, MAX_PATH);
@@ -649,7 +660,7 @@ IView* CRemoteProject::FindView(LPCTSTR pstrFilename, bool bLocally /*= false*/)
    }
    // Scan for project files only?
    if( bLocally ) return NULL;
-   // Locate file in another project
+   // Locate file in another project in this solution
    ISolution* pSolution = _pDevEnv->GetSolution();
    for( int a = 0; a < pSolution->GetItemCount(); a++ ) {
       IProject* pProject = pSolution->GetItem(a);
@@ -662,8 +673,8 @@ IView* CRemoteProject::FindView(LPCTSTR pstrFilename, bool bLocally /*= false*/)
       }
    }
    // Look for the file in the dependencies
-   for( int x = 0; x < m_aDependencies.GetSize(); x++ ) {
-      IView* pView = m_aDependencies[x];
+   for( i = 0; i < m_aDependencies.GetSize(); i++ ) {
+      IView* pView = m_aDependencies[i];
       TCHAR szFilename[MAX_PATH + 1] = { 0 };
       pView->GetFileName(szFilename, MAX_PATH);
       ::PathStripPath(szFilename);

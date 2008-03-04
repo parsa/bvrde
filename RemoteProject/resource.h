@@ -272,6 +272,9 @@
 #define IDS_BREAKPOINTHIT               308
 #define IDS_BREAKPOINTTEMP              309
 #define IDS_ERR_WINXP                   310
+#define IDS_DBX                         311
+#define IDS_COMMAND_CORE                312
+#define IDS_COMMAND_PID                 313
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -297,6 +300,7 @@
 #define IDC_SUBNOTE                     1024
 #define IDC_ARGUMENTS                   1027
 #define IDC_PRESTEP                     1028
+#define IDC_COREFILE                    1028
 #define IDC_POSTSTEP                    1029
 #define IDC_SERVER                      1029
 #define IDC_HOST_LABEL                  1030
@@ -314,8 +318,12 @@
 #define IDC_CLASSBROWSER                1040
 #define IDC_PROGRESS                    1040
 #define IDC_ONLINESCANNER               1041
+#define IDC_BROWSE_PROCESS              1041
 #define IDC_MATCHBRACES                 1042
+#define IDC_BROWSE_PROCESS2             1042
+#define IDC_BROWSE_COREFILE             1042
 #define IDC_AUTOSUGGEST                 1043
+#define IDC_PROCESS                     1043
 #define IDC_AUTOCLOSE                   1044
 #define IDC_MARKERRORS                  1045
 #define IDC_BREAKPOINTLINES             1046
@@ -342,6 +350,7 @@
 #define IDD_OPTIONS_ADVANCED            32009
 #define IDD_WIZARD_STEPS                32010
 #define IDD_REBUILDLEX                  32011
+#define IDD_ATTACHCORE                  32012
 #define ID_FILE_OPEN_WITH               40001
 #define ID_FILE_COMPILE                 40002
 #define ID_FILE_DELETE                  40003
@@ -458,14 +467,15 @@
 #define ID_CLASSVIEW_PROPERTIES         40157
 #define ID_CLASSVIEW_COPY               40158
 #define ID_BUILD_LEXTAGS                40161
+#define ID_DEBUG_COREFILE               40162
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         40162
-#define _APS_NEXT_CONTROL_VALUE         1041
+#define _APS_NEXT_COMMAND_VALUE         40164
+#define _APS_NEXT_CONTROL_VALUE         1044
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

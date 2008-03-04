@@ -32,11 +32,11 @@ public:
    void Clear();
    bool IsLoaded() const;
    bool IsAvailable() const;
-   bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, CSimpleValArray<TAGINFO*>& aTags);
    void GetItemInfo(const TAGINFO* pTag, CTagDetails& Info);
    bool GetOuterList(CSimpleValArray<TAGINFO*>& aResult);
    bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult);
-   bool GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult);
+   bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aTags);
+   bool GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult);
 
 // Operations
 public:

@@ -118,7 +118,7 @@ DWORD CRloginThread::Run()
       sUsername,    // <server-user-name>
       _T("vt100"),  // <terminal-type>
       lSpeed);      // <terminal-speed>
-   for( LPSTR p = szBuffer; *p; p++ ) if( *p == '|' ) *p = '\0';
+   for( LPSTR p = szBuffer; *p != '\0'; p++ ) if( *p == '|' ) *p = '\0';
    int nSent = ::send(socket, szBuffer, nLen, 0); nSent;
 
    // NOTE: Like most of these network wrappers this is

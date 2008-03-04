@@ -60,11 +60,11 @@ public:
    void Clear();
    bool IsLoaded() const;
    bool IsAvailable() const;
-   bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult);
    void GetItemInfo(const TAGINFO* pTag, CTagDetails& Info);
    bool GetOuterList(CSimpleValArray<TAGINFO*>& aResult);
    bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult);
-   bool GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult);
+   bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult);
+   bool GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult);
 
 // Operations
 public:
@@ -73,9 +73,9 @@ public:
 
 private:
    void _LoadTags();
-   CString _FindTagParent(const TAGINFO* pTag) const;
    LEXFILE* _ParseFile(LPCTSTR pstrFilename) const;
    CString _GetLexFilename(LPCTSTR pstrFilename, bool bCreatePath) const;
+   CString _FindTagParent(const TAGINFO* pTag, int iPos) const;
 
 // Data Members
 private:

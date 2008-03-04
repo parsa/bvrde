@@ -45,6 +45,7 @@ public:
 
 private:
    CRemoteProject* m_pProject;
+   IDebuggerAdaptor* m_pAdaptor;
    CSimpleMap<CString, long> m_aBreakpoints;   /// Breakpoints; key=<filename:lineno> value=<break-nr>
    CEvent m_eventAck;                          /// New debug information is available?
    volatile int m_nDebugAck;                   /// No of debug acknoledge
@@ -59,16 +60,21 @@ private:
    bool m_bDebugEvents;                        /// Listens for GDB debug events?
    CString m_sVarName;                         /// Data-evaluation variable name
    //
-   CString m_sCommandCD;
-   CString m_sAppExecutable;
-   CString m_sAppArgs;
-   CString m_sDebuggerExecutable;
-   CString m_sDebuggerArgs;
-   CString m_sDebugMain;
-   CString m_sSearchPath;
-   long m_lStartTimeout;
-   BOOL m_bMaintainSession;
-   double m_dblDebuggerVersion;
+   CString m_sDebuggerType;                    /// What type of debugger do we speak to?
+   CString m_sCommandCD;                       /// Syntax for changing path in shell
+   CString m_sAppExecutable;                   /// Syntax for launching the application
+   CString m_sAppArgs;                         /// Current arguments for debugged application
+   CString m_sDebuggerExecutable;              /// Syntax for launching the debugger
+   CString m_sAttachExe;                       /// Syntax for attaching to application in debugger
+   CString m_sAttachCore;                      /// Syntax for attaching to core file in debugger
+   CString m_sAttachPid;                       /// Syntax for attaching to PID in debugger
+   CString m_sDebugMain;                       /// Name of "main" function in application (for first temp. breakpoint)
+   CString m_sCoreProcess;                     /// Name of process being debugger in core-debug session
+   CString m_sCoreFile;                        /// Name of core-file being debugger in core-debug session
+   CString m_sSearchPath;                      /// Include path
+   long m_lStartTimeout;                       /// Seconds to wait for debugger to start
+   BOOL m_bMaintainSession;                    /// Should we shut down shell after debugger exit?
+   double m_dblDebuggerVersion;                /// Version number of debugger
 
 // Operations
 public:
@@ -79,6 +85,7 @@ public:
 
    bool RunNormal();
    bool AttachProcess(long lPID);
+   bool AttachCoreFile(LPCTSTR pstrProcess, LPCTSTR pstrCoreFilename);
    bool RunContinue();
    bool RunDebug();
    bool Break();

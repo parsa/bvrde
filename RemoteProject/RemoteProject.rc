@@ -212,6 +212,7 @@ BEGIN
             MENUITEM "&Unterbrechen\tCtrl+Break",   ID_DEBUG_BREAK
             MENUITEM SEPARATOR
             MENUITEM "&An Prozess anhängen",        ID_DEBUG_PROCESSES
+            MENUITEM "An &Core file anhängen",      ID_DEBUG_COREFILE
             MENUITEM "Programmargumente setzen         ", ID_DEBUG_ARGUMENTS
             MENUITEM SEPARATOR
             MENUITEM "&In Aufruf springen\tF11",    ID_DEBUG_STEP_INTO
@@ -659,14 +660,14 @@ CAPTION "Breakpoint Information"
 FONT 8, "MS Sans Serif"
 BEGIN
     GROUPBOX        " Ignore Count ",IDC_FRAME1,7,7,225,62
-    CONTROL         "Ignore the breakpoint being hit the following number of time...",
+    CONTROL         "Ignore the breakpoint being hit the following number of times...",
                     IDC_IGNORECOUNT_CHECK,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,13,16,176,19
     EDITTEXT        IDC_IGNORECOUNT,25,41,42,12,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
     LTEXT           "times",-1,71,42,47,10,SS_CENTERIMAGE
     GROUPBOX        " Condition ",IDC_FRAME2,7,74,225,65
-    CONTROL         "Use the following condition to determine when the breakpoint is hit.",
+    CONTROL         "Use the following condition to determine when the breakpoint is hit...",
                     IDC_CONDITION_CHECK,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,14,86,206,18
     LTEXT           "Condition:",-1,25,111,37,10,SS_CENTERIMAGE
@@ -689,6 +690,23 @@ BEGIN
                     12
     CONTROL         "",-1,"Static",SS_ETCHEDHORZ,7,60,227,1
     LTEXT           "...",IDC_FILENAME,7,26,171,8
+END
+
+IDD_ATTACHCORE DIALOG DISCARDABLE  0, 0, 273, 97
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Attach to Core file"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Set the process and choose the core file...",IDC_STATIC,
+                    7,7,207,11
+    LTEXT           "Process:",IDC_STATIC,15,24,33,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_PROCESS,51,24,184,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE_PROCESS,236,24,13,12
+    LTEXT           "Core file: ",IDC_STATIC,15,41,33,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_COREFILE,51,41,184,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE_COREFILE,236,41,13,12
+    DEFPUSHBUTTON   "OK",IDOK,162,76,50,14,WS_DISABLED
+    PUSHBUTTON      "Abbrechen",IDCANCEL,216,76,50,14
 END
 
 
@@ -798,6 +816,14 @@ BEGIN
         RIGHTMARGIN, 234
         TOPMARGIN, 7
         BOTTOMMARGIN, 83
+    END
+
+    IDD_ATTACHCORE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 266
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 90
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -973,7 +999,7 @@ BEGIN
     IDS_ERR_COMPILERBUSY    "Ausführung jetzt nicht möglich. Der Kompiler ist derzeit bereits beschäftigt.\r\n"
     IDS_ERR_DEBUGGER_NOT_RUNNING 
                             "Ausführung nicht möglich. Der Debugger läuft derzeit nicht.\r\n"
-    IDS_HELP                "  cc <command> - Befehl in Kompilersession ausführen.\r\n  gdb <command> - GDB Debugger Befehl ausführen.\r\n"
+    IDS_HELP                "  cc <command> - Befehl in Kompilersession ausführen.\r\n  dbg <command> - Debugger Befehl ausführen.\r\n"
     IDS_ERR_COMPILER_NOT_RUNNING 
                             "Ausführung jetzt nicht möglich. Der Kompiler ist derzeit nicht kontaktiert.\r\n"
     IDS_EXECUTING           "Ausführen"
@@ -1241,11 +1267,15 @@ BEGIN
     IDS_BREAKPOINTHIT       "This breakpoint has been hit %d times.\r\n"
     IDS_BREAKPOINTTEMP      "This is a temporary breakpoint.\r\n"
     IDS_ERR_WINXP           "Windows XP erfordert.\nDiese Eigenschaft erfordert neueres Windows.\nDiese Eigenschaft ist auf Windows XP oder besseres nur vorhanden. "
+    IDS_DBX                 "DBX"
+    IDS_COMMAND_CORE        "Debugger Attach Core"
+    IDS_COMMAND_PID         "Debugger Attach PID"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_BUILD_LEXTAGS        "Rebuild the lex information\nRebuild lex"
+    ID_DEBUG_COREFILE       "Attach to a core dump file\nAttach To Core File"
 END
 
 #endif    // German (Germany) resources
@@ -1399,6 +1429,7 @@ BEGIN
             MENUITEM "&Break\tCtrl+Break",          ID_DEBUG_BREAK
             MENUITEM SEPARATOR
             MENUITEM "&Attach to Process",          ID_DEBUG_PROCESSES
+            MENUITEM "Attach to &Core file",        ID_DEBUG_COREFILE
             MENUITEM "Set Program Arguments",       ID_DEBUG_ARGUMENTS
             MENUITEM SEPARATOR
             MENUITEM "Step &Into\tF11",             ID_DEBUG_STEP_INTO
@@ -1407,8 +1438,12 @@ BEGIN
             MENUITEM "Run to cursor",               ID_DEBUG_STEP_RUN
             MENUITEM SEPARATOR
             MENUITEM "New &Breakpoint\tF8",         ID_DEBUG_BREAKPOINT
-            MENUITEM "Clear All Breakpoints",       ID_DEBUG_CLEAR_BREAKPOINTS
+            POPUP "Breakpoints"
+            BEGIN
+                MENUITEM "Clear All Breakpoints",       ID_DEBUG_CLEAR_BREAKPOINTS
 
+                MENUITEM "View Active Breakpoints",     ID_VIEW_BREAKPOINTS
+            END
         END
     END
     POPUP "Sub2"
@@ -1862,14 +1897,14 @@ CAPTION "Breakpoint Information"
 FONT 8, "MS Sans Serif"
 BEGIN
     GROUPBOX        " Ignore Count ",IDC_FRAME1,7,7,225,62
-    CONTROL         "Ignore the breakpoint being hit the following number of time...",
+    CONTROL         "Ignore the breakpoint being hit the following number of times...",
                     IDC_IGNORECOUNT_CHECK,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,13,16,176,19
     EDITTEXT        IDC_IGNORECOUNT,25,41,42,12,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
     LTEXT           "times",IDC_STATIC,71,42,47,10,SS_CENTERIMAGE
     GROUPBOX        " Condition ",IDC_FRAME2,7,74,225,65
-    CONTROL         "Use the following condition to determine when the breakpoint is hit.",
+    CONTROL         "Use the following condition to determine when the breakpoint is hit...",
                     IDC_CONDITION_CHECK,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,14,86,206,18
     LTEXT           "Condition:",IDC_STATIC,25,111,37,10,SS_CENTERIMAGE
@@ -1892,6 +1927,23 @@ BEGIN
                     12
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,60,227,1
     LTEXT           "...",IDC_FILENAME,7,26,183,8
+END
+
+IDD_ATTACHCORE DIALOG DISCARDABLE  0, 0, 273, 97
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Attach to Core file"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Set the process and choose the core file...",IDC_STATIC,
+                    7,7,207,11
+    LTEXT           "Process:",IDC_STATIC,15,24,33,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_PROCESS,51,24,184,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE_PROCESS,236,24,13,12
+    LTEXT           "Core file: ",IDC_STATIC,15,41,33,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_COREFILE,51,41,184,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE_COREFILE,236,41,13,12
+    DEFPUSHBUTTON   "OK",IDOK,162,76,50,14,WS_DISABLED
+    PUSHBUTTON      "Cancel",IDCANCEL,216,76,50,14
 END
 
 
@@ -2002,6 +2054,14 @@ BEGIN
         RIGHTMARGIN, 234
         TOPMARGIN, 7
         BOTTOMMARGIN, 83
+    END
+
+    IDD_ATTACHCORE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 266
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 90
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -2122,6 +2182,7 @@ BEGIN
     BUTTON      ID_DEBUG_START
     BUTTON      ID_DEBUG_DEBUG
     BUTTON      ID_DEBUG_PROCESSES
+    BUTTON      ID_DEBUG_COREFILE
     BUTTON      ID_DEBUG_STEP_INTO
     BUTTON      ID_DEBUG_STEP_OVER
     BUTTON      ID_DEBUG_BREAK
@@ -2359,7 +2420,7 @@ BEGIN
     IDS_ERR_COMPILERBUSY    "Cannot execute now. Compiler is currently busy.\r\n"
     IDS_ERR_DEBUGGER_NOT_RUNNING 
                             "Cannot execute. Debugger is currently not running.\r\n"
-    IDS_HELP                "  cc <command> - execute command in compiler session.\r\n  gdb <command> - execute GDB debugger command.\r\n"
+    IDS_HELP                "  cc <command> - execute command in compiler session.\r\n  dbg <command> - execute debugger command.\r\n"
     IDS_ERR_COMPILER_NOT_RUNNING 
                             "Cannot execute now. Compiler is currently not connected.\r\n"
     IDS_EXECUTING           "Execute"
@@ -2407,7 +2468,7 @@ BEGIN
     IDS_CAPTION_SEARCH      "Search"
     IDS_SAVEFILE            "Save File\nFile has been modified. Do you wish to save the file?"
     IDS_STACKLINE3          "%s,  file='%s'  (%s)"
-    IDS_ERR_RELPATH         "Use Full Path\nIt is better to use a complete start path.\nIt is not recommended to use a relative start path; use a full (complete) path instead.\n\nContinue?"
+    IDS_ERR_RELPATH         "Use Full Path\nIt is better to use a complete start path.\nIt is not recommended to use a relative start path; use a full (complete, non-root) path instead.\n\nContinue?"
     IDS_ERR_DEBUGVERSION    "Not supported\nThis version of GDB is not supported.\nThe GDB debugger needs to be at least version 5.3 to work with this IDE."
     IDS_CHECKSYNTAX         "Check Syntax"
     IDS_MISC                "Misc"
@@ -2612,7 +2673,7 @@ BEGIN
     IDS_MENU_OPENDECLARATION "Go to declaration of ""%s"""
     IDS_CAPTION_DEBUGOUTPUT "Console Output"
     IDS_MISC_SEARCHPATH     "Search Path"
-    IDS_COMMAND_ARGS        "Debugger Args"
+    IDS_COMMAND_ARGS        "Attach to program"
     IDS_MISC_MAINTAINSESSION "Maintain Session"
     IDS_MISC_PROCESSLIST    "PS command"
     IDS_ERR_PIDLIST         "Error: ps command format error."
@@ -2636,11 +2697,15 @@ BEGIN
     IDS_BREAKPOINTHIT       "This breakpoint has been hit %d times.\r\n"
     IDS_BREAKPOINTTEMP      "This is a temporary breakpoint.\r\n"
     IDS_ERR_WINXP           "Windows XP required\nThis feature requires a newer Windows\nThis feature is only available on Windows XP or better."
+    IDS_DBX                 "DBX"
+    IDS_COMMAND_CORE        "Attach to Core file"
+    IDS_COMMAND_PID         "Attach to PID"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_BUILD_LEXTAGS        "Rebuild the lex information\nRebuild lex"
+    ID_DEBUG_COREFILE       "Attach to a core dump file\nAttach To Core File"
 END
 
 #endif    // English (U.S.) resources

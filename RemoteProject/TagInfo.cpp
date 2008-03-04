@@ -63,7 +63,7 @@ bool CTagInfo::IsAvailable() const
    return false;
 }
 
-bool CTagInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult)
+bool CTagInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult)
 {
    ATLASSERT(!::IsBadStringPtr(pstrName,-1));
 
@@ -72,9 +72,10 @@ bool CTagInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, 
 
    CString sParentType;
    LPCTSTR pstrParent = NULL;   // Owner's parent (inheritance)
-   if( pstrOwner != NULL && bInheritance ) {
+   if( pstrOwner != NULL && --iInheritance >= 0 && ::GetTickCount() < dwTimeout ) 
+   {
       CSimpleValArray<TAGINFO*> aOwner;
-      if( FindItem(pstrOwner, NULL, false, aOwner) ) {
+      if( FindItem(pstrOwner, NULL, 0, dwTimeout, aOwner) ) {
          sParentType = _FindTagParent(aOwner[0]);
          if( !sParentType.IsEmpty() ) pstrParent = sParentType;
       }
@@ -220,7 +221,7 @@ bool CTagInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aResult)
    return aResult.GetSize() > 0;
 }
 
-bool CTagInfo::GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult)
+bool CTagInfo::GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult)
 {
    if( !m_bLoaded ) _LoadTags();
    if( m_aTags.GetSize() == 0 ) return false;
@@ -239,11 +240,22 @@ bool CTagInfo::GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArra
    }
 
    // Scan parent class as well?
-   if( bInheritance ) {
-      CSimpleValArray<TAGINFO*> aParentTags;
-      if( FindItem(pstrType, NULL, false, aParentTags) ) {
-         CString sParent = _FindTagParent(aParentTags[0]);
-         if( !sParent.IsEmpty() ) GetMemberList(sParent, false, aResult);
+   if( --iInheritance >= 0 && ::GetTickCount() < dwTimeout ) 
+   {
+      CSimpleValArray<TAGINFO*> aOwner;
+      if( FindItem(pstrType, NULL, 0, dwTimeout, aOwner) ) {
+         for( int i = 0; i < aOwner.GetSize() && ::GetTickCount() < dwTimeout; i++ ) {
+            switch( aOwner[i]->Type ) {
+            case TAGTYPE_CLASS:
+            case TAGTYPE_STRUCT:
+            case TAGTYPE_TYPEDEF:
+               {
+                  CString sParent = _FindTagParent(aOwner[i]);
+                  if( !sParent.IsEmpty() ) GetMemberList(sParent, iInheritance, dwTimeout, aResult);
+               }
+               break;
+            }
+         }
       }
    }
 

@@ -391,13 +391,14 @@ void CScintillaView::_AutoComplete(CHAR ch, int iLenEntered)
    sList.ReleaseBuffer();
    for( i = 0; i < aList.GetSize(); i++ ) {
       sList += aList[i];
-      sList += _T(" ");
+      sList += _T("|");
    }
-   sList.TrimRight();
+   sList.TrimRight(_T("|"));
    if( sList.IsEmpty() ) return;
 
    // Display popup
    _RegisterListImages();
+   AutoCSetSeparator('|');
    AutoCSetIgnoreCase(TRUE);
    AutoCShow(iLenEntered, T2CA(sList));
 }

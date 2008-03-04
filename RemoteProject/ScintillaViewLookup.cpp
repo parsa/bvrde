@@ -15,10 +15,14 @@
 /**
  * Extract information about a C++ member at an editor position.
  */
-bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMODE Mode)
+bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, DWORD dwTimeslice, MEMBERMATCHMODE Mode)
 {
    // There are some limitations to our capabilities...
    if( lPos < 10 ) return false;
+
+   // We'll limit the time we can use on deep-searching for a match
+   // in the inheritance hierarchy.
+   DWORD dwTimeout = ::GetTickCount() + dwTimeslice;
 
    // Find the starting position of the name below the cursor
    long lStartPos = lPos;
@@ -61,10 +65,10 @@ bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMOD
    {
       // Recurse to get types of members before equal-sign
       CTagDetails BeforeEqual;
-      if( _GetMemberInfo(lPosDelim - 3, BeforeEqual, MATCH_LHS) ) {
+      if( _GetMemberInfo(lPosDelim - 3, BeforeEqual, 200, MATCH_LHS) ) {
          CString sLType = _UndecorateType(BeforeEqual.sDeclaration);
          CSimpleValArray<TAGINFO*> aTypeTag;
-         if( m_pCppProject->m_TagManager.FindItem(sLType, NULL, false, aTypeTag) ) {
+         if( m_pCppProject->m_TagManager.FindItem(sLType, NULL, 0, dwTimeout, aTypeTag) ) {
             CTagDetails LeftType;
             m_pCppProject->m_TagManager.GetItemInfo(aTypeTag[0], LeftType);
             if( LeftType.TagType == TAGTYPE_ENUM || LeftType.sDeclaration.Find(_T(" enum ")) > 0 ) {
@@ -105,8 +109,8 @@ bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMOD
    if( !sParentName.IsEmpty() ) 
    {
       CSimpleValArray<TAGINFO*> aResult;
-      if( aResult.GetSize() == 0 && !sBlockScope.IsEmpty() ) m_pCppProject->m_TagManager.FindItem(sParentName, sBlockScope, true, aResult);
-      if( aResult.GetSize() == 0 ) m_pCppProject->m_TagManager.FindItem(sParentName, _T(""), false, aResult);
+      if( aResult.GetSize() == 0 && !sBlockScope.IsEmpty() ) m_pCppProject->m_TagManager.FindItem(sParentName, sBlockScope, 99, dwTimeout, aResult);
+      if( aResult.GetSize() == 0 ) m_pCppProject->m_TagManager.FindItem(sParentName, _T(""), 0, dwTimeout, aResult);
       bool bFound = false;
       for( int i1 = 0; !bFound && i1 < aResult.GetSize(); i1++ ) {
          switch( aResult[i1]->Type ) {
@@ -137,9 +141,9 @@ bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMOD
    }
 
    CSimpleValArray<TAGINFO*> aResult;
-   if( aResult.GetSize() == 0 && !sParentType.IsEmpty() ) m_pCppProject->m_TagManager.FindItem(sName, sParentType, true, aResult);
-   if( aResult.GetSize() == 0 && !sBlockScope.IsEmpty() ) m_pCppProject->m_TagManager.FindItem(sName, sBlockScope, true, aResult);
-   if( sParentName.IsEmpty() ) m_pCppProject->m_TagManager.FindItem(sName, _T(""), false, aResult);
+   if( aResult.GetSize() == 0 && !sParentType.IsEmpty() ) m_pCppProject->m_TagManager.FindItem(sName, sParentType, 99, dwTimeout, aResult);
+   if( aResult.GetSize() == 0 && !sBlockScope.IsEmpty() ) m_pCppProject->m_TagManager.FindItem(sName, sBlockScope, 99, dwTimeout, aResult);
+   if( sParentName.IsEmpty() ) m_pCppProject->m_TagManager.FindItem(sName, _T(""), 0, dwTimeout, aResult);
    for( int i1 = 0; i1 < aResult.GetSize(); i1++ ) {
       if( chEnd == '(' ) break;
       switch( aResult[i1]->Type ) {
@@ -268,7 +272,7 @@ CString CScintillaView::_FindBlockType(long lPos)
 
    // Now, let's find the type in the TAG files
    CSimpleValArray<TAGINFO*> aTags;
-   m_pCppProject->m_TagManager.FindItem(sType, NULL, false, aTags);
+   m_pCppProject->m_TagManager.FindItem(sType, NULL, 0, ::GetTickCount() + 100, aTags);
    for( int i = 0; i < aTags.GetSize(); i++ ) {
       switch( aTags[i]->Type ) {
       case TAGTYPE_CLASS:
@@ -419,7 +423,7 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
 
          // Now, let's find the type in the lex data
          CSimpleValArray<TAGINFO*> aTags;
-         m_pCppProject->m_TagManager.FindItem(sType, NULL, false, aTags);
+         m_pCppProject->m_TagManager.FindItem(sType, NULL, 0, ::GetTickCount() + 99, aTags);
          for( int i = 0; i < aTags.GetSize(); i++ ) {
             switch( aTags[i]->Type ) {
             case TAGTYPE_ENUM:

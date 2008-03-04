@@ -205,6 +205,18 @@ SOURCE=.\LexInfo.cpp
 SOURCE=.\TagInfo.cpp
 # End Source File
 # End Group
+# Begin Group "Debugger Source"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\DbxAdaptor.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\GdbAdaptor.cpp
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\Commands.cpp
@@ -396,6 +408,10 @@ SOURCE=.\ArgumentsDlg.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\AttachCoreFileDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\AttachProcessDlg.h
 # End Source File
 # Begin Source File
@@ -517,6 +533,18 @@ SOURCE=.\LexInfo.h
 # Begin Source File
 
 SOURCE=.\TagInfo.h
+# End Source File
+# End Group
+# Begin Group "Debugger"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\DbxAdaptor.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\GdbAdaptor.h
 # End Source File
 # End Group
 # Begin Source File

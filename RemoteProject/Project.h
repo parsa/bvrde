@@ -160,8 +160,8 @@ public:
    void DelayedOpenView(LPCTSTR pstrFilename, int iLineNum);
    void DelayedDebugCommand(LPCTSTR pstrCommand);
    void DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UINT iFlags);
-   void DelayedGuiAction(UINT iAction, IDE_HWND_TYPE WindowType);
    void DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename = NULL, int iLineNum = -1);
+   void DelayedGuiAction(UINT iAction, IDE_HWND_TYPE WindowType, LPCTSTR pstrMessage = NULL);
    void DelayedLocalViewMessage(WPARAM wCmd, LPCTSTR pstrFilename = NULL, int iLineNum = -1, UINT iFlags = 0);
    void DelayedGlobalViewMessage(WPARAM wCmd, LPCTSTR pstrFilename = NULL, int iLineNum = -1, UINT iFlags = 0);
    void DelayedDebugBreakpoint(LPCTSTR pstrFilename, int iLineNum);
@@ -206,6 +206,7 @@ public:
       COMMAND_ID_HANDLER(ID_DEBUG_CLEAR_BREAKPOINTS, OnDebugClearBreakpoints)     
       COMMAND_ID_HANDLER(ID_DEBUG_QUICKWATCH, OnDebugQuickWatch)
       COMMAND_ID_HANDLER(ID_DEBUG_PROCESSES, OnDebugProcesses)
+      COMMAND_ID_HANDLER(ID_DEBUG_COREFILE, OnDebugCoreFile)
       COMMAND_ID_HANDLER(ID_DEBUG_ARGUMENTS, OnDebugArguments)
       COMMAND_ID_HANDLER(ID_BUILD_CLEAN, OnBuildClean)
       COMMAND_ID_HANDLER(ID_BUILD_PROJECT, OnBuildProject)
@@ -259,6 +260,7 @@ public:
    LRESULT OnDebugClearBreakpoints(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugQuickWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugProcesses(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugCoreFile(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugArguments(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnBuildClean(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnBuildProject(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

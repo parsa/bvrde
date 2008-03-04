@@ -137,7 +137,7 @@ void CLexInfo::Clear()
    m_aFiles.RemoveAll();
 }
 
-bool CLexInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult)
+bool CLexInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult)
 {
    ATLASSERT(!::IsBadStringPtr(pstrName,-1));
 
@@ -146,11 +146,20 @@ bool CLexInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, bool bInheritance, 
 
    CString sParentType;
    LPCTSTR pstrParent = NULL;   // Owner's parent (inheritance)
-   if( pstrOwner != NULL && bInheritance ) {
+   if( pstrOwner != NULL && --iInheritance >= 0 && ::GetTickCount() < dwTimeout ) 
+   {
       CSimpleValArray<TAGINFO*> aOwner;
-      if( FindItem(pstrOwner, NULL, false, aOwner) ) {
-         sParentType = _FindTagParent(aOwner[0]);
-         if( !sParentType.IsEmpty() ) pstrParent = sParentType;
+      if( FindItem(pstrOwner, NULL, 0, dwTimeout, aOwner) ) {
+         for( int i = 0; pstrParent == NULL && i < aOwner.GetSize(); i++  ) {
+            switch( aOwner[i]->Type ) {
+            case TAGTYPE_CLASS:
+            case TAGTYPE_STRUCT:
+            case TAGTYPE_TYPEDEF:
+               sParentType = _FindTagParent(aOwner[0], 0);
+               if( !sParentType.IsEmpty() ) pstrParent = sParentType;
+               break;
+            }
+         }
       }
    }
 
@@ -274,8 +283,10 @@ bool CLexInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aResult)
    return aResult.GetSize() > 0;
 }
 
-bool CLexInfo::GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArray<TAGINFO*>& aResult)
+bool CLexInfo::GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult)
 {
+   ATLASSERT(!::IsBadStringPtr(pstrType,-1));
+
    if( !m_bLoaded ) _LoadTags();
    if( m_aFiles.GetSize() == 0 ) return false;
 
@@ -293,12 +304,26 @@ bool CLexInfo::GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArra
       }
    }
 
-   // Scan parent class as well?
-   if( bInheritance ) {
-      CSimpleValArray<TAGINFO*> aParentTags;
-      if( FindItem(pstrType, NULL, false, aParentTags) ) {
-         CString sParent = _FindTagParent(aParentTags[0]);
-         if( !sParent.IsEmpty() ) GetMemberList(sParent, false, aResult);
+   // Scan parent classes as well?
+   if( --iInheritance >= 0 && ::GetTickCount() < dwTimeout ) 
+   {
+      CSimpleValArray<TAGINFO*> aOwner;
+      if( FindItem(pstrType, NULL, 0, dwTimeout, aOwner) ) {
+         for( int i = 0; i < aOwner.GetSize() && ::GetTickCount() < dwTimeout; i++ ) {
+            switch( aOwner[i]->Type ) {
+            case TAGTYPE_CLASS:
+            case TAGTYPE_STRUCT:
+            case TAGTYPE_TYPEDEF:
+               {                  
+                  for( int iPos = 0; iPos < 99 && ::GetTickCount() < dwTimeout; iPos++ ) {
+                     CString sParent = _FindTagParent(aOwner[i], iPos);
+                     if( sParent.IsEmpty() ) break;
+                     GetMemberList(sParent, iInheritance, dwTimeout, aResult);
+                  }
+               }
+               break;
+            }
+         }
       }
    }
 
@@ -307,7 +332,7 @@ bool CLexInfo::GetMemberList(LPCTSTR pstrType, bool bInheritance, CSimpleValArra
 
 // Implementation
 
-CString CLexInfo::_FindTagParent(const TAGINFO* pTag) const
+CString CLexInfo::_FindTagParent(const TAGINFO* pTag, int iPos) const
 {
    // Extract inheritance type.
    // HACK: We simply scoop up the "class CFoo : public CBar" text from
@@ -320,19 +345,47 @@ CString CLexInfo::_FindTagParent(const TAGINFO* pTag) const
       _T("private"),
       _T("typedef"),
       _T("virtual"),
-      _T(" : "),
+      _T(" :"),
+      _T("::"),
+      _T(","),
       NULL
    };
-   for( LPCTSTR* ppstrToken = pstrTokens; *ppstrToken != NULL; ppstrToken++ ) {
-      LPCTSTR p = _tcsstr(pTag->pstrDeclaration, *ppstrToken);
-      if( p == NULL ) continue;
-      p += _tcslen(*ppstrToken);
-      while( _istspace(*p) ) p++;
-      CString sName;
-      while( _istalnum(*p) || *p == '_' ) sName += *p++;
-      return sName;      
+   static LPCTSTR pstrKeywords[] = 
+   {
+      _T("public"),
+      _T("protected"),
+      _T("private"),
+      _T("typedef"),
+      _T("virtual"),
+      _T("template"),
+      _T("class"),
+      _T("typename"),
+      NULL
+   };
+   CString sName;
+   LPCTSTR pstrStart = pTag->pstrDeclaration;
+   while( iPos >= 0 && pstrStart != NULL ) {
+      sName = _T("");
+      LPCTSTR pstrMatch = NULL;
+      for( LPCTSTR* ppstrToken = pstrTokens; *ppstrToken != NULL; ppstrToken++ ) {
+         LPCTSTR p = _tcsstr(pstrStart, *ppstrToken);
+         if( p == NULL ) continue;
+         p += _tcslen(*ppstrToken);
+         while( _istspace(*p) ) p++;
+         for( LPCTSTR* ppstrKnown = pstrKeywords; *ppstrKnown != NULL; ppstrKnown++ ) {
+            if( _tcsncmp(p, *ppstrKnown, _tcslen(*ppstrKnown)) == 0 ) { p = NULL; break; }
+         }
+         if( p == NULL ) continue;
+         if( p < pstrMatch || pstrMatch == NULL ) pstrMatch = p;
+      }
+      if( pstrMatch != NULL ) {
+         sName = _T("");
+         while( _istalnum(*pstrMatch) || *pstrMatch == '_' ) sName += *pstrMatch++;
+         pstrStart = pstrMatch;         
+      }
+      --iPos;
    }
-   return _T("");
+   return sName;
 }
 
 void CLexInfo::_LoadTags()

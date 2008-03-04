@@ -176,7 +176,7 @@ public:
    bool _IsRealCppEditPos(long lPos, bool bIncludeNonIdentifiers) const;
    void _ShowToolTip(long lPos, CString sText, bool bAdjustPos, bool bAcceptTimeout, COLORREF clrText, COLORREF clrBack);
    void _ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCurTip, bool bFilterMembers, bool bExpand, bool bAdjustPos, bool bAcceptTimeout, COLORREF clrBack, COLORREF clrText);
-   bool _GetMemberInfo(long lPos, CTagDetails& Info, MEMBERMATCHMODE Mode = MATCH_NORMAL);
+   bool _GetMemberInfo(long lPos, CTagDetails& Info, DWORD dwTimeslice, MEMBERMATCHMODE Mode);
    CString _FindBlockType(long lPos);
    CString _FindIncludeUnderCursor(long lPos);
    bool _FindLocalVariableType(const CString& sName, long lPos, CTagDetails& Info);
