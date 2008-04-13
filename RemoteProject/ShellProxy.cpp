@@ -202,18 +202,30 @@ void CShellManager::BroadcastLine(VT100COLOR Color, LPCTSTR pstrText)
 void CShellManager::PreAuthenticatedLine(LPCTSTR pstrText)
 {
    // Try to detect server type...
-   if( m_sServerType.IsEmpty() ) {
-      CString s = pstrText;
-      if( s.Find(_T("Linux")) >= 0 )   m_sServerType = _T("LINUX");
-      if( s.Find(_T("LINUX")) >= 0 )   m_sServerType = _T("LINUX");
-      if( s.Find(_T("Windows")) >= 0 ) m_sServerType = _T("Windows");
-      if( s.Find(_T("Solaris")) >= 0 ) m_sServerType = _T("Solaris");
-      if( s.Find(_T("UNIX")) >= 0 )    m_sServerType = _T("UNIX");
-      if( s.Find(_T("Debian")) >= 0 )  m_sServerType = _T("LINUX (Debian)");
-      if( s.Find(_T("Gentoo")) >= 0 )  m_sServerType = _T("LINUX (Gentoo)");
-      if( s.Find(_T("Red Hat")) >= 0 ) m_sServerType = _T("LINUX (Red Hat)");
-      if( s.Find(_T("Ubuntu")) >= 0 )  m_sServerType = _T("LINUX (Ubuntu)");
-      if( s.Find(_T("HP-UX")) >= 0 )   m_sServerType = _T("UNIX (HP-UX)");
+   if( m_sServerType.IsEmpty() ) 
+   {
+      typedef struct tagOSTYPES {
+         LPCTSTR pstrToken; LPCTSTR pstrServerType;
+      } OSTYPES;
+      static OSTYPES aTypes[] = {
+         { _T("Windows"),  _T("Windows") },
+         { _T("Solaris"),  _T("Solaris") },
+         { _T("SunOS"),    _T("Solaris") },
+         { _T("Linux"),    _T("LINUX") },
+         { _T("LINUX"),    _T("LINUX") },
+         { _T("Debian"),   _T("LINUX (Debian)") },
+         { _T("Gentoo"),   _T("LINUX (Gentoo)") },
+         { _T("Red Hat"),  _T("LINUX (Red Hat)") },
+         { _T("Ubuntu"),   _T("LINUX (Ubuntu)") },
+         { _T("CentOS"),   _T("LINUX (CentOS)") },
+         { _T("UNIX"),     _T("UNIX") },
+         { _T("HP-UX"),    _T("UNIX (HP-UX)") },
+         { _T("FreeBSD"),  _T("FreeBSD") },
+         { _T("OpenBSD"),  _T("OpenBSD") }
+      };
+      for( int i = 0; i < sizeof(aTypes) / sizeof(aTypes[0]); i++ ) {
+         if( _tcsstr(pstrText, aTypes[i].pstrToken) != NULL ) m_sServerType = aTypes[i].pstrServerType;
+      }
    }
 }
 

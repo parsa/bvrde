@@ -152,7 +152,7 @@ void CView::ActivateUI()
    ATLASSERT(menu.IsMenu());
 
    CMenuHandle menuMain = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
-   CMenuHandle menuView = menuMain.GetSubMenu(2);
+   CMenuHandle menuView = menuMain.GetSubMenu(MENUPOS_VIEW_FB);
    MergeMenu(menuView , menu.GetSubMenu(0), 1);
 
    _pDevEnv->AddIdleListener(this);

@@ -19,7 +19,7 @@ public:
 public:
    void Init(CRemoteProject* pProject);
    CString TransformInput(LPCTSTR pstrInput);
-   CString TransformOutput(LPCTSTR pstrOutput);
+   void TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOutput);
 
 // Implementation
 private:
@@ -33,13 +33,13 @@ private:
    } DBXLOCATION;
 
    void _SplitCommand(LPCTSTR pstrInput, CSimpleArray<CString>& aArgs, CString& sFullArgs) const;
-   void _AdjustAnswerList(LPCTSTR pstrEnding, CString sNewItem);
+   void _AdjustAnswerList(LPCTSTR pstrBeginning, LPCTSTR pstrEnding, CString sNewItem);
    bool _SkipArg(const CSimpleArray<CString>& aArgs, int& iIndex, LPCTSTR pstrMatch) const;
    CString _GetArg(const CSimpleArray<CString>& aArgs, int& iIndex) const;
    bool _GetNumericArg(const CSimpleArray<CString>& aArgs, int& iIndex, long& lBreakpointNo) const;
-   void _GetLocationArgs(const CString sCommand, DBXLOCATION& Location) const;
    void _GetLocationArgs(const CSimpleArray<CString>& aArgs, int& iIndex, DBXLOCATION& Location) const;
    void _GetInputFileLineArgs(const CString sArg, CString& sFile, CString& sLineNum) const;
+   void _ParseLocationArgs(const CString sCommand, DBXLOCATION& Location) const;
 
 // Data members
 private:
@@ -71,10 +71,11 @@ private:
    
    DBXSTATE m_State;                  /// State machine
    CString m_sReturnValue;            /// Value to return upon end of frame 
-   long m_lReturnIndex;               /// Number of lines in frame detected so far
+   long m_lReturnIndex;               /// Number of lines in compound output detected so far
+   long m_lLevel;                     /// Last known WHERE level in compound output
    bool m_bSeenPrompt;                /// Seen prompt yet?
    bool m_bThreadSupport;             /// Has thread support (as opposed to LWPs)
-   CString m_sWatchName;
+   CString m_sWatchName;              /// Name of currently inspected watch
    CSimpleMap<CString, CString> m_aWatches;
 };
 

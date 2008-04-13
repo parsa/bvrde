@@ -77,7 +77,7 @@ EXTERN_C
 VOID WINAPI Plugin_SetMenu(HMENU hMenu)
 {
    // Modify "Edit" menu
-   hMenu = ::GetSubMenu(hMenu, 1);
+   hMenu = ::GetSubMenu(hMenu, MENUPOS_EDIT_FB);
    int nCount = ::GetMenuItemCount(hMenu);   
    for( int i = 0; i < nCount; i++ ) {
       // Find the position of the "Find" menu item and

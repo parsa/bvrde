@@ -134,6 +134,10 @@ SOURCE=.\StackView.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SymbolView.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\TelnetView.cpp
 # End Source File
 # Begin Source File
@@ -473,6 +477,10 @@ SOURCE=.\ScintillaView.h
 # Begin Source File
 
 SOURCE=.\StackView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SymbolView.h
 # End Source File
 # Begin Source File
 

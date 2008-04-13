@@ -758,7 +758,7 @@ BEGIN
     POPUP "&Bearbeiten"
     BEGIN
         MENUITEM "Rückgängig\tCtrl+Z",          ID_EDIT_UNDO
-        MENUITEM "Wiederherstellen\tCtrl+Y",    ID_EDIT_REDO
+        MENUITEM "Wiederherstellen   \tCtrl+Y", ID_EDIT_REDO
         MENUITEM SEPARATOR
         MENUITEM "Ausschneiden\tCtrl+X",        ID_EDIT_CUT
         MENUITEM "Kopieren\tCtrl+C",            ID_EDIT_COPY
@@ -793,7 +793,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Vollbild             \tF12",  ID_VIEW_FULLSCREEN
         MENUITEM SEPARATOR
-        MENUITEM "Eigenschaften",               ID_VIEW_PROPERTIES
+        MENUITEM "Eigenschaften        ",       ID_VIEW_PROPERTIES
     END
     POPUP "&Tools"
     BEGIN
@@ -807,7 +807,7 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "Makromanager...",             ID_MACRO_MANAGER
         END
-        MENUITEM "Add-In Manager...",           ID_TOOLS_ADDIN_MANAGER
+        MENUITEM "Add-In Manager...     ",      ID_TOOLS_ADDIN_MANAGER
         MENUITEM SEPARATOR
         MENUITEM "&Externe Tools...",           ID_TOOLS_EXTERNAL
         MENUITEM SEPARATOR
@@ -819,7 +819,7 @@ BEGIN
         MENUITEM "Überlappend",                 ID_WINDOW_CASCADE
         MENUITEM "Untereinander",               ID_WINDOW_TILE_HORZ
         MENUITEM "Nebeneinander",               ID_WINDOW_TILE_VERT
-        MENUITEM "Symbole anordnen",            ID_WINDOW_ARRANGE
+        MENUITEM "Symbole anordnen    ",        ID_WINDOW_ARRANGE
         MENUITEM SEPARATOR
         MENUITEM "&Nächstes",                   ID_WINDOW_NEXT
         MENUITEM "&Vorhergehendes",             ID_WINDOW_PREVIOUS
@@ -834,7 +834,7 @@ BEGIN
         MENUITEM "Index...",                    ID_HELP_INDEX
         MENUITEM "&Suchen...",                  ID_HELP_SEARCH
         MENUITEM SEPARATOR
-        MENUITEM "Startseite zeigen",           ID_HELP_STARTPAGE
+        MENUITEM "Startseite zeigen    ",       ID_HELP_STARTPAGE
         MENUITEM SEPARATOR
         MENUITEM "&Über BVRDE...",              ID_APP_ABOUT
     END
@@ -1865,7 +1865,7 @@ BEGIN
             MENUITEM "New Project...",              ID_NEW_PROJECT
             MENUITEM "Existing Project...",         ID_ADD_PROJECT
         END
-        MENUITEM "&Open File\tCtrl+O",          ID_FILE_OPEN
+        MENUITEM "&Open File                    \tCtrl+O", ID_FILE_OPEN
         MENUITEM "Close",                       ID_WINDOW_CLOSE
         MENUITEM SEPARATOR
         MENUITEM "Open Solution...",            ID_FILE_OPENSOLUTION
@@ -1895,7 +1895,7 @@ BEGIN
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
         MENUITEM "&Delete",                     ID_EDIT_CLEAR
         MENUITEM SEPARATOR
-        MENUITEM "Select All   \tCtrl+A",       ID_EDIT_SELECT_ALL
+        MENUITEM "Select All       \tCtrl+A",   ID_EDIT_SELECT_ALL
         MENUITEM SEPARATOR
         MENUITEM "&Find...\tCtrl+F",            ID_EDIT_FIND
         MENUITEM "Replace...\tCtrl+R",          ID_EDIT_REPLACE
@@ -1937,7 +1937,7 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "Macro Manager...",            ID_MACRO_MANAGER
         END
-        MENUITEM "Add-In Manager...",           ID_TOOLS_ADDIN_MANAGER
+        MENUITEM "Add-In Manager...      ",     ID_TOOLS_ADDIN_MANAGER
         MENUITEM SEPARATOR
         MENUITEM "&External Tools...",          ID_TOOLS_EXTERNAL
         MENUITEM SEPARATOR
@@ -1947,7 +1947,7 @@ BEGIN
     POPUP "&Window"
     BEGIN
         MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
-        MENUITEM "&Tile Horizontally",          ID_WINDOW_TILE_HORZ
+        MENUITEM "&Tile Horizontally     ",     ID_WINDOW_TILE_HORZ
         MENUITEM "Tile &Vertically",            ID_WINDOW_TILE_VERT
         MENUITEM "Arrange &Icons",              ID_WINDOW_ARRANGE
         MENUITEM SEPARATOR
@@ -1964,7 +1964,7 @@ BEGIN
         MENUITEM "Index...",                    ID_HELP_INDEX
         MENUITEM "&Search...",                  ID_HELP_SEARCH
         MENUITEM SEPARATOR
-        MENUITEM "Show Start Page",             ID_HELP_STARTPAGE
+        MENUITEM "Show Start Page     ",        ID_HELP_STARTPAGE
         MENUITEM SEPARATOR
         MENUITEM "&About BVRDE...",             ID_APP_ABOUT
     END

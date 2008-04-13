@@ -12,7 +12,7 @@
 ////////////////////////////////////////////////////////
 //
 
-CDbxAdaptor::CDbxAdaptor() : m_State(DBX_UNKNOWN), m_bSeenPrompt(false), m_bThreadSupport(true)
+CDbxAdaptor::CDbxAdaptor() : m_State(DBX_UNKNOWN), m_bSeenPrompt(false), m_bThreadSupport(true), m_lReturnIndex(0), m_lLevel(0)
 {   
 }
 
@@ -39,7 +39,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    // have to convert all commands to native DBX syntax before sending
    // them to the remote shell.
    // Just like the GDB debugger is prefixing with 232 sentinel we'll
-   // also prefix DBX commands. This allows us to recognize the echo
+   // also postfix DBX commands. This allows us to recognize the echo
    // that some protocols will insist on delivering.
    CString sFullArgs;
    CSimpleArray<CString> aArgs;
@@ -105,6 +105,13 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
       CString sName = _GetArg(aArgs, iIndex);
       _GetArg(aArgs, iIndex);
       CString sExpr = _GetArg(aArgs, iIndex);
+      // Cleanup before new QuickWatch dialog...
+      if( sName == _T("quickwatch") ) {
+         for( int i = m_aWatches.GetSize() - 1; i >= 0; --i ) {
+            if( m_aWatches.GetKeyAt(i).Find(_T("quickwatch")) >= 0 ) m_aWatches.Remove(m_aWatches.GetKeyAt(i));
+         }
+      }
+      // Add watch expression to a local cache
       if( !m_aWatches.SetAt(sName, sExpr) ) m_aWatches.Add(sName, sExpr);
       sOut.Format(_T("display %s;  ## dbx"), sExpr);
       return sOut;
@@ -112,35 +119,41 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    if( sCommand == _T("-var-delete") )
    {
       CString sExpr, sName = _GetArg(aArgs, iIndex);
-      long lKeyIndex = m_aWatches.FindKey(sName);
-      if( lKeyIndex < 0 ) return _T("");
-      sExpr = m_aWatches.GetValueAt(lKeyIndex);
+      int iKeyIndex = m_aWatches.FindKey(sName);
+      if( iKeyIndex < 0 ) return _T("");
+      sExpr = m_aWatches.GetValueAt(iKeyIndex);
       sOut.Format(_T("undisplay %s;  ## dbx"), sExpr);
       return sOut;
    }
    if( sCommand == _T("-var-info-type") )
    {
       CString sExpr, sName = _GetArg(aArgs, iIndex);
-      long lKeyIndex = m_aWatches.FindKey(sName);
-      if( lKeyIndex < 0 ) return _T("");
-      sExpr = m_aWatches.GetValueAt(lKeyIndex);
+      int iKeyIndex = m_aWatches.FindKey(sName);
+      if( iKeyIndex < 0 ) return _T("");
+      sExpr = m_aWatches.GetValueAt(iKeyIndex);
       sOut.Format(_T("whatis %s;  ## dbx"), sExpr);
       return sOut;
    }
    if( sCommand == _T("-var-evaluate-expression") )
    {
       CString sExpr, sName = _GetArg(aArgs, iIndex);
-      long lKeyIndex = m_aWatches.FindKey(sName);
-      if( lKeyIndex < 0 ) return _T("");
-      sExpr = m_aWatches.GetValueAt(lKeyIndex);
+      int iKeyIndex = m_aWatches.FindKey(sName);
+      if( iKeyIndex < 0 ) {
+         sExpr = sName;
+         sExpr.Replace(_T("quickwatch."), _T(""));
+         m_aWatches.Add(sName, sExpr);
+      } 
+      else {
+         sExpr = m_aWatches.GetValueAt(iKeyIndex);
+      }
       sOut.Format(_T("print %s;  ## dbx"), sExpr);
       return sOut;
    }
    if( sCommand == _T("-var-list-children") )
    {
       CString sExpr, sName = _GetArg(aArgs, iIndex);
-      long lKeyIndex = m_aWatches.FindKey(sName);
-      if( lKeyIndex >= 0 ) sExpr = m_aWatches.GetValueAt(lKeyIndex);
+      int iKeyIndex = m_aWatches.FindKey(sName);
+      if( iKeyIndex >= 0 ) sExpr = m_aWatches.GetValueAt(iKeyIndex);
       sOut.Format(_T("print -r %s;  ## dbx"), sExpr);
       return sOut;
    }
@@ -166,7 +179,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    }
    if( sCommand == _T("-thread-list-ids") )
    {
-      sOut.Format(_T("%s; ## dbx"), m_bThreadSupport ? _T("threads") : _T("lwps"));
+      sOut.Format(_T("%s;  ## dbx"), m_bThreadSupport ? _T("threads") : _T("lwps"));
       return sOut;
    }   
    if( sCommand == _T("-stack-select-frame") )
@@ -182,7 +195,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    }   
    if( sCommand == _T("-data-list-register-names") )
    {
-      return _T("regs -F; ## dbx names");
+      return _T("regs -F;  ## dbx names");
    }
    if( sCommand == _T("-data-list-register-values") )
    {
@@ -245,7 +258,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    if( sCommand == _T("-gdb-set") )
    {
       if( _SkipArg(aArgs, iIndex, _T("confirm")) ) {
-         return _T("set $page=0; set $prompt=\"(dbx) \"; PS1=\"(dbx) \";  ## dbx");
+         return _T("set $page=0; set $prompt=\"(dbx) \"; set $pagewidth=999; PS1=\"(dbx) \";  ## dbx");
       }
       if( _SkipArg(aArgs, iIndex, _T("variable")) ) {
          sOut.Format(_T("assign %s;  ## dbx"), sFullArgs.Mid(9));  // "variable "=len9
@@ -282,16 +295,27 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
 /**
  * Transform DBX output to GDB MI format.
  */
-CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
+void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOutput)
 {
    // Internally we only support the GDB MI format, so we need to transform
    // any output result from native DBX format back to GDB MI format.
-   // We use a simple state-machine to keep track of when the output lines might
+   // We use a simple state-machine to keep track of what the output lines might
    // be related to since we also see the most recent command submitted.
    if( _tcsncmp(pstrOutput, _T("(dbx"), 4) == 0 ) 
    {
+      m_bSeenPrompt = true;
       // Confused by running state?
+      CString sOldReturnValue = m_sReturnValue;
       if( m_State == DBX_RUNNING && m_sReturnValue == _T("(gdb)") ) m_sReturnValue = _T("232*stopped,");
+      // Generate output.
+      // Always generate the READY prompt.
+      aOutput.Add(m_sReturnValue);
+      if( m_sReturnValue != _T("(gdb)") ) {
+         CString sMi = _T("(gdb)");
+         aOutput.Add(sMi);
+      }
+      m_lLevel = 0;
+      m_lReturnIndex = 0;
       // Update state in state-machine
       struct
       {
@@ -300,125 +324,185 @@ CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
          LPCTSTR pstrEmptyResult;
       } cat[] = 
       {
-         { DBX_RUNARGS,   _T("(dbx) runargs")                 _T("(gdb)") },
-         { DBX_RUNNING,   _T("(dbx) run"),                    _T("(gdb)") },
-         { DBX_RUNNING,   _T("(dbx) cont"),                   _T("(gdb)") },
-         { DBX_RUNNING,   _T("(dbx) next"),                   _T("(gdb)") },
-         { DBX_RUNNING,   _T("(dbx) step"),                   _T("(gdb)") },
-         { DBX_RUNNING,   _T("(dbx) stepi"),                  _T("(gdb)") },
-         { DBX_RUNNING,   _T("(dbx) until"),                  _T("(gdb)") },
-         { DBX_RUNNING,   _T("(dbx) return"),                 _T("(gdb)") },
-         { DBX_STACKARGS, _T("(dbx) where 1"),                _T("(gdb)") },
-         { DBX_WHERE,     _T("(dbx) where"),                  _T("(gdb)") },
-         { DBX_PRINTC,    _T("(dbx) print -r"),               _T("(gdb)") },
-         { DBX_PRINT,     _T("(dbx) print"),                  _T("(gdb)") },
-         { DBX_DUMP,      _T("(dbx) dump"),                   _T("232^done,locals=[]") },
-         { DBX_DISPLAY,   _T("(dbx) display"),                _T("(gdb)") },
-         { DBX_DIS,       _T("(dbx) dis"),                    _T("(gdb)") },
-         { DBX_REGNAMES,  _T("(dbx) regs -F;  ## dbx names"), _T("(gdb)") },
-         { DBX_REGS,      _T("(dbx) regs -F"),                _T("(gdb)") },
-         { DBX_FRAME,     _T("(dbx) frame"),                  _T("(gdb)") },
-         { DBX_STOP,      _T("(dbx) stop"),                   _T("(gdb)") },
-         { DBX_STATUS,    _T("(dbx) status"),                 _T("232^done,BreakpointTable={nr_rows=\"0\",nr_cols=\"9\",hdr=[{}],body=[]") },
-         { DBX_THREADS,   _T("(dbx) threads"),                _T("232^done,thread-ids={}") },
-         { DBX_LWPS,      _T("(dbx) lwps"),                   _T("232^done,thread-ids={}") },
-         { DBX_EXAMINE,   _T("(dbx) examine"),                _T("232^done,addr=\"\",memory=[]") },
-         { DBX_PWD,       _T("(dbx) pwd"),                    _T("(gdb)") },
-         { DBX_UNKNOWN,   _T("(dbx)"),                        _T("(gdb)") },
+         { DBX_RUNARGS,        _T("(dbx) runargs")                 _T("(gdb)") },
+         { DBX_RUNNING,        _T("(dbx) run"),                    _T("(gdb)") },
+         { DBX_RUNNING,        _T("(dbx) cont"),                   _T("(gdb)") },
+         { DBX_RUNNING,        _T("(dbx) next"),                   _T("(gdb)") },
+         { DBX_RUNNING,        _T("(dbx) step"),                   _T("(gdb)") },
+         { DBX_RUNNING,        _T("(dbx) stepi"),                  _T("(gdb)") },
+         { DBX_RUNNING,        _T("(dbx) until"),                  _T("(gdb)") },
+         { DBX_RUNNING,        _T("(dbx) return"),                 _T("(gdb)") },
+         { DBX_STACKARGS,      _T("(dbx) where 1"),                _T("(gdb)") },
+         { DBX_WHERE,          _T("(dbx) where"),                  _T("(gdb)") },
+         { DBX_PRINTC,         _T("(dbx) print -r"),               _T("(gdb)") },
+         { DBX_PRINT,          _T("(dbx) print"),                  _T("(gdb)") },
+         { DBX_DUMP,           _T("(dbx) dump"),                   _T("232^done,locals=[]") },
+         { DBX_DISPLAY,        _T("(dbx) display"),                _T("(gdb)") },
+         { DBX_DIS,            _T("(dbx) dis"),                    _T("(gdb)") },
+         { DBX_REGNAMES,       _T("(dbx) regs -F;  ## dbx names"), _T("(gdb)") },
+         { DBX_REGS,           _T("(dbx) regs -F"),                _T("(gdb)") },
+         { DBX_FRAME,          _T("(dbx) frame"),                  _T("(gdb)") },
+         { DBX_STOP,           _T("(dbx) stop"),                   _T("(gdb)") },
+         { DBX_STATUS,         _T("(dbx) status"),                 _T("232^done,BreakpointTable={nr_rows=\"0\",nr_cols=\"9\",hdr=[{}],body=[]") },
+         { DBX_THREADS,        _T("(dbx) threads"),                _T("232^done,thread-ids={}") },
+         { DBX_LWPS,           _T("(dbx) lwps"),                   _T("232^done,thread-ids={}") },
+         { DBX_EXAMINE,        _T("(dbx) examine"),                _T("232^done,addr=\"\",memory=[]") },
+         { DBX_PWD,            _T("(dbx) pwd"),                    _T("(gdb)") },
+         { DBX_UNKNOWN,        _T("(dbx)"),                        _T("(gdb)") },
       };
-      CString sNewReturnValue = _T("(gdb)");
+      m_sReturnValue = _T("(gdb)");
       for( int i = 0; i < sizeof(cat) / sizeof(cat[0]); i++ ) {
          if( _tcsncmp(pstrOutput, cat[i].pstrCommand, _tcslen(cat[i].pstrCommand)) == 0 ) {
             m_State = cat[i].State;
-            sNewReturnValue = cat[i].pstrEmptyResult;
+            m_sReturnValue = cat[i].pstrEmptyResult;
             break;
          }
       }
-      // By default we will just translate the inputted command line to the standard GDB prompt
-      // or the empty MI answer for that action, but the state-machine may collect an elaborate 
-      // answer and we should then return this on the next prompt.
-      CString sOldReturnValue = m_sReturnValue;
-      m_sReturnValue = sNewReturnValue;
-      m_lReturnIndex = 0;
-      m_bSeenPrompt = true;
+      // Manually switch debugger to running state?
       if( m_State == DBX_STOP && _tcsstr(pstrOutput, _T("; cont")) != NULL ) m_State = DBX_RUNNING;
-      if( m_State == DBX_RUNNING && sOldReturnValue == _T("(gdb)") ) sOldReturnValue = _T("232^running,");
-      return sOldReturnValue;
+      if( m_State == DBX_RUNNING && sOldReturnValue == _T("(gdb)") ) {
+         CString sMi = _T("232^running,");
+         aOutput.Add(sMi);
+      }
    }
-   if( _tcsncmp(pstrOutput, _T("dbx:"), 4) == 0 ) 
+   if( _tcsncmp(pstrOutput, _T("dbx: "), 4) == 0 ) 
    {
       CString sText = pstrOutput + 5;
       sText.Replace(_T("\""), _T("\\\""));
-      CString sMi;
-      if( sText == _T("program is not active") ) return _T("232^exit");
-      if( sText == _T("can't continue execution -- no active process") ) return _T("232^exit");
+      struct {
+         LPCTSTR pstrText;
+         LPCTSTR pstrResult;
+      } translate[] =
+      {
+         { _T("syntax error"),                                     _T("232^error,msg=\"Syntax Error. $$OUTPUT$$\"") },
+         { _T("unreadable"),                                       _T("232^error,msg=\"Failed. $$OUTPUT$$\"") },
+         { _T("no source compiled with -g"),                       _T("~\"No debugging symbols found. Compile with -g.\"") },
+         { _T("program is not active"),                            _T("232^exit,") },
+         { _T("can't continue execution -- no active process"),    _T("232^exit,") },
+      };
+      CString sMi = _T("232&\"$$OUTPUT$$\"");
+      for( int i = 0; i < sizeof(translate) / sizeof(translate[0]); i++ ) {
+         if( sText.Find(translate[i].pstrText) >= 0 ) sMi = translate[i].pstrResult;
+      }
+      sMi.Replace(_T("$$OUTPUT$$"), sText);
+      aOutput.Add(sMi);
+      // Some very custom handling of messages...
       if( sText == _T("thread related commands not available") ) m_bThreadSupport = false;      
-      sMi.Format(_T("232&\"%s\""), sText);
-      if( _tcsstr(pstrOutput, _T("syntax error")) != NULL ) sMi.Format(_T("232^error,msg=\"%s\""), sText);
-      return sMi;
    }
-   if( *pstrOutput == '\0' || _tcsstr(pstrOutput, _T(" ## dbx")) != NULL ) 
+   else if( *pstrOutput == '\0' || _tcsstr(pstrOutput, _T(" ## dbx")) != NULL ) 
    {
       // We're not seing our own or empty commands
    }
    else
    {
       CString sMi;
+      CString sOutput = pstrOutput;
+      // Prompt starts with...
+      // Ignore some internal DBX warnings.
+      if( sOutput.Find(_T("warning")) == 0 ) return;
+      if( sOutput.Find(_T("internal error:")) == 0 ) return;
+      if( sOutput.Find(_T("Select one of the following")) >= 0 ) {
+         sMi = _T("---Select one");
+         aOutput.Add(sMi);
+      }
+      // Parse output line...
       CString sFullArgs;
       CSimpleArray<CString> aArgs;
-      _SplitCommand(pstrOutput, aArgs, sFullArgs);
+      _SplitCommand(sOutput, aArgs, sFullArgs);
       int iIndex = 0;
-      if( _SkipArg(aArgs, iIndex, _T("Process")) ) _GetArg(aArgs, iIndex);
+      // Process 22545: stopped at [main:60 ,0x10001150]
+      // Process 22545 (test) stopped at [main:60 ,0x10001150]
+      if( _SkipArg(aArgs, iIndex, _T("Process")) ) {
+         CString sPID = _GetArg(aArgs, iIndex);
+         if( sPID.Find(':') < 0 ) _GetArg(aArgs, iIndex);
+      }
       switch( m_State ) {
       case DBX_RUNNING:
          {
             CString sCommand;
+            // If we hit a breakpoint prompt starts with the breakpoint number
+            //  [2] stopped at [main:21, 0x12000730c] 
             long lBreakpointNo = 0;
             _GetNumericArg(aArgs, iIndex, lBreakpointNo);
+            // Skip past thread and process identifiers
+            //  t@2 (l@3) stopped at [main:21, 0x12000730c] 
             while( true ) {
                sCommand = _GetArg(aArgs, iIndex);
                if( sCommand.Find('@') < 0 ) break;
             }
+            // Various DBX implementations/versions have their own way of saying that
+            // the debugger stopped <sigh>. Attempt all known constructs.
             CString sCommandCase = sCommand;
             sCommand.MakeLower();
             if( sCommand == _T("stopped") 
                 || sCommand == _T("bus") 
+                || sCommand == _T("thread") 
                 || sCommand == _T("signal") 
                 || sCommand == _T("attached") 
                 || sCommand == _T("floating") 
                 || sCommand == _T("interrupt") 
+                || sCommand == _T("terminated") 
+                || sCommand == _T("unexpected") 
                 || sCommand == _T("segmentation") 
                 || sCommandCase.Find(_T("SIG")) == 0 
                 || sCommandCase.Find(_T(" in file ")) > 0 ) 
             {
                CString sReasonValue, sReason = _T("end-stepping-range");
                if( lBreakpointNo > 0 ) {
-                  sReason = _T("breakpoint");
+                  sReason = _T("breakpoint-hit");
                   sReasonValue.Format(_T("bkptno=\"%ld\","), lBreakpointNo);
                }
                if( sCommand == _T("bus") ) {
+                  // bus error in main at line 25
                   _SkipArg(aArgs, iIndex, _T("error"));
                   sReason = _T("signal");
+                  sReasonValue.Format(_T("signal-name=\"Signal %s\",signal-meaning=\"%s\","), sCommand, sCommand);
+               }
+               if( sCommand == _T("thread") ) {
+                  // thread 0x81c62e80 stopped at [main:21, 0x12000730c]
+                  CString sThreadId = _GetArg(aArgs, iIndex);
+                  _SkipArg(aArgs, iIndex, _T("stopped"));
+                  sReason = _T("signal");
+                  sReasonValue.Format(_T("thread-id=\"%s\","), sThreadId);
                }
                if( sCommand == _T("interrupt") ) {
+                  // interrupt at [main:21, 0x12000730c]
                   sReason = _T("signal");
+                  sReasonValue.Format(_T("signal-name=\"Signal %s\",signal-meaning=\"%s\","), sCommand, sCommand);
                }
                if( sCommand == _T("floating") ) {
+                  // Floating point exception in main at 0xd0251348
+                  _SkipArg(aArgs, iIndex, _T("point"));
                   _SkipArg(aArgs, iIndex, _T("execption"));
                   sReason = _T("signal");
+                  sReasonValue = _T("signal-name=\"Floating Point\",");
                }
                if( sCommand == _T("segmentation") ) {
+                  // Segmentation fault in main at 0x1907c0803a64c
+                  // segmentation violation in main at line 21 in file "foo.c"
                   _SkipArg(aArgs, iIndex, _T("fault"));
                   _SkipArg(aArgs, iIndex, _T("violation"));
                   sReason = _T("signal");
+                  sReasonValue = _T("signal-name=\"Segmentation fault\",");
                }
-               if( sCommand == _T("signal") ) {
+               if( sCommand == _T("unexpected") ) {
+                  // Unexpected SIGINT 
+                  CString sName = _GetArg(aArgs, iIndex);
+                  sReason = _T("signal-received");
+                  sReasonValue.Format(_T("signal-name=\"Signal %s\","), sName);
+               }
+               if( sCommand == _T("signal") || sCommand == _T("terminated") ) {
+                  // signal INT (interrupt) in main at 0xef765d44 
+                  // terminated by signal SEGV (no mapping at the fault address)
+                  _SkipArg(aArgs, iIndex, _T("by"));
+                  _SkipArg(aArgs, iIndex, _T("signal"));
                   CString sName = _GetArg(aArgs, iIndex);
                   CString sMeaning = _GetArg(aArgs, iIndex);
                   sReason = _T("signal-received");
                   sReasonValue.Format(_T("signal-name=\"Signal %s\",signal-meaning=\"%s\","), sName, sMeaning);
                }
                if( sCommandCase.Find(_T("SIG")) == 0 ) {
+                  // SEGV received
                   CString sName = sCommandCase;
                   CString sMeaning = _GetArg(aArgs, iIndex);
                   sReason = _T("signal-received");
@@ -429,29 +513,43 @@ CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
                m_State = DBX_UNKNOWN;
                sMi.Format(_T("232*stopped,reason=\"%s\",%sframe={func=\"%s\",file=\"%s\",addr=\"%s\",line=\"%ld\"}"), 
                   sReason, sReasonValue, Location.sFunction, Location.sFile, Location.sAddress, Location.lLineNum);
-               return sMi;
+               aOutput.Add(sMi);
             }
             if( sCommand == _T("running:") 
                 || sCommand == _T("starting") ) 
             {
                if( sCommand == _T("starting") && !_SkipArg(aArgs, iIndex, _T("program")) ) break;
                sMi.Format(_T("232^running,file=\"%s\""), _GetArg(aArgs, iIndex));
-               return sMi;
+               aOutput.Add(sMi);
             }
             if( sCommand == _T("(process") ) 
             {
                if( !_SkipArg(aArgs, iIndex, _T("id")) ) break;
                sMi.Format(_T("232~\"kernel event for pid=%ld\""), _ttol(_GetArg(aArgs, iIndex)));
-               return sMi;
+               aOutput.Add(sMi);
             }
             if( sCommand == _T("execution") ) {
-               return _T("232^exit");
+               sMi = _T("232^exit,");
+               aOutput.Add(sMi);
+            }
+            if( sCommand == _T("continuing") ) {
+               sMi = _T("232^running,");
+               aOutput.Add(sMi);
             }
          }
          break;
       case DBX_WHERE:
          {
-            if( m_lReturnIndex == 0 ) m_sReturnValue = _T("232^done,stack=[");
+            // current thread: t@11982
+            // =>[1] a.out:foo(a = 2), line 15 in "a.c"
+            if( _SkipArg(aArgs, iIndex, _T("current")) ) {
+               long lThreadID = 0;
+               if( _SkipArg(aArgs, iIndex, _T("thread:")) && _GetNumericArg(aArgs, iIndex, lThreadID) ) {
+                  sMi.Format(_T("232^done,new-thread-id=\"%ld\""), lThreadID);
+                  aOutput.Add(sMi);
+               }
+               break;
+            }
             long lLevel = 0;
             DBXLOCATION Location;
             _SkipArg(aArgs, iIndex, _T(">"));
@@ -459,20 +557,23 @@ CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
             _SkipArg(aArgs, iIndex, _T("Frame"));
             _GetNumericArg(aArgs, iIndex, lLevel);
             if( _SkipArg(aArgs, iIndex, _T("line")) ) Location.lLineNum = _ttol(_GetArg(aArgs, iIndex));
+            if( _SkipArg(aArgs, iIndex, _T("in")) ) Location.sFile = _GetArg(aArgs, iIndex);
             _SkipArg(aArgs, iIndex, _T("routine"));
             Location.sFunction = _GetArg(aArgs, iIndex).SpanExcluding(_T("([,"));
-            if( lLevel == 0 && m_lReturnIndex > 0 ) break;
-            if( Location.sFunction.Find(_T("---")) >= 0 ) break;
+            if( lLevel < m_lLevel ) break;
             if( Location.sFunction == _T("current") ) break;
+            if( Location.sFunction.Find(_T("--")) >= 0 ) break;
             while( iIndex < aArgs.GetSize() ) _GetLocationArgs(aArgs, iIndex, Location);
             CString sTemp;
             sTemp.Format(_T("frame={level=\"%ld\",addr=\"%s\",func=\"%s\",file=\"%s\",line=\"%ld\"}]"), 
                lLevel, Location.sAddress, Location.sFunction, Location.sFile, Location.lLineNum);
-            _AdjustAnswerList(_T("]"), sTemp);
+            _AdjustAnswerList(_T("232^done,stack=["), _T("]"), sTemp);
+            m_lLevel = lLevel;
          }
          break;
       case DBX_STACKARGS:
          {
+            // =>[1] a.out:foo(a = 2), line 15 in "a.c"
             long lLevel = 0;
             DBXLOCATION Location;
             _SkipArg(aArgs, iIndex, _T(">"));
@@ -480,11 +581,11 @@ CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
             _SkipArg(aArgs, iIndex, _T("Frame"));
             _GetNumericArg(aArgs, iIndex, lLevel);
             if( _SkipArg(aArgs, iIndex, _T("line")) ) Location.lLineNum = _ttol(_GetArg(aArgs, iIndex));
+            if( _SkipArg(aArgs, iIndex, _T("in")) ) Location.sFile = _GetArg(aArgs, iIndex);
             _SkipArg(aArgs, iIndex, _T("routine"));
             Location.sFunction = _GetArg(aArgs, iIndex).SpanExcluding(_T("([,"));
-            if( lLevel == 0 && m_lReturnIndex > 0 ) break;
-            if( Location.sFunction.Find(_T("---")) >= 0 ) break;
             if( Location.sFunction == _T("current") ) break;
+            if( Location.sFunction.Find(_T("--")) >= 0 ) break;
             CString sArgs = sFullArgs.Mid(Location.sFunction.GetLength());
             sArgs.TrimLeft(_T(" (")); sArgs.TrimRight(_T(" )"));
             sMi = _T("232^done,stack-args=[");
@@ -503,23 +604,23 @@ CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
                if( sArgs.Left(1) == _T(")") ) break;
             }
             sMi += _T("]");
-            return sMi;
+            aOutput.Add(sMi);
          }
          break;
       case DBX_PWD:
          {
             sMi.Format(_T("232^done,cwd=\"%s\""), sFullArgs);
-            return sMi;
+            aOutput.Add(sMi);
          }
          break;
       case DBX_DIS:
          {
+            // 0x08050a16: foo+0x0006: movl     0x00000008(%ebp),%eax
             CString sCommand = pstrOutput;
             int iPos = sCommand.Find(_T(": "));
             if( iPos < 0 ) break;
             bool bHasFunctionName = false;
             if( sCommand.Find(_T(": "), iPos + 1) > 0 ) iPos = sCommand.Find(_T(": "), iPos + 1), bHasFunctionName = true;
-            if( m_lReturnIndex == 0 ) m_sReturnValue = _T("232^done,asm_insns=[");
             CString sTemp, sAddress, sFunction, sOffset, sDisasm;
             sAddress = sCommand.SpanExcluding(_T(":"));
             if( bHasFunctionName )  {
@@ -533,11 +634,12 @@ CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
             sDisasm.TrimLeft(); sDisasm.TrimRight();
             sTemp.Format(_T("{address=\"%s\",func-name=\"%s\",offset=\"%s\",inst=\"%s\"}]"),
                sAddress, sFunction, sOffset, sDisasm);
-            _AdjustAnswerList(_T("]"), sTemp);
+            _AdjustAnswerList(_T("232^done,asm_insns=["), _T("]"), sTemp);
          }
          break;
       case DBX_PRINT:
          {
+            // a = 15
             if( m_lReturnIndex > 0 ) break;
             LPCTSTR pstr = _tcsstr(pstrOutput, _T(" = "));
             if( pstr == NULL ) pstr = pstrOutput; else pstr += 3, m_lReturnIndex++;
@@ -545,40 +647,48 @@ CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
             sResult.Replace(_T("\\"), _T("\\\\"));
             sResult.Replace(_T("\""), _T("\\\""));
             if( sResult.Right(1) == _T("{") ) sResult += _T("...}");
-            m_sReturnValue.Format(_T("232^done,value=\"%s\""), sResult);            
+            m_sReturnValue.Format(_T("232^done,value=\"%s\""), sResult);
          }
          break;
       case DBX_PRINTC:
          {
+            // a = 15
+            // z = {
+            //     x = 1
+            // }
             if( _tcsstr(pstrOutput, _T("   ")) != pstrOutput ) {
                m_sWatchName = _GetArg(aArgs, iIndex);
                break;
             }
-            if( m_lReturnIndex == 0 ) m_sReturnValue = _T("232^done,numchild=\"0\",children=[");
             CString sName = _GetArg(aArgs, iIndex);
             if( sName.IsEmpty() ) break;
             CString sWatchName;
             sWatchName.Format(_T("quickwatch.%s.%s"), m_sWatchName, sName);
             CString sTemp;
             sTemp.Format(_T("{name=\"%s\",exp=\"%s\",type=\"\",numchild=\"0\"}]"), sWatchName, sName);
-            _AdjustAnswerList(_T("]"), sTemp);
+            _AdjustAnswerList(_T("232^done,numchild=\"0\",children=["), _T("]"), sTemp);
          }
          break;
       case DBX_DISPLAY:
          {
+            // a = 15
+            // z = {
+            //     x = 1
+            // }
             if( _tcsstr(pstrOutput, _T(" = ")) == NULL ) break;
+            if( _tcsstr(pstrOutput, _T("   ")) == pstrOutput ) break;
             CString sName = _GetArg(aArgs, iIndex);
             CString sValue = _GetArg(aArgs, iIndex);
             sValue.Replace(_T("\\"), _T("\\\\"));
             sValue.Replace(_T("\""), _T("\\\""));
             sMi.Format(_T("232^done,name=\"%s\",value=\"%s\""), sName, sValue);
-            return sMi;
+            aOutput.Add(sMi);
          }
          break;
       case DBX_EXAMINE:
          {
-            if( m_lReturnIndex == 0 ) m_sReturnValue = _T("232^done,addr=\"\",memory=[");
             CString sAddress = _GetArg(aArgs, iIndex);
+            sAddress.TrimRight(_T(":"));
             CString sTemp;
             sTemp.Format(_T("{addr=\"%s\",data=["), sAddress);
             int iPos = 0;
@@ -593,14 +703,14 @@ CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
                sTemp += sVal;
             }
             sTemp += _T("]}]");
-            _AdjustAnswerList(_T("]"), sTemp);
+            _AdjustAnswerList(_T("232^done,addr=\"\",memory=["), _T("]"), sTemp);
          }
       case DBX_DUMP:
          {
+            // a = 2
             CString sCommand = pstrOutput;
             int iPos = sCommand.Find('=');
             if( iPos < 0 ) break;
-            if( m_lReturnIndex == 0 ) m_sReturnValue = _T("232^done,locals=[");
             CString sName = sCommand.Left(iPos);
             CString sValue = sCommand.Mid(iPos + 1);
             if( sName.IsEmpty() ) break;
@@ -611,24 +721,28 @@ CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
             sValue.Replace(_T("\""), _T("\\\""));
             CString sTemp;
             sTemp.Format(_T("{name=\"%s\",type=\"\",value=\"%s\"}]"), sName, sValue);
-            _AdjustAnswerList(_T("]"), sTemp);
+            _AdjustAnswerList(_T("232^done,locals=["), _T("]"), sTemp);
          }
          break;
       case DBX_REGNAMES:
          {
+            // current frame: [1]
+            // esi      0x08047da8
             CString sCommand = _GetArg(aArgs, iIndex);
-            if( sCommand == _T("current") ) m_sReturnValue = _T("232^done,register-names=[");
+            if( sCommand == _T("current") ) m_lReturnIndex = 0;
             else {
                CString sTemp;
                sTemp.Format(_T("\"%s\"]"), sCommand);
-               _AdjustAnswerList(_T("]"), sTemp);
+               _AdjustAnswerList(_T("232^done,register-names=["), _T("]"), sTemp);
             }
          }
          break;
       case DBX_REGS:
          {
+            // current frame: [1]
+            // esi      0x08047da8
             CString sCommand = _GetArg(aArgs, iIndex);
-            if( sCommand == _T("current") ) m_sReturnValue = _T("232^done,register-values=["), m_lReturnIndex = 0;
+            if( sCommand == _T("current") ) m_lReturnIndex = 0;
             else {
                CString sValue = sFullArgs;
                sValue.Replace(_T("\\"), _T("\\\\"));
@@ -636,16 +750,16 @@ CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
                sValue.TrimLeft();
                CString sTemp;
                sTemp.Format(_T("{number=\"%ld\",value=\"%s\"}]"), m_lReturnIndex, sValue);
-               _AdjustAnswerList(_T("]"), sTemp);
+               _AdjustAnswerList(_T("232^done,register-values=["), _T("]"), sTemp);
             }
          }
          break;
       case DBX_STATUS:
          {
+            // (2) stop at "a.c":15
             long lBreakpointNo = 0;
             if( !_GetNumericArg(aArgs, iIndex, lBreakpointNo) ) break;
             if( !_SkipArg(aArgs, iIndex, _T("stop") )) break;
-            if( m_lReturnIndex == 0 ) m_sReturnValue = _T("232^done,BreakpointTable={nr_rows=\"0\",nr_cols=\"9\",hdr=[{}],body=[");
             DBXLOCATION Location;
             _GetLocationArgs(aArgs, iIndex, Location);
             CString sEnabled = _T("y");
@@ -653,40 +767,41 @@ CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
             CString sTemp;
             sTemp.Format(_T("bkpt={number=\"%ld\",type=\"breakpoint\",disp=\"keep\",enabled=\"%s\",addr=\"%s\",func=\"%s\",file=\"%s\",line=\"%ld\",times=\"0\"}]}"), 
                lBreakpointNo, sEnabled, Location.sAddress, Location.sFunction, Location.sFile, Location.lLineNum);
-            _AdjustAnswerList(_T("]}"), sTemp);
+            _AdjustAnswerList(_T("232^done,BreakpointTable={nr_rows=\"0\",nr_cols=\"9\",hdr=[{}],body=["), _T("]}"), sTemp);
          }
          break;
       case DBX_STOP:
          {
+            // (2) stop in main -temp 
             long lBreakpointNo = 0;
             if( !_GetNumericArg(aArgs, iIndex, lBreakpointNo) ) break;
             if( !_SkipArg(aArgs, iIndex, _T("stop")) ) break;
             DBXLOCATION Location;
             _GetLocationArgs(aArgs, iIndex, Location);
             sMi.Format(_T("232^done,bkpt={number=\"%ld\",file=\"%s\",line=\"%ld\"}"), lBreakpointNo, Location.sFile, Location.lLineNum);
-            return sMi;
+            aOutput.Add(sMi);
          }
          break;
       case DBX_THREADS:
          {
+            // *>t@1 single stepped   in main()
             CString sCommand = _GetArg(aArgs, iIndex);
             if( sCommand.Find('@') < 0 ) break;
             sCommand.TrimLeft(_T("=>o*t@"));
-            if( m_lReturnIndex == 0 ) m_sReturnValue = _T("232^done,thread-ids={");
             CString sTemp;
             sTemp.Format(_T("thread-id=\"%s\"}"), sCommand);
-            _AdjustAnswerList(_T("}"), sTemp);
+            _AdjustAnswerList(_T("232^done,thread-ids={"), _T("}"), sTemp);
          }
          break;
       case DBX_LWPS:
          {
+            // *>l@1 single stepped   in main()
             CString sCommand = _GetArg(aArgs, iIndex);
             if( sCommand.Find('@') < 0 ) break;
             sCommand.TrimLeft(_T("=>o*l@"));
-            if( m_lReturnIndex == 0 ) m_sReturnValue = _T("232^done,thread-ids={");
             CString sTemp;
             sTemp.Format(_T("thread-id=\"%s\"}"), sCommand);
-            _AdjustAnswerList(_T("}"), sTemp);
+            _AdjustAnswerList(_T("232^done,thread-ids={"), _T("}"), sTemp);
          }
          break;
       case DBX_UNKNOWN:
@@ -700,28 +815,29 @@ CString CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput)
                   if( sCommand == _T("starting") && !_SkipArg(aArgs, iIndex, _T("program")) ) break;
                   sMi.Format(_T("232^running,file=\"%s\""), _GetArg(aArgs, iIndex));
                   m_State = DBX_RUNNING;
-                  return sMi;
+                  aOutput.Add(sMi);
                }
                if( sCommand == _T("reading") ) 
                {
-                  return _T("set $prompt=\"(dbx) \"");
+                  sMi = _T("set $prompt=\"(dbx) \"");
+                  aOutput.Add(sMi);
                }
             }
          }
          break;
       }
    }
-   return pstrOutput;
 }
 
 // Implementation
 
-void CDbxAdaptor::_AdjustAnswerList(LPCTSTR pstrEnding, CString sNewItem)
+void CDbxAdaptor::_AdjustAnswerList(LPCTSTR pstrBeginning, LPCTSTR pstrEnding, CString sNewItem)
 {
+   // If first item, we need to construct the GDB command beginning
+   if( m_lReturnIndex == 0 ) m_sReturnValue = pstrBeginning;
    // Append an item to the GDB MI list result.
    // Since we already added the close-list marker to the result we need to remove
    // this first, and then append the new item.
-   ATLASSERT(m_sReturnValue!=_T("(gdb)"));
    SIZE_T cchEnding = _tcslen(pstrEnding);
    if( m_sReturnValue.Right(cchEnding) == pstrEnding ) {
       m_sReturnValue.Delete(m_sReturnValue.GetLength() - cchEnding, cchEnding);
@@ -738,7 +854,7 @@ CString CDbxAdaptor::_GetArg(const CSimpleArray<CString>& aArgs, int& iIndex) co
    return aArgs[++iIndex - 1];
 }
 
-void CDbxAdaptor::_GetLocationArgs(const CString sCommand, DBXLOCATION& Location) const
+void CDbxAdaptor::_ParseLocationArgs(const CString sCommand, DBXLOCATION& Location) const
 {
    // Extract dbx location for the following syntax:
    //   ["<file>":<line>, <address>]
@@ -748,6 +864,7 @@ void CDbxAdaptor::_GetLocationArgs(const CString sCommand, DBXLOCATION& Location
    if( sCommand.Find(_T("0x")) == 0 ) Location.sAddress = sCommand;
    if( sCommand.Find(_T(",0x")) > 0 ) Location.sAddress = sCommand.Mid(sCommand.Find(_T(",0x") + 1));
    if( sCommand.Find(_T(", 0x")) > 0 ) Location.sAddress = sCommand.Mid(sCommand.Find(_T(", 0x") + 2));
+   if( sCommand.Find(_T(" ,0x")) > 0 ) Location.sAddress = sCommand.Mid(sCommand.Find(_T(" ,0x") + 2));
    Location.sAddress = Location.sAddress.SpanIncluding(_T("x0123456789abcdefABCDEF:"));
    // Attempt to find the function or file. A file has quotes.
    CString sTemp = sCommand.SpanExcluding(_T(":,]"));
@@ -766,14 +883,16 @@ void CDbxAdaptor::_GetLocationArgs(const CSimpleArray<CString>& aArgs, int& iInd
 {
    // Parse dbx location at least with the following syntax:
    //   in <function> at line <line> in <file>
+   //   in file <file>
    //   at ["<file>":<line>, <address>]
    //   at pc <address>
    // and all variations thereof.
+   // Calling this function always increments the arg position with at least 1.
    if( _SkipArg(aArgs, iIndex, _T("in")) && Location.sFunction.IsEmpty() ) Location.sFunction = _GetArg(aArgs, iIndex);
    _SkipArg(aArgs, iIndex, _T("at"));
    if( _SkipArg(aArgs, iIndex, _T("pc")) ) Location.sAddress = _GetArg(aArgs, iIndex);
    else if( _SkipArg(aArgs, iIndex, _T("line")) ) Location.lLineNum = _ttol(_GetArg(aArgs, iIndex));
-   else _GetLocationArgs(_GetArg(aArgs, iIndex), Location);
+   else _ParseLocationArgs(_GetArg(aArgs, iIndex), Location);
    bool bInFile = _SkipArg(aArgs, iIndex, _T("in"));
    bInFile |= _SkipArg(aArgs, iIndex, _T("file")); 
    if( bInFile && Location.sFile.IsEmpty() ) Location.sFile = _GetArg(aArgs, iIndex);
@@ -781,6 +900,9 @@ void CDbxAdaptor::_GetLocationArgs(const CSimpleArray<CString>& aArgs, int& iInd
 
 void CDbxAdaptor::_GetInputFileLineArgs(const CString sArg, CString& sFile, CString& sLineNum) const
 {
+   // Parse location with the following syntax:
+   //  <file>:<line>
+   // Returns the entire line substring ":12" if found
    sFile = sArg.SpanExcluding(_T(":"));
    sLineNum = sArg.Mid(sFile.GetLength()).SpanIncluding(_T(":0123456789"));
 }
@@ -833,15 +955,15 @@ void CDbxAdaptor::_SplitCommand(LPCTSTR pstrInput, CSimpleArray<CString>& aArgs,
          if( iQuote == '\0' ) iQuote = *pstrInput;
          else if( iQuote == *pstrInput ) iQuote = '\0';
          else sTerm += *pstrInput;
+         if( bIncludeQuotes && (iQuote == *pstrInput || iQuote == '\0') ) sTerm += *pstrInput;
          if( iQuote == '(' ) iQuote = ')';
          else if( iQuote == '{' ) iQuote = '}';
          else if( iQuote == '[' ) iQuote = ']';
-         if( bIncludeQuotes ) sTerm += *pstrInput;
-      	break;
+      	 break;
       case '\r':
       case '\n':
          // Ignore newlines...
-      	break;
+      	 break;
       case ' ':
       case '\t':
          if( iQuote == '\0' ) {

@@ -222,10 +222,6 @@ void CRemoteProject::ActivateProject()
 
    m_viewClassTree.Populate();
    m_viewRemoteDir.Init(this);
-
-   // Local project filenames are relative to the solution, so
-   // we need to change current Windows path.
-   ::SetCurrentDirectory(m_sPath);
 }
 
 void CRemoteProject::DeactivateProject()
@@ -250,9 +246,9 @@ void CRemoteProject::ActivateUI()
    ATLASSERT(menu.IsMenu());
 
    CMenuHandle menuMain = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
-   CMenuHandle menuFile = menuMain.GetSubMenu(0);
-   CMenuHandle menuView = menuMain.GetSubMenu(2);
-   MergeMenu(menuFile.GetSubMenu(1), menu.GetSubMenu(5), 2);
+   CMenuHandle menuFile = menuMain.GetSubMenu(MENUPOS_FILE_FB);
+   CMenuHandle menuView = menuMain.GetSubMenu(MENUPOS_VIEW_FB);
+   MergeMenu(menuFile.GetSubMenu(SUBMENUPOS_FILE_ADD_FB), menu.GetSubMenu(5), 2);
    MergeMenu(menuMain, menu.GetSubMenu(0), 3);
    MergeMenu(menuMain, menu.GetSubMenu(1), 4);
    MergeMenu(menuView, menu.GetSubMenu(3), 3);
@@ -850,6 +846,10 @@ bool CRemoteProject::_SaveFiles(ISerializable* pArc, IElement* pParent)
          TCHAR szType[64] = { 0 };
          pElement->GetType(szType, 63);
          if( _tcscmp(szType, _T("Folder")) == 0 ) {
+            // HACK: Usually views get saved by catching the ID_FILE_SAVE notification
+            //       or similar, but folder elements need to reset their dirty-state
+            //       too. To do that, we save them before we process their subitems.
+            pFile->Save();
             if( !_SaveFiles(pArc, pFile) ) return false;
          }
          if( !pArc->WriteGroupEnd() ) return false;

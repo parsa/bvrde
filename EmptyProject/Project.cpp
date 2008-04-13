@@ -171,8 +171,6 @@ void CEmptyProject::ActivateProject()
 {
    _pDevEnv->AddIdleListener(this);
    _pDevEnv->AddCommandListener(this);
-
-   ::SetCurrentDirectory(m_sPath);
 }
 
 void CEmptyProject::DeactivateProject()
@@ -187,7 +185,7 @@ void CEmptyProject::ActivateUI()
    menu.LoadMenu(IDR_MAIN);
    ATLASSERT(menu.IsMenu());
    CMenuHandle menuMain = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
-   CMenuHandle menuFile = menuMain.GetSubMenu(0);
+   CMenuHandle menuFile = menuMain.GetSubMenu(MENUPOS_FILE_FB);
    MergeMenu(menuFile.GetSubMenu(1), menu.GetSubMenu(1), 2);
 }
 
@@ -673,6 +671,7 @@ bool CEmptyProject::_SaveFiles(ISerializable* pArc, IElement* pParent)
          TCHAR szType[64] = { 0 };
          pElement->GetType(szType, 63);
          if( _tcscmp(szType, _T("Folder")) == 0 ) {
+            pFile->Save();
             if( !_SaveFiles(pArc, pFile) ) return false;
          }
          if( !pArc->WriteGroupEnd() ) return false;

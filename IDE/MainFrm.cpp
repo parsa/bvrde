@@ -161,8 +161,8 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
    // Set up MRU stuff
    CMenuHandle menu = m_CmdBar.GetMenu();
-   CMenuHandle menuFile = menu.GetSubMenu(0);
-   CMenuHandle menuMru = menuFile.GetSubMenu(menuFile.GetMenuItemCount() - 3);
+   CMenuHandle menuFile = menu.GetSubMenu(MENUPOS_FILE_FB);
+   CMenuHandle menuMru = menuFile.GetSubMenu(menuFile.GetMenuItemCount() + SUBMENUPOS_FILE_RECENT_FE);
    m_mru.SetMenuHandle(menuMru);
    m_mru.SetMaxEntries(4);
    m_mru.ReadFromRegistry(REG_BVRDE _T("\\Mru"));
@@ -520,6 +520,11 @@ LRESULT CMainFrame::OnFileSaveAll(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
 {
    CWaitCursor cursor;
    PlayAnimation(TRUE, ANIM_SAVE);
+   // Saving everying is a 2 stage operation:
+   //   1) Save all open views
+   //   2) Persist the Solution file
+   // We kind of assume here that all views that are modified also have an open window
+   // which will respond to ID_FILE_SAVE notifications.
    // TODO: Don't rely on messages
    CWindow(m_hWndMDIClient).SendMessageToDescendants(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE, 0));
    if( g_pSolution->IsLoaded() ) g_pSolution->SaveSolution(NULL);
@@ -533,10 +538,7 @@ LRESULT CMainFrame::OnFileRecent(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*
 {
    // Get file name from the MRU list
    TCHAR szFile[MAX_PATH + 1] = { 0 };
-   if( !m_mru.GetFromList(wID, szFile, MAX_PATH) ) {
-      ::MessageBeep(MB_ICONERROR);
-      return 0;
-   }
+   if( !m_mru.GetFromList(wID, szFile, MAX_PATH) ) return ::MessageBeep(MB_ICONERROR);
    m_mru.MoveToTop(wID);
    // Open solution file
    if( !SendMessage(WM_APP_LOADSOLUTION, 0, (LPARAM) szFile) ) {
@@ -559,7 +561,7 @@ LRESULT CMainFrame::OnFileOpenSolution(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
    CChooseSolutionDlg dlg;
    dlg.Init(this);
    if( dlg.DoModal() != IDOK ) return 0;
-   // Launch the solution
+   // Launch the solution action...
    switch( dlg.m_SelectType ) {
    case CChooseSolutionDlg::SOLUTION_BLANK:
       PostMessage(WM_APP_CLOSESTARTPAGE);
@@ -1002,19 +1004,21 @@ LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
 {  
    SendMessage(WM_APP_VIEWCHANGE);
 
-   // Add and arrange toolbars
+   // Add and arrange toolbars now...
    _ArrangeToolBars();
 
    // Interpret commandline
    CCommandLine cmdline;
    cmdline.Parse(::GetCommandLine());
-   if( cmdline.GetSize() > 1 ) {
+   if( cmdline.GetSize() > 1 ) 
+   {
       // There are commandline arguments! Let's parse them.
       // NOTE: We can use PostMessage() because GetCommandLine() is 
       //       static in the system!
       PostMessage(WM_APP_COMMANDLINE, 0, (LPARAM) ::GetCommandLine());
    }
-   else {
+   else 
+   {
       TCHAR szBuffer[64] = { 0 };
       GetProperty(_T("gui.main.start"), szBuffer, 63);
       if( _tcscmp(szBuffer, _T("blank")) == 0 ) /* nothing */;
@@ -1224,10 +1228,10 @@ LRESULT CMainFrame::OnToolBarDropDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
    tb.GetItemRect(tb.CommandToIndex(lptb->iItem), &rcItem);
    POINT pt = { rcItem.left, rcItem.bottom };
    tb.ClientToScreen(&pt);
-   // Display the "File" menu
+   // Display from the "File" menu
    CMenuHandle menu = m_CmdBar.m_hMenu;
-   CMenuHandle submenu = menu.GetSubMenu(0);
-   submenu = submenu.GetSubMenu(lptb->iItem == ID_POPUP_NEW ? 0 : 1);
+   CMenuHandle submenu = menu.GetSubMenu(MENUPOS_FILE_FB);
+   submenu = submenu.GetSubMenu(lptb->iItem == ID_POPUP_NEW ? SUBMENUPOS_FILE_NEW_FB : SUBMENUPOS_FILE_ADD_FB);
    CDummyElement Element(_T("Popup"), lptb->iItem == ID_POPUP_NEW ? _T("FileNew") : _T("FileAdd"));
    g_pDevEnv->ShowPopupMenu(&Element, submenu, pt);
    return TBDDRET_DEFAULT;

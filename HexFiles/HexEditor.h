@@ -71,7 +71,7 @@ public:
    CHexEditorCtrl();
    virtual ~CHexEditorCtrl();
 
-   typedef struct {
+   typedef struct tagUNDOENTRY {
       DWORD dwPos;
       BYTE bValue;
    } UNDOENTRY;

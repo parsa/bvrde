@@ -198,7 +198,7 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    // Grab EDIT submenu from main window's menu
    CMenuHandle menu = m_pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
    ATLASSERT(menu.IsMenu());
-   CMenuHandle submenu = menu.GetSubMenu(1);
+   CMenuHandle submenu = menu.GetSubMenu(MENUPOS_EDIT_FB);
 
    // Show popup menu now
    m_pDevEnv->ShowPopupMenu(NULL, submenu, pt);

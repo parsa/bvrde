@@ -283,6 +283,7 @@ BEGIN
     END
     POPUP "Sub4"
     BEGIN
+        MENUITEM SEPARATOR
         MENUITEM "Kompilierungs Log",           ID_VIEW_COMPILE_LOG
         MENUITEM "Debugger Log",                ID_VIEW_DEBUG_LOG
     END
@@ -1270,6 +1271,8 @@ BEGIN
     IDS_DBX                 "DBX"
     IDS_COMMAND_CORE        "Debugger Attach Core"
     IDS_COMMAND_PID         "Debugger Attach PID"
+    IDS_STACK_FILE          "Datei='"
+    IDS_STACK_LINE          "Zeile="
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1502,6 +1505,7 @@ BEGIN
     END
     POPUP "Sub4"
     BEGIN
+        MENUITEM SEPARATOR
         MENUITEM "Compile Log",                 ID_VIEW_COMPILE_LOG
         MENUITEM "Debug Log",                   ID_VIEW_DEBUG_LOG
     END
@@ -2700,6 +2704,8 @@ BEGIN
     IDS_DBX                 "DBX"
     IDS_COMMAND_CORE        "Attach to Core file"
     IDS_COMMAND_PID         "Attach to PID"
+    IDS_STACK_FILE          "file='"
+    IDS_STACK_LINE          "line="
 END
 
 STRINGTABLE DISCARDABLE 

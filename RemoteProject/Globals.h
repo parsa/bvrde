@@ -209,7 +209,7 @@ class IDebuggerAdaptor
 public:
    virtual void Init(CRemoteProject* pProject) = 0;
    virtual CString TransformInput(LPCTSTR pstrInput) = 0;
-   virtual CString TransformOutput(LPCTSTR pstrOutput) = 0;
+   virtual void TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOutput) = 0;
 };
 
 class IRemoteCommandProtocol

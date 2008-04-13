@@ -172,6 +172,7 @@ DWORD CComSpecThread::Run()
                dwPos++;
             }
          }
+         dwSleep = 25;
       }
       else {
          // TODO: Hmm, nasty data polling delay! Sadly Windows will block on the ReadFile()

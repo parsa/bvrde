@@ -55,11 +55,11 @@ BOOL CScintillaView::GetText(LPSTR& pstrText)
    ATLASSERT(pstrText==NULL);
 
    // Let's obey the LineEndConversion rules
-   TCHAR szBuffer[32] = { 0 };
-   _pDevEnv->GetProperty(_T("editors.general.eolMode"), szBuffer, 31);
-   if( _tcscmp(szBuffer, _T("cr")) == 0 ) m_ctrlEdit.ConvertEOLs(SC_EOL_CR);
-   else if( _tcscmp(szBuffer, _T("lf")) == 0 ) m_ctrlEdit.ConvertEOLs(SC_EOL_LF);
-   else if( _tcscmp(szBuffer, _T("crlf")) == 0 ) m_ctrlEdit.ConvertEOLs(SC_EOL_CRLF);
+   TCHAR szEolMode[32] = { 0 };
+   _pDevEnv->GetProperty(_T("editors.general.eolMode"), szEolMode, 31);
+   if( _tcscmp(szEolMode, _T("cr")) == 0 ) m_ctrlEdit.ConvertEOLs(SC_EOL_CR);
+   else if( _tcscmp(szEolMode, _T("lf")) == 0 ) m_ctrlEdit.ConvertEOLs(SC_EOL_LF);
+   else if( _tcscmp(szEolMode, _T("crlf")) == 0 ) m_ctrlEdit.ConvertEOLs(SC_EOL_CRLF);
 
    // Return the text from the editor...
    int nLength = m_ctrlEdit.GetTextLength() + 1;
@@ -84,7 +84,31 @@ BOOL CScintillaView::SetText(LPCSTR pstrText)
    int iWidth = m_ctrlEdit.GetMarginWidthN(0);
    if( iWidth > 0 && m_ctrlEdit.GetLineCount() > 9999 ) m_ctrlEdit.SetMarginWidthN(0, m_ctrlEdit.TextWidth(STYLE_LINENUMBER, "_99999"));  
 
-   // Let Scintilla repaint the view
+   // Detect the LineEndConversion setting
+   TCHAR szEolMode[32] = { 0 };
+   _pDevEnv->GetProperty(_T("editors.general.eolMode"), szEolMode, 31);
+   if( _tcscmp(szEolMode, _T("auto")) == 0 ) {
+      int nCrCount = 0, nLfCount = 0;
+      int nLength = strlen(pstrText);
+      if( nLength > 800 ) nLength = 800;
+      for( int i = 0; i < nLength; i++ ) {
+         switch( pstrText[i] ) {
+         case '\r': nCrCount++; break;
+         case '\n': nLfCount++; break;
+         }
+      }
+      if( nCrCount > 30 || nLfCount > 30 ) {
+         if( nCrCount <= nLfCount / 10 ) nCrCount = 0;
+         if( nLfCount <= nCrCount / 10 ) nLfCount = 0;
+      }
+      int nRule = -1;
+      if( nCrCount == nLfCount ) nRule = SC_EOL_CRLF;
+      else if( nCrCount == 0 ) nRule = SC_EOL_LF;
+      else if( nLfCount == 0 ) nRule = SC_EOL_CR;
+      if( nRule >= 0 ) m_ctrlEdit.SetEOLMode(nRule);
+   }
+
+   // Let GenEdit component configure the view
    SendMessage(WM_SETTINGCHANGE);
 
    return TRUE;
@@ -215,10 +239,10 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    if( !m_pCppProject->m_DebugManager.IsDebugging() ) 
    {
       // Is there an include directive under the cursor or a member that we can look
-      // up? Add additional menu-items to edit menu.
+      // up? Add additional menu-items to Edit menu.
       CString sMenuText;
       CMenuHandle menu = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
-      CMenuHandle submenu = menu.GetSubMenu(1);
+      CMenuHandle submenu = menu.GetSubMenu(MENUPOS_EDIT_FB);
       CString sIncludeFile = _FindIncludeUnderCursor(lPos);
       if( !sIncludeFile.IsEmpty() ) 
       {
@@ -236,9 +260,11 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
             sImplLookup.Format(_T("%s%s%s"), Info.sBase, Info.sBase.IsEmpty() ? _T("") : _T("::"), Info.sName);
             CSimpleValArray<TAGINFO*> aImplResult;
             m_pCppProject->m_TagManager.FindItem(sImplLookup, NULL, 0, ::GetTickCount() + 100, aImplResult);
-            // Insert "Open Declaration" menu item
+            // Insert "Open Declaration" menu item.
+            // We'll try to filter out entries that match the current editor position.
             int iMenuIdx = 0;
-            if( !(m_sFilename.Find(Info.sFilename) >= 0 && Info.iLineNum == iLineNum + 1) ) 
+            if( !Info.sFilename.IsEmpty() 
+                && !(m_sFilename.Find(Info.sFilename) >= 0 && Info.iLineNum == iLineNum + 1) ) 
             {
                m_PopupInfo.DeclTag = Info;
                sMenuText.Format(IDS_MENU_OPENDECLARATION, sImplLookup);
@@ -294,6 +320,8 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 {
    ATLASSERT(m_pView);
    if( m_pView == NULL ) return 0;
+
+   // Is the document actually dirty?
    if( !m_ctrlEdit.GetModify() ) return 0;
 
    CWaitCursor cursor;

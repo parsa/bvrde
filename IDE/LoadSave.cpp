@@ -539,8 +539,8 @@ CString CMainFrame::GetSettingsFilename()
    // Windows Vista or better. Need to be Windows Vista LUA (Least-privilege User Account)
    // compliant so we cannot write to the Program Files folder. Instead we'll suggest
    // that the BVRDE.xml file is loaded from the user's private AppData folder
-   OSVERSIONINFO ver = { sizeof(ver) };
-   ::GetVersionEx(&ver);
+   static OSVERSIONINFO ver = { sizeof(ver) };
+   if( ver.dwMajorVersion == 0 ) ::GetVersionEx(&ver);
    if( ver.dwMajorVersion < 6 ) return sFilename;
    // Get user's private AppData folder
    TCHAR szPath[MAX_PATH] = { 0 };

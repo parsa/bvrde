@@ -23,7 +23,7 @@ CStackView::CStackView() :
 void CStackView::Init(CRemoteProject* pProject)
 {
    m_pProject = pProject;
-   m_dwCurThread = 1;
+   m_dwCurThread = 1L;
 }
 
 bool CStackView::WantsData() 
@@ -59,9 +59,9 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
             || _tcscmp(pstrType, _T("new-thread-id")) == 0 )
    {
       CString sValue = info.GetItem(_T("new-thread-id"));
-      if( !sValue.IsEmpty() ) _SelectThread(_ttol(sValue));
-      m_ctrlStack.ResetContent();
-      CString sLevel = info.GetItem(_T("level"));
+      if( !sValue.IsEmpty() ) _SelectThread(_ttol(sValue));      
+      CString sLevel = info.GetItem(_T("level"), _T("frame"));
+      if( !sLevel.IsEmpty() ) m_ctrlStack.ResetContent();
       while( !sLevel.IsEmpty() ) {
          CString sFunction = info.GetSubItem(_T("func"));
          CString sAddr = info.GetSubItem(_T("addr"));
@@ -73,7 +73,7 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          if( iLineNum == 0 ) sText.Format(IDS_STACKLINE3, sFunction, sFilename, sAddr);
          if( sFunction == _T("??") ) sText.Format(IDS_STACKLINE2, sFunction, sAddr);
          m_ctrlStack.AddString(sText);
-         sLevel = info.FindNext(_T("level"));
+         sLevel = info.FindNext(_T("level"), _T("frame"));
       }
    }
    else if( _tcscmp(pstrType, _T("stopped")) == 0 ) 
@@ -144,11 +144,13 @@ LRESULT CStackView::OnListDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    // Attempt to open the source file
    CString sLine;
    m_ctrlStack.GetText(iIndex, sLine);
-   int iFilePos = sLine.Find(_T("file='"));
-   int iLinePos = sLine.Find(_T("line="));
+   CString sFileStr(MAKEINTRESOURCE(IDS_STACK_FILE));
+   CString sLineStr(MAKEINTRESOURCE(IDS_STACK_LINE));
+   int iFilePos = sLine.Find(sFileStr);
+   int iLinePos = sLine.Find(sLineStr);
    if( iFilePos < 0 || iLinePos < 0 ) return 0;
-   CString sFile = sLine.Mid(iFilePos + 6).SpanExcluding(_T("'"));
-   int iLineNum = _ttoi(sLine.Mid(iLinePos + 5));
+   CString sFile = sLine.Mid(iFilePos + sFileStr.GetLength()).SpanExcluding(_T("'"));
+   int iLineNum = _ttoi(sLine.Mid(iLinePos + sLineStr.GetLength()));
    m_pProject->OpenView(sFile, iLineNum, true);
    return 0;
 }
@@ -174,11 +176,14 @@ void CStackView::DrawItem(LPDRAWITEMSTRUCT lpDIS)
    RECT rc = lpDIS->rcItem;
    bool bSelected = (lpDIS->itemState & ODS_SELECTED) != 0;
 
+   static CString sFileStr(MAKEINTRESOURCE(IDS_STACK_FILE));
+   static CString sLineStr(MAKEINTRESOURCE(IDS_STACK_LINE));
+
    CString sText;
    m_ctrlStack.GetText(iIndex, sText);
 
    COLORREF clrSecond = COLOR_GRAYTEXT;
-   int iPosLine = sText.Find(_T("line="));
+   int iPosLine = sText.Find(sLineStr);
    if( iPosLine >= 0 ) {
       clrSecond = ::GetSysColor(COLOR_WINDOWTEXT);
       clrSecond = BlendRGB(clrSecond, RGB(0,0,60), 80);
@@ -186,8 +191,10 @@ void CStackView::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 
    dc.FillSolidRect(&rc, ::GetSysColor(bSelected ? COLOR_HIGHLIGHT : COLOR_WINDOW));
 
+   // Find stuff after function-name. This is where the filename appears.
+   //   main(),  file='foo.c', line=1
    CString sSecond;
-   int iPosComma = sText.Find(_T("file="));
+   int iPosComma = sText.Find(sFileStr);
    if( iPosComma > 0 ) {
       sSecond = sText.Mid(iPosComma);
       sText = sText.Left(iPosComma);

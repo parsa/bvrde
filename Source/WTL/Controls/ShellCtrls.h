@@ -48,7 +48,7 @@
 
 
 // The PARAM data of all controls
-typedef struct {
+typedef struct tagSHELLITEMINFO {
    CComPtr<IShellFolder> spFolder;
    CPidl pidlFull;
    CPidl pidlNode;

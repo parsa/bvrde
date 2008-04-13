@@ -105,7 +105,7 @@ void CViewImpl::ActivateUI()
    menu.LoadMenu(IDR_MAIN);
    ATLASSERT(menu.IsMenu());
    CMenuHandle menuMain = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
-   CMenuHandle menuEdit = menuMain.GetSubMenu(1);
+   CMenuHandle menuEdit = menuMain.GetSubMenu(MENUPOS_EDIT_FB);
    MergeMenu(menuEdit, menu.GetSubMenu(2), menuEdit.GetMenuItemCount());
 
    // C++ Edit-menu has an "Insert/Remove Breakpoint" menuitem
@@ -133,11 +133,13 @@ LRESULT CViewImpl::SendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 CString CViewImpl::_GetRealFilename() const
 {
    // Resolve filename if it has a relative path
-   // TODO: Call Shell function to expand to full path
    CString sPath;
    if( m_pCppProject != NULL && m_sFilename.Left(1) == _T(".") ) {
-      m_pCppProject->GetPath(sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
-      sPath.ReleaseBuffer();
+      TCHAR szPath[MAX_PATH] = { 0 };
+      m_pCppProject->GetPath(szPath, MAX_PATH);
+      TCHAR szExpanded[MAX_PATH] = { 0 };
+      ::ExpandEnvironmentStrings(szPath, szExpanded, MAX_PATH);
+      sPath = szExpanded;
    }
    return sPath + m_sFilename;
 }
@@ -227,7 +229,6 @@ BOOL CTextFile::Save(ISerializable* pArc)
 
 BOOL CTextFile::Save()
 {  
-   ATLASSERT(m_view.IsWindow());
    if( !m_view.IsWindow() ) return TRUE;
 
    CRememberErr err;
@@ -388,6 +389,7 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
       }
    }
 
+   ::SetLastError(0);
    return TRUE;
 }
 
@@ -421,6 +423,7 @@ BOOL CTextFile::OpenView(long lLineNum)
       // as 0! This allows empty pages to be opened and later saved.
       CComBSTR bstrText;
       if( !GetText(&bstrText) && lLineNum > 0 ) return err.SetLastError();
+      if( ::GetLastError() != 0 ) return err.SetLastError();
       CString sText = bstrText;
 
       CString sName;

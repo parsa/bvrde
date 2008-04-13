@@ -632,8 +632,9 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    if( m_pDevEnv->GetProperty(sKey + _T("atElse"), szBuffer, cchBuffer) ) strcpy(szValue, _tccmp(szBuffer, _T("true")) == 0 ? "1" : "0");
    SetProperty("fold.at.else", szValue);
 
-   SetEdgeColumn(80);         // Place the right edge (if visible)
-   UsePopUp(FALSE);           // We'll do our own context menu
+   SetEdgeColumn(80);              // Place the right edge (if visible)
+   UsePopUp(FALSE);                // We'll do our own context menu
+   SetPasteConvertEndings(TRUE);   // Preserve EOL characters
 
    // Make sure we bump Scintilla into DBCS mode on supported asian
    // languages...

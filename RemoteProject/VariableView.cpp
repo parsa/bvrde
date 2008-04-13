@@ -85,8 +85,8 @@ LRESULT CVariableView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 
    m_ctrlList.Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL);
    ATLASSERT(m_ctrlList.IsWindow());
-   int cx = (int) LOWORD(GetDialogBaseUnits());
-   m_ctrlList.SetColumnWidth(cx * 15);
+   int cxChar = (int) LOWORD(GetDialogBaseUnits());
+   m_ctrlList.SetColumnWidth(cxChar * 15);
 
    CString sTab;
    TCITEM item = { 0 };

@@ -275,6 +275,8 @@
 #define IDS_DBX                         311
 #define IDS_COMMAND_CORE                312
 #define IDS_COMMAND_PID                 313
+#define IDS_STACK_FILE                  314
+#define IDS_STACK_LINE                  315
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -468,13 +470,20 @@
 #define ID_CLASSVIEW_COPY               40158
 #define ID_BUILD_LEXTAGS                40161
 #define ID_DEBUG_COREFILE               40162
+#define ID_SYMBOLVIEW_SORT_ALPHA        40163
+#define ID_SYMBOLVIEW_SORT_NONE         40164
+#define ID_SYMBOLVIEW_GOTODECL          40165
+#define ID_SYMBOLVIEW_GOTOIMPL          40166
+#define ID_SYMBOLVIEW_SORT_TYPE         40167
+#define ID_SYMBOLVIEW_PROPERTIES        40168
+#define ID_SYMBOLVIEW_COPY              40169
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         40164
+#define _APS_NEXT_COMMAND_VALUE         40170
 #define _APS_NEXT_CONTROL_VALUE         1044
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

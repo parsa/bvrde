@@ -59,10 +59,14 @@ void CBreakpointView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          Info.iHitCount = _ttoi(info.GetSubItem(_T("times")));
          Info.bTemporary = info.GetSubItem(_T("disp")) == _T("del");
          m_aItems.Add(Info);
+
          int iIndex = m_aItems.GetSize() - 1;
 
+         CString sDisplay = Info.sFunc;
+         if( sDisplay.IsEmpty() ) sDisplay = Info.sFile;
+         if( sDisplay.IsEmpty() ) sDisplay = Info.sAddress;
          CString sLocation;
-         sLocation.Format(_T("%s, %d"), Info.sFunc, Info.iLineNum);
+         sLocation.Format(_T("%s, %d"), sDisplay, Info.iLineNum);
 
          int iItem = m_ctrlList.InsertItem(m_ctrlList.GetItemCount(), Info.sType);
          m_ctrlList.SetItemText(iItem, 1, Info.sFile);
@@ -99,11 +103,11 @@ LRESULT CBreakpointView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_BRKCOL2)), 1);
    m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_BRKCOL3)), 2);
    m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_BRKCOL4)), 3);
-   int cx = (int) LOWORD(GetDialogBaseUnits());
-   m_ctrlList.SetColumnWidth(0, 12 * cx);
-   m_ctrlList.SetColumnWidth(1, 13 * cx);
-   m_ctrlList.SetColumnWidth(2, 14 * cx);
-   m_ctrlList.SetColumnWidth(3, 12 * cx);
+   int cxChar = (int) LOWORD(GetDialogBaseUnits());
+   m_ctrlList.SetColumnWidth(0, 12 * cxChar);
+   m_ctrlList.SetColumnWidth(1, 13 * cxChar);
+   m_ctrlList.SetColumnWidth(2, 14 * cxChar);
+   m_ctrlList.SetColumnWidth(3, 12 * cxChar);
    bHandled = FALSE;
    return 0;
 }

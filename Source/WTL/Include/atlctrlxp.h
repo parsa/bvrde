@@ -891,11 +891,8 @@ public:
          {
             lRet = CDRF_NOTIFYITEMDRAW;
             // On Vista, it actually looks good...
-            static OSVERSIONINFO ver = { 0 };
-            if( ver.dwOSVersionInfoSize == 0 ) {
-               ver.dwOSVersionInfoSize = sizeof(ver);
-               ::GetVersionEx(&ver);
-            }
+            static OSVERSIONINFO ver = { sizeof(ver) };
+            if( ver.dwMajorVersion == 0 ) ::GetVersionEx(&ver);
             if( ver.dwMajorVersion >= 6 ) lRet = CDRF_DODEFAULT;
             bHandled = TRUE;
          }

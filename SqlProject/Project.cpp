@@ -61,6 +61,7 @@ BOOL CSqlProject::Save(ISerializable* pArc)
    if( !_SaveSettings(pArc) ) return FALSE;
    if( !_SaveConnections(pArc) ) return FALSE;
 
+   m_bIsDirty = false;
    return TRUE;
 }
 
@@ -170,11 +171,11 @@ void CSqlProject::ActivateUI()
    menu.LoadMenu(IDR_MAIN);
    ATLASSERT(menu.IsMenu());
    CMenuHandle menuMain = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
-   CMenuHandle menuFile = menuMain.GetSubMenu(0);
-   CMenuHandle menuView = menuMain.GetSubMenu(2);
-   MergeMenu(menuFile.GetSubMenu(1), menu.GetSubMenu(3), 2);
+   CMenuHandle menuFile = menuMain.GetSubMenu(MENUPOS_FILE_FB);
+   CMenuHandle menuView = menuMain.GetSubMenu(MENUPOS_VIEW_FB);
+   MergeMenu(menuFile.GetSubMenu(SUBMENUPOS_FILE_ADD_FB), menu.GetSubMenu(3), 2);
    MergeMenu(menuMain, menu.GetSubMenu(0), 3);
-   MergeMenu(menuView.GetSubMenu(2), menu.GetSubMenu(2), 0);
+   MergeMenu(menuView.GetSubMenu(SUBMENUPOS_VIEW_VIEWS_FB), menu.GetSubMenu(2), 0);
 }
 
 void CSqlProject::DeactivateUI()

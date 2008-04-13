@@ -28,8 +28,8 @@ LRESULT CMainOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 
    m_ctrlList.SubclassWindow(GetDlgItem(IDC_LIST));
    m_ctrlList.SetExtendedListStyle(PLS_EX_XPLOOK|PLS_EX_CATEGORIZED);
-   int cx = (int) LOWORD(GetDialogBaseUnits());
-   m_ctrlList.SetColumnWidth(16 * cx);
+   int cxChar = (int) LOWORD(GetDialogBaseUnits());
+   m_ctrlList.SetColumnWidth(16 * cxChar);
 
    _PopulateList();
   

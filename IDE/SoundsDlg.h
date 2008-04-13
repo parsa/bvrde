@@ -29,12 +29,13 @@ public:
    LRESULT OnLaunch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CWaitCursor cursor;
-      DWORD dwMajorVersion = 0;
-      DWORD dwMinorVersion = 0;
+      DWORD dwMajorVersion = 0, dwMinorVersion = 0;
       AtlGetShellVersion(&dwMajorVersion, &dwMinorVersion);
+      OSVERSIONINFO ver = { sizeof(ver) };
+      ::GetVersionEx(&ver);
       int iPageIndex = 0;
       if( dwMajorVersion >= 6 ) iPageIndex = 1;
-      if( dwMajorVersion >= 7 ) iPageIndex = 2;
+      if( ver.dwMajorVersion >= 6 ) iPageIndex = 2;
       TCHAR szCommand[200] = { 0 };
       ::wsprintf(szCommand, _T("shell32.dll,Control_RunDLL mmsys.cpl,,%d"), iPageIndex);
       ::ShellExecute(m_pMainFrame->m_hWnd, _T("open"), _T("rundll32.exe"), szCommand, NULL, SW_SHOWNORMAL);

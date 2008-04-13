@@ -1103,10 +1103,8 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
 
    // Not seen first GDB prompt yet? GDB might be spitting out error messages
    // in raw format then.
-   // Some outdated versions of GDB doesn't include this output in the console-stream
-   // tags, but merely prints them as text. We'll try to detect both (hence the missing
-   // first character in error messages).
    if( m_nDebugAck == 0 ) {
+      // Verify correct version of debugger...
       int iPos = sLine.Find(_T("GNU gdb "));
       if( iPos == 0 || iPos == 1 ) {
          LPTSTR pEnd = NULL;
@@ -1115,23 +1113,26 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
             m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGVERSION)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
          }
       }
-      if( sLine.Find(_T("o debugging symbols found")) >= 0 ) {
-         m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NODEBUGINFO)), CString(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE)), MB_ICONINFORMATION);
-      }
-      if( sLine.Find(_T("nable to attach to process")) >= 0 ) {
-         m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NOATTACH)), CString(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE)), MB_ICONINFORMATION);
-      }
-      if( sLine.Find(_T("o such process")) >= 0 ) {
-         m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NOATTACH)), CString(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE)), MB_ICONINFORMATION);
-      }
-      if( sLine.Find(_T("o symbol table is loaded")) >= 0 ) {
-         m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NODEBUGINFO)), CString(MAKEINTRESOURCE(IDS_CAPTION_MESSAGE)), MB_ICONINFORMATION);
-      }
-      if( sLine.Find(_T("o such file")) >= 0 ) {
-         m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NODEBUGFILE)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
-      }
-      if( sLine.Find(_T("db: unrecognized option")) >= 0 ) {
-         m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGVERSION)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
+      // Some outdated versions of GDB didn't include these texts in the console-stream
+      // tags, but merely prints them as text. We'll try to detect both (hence the skipping
+      // of the first character in error messages).
+      typedef struct tagDEBUGERR {
+         LPCTSTR pstrText; UINT nCaption; UINT nMsg;
+      } DEBUGERR;
+      static DEBUGERR errs[] = 
+      {
+         { _T("No debugging symbols found"),  IDS_CAPTION_MESSAGE, IDS_ERR_NODEBUGINFO },
+         { _T("Unable to attach to process"), IDS_CAPTION_MESSAGE, IDS_ERR_NOATTACH },
+         { _T("No such process"),             IDS_CAPTION_MESSAGE, IDS_ERR_NOATTACH },
+         { _T("No symbol table is loaded"),   IDS_CAPTION_MESSAGE, IDS_ERR_NODEBUGINFO },
+         { _T("No such file"),                IDS_CAPTION_ERROR,   IDS_ERR_NODEBUGFILE },
+         { _T("gdb: unrecognized option"),    IDS_CAPTION_ERROR,   IDS_ERR_DEBUGVERSION },
+      };
+      for( int i = 0; i < sizeof(errs) / sizeof(errs[0]); i++ ) {
+         if( sLine.Find(errs[i].pstrText + 1) >= 0 ) {
+            m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(errs[i].nMsg)), CString(MAKEINTRESOURCE(errs[i].nCaption)), MB_ICONINFORMATION);
+            break;
+         }
       }
    }
    // GDB is known to be unstable at times...
@@ -1141,7 +1142,7 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
    }
    // For some targets we really wish to know the PID of the running program.
    // Settings debugevent reporting on seems to be the only way to trigger this
-   // in GDB.
+   // early in GDB.
    if( m_bDebugEvents && sLine.Find(_T("do_initial_child_stuff")) >= 0 ) {
       m_ShellManager.SetParam(_T("ProcessID"), sLine.Mid(sLine.Find(_T("process")) + 7));
       DoDebugCommand(_T("-gdb-set debugevents off"));
@@ -1199,6 +1200,9 @@ void CDebugManager::_ParseKeyPrompt(LPCTSTR pstrText)
    if( sLine.Find(_T("---Type <return>")) >= 0 ) {
       DoDebugCommand(_T("\r\n"));
    }
+   if( sLine.Find(_T("---Select one")) >= 0 ) {
+      DoDebugCommand(_T("0\r\n"));
+   }
 }
 
 /**
@@ -1241,37 +1245,41 @@ void CDebugManager::_ResumeDebugger()
 void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 {
    ATLASSERT(!::IsBadStringPtr(pstrText,-1));
+   ATLASSERT(m_pAdaptor!=NULL);
    // Only if debugging.
    if( !m_bDebugging ) return;
    // Transform to MI format
    if( m_pAdaptor == NULL ) return;
-   CString sText = m_pAdaptor->TransformOutput(pstrText);
-   pstrText = sText;
-   // Count number of debug prompts (=acknoledgements)
-   if( _tcsncmp(pstrText, _T("(gdb"), 4) == 0 ) {
-      m_bCommandMode = false;
-      if( m_nIgnoreErrors > 0 ) m_nIgnoreErrors--;
-      if( m_nIgnoreBreaks > 0 ) m_nIgnoreBreaks--;
-      m_nDebugAck++;
-      m_eventAck.SetEvent();
-      return;
+   CSimpleArray<CString> aOutput;
+   m_pAdaptor->TransformOutput(pstrText, aOutput);
+   for( int i = 0; i < aOutput.GetSize(); i++ ) {
+      pstrText = aOutput[i];
+      // Count number of debug prompts (=acknoledgements)
+      if( _tcsncmp(pstrText, _T("(gdb"), 4) == 0 ) {
+         m_bCommandMode = false;
+         if( m_nIgnoreErrors > 0 ) m_nIgnoreErrors--;
+         if( m_nIgnoreBreaks > 0 ) m_nIgnoreBreaks--;
+         m_nDebugAck++;
+         m_eventAck.SetEvent();
+         continue;
+      }
+      // Look at raw text always
+      if( *pstrText == '~' || m_nDebugAck == 0 ) _ParseConsoleOutput(pstrText + 1);
+      if( *pstrText == '-' ) _ParseKeyPrompt(pstrText);
+      // Not accepting lines before first acknoledge
+      if( m_nDebugAck == 0 ) continue;
+      // Parse output stream
+      if( *pstrText == '@' ) _ParseTargetOutput(pstrText + 1);
+      if( *pstrText == '&' ) _ParseLogOutput(pstrText + 1);
+      // Unfortunately Out-of-band output may occur in the middle
+      // of the stream! This is obvious a GDB bug, but we'll try to
+      // handle the situation by adding a command-handshake (see 
+      // DoDebugCommand()) and by looking for substrings.
+      LPCTSTR pstr = _tcsstr(pstrText, _T("232^"));
+      if( pstr != NULL ) _ParseResultRecord(pstr + 4);
+      pstr = _tcsstr(pstrText, _T("232*"));
+      if( pstr != NULL ) _ParseOutOfBand(pstr + 4);
+      // ...and happily ignore everything else!
    }
-   // Look at raw text always
-   if( *pstrText == '~' || m_nDebugAck == 0 ) _ParseConsoleOutput(pstrText + 1);
-   if( *pstrText == '-' ) _ParseKeyPrompt(pstrText);
-   // Not accepting lines before first acknoledge
-   if( m_nDebugAck == 0 ) return;
-   // Parse output stream
-   if( *pstrText == '@' ) _ParseTargetOutput(pstrText + 1);
-   if( *pstrText == '&' ) _ParseLogOutput(pstrText + 1);
-   // Unfortunately Out-of-band output may occur in the middle
-   // of the stream! This is obvious a GDB bug, but we'll try to
-   // handle the situation by adding a command-handshake (see 
-   // DoDebugCommand()) and by looking for substrings.
-   LPCTSTR pstr = _tcsstr(pstrText, _T("232^"));
-   if( pstr != NULL ) _ParseResultRecord(pstr + 4);
-   pstr = _tcsstr(pstrText, _T("232*"));
-   if( pstr != NULL ) _ParseOutOfBand(pstr + 4);
-   // ...and happily ignore everything else!
 }
 

@@ -331,8 +331,8 @@ LRESULT CFileOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 {
    m_ctrlList.SubclassWindow(GetDlgItem(IDC_LIST));
    m_ctrlList.SetExtendedListStyle(PLS_EX_XPLOOK|PLS_EX_CATEGORIZED);
-   int cx = (int) LOWORD(GetDialogBaseUnits());
-   m_ctrlList.SetColumnWidth(16 * cx);
+   int cxChar = (int) LOWORD(GetDialogBaseUnits());
+   m_ctrlList.SetColumnWidth(16 * cxChar);
    
    CString sName;
    CString sValue;
@@ -427,6 +427,7 @@ LRESULT CCompilerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    m_ctrlServer.AddString(_T("LINUX (Ubuntu)"));
    m_ctrlServer.AddString(_T("LINUX (Gentoo)"));
    m_ctrlServer.AddString(_T("LINUX (Debian)"));
+   m_ctrlServer.AddString(_T("LINUX (CentOS)"));
    m_ctrlServer.AddString(_T("LINUX (Red Hat)"));
    m_ctrlServer.AddString(_T("UNIX"));
    m_ctrlServer.AddString(_T("UNIX (AIX)"));
@@ -539,6 +540,13 @@ LRESULT CCompilerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
       _pDevEnv->ShowMessageBox(m_hWnd, sMsg, sCaption, MB_ICONINFORMATION);
    }
    sm.Stop();
+
+   // Did we also detect server OS type?
+   if( g_data.bIsWizard ) 
+   {
+      sServerType = sm.GetParam(_T("ServerType"));
+      m_ctrlServer.SelectString(0, sServerType);
+   }
 
    m_ctrlTest.EnableWindow(TRUE);
    return 0;
@@ -687,8 +695,8 @@ LRESULT CCompilerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 {
    m_ctrlList.SubclassWindow(GetDlgItem(IDC_LIST));
    m_ctrlList.SetExtendedListStyle(PLS_EX_XPLOOK | PLS_EX_CATEGORIZED);
-   int cx = (int) LOWORD(GetDialogBaseUnits());
-   m_ctrlList.SetColumnWidth(16 * cx);
+   int cxChar = (int) LOWORD(GetDialogBaseUnits());
+   m_ctrlList.SetColumnWidth(16 * cxChar);
    
    CString sName;
    CString sValue;
@@ -974,8 +982,8 @@ LRESULT CDebuggerPage::OnTest(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl
 
    CShellManager sm;
    sm.Init(m_pProject);
-   sm.SetParam(_T("DebuggerType"), sDebuggerType);
    sm.SetParam(_T("Type"), sShellType);
+   sm.SetParam(_T("DebuggerType"), sDebuggerType);
    sm.SetParam(_T("Host"), sHost);
    sm.SetParam(_T("Username"), sUsername);
    sm.SetParam(_T("Password"), sPassword);
@@ -1038,8 +1046,8 @@ int CDebuggerPage::OnApply()
    }
 
    m_pProject->m_DebugManager.Stop();
-   m_pProject->m_DebugManager.SetParam(_T("DebuggerType"), sDebuggerType);
    m_pProject->m_DebugManager.SetParam(_T("Type"), sShellType);
+   m_pProject->m_DebugManager.SetParam(_T("DebuggerType"), sDebuggerType);
    m_pProject->m_DebugManager.SetParam(_T("Host"), sHost);
    m_pProject->m_DebugManager.SetParam(_T("Username"), sUsername);
    m_pProject->m_DebugManager.SetParam(_T("Password"), sPassword);
@@ -1068,8 +1076,8 @@ LRESULT CDebuggerCommandsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LP
 {
    m_ctrlList.SubclassWindow(GetDlgItem(IDC_LIST));
    m_ctrlList.SetExtendedListStyle(PLS_EX_XPLOOK|PLS_EX_CATEGORIZED);
-   int cx = (int) LOWORD(GetDialogBaseUnits());
-   m_ctrlList.SetColumnWidth(16 * cx);
+   int cxChar = (int) LOWORD(GetDialogBaseUnits());
+   m_ctrlList.SetColumnWidth(16 * cxChar);
    
    CString sName;
    CString sValue;

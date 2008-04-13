@@ -119,7 +119,7 @@ EXTERN_C
 VOID WINAPI Plugin_SetMenu(HMENU hMenu)
 {
    // Here we customize the standard application menu
-   hMenu = ::GetSubMenu(hMenu, 2);
+   hMenu = ::GetSubMenu(hMenu, MENUPOS_VIEW_FB);
    hMenu = ::GetSubMenu(hMenu, 2);
    TCHAR szTitle[128] = { 0 };
    AtlLoadString(IDS_REPOSITORY, szTitle, 127);

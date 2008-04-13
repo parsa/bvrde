@@ -49,7 +49,7 @@ public:
       m_ctrlDescription = GetDlgItem(IDC_DESCRIPTION);
 
       for( int i = 0; i < g_aPlugins.GetSize(); i++ ) {
-         CPlugin& plugin = g_aPlugins[i];
+         const CPlugin& plugin = g_aPlugins[i];
          SHFILEINFO sfi = { 0 };
          ::SHGetFileInfo(plugin.GetFilename(), 
                          FILE_ATTRIBUTE_NORMAL, 
@@ -64,15 +64,15 @@ public:
          m_ctrlList.SetCheckState(iItem, plugin.IsMarkedActive());
          // Change text and icon on the first subitem
          CString sType;
-         if( lType & PLUGIN_PROJECT ) {
+         if( (lType & PLUGIN_PROJECT) != 0 ) {
             if( !sType.IsEmpty() ) sType += _T(" / ");
             sType += CString(MAKEINTRESOURCE(IDS_TYPE_PROJECT));
          }
-         if( lType & PLUGIN_FILETYPE ) {
+         if( (lType & PLUGIN_FILETYPE) != 0 ) {
             if( !sType.IsEmpty() ) sType += _T(" / ");
             sType += CString(MAKEINTRESOURCE(IDS_TYPE_FILETYPE));
          }
-         if( lType & PLUGIN_EXTENSION ) {
+         if( (lType & PLUGIN_EXTENSION) != 0 ) {
             if( !sType.IsEmpty() ) sType += _T(" / ");
             sType += CString(MAKEINTRESOURCE(IDS_TYPE_EXTENSION));
          }
@@ -84,13 +84,14 @@ public:
          itm.iImage = i;
          m_ctrlList.SetItem(&itm);
       }
-      m_ctrlList.SetColumnWidth(0, 200);
+      int cxChar = (int) LOWORD(GetDialogBaseUnits());
+      m_ctrlList.SetColumnWidth(0, cxChar * 25);
       m_ctrlList.SetColumnWidth(1, LVSCW_AUTOSIZE_USEHEADER);
       m_ctrlList.SelectItem(0);
 
       m_bChanged = FALSE;
 
-      BOOL bDummy;
+      BOOL bDummy = FALSE;
       OnItemChanged(0, NULL, bDummy);
 
       CenterWindow();

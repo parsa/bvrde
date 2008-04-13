@@ -5,7 +5,6 @@
 #include "ClassView.h"
 #include "Project.h"
 #include "TagInfo.h"
-#include "AcListBox.h"
 
 
 /////////////////////////////////////////////////////////////////////////

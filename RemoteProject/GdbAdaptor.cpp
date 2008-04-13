@@ -40,8 +40,9 @@ CString CGdbAdaptor::TransformInput(LPCTSTR pstrInput)
    return sCommand;
 }
 
-CString CGdbAdaptor::TransformOutput(LPCTSTR pstrOutput)
-{   
-   return pstrOutput;  // Boring...
+void CGdbAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOutput)
+{
+   CString str = pstrOutput;   // Boring...
+   aOutput.Add(str);
 }
 

@@ -164,7 +164,7 @@ DWORD CTelnetThread::Run()
                NULL,
             };
             const LPCTSTR* ppstr = pstrFailed;
-            while( *ppstr ) {
+            while( *ppstr != NULL ) {
                if( sLine.Find(*ppstr) >= 0 ) {
                   m_pManager->m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_LOGIN_FAILED)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR | MB_MODELESS);
                   m_pManager->m_dwErrorCode = ERROR_LOGIN_WKSTA_RESTRICTION;
@@ -684,7 +684,7 @@ bool CTelnetProtocol::WaitForConnection()
 
       DWORD dwTick = ::GetTickCount();
 
-      // Timeout after 8 sec.
+      // Timeout after x sec.
       if( dwTick - dwTickStart > (DWORD) m_lConnectTimeout * 1000UL ) {
          ::SetLastError(ERROR_TIMEOUT);
          return false;

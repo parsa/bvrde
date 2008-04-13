@@ -9,7 +9,7 @@
 /////////////////////////////////////////////////////////
 // Defines
 
-#define BVRDE_SDK  100
+#define BVRDE_SDK_VERSION  100
 
 #define REG_BVRDE _T("SOFTWARE\\Viksoe.dk\\BVRDE")
 
@@ -22,6 +22,27 @@
 #define MB_SHOWONCE        0x20000000L
 #define MB_MODELESS        0x40000000L
 #define MB_REMOVABLE       0x80000000L
+
+// Main menu positions
+// Either positioned from the beginning (FB) of the menu or from the end (FE)
+#define MENUPOS_FILE_FB                    0
+#define MENUPOS_EDIT_FB                    1
+#define MENUPOS_VIEW_FB                    2
+#define MENUPOS_HELP_FE                   -1
+#define MENUPOS_WINDOW_FE                 -2
+#define MENUPOS_TOOLS_FE                  -3
+// Sub-menu positions
+#define SUBMENUPOS_FILE_NEW_FB             0
+#define SUBMENUPOS_FILE_ADD_FB             1
+#define SUBMENUPOS_FILE_RECENT_FE         -3
+#define SUBMENUPOS_VIEW_VIEWS_FB           2
+#define SUBMENUPOS_VIEW_PROPERTIES_FE     -1
+#define SUBMENUPOS_TOOLS_OPTIONS_FE       -2
+#define SUBMENUPOS_TOOL_CUSTOMIZE_FE      -1
+#define SUBMENUPOS_HELP_CONTENTS_FB        0
+#define SUBMENUPOS_HELP_INDEX_FB           1
+#define SUBMENUPOS_HELP_SEARCH_FB          2
+#define SUBMENUPOS_HELP_ABOUT_FE          -1
 
 // Resources (includes standard WTL includes from atlres.h)
 #define ID_CMD_FIRST                0xE400
@@ -68,10 +89,10 @@
 /////////////////////////////////////////////////////////
 // Forward declares
 
-class ISolution;
-class IProject;
-class IView;
-class IElement;
+struct ISolution;
+struct IProject;
+struct IView;
+struct IElement;
 
 
 /////////////////////////////////////////////////////////
@@ -88,7 +109,8 @@ public:
 /////////////////////////////////////////////////////////
 // ISerializable
 
-class ISerializable
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FC1")
+ISerializable
 {
 public:
    virtual BOOL ReadGroupBegin(LPCWSTR pstrName) = 0;
@@ -122,7 +144,8 @@ public:
  * This interface is handed to the listener through the IIdleListener
  * interface.
  */
-class IUpdateUI
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FC2")
+IUpdateUI
 {
 public:
    virtual BOOL UIEnable(INT nID, BOOL bEnable, BOOL bForceUpdate = FALSE) = 0;
@@ -137,7 +160,8 @@ public:
  * Interface implemented by the client window (MDI Client).
  * This interface is returned by the IDevEnv::CreateClient method.
  */
-class IViewFrame
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FC3")
+IViewFrame
 {
 public:
    virtual HWND GetHwnd() const = 0;
@@ -152,7 +176,8 @@ public:
  * This interface is handed to the listener through the IWizardListener
  * interface.
  */
-class IWizardManager
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FC4")
+IWizardManager
 {
 public:
    virtual BOOL AddWizardGroup(LPCWSTR pstrParent, LPCWSTR pstrName) = 0;
@@ -170,7 +195,8 @@ public:
  * Message routed from the main message pump. Includes
  * \em all messages from the main message pump.
  */
-class IAppMessageListener
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FC5")
+IAppMessageListener
 {
 public:
    virtual LRESULT OnAppMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) = 0;
@@ -182,7 +208,8 @@ public:
  *
  * Idle messages from the system.
  */
-class IIdleListener
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FC6")
+IIdleListener
 {
 public:
    virtual VOID OnIdle(IUpdateUI* pUIBase) = 0;
@@ -194,7 +221,8 @@ public:
  *
  * Messages from the Project Explorer tree.
  */
-class ITreeMessageListener
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FC7")
+ITreeMessageListener
 {
 public:
    virtual LRESULT OnTreeMessage(LPNMHDR pnmh, BOOL& bHandled) = 0;
@@ -206,7 +234,8 @@ public:
  * Interface for view related messages. The view forwards a number of
  * Windows messages to these listeners.
  */
-class IViewMessageListener
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FC8")
+IViewMessageListener
 {
 public:
    virtual LRESULT OnViewMessage(IView* pView, MSG* pMsg, BOOL& bHandled) = 0;
@@ -218,7 +247,8 @@ public:
  * Interface for execution of custom commands entered in the Command View window
  * or from the Tools menu.
  */
-class ICustomCommandListener
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FC9")
+ICustomCommandListener
 {
 public:
    virtual VOID OnUserCommand(LPCWSTR pstrCommand, BOOL& bHandled) = 0;
@@ -230,7 +260,8 @@ public:
  *
  * Interface for invoking the Application Wizard or Property Wizard.
  */
-class IWizardListener
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FCA")
+IWizardListener
 {
 public:
    virtual BOOL OnInitProperties(IWizardManager* pManager, IElement* pElement) = 0;
@@ -308,7 +339,8 @@ typedef enum IDE_WIZARD_TYPE
  *
  * Main programming interface for the BVRDE IDE Framework.
  */
-class IDevEnv
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FCB")
+IDevEnv
 {
 public:
    virtual DWORD GetVersion() const = 0;
@@ -377,7 +409,8 @@ public:
  *
  * Base interface for all programmable UI objects.
  */
-class IElement
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FD0")
+IElement
 {
 public:
    virtual ~IElement() { };
@@ -394,7 +427,8 @@ public:
  *
  * Interface for the Solution.
  */
-class ISolution : public IElement
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FD1")
+ISolution : public IElement
 {
 public:
    virtual VOID Close() = 0;
@@ -417,7 +451,8 @@ public:
  *
  * Interface for a Project.
  */
-class IProject : public IElement
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FD2")
+IProject : public IElement
 {
 public:
    virtual BOOL Initialize(IDevEnv* pEnv, LPCWSTR pstrPath) = 0;
@@ -441,7 +476,8 @@ public:
  * still implement and answer all methods in this interface; All files
  * and folders in a project implement this interface.
  */
-class IView : public IElement
+MIDL_INTERFACE("74243F50-F8ED-4fc4-A38F-64A5FA5F4FD3")
+IView : public IElement
 {
 public:
    virtual BOOL OpenView(LONG lLineNum) = 0;

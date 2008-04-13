@@ -19,7 +19,7 @@ public:
 public:
    void Init(CRemoteProject* pProject);
    CString TransformInput(LPCTSTR pstrInput);
-   CString TransformOutput(LPCTSTR pstrOutput);
+   void TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOutput);
 };
 
 

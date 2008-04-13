@@ -92,7 +92,7 @@ public:
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( !m_ctrlViews.IsWindow() || !m_ctrlTab.IsWindow() ) return 0;
-      RECT rc;
+      RECT rc = { 0 };
       GetClientRect(&rc);
       RECT rcViews = { rc.left, rc.top, rc.right, rc.bottom - 24 };
       m_ctrlViews.MoveWindow(&rcViews);

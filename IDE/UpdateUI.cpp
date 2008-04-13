@@ -48,13 +48,13 @@ void CMainFrame::UISetMenu(HMENU hMenu)
    CMenuHandle menu = hMenu;
    
    // Append the MRU project list to menu
-   CMenuHandle menuFile = menu.GetSubMenu(0);
-   CMenuHandle menuMru = menuFile.GetSubMenu(menuFile.GetMenuItemCount() - 3);
+   CMenuHandle menuFile = menu.GetSubMenu(MENUPOS_FILE_FB);
+   CMenuHandle menuMru = menuFile.GetSubMenu(menuFile.GetMenuItemCount() + SUBMENUPOS_FILE_RECENT_FE);
    m_mru.SetMenuHandle(menuMru);
    m_mru.UpdateMenu();
 
    // Set up User Tools in menu
-   CMenuHandle menuTools = menu.GetSubMenu(3);
+   CMenuHandle menuTools = menu.GetSubMenu(menu.GetMenuItemCount() + MENUPOS_TOOLS_FE);
    CRegSerializer arc;
    if( arc.Open(REG_BVRDE _T("\\Tools")) ) {
       int iMenuPos = 3;
@@ -186,6 +186,9 @@ BOOL CMainFrame::OnIdle()
 {
    // NOTE: Obviously it is dangerous to have references to IDE objects hanging around
    //       in static members, but we'll only use them for pointer comparison.
+   //       But that's slightly scary too, right? Well, OnIdle() is not doing anything
+   //       really important and gets called frequently so not much harm can be done.
+   // TODO: Fix this!
    static IView* s_pOldView = NULL;
    static IElement* s_pOldElement = NULL;
    static BOOL s_bOldDirtyFlag = FALSE;

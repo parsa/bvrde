@@ -434,17 +434,19 @@ CString CLexInfo::_GetLexFilename(LPCTSTR pstrFilename, bool bCreatePath) const
    sProjectName.ReleaseBuffer();
    CString sName = ::PathFindFileName(pstrFilename);
    if( sName.IsEmpty() ) return _T("");
-   sProjectName.Replace('.', '_'); sName.Replace('.', '_');
-   sProjectName.Replace('*', '_'); sName.Replace('*', '_');
-   sProjectName.Replace('?', '_'); sName.Replace('?', '_');
-   sProjectName.Replace(':', '_'); sName.Replace(':', '_');
-   sProjectName.Replace('\\', '_'); sName.Replace('\\', '_');
+   // Remove illegal characters from name
+   static TCHAR bad[] = { '.', '*', '?', ':', '\\' };
+   for( int i = 0; i < sizeof(bad) / sizeof(bad[0]); i++ ) {
+      sProjectName.Replace(bad[i], '_');
+      sName.Replace(bad[i], '_');
+   }
    // As part of the Windows LUA compliance test we'll need to
    // write stuff in the user's private private AppData folder.
    OSVERSIONINFO ver = { sizeof(ver) };
    ::GetVersionEx(&ver);
    if( _tcscmp(pstrFilename, _T("CommonLex")) == 0 ) {
-      sProjectName = _T(""); ver.dwMajorVersion = 0;
+      sProjectName = _T(""); 
+      ver.dwMajorVersion = 0;  // CommonLex is local; don't try to place in %AppData% folder
    }
    if( ver.dwMajorVersion < 6 ) 
    {
@@ -516,8 +518,12 @@ LEXFILE* CLexInfo::_ParseFile(LPCTSTR pstrFilename) const
          p = _tcschr(p, '\n');
          if( p == NULL ) break;
          *p = '\0';
+         // Sanity check: filename in header must match project filename
          if( !(_tcsicmp(pstrFilename, pstrFile) == 0 || _tcscmp(pstrFilename, _T("CommonLex")) == 0) ) break;
+         // Get the filename for display.
+         // Common library declarations don't have a real file to back them up.
          pstrNamePart = ::PathFindFileName(pstrFile);
+         if( _tcscmp(pstrFilename, _T("CommonLex")) == 0 ) pstrNamePart = pstrEmpty;
          p++;
       }
       else {
@@ -566,10 +572,10 @@ LEXFILE* CLexInfo::_ParseFile(LPCTSTR pstrFilename) const
          *p++ = '\0';
          //
          LPTSTR pend = _tcschr(p, '|');
-         if (pend) *pend = '\0';
+         if( pend != NULL ) *pend = '\0';
          info.iLineNum = _ttoi(p);
          if( pend == NULL ) break;
-         p = pend+1;
+         p = pend + 1;
          //
          info.pstrComment = p;
          p = _tcschr(p, '\n');

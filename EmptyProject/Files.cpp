@@ -93,7 +93,7 @@ void CViewImpl::ActivateUI()
    ATLASSERT(menu.IsMenu());
 
    CMenuHandle menuMain = _pDevEnv->GetMenuHandle(IDE_HWND_MAIN);
-   CMenuHandle menuEdit = menuMain.GetSubMenu(1);
+   CMenuHandle menuEdit = menuMain.GetSubMenu(MENUPOS_EDIT_FB);
    MergeMenu(menuEdit, menu.GetSubMenu(0), menuEdit.GetMenuItemCount());
 }
 
@@ -126,11 +126,12 @@ CString CViewImpl::_GetRealFilename() const
    // that the filename may be relative to the project. So here we
    // expand the filename.
    CString sPath;
-   if( m_sFilename.Left(1) == _T(".") ) {
-      if( m_pLocalProject != NULL ) {
-         m_pLocalProject->GetPath(sPath.GetBufferSetLength(MAX_PATH), MAX_PATH);
-         sPath.ReleaseBuffer();
-      }
+   if( m_pLocalProject != NULL && m_sFilename.Left(1) == _T(".") ) {
+      TCHAR szPath[MAX_PATH] = { 0 };
+      m_pLocalProject->GetPath(szPath, MAX_PATH);
+      TCHAR szExpanded[MAX_PATH] = { 0 };
+      ::ExpandEnvironmentStrings(szPath, szExpanded, MAX_PATH);
+      sPath = szExpanded;
    }
    return sPath + m_sFilename;
 }
@@ -240,6 +241,7 @@ BOOL CTextFile::IsDirty() const
 BOOL CTextFile::GetText(BSTR* pbstrText)
 {
    ATLASSERT(*pbstrText==NULL);
+
    // View is open, so grab the text from the editor...
    if( m_wndFrame.IsWindow() ) 
    {
@@ -272,6 +274,7 @@ BOOL CTextFile::GetText(BSTR* pbstrText)
       *pbstrText = bstr.Detach();
       free(pstrData);
    }
+
    return TRUE;
 }
 
