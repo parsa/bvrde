@@ -219,6 +219,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    if( sCommand == _T("-break-insert") )
    {
       CString sMarkTemp;
+      _SkipArg(aArgs, iIndex, _T("-f"));
       if( _SkipArg(aArgs, iIndex, _T("-t")) ) sMarkTemp = _T("-temp");
       CString sFile, sLineNum;
       _GetInputFileLineArgs(_GetArg(aArgs, iIndex), sFile, sLineNum);
@@ -438,6 +439,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                 || sCommand == _T("bus") 
                 || sCommand == _T("thread") 
                 || sCommand == _T("signal") 
+                || sCommand == _T("program") 
                 || sCommand == _T("attached") 
                 || sCommand == _T("floating") 
                 || sCommand == _T("interrupt") 
@@ -445,6 +447,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                 || sCommand == _T("unexpected") 
                 || sCommand == _T("segmentation") 
                 || sCommandCase.Find(_T("SIG")) == 0 
+                || sCommandCase.Find(_T("SEGV")) == 0 
                 || sCommandCase.Find(_T(" in file ")) > 0 ) 
             {
                CString sReasonValue, sReason = _T("end-stepping-range");
@@ -491,9 +494,11 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                   sReason = _T("signal-received");
                   sReasonValue.Format(_T("signal-name=\"Signal %s\","), sName);
                }
-               if( sCommand == _T("signal") || sCommand == _T("terminated") ) {
+               if( sCommand == _T("signal") || sCommand == _T("terminated") || sCommand == _T("program") ) {
                   // signal INT (interrupt) in main at 0xef765d44 
+                  // program terminated by signal SEGV (Segmentation Fault) 
                   // terminated by signal SEGV (no mapping at the fault address)
+                  _SkipArg(aArgs, iIndex, _T("terminated"));
                   _SkipArg(aArgs, iIndex, _T("by"));
                   _SkipArg(aArgs, iIndex, _T("signal"));
                   CString sName = _GetArg(aArgs, iIndex);
@@ -501,7 +506,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                   sReason = _T("signal-received");
                   sReasonValue.Format(_T("signal-name=\"Signal %s\",signal-meaning=\"%s\","), sName, sMeaning);
                }
-               if( sCommandCase.Find(_T("SIG")) == 0 ) {
+               if( sCommandCase.Find(_T("SIG")) == 0 || sCommandCase.Find(_T("SEGV")) == 0 ) {
                   // SEGV received
                   CString sName = sCommandCase;
                   CString sMeaning = _GetArg(aArgs, iIndex);
@@ -518,17 +523,20 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             if( sCommand == _T("running:") 
                 || sCommand == _T("starting") ) 
             {
+               // Running: a.out 
+               // Starting program: a.out 
                if( sCommand == _T("starting") && !_SkipArg(aArgs, iIndex, _T("program")) ) break;
                sMi.Format(_T("232^running,file=\"%s\""), _GetArg(aArgs, iIndex));
                aOutput.Add(sMi);
             }
-            if( sCommand == _T("(process") ) 
+            if( sCommand.Find(_T("process id ")) == 0 ) 
             {
-               if( !_SkipArg(aArgs, iIndex, _T("id")) ) break;
-               sMi.Format(_T("232~\"kernel event for pid=%ld\""), _ttol(_GetArg(aArgs, iIndex)));
+               // (process id 20269)
+               sMi.Format(_T("232~\"kernel event for pid=%ld\""), _ttol(sCommand.Mid(11)));
                aOutput.Add(sMi);
             }
             if( sCommand == _T("execution") ) {
+               // execution stopped
                sMi = _T("232^exit,");
                aOutput.Add(sMi);
             }
@@ -565,7 +573,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             if( Location.sFunction.Find(_T("--")) >= 0 ) break;
             while( iIndex < aArgs.GetSize() ) _GetLocationArgs(aArgs, iIndex, Location);
             CString sTemp;
-            sTemp.Format(_T("frame={level=\"%ld\",addr=\"%s\",func=\"%s\",file=\"%s\",line=\"%ld\"}]"), 
+            sTemp.Format(_T("frame={level=\"%ld\",addr=\"%s\",func=\"%s\",file=\"%s\",line=\"%ld\"}"), 
                lLevel, Location.sAddress, Location.sFunction, Location.sFile, Location.lLineNum);
             _AdjustAnswerList(_T("232^done,stack=["), _T("]"), sTemp);
             m_lLevel = lLevel;
@@ -632,7 +640,9 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             sFunction.TrimLeft(); sFunction.TrimRight();
             sOffset.TrimLeft(_T(" +")); sOffset.TrimRight();
             sDisasm.TrimLeft(); sDisasm.TrimRight();
-            sTemp.Format(_T("{address=\"%s\",func-name=\"%s\",offset=\"%s\",inst=\"%s\"}]"),
+            sFunction.Replace('\"', '\'');
+            sDisasm.Replace('\"', '\'');
+            sTemp.Format(_T("{address=\"%s\",func-name=\"%s\",offset=\"%s\",inst=\"%s\"}"),
                sAddress, sFunction, sOffset, sDisasm);
             _AdjustAnswerList(_T("232^done,asm_insns=["), _T("]"), sTemp);
          }
@@ -665,7 +675,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             CString sWatchName;
             sWatchName.Format(_T("quickwatch.%s.%s"), m_sWatchName, sName);
             CString sTemp;
-            sTemp.Format(_T("{name=\"%s\",exp=\"%s\",type=\"\",numchild=\"0\"}]"), sWatchName, sName);
+            sTemp.Format(_T("{name=\"%s\",exp=\"%s\",type=\"\",numchild=\"0\"}"), sWatchName, sName);
             _AdjustAnswerList(_T("232^done,numchild=\"0\",children=["), _T("]"), sTemp);
          }
          break;
@@ -687,6 +697,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
          break;
       case DBX_EXAMINE:
          {
+            // 0xefffe440:      0x00060958 
             CString sAddress = _GetArg(aArgs, iIndex);
             sAddress.TrimRight(_T(":"));
             CString sTemp;
@@ -696,13 +707,12 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                CString sValue = _GetArg(aArgs, iIndex);
                sValue = sValue.SpanIncluding(_T("x0123456789abcdefABCDEF"));
                if( sValue.IsEmpty() ) continue;
-               if( !_istdigit(sValue[0]) ) continue;
-               if( iPos++ > 0 ) sTemp += ",";
+               if( ++iPos > 1 ) sTemp += ",";
                CString sVal;
                sVal.Format(_T("\"%s\""), sValue);
                sTemp += sVal;
             }
-            sTemp += _T("]}]");
+            sTemp += _T("]}");
             _AdjustAnswerList(_T("232^done,addr=\"\",memory=["), _T("]"), sTemp);
          }
       case DBX_DUMP:
@@ -720,7 +730,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             sValue.Replace(_T("\\"), _T("\\\\"));
             sValue.Replace(_T("\""), _T("\\\""));
             CString sTemp;
-            sTemp.Format(_T("{name=\"%s\",type=\"\",value=\"%s\"}]"), sName, sValue);
+            sTemp.Format(_T("{name=\"%s\",type=\"\",value=\"%s\"}"), sName, sValue);
             _AdjustAnswerList(_T("232^done,locals=["), _T("]"), sTemp);
          }
          break;
@@ -732,7 +742,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             if( sCommand == _T("current") ) m_lReturnIndex = 0;
             else {
                CString sTemp;
-               sTemp.Format(_T("\"%s\"]"), sCommand);
+               sTemp.Format(_T("\"%s\""), sCommand);
                _AdjustAnswerList(_T("232^done,register-names=["), _T("]"), sTemp);
             }
          }
@@ -749,7 +759,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                sValue.Replace(_T("\""), _T("\\\""));
                sValue.TrimLeft();
                CString sTemp;
-               sTemp.Format(_T("{number=\"%ld\",value=\"%s\"}]"), m_lReturnIndex, sValue);
+               sTemp.Format(_T("{number=\"%ld\",value=\"%s\"}"), m_lReturnIndex, sValue);
                _AdjustAnswerList(_T("232^done,register-values=["), _T("]"), sTemp);
             }
          }
@@ -765,7 +775,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             CString sEnabled = _T("y");
             if( _SkipArg(aArgs, iIndex, _T("-disable")) ) sEnabled = _T("n");
             CString sTemp;
-            sTemp.Format(_T("bkpt={number=\"%ld\",type=\"breakpoint\",disp=\"keep\",enabled=\"%s\",addr=\"%s\",func=\"%s\",file=\"%s\",line=\"%ld\",times=\"0\"}]}"), 
+            sTemp.Format(_T("bkpt={number=\"%ld\",type=\"breakpoint\",disp=\"keep\",enabled=\"%s\",addr=\"%s\",func=\"%s\",file=\"%s\",line=\"%ld\",times=\"0\"}"), 
                lBreakpointNo, sEnabled, Location.sAddress, Location.sFunction, Location.sFile, Location.lLineNum);
             _AdjustAnswerList(_T("232^done,BreakpointTable={nr_rows=\"0\",nr_cols=\"9\",hdr=[{}],body=["), _T("]}"), sTemp);
          }
@@ -789,7 +799,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             if( sCommand.Find('@') < 0 ) break;
             sCommand.TrimLeft(_T("=>o*t@"));
             CString sTemp;
-            sTemp.Format(_T("thread-id=\"%s\"}"), sCommand);
+            sTemp.Format(_T("thread-id=\"%s\""), sCommand);
             _AdjustAnswerList(_T("232^done,thread-ids={"), _T("}"), sTemp);
          }
          break;
@@ -800,7 +810,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             if( sCommand.Find('@') < 0 ) break;
             sCommand.TrimLeft(_T("=>o*l@"));
             CString sTemp;
-            sTemp.Format(_T("thread-id=\"%s\"}"), sCommand);
+            sTemp.Format(_T("thread-id=\"%s\""), sCommand);
             _AdjustAnswerList(_T("232^done,thread-ids={"), _T("}"), sTemp);
          }
          break;
@@ -833,7 +843,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
 
 void CDbxAdaptor::_AdjustAnswerList(LPCTSTR pstrBeginning, LPCTSTR pstrEnding, CString sNewItem)
 {
-   // If first item, we need to construct the GDB command beginning
+   // If first item, we need to construct the GDB/MI command beginning
    if( m_lReturnIndex == 0 ) m_sReturnValue = pstrBeginning;
    // Append an item to the GDB MI list result.
    // Since we already added the close-list marker to the result we need to remove
@@ -844,6 +854,7 @@ void CDbxAdaptor::_AdjustAnswerList(LPCTSTR pstrBeginning, LPCTSTR pstrEnding, C
       m_sReturnValue += _T(",");
    }
    m_sReturnValue += sNewItem;
+   m_sReturnValue += pstrEnding;
    m_lReturnIndex++;
 }
 

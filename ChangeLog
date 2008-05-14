@@ -1,8 +1,9 @@
 Version 1.x:
 * Support for DBX debugger
-* Attach to Core file from debug menu
+* Attach to core dump file from debug menu
 * Improved visual diff. display in Source Control
 * Improved SQL editor & database integration
+* Improved intellisense for inherited classes
 * Source now compiles against Visual Studio.NET 2008
 
 Version 1.1:

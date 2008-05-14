@@ -333,6 +333,7 @@ bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLin
    // This method is called from the views upon a DEBUG_CMD_REQUEST_BREAKPOINTS request
    // where we ask the views to identify all active breakpoints. We're supposed to
    // clear our internal breakpoint-list for that file and add the active items.
+   // It must be run *before* the debugger is started!
    // First, let's remove all existing breakpoints from this file.
    CLockBreakpointData lock;
    size_t cchName = _tcslen(pstrFilename);
@@ -825,6 +826,9 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
    // messages all the time, so we'll bluntly ignore these.
    if( sCommand.Find(_T("-delete")) >= 0 ) m_nIgnoreErrors++;
    if( sCommand.Find(_T("-evaluate")) >= 0 ) m_nIgnoreErrors++;
+   // For some commands we really need to track the information that
+   // was asked. We book-keep this in an internal state variable. This
+   // is a problem because we can now only have one command lingering.
    int iPos;
    if( (iPos = sCommand.Find(_T("-var-info-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 21);
    if( (iPos = sCommand.Find(_T("-var-evaluate-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 25);
@@ -1114,7 +1118,7 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
          }
       }
       // Some outdated versions of GDB didn't include these texts in the console-stream
-      // tags, but merely prints them as text. We'll try to detect both (hence the skipping
+      // tags, but merely printed them as text. We'll try to detect both (hence the skipping
       // of the first character in error messages).
       typedef struct tagDEBUGERR {
          LPCTSTR pstrText; UINT nCaption; UINT nMsg;
@@ -1219,7 +1223,7 @@ bool CDebugManager::_PauseDebugger()
    // Yes, let's give it a break. Make sure to mark the
    // event so we don't update views as well. This is a temporary
    // state as we intent to immediately resume the session once
-   // we sent our commands.
+   // we have sent our commands.
    m_nIgnoreBreaks++;
    Break();
    // Wait for break sequence to complete
@@ -1272,8 +1276,8 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       if( *pstrText == '@' ) _ParseTargetOutput(pstrText + 1);
       if( *pstrText == '&' ) _ParseLogOutput(pstrText + 1);
       // Unfortunately Out-of-band output may occur in the middle
-      // of the stream! This is obvious a GDB bug, but we'll try to
-      // handle the situation by adding a command-handshake (see 
+      // of the stream! This is an annoying GDB feature, but we'll try
+      // to handle the situation by adding a command-handshake (see 
       // DoDebugCommand()) and by looking for substrings.
       LPCTSTR pstr = _tcsstr(pstrText, _T("232^"));
       if( pstr != NULL ) _ParseResultRecord(pstr + 4);

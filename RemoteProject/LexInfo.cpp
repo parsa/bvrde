@@ -183,7 +183,7 @@ bool CLexInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, D
       if( _tcscmp(pstrName, pFile->aTags[n].pstrName) != 0 ) continue;
       while( n > 0 && _tcscmp(pstrName, pFile->aTags[n - 1].pstrName) == 0 ) n--;
       // Add all instances if they have the right owner/inheritance/global scope.
-      // We'll like the directly owned members at the top of the list.
+      // We'd like the directly owned members at the top of the list.
       while( n < max && _tcscmp(pstrName, pFile->aTags[n].pstrName) == 0 ) {
          if( pstrOwner != NULL && _tcscmp(pFile->aTags[n].pstrOwner, pstrOwner) == 0 ) {
             TAGINFO* pTag = &pFile->aTags.GetData()[n];
@@ -335,6 +335,9 @@ bool CLexInfo::GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout
 CString CLexInfo::_FindTagParent(const TAGINFO* pTag, int iPos) const
 {
    // Extract inheritance type.
+   // We shall look for a number of tokens that are likely to be followed
+   // by a class type. We need to discard real C++ keywords, but attempt
+   // to look up any other type.
    // HACK: We simply scoop up the "class CFoo : public CBar" text from
    //       the decl. line. Unfortunately the lex file doesn't really carry that
    //       much information to safely determine the inheritance tree!
@@ -372,6 +375,7 @@ CString CLexInfo::_FindTagParent(const TAGINFO* pTag, int iPos) const
          if( p == NULL ) continue;
          p += _tcslen(*ppstrToken);
          while( _istspace(*p) ) p++;
+         // Must not be among known C++ keywords
          for( LPCTSTR* ppstrKnown = pstrKeywords; *ppstrKnown != NULL; ppstrKnown++ ) {
             if( _tcsncmp(p, *ppstrKnown, _tcslen(*ppstrKnown)) == 0 ) { p = NULL; break; }
          }

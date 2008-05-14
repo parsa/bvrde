@@ -1066,7 +1066,7 @@ LRESULT CMainFrame::OnUserLoadSolution(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
 
 LRESULT CMainFrame::OnUserAppMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
 {
-   // The views forwards certain messages to this method and we're supposed
+   // The views forward certain messages to this method and we're supposed
    // to forward everything to clients (listeners). This will allow plugins
    // to react on important top-level messages and the menu commands.
    LPMSG pMsg = (LPMSG) lParam;
@@ -1080,8 +1080,8 @@ LRESULT CMainFrame::OnUserAppMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lP
 
 LRESULT CMainFrame::OnUserTreeMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& bHandled)
 {
-   // The treeview forwards its messages to this method and we're supposed
-   // to forward everything to clients (listeners). This will allow each
+   // The Project Explorer treeview forwards its messages to this method and we're 
+   // supposed to forward everything to clients (listeners). This will allow each
    // plugin to handle its tree actions (rename, context-menu, etc).
    LPNMHDR pNMHDR = (LPNMHDR) lParam;
    bHandled = FALSE;
@@ -1094,7 +1094,7 @@ LRESULT CMainFrame::OnUserTreeMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
 
 LRESULT CMainFrame::OnUserViewMessage(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-   // The views forwards certain messages to this method and we're supposed
+   // The views forward certain messages to this method and we're supposed
    // to forward everything to clients (listeners). This will allow plugins
    // to react on window focus changes.
    LPMSG pMsg = (LPMSG) lParam;
