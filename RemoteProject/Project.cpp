@@ -48,6 +48,7 @@ BOOL CRemoteProject::Initialize(IDevEnv* pEnv, LPCTSTR pstrPath)
    m_CompileManager.Init(this);
    m_DebugManager.Init(this);
    m_TagManager.Init(this);
+   m_viewSymbols.Init(this);
 
    return TRUE;
 }
@@ -222,12 +223,14 @@ void CRemoteProject::ActivateProject()
 
    m_viewClassTree.Populate();
    m_viewRemoteDir.Init(this);
+   m_viewSymbols.Init(this);
 }
 
 void CRemoteProject::DeactivateProject()
 {
    // Need to remove the classbrowser view because
    // activating a new project should display new items
+   m_viewSymbols.Clear();
    m_viewClassTree.Clear();
    m_viewRemoteDir.Detach();
 
@@ -254,8 +257,8 @@ void CRemoteProject::ActivateUI()
    MergeMenu(menuView, menu.GetSubMenu(3), 3);
    MergeMenu(menuView.GetSubMenu(4), menu.GetSubMenu(4), 2);
 
-   CMenuHandle menuViews = menuView.GetSubMenu(2);
-   menuViews.AppendMenu(MF_STRING, ID_VIEW_FILEMANAGER, CString(MAKEINTRESOURCE(IDS_FILEMANAGER)));
+   CMenuHandle menuViews = menuView.GetSubMenu(SUBMENUPOS_VIEW_VIEWS_FB);
+   MergeMenu(menuViews, menu.GetSubMenu(7), menuViews.GetMenuItemCount());
 }
 
 void CRemoteProject::DeactivateUI()
@@ -303,7 +306,9 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    BOOL bDebugBreak = m_DebugManager.IsBreaked();
    BOOL bIsFolder = sFileType == _T("Project") || sFileType == _T("Folder");
 
+   pUIBase->UIEnable(ID_VIEW_SYMBOLS, TRUE);
    pUIBase->UIEnable(ID_VIEW_FILEMANAGER, TRUE);
+   pUIBase->UISetCheck(ID_VIEW_SYMBOLS, m_viewSymbols.IsWindow());
    pUIBase->UISetCheck(ID_VIEW_FILEMANAGER, m_viewRemoteDir.IsWindow());
 
    pUIBase->UIEnable(ID_PROJECT_SET_DEFAULT, !bBusy);
@@ -590,6 +595,11 @@ CClassView* CRemoteProject::GetClassView()
    return &m_viewClassTree;
 }
 
+CSymbolView* CRemoteProject::GetSymbolView()
+{
+   return &m_viewSymbols;
+}
+
 bool CRemoteProject::IsRecompileNeeded() const
 {
    if( IsDirty() ) return true;
@@ -706,19 +716,17 @@ void CRemoteProject::InitializeToolBars()
    pFindEdit->SubclassWindow(m_ctrlFindText.GetWindow(GW_CHILD));
    pFindEdit->SetCommand(ID_SEARCH_GO);
 
-   m_ctrlBuild.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
-   _AddButtonText(m_ctrlBuild, ID_BUILD_PROJECT, IDS_BUILD);
-   _AddControlToToolbar(m_ctrlBuild, m_ctrlMode, 90, 4, false);
+   AddButtonTextToToolBar(m_ctrlBuild, ID_BUILD_PROJECT, IDS_BUILD);
+   AddControlToToolBar(m_ctrlBuild, m_ctrlMode, 90, 4, false);
    m_ctrlMode.SetWindowPos(NULL, 0, 0, 90, 120, SWP_NOMOVE | SWP_NOREDRAW);
 
-   _AddControlToToolbar(m_ctrlSearch, m_ctrlFindText, 90, 0, false);
+   AddControlToToolBar(m_ctrlSearch, m_ctrlFindText, 90, 0, false);
    m_ctrlFindText.SetWindowPos(NULL, 0, 0, 90, 120, SWP_NOMOVE | SWP_NOREDRAW);
 
-   m_ctrlBookmarks.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
-   _AddDropDownButton(m_ctrlBookmarks, ID_BOOKMARKS_TOGGLE);
-   _AddDropDownButton(m_ctrlBookmarks, ID_BOOKMARKS_GOTO);
-   _AddButtonText(m_ctrlBookmarks, ID_BOOKMARKS_TOGGLE, IDS_TOGGLE);
-   _AddButtonText(m_ctrlBookmarks, ID_BOOKMARKS_GOTO, IDS_GOTO);
+   AddDropDownButtonToToolBar(m_ctrlBookmarks, ID_BOOKMARKS_TOGGLE);
+   AddDropDownButtonToToolBar(m_ctrlBookmarks, ID_BOOKMARKS_GOTO);
+   AddButtonTextToToolBar(m_ctrlBookmarks, ID_BOOKMARKS_TOGGLE, IDS_TOGGLE);
+   AddButtonTextToToolBar(m_ctrlBookmarks, ID_BOOKMARKS_GOTO, IDS_GOTO);
 
    _pDevEnv->AddToolBar(m_ctrlBuild, _T("CppBuild"), CString(MAKEINTRESOURCE(IDS_CAPTION_BUILD)));
    _pDevEnv->AddToolBar(m_ctrlDebug, _T("CppDebug"), CString(MAKEINTRESOURCE(IDS_CAPTION_DEBUG)));
@@ -1011,8 +1019,9 @@ int CALLBACK CRemoteProject::_SortTreeCB(LPARAM lParam1, LPARAM lParam2, LPARAM 
    return _tcsicmp(szName1, szName2);
 }
 
-void CRemoteProject::_AddButtonText(CToolBarCtrl tb, UINT nID, UINT nRes)
+void CRemoteProject::AddButtonTextToToolBar(CToolBarCtrl tb, UINT nID, UINT nRes)
 {
+   tb.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
 #ifndef BTNS_SHOWTEXT
    const UINT BTNS_SHOWTEXT = 0x0040;
 #endif  // BTNS_SHOWTEXT
@@ -1027,7 +1036,7 @@ void CRemoteProject::_AddButtonText(CToolBarCtrl tb, UINT nID, UINT nRes)
    tb.SetButtonInfo(nID, &tbi);
 }
 
-void CRemoteProject::_AddDropDownButton(CToolBarCtrl tb, UINT nID)
+void CRemoteProject::AddDropDownButtonToToolBar(CToolBarCtrl tb, UINT nID)
 {
    tb.SetExtendedStyle(TBSTYLE_EX_DRAWDDARROWS); 
 
@@ -1039,14 +1048,14 @@ void CRemoteProject::_AddDropDownButton(CToolBarCtrl tb, UINT nID)
    tb.SetButtonInfo(nID, &tbi);
 }
 
-void CRemoteProject::_AddControlToToolbar(CToolBarCtrl tb, HWND hWnd, USHORT cx, UINT nCmdPos, bool bIsCommandId, bool bInsertBefore /*= true*/)
+void CRemoteProject::AddControlToToolBar(CToolBarCtrl tb, HWND hWnd, USHORT cx, UINT nCmdPos, bool bIsCommandId, bool bInsertBefore /*= true*/)
 {
    ATLASSERT(::IsWindow(hWnd));
    static UINT s_nCmd = 45000; // Unique number for new toolbar separator
    int iIndex = nCmdPos;
    if( bIsCommandId ) iIndex = tb.CommandToIndex(nCmdPos);
    if( !bInsertBefore ) iIndex++;
-   
+
    // Create a separator toolbar button
    TBBUTTON but = { 0 };
    but.fsStyle = TBSTYLE_SEP;
@@ -1063,7 +1072,7 @@ void CRemoteProject::_AddControlToToolbar(CToolBarCtrl tb, HWND hWnd, USHORT cx,
    // Chain the control to its new parent
    ::SetParent(hWnd, tb);
    // Position the new control on top of the separator
-   RECT rc;
+   RECT rc = { 0 };
    tb.GetItemRect(iIndex, &rc);
    ::SetWindowPos(hWnd, NULL, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP_NOACTIVATE);
 }
@@ -1163,6 +1172,7 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
       m_TagManager.m_TagInfo.MergeFile(pstrName);
       m_viewClassTree.Rebuild();
       m_viewClassTree.Unlock();
+      m_viewSymbols.Clear();
    }
 
    // New C++ files are added to class-view immediately if online-scanner
@@ -1227,5 +1237,6 @@ CDisasmView CRemoteProject::m_viewDisassembly;
 CVariableView CRemoteProject::m_viewVariable;
 CThreadView CRemoteProject::m_viewThread;
 CTelnetView CRemoteProject::m_viewOutput;
+CSymbolView CRemoteProject::m_viewSymbols;
 CRemoteDirView CRemoteProject::m_viewRemoteDir;
 

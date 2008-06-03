@@ -170,6 +170,7 @@ LRESULT CQuickWatchDlg::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 
 LRESULT CQuickWatchDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
+   // Re-evalute expression...
    if( m_ctrlLine.GetWindowTextLength() == 0 ) return 0;
    _CreateVariable();
    return 0;
@@ -194,8 +195,7 @@ LRESULT CQuickWatchDlg::OnAddWatch(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
    LPARAM lKey = (LPARAM) ::GetTickCount();
    sCommand.Format(_T("-var-create watch%ld * \"%s\""), lKey, CWindowText(m_ctrlLine));
    m_pProject->DelayedDebugCommand(sCommand);
-   sCommand = _T("-var-update *");
-   m_pProject->DelayedDebugCommand(sCommand);
+   m_pProject->DelayedDebugCommand(_T("-var-update *"));
 
    m_pDevEnv->EnableModeless(TRUE);
    DestroyWindow();
@@ -206,17 +206,23 @@ LRESULT CQuickWatchDlg::OnSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
 {
    int iIndex = m_ctrlList.GetCurSel();
    if( iIndex < 0 ) return 0;
-   int iPos = m_ctrlList.GetItemData(iIndex);
+   int iPos = (int) m_ctrlList.GetItemData(iIndex);
    CString sName = m_aItems[iPos].sName;
    CString sText = m_aItems[iPos].sKey;
    // FIX: First we need to strip away the "quickwatch" pseudo-name, and
    //      then hack our way through the GDB peculiarities, such as the
    //      "public", "private" entries...
+   LPCTSTR pstrTokens[] = 
+   { 
+      _T(".quickwatch."), 
+      _T("public."), 
+      _T("private."), 
+      _T("protected.") 
+   };
+   for( int x = 0; x < sizeof(pstrTokens) / sizeof(pstrTokens[0]); x++ ) sText.Replace(pstrTokens[x], _T(""));
+   // The root item is our variable; still it's named "quickwatch"
    sText.Replace(_T("quickwatch"), m_aItems[0].sName);
-   sText.Replace(_T("public."), _T(""));
-   sText.Replace(_T("private."), _T(""));
-   sText.Replace(_T("protected."), _T(""));
-   // Remove the types
+   // Remove the types...
    for( int i = 0; i < m_aItems.GetSize(); i++ ) {
       if( !m_aItems[i].sType.IsEmpty() ) {
          CString sType;
@@ -307,9 +313,71 @@ LRESULT CQuickWatchDlg::OnListDblClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
    return 0;
 }
 
+// Ownerdraw
+
+void CQuickWatchDlg::DrawItem(LPDRAWITEMSTRUCT lpDIS)
+{
+   CDCHandle dc = lpDIS->hDC;
+
+   int iIndex = lpDIS->itemID;
+   if( iIndex == -1 ) return;
+
+   const ITEM& item = m_aItems[lpDIS->itemData];
+   RECT rc = lpDIS->rcItem;
+   int iMiddle = rc.left + m_iColumnWidth;
+   bool bSelected = (lpDIS->itemState & ODS_SELECTED) != 0;
+
+   dc.FillSolidRect(&rc, ::GetSysColor(bSelected ? COLOR_HIGHLIGHT : COLOR_WINDOW));
+
+   if( item.iIndent > 0 && item.bHasChildren ) {
+      POINT pt = { rc.left + 3 + ((item.iIndent - 1) * CX_INDENT), rc.top + 3 };
+      if( item.bExpanded ) m_MinusIcon.DrawIcon(dc, pt); else m_PlusIcon.DrawIcon(dc, pt);
+   }
+
+   COLORREF clrText = ::GetSysColor(COLOR_WINDOWTEXT);
+   dc.SetBkMode(TRANSPARENT);
+   dc.SetTextColor(bSelected ? ::GetSysColor(COLOR_HIGHLIGHTTEXT) : clrText);
+   RECT rcName = { rc.left + 3, rc.top + 1, iMiddle - 2, rc.bottom };
+   rcName.left += item.iIndent * CX_INDENT;
+   dc.DrawText(item.sName, -1, &rcName, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
+
+   if( item.sValue.FindOneOf(_T("[{@")) == 0 ) clrText = ::GetSysColor(COLOR_HIGHLIGHT);
+   if( item.sValue.Find(_T(" <")) >= 0 ) clrText = ::GetSysColor(COLOR_GRAYTEXT);
+   if( item.sValue == _T("RECORD") ) clrText = ::GetSysColor(COLOR_HIGHLIGHT);
+   if( item.sValue == _T("ARRAY") ) clrText = ::GetSysColor(COLOR_HIGHLIGHT);
+   dc.SetTextColor(bSelected ? ::GetSysColor(COLOR_HIGHLIGHTTEXT) : clrText);
+   RECT rcValue = { iMiddle + 3, rc.top + 1, rc.right - 2, rc.bottom };
+   dc.DrawText(item.sValue.Left(MAX_VALUE_DISPLAY_LENGTH), -1, &rcValue, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_NOPREFIX);
+
+   if( !bSelected ) 
+   {
+      CPen pen;
+      pen.CreatePen(PS_SOLID, 1, ::GetSysColor(COLOR_3DLIGHT));
+      HPEN hOldPen = dc.SelectPen(pen);
+      dc.MoveTo(iMiddle, rc.top);
+      dc.LineTo(iMiddle, rc.bottom);
+      if( iIndex == 0 ) {
+         dc.MoveTo(rc.left + 30, rc.bottom - 2);
+         dc.LineTo(rc.right - 30, rc.bottom - 2);
+      }
+      if( iIndex == m_aItems.GetSize() - 1 ) {
+         dc.MoveTo(rc.left, rc.bottom - 1);
+         dc.LineTo(rc.right, rc.bottom - 1);
+      }
+      dc.SelectPen(hOldPen);
+   }
+}
+
+void CQuickWatchDlg::MeasureItem(LPMEASUREITEMSTRUCT lpMIS)
+{   
+   lpMIS->itemHeight = _GetItemHeight(lpMIS->itemData);
+}
+
+// Implementation
+
 void CQuickWatchDlg::_ExpandItem(int iItem)
 {
-   int iPos = m_ctrlList.GetItemData(iItem);
+   int iPos = (int) m_ctrlList.GetItemData(iItem);
    ITEM& item = m_aItems[iPos];
    if( item.bExpanded ) return;
    if( !item.bHasChildren ) return;
@@ -324,7 +392,7 @@ void CQuickWatchDlg::_ExpandItem(int iItem)
 
 void CQuickWatchDlg::_CollapseItem(int iItem)
 {
-   int iPos = m_ctrlList.GetItemData(iItem);
+   int iPos = (int) m_ctrlList.GetItemData(iItem);
    int nCount = m_ctrlList.GetCount();
    ITEM& item = m_aItems[iPos];
    if( !item.bExpanded ) return;
@@ -374,68 +442,9 @@ int CQuickWatchDlg::_FindFromChildKey(CString sKey, int& iItem) const
    return -1;
 }
 
-// Ownerdraw
-
-void CQuickWatchDlg::DrawItem(LPDRAWITEMSTRUCT lpDIS)
-{
-   CDCHandle dc = lpDIS->hDC;
-
-   int iIndex = lpDIS->itemID;
-   if( iIndex == -1 ) return;
-
-   const ITEM& item = m_aItems[lpDIS->itemData];
-   RECT rc = lpDIS->rcItem;
-   int iMiddle = rc.left + m_iColumnWidth;
-   bool bSelected = (lpDIS->itemState & ODS_SELECTED) != 0;
-
-   dc.FillSolidRect(&rc, ::GetSysColor(bSelected ? COLOR_HIGHLIGHT : COLOR_WINDOW));
-
-   if( item.iIndent > 0 && item.bHasChildren ) {
-      POINT pt = { rc.left + 3 + ((item.iIndent - 1) * CX_INDENT), rc.top + 3 };
-      if( item.bExpanded ) m_MinusIcon.DrawIcon(dc, pt); else m_PlusIcon.DrawIcon(dc, pt);
-   }
-
-   COLORREF clrText = ::GetSysColor(COLOR_WINDOWTEXT);
-   dc.SetBkMode(TRANSPARENT);
-   dc.SetTextColor(bSelected ? ::GetSysColor(COLOR_HIGHLIGHTTEXT) : clrText);
-   RECT rcName = { rc.left + 3, rc.top + 1, iMiddle - 2, rc.bottom };
-   rcName.left += item.iIndent * CX_INDENT;
-   dc.DrawText(item.sName, -1, &rcName, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
-
-   if( item.sValue.FindOneOf(_T("[{@")) == 0 ) clrText = ::GetSysColor(COLOR_HIGHLIGHT);
-   if( item.sValue.Find(_T(" <")) >= 0 ) clrText = ::GetSysColor(COLOR_GRAYTEXT);
-   dc.SetTextColor(bSelected ? ::GetSysColor(COLOR_HIGHLIGHTTEXT) : clrText);
-   RECT rcValue = { iMiddle + 3, rc.top + 1, rc.right - 2, rc.bottom };
-   dc.DrawText(item.sValue.Left(MAX_VALUE_DISPLAY_LENGTH), -1, &rcValue, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_NOPREFIX);
-
-   if( !bSelected ) 
-   {
-      CPen pen;
-      pen.CreatePen(PS_SOLID, 1, ::GetSysColor(COLOR_3DLIGHT));
-      HPEN hOldPen = dc.SelectPen(pen);
-      dc.MoveTo(iMiddle, rc.top);
-      dc.LineTo(iMiddle, rc.bottom);
-      if( iIndex == 0 ) {
-         dc.MoveTo(rc.left + 30, rc.bottom - 2);
-         dc.LineTo(rc.right - 30, rc.bottom - 2);
-      }
-      if( iIndex == m_aItems.GetSize() - 1 ) {
-         dc.MoveTo(rc.left, rc.bottom - 1);
-         dc.LineTo(rc.right, rc.bottom - 1);
-      }
-      dc.SelectPen(hOldPen);
-   }
-}
-
-void CQuickWatchDlg::MeasureItem(LPMEASUREITEMSTRUCT lpMIS)
-{   
-   lpMIS->itemHeight = _GetItemHeight(lpMIS->itemData);
-}
-
-// Implementation
-
 int CQuickWatchDlg::_GetItemHeight(int iIndex) const
 {
+   ATLASSERT(iIndex>=0);
    // Calculate height of item.
    // NOTE: This may be a multi-line text so we need to determine the
    //       correct DrawText height.
@@ -479,7 +488,7 @@ void CQuickWatchDlg::_RemoveVariable()
 void CQuickWatchDlg::_CalcColumnWidth()
 {
    ATLASSERT(m_ctrlList.IsWindow());
-   RECT rcClient;
+   RECT rcClient = { 0 };
    m_ctrlList.GetClientRect(&rcClient);
    int iWidth = 0;
    CClientDC dc = m_ctrlList;
@@ -492,7 +501,8 @@ void CQuickWatchDlg::_CalcColumnWidth()
    }
    dc.SelectFont(hOldFont);
    // Repaint when changed
-   if( iWidth < 100 ) iWidth = 100;
+   int cxChar = (int) LOWORD(::GetDialogBaseUnits());
+   if( iWidth < cxChar * 12 ) iWidth = cxChar * 12;
    if( m_iColumnWidth != iWidth ) {
       m_iColumnWidth = iWidth;
       m_ctrlList.Invalidate();

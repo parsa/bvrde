@@ -6,8 +6,15 @@
 #endif // _MSC_VER > 1000
 
 
+////////////////////////////////////////////////////////
+//
+
 #define WM_APP_REBUILDLEX_POS       WM_APP + 100
 #define WM_APP_REBUILDLEX_FILENAME  WM_APP + 101
+
+
+////////////////////////////////////////////////////////
+//
 
 class CRebuildLexThread : public CThreadImpl<CRebuildLexThread>
 {
@@ -43,6 +50,9 @@ public:
    }
 };
 
+
+////////////////////////////////////////////////////////
+//
 
 class CRebuildLexDlg : 
    public CDialogImpl<CRebuildLexDlg>

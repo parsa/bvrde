@@ -293,7 +293,7 @@ public:
       const UINT RBBS_NOGRIPPER = 0x00000100;
 #endif // RBBS_NOGRIPPER
       // Update colors
-      _GetSystemSettings();
+      GetSystemSettingsXP();
       // Assume we are in a rebar
       HWND hWndReBar = GetParent();
       ATLASSERT(::IsWindow(hWndReBar));
@@ -321,7 +321,7 @@ public:
 
    // Implementation
 
-   void _GetSystemSettings()
+   void GetSystemSettingsXP()
    {
 #ifndef BlendRGB
 #define BlendRGB(c1, c2, factor) \
@@ -368,7 +368,7 @@ public:
 
 #if (_WIN32_IE >= 0x0500)
    // Chevron support by Alex Kamenev, thanks.
-   void _DrawChevron(HWND hwndRebar, UINT nItemId, CDCHandle& dc, RECT rc)
+   void DrawChevron(HWND hwndRebar, UINT nItemId, CDCHandle& dc, RECT rc)
    {
       // Assume we are in a rebar
       CReBarCtrl wndRB = hwndRebar;
@@ -579,7 +579,7 @@ public:
    LRESULT OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       // Update colors
-      _GetSystemSettings();
+      GetSystemSettingsXP();
       // Allow WTL Command Bar to set its settings...
       bHandled = FALSE;
       return 0;
@@ -877,7 +877,7 @@ public:
             // Get item information
             CDCHandle dc(lpTBCustomDraw->nmcd.hdc);
             HFONT hOldFont = dc.SelectFont(m_fontMenu);
-            _DrawToolbarButton(lpTBCustomDraw, m_dwExtendedStyle, m_bShowKeyboardCues, bIsMenubar);
+            DrawToolbarButton(lpTBCustomDraw, m_dwExtendedStyle, m_bShowKeyboardCues, bIsMenubar);
             dc.SelectFont(hOldFont);
             lRet = CDRF_SKIPDEFAULT;
          }
@@ -911,7 +911,7 @@ public:
                dc.SetTextColor(clrTextOld);
                dc.SetBkColor(clrBkOld);
 #if (_WIN32_IE >= 0x0500)
-               _DrawChevron(pnmh->hwndFrom, lpCustomDraw->dwItemSpec, dc, lpCustomDraw->rc);
+               DrawChevron(pnmh->hwndFrom, lpCustomDraw->dwItemSpec, dc, lpCustomDraw->rc);
 #endif //(_WIN32_IE >= 0x0500)
             }
             lRet = CDRF_SKIPDEFAULT;
@@ -944,7 +944,7 @@ public:
       }
       return CBrushHandle(hBrush);
    }
-   static void _DrawToolbarButton(LPNMTBCUSTOMDRAW lpTBCustomDraw, 
+   static void DrawToolbarButton(LPNMTBCUSTOMDRAW lpTBCustomDraw, 
                                   DWORD dwExtendedStyle = 0,
                                   bool bShowKeyboardCues = true, 
                                   bool bIsMenuBar = false)

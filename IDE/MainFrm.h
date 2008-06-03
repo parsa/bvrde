@@ -99,7 +99,8 @@ public:
    BOOL m_bFullScreen;                     // Running in full-screen mode?
    BOOL m_bRecordingMacro;                 // Currently recording a macro?
    int m_iAnimatePos;                      // Frame position of statusbar animation
-   LCID m_Locale;
+   LCID m_Locale;                          // Current active locale
+   DWORD m_dwGuidThreadId;                 // ID of main thread
 
    // UI Updates
 
@@ -322,12 +323,14 @@ public:
    IView* GetActiveView() const;
    IDispatch* GetDispatch();
    LCID SetThreadLanguage();
+   DWORD GetGuiThreadId();
    //
    BOOL AddExplorerView(HWND hWnd, LPCTSTR pstrTitle, int iImage);
    BOOL RemoveExplorerView(HWND hWnd);
    BOOL AddAutoHideView(HWND hWnd, IDE_DOCK_TYPE Direction, int iImage);
    BOOL RemoveAutoHideView(HWND hWnd);
    BOOL ActivateAutoHideView(HWND hWnd);
+   BOOL ActivateExplorerView(HWND hWnd);
    BOOL AddDockView(HWND hWnd, IDE_DOCK_TYPE Direction, RECT rcWin);
    BOOL RemoveDockView(HWND hWnd);
    BOOL GetDockState(HWND hWnd, int& iState, RECT& rcWin);

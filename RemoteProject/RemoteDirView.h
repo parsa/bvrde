@@ -33,6 +33,8 @@ public:
    CString m_sSeparator;             // Directory separator character
    bool m_bWin32Path;                // Is this a local Win32 system?
 
+   ~CRemoteDirView();
+
    void Init(CRemoteProject* pProject);
    void Detach();
 

@@ -15,11 +15,11 @@ class CDisasmView :
 public:
    DECLARE_WND_CLASS(_T("BVRDE_DisasmView"))
 
-   typedef struct STREAMCOOKIE
+   typedef struct tagSTREAMCOOKIE
    {
       LPCTSTR pstr;
       LONG pos;
-   };
+   } STREAMCOOKIE;
 
    enum
    {
@@ -28,6 +28,7 @@ public:
    };
 
    CDisasmView();
+   ~CDisasmView();
 
    CRemoteProject* m_pProject;
    CEdit m_ctrlAddress;

@@ -304,10 +304,6 @@ SOURCE=.\WizardSheet.cpp
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\Source\WTL\Include\atlctrlsext.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\Source\ATL\Include\atldataobj.h
 # End Source File
 # Begin Source File
@@ -345,6 +341,18 @@ SOURCE=..\Source\CPP\Include\Thread.h
 # Begin Source File
 
 SOURCE=..\Source\WTL\Controls\AcListBox.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\WTL\Include\atlctrlsext.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\WTL\Include\atlctrlxp.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Source\WTL\Include\atlctrlxp2.h
 # End Source File
 # Begin Source File
 
@@ -396,11 +404,11 @@ SOURCE=..\Source\WTL\Controls\PropertyList.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\Source\WTL\Include\SciLexer.h
+SOURCE=..\Source\Scintilla\SciLexer.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\Source\WTL\Include\Scintilla.h
+SOURCE=..\Source\Scintilla\Scintilla.h
 # End Source File
 # End Group
 # Begin Group "Dialogs"
@@ -674,6 +682,10 @@ SOURCE=.\Res\refresh.ico
 # Begin Source File
 
 SOURCE=.\Res\search.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Res\symbols.bmp
 # End Source File
 # Begin Source File
 

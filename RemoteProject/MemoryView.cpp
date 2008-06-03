@@ -15,6 +15,12 @@ CMemoryView::CMemoryView() :
 {
 }
 
+CMemoryView::~CMemoryView()
+{
+   if( IsWindow() ) /* scary */
+      DestroyWindow();
+}
+
 // Operations
 
 #pragma code_seg( "VIEW" )

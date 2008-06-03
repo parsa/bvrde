@@ -7,15 +7,19 @@
 
 
 /////////////////////////////////////////////////////////////////////////
-// Constructor/destructor
+// CStackView
 
 CStackView::CStackView() :
    m_pProject(NULL)
 {
 }
 
+CStackView::~CStackView()
+{
+   if( IsWindow() ) /* scary */
+      DestroyWindow();
+}
 
-/////////////////////////////////////////////////////////////////////////
 // Operations
 
 #pragma code_seg( "VIEW" )
@@ -42,6 +46,7 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    }
    else if( _tcscmp(pstrType, _T("thread-ids")) == 0 ) 
    {
+      m_ctrlThreads.SetRedraw(FALSE);
       m_ctrlThreads.ResetContent();
       CString sValue = info.GetItem(_T("thread-id"));
       while( !sValue.IsEmpty() ) {
@@ -54,14 +59,20 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          sValue = info.FindNext(_T("thread-id"));
       }
       if( m_ctrlThreads.GetCurSel() == -1 ) m_ctrlThreads.SetCurSel(0);
+      m_ctrlThreads.SetRedraw(TRUE);
+      m_ctrlThreads.Invalidate();
    }
    else if( _tcscmp(pstrType, _T("stack")) == 0 
             || _tcscmp(pstrType, _T("new-thread-id")) == 0 )
    {
+      // New current thread?
       CString sValue = info.GetItem(_T("new-thread-id"));
-      if( !sValue.IsEmpty() ) _SelectThread(_ttol(sValue));      
+      if( !sValue.IsEmpty() ) _SelectThread(_ttol(sValue));
+      // Populate stack frame list
       CString sLevel = info.GetItem(_T("level"), _T("frame"));
-      if( !sLevel.IsEmpty() ) m_ctrlStack.ResetContent();
+      if( sLevel.IsEmpty() ) return;
+      m_ctrlStack.SetRedraw(FALSE);
+      m_ctrlStack.ResetContent();
       while( !sLevel.IsEmpty() ) {
          CString sFunction = info.GetSubItem(_T("func"));
          CString sAddr = info.GetSubItem(_T("addr"));
@@ -75,6 +86,8 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          m_ctrlStack.AddString(sText);
          sLevel = info.FindNext(_T("level"), _T("frame"));
       }
+      m_ctrlStack.SetRedraw(TRUE);
+      m_ctrlStack.Invalidate();
    }
    else if( _tcscmp(pstrType, _T("stopped")) == 0 ) 
    {
@@ -88,8 +101,6 @@ void CStackView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
    aDbgCmd.Add(CString(_T("-stack-list-frames")));
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Implementation
 
 void CStackView::_SelectThread(long lThreadId)
@@ -104,7 +115,6 @@ void CStackView::_SelectThread(long lThreadId)
    }
 }
 
-/////////////////////////////////////////////////////////////////////////
 // Message handlers
 
 LRESULT CStackView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

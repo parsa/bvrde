@@ -215,6 +215,16 @@ DWORD CComSpecThread::Run()
    ::CloseHandle(pi.hProcess);
    ::CloseHandle(pi.hThread);
 
+   // Really, I mean it...
+   HANDLE hSpawnedProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, m_pManager->m_dwSpawnedProcessId);
+   if( hSpawnedProcess != NULL ) {
+      DWORD dwExitCode = 0;
+      if( ::GetExitCodeProcess(hSpawnedProcess, &dwExitCode) ) {
+         if( STILL_ACTIVE == dwExitCode ) ::TerminateProcess(hSpawnedProcess, 0);
+         ::CloseHandle(hSpawnedProcess);
+      }
+   }
+
    free(pBuffer);
 
    m_pManager->m_bConnected = false;

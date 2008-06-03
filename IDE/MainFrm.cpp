@@ -21,6 +21,7 @@
 
 CMainFrame::CMainFrame() :
    m_Dispatch(this),
+   m_dwGuidThreadId(0),
    m_bFullScreen(FALSE),
    m_bInitialized(FALSE),
    m_bRecordingMacro(FALSE)

@@ -95,6 +95,18 @@ bool CTagManager::GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTime
 }
 
 /**
+ * Return all tags matching a pattern.
+ */
+bool CTagManager::GetTypeList(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult)
+{
+   if( pstrPattern == NULL ) return false;
+   if( _tcslen(pstrPattern) == 0 ) return false;
+   if( m_LexInfo.GetTypeList(pstrPattern, bCancel, aResult) ) return true;
+   if( m_TagInfo.GetTypeList(pstrPattern, bCancel, aResult) ) return true;
+   return false;
+}
+
+/**
  * Open a file-view from the tag information.
  */
 bool CTagManager::OpenTagInView(const CTagDetails& Info)

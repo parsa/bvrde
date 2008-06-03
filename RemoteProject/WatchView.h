@@ -18,6 +18,7 @@ public:
    DECLARE_WND_CLASS(_T("BVRDE_WatchView"))
 
    CWatchView();
+   ~CWatchView();
 
    CRemoteProject* m_pProject;
    CPropertyGridCtrl m_ctrlGrid;

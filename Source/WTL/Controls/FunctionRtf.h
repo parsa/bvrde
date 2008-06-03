@@ -72,10 +72,24 @@ public:
       CString sText = pstrDeclaration;
       sText.Replace(_T("  "), _T(" "));
       sText.Replace(' ', 0xA0);
+#ifdef _UNICODE
+      // On a Japanese Windows, the compiler will complain about these not being unicode
+      // characters. Well, they aren't. They are part our temporary invention.
+      USHORT pstrCommaA0[] = { ',', 0xA0, '\0' };
+      USHORT pstrEqualA0[] = { '=', 0xA0, '\0' };
+      USHORT pstrParensSpaceA0[] = { '(', ' ', 0xA0, '\0' };
+      USHORT pstrJustA0[] = { 0xA0, ')', '\0' };
+      USHORT pstrA0A0[] = { 0xA0, 0xA0, ')', '\0' };
+      sText.Replace((LPCWSTR)pstrCommaA0, _T(", "));
+      sText.Replace((LPCWSTR)pstrEqualA0, _T("= "));
+      sText.Replace(_T("("), _T("( "));    sText.Replace((LPCWSTR)pstrParensSpaceA0, _T("( "));
+      sText.Replace(_T(")"), (LPCWSTR)pstrJustA0); sText.Replace((LPCWSTR)pstrA0A0, (LPCWSTR)pstrJustA0);
+#else
       sText.Replace(_T(",\xA0"), _T(", "));
       sText.Replace(_T("=\xA0"), _T("= "));
       sText.Replace(_T("("), _T("( "));    sText.Replace(_T("( \xA0"), _T("( "));
       sText.Replace(_T(")"), _T("\xA0)")); sText.Replace(_T("\xA0\xA0)"), _T("\xA0)"));
+#endif // _UNICODE
       int cchDeclLen = sText.GetLength();
       // Ah, we can also have a comment for this declaration. Format
       // it below. We'll color it gray in a little while too.
@@ -139,7 +153,7 @@ public:
          case '\r':
          case '\n':
          case 0xA0:
-            if( sText[i + 1] != ')' ) sWord.Empty();
+            if( i < cchLen - 1 && sText[i + 1] != ')' ) sWord.Empty();
             break;
          case ' ':
             break;

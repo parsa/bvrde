@@ -22,11 +22,14 @@ CChildFrame::CChildFrame(CMainFrame* pFrame, IDevEnv* pDevEnv, IProject* pProjec
 void CChildFrame::OnFinalMessage(HWND hWnd)
 {
    // Remove our Window Properties
-   CWinProp prop = hWnd;
-   prop.RemoveProperty(_T("DevEnv"));
-   prop.RemoveProperty(_T("Project"));
-   prop.RemoveProperty(_T("View"));
-   prop.RemoveProperty(_T("Frame"));
+   // FIX: On ATL7 the window is no longer alive at this point.
+   if( ::IsWindow(hWnd) ) {
+      CWinProp prop = hWnd;
+      prop.RemoveProperty(_T("DevEnv"));
+      prop.RemoveProperty(_T("Project"));
+      prop.RemoveProperty(_T("View"));
+      prop.RemoveProperty(_T("Frame"));
+   }
 
    // Commit suicide...
    delete this;

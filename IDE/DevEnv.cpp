@@ -36,6 +36,11 @@ LCID CMainFrame::SetThreadLanguage()
    return m_Locale;
 }
 
+DWORD CMainFrame::GetGuiThreadId()
+{
+   return m_dwGuidThreadId;
+}
+
 IDispatch* CMainFrame::GetDispatch()
 {
    CMainFrame* pThis = const_cast<CMainFrame*>(this);
@@ -309,6 +314,15 @@ BOOL CMainFrame::ActivateAutoHideView(HWND hWnd)
    return bRes;
 }
 
+BOOL CMainFrame::ActivateExplorerView(HWND hWnd)
+{
+   ATLASSERT(m_viewExplorer.IsWindow());
+   ATLASSERT(::IsWindow(hWnd));
+   if( !::IsWindow(hWnd) ) return FALSE;
+   // BUG: Cannot thread-protect here because of dead-lock issues.
+   return m_viewExplorer.SelectView(hWnd);
+}
+
 BOOL CMainFrame::AddCommandBarImage(UINT nCmd, HICON hIcon)
 {
    ATLASSERT(m_CmdBar.IsWindow());
@@ -512,6 +526,7 @@ BOOL CMainFrame::ShowStatusText(UINT nID, LPCTSTR pstrText, BOOL bPermanent /*= 
    ATLASSERT(nID==ID_DEFAULT_PANE || nID==ID_SB_PANE1 || nID==ID_SB_PANE2 || nID==ID_SB_PANE3);
    ATLASSERT(!::IsBadStringPtr(pstrText,-1));
    ATLASSERT(m_StatusBar.IsWindow());
+   if( ::GetCurrentThreadId() != GetGuiThreadId() ) return FALSE;
    if( nID != ID_DEFAULT_PANE ) {
       ATLASSERT(bPermanent);
       // Change one of the secondary panes in the statusbar. We'll need to

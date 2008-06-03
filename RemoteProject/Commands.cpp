@@ -493,7 +493,7 @@ LRESULT CRemoteProject::OnViewOutput(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 
 LRESULT CRemoteProject::OnViewRemoteDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-   // Create/remove repository view
+   // Create/remove Remote File view
    if( !m_viewRemoteDir.IsWindow() ) {
       CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
       CString sTitle(MAKEINTRESOURCE(IDS_FILEMANAGER));
@@ -505,6 +505,24 @@ LRESULT CRemoteProject::OnViewRemoteDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
    else {
       _pDevEnv->RemoveAutoHideView(m_viewRemoteDir);
       m_viewRemoteDir.PostMessage(WM_CLOSE);
+   }
+   return 0;
+}
+
+LRESULT CRemoteProject::OnViewSymbols(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   // Create/remove Symbols view
+   if( !m_viewSymbols.IsWindow() ) {
+      CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
+      CString sTitle(MAKEINTRESOURCE(IDS_SYMBOLVIEW));
+      DWORD dwStyle = WS_CHILD | WS_VISIBLE;
+      m_viewSymbols.Create(wndMain, CWindow::rcDefault, sTitle, dwStyle);
+      _pDevEnv->AddExplorerView(m_viewSymbols, sTitle, 7);
+      _pDevEnv->ActivateExplorerView(m_viewSymbols);
+   }
+   else {
+      _pDevEnv->RemoveExplorerView(m_viewSymbols);
+      m_viewSymbols.PostMessage(WM_CLOSE);
    }
    return 0;
 }
@@ -601,19 +619,20 @@ LRESULT CRemoteProject::OnDebugQuickWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HW
    ATLASSERT(m_DebugManager.IsDebugging());
    if( !m_DebugManager.IsDebugging() ) return 0;
 
-   // Remove previous dialog
-   if( m_pQuickWatchDlg ) delete m_pQuickWatchDlg;
+   // Remove previous modeless dialog
+   if( m_pQuickWatchDlg != NULL ) delete m_pQuickWatchDlg;
 
    // Ask active editor window to retrieve the selected/caret text
    LAZYDATA data;
    data.Action = LAZY_SEND_GLOBAL_VIEW_MESSAGE;
    data.wParam = DEBUG_CMD_GET_CARET_TEXT;
    m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
-   
+
    m_pQuickWatchDlg = new CQuickWatchDlg(_pDevEnv, this, data.szMessage);
    ATLASSERT(m_pQuickWatchDlg);
    m_pQuickWatchDlg->Create(m_wndMain);
    m_pQuickWatchDlg->ShowWindow(SW_SHOW);
+
    return 0;
 }
 

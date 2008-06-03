@@ -39,27 +39,38 @@ public:
       tci.pszText = (LPTSTR) pstrName;
       tci.iImage = iImage;
       tci.lParam = (LPARAM) hWnd;
-      BOOL bRes = (int) m_ctrlTab.InsertItem(m_ctrlTab.GetItemCount(), &tci) != -1;
-      // Repaint tab control nicely
-      m_ctrlTab.Invalidate();
-      return bRes;
+      int iItem = m_ctrlTab.InsertItem(m_ctrlTab.GetItemCount(), &tci);      
+      m_ctrlTab.Invalidate();  // Repaint tab control nicely
+      return (iItem >= 0);
    }
    BOOL RemoveView(HWND hWnd)
    {
       // Remove interval dialog view
       m_ctrlViews.RemoveItem(hWnd);
       // Remove tab control item
+      int iIndex = FindView(hWnd);
+      if( iIndex < 0 ) return FALSE;
+      m_ctrlTab.DeleteItem(iIndex);
+      m_ctrlTab.Invalidate();
+      return TRUE;
+   }
+   BOOL SelectView(HWND hWnd)
+   {
+      int iIndex = FindView(hWnd);
+      if( iIndex < 0 ) return FALSE;
+      m_ctrlTab.SetCurSel(iIndex);
+      m_ctrlTab.Invalidate();
+      return TRUE;
+   }
+   int FindView(HWND hWnd) const
+   {
       for( int i = 0; i < m_ctrlTab.GetItemCount(); i++ ) {
          TCITEM tci = { 0 };
          tci.mask = TCIF_PARAM;
          m_ctrlTab.GetItem(i, &tci);
-         if( (HWND) tci.lParam == hWnd ) {
-            m_ctrlTab.DeleteItem(i);
-            m_ctrlTab.Invalidate();
-            return TRUE;
-         }
+         if( (HWND) tci.lParam == hWnd ) return i;
       }
-      return FALSE;
+      return -1;
    }
 
    BEGIN_MSG_MAP(CExplorerView)
@@ -102,6 +113,7 @@ public:
    }
    LRESULT OnSelChange(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
+      // Change container view to match tab-selection
       m_ctrlViews.SetCurSel( m_ctrlTab.GetCurSel() );
       return 0;
    }

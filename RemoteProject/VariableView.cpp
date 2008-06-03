@@ -7,15 +7,19 @@
 
 
 /////////////////////////////////////////////////////////////////////////
-// Constructor/destructor
+// CVariableView
 
 CVariableView::CVariableView() :
    m_pProject(NULL)
 {
 }
 
+CVariableView::~CVariableView()
+{
+   if( IsWindow() ) /* scary */
+      DestroyWindow();
+}
 
-/////////////////////////////////////////////////////////////////////////
 // Operations
 
 #pragma code_seg( "VIEW" )
@@ -38,6 +42,7 @@ void CVariableView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
        || _tcscmp(pstrType, _T("stack-args")) == 0 ) 
    {
       int iItem = m_ctrlList.GetCurSel();
+      m_ctrlList.SetRedraw(FALSE);
       m_ctrlList.ResetContent();
       CString sName = info.GetItem(_T("name"));
       while( !sName.IsEmpty() ) {
@@ -45,12 +50,13 @@ void CVariableView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          // NOTE: Newer versions of GDB states that it exposes an "editable"
          //       property, but it turns our this doesn't actually mean
          //       that a user will be able to edit the value, hence the
-         //       crappy string-character test below.
+         //       crappy string tests below.
          BOOL bEnable = TRUE;
+         if( sValue == _T("ARRAY") ) bEnable = FALSE;
          if( sValue == _T("RECORD") ) bEnable = FALSE;
          if( sValue.Find(_T("...")) >= 0 ) bEnable = FALSE;
-         TCHAR chFirst = '\0';
-         TCHAR chLast = '\0';
+         if( sValue.Find(_T(" = {")) >= 0 ) bEnable = FALSE;
+         TCHAR chFirst = '\0', chLast = '\0';
          if( bEnable && sValue.GetLength() > 0 ) {
             chFirst = sValue.GetAt(0);
             chLast = sValue.GetAt(sValue.GetLength() - 1);
@@ -63,6 +69,8 @@ void CVariableView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          sName = info.FindNext(_T("name"));
       }
       m_ctrlList.SetCurSel(iItem);
+      m_ctrlList.SetRedraw(TRUE);
+      m_ctrlList.Invalidate();
    }
 }
 
@@ -74,8 +82,6 @@ void CVariableView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
    }
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Message handlers
 
 LRESULT CVariableView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

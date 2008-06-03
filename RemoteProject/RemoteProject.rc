@@ -251,7 +251,7 @@ BEGIN
             MENUITEM "Leerzeichen anzeigen",        ID_EDIT_VIEWWS
             MENUITEM "Führende Einrückung anzeigen", ID_EDIT_VIEWTABS
         END
-        POPUP "Lesezeichen"
+        POPUP "Lesezeichen   "
         BEGIN
             MENUITEM "Lesezeichen umschalten",      ID_BOOKMARK_TOGGLE
             MENUITEM "Vorhergehendes Lesezeichen",  ID_BOOKMARK_PREVIOUS
@@ -266,12 +266,12 @@ BEGIN
     END
     POPUP "Sub3"
     BEGIN
-        POPUP "Debugfenster"
+        POPUP "Debugfenster   "
         BEGIN
             MENUITEM "&Datenausgabe",               ID_VIEW_DEBUGOUTPUT
             MENUITEM SEPARATOR
             MENUITEM "&Watch",                      ID_VIEW_WATCH
-            MENUITEM "Stack aufrufen",              ID_VIEW_CALLSTACK
+            MENUITEM "Stack aufrufen   ",           ID_VIEW_CALLSTACK
             MENUITEM "&Variablen",                  ID_VIEW_VARIABLES
             MENUITEM "&Threads",                    ID_VIEW_THREADS
             MENUITEM "Speicher",                    ID_VIEW_MEMORY
@@ -292,13 +292,19 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Verzeichnis hinzufügen",      ID_FILE_ADD_FOLDER
         MENUITEM "Lokale Datei hinzufügen",     ID_FILE_ADD_LOCAL
-        MENUITEM "Entfernte Datei hinzufügen",  ID_FILE_ADD_REMOTE
+        MENUITEM "Entfernte Datei hinzufügen  ", ID_FILE_ADD_REMOTE
     END
     POPUP "Sub6"
     BEGIN
         MENUITEM "Haltepunkt einfügen/entfernen   \tF8", ID_DEBUG_BREAKPOINT
         MENUITEM "Quick Watch",                 ID_DEBUG_QUICKWATCH
         MENUITEM SEPARATOR
+    END
+    POPUP "Sub7"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "Entfernte Dateien",           ID_VIEW_FILEMANAGER
+        MENUITEM "Find Symbols",                ID_VIEW_SYMBOLS
     END
 END
 
@@ -385,6 +391,29 @@ BEGIN
         MENUITEM "&Refresh",                    ID_BREAKPOINTS_REFRESH
         MENUITEM SEPARATOR
         MENUITEM "&Properties",                 ID_BREAKPOINTS_PROPERTIES
+    END
+END
+
+IDR_SYMBOLTREE_ITEM MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Gehe zu Definition",         ID_SYMBOLVIEW_GOTODECL
+        MENUITEM "&Gehe zu Implementation    ", ID_SYMBOLVIEW_GOTOIMPL
+        MENUITEM SEPARATOR
+        MENUITEM "&Kopieren",                   ID_SYMBOLVIEW_COPY
+        MENUITEM SEPARATOR
+        MENUITEM "&Eigenschaften",              ID_SYMBOLVIEW_PROPERTIES
+    END
+END
+
+IDR_SYMBOLTREE MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Alphabetisch &sortieren    ", ID_SYMBOLVIEW_SORT_ALPHA
+        MENUITEM "Typ &sortieren    ",          ID_SYMBOLVIEW_SORT_TYPE
+        MENUITEM "Nicht sortieren",             ID_SYMBOLVIEW_SORT_NONE
     END
 END
 
@@ -1097,6 +1126,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_VIEW_FILEMANAGER     "Show/Hide the Remote Files window\nRemote Files"
     ID_REMOTEDIR_OPEN       "Selektierte Datei öffnen\nÖffnen"
     ID_DEBUG_ARGUMENTS      "Programmargumente setzen\nArgumente"
     ID_DEBUG_BREAK          "Debugger unterbrechen\nUnterbrechen"
@@ -1273,12 +1303,14 @@ BEGIN
     IDS_COMMAND_PID         "Debugger Attach PID"
     IDS_STACK_FILE          "Datei='"
     IDS_STACK_LINE          "Zeile="
+    IDS_SYMBOLVIEW          "Find Symbols"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_BUILD_LEXTAGS        "Rebuild the lex information\nRebuild lex"
     ID_DEBUG_COREFILE       "Attach to a core dump file\nAttach To Core File"
+    ID_VIEW_SYMBOLS         "Show/Hide the Symbols View window\nSymbols"
 END
 
 #endif    // German (Germany) resources
@@ -1522,6 +1554,12 @@ BEGIN
         MENUITEM "Quick Watch",                 ID_DEBUG_QUICKWATCH
         MENUITEM SEPARATOR
     END
+    POPUP "Sub7"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "Remote Files",                ID_VIEW_FILEMANAGER
+        MENUITEM "Find Symbols",                ID_VIEW_SYMBOLS
+    END
 END
 
 IDR_CLASSTREE MENU DISCARDABLE 
@@ -1626,6 +1664,29 @@ BEGIN
         MENUITEM "&Refresh",                    ID_BREAKPOINTS_REFRESH
         MENUITEM SEPARATOR
         MENUITEM "&Properties",                 ID_BREAKPOINTS_PROPERTIES
+    END
+END
+
+IDR_SYMBOLTREE_ITEM MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Go to Definition",           ID_SYMBOLVIEW_GOTODECL
+        MENUITEM "&Go to Implementation    ",   ID_SYMBOLVIEW_GOTOIMPL
+        MENUITEM SEPARATOR
+        MENUITEM "&Copy",                       ID_SYMBOLVIEW_COPY
+        MENUITEM SEPARATOR
+        MENUITEM "&Properties",                 ID_SYMBOLVIEW_PROPERTIES
+    END
+END
+
+IDR_SYMBOLTREE MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Sort alphabetically    ",    ID_SYMBOLVIEW_SORT_ALPHA
+        MENUITEM "&Sort by type",               ID_SYMBOLVIEW_SORT_TYPE
+        MENUITEM "&Don't Sort",                 ID_SYMBOLVIEW_SORT_NONE
     END
 END
 
@@ -2082,6 +2143,7 @@ IDR_BUILD               BITMAP  DISCARDABLE     "res\\build.bmp"
 IDR_DEBUG               BITMAP  DISCARDABLE     "res\\debug.bmp"
 IDR_BOOKMARKS           BITMAP  DISCARDABLE     "res\\bookmarks.bmp"
 IDR_SEARCH              BITMAP  DISCARDABLE     "res\\search.bmp"
+IDR_SYMBOLS             BITMAP  DISCARDABLE     "res\\symbols.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2251,6 +2313,11 @@ END
 IDR_SEARCH TOOLBAR DISCARDABLE  16, 15
 BEGIN
     BUTTON      ID_SEARCH_GO
+END
+
+IDR_SYMBOLS TOOLBAR DISCARDABLE  16, 15
+BEGIN
+    BUTTON      ID_SYMBOLS_SEARCH
 END
 
 
@@ -2706,12 +2773,14 @@ BEGIN
     IDS_COMMAND_PID         "Attach to PID"
     IDS_STACK_FILE          "file='"
     IDS_STACK_LINE          "line="
+    IDS_SYMBOLVIEW          "Find Symbols"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_BUILD_LEXTAGS        "Rebuild the lex information\nRebuild lex"
     ID_DEBUG_COREFILE       "Attach to a core dump file\nAttach To Core File"
+    ID_VIEW_SYMBOLS         "Show/Hide the Symbols View window\nSymbols"
 END
 
 #endif    // English (U.S.) resources

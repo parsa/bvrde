@@ -461,7 +461,7 @@ bool CSshProtocol::WriteData(LPCTSTR pstrData)
       m_pCallback->BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_LOG_CONNECTERROR)));
       return false;
    }
-   int nLen = (_tcslen(pstrData) * 2) + 2;  // MBCS + \n + \0
+   int nLen = (int) (_tcslen(pstrData) * 2) + 2;  // MBCS + \n + \0
    LPSTR pstr = (LPSTR) _alloca(nLen);
    ATLASSERT(pstr);
    if( pstr == NULL ) return false;

@@ -7,15 +7,19 @@
 
 
 /////////////////////////////////////////////////////////////////////////
-// Constructor/destructor
+// CThreadView
 
 CThreadView::CThreadView() :
    m_pProject(NULL)
 {
 }
 
+CThreadView::~CThreadView()
+{
+   if( IsWindow() ) /* scary */
+      DestroyWindow();
+}
 
-/////////////////////////////////////////////////////////////////////////
 // Operations
 
 #pragma code_seg( "VIEW" )
@@ -37,6 +41,7 @@ void CThreadView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
    if( _tcscmp(pstrType, _T("thread-ids")) == 0 ) 
    {
+      SetRedraw(FALSE);
       DeleteAllItems();
       CString sValue = info.GetItem(_T("thread-id"));
       while( !sValue.IsEmpty() ) {
@@ -48,6 +53,8 @@ void CThreadView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          if( m_dwCurThread == dwThreadId ) SelectItem(iItem);
          sValue = info.FindNext(_T("thread-id"));
       }
+      SetRedraw(TRUE);
+      Invalidate();
    }
    else if( _tcscmp(pstrType, _T("stopped")) == 0 ) 
    {
@@ -66,8 +73,6 @@ void CThreadView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
    aDbgCmd.Add(CString(_T("-thread-list-ids")));
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Implementation
 
 void CThreadView::_SelectThread(int iThreadId)
@@ -81,8 +86,6 @@ void CThreadView::_SelectThread(int iThreadId)
    }
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Message handlers
 
 LRESULT CThreadView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

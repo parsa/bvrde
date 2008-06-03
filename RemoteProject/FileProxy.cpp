@@ -35,18 +35,20 @@ bool CFileManager::Load(ISerializable* pArc)
    Clear();
    if( !pArc->ReadGroupBegin(_T("FileTransfer")) ) return true;
 
+   // Book-keep the connection type
    m_sType = _T("ftp");
    if( pArc->ReadItem(_T("Type")) ) {
       TCHAR szType[64] = { 0 };
       pArc->Read(_T("method"), szType, 63);
       m_sType = szType;
    }
+   // Create the new connection based on the type
    if( m_pProtocol != NULL ) delete m_pProtocol;
    m_pProtocol = NULL;
-   if( m_sType == _T("ftp") )          m_pProtocol = new CFtpProtocol();
-   else if( m_sType == _T("sftp") )    m_pProtocol = new CSftpProtocol();
-   else if( m_sType == _T("network") ) m_pProtocol = new CFileProtocol();
-   else return false;
+   if( m_sType == _T("ftp") )      m_pProtocol = new CFtpProtocol();
+   if( m_sType == _T("sftp") )     m_pProtocol = new CSftpProtocol();
+   if( m_sType == _T("network") )  m_pProtocol = new CFileProtocol();
+   if( m_pProtocol == NULL ) return false;
 
    if( !m_pProtocol->Load(pArc) ) return false;
 

@@ -30,6 +30,7 @@ public:
    } BREAKINFO;
 
    CBreakpointView();
+   ~CBreakpointView();
 
    CRemoteProject* m_pProject;
    CListViewCtrl m_ctrlList;

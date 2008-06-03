@@ -15,6 +15,7 @@ public:
    DECLARE_WND_SUPERCLASS(_T("BVRDE_ThreadView"), CListViewCtrl::GetWndClassName())
 
    CThreadView();
+   ~CThreadView();
 
    CRemoteProject* m_pProject;
    DWORD m_dwCurThread;

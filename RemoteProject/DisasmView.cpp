@@ -7,7 +7,7 @@
 
 
 /////////////////////////////////////////////////////////////////////////
-// Constructor/destructor
+// CDisasmView
 
 CDisasmView::CDisasmView() :
    m_pProject(NULL),
@@ -18,8 +18,12 @@ CDisasmView::CDisasmView() :
 {
 }
 
+CDisasmView::~CDisasmView()
+{
+   if( IsWindow() ) /* scary */
+      DestroyWindow();
+}
 
-/////////////////////////////////////////////////////////////////////////
 // Operations
 
 #pragma code_seg( "VIEW" )
@@ -52,7 +56,7 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       CString sDisasm;
       CString sFunction;
       CString sLocation;
-      CString sText = _T("{\\rtf1\\ansi\\deff0\\deftab720{\\colortbl\\red0\\green0\\blue0;\\red0\\green0\\blue180;\\red130\\green130\\blue130;\\red180\\green0\\blue0;}\\deflang1033\\pard\\plain\\f0\\fs18 ");
+      CString sText = _T("{\\rtf1\\ansi\\deff0\\deftab720{\\colortbl\\red0\\green0\\blue0;\\red0\\green0\\blue180;\\red130\\green30\\blue130;\\red180\\green0\\blue0;}\\deflang1033\\pard\\plain\\f0\\fs18 ");
       CString sValue = info.GetItem(_T("address"));
       while( !sValue.IsEmpty() ) {
          sLocation = info.GetSubItem(_T("func-name"));
@@ -126,8 +130,6 @@ void CDisasmView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
    aDbgCmd.Add(sCommand);
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Message handlers
 
 LRESULT CDisasmView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -146,9 +148,19 @@ LRESULT CDisasmView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
    m_fontWingdings.CreateFont(12, 0, 0, 0, 0, 0, 0, 0, SYMBOL_CHARSET, 0, 0, 0, 0, _T("Wingdings"));
 
+#ifdef _UNICODE
+   // On a Japanese Windows, the compiler will comtain that these are not
+   // proper UNICODE characters. Well, they are not. They are part of the
+   // Symbol font.
+   USHORT pstrUp[] = { 0xE9, '\0' };
+   USHORT pstrDown[] = { 0xEA, '\0' };
+   m_ctrlUp.Create(m_hWnd, rcDefault, (LPCWSTR)pstrUp, WS_CHILD, 0, IDC_SCROLLUP);
+   m_ctrlDown.Create(m_hWnd, rcDefault, (LPCWSTR)pstrDown, WS_CHILD, 0, IDC_SCROLLDOWN);
+#else
    m_ctrlUp.Create(m_hWnd, rcDefault, _T("\xE9"), WS_CHILD, 0, IDC_SCROLLUP);
-   m_ctrlUp.SetFont(m_fontWingdings);
    m_ctrlDown.Create(m_hWnd, rcDefault, _T("\xEA"), WS_CHILD, 0, IDC_SCROLLDOWN);
+#endif // _UNICODE
+   m_ctrlUp.SetFont(m_fontWingdings);
    m_ctrlDown.SetFont(m_fontWingdings);
 
    CClientDC dc = m_ctrlView;
@@ -257,8 +269,6 @@ void CDisasmView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*
 {
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Implementation
 
 DWORD CALLBACK CDisasmView::_EditStreamCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)

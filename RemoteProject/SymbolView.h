@@ -8,26 +8,60 @@
 #include "FunctionRtf.h"
 
 
+/////////////////////////////////////////////////////////////////////////
+//
+
+enum 
+{ 
+   WM_SYMBOL_GET_DATA = WM_USER + 100,
+   WM_SYMBOL_GOT_DATA 
+};
+
+class CSymbolView;  // Forward declare
+
+
+/////////////////////////////////////////////////////////////////////////
+// CSymbolThreadLoader
+
+class CSymbolsLoaderThread : public CThreadImpl<CSymbolsLoaderThread>
+{
+public:
+   CSymbolView* m_pOwner;
+   CString m_sPattern;
+   WPARAM m_dwCookie;
+
+   void Init(CSymbolView* pOwner, LPCTSTR pstrPattern, DWORD dwCookie);
+   
+   DWORD Run();
+};
+
+
+/////////////////////////////////////////////////////////////////////////
+// CSymbolView
+
 class CSymbolView : 
    public CWindowImpl<CSymbolView>,
    public IIdleListener,
    public CRawDropSource
 {
 public:
-   DECLARE_WND_CLASS(_T("BVRDE_SymbolView"))
+   DECLARE_WND_CLASS_EX(_T("BVRDE_SymbolView"), 0, COLOR_3DFACE)
 
    CSymbolView();
+   ~CSymbolView();
 
    CRemoteProject* m_pProject;                   // Reference to project
+   CSymbolsLoaderThread m_threadLoader;          // Thread that collects result
    CTagDetails m_SelectedTag;                    // Data about selected tag item during context-menu
    CTagDetails m_SelectedImpl;                   // Data about source implementation
    TAGINFO* m_pCurrentHover;                     // Reference to item during hover
    bool m_bMouseTracked;                         // Mouse is tracked in window?
+   WPARAM m_dwCookie;                            // Cookie to keep thread in sync with pattern entered
 
-   CImageListCtrl m_Images;
-   CEdit m_ctrlFilter;
+   CToolBarXPCtrl m_ctrlToolbar;
+   CContainedWindowT<CEdit> m_ctrlPattern;
    CButton m_ctrlSearch;
-   CContainedWindowT<CTreeViewCtrl> m_ctrlTree;
+   CContainedWindowT<CListViewCtrl> m_ctrlList;
    CFunctionRtfCtrl m_ctrlHoverTip;
 
    // Operations
@@ -38,7 +72,7 @@ public:
    
    // Implementation
 
-   void _PopulateTree();
+   void _PopulateList(CSimpleValArray<TAGINFO*>& aList);
    bool _GetImplementationRef(const CTagDetails& Current, CTagDetails& Info);
 
    // IIdleListener
@@ -50,28 +84,45 @@ public:
 
    BEGIN_MSG_MAP(CSymbolView)
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
+      MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
       MESSAGE_HANDLER(WM_SIZE, OnSize)     
-      NOTIFY_CODE_HANDLER(NM_DBLCLK, OnTreeDblClick)
-      NOTIFY_CODE_HANDLER(NM_RCLICK, OnTreeRightClick)
-      NOTIFY_CODE_HANDLER(TVN_BEGINDRAG, OnTreeBeginDrag)
-      NOTIFY_CODE_HANDLER(TVN_SELCHANGED, OnTreeSelChanged)
+      MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkgnd)
+      MESSAGE_HANDLER(WM_SYMBOL_GET_DATA, OnGetSymbolData)
+      MESSAGE_HANDLER(WM_SYMBOL_GOT_DATA, OnGotSymbolData)
+      COMMAND_ID_HANDLER(ID_SYMBOLS_SEARCH, OnPatternChange)      
+      COMMAND_HANDLER(ID_SYMBOLS_PATTERN, EN_CHANGE, OnPatternChange)
+      NOTIFY_CODE_HANDLER(NM_DBLCLK, OnListDblClick)
+      NOTIFY_CODE_HANDLER(NM_RCLICK, OnListRightClick)
+      NOTIFY_CODE_HANDLER(LVN_BEGINDRAG, OnListBeginDrag)
+      NOTIFY_CODE_HANDLER(LVN_ITEMCHANGED, OnListItemChanged)
+      // FIX: Not entirely sure why this filter is needed...
+      if( uMsg == WM_NOTIFY && ((LPNMHDR)lParam)->hwndFrom == m_ctrlToolbar ) REFLECT_NOTIFICATIONS()
+      //REFLECT_NOTIFICATIONS()
    ALT_MSG_MAP(1)
       MESSAGE_HANDLER(WM_MOUSEMOVE, OnMouseMove)     
       MESSAGE_HANDLER(WM_MOUSEHOVER, OnMouseHover)     
       MESSAGE_HANDLER(WM_MOUSELEAVE, OnMouseLeave)     
       NOTIFY_CODE_HANDLER(EN_REQUESTRESIZE, OnRequestResize);
+   ALT_MSG_MAP(2)
+      MESSAGE_HANDLER(WM_KEYDOWN, OnEditKeyDown)     
    END_MSG_MAP()
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnGetSymbolData(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnGotSymbolData(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnPatternChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMouseMove(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnMouseHover(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnMouseLeave(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnEditKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnPopulate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-   LRESULT OnTreeDblClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
-   LRESULT OnTreeBeginDrag(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
-   LRESULT OnTreeSelChanged(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
-   LRESULT OnTreeRightClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnListDblClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnListBeginDrag(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnListItemChanged(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+   LRESULT OnListRightClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
    LRESULT OnRequestResize(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 };
 

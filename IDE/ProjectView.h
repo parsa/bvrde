@@ -48,7 +48,7 @@ public:
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( !m_ctrlToolbar.IsWindow() || !m_ctrlTree.IsWindow() ) return 0;
-      RECT rc;
+      RECT rc = { 0 };
       GetClientRect(&rc);
       RECT rcTb = { rc.left, rc.top, rc.right, rc.top + 24 };
       m_ctrlToolbar.MoveWindow(&rcTb);

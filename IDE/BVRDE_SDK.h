@@ -348,12 +348,14 @@ public:
    virtual IView* GetActiveView() const = 0;
    virtual IDispatch* GetDispatch() = 0;
    virtual LCID SetThreadLanguage() = 0;
+   virtual DWORD GetGuiThreadId() = 0;
    //
    virtual BOOL AddExplorerView(HWND hWnd, LPCWSTR pstrTitle, int iImage) = 0;
    virtual BOOL RemoveExplorerView(HWND hWnd) = 0;
    virtual BOOL AddAutoHideView(HWND hWnd, IDE_DOCK_TYPE Direction, int iImage) = 0;
    virtual BOOL RemoveAutoHideView(HWND hWnd) = 0;
    virtual BOOL ActivateAutoHideView(HWND hWnd) = 0;
+   virtual BOOL ActivateExplorerView(HWND hWnd) = 0;
    virtual BOOL AddDockView(HWND hWnd, IDE_DOCK_TYPE Direction, RECT rcWin) = 0;
    virtual BOOL RemoveDockView(HWND hWnd) = 0;
    virtual BOOL GetDockState(HWND hWnd, int& iState, RECT& rcWin) = 0;

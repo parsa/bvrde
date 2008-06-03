@@ -123,6 +123,7 @@ public:
       // This function is part of the Windows Vista LUA compliance test, where the
       // BVRDE.xml file is stored in the user's AppData folder. However, we do want
       // to warn the user about changes in the original xml file.
+      // If the local configuration is missing, we'll allow the master to be copied.
       CString sDocFilename = CMainFrame::GetSettingsFilename();
       CString sOrigFilename;
       sOrigFilename.Format(_T("%sBVRDE.xml"), CModulePath());
@@ -130,14 +131,20 @@ public:
       TCHAR szDocValue[64] = { 0 };
       m_pMain->GetProperty(_T("config.timestamp"), szDocValue, (sizeof(szDocValue) / sizeof(TCHAR)) - 1);
       FILETIME ftOrig = { 0 };
+      FILETIME ftUser = { 0 };
       CFile fOrig;
       if( fOrig.Open(sOrigFilename) ) {
          fOrig.GetFileTime(NULL, NULL, &ftOrig);
          fOrig.Close();
       }
+      CFile fUser;
+      if( fUser.Open(sDocFilename) ) {
+         fUser.GetFileTime(NULL, NULL, &ftUser);
+         fUser.Close();
+      }
       TCHAR szOrigValue[64] = { 0 };
       ::wsprintf(szOrigValue, _T("%08X%08X"), ftOrig.dwHighDateTime, ftOrig.dwLowDateTime);
-      if( _tcscmp(szDocValue, szOrigValue) != 0 ) {
+      if( _tcscmp(szDocValue, szOrigValue) != 0 || ftUser.dwLowDateTime == 0 ) {
          if( _tcslen(szDocValue) == 0 || IDYES == AtlMessageBox(NULL, _T("The Master Configuration file has changed!\r\n\r\nDo you wish to copy it and use it as the current configuration?\r\nThis is recommended if you just reinstalled the tool."), _T("BVRDE"), MB_ICONQUESTION | MB_YESNO | MB_SETFOREGROUND | MB_TOPMOST) ) {
             ::CopyFile(sOrigFilename, sDocFilename, FALSE);
          }
@@ -181,6 +188,7 @@ public:
       if( !arc.Open(spConfigDoc, _T("Settings"), sFilename) ) return;
       if( !m_pMain->_LoadSettings(arc) ) return;
       arc.Close();
+
       spConfigDoc.Release();
    }
 
@@ -653,7 +661,7 @@ void CMainFrame::_SaveToolBarState()
    if( arc.ReadGroupBegin(_T("ToolBars")) ) {
       while( arc.Delete(_T("ToolBar")) ) /* */;
       for( int i = 0;  i < m_aToolBars.GetSize(); i++ ) {
-         TOOLBAR& tb = m_aToolBars[i];
+         const TOOLBAR& tb = m_aToolBars[i];
          for( UINT iPos = 0; iPos < m_Rebar.GetBandCount(); iPos++ ) {
             REBARBANDINFO rbbi = { 0 };
             rbbi.cbSize = sizeof(rbbi);

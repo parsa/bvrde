@@ -7,7 +7,7 @@
 
 
 /////////////////////////////////////////////////////////////////////////
-// Constructor/destructor
+// CWatchView
 
 CWatchView::CWatchView() :
    m_wndCatch(this, 1),
@@ -15,8 +15,12 @@ CWatchView::CWatchView() :
 {
 }
 
+CWatchView::~CWatchView()
+{
+   if( IsWindow() ) /* scary */
+      DestroyWindow();
+}
 
-/////////////////////////////////////////////////////////////////////////
 // Operations
 
 #pragma code_seg( "VIEW" )
@@ -126,25 +130,36 @@ void CWatchView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    }
    if( _tcscmp(pstrType, _T("changelist")) == 0 )
    {
-      CSimpleArray<LPARAM> aChangedWatches;
+      CSimpleValArray<LPARAM> aChangedWatches;
+      CSimpleValArray<LPARAM> aOutOfScope;
       CString sName = info.GetItem(_T("name"));
       while( !sName.IsEmpty() ) {
          if( _tcsncmp(sName, _T("watch"), 5) == 0 ) {
             LPARAM lWatch = (LPARAM) _ttol(sName.Mid(5));  // formatted as "watch1234"
             aChangedWatches.Add(lWatch);
+            if( info.GetSubItem(_T("in_scope")) == _T("false") ) aOutOfScope.Add(lWatch);
          }
          sName = info.FindNext(_T("name"));
       }
       COLORREF clrChanged = ::GetSysColor(COLOR_HIGHLIGHT);
+      COLORREF clrOutOfScope = ::GetSysColor(COLOR_GRAYTEXT);
       int nCount = m_ctrlGrid.GetItemCount();
       for( int i = 0; i < nCount; i++ ) {
          HPROPERTY hProp = m_ctrlGrid.GetProperty(i, 0);
          LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
-         bool bFound = false;
-         for( int j = 0; !bFound && j < aChangedWatches.GetSize(); j++ ) if( aChangedWatches[j] == lKey ) bFound = true;
-         static_cast<CPropertyItem*>(hProp)->SetTextColor(bFound ? clrChanged : CLR_INVALID);
+         COLORREF clrItem = CLR_INVALID;
+         int j;
+         for( j = 0; j < aChangedWatches.GetSize(); j++ ) {
+            if( aChangedWatches[j] == lKey ) { clrItem = clrChanged; break; }
+         }
+         for( j = 0; j < aOutOfScope.GetSize(); j++ ) {
+            if( aOutOfScope[j] == lKey ) { clrItem = clrOutOfScope; break; }
+         }
+         static_cast<CPropertyItem*>(hProp)->SetTextColor(clrItem);
       }
-      // Intelligently try to refresh items...
+      // Intelligently try to refresh items.
+      // The changelist may come with the an empty list repeatedly. When no changes
+      // was made, don't refresh, less screen flicker.
       static int s_iLastChangeCount = -1;
       if( s_iLastChangeCount > 0 || aChangedWatches.GetSize() > 0 ) m_ctrlGrid.Invalidate(FALSE);
       s_iLastChangeCount = aChangedWatches.GetSize();
@@ -159,7 +174,9 @@ void CWatchView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
    // While the above debugger command gives us a list of chenged items, I still
    // perfer to evaluate *all* wathces - simply because there is slight risk that
    // we didn't catch an update.
-   // TODO: Baloney. Fix this.
+   // TODO: Baloney. Fix this. 
+   //       Well, actually the DBX integration relies on this.
+   //       Even the GDB integration only uses -var-update for coloring.
 
    int nCount = m_ctrlGrid.GetItemCount();
    for( int i = 0; i < nCount; i++ ) {
@@ -170,8 +187,6 @@ void CWatchView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
    }
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Implementation
 
 void CWatchView::_CreateWatch(HPROPERTY hProp, LPCTSTR pstrName)
@@ -197,8 +212,6 @@ void CWatchView::_DeleteWatch(HPROPERTY hProp)
    m_pProject->DelayedDebugCommand(sCommand);
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Message handlers
 
 LRESULT CWatchView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

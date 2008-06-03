@@ -20,7 +20,7 @@ struct CLockLineDataInit
 
 
 /////////////////////////////////////////////////////////////////////////
-// Constructor/destructor
+// CTelnetView
 
 CTelnetView::CTelnetView() :
   m_pShell(NULL),
@@ -35,10 +35,10 @@ CTelnetView::CTelnetView() :
 CTelnetView::~CTelnetView()
 {
    ATLASSERT(m_pShell==NULL);
+   if( IsWindow() ) /* scary */
+      DestroyWindow();
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Operations
 
 #pragma code_seg( "VIEW" )
@@ -128,8 +128,6 @@ void CTelnetView::DoPaint(CDCHandle dc)
    dc.SelectFont(hOldFont);
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Message handlers
 
 LRESULT CTelnetView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
@@ -146,7 +144,7 @@ LRESULT CTelnetView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
 
 LRESULT CTelnetView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-   if( m_pShell ) {
+   if( m_pShell != NULL ) {
       m_pShell->RemoveLineListener(this);
       if( (m_dwFlags & TELNETVIEW_TERMINATEONCLOSE) != 0 ) {
          m_pShell->Stop();
@@ -174,6 +172,7 @@ LRESULT CTelnetView::OnCompacting(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
       if( (m_dwFlags & TELNETVIEW_TERMINATEONCLOSE) != 0 ) {
          _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, _T(""), FALSE);
          m_pShell->Stop();
+         m_pShell = NULL;
       }
    }
    bHandled = FALSE;
@@ -263,8 +262,6 @@ LRESULT CTelnetView::OnEditWordWrap(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
    return 0;
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Implementation
 
 void CTelnetView::_SetScrollSize()
@@ -278,45 +275,44 @@ void CTelnetView::_SetScrollSize()
    SetScrollOffset(0, m_tm.tmHeight * m_nLineCount);
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // IOutputLineListener 
 
 void CTelnetView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 {
-   // Filtering out debug output?
+   CString sText = pstrText;
+
+   // Filtering out debugger messages?
    // BUG: We're filtering lines indiscriminately. We should really try
    //      to figure out if this is GDB prompt/output or not. 
-   //      But this is very tricky!
+   //      But this is a little tricky!
    if( (m_dwFlags & TELNETVIEW_FILTERDEBUG) != 0 ) 
    {
-      if( _tcsstr(pstrText, _T("232^")) != NULL ) return;
-      if( _tcsstr(pstrText, _T("232*")) != NULL ) return;
-      if( _tcsstr(pstrText, _T("232-")) != NULL ) return;
-      if( _tcsncmp(pstrText, _T("&\""), 2) == 0 ) return;
-      if( _tcsncmp(pstrText, _T("~\""), 2) == 0 ) return;
-      if( _tcsncmp(pstrText, _T("(gdb"), 4) == 0 ) return;
-      if( _tcsncmp(pstrText, _T("(dbx"), 4) == 0 ) return;
+      if( sText.Find(_T("232^")) >= 0 ) return;
+      if( sText.Find(_T("232*")) >= 0 ) return;
+      if( sText.Find(_T("232-")) >= 0 ) return;
+      if( sText.Find(_T("*stopped")) >= 0 ) return;
+      if( sText.Find(_T("=stopped")) >= 0 ) return;
+      if( _tcsncmp(sText, _T("&\""), 2) == 0 ) return;
+      if( _tcsncmp(sText, _T("~\""), 2) == 0 ) return;
+      if( _tcsncmp(sText, _T("(gdb"), 4) == 0 ) return;
+      if( _tcsncmp(sText, _T("(dbx"), 4) == 0 ) return;
       // Transform target output...
+      // At lease we will try to convert to GDB/MI target-stream-output text to
+      // standard console output.
       // TODO: Figure out if we really need this here?
-      TCHAR szOutput[400];
-      if( _tcsncmp(pstrText, _T("@\""), 2) == 0 ) {
-         _tcsncpy(szOutput, pstrText + 2, 399);
-         szOutput[399] = '\0';
-         size_t cchLen = _tcslen(szOutput);
-         if( cchLen > 0 ) szOutput[cchLen - 1] = '\0';
-         pstrText = szOutput;
+      if( _tcsncmp(sText, _T("@\""), 2) == 0 ) {
+         sText = sText.Mid(2, sText.GetLength() - 3);
       }
    }
 
-   if( _tcsncmp(pstrText, _T("(gdb"), 4) == 0 ) nColor = VT100_BLUE;
-   if( _tcsncmp(pstrText, _T("(dbx"), 4) == 0 ) nColor = VT100_BLUE;
+   // Color debug prompts differently
+   if( _tcsncmp(sText, _T("(gdb"), 4) == 0 ) nColor = VT100_BLUE;
+   if( _tcsncmp(sText, _T("(dbx"), 4) == 0 ) nColor = VT100_BLUE;
 
    // NOTE: Since lines may very well arrive from another thread we'll
    //       have to protect the data members.
    CLockLineDataInit lock;
 
-   CString sText = pstrText;
    int nCount = m_aLines.GetSize();
    do 
    {

@@ -1,9 +1,11 @@
-Version 1.x:
+Version 1.2:
 * Support for DBX debugger
 * Attach to core dump file from debug menu
 * Improved visual diff. display in Source Control
 * Improved SQL editor & database integration
-* Improved intellisense for inherited classes
+* Improved intellisense for inherited types
+* New Symbol View for finding symbols/functions
+* Prepared for GDB/MI version 3
 * Source now compiles against Visual Studio.NET 2008
 
 Version 1.1:
@@ -65,7 +67,7 @@ Version 0.9d:
 * New Console Output debug view
 
 Version 0.9c
-* German translation provided by Torsten Albrecht (Ingenieurb¸ro AttNet)
+* German translation provided by Torsten Albrecht (IngenieurbÅEo AttNet)
 * New 'mode' command in Console to switch interpreter mode
 * Autohide views now close when you click on the button if already open
 * Function-parens automatically added in autocompletion

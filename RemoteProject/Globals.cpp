@@ -33,6 +33,34 @@ CString ConvertFromCrLf(const CString& s)
    return sRes;
 }
 
+// Written by Jack Handy - jakkhandy@hotmail.com
+bool wildcmp(LPCTSTR  wild, LPCTSTR  str) 
+{
+   LPCTSTR cp = NULL, mp = NULL;
+   while( (*str) && (*wild != '*') ) {
+      if( (*wild != *str) && (*wild != '?') ) return false;
+      wild++;
+      str++;
+   }
+   while( *str != '\0' ) {
+      if (*wild == '*') {
+         if (!*++wild) return true;
+         mp = wild;
+         cp = str + 1;
+      } 
+      else if( (*wild == *str) || (*wild == '?') ) {
+         wild++;
+         str++;
+      } 
+      else {
+         wild = mp;
+         str = cp++;
+      }
+   }
+   while( *wild == '*' ) wild++;
+   return (*wild == '\0');
+}
+
 
 ////////////////////////////////////////////////////////
 //

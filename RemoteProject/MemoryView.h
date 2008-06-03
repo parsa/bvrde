@@ -43,6 +43,7 @@ public:
    DECLARE_WND_CLASS(_T("BVRDE_MemoryView"))
 
    CMemoryView();
+   ~CMemoryView();
 
    typedef struct tagSTREAMCOOKIE
    {

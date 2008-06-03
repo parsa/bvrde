@@ -252,7 +252,7 @@ bool CDebugManager::ClearBreakpoints()
       }
    }
    // We can now safely remove our internal breakpoint list
-   // and signal to the view to do the same...
+   // and signal to the views to do the same...
    m_aBreakpoints.RemoveAll();
    m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_CLEAR_BREAKPOINTS);
    return true;
@@ -269,8 +269,7 @@ bool CDebugManager::AddBreakpoint(LPCTSTR pstrFilename, int iLineNum)
    // for this breakpoint, but we'll soon learn when GDB answers our request.
    m_aBreakpoints.Add(sText, 0);
    // If we're debugging, we need to update GDB as well...
-   if( IsDebugging() ) 
-   {     
+   if( IsDebugging() ) {     
       // Attempt to halt app if currently running
       bool bRestartApp = _PauseDebugger();
       // Send GDB commands
@@ -598,10 +597,10 @@ void CDebugManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("DebugMain") ) m_sDebugMain = pstrValue;
    if( sName == _T("SearchPath") ) m_sSearchPath = pstrValue;
    if( sName == _T("StartTimeout") ) m_lStartTimeout = _ttol(pstrValue);
-   if( sName == _T("MaintainSession") ) m_bMaintainSession = _tcscmp(pstrValue, _T("true")) == 0;
    if( sName == _T("CoreProcess") ) m_sCoreProcess = pstrValue;
    if( sName == _T("CoreFile") ) m_sCoreFile = pstrValue;
-   if( sName == _T("InCommand") ) m_bCommandMode = _tcscmp(pstrValue, _T("true")) == 0;
+   if( sName == _T("InCommand") ) m_bCommandMode = (_tcscmp(pstrValue, _T("true")) == 0);
+   if( sName == _T("MaintainSession") ) m_bMaintainSession = (_tcscmp(pstrValue, _T("true")) == 0);
    m_ShellManager.SetParam(pstrName, pstrValue);  
    if( m_lStartTimeout <= 0 ) m_lStartTimeout = 4;
 }
@@ -639,7 +638,7 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
    RECT rcLogWin = { 120, 120, 800 + 120, 600 + 120 };   
    _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_HIDE, rcLogWin);
 
-   // Initialize and hide the output-log view.
+   // Initialize, but also hide the output-log view.
    // The start event will show the view based on user's preferences.
    CTelnetView* pOutput = m_pProject->GetOutputView();
    pOutput->Clear();
@@ -793,20 +792,34 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
 {
    ATLASSERT(!::IsBadStringPtr(pstrCommand,-1));
 
+   CString sCommand = pstrCommand;
+
+   // Do some manipulation depending on the debug command.
+   // Some commands might spuriously fail and we don't want to see error
+   // messages all the time, so we'll bluntly ignore these.
+   if( sCommand.Find(_T("-delete")) >= 0 ) m_nIgnoreErrors++;
+   if( sCommand.Find(_T("-evaluate")) >= 0 ) m_nIgnoreErrors++;
+
+   // For some commands we really need to track the information that
+   // was asked. We book-keep this in an internal state variable. This
+   // is a problem because we can now only have one command lingering.
+   int iPos;
+   if( (iPos = sCommand.Find(_T("-var-info-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 21);
+   if( (iPos = sCommand.Find(_T("-var-evaluate-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 25);
+   if( (iPos = sCommand.Find(_T("-data-evaluate-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 26);
+
    // Here is an important transformation. For ordinary GDB commands we format them
    // as "232-command" (prefixing with 232) so we can easily recognize the response.
    // We currently don't use an incrementing number-prefix to recognize individual command 
    // sequences, but that may change in the future. So far we just hardcode the (randomly 
    // picked) number: 232.
-   CString sCommand = pstrCommand;
    if( pstrCommand[0] == '-' && m_pAdaptor != NULL ) {
-      sCommand = m_pAdaptor->TransformInput(pstrCommand);
+      sCommand = m_pAdaptor->TransformInput(sCommand);
    }
 
+   // Translate meta-tokens in command
    TCHAR szProjectName[128] = { 0 };
    m_pProject->GetName(szProjectName, 127);
-
-   // Translate meta-tokens in command
    sCommand.Replace(_T("$PROJECTNAME$"), szProjectName);
    sCommand.Replace(_T("$PATH$"), m_ShellManager.GetParam(_T("Path")));
    sCommand.Replace(_T("$DRIVE$"), m_ShellManager.GetParam(_T("Path")).Left(2));
@@ -821,18 +834,6 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
       sCommand.Replace(_T("$NAME$"), szName);
    }
 
-   // Do some manipulation depending on the debug command.
-   // Some commands might spuriously fail and we don't want to see error
-   // messages all the time, so we'll bluntly ignore these.
-   if( sCommand.Find(_T("-delete")) >= 0 ) m_nIgnoreErrors++;
-   if( sCommand.Find(_T("-evaluate")) >= 0 ) m_nIgnoreErrors++;
-   // For some commands we really need to track the information that
-   // was asked. We book-keep this in an internal state variable. This
-   // is a problem because we can now only have one command lingering.
-   int iPos;
-   if( (iPos = sCommand.Find(_T("-var-info-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 21);
-   if( (iPos = sCommand.Find(_T("-var-evaluate-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 25);
-   if( (iPos = sCommand.Find(_T("-data-evaluate-expression"))) >= 0 ) m_sVarName = sCommand.Mid(iPos + 26);
    return sCommand;
 }
 
@@ -1079,7 +1080,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
          // lingering at any time.
          // TODO: Make use of the GDB command-prefix number instead
          //       of just hard-coding it to 232 as we do today.
-         CString sVarName= m_sVarName;
+         CString sVarName = m_sVarName;
          sVarName.TrimLeft(_T("\" "));
          sVarName.TrimRight(_T("\"\t\r\n "));
          CString sTemp;
@@ -1145,7 +1146,7 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
       ProgramStop();
    }
    // For some targets we really wish to know the PID of the running program.
-   // Settings debugevent reporting on seems to be the only way to trigger this
+   // Settings debugevent reporting "on" seems to be the only way to trigger this
    // early in GDB.
    if( m_bDebugEvents && sLine.Find(_T("do_initial_child_stuff")) >= 0 ) {
       m_ShellManager.SetParam(_T("ProcessID"), sLine.Mid(sLine.Find(_T("process")) + 7));
@@ -1193,6 +1194,11 @@ void CDebugManager::_ParseLogOutput(LPCTSTR pstrText)
       m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_NOEXECUTABLE)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
       ProgramStop();
    }
+}
+
+void CDebugManager::_ParseNotifyAsync(LPCTSTR pstrText)
+{
+   CString sLine = pstrText;
 }
 
 void CDebugManager::_ParseKeyPrompt(LPCTSTR pstrText)
@@ -1256,6 +1262,7 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    if( m_pAdaptor == NULL ) return;
    CSimpleArray<CString> aOutput;
    m_pAdaptor->TransformOutput(pstrText, aOutput);
+   // GDB/MI:  output ==> ( out-of-band-record )* [ result-record ] "(gdb)" nl 
    for( int i = 0; i < aOutput.GetSize(); i++ ) {
       pstrText = aOutput[i];
       // Count number of debug prompts (=acknoledgements)
@@ -1272,17 +1279,37 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       if( *pstrText == '-' ) _ParseKeyPrompt(pstrText);
       // Not accepting lines before first acknoledge
       if( m_nDebugAck == 0 ) continue;
-      // Parse output stream
+      // Parse output records
       if( *pstrText == '@' ) _ParseTargetOutput(pstrText + 1);
       if( *pstrText == '&' ) _ParseLogOutput(pstrText + 1);
       // Unfortunately Out-of-band output may occur in the middle
       // of the stream! This is an annoying GDB feature, but we'll try
       // to handle the situation by adding a command-handshake (see 
       // DoDebugCommand()) and by looking for substrings.
+      // Parse ResultRecord record.
+      int iOffset = 4;
       LPCTSTR pstr = _tcsstr(pstrText, _T("232^"));
-      if( pstr != NULL ) _ParseResultRecord(pstr + 4);
-      pstr = _tcsstr(pstrText, _T("232*"));
-      if( pstr != NULL ) _ParseOutOfBand(pstr + 4);
+      if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("^connected")), iOffset = 1;
+      if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("^running")), iOffset = 1;
+      if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("^exit")), iOffset = 1;
+      if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("^error")), iOffset = 1;
+      if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("^done")), iOffset = 1;
+      if( pstr != NULL ) _ParseResultRecord(pstr + iOffset);
+      // Parse OutOfBand records...
+      pstrText = aOutput[i];
+      do {
+         pstr = _tcsstr(pstrText, _T("232*")), iOffset = 4;
+         if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("*stopped")), iOffset = 1;
+         if( pstr != NULL ) _ParseOutOfBand(pstr + iOffset);
+         pstrText = pstr != NULL ? _tcschr(pstr, ',') : NULL;
+      } while( pstrText != NULL );
+      pstrText = aOutput[i];
+      do {
+         pstr = _tcsstr(pstrText, _T("232=")), iOffset = 4;
+         if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("=stopped")), iOffset = 1;
+         if( pstr != NULL ) _ParseOutOfBand(pstr + iOffset);
+         pstrText = pstr != NULL ? _tcschr(pstr, ',') : NULL;
+      } while( pstrText != NULL );
       // ...and happily ignore everything else!
    }
 }

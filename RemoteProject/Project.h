@@ -26,6 +26,7 @@
 #include "MemoryView.h"
 #include "DisasmView.h"
 #include "ThreadView.h"
+#include "SymbolView.h"
 #include "RemoteDirView.h"
 #include "QuickWatchDlg.h"
 
@@ -89,6 +90,7 @@ private:
    static CDisasmView m_viewDisassembly;
    static CVariableView m_viewVariable;
    static CThreadView m_viewThread;
+   static CSymbolView m_viewSymbols;
    static CRemoteDirView m_viewRemoteDir;
 
 // IElement
@@ -153,6 +155,7 @@ public:
    bool GetPath(LPTSTR pstrPath, UINT cchMax) const;
 
    static CClassView* GetClassView();
+   static CSymbolView* GetSymbolView();
    static CTelnetView* GetDebugView();
    static CTelnetView* GetOutputView();
 
@@ -170,6 +173,9 @@ public:
    void DelayedClassTreeInfo(LPCTSTR pstrFilename, LEXFILE* pFile);
 
    static void InitializeToolBars();
+   static void AddDropDownButtonToToolBar(CToolBarCtrl tb, UINT nID);
+   static void AddButtonTextToToolBar(CToolBarCtrl tb, UINT nID, UINT nRes);
+   static void AddControlToToolBar(CToolBarCtrl tb, HWND hWnd, USHORT cx, UINT nCmdPos, bool bIsCommandId, bool bInsertBefore = true);
 
 // Message map and handlers
 public:
@@ -194,6 +200,7 @@ public:
       COMMAND_ID_HANDLER(ID_VIEW_CALLSTACK, OnViewStack)
       COMMAND_ID_HANDLER(ID_VIEW_DEBUGOUTPUT, OnViewOutput)
       COMMAND_ID_HANDLER(ID_VIEW_FILEMANAGER, OnViewRemoteDir)
+      COMMAND_ID_HANDLER(ID_VIEW_SYMBOLS, OnViewSymbols)
       COMMAND_ID_HANDLER(ID_PROJECT_SET_DEFAULT, OnProjectSetDefault)      
       COMMAND_ID_HANDLER(ID_DEBUG_START, OnDebugStart)
       COMMAND_ID_HANDLER(ID_DEBUG_DEBUG, OnDebugDebug)
@@ -247,6 +254,7 @@ public:
    LRESULT OnViewWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewStack(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewOutput(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnViewSymbols(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnViewRemoteDir(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnProjectSetDefault(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugStart(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
@@ -300,9 +308,6 @@ protected:
    int _GetElementImage(IElement* pElement) const;
    bool _CreateNewRemoteFile(HWND hWnd, IView* pElement);
    bool _AddCommandBarImages(UINT nRes) const;
-   static void _AddDropDownButton(CToolBarCtrl tb, UINT nID);
-   static void _AddButtonText(CToolBarCtrl tb, UINT nID, UINT nRes);
-   static void _AddControlToToolbar(CToolBarCtrl tb, HWND hWnd, USHORT cx, UINT nCmdPos, bool bIsCommandId, bool bInsertBefore = true);
 
    static int CALLBACK _SortTreeCB(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 };

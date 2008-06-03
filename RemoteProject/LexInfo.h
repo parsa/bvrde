@@ -65,16 +65,18 @@ public:
    bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult);
    bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult);
    bool GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult);
+   bool GetTypeList(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult);
 
 // Operations
 public:
    bool MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText, DWORD dwTimeout);
    bool MergeIntoTree(LPCTSTR pstrFilename, LEXFILE* pFile);
 
+   static LEXFILE* ParseFile(CRemoteProject* pProject, LPCTSTR pstrFilename);
+   static CString GetLexFilename(CRemoteProject* pProject, LPCTSTR pstrFilename, bool bCreatePath);
+
 private:
    void _LoadTags();
-   LEXFILE* _ParseFile(LPCTSTR pstrFilename) const;
-   CString _GetLexFilename(LPCTSTR pstrFilename, bool bCreatePath) const;
    CString _FindTagParent(const TAGINFO* pTag, int iPos) const;
 
 // Data Members

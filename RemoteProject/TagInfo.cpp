@@ -8,7 +8,20 @@
 #pragma code_seg( "MISC" )
 
 
-// Constructor / destructor
+////////////////////////////////////////////////////////
+//
+
+static CComAutoCriticalSection g_csTagData;
+
+struct CLockTagDataInit
+{
+   CLockTagDataInit() { g_csTagData.Lock(); };
+   ~CLockTagDataInit() { g_csTagData.Unlock(); };
+};
+
+
+////////////////////////////////////////////////////////
+// CTagInfo
 
 CTagInfo::CTagInfo() :
    m_bLoaded(false)
@@ -38,6 +51,7 @@ bool CTagInfo::MergeFile(LPCTSTR /*pstrFilename*/)
 
 void CTagInfo::Clear()
 {
+   CLockTagDataInit lock;
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) free(m_aFiles[i]);
    m_aFiles.RemoveAll();
    m_bLoaded = false;
@@ -69,6 +83,8 @@ bool CTagInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, D
 
    if( !m_bLoaded ) _LoadTags();
    if( m_aTags.GetSize() == 0 ) return false;
+
+   CLockTagDataInit lock;
 
    CString sParentType;
    LPCTSTR pstrParent = NULL;   // Owner's parent (inheritance)
@@ -180,6 +196,8 @@ bool CTagInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aResult)
    if( !m_bLoaded ) _LoadTags();
    if( m_aTags.GetSize() == 0 ) return false;
 
+   CLockTagDataInit lock;
+
    // List all classes/structs available in TAG file...
    int nCount = m_aTags.GetSize();
    for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
@@ -202,6 +220,8 @@ bool CTagInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aResult)
    if( !m_bLoaded ) _LoadTags();
    if( m_aTags.GetSize() == 0 ) return false;
 
+   CLockTagDataInit lock;
+
    // List all classes/structs available in TAG file...
    int nCount = m_aTags.GetSize();
    for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
@@ -221,10 +241,32 @@ bool CTagInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aResult)
    return aResult.GetSize() > 0;
 }
 
+bool CTagInfo::GetTypeList(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult)
+{
+   if( !m_bLoaded ) _LoadTags();
+   if( m_aTags.GetSize() == 0 ) return false;
+
+   CLockTagDataInit lock;
+
+   int nCount = m_aTags.GetSize();
+   for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
+      TAGINFO& info = m_aTags[iIndex];
+      if( wildcmp(pstrPattern, info.pstrName) ) {
+         TAGINFO* pTag = &m_aTags.GetData()[iIndex];
+         aResult.Add(pTag);
+      }
+      if( bCancel ) return false;
+   }
+
+   return aResult.GetSize() > 0;
+}
+
 bool CTagInfo::GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult)
 {
    if( !m_bLoaded ) _LoadTags();
    if( m_aTags.GetSize() == 0 ) return false;
+
+   CLockTagDataInit lock;
 
    // Now look up the members
    // OPTI: We'll have to look at all entries in the CTAG file here.
@@ -299,6 +341,8 @@ bool CTagInfo::_LoadTags()
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_LOADTAG)));
 
    Clear();
+
+   CLockTagDataInit lock;
 
    // Mark as "loaded" even if we don't actually find any
    // tag files to load. This prevent repeated attempts to

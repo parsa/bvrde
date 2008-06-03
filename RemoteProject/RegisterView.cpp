@@ -13,8 +13,12 @@ CRegisterView::CRegisterView() :
 {
 }
 
+CRegisterView::~CRegisterView()
+{
+   if( IsWindow() ) /* scary */
+      DestroyWindow();
+}
 
-/////////////////////////////////////////////////////////////////////////
 // Operations
 
 #pragma code_seg( "VIEW" )
@@ -38,6 +42,7 @@ void CRegisterView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    {
       m_aNames.RemoveAll();
       m_aValues.RemoveAll();
+      m_bInitialResize = false;
    }
    else if( _tcscmp(pstrType, _T("register-names")) == 0 ) 
    {
@@ -71,6 +76,7 @@ void CRegisterView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          AddString(sText);
       }
       SetRedraw(TRUE);
+      Invalidate();
       if( !m_bInitialResize ) PostMessage(WM_SIZE);
       m_bInitialResize = true;
    }
@@ -78,7 +84,7 @@ void CRegisterView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 
 void CRegisterView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
 {
-   // Do we need to get the register names?
+   // Do we need to get the register names first?
    if( m_aNames.GetSize() == 0 ) {
       aDbgCmd.Add(CString(_T("-data-list-register-names")));
    }
@@ -86,8 +92,6 @@ void CRegisterView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
    aDbgCmd.Add(CString(_T("-data-list-register-values N")));
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Message handlers
 
 LRESULT CRegisterView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)

@@ -13,6 +13,7 @@ public:
    DECLARE_WND_SUPERCLASS(_T("BVRDE_RegisterView"), CListBox::GetWndClassName())
 
    CRegisterView();
+   ~CRegisterView();
 
    CRemoteProject* m_pProject;
    CSimpleArray<CString> m_aNames;

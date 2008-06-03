@@ -276,7 +276,6 @@ LRESULT CRemoteFileDlg::OnItemOpen(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
 LRESULT CRemoteFileDlg::OnItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
    if( m_bInside ) return 0;
-
    CString sFilenames;
    CSimpleArray<CString> aFiles;
    _GetSelectedFiles(aFiles);

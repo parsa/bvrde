@@ -73,7 +73,10 @@
 #define IDS_WIZARD_SUBTITLE_TRANSFER    128
 #define IDD_BREAKPOINTINFO              128
 #define IDS_WIZARD_TITLE_STARTAPP       129
+#define IDR_SYMBOLTREE_ITEM             129
+#define IDR_SYMBOLS                     129
 #define IDS_WIZARD_SUBTITLE_STARTAPP    130
+#define IDR_SYMBOLTREE                  130
 #define IDS_WIZARD_TITLE_DEBUGGER       131
 #define IDS_WIZARD_SUBTITLE_DEBUGGER    132
 #define IDS_FTP                         133
@@ -277,6 +280,7 @@
 #define IDS_COMMAND_PID                 313
 #define IDS_STACK_FILE                  314
 #define IDS_STACK_LINE                  315
+#define IDS_SYMBOLVIEW                  316
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003
@@ -477,13 +481,16 @@
 #define ID_SYMBOLVIEW_SORT_TYPE         40167
 #define ID_SYMBOLVIEW_PROPERTIES        40168
 #define ID_SYMBOLVIEW_COPY              40169
+#define ID_VIEW_SYMBOLS                 40170
+#define ID_SYMBOLS_SEARCH               40171
+#define ID_SYMBOLS_PATTERN              40172
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         40170
+#define _APS_NEXT_RESOURCE_VALUE        131
+#define _APS_NEXT_COMMAND_VALUE         40173
 #define _APS_NEXT_CONTROL_VALUE         1044
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

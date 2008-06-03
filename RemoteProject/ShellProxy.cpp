@@ -55,6 +55,7 @@ bool CShellManager::Load(ISerializable* pArc)
 {
    Clear();
 
+   // Book-keep the connection type
    m_sType = _T("telnet");
    if( pArc->ReadItem(_T("Type")) ) {
       TCHAR szType[64] = { 0 };
@@ -64,16 +65,14 @@ bool CShellManager::Load(ISerializable* pArc)
       m_sType = szType;
       m_sServerType = szServerType;
    }
+   // Create the new connection based on the type
    if( m_pProtocol != NULL ) delete m_pProtocol;
    m_pProtocol = NULL;
-   if( m_sType == _T("telnet") )       m_pProtocol = new CTelnetProtocol();
-   else if( m_sType == _T("rlogin") )  m_pProtocol = new CRloginProtocol();
-   else if( m_sType == _T("ssh") )     m_pProtocol = new CSshProtocol();
-   else if( m_sType == _T("comspec") ) m_pProtocol = new CComSpecProtocol();
-   else {
-      ATLASSERT(false);
-      return false;
-   }
+   if( m_sType == _T("telnet") )   m_pProtocol = new CTelnetProtocol();
+   if( m_sType == _T("rlogin") )   m_pProtocol = new CRloginProtocol();
+   if( m_sType == _T("ssh") )      m_pProtocol = new CSshProtocol();
+   if( m_sType == _T("comspec") )  m_pProtocol = new CComSpecProtocol();
+   if( m_pProtocol == NULL ) return false;
 
    m_pProtocol->Init(m_pProject, this);
    if( !m_pProtocol->Load(pArc) ) return false;
@@ -147,14 +146,11 @@ void CShellManager::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
       if( m_pProtocol != NULL ) delete m_pProtocol;
       m_pProtocol = NULL;
       m_sType = pstrValue;
-      if( m_sType == _T("telnet") )       m_pProtocol = new CTelnetProtocol();
-      else if( m_sType == _T("rlogin") )  m_pProtocol = new CRloginProtocol();
-      else if( m_sType == _T("ssh") )     m_pProtocol = new CSshProtocol();
-      else if( m_sType == _T("comspec") ) m_pProtocol = new CComSpecProtocol();
-      else {
-         ATLASSERT(false);
-         return;
-      }
+      if( m_sType == _T("telnet") )   m_pProtocol = new CTelnetProtocol();
+      if( m_sType == _T("rlogin") )   m_pProtocol = new CRloginProtocol();
+      if( m_sType == _T("ssh") )      m_pProtocol = new CSshProtocol();
+      if( m_sType == _T("comspec") )  m_pProtocol = new CComSpecProtocol();
+      if( m_pProtocol == NULL ) return;
       m_pProtocol->Init(m_pProject, this);
    }
    if( sName == _T("ServerType") ) m_sServerType = pstrValue;

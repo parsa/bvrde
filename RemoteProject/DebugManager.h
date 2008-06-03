@@ -132,6 +132,7 @@ private:
    void _ParseResultRecord(LPCTSTR pstrText);
    void _ParseConsoleOutput(LPCTSTR pstrText);
    void _ParseTargetOutput(LPCTSTR pstrText);
+   void _ParseNotifyAsync(LPCTSTR pstrText);
    void _ParseLogOutput(LPCTSTR pstrText);
    void _ParseKeyPrompt(LPCTSTR pstrText);
 };

@@ -61,16 +61,43 @@ public:
 };
 
 
+/////////////////////////////////////////////////////////////////////////
+// CSymbolThreadLoader
+
+void CSymbolsLoaderThread::Init(CSymbolView* pOwner, LPCTSTR pstrPattern, DWORD dwCookie)
+{
+   m_pOwner = pOwner;
+   m_dwCookie = dwCookie;
+   m_sPattern = pstrPattern;
+}
+
+DWORD CSymbolsLoaderThread::Run()
+{
+   CSimpleValArray<TAGINFO*>* pList = new CSimpleValArray<TAGINFO*>;
+   m_pOwner->m_pProject->m_TagManager.GetTypeList(m_sPattern, m_bStopped, *pList);
+   if( ShouldStop() ) delete pList;
+   else m_pOwner->PostMessage(WM_SYMBOL_GOT_DATA, m_dwCookie, (LPARAM) pList);
+   return 0;
+}
+
 
 /////////////////////////////////////////////////////////////////////////
 // CSymbolView
 
 CSymbolView::CSymbolView() :
-   m_ctrlTree(this, 1),
+   m_ctrlList(this, 1),
+   m_ctrlPattern(this, 2),
    m_pProject(NULL), 
+   m_dwCookie(0),
    m_pCurrentHover(NULL),
    m_bMouseTracked(false)
 {
+}
+
+CSymbolView::~CSymbolView()
+{
+   if( IsWindow() ) /* scary */
+      DestroyWindow();
 }
 
 // Operations
@@ -80,62 +107,117 @@ void CSymbolView::Init(CRemoteProject* pProject)
    Close();
 
    m_pProject = pProject;
-
-   if( IsWindow() 
-       && m_pProject != NULL
-       && m_pProject->m_TagManager.IsAvailable() ) 
-   {
-      // Add the Symbol View window to the tab control.
-      // NOTE: The following 'static' stuff works because this window object
-      //       is already a static object (of the CRemoteProject class).
-      static bool s_bAddedToExplorer = false;
-      if( !s_bAddedToExplorer ) {
-         s_bAddedToExplorer = true;
-         _pDevEnv->AddExplorerView(m_hWnd, CString(MAKEINTRESOURCE(IDS_CAPTION_CLASSVIEW)), 11);
-      }
-   }
 }
 
 void CSymbolView::Close()
 {
-   if( m_ctrlTree.IsWindow() ) m_ctrlTree.DeleteAllItems();
+   if( m_ctrlList.IsWindow() ) m_ctrlList.DeleteAllItems();
    m_pProject = NULL;
 }
 
 void CSymbolView::Clear()
 {
-   if( !m_ctrlTree.IsWindow() ) return;
-   // Delete all items and reset
-   m_ctrlTree.SetRedraw(FALSE);
-   m_ctrlTree.DeleteAllItems();
-   m_ctrlTree.SetRedraw(TRUE);
+   if( m_ctrlList.IsWindow() ) m_ctrlList.DeleteAllItems();
 }
 
 // Message handlers
 
-LRESULT CSymbolView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+LRESULT CSymbolView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-   m_Images.Create(IDB_CLASSVIEW, 16, 1, RGB(255,0,255));
-   DWORD dwStyle = WS_CHILD | WS_VISIBLE | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_TRACKSELECT | TVS_INFOTIP;
-   m_ctrlTree.Create(this, 1, m_hWnd, &rcDefault, NULL, dwStyle);
-   m_ctrlTree.SetImageList(m_Images, TVSIL_NORMAL);
-   ATLASSERT(m_ctrlTree.IsWindow());      
+   CCommandBarXPCtrl CmdBar;
+   CmdBar.GetSystemSettingsXP();  // Don't ask...
+
+   m_ctrlToolbar.SubclassWindow( CFrameWindowImplBase<>::CreateSimpleToolBarCtrl(m_hWnd, IDR_SYMBOLS, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE) );
+
+   m_ctrlPattern.Create(m_hWnd, rcDefault, _T(""), WS_VISIBLE | WS_CHILD | WS_TABSTOP | WS_BORDER | ES_AUTOHSCROLL, 0, ID_SYMBOLS_PATTERN);
+   m_ctrlPattern.SetFont(AtlGetDefaultGuiFont());
+   CRemoteProject::AddControlToToolBar(m_ctrlToolbar, m_ctrlPattern, 100, ID_SYMBOLS_SEARCH, true, true);
+
+   CImageList Images;
+   Images.Create(IDB_CLASSVIEW, 16, 1, RGB(255,0,255));
+
+   DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNTOP | LVS_SINGLESEL | LVS_NOCOLUMNHEADER | LVS_SORTASCENDING;
+   m_ctrlList.Create(this, 1, m_hWnd, &rcDefault, NULL, dwStyle);
+   m_ctrlList.SetFont(AtlGetDefaultGuiFont());
+   m_ctrlList.SetImageList(Images, LVSIL_SMALL);
+   m_ctrlList.AddColumn(_T(""), 10);
+
    return 0;
 }
 
-LRESULT CSymbolView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+LRESULT CSymbolView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
+   m_threadLoader.Stop();
+   bHandled = FALSE;
+   return 0;
+}
+
+LRESULT CSymbolView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   if( !m_ctrlToolbar.IsWindow() || !m_ctrlList.IsWindow() ) return 0;
    CClientRect rc = m_hWnd;
-   m_ctrlTree.MoveWindow(&rc);
+   RECT rcTb = { rc.left, rc.top, rc.right, rc.top + 24 };
+   m_ctrlToolbar.MoveWindow(&rcTb);
+   m_ctrlToolbar.GetWindowRect(&rcTb);
+   RECT rcList = { rc.left, rcTb.bottom - rcTb.top, rc.right, rc.bottom };
+   m_ctrlList.MoveWindow(&rcList);
+   m_ctrlList.SetColumnWidth(0, LVSCW_AUTOSIZE);
    return 0;
 }
 
-LRESULT CSymbolView::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+LRESULT CSymbolView::OnEraseBkgnd(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-   HTREEITEM hItem = m_ctrlTree.GetSelectedItem();
-   if( hItem == NULL ) return 0;
-   if( m_ctrlTree.GetParentItem(hItem) == NULL ) return 0;
-   TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(hItem);
+   return TRUE; // Children fills entire client area
+}
+
+LRESULT CSymbolView::OnGetSymbolData(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+{
+   CString sText = CWindowText(m_ctrlPattern);
+   sText.TrimRight();
+   if( sText.IsEmpty() ) {
+      m_ctrlList.DeleteAllItems();
+      return 0;
+   }
+   // The cookie allows us to shoot off the thread at any time. When processing the result
+   // we'll check that the cookie matches our latest request so we don't display
+   // an old result list.
+   m_dwCookie = ::GetTickCount();
+   // The pattern is a DOS type pattern, so we enclose in wildcards...
+   CString sPattern;
+   sPattern.Format(_T("*%s*"), sText);
+   m_threadLoader.Stop();
+   m_threadLoader.Init(this, sPattern, m_dwCookie);
+   m_threadLoader.Start();
+   return 0;
+}
+
+LRESULT CSymbolView::OnGotSymbolData(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+{
+   // The thread delivered data.
+   // BUG: Since we deliver futile TAGINFO* structures we need to lock the
+   //      lex-manager as long as we process this!
+   CSimpleValArray<TAGINFO*>* pList = (CSimpleValArray<TAGINFO*>*) lParam;
+   if( wParam != m_dwCookie ) {
+      delete pList;
+      return 0;
+   }
+   _PopulateList(*pList);
+   delete pList;
+   return 0;
+}
+
+LRESULT CSymbolView::OnPatternChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   m_threadLoader.SignalStop();
+   PostMessage(WM_SYMBOL_GET_DATA);
+   return 0;
+}
+
+LRESULT CSymbolView::OnListDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+{
+   int iItem = m_ctrlList.GetSelectedIndex();
+   if( iItem <0 ) return 0;
+   TAGINFO* pTag = (TAGINFO*) m_ctrlList.GetItemData(iItem);
    if( pTag == NULL ) return 0;
    CTagDetails Current;
    CTagDetails ImplTag;
@@ -146,11 +228,12 @@ LRESULT CSymbolView::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bH
    return 0;
 }
 
-LRESULT CSymbolView::OnTreeSelChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
+LRESULT CSymbolView::OnListItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
-   LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
-   if( lpNMTV->itemNew.hItem == NULL ) return 0;
-   TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(lpNMTV->itemNew.hItem);
+   LPNMLISTVIEW lpNMLV = (LPNMLISTVIEW) pnmh;
+   if( lpNMLV->iItem < 0 ) return 0;
+   if( !LISTITEM_SELECTED(lpNMLV) ) return 0;
+   TAGINFO* pTag = (TAGINFO*) m_ctrlList.GetItemData(lpNMLV->iItem);
    if( pTag == NULL ) return 0;
    CTagDetails Info;
    m_pProject->m_TagManager.GetItemInfo(pTag, Info);
@@ -159,24 +242,24 @@ LRESULT CSymbolView::OnTreeSelChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
    return 0;
 }
 
-LRESULT CSymbolView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
+LRESULT CSymbolView::OnListRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
-   // Determine click-point and tree-item below it
+   // Determine click-point and list-item below it
    DWORD dwPos = ::GetMessagePos();
    POINT ptPos = { GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos) };
    POINT ptClient = ptPos;
    ScreenToClient(&ptClient);
-   HTREEITEM hItem = m_ctrlTree.HitTest(ptClient, NULL);
-   // In case we clicked on a tree-item we'll lookup information
+   int iItem = m_ctrlList.HitTest(ptClient, NULL);
+   // In case we clicked on a list-item we'll lookup information
    // about the tag and its implementation status
-   TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(hItem);
+   TAGINFO* pTag = (TAGINFO*) m_ctrlList.GetItemData(iItem);
    CTagDetails Info;
    m_pProject->m_TagManager.GetItemInfo(pTag, Info);
    m_SelectedTag = Info;
    _GetImplementationRef(m_SelectedTag, m_SelectedImpl);
    // Load and show menu...
    CMenu menu;
-   menu.LoadMenu(hItem != NULL ? IDR_CLASSTREE_ITEM : IDR_CLASSTREE);
+   menu.LoadMenu(iItem != NULL ? IDR_SYMBOLTREE_ITEM : IDR_SYMBOLTREE);
    CMenuHandle submenu = menu.GetSubMenu(0);
    UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, ptPos, FALSE, this);
    // Handle result locally
@@ -209,7 +292,7 @@ LRESULT CSymbolView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*
    case ID_SYMBOLVIEW_COPY:
       {
          CString sText;
-         m_ctrlTree.GetItemText(hItem, sText);
+         m_ctrlList.GetItemText(iItem, 0, sText);
          AtlSetClipboardText(m_hWnd, sText);
       }
       break;
@@ -223,12 +306,12 @@ LRESULT CSymbolView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*
    return 0;
 }
 
-LRESULT CSymbolView::OnTreeBeginDrag(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
+LRESULT CSymbolView::OnListBeginDrag(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
    USES_CONVERSION;
-   LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
+   LPNMLISTVIEW lpNMLV = (LPNMLISTVIEW) pnmh;
    CString sText;
-   m_ctrlTree.GetItemText(lpNMTV->itemNew.hItem, sText);
+   m_ctrlList.GetItemText(lpNMLV->iItem, 0, sText);
    CComObject<CSimpleDataObj>* pObj = NULL;
    if( FAILED( CComObject<CSimpleDataObj>::CreateInstance(&pObj) ) ) return 0;
    if( FAILED( pObj->SetTextData(T2CA(sText)) ) ) return 0;
@@ -244,36 +327,36 @@ LRESULT CSymbolView::OnMouseMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
    if( !m_bMouseTracked ) {
       TRACKMOUSEEVENT tme = { 0 };
       tme.cbSize = sizeof(tme);
-      tme.hwndTrack = m_ctrlTree;
+      tme.hwndTrack = m_ctrlList;
       tme.dwFlags = TME_QUERY;
       _TrackMouseEvent(&tme);
-      tme.hwndTrack = m_ctrlTree;
+      tme.hwndTrack = m_ctrlList;
       tme.dwFlags |= TME_HOVER | TME_LEAVE;
       tme.dwHoverTime = HOVER_DEFAULT;
       _TrackMouseEvent(&tme);
       m_bMouseTracked = true;
    }
-   if( m_ctrlHoverTip.IsWindow() ) m_ctrlTree.SendMessage(WM_MOUSEHOVER);
+   if( m_ctrlHoverTip.IsWindow() ) m_ctrlList.SendMessage(WM_MOUSEHOVER);
    bHandled = FALSE;
    return 0;
 }
 
 LRESULT CSymbolView::OnMouseHover(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-   // Check if the tree-item below cursor changed; we may want to
+   // Check if the list-item below cursor changed; we may want to
    // display a tooltip below the cursor.
    POINT pt = { 0 };
    ::GetCursorPos(&pt);
    POINT ptLocal = pt;
-   m_ctrlTree.ScreenToClient(&ptLocal);
-   TVHITTESTINFO tvhti = { 0 };
-   tvhti.pt = ptLocal;
-   m_ctrlTree.HitTest(&tvhti);
-   if( (tvhti.flags & TVHT_ONITEM) == 0 ) return m_ctrlTree.SendMessage(WM_MOUSELEAVE);
-   TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(tvhti.hItem);
-   if( pTag == NULL ) return m_ctrlTree.SendMessage(WM_MOUSELEAVE);
+   m_ctrlList.ScreenToClient(&ptLocal);
+   LVHITTESTINFO lvhti = { 0 };
+   lvhti.pt = ptLocal;
+   m_ctrlList.HitTest(&lvhti);
+   if( (lvhti.flags & TVHT_ONITEM) == 0 ) return m_ctrlList.SendMessage(WM_MOUSELEAVE);
+   TAGINFO* pTag = (TAGINFO*) m_ctrlList.GetItemData(lvhti.iItem);
+   if( pTag == NULL ) return m_ctrlList.SendMessage(WM_MOUSELEAVE);
    if( m_pCurrentHover == pTag ) return 0;
-   if( !m_ctrlHoverTip.IsWindow() ) m_ctrlHoverTip.Create(m_ctrlTree, ::GetSysColor(COLOR_INFOBK));
+   if( !m_ctrlHoverTip.IsWindow() ) m_ctrlHoverTip.Create(m_ctrlList, ::GetSysColor(COLOR_INFOBK));
    // Position, resize and show the tooltip
    m_ctrlHoverTip.ShowWindow(SW_HIDE);
    const INT TOOLTIP_WIDTH = 260;
@@ -301,14 +384,24 @@ LRESULT CSymbolView::OnRequestResize(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    return 0;
 }
 
+// Edit messages
+
+LRESULT CSymbolView::OnEditKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+{
+   if( wParam == VK_RETURN ) return PostMessage(WM_COMMAND, ID_SYMBOLS_SEARCH);
+   if( wParam == VK_DOWN ) m_ctrlList.SetFocus();
+   bHandled = FALSE;
+   return 0;
+}
+
 // IIdleListener
 
 void CSymbolView::OnIdle(IUpdateUI* pUIBase)
 {   
-   BOOL bTagIsSelected = !m_SelectedTag.sName.IsEmpty();  // Real Tag is selected in tree (not "Globals" folder, etc)
+   BOOL bTagIsSelected = !m_SelectedTag.sName.IsEmpty();
 
    TCHAR szSortValue[32] = { 0 };
-   _pDevEnv->GetProperty(_T("window.classview.sort"), szSortValue, 31);
+   _pDevEnv->GetProperty(_T("window.symbolview.sort"), szSortValue, 31);
 
    pUIBase->UIEnable(ID_SYMBOLVIEW_GOTODECL, bTagIsSelected && m_pProject->FindView(m_SelectedTag.sFilename, false) != NULL);
    pUIBase->UIEnable(ID_SYMBOLVIEW_GOTOIMPL, bTagIsSelected && m_pProject->FindView(m_SelectedImpl.sFilename, false) != NULL);
@@ -328,20 +421,32 @@ void CSymbolView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*
 
 // Implementation
 
-void CSymbolView::_PopulateTree()
+void CSymbolView::_PopulateList(CSimpleValArray<TAGINFO*>& aList)
 {
    // Not ready?
    if( m_pProject == NULL ) return;
 
-   CSimpleValArray<TAGINFO*> aList;
-   //m_pProject->m_TagManager.FindSymbol(sFilter, aList);
+   // Clear list
+   m_ctrlList.SetRedraw(FALSE);
+   m_ctrlList.DeleteAllItems();
 
-   m_ctrlTree.SetRedraw(FALSE);
+   int iImage;
+   CString sName;
+   CTagDetails Info;
+   for( int i = 0; i < aList.GetSize(); i++ ) {
+      const TAGINFO* pTag = aList[i];
+      m_pProject->m_TagManager.GetItemInfo(pTag, Info);
+      sName.Format(_T("%s%s%s"), Info.sBase, Info.sBase.IsEmpty() ? _T("") : _T("::"), Info.sName);
+      iImage = pTag->Type == TAGTYPE_MEMBER ? 4 : 3;
+      if( iImage == 3 && (pTag->Protection == TAGPROTECTION_PROTECTED || pTag->Protection == TAGPROTECTION_PRIVATE) ) iImage = 5;
+      if( iImage == 4 && (pTag->Protection == TAGPROTECTION_PROTECTED || pTag->Protection == TAGPROTECTION_PRIVATE) ) iImage = 6;
+      int iItem = m_ctrlList.InsertItem(i, sName, iImage);
+      m_ctrlList.SetItemData(iItem, (DWORD_PTR) pTag);
+   }
 
-   // Clear tree
-   m_ctrlTree.DeleteAllItems();  
-
-   m_ctrlTree.SetRedraw(TRUE);
+   m_ctrlList.SetColumnWidth(0, LVSCW_AUTOSIZE);
+   m_ctrlList.SetRedraw(TRUE);
+   m_ctrlList.Invalidate();
 }
 
 bool CSymbolView::_GetImplementationRef(const CTagDetails& Current, CTagDetails& Info)

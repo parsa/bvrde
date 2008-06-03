@@ -67,6 +67,10 @@ public:
    }
    LRESULT OnOk(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
+      // NOTE: When the debug-manager attaches to the core file, it stores
+      //       the name of the process and core-file. These variables are
+      //       recalled once the dialog is opened again. So we keep the
+      //       history of the fields.
       m_sProcess = CWindowText(m_ctrlProcess);
       m_sCoreFile = CWindowText(m_ctrlCoreFile);
       EndDialog(wID);

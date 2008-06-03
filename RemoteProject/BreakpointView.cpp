@@ -9,7 +9,7 @@
 
 
 /////////////////////////////////////////////////////////////////////////
-// Constructor/destructor
+// CBreakpointView
 
 CBreakpointView::CBreakpointView() :
    m_pProject(NULL),
@@ -17,8 +17,12 @@ CBreakpointView::CBreakpointView() :
 {
 }
 
+CBreakpointView::~CBreakpointView()
+{
+   if( IsWindow() ) /* scary */
+      DestroyWindow();
+}
 
-/////////////////////////////////////////////////////////////////////////
 // Operations
 
 #pragma code_seg( "VIEW" )
@@ -90,8 +94,6 @@ void CBreakpointView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
    aDbgCmd.Add(CString(_T("-break-list")));
 }
 
-
-/////////////////////////////////////////////////////////////////////////
 // Message handlers
 
 LRESULT CBreakpointView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)

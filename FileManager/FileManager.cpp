@@ -74,7 +74,7 @@ EXTERN_C
 VOID WINAPI Plugin_SetMenu(HMENU hMenu)
 {
    hMenu = ::GetSubMenu(hMenu, MENUPOS_VIEW_FB);
-   hMenu = ::GetSubMenu(hMenu, SUBMENUPOS_VIEW_VIEWS);
+   hMenu = ::GetSubMenu(hMenu, SUBMENUPOS_VIEW_VIEWS_FB);
    TCHAR szTitle[128] = { 0 };
    ::LoadString(_Module.GetResourceInstance(), IDS_TITLE, szTitle, 127);
    ::AppendMenu(hMenu, MF_STRING, ID_VIEW_FILEMANAGER, szTitle);

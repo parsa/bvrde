@@ -17,6 +17,7 @@ public:
    DECLARE_WND_CLASS(_T("BVRDE_ClassView"))
 
    CClassView();
+   ~CClassView();
 
    CRemoteProject* m_pProject;                   // Reference to project
    bool m_bLocked;                               // Are data structures locked?
@@ -58,6 +59,7 @@ public:
    BEGIN_MSG_MAP(CClassView)
       MESSAGE_HANDLER(WM_CREATE, OnCreate)
       MESSAGE_HANDLER(WM_SIZE, OnSize)     
+      MESSAGE_HANDLER(WM_ERASEBKGND, OnEraseBkgnd)
       MESSAGE_HANDLER(WM_WINDOWPOSCHANGED, OnPopulate)
       NOTIFY_CODE_HANDLER(NM_DBLCLK, OnTreeDblClick)
       NOTIFY_CODE_HANDLER(NM_RCLICK, OnTreeRightClick)
@@ -75,6 +77,7 @@ public:
 
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnEraseBkgnd(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnMouseMove(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnMouseHover(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnMouseLeave(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);

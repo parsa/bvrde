@@ -9,8 +9,13 @@
 
 
 ////////////////////////////////////////////////////////////////7
-//
-//
+// CRemoteDirView
+
+CRemoteDirView::~CRemoteDirView()
+{
+   if( IsWindow() ) /* scary */
+      DestroyWindow();
+}
 
 void CRemoteDirView::Init(CRemoteProject* pProject)
 {

@@ -18,6 +18,7 @@ public:
    DECLARE_WND_CLASS(_T("BVRDE_VariableView"))
 
    CVariableView();
+   ~CVariableView();
 
    CRemoteProject* m_pProject;
 

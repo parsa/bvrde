@@ -116,7 +116,8 @@ public:
       m_dwExtStyle(0UL), 
       m_hFont(NULL), 
       m_hSelFont(NULL),
-      m_nMinWidth(-1)
+      m_nMinWidth(-1),
+      m_bCanRepaint(true)
    {
       ::ZeroMemory(&m_metrics, sizeof(TCMETRICS));
    }
@@ -135,6 +136,7 @@ public:
    UINT m_idDlgCtrl;                          // ID of this control
    HFONT m_hFont;                             // Font for normal tabs
    HFONT m_hSelFont;                          // Font for selected tab
+   bool m_bCanRepaint;                        // Is window destroyed?
    int m_nMinWidth;                           // Minimum tab width
    int m_iScrollPos;                          // Scroll position (view offset)
    int m_iScrollStep;                         // Pixels to scroll on scrollbutton click
@@ -551,6 +553,7 @@ public:
    ATLINLINE void _Repaint()
    {
       T* pT = static_cast<T*>(this);
+      if( !pT->m_bCanRepaint ) return;
       pT->UpdateLayout();
       if( (pT->GetStyle() & WS_VISIBLE) != 0 ) Invalidate();
    }
@@ -583,7 +586,8 @@ public:
       return lRes;
    }
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
-   {      
+   { 
+      m_bCanRepaint = false;
       ShowWindow(SW_HIDE);   // Repaint checks WS_VISIBLE; so we won't need repaints.
       DeleteAllItems();      // Make sure to clean up memory
       bHandled = FALSE;

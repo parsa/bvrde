@@ -291,6 +291,7 @@ CString CScintillaView::_FindBlockType(long lPos)
 CString CScintillaView::_UndecorateType(CString sType)
 {
    // TODO: Less hard-coding; more logic
+   // BUG:  Needs to test for word-start before erasing!
    static LPCTSTR ppstrKeywords[] = { 
       _T("const "), 
       _T("auto "), 

@@ -75,14 +75,20 @@ CClassView::CClassView() :
 {
 }
 
+CClassView::~CClassView()
+{
+   if( IsWindow() ) /* scary */
+      DestroyWindow();
+}
+
 // Operations
 
 void CClassView::Init(CRemoteProject* pProject)
 {
    Close();
 
-   m_bPopulated = false;
    m_bLocked = false;
+   m_bPopulated = false;
    m_pProject = pProject;
    m_aExpandedNames.RemoveAll();
 
@@ -105,9 +111,9 @@ void CClassView::Close()
 {
    if( m_ctrlTree.IsWindow() ) m_ctrlTree.DeleteAllItems();
    m_aExpandedNames.RemoveAll();
-   m_pProject = NULL;
    m_bPopulated = false;
    m_bLocked = false;
+   m_pProject = NULL;
 }
 
 void CClassView::Lock()
@@ -146,6 +152,7 @@ void CClassView::Clear()
    m_ctrlTree.SetRedraw(FALSE);
    m_ctrlTree.DeleteAllItems();
    m_ctrlTree.SetRedraw(TRUE);
+   m_ctrlTree.Invalidate();
    m_aExpandedNames.RemoveAll();
    m_bPopulated = false;
    m_bLocked = false;
@@ -176,7 +183,7 @@ void CClassView::Rebuild()
 
 // Message handlers
 
-LRESULT CClassView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+LRESULT CClassView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    m_Images.Create(IDB_CLASSVIEW, 16, 1, RGB(255,0,255));
    DWORD dwStyle = WS_CHILD | WS_VISIBLE | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_TRACKSELECT | TVS_INFOTIP;
@@ -186,7 +193,12 @@ LRESULT CClassView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    return 0;
 }
 
-LRESULT CClassView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+LRESULT CClassView::OnEraseBkgnd(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+   return TRUE; // Children fills entire client area
+}
+
+LRESULT CClassView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    CClientRect rc = m_hWnd;
    m_ctrlTree.MoveWindow(&rc);
@@ -300,7 +312,7 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
    return 0;
 }
 
-LRESULT CClassView::OnTreeBeginDrag(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
+LRESULT CClassView::OnTreeBeginDrag(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
 {
    USES_CONVERSION;
    LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
@@ -353,7 +365,7 @@ LRESULT CClassView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
          TCHAR szSortValue[32] = { 0 };
          _pDevEnv->GetProperty(_T("window.classview.sort"), szSortValue, 31);   
          if( _tcscmp(szSortValue, _T("alpha")) == 0 ) {
-            m_ctrlTree.SortChildren(TVI_ROOT, FALSE);
+            m_ctrlTree.SortChildren(tvi.hItem, FALSE);
          }
          if( _tcscmp(szSortValue, _T("type")) == 0 ) {
             TVSORTCB tvscb = { 0 };
@@ -544,7 +556,8 @@ void CClassView::_PopulateTree()
 
    m_ctrlTree.SetRedraw(TRUE);
 
-   // FIX: Scrolling must be done outside WM_SETREDRAW section
+   // FIX: Scrolling must be done outside WM_SETREDRAW section.
+   //      See Q130611
    m_ctrlTree.SetScrollPos(SB_VERT, iScrollPos, TRUE);
 
    m_bPopulated = true;

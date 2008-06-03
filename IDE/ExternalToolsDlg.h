@@ -137,7 +137,12 @@ public:
       m_ctrlUp.SetIcon(m_iconUp);
       m_ctrlDown.SetIcon(m_iconDown);
       m_ctrlBrowseArguments.SetFont(m_fontWingdings);
+#ifdef _UNICODE
+      USHORT pstrArrow[] = { 0xE8, '\0' };
+      m_ctrlBrowseArguments.SetWindowText((LPCWSTR)pstrArrow);
+#else
       m_ctrlBrowseArguments.SetWindowText(_T("\xE8"));
+#endif // _UNICODE
 
       _LoadItems();
       m_ctrlList.SelectItem(0);

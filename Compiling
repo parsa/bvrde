@@ -5,7 +5,7 @@ How to compile the project
    These are generic compilation instructions.
 
 The solution compiles with Microsoft Developer Studio 6, but has been known
-to compile with the later Visual Studio.NET version. You must however import
+to compile with the later Visual Studio.NET versions. You must however import
 the DSW project files to do this.
 
 Installation of Microsoft Windows Template Library (WTL), the HTML Help Workshop
@@ -93,6 +93,7 @@ compile you should disable the "Buffer Security Check" setting.
 
 The realtime C++ lexer, "cpp.l", needs a lex/yacc utility to compile. It 
 is currently compiled with "flex" but other lex-tools may work.
+
 
 
 Bjarke Viksøe (bviksoe@users.sourceforge.net)

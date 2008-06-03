@@ -12,11 +12,12 @@
 #define _WIN32_IE         0x0501
 #define _RICHEDIT_VER     0x0200
 
-#define NOCRYPT                       // Disable include of wincrypt.h
-#define _WINSOCKAPI_                  // Don't include WinSOCK v1
-#define _CRT_SECURE_NO_DEPRECATE
-#define _CRT_NON_CONFORMING_SWPRINTFS
-#define _WTL_NEW_PAGE_NOTIFY_HANDLERS
+#define NOCRYPT                         // Disable include of wincrypt.h
+#define _WINSOCKAPI_                    // Don't include WinSOCK v1
+#define _CRT_NONSTDC_NO_WARNINGS        // Don't complain so much
+#define _CRT_SECURE_NO_DEPRECATE        // We used to compile this on MSVC 6
+#define _CRT_NON_CONFORMING_SWPRINTFS   // Really we do...
+#define _WTL_NEW_PAGE_NOTIFY_HANDLERS   // WTL uses new property page notification
 
 
 #include <atlbase.h>
@@ -33,6 +34,7 @@ extern CComModule _Module;
 #include <atlctrlx.h>
 #include <atldlgs.h>
 #include <atlscrl.h>
+#include <atlctrlw.h>
 
 #include <mmsystem.h>
 
@@ -48,6 +50,9 @@ extern CComModule _Module;
 #include "atlgdix.h"
 #include "atlctrlsext.h"
 #include "atldataobj.h"
+
+#include "atlctrlxp.h"
+#include "atlctrlxp2.h"
 
 #include "atlscintilla.h"
 

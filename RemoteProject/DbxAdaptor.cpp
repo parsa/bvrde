@@ -12,7 +12,12 @@
 ////////////////////////////////////////////////////////
 //
 
-CDbxAdaptor::CDbxAdaptor() : m_State(DBX_UNKNOWN), m_bSeenPrompt(false), m_bThreadSupport(true), m_lReturnIndex(0), m_lLevel(0)
+CDbxAdaptor::CDbxAdaptor() : 
+   m_State(DBX_UNKNOWN), 
+   m_bSeenPrompt(false), 
+   m_bThreadSupport(true), 
+   m_lReturnIndex(0L), 
+   m_lLevel(0L)
 {   
 }
 
@@ -24,8 +29,10 @@ CDbxAdaptor::~CDbxAdaptor()
 
 void CDbxAdaptor::Init(CRemoteProject* /*pProject*/)
 {
+   // OPTI: Start with room for large buffers
    m_sReturnValue.GetBuffer(8000);
    m_sReturnValue.ReleaseBuffer(0);
+   // Set default values...
    m_sReturnValue = _T("(gdb)");
    m_aWatches.RemoveAll();
 }
@@ -105,11 +112,10 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
       CString sName = _GetArg(aArgs, iIndex);
       _GetArg(aArgs, iIndex);
       CString sExpr = _GetArg(aArgs, iIndex);
-      // Cleanup before new QuickWatch dialog...
-      if( sName == _T("quickwatch") ) {
-         for( int i = m_aWatches.GetSize() - 1; i >= 0; --i ) {
-            if( m_aWatches.GetKeyAt(i).Find(_T("quickwatch")) >= 0 ) m_aWatches.Remove(m_aWatches.GetKeyAt(i));
-         }
+      // Clean up in auto-created variables from evaluate processing
+      for( int iKeyIndex = m_aWatches.GetSize() - 1; iKeyIndex >= 0; --iKeyIndex ) {
+         CString& sKey = m_aWatches.GetKeyAt(iKeyIndex);
+         if( sKey.Find(_T("quickwatch.")) >= 0 ) m_aWatches.Remove(sKey);
       }
       // Add watch expression to a local cache
       if( !m_aWatches.SetAt(sName, sExpr) ) m_aWatches.Add(sName, sExpr);
@@ -118,19 +124,30 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    }
    if( sCommand == _T("-var-delete") )
    {
-      CString sExpr, sName = _GetArg(aArgs, iIndex);
+      CString sName = _GetArg(aArgs, iIndex);
       int iKeyIndex = m_aWatches.FindKey(sName);
       if( iKeyIndex < 0 ) return _T("");
-      sExpr = m_aWatches.GetValueAt(iKeyIndex);
+      CString sExpr = m_aWatches.GetValueAt(iKeyIndex);
+      m_aWatches.Remove(sName);
       sOut.Format(_T("undisplay %s;  ## dbx"), sExpr);
+      return sOut;
+   }
+   if( sCommand == _T("-var-assign") )
+   {
+      CString sName = _GetArg(aArgs, iIndex);
+      CString sValue = _GetArg(aArgs, iIndex);
+      int iKeyIndex = m_aWatches.FindKey(sName);
+      if( iKeyIndex < 0 ) return _T("");
+      CString sExpr = m_aWatches.GetValueAt(iKeyIndex);
+      sOut.Format(_T("assign %s = %s;  ## dbx"), sExpr, sValue);
       return sOut;
    }
    if( sCommand == _T("-var-info-type") )
    {
-      CString sExpr, sName = _GetArg(aArgs, iIndex);
+      CString sName = _GetArg(aArgs, iIndex);
       int iKeyIndex = m_aWatches.FindKey(sName);
       if( iKeyIndex < 0 ) return _T("");
-      sExpr = m_aWatches.GetValueAt(iKeyIndex);
+      CString sExpr = m_aWatches.GetValueAt(iKeyIndex);
       sOut.Format(_T("whatis %s;  ## dbx"), sExpr);
       return sOut;
    }
@@ -151,9 +168,10 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    }
    if( sCommand == _T("-var-list-children") )
    {
-      CString sExpr, sName = _GetArg(aArgs, iIndex);
+      CString sName = _GetArg(aArgs, iIndex);
       int iKeyIndex = m_aWatches.FindKey(sName);
-      if( iKeyIndex >= 0 ) sExpr = m_aWatches.GetValueAt(iKeyIndex);
+      if( iKeyIndex < 0 ) return _T("");
+      CString sExpr = m_aWatches.GetValueAt(iKeyIndex);
       sOut.Format(_T("print -r %s;  ## dbx"), sExpr);
       return sOut;
    }
@@ -377,6 +395,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
       {
          { _T("syntax error"),                                     _T("232^error,msg=\"Syntax Error. $$OUTPUT$$\"") },
          { _T("unreadable"),                                       _T("232^error,msg=\"Failed. $$OUTPUT$$\"") },
+         { _T("in the scope"),                                     _T("232^error,msg=\"Failed. $$OUTPUT$$\"") },
          { _T("no source compiled with -g"),                       _T("~\"No debugging symbols found. Compile with -g.\"") },
          { _T("program is not active"),                            _T("232^exit,") },
          { _T("can't continue execution -- no active process"),    _T("232^exit,") },
@@ -433,6 +452,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             }
             // Various DBX implementations/versions have their own way of saying that
             // the debugger stopped <sigh>. Attempt all known constructs.
+            // BUG: This could very well collide with program output.
             CString sCommandCase = sCommand;
             sCommand.MakeLower();
             if( sCommand == _T("stopped") 
@@ -670,12 +690,14 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                m_sWatchName = _GetArg(aArgs, iIndex);
                break;
             }
+            if( _tcsstr(pstrOutput, _T("      ")) == pstrOutput ) break;
             CString sName = _GetArg(aArgs, iIndex);
             if( sName.IsEmpty() ) break;
+            CString sOutput = pstrOutput;
             CString sWatchName;
             sWatchName.Format(_T("quickwatch.%s.%s"), m_sWatchName, sName);
             CString sTemp;
-            sTemp.Format(_T("{name=\"%s\",exp=\"%s\",type=\"\",numchild=\"0\"}"), sWatchName, sName);
+            sTemp.Format(_T("{name=\"%s\",exp=\"%s\",type=\"\",numchild=\"%d\"}"), sWatchName, sName, sOutput.Right(1) == _T("{") ? 1 : 0);
             _AdjustAnswerList(_T("232^done,numchild=\"0\",children=["), _T("]"), sTemp);
          }
          break;
@@ -824,8 +846,8 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                {
                   if( sCommand == _T("starting") && !_SkipArg(aArgs, iIndex, _T("program")) ) break;
                   sMi.Format(_T("232^running,file=\"%s\""), _GetArg(aArgs, iIndex));
-                  m_State = DBX_RUNNING;
                   aOutput.Add(sMi);
+                  m_State = DBX_RUNNING;
                }
                if( sCommand == _T("reading") ) 
                {

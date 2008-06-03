@@ -272,6 +272,7 @@ public:
    virtual bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult) = 0;
    virtual bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult) = 0;
    virtual bool GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult) = 0;
+   virtual bool GetTypeList(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult) = 0;
 };
 
 
@@ -311,6 +312,7 @@ BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition);
 CString ToString(long lValue);
 void ConvertToCrLf(CString& s);
 CString ConvertFromCrLf(const CString& s);
+bool wildcmp(LPCTSTR wild, LPCTSTR str);
 
 CString GetFileTypeFromFilename(LPCTSTR pstrFilename);
 CTextFile* CreateViewFromFilename(IDevEnv* pDevEnv, LPCTSTR pstrFilename, CRemoteProject* pCppProject, IProject* pProject, IElement* pParent);

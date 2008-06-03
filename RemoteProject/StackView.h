@@ -17,6 +17,7 @@ public:
    DECLARE_WND_CLASS(_T("BVRDE_StackView"))
 
    CStackView();
+   ~CStackView();
 
    CRemoteProject* m_pProject;
    DWORD m_dwCurThread;

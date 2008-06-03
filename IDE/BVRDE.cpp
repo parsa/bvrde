@@ -99,6 +99,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    // we'd like all message-boxes (even errors at this stage) to appear
    // in the correct language.
    wndMain.m_Locale = FindUserLanguage();
+   wndMain.m_dwGuidThreadId = ::GetCurrentThreadId();
    wndMain.SetThreadLanguage();
 
    // Show splash screen

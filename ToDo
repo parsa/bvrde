@@ -55,8 +55,9 @@ Source Control:
 * Check in
 * Status
 * Get Latest / Update
-- Diff files (visual)
+* Diff files (visual)
 - Assign overlay icons to project files
+* Source Control status view
 * Investigate other source control systems than CVS
 
 SQL:
