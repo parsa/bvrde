@@ -465,7 +465,7 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
    m_pView->GetName(sName.GetBufferSetLength(128), 128);
    sName.ReleaseBuffer();
 
-   LAZYDATA* pData = (LAZYDATA*) hWndCtl;
+   LAZYDATA* pData = reinterpret_cast<LAZYDATA*>(hWndCtl);
    ATLASSERT(!::IsBadReadPtr(pData, sizeof(LAZYDATA)));
 
    switch( wNotifyCode ) {

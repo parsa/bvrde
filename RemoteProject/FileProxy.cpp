@@ -4,6 +4,8 @@
 
 #include "FileProxy.h"
 
+#include "Authen.h"
+
 #include "FtpProtocol.h"
 #include "SftpProtocol.h"
 #include "FileProtocol.h"

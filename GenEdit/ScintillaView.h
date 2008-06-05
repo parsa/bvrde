@@ -76,6 +76,7 @@ public:
       MESSAGE_HANDLER(WM_KILLFOCUS, OnKillFocus)
       MESSAGE_HANDLER(WM_KEYDOWN, OnKeyDown)
       COMMAND_ID_HANDLER(ID_FILE_PRINT, OnFilePrint)
+      COMMAND_ID_HANDLER(ID_EDIT_MARK, OnMarkerMark)
       COMMAND_ID_HANDLER(ID_EDIT_UPPERCASE, OnUpperCase)
       COMMAND_ID_HANDLER(ID_EDIT_LOWERCASE, OnLowerCase)
       COMMAND_ID_HANDLER(ID_EDIT_GOTO, OnGotoLine)
@@ -141,6 +142,7 @@ public:
    LRESULT OnViewWordWrap(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnSearchGo(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMarkerToggle(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnMarkerMark(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMarkerClear(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMarkerNext(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnMarkerPrevious(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

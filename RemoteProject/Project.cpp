@@ -3,6 +3,7 @@
 #include "resource.h"
 
 #include "Project.h"
+#include "Authen.h"
 
 #include "ViewSerializer.h"
 

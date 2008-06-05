@@ -57,6 +57,7 @@ public:
    TAGINFO* m_pCurrentHover;                     // Reference to item during hover
    bool m_bMouseTracked;                         // Mouse is tracked in window?
    WPARAM m_dwCookie;                            // Cookie to keep thread in sync with pattern entered
+   CString m_sSortValue;                         // List sorting direction
 
    CToolBarXPCtrl m_ctrlToolbar;
    CContainedWindowT<CEdit> m_ctrlPattern;
@@ -74,6 +75,8 @@ public:
 
    void _PopulateList(CSimpleValArray<TAGINFO*>& aList);
    bool _GetImplementationRef(const CTagDetails& Current, CTagDetails& Info);
+
+   static int CALLBACK CSymbolView::_ListSortProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 
    // IIdleListener
 

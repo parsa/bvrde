@@ -4,6 +4,7 @@
 
 #include "WizardSheet.h"
 #include "Project.h"
+#include "Authen.h"
 
 #pragma code_seg( "WIZARDS" )
 

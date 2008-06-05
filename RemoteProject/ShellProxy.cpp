@@ -4,6 +4,8 @@
 
 #include "ShellProxy.h"
 
+#include "Authen.h"
+
 #include "TelnetProtocol.h"
 #include "RloginProtocol.h"
 #include "SshProtocol.h"

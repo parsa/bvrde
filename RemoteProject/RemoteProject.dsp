@@ -223,6 +223,10 @@ SOURCE=.\GdbAdaptor.cpp
 # End Group
 # Begin Source File
 
+SOURCE=.\Authen.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Commands.cpp
 # End Source File
 # Begin Source File
@@ -563,6 +567,10 @@ SOURCE=.\DbxAdaptor.h
 SOURCE=.\GdbAdaptor.h
 # End Source File
 # End Group
+# Begin Source File
+
+SOURCE=.\Authen.h
+# End Source File
 # Begin Source File
 
 SOURCE=..\IDE\BVRDE_SDK.h

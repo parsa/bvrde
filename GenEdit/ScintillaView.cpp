@@ -360,6 +360,8 @@ void CScintillaView::_MatchBraces(long lPos)
  */
 void CScintillaView::_AutoText(CHAR ch)
 {
+   USES_CONVERSION;
+
    const WORD AUTOTEXT_AFTER_TYPED_CHARS = 3;
 
    static int s_iSuggestWord = 0;
@@ -371,7 +373,6 @@ void CScintillaView::_AutoText(CHAR ch)
    if( m_bAutoTextDisplayed ) 
    {
       if( ch == '\t' || ch == '\0xFF' ) {
-         USES_CONVERSION;
          long lPos = GetCurrentPos();
          int iLineNum = LineFromPosition(lPos);
          int iIndent = GetLineIndentation(iLineNum);
@@ -445,7 +446,6 @@ void CScintillaView::_AutoText(CHAR ch)
    sTipText.Remove('\r');
    sTipText.Replace(_T("\\n"), _T("\n"));
    sTipText.Replace(_T("\\t"), CString(' ', GetIndent()));
-   USES_CONVERSION;
    CallTipShow(lPos, T2CA(sTipText));
    // Remember what triggered suggestion
    s_lSuggestPos = lPos - sName.GetLength();
@@ -460,6 +460,8 @@ void CScintillaView::_AutoText(CHAR ch)
  */
 void CScintillaView::_AutoSuggest(CHAR ch)
 {
+   USES_CONVERSION;
+
    if( !m_bAutoSuggest ) return;
 
    static int s_iSuggestWord = 0;
@@ -470,7 +472,6 @@ void CScintillaView::_AutoSuggest(CHAR ch)
    if( m_bSuggestionDisplayed ) 
    {
       if( ch == '\t' ) {
-         USES_CONVERSION;
          long lPos = GetCurrentPos();
          SetSel(s_lSuggestPos, lPos);
          ReplaceSel(T2CA(s_sSuggestWord));
@@ -523,7 +524,6 @@ void CScintillaView::_AutoSuggest(CHAR ch)
    if( sKeyword.IsEmpty() ) return;
 
    // Display suggestion tip
-   USES_CONVERSION;
    CallTipSetFore(RGB(255,255,255));
    CallTipSetBack(RGB(0,0,0));
    CallTipShow(lPos, T2CA(sKeyword));
@@ -540,10 +540,11 @@ void CScintillaView::_AutoSuggest(CHAR ch)
  */
 void CScintillaView::_AutoComplete(CHAR ch)
 {
+   USES_CONVERSION;
+
    if( !m_bAutoComplete ) return;
    if( AutoCActive() ) return;
 
-   USES_CONVERSION;
    CString sList;
    long lPos = GetCurrentPos();
    // Get auto-completion words from HTML text

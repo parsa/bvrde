@@ -4,6 +4,8 @@
 
 #include "Project.h"
 
+#include "Authen.h"
+
 #include "SftpProtocol.h"
 
 #pragma code_seg( "PROTOCOLS" )

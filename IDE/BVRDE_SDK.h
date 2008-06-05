@@ -55,7 +55,7 @@
 #define ID_ADD_PROJECT              0xE406
 #define ID_EDIT_GOTO                0xE407
 #define ID_EDIT_DELETE              0xE408
-#define ID_VIEW_EXPLORER            0xE409
+#define ID_EDIT_MARK                0xE409
 #define ID_WINDOW_VIEW              0xE40A
 #define ID_WINDOW_CLOSE             0xE40B
 #define ID_WINDOW_CLOSE_ALL         0xE40C
@@ -63,14 +63,15 @@
 #define ID_TOOLS_CUSTOMIZE          0xE40E
 #define ID_TOOLS_EXTERNAL           0xE40F
 #define ID_VIEW_PROPERTIES          0xE410
-#define ID_VIEW_OUTPUT              0xE412
-#define ID_VIEW_COMMAND             0xE413
-#define ID_VIEW_OPEN                0xE414
+#define ID_VIEW_OUTPUT              0xE411
+#define ID_VIEW_COMMAND             0xE412
+#define ID_VIEW_OPEN                0xE413
+#define ID_VIEW_EXPLORER            0xE414
 #define ID_HELP_STARTPAGE           0xE415
 #define ID_HELP_SEARCH              0xE416
 #define ID_HELP_CONTENTS            0xE417
-#define ID_MACRO_RECORD             0xE419
-#define ID_MACRO_CANCEL             0xE41A
+#define ID_MACRO_RECORD             0xE418
+#define ID_MACRO_CANCEL             0xE419
 
 #define IDC_TREE                    0xEC00
 #define ID_SB_PANE1                 0xEC01

@@ -1611,6 +1611,7 @@ BEGIN
         MENUITEM "&Go to Implementation    ",   ID_CLASSVIEW_GOTOIMPL
         MENUITEM SEPARATOR
         MENUITEM "&Copy",                       ID_CLASSVIEW_COPY
+        MENUITEM "&Mark All",                   ID_CLASSVIEW_MARK
         MENUITEM SEPARATOR
         MENUITEM "&Properties",                 ID_CLASSVIEW_PROPERTIES
     END
@@ -1675,6 +1676,7 @@ BEGIN
         MENUITEM "&Go to Implementation    ",   ID_SYMBOLVIEW_GOTOIMPL
         MENUITEM SEPARATOR
         MENUITEM "&Copy",                       ID_SYMBOLVIEW_COPY
+        MENUITEM "&Mark All",                   ID_SYMBOLVIEW_MARK
         MENUITEM SEPARATOR
         MENUITEM "&Properties",                 ID_SYMBOLVIEW_PROPERTIES
     END
@@ -2461,6 +2463,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_EDIT_GOTO            "Goto..."
+    ID_EDIT_MARK            "Mark all text in active source view\nMark Text"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -2781,6 +2784,8 @@ BEGIN
     ID_BUILD_LEXTAGS        "Rebuild the lex information\nRebuild lex"
     ID_DEBUG_COREFILE       "Attach to a core dump file\nAttach To Core File"
     ID_VIEW_SYMBOLS         "Show/Hide the Symbols View window\nSymbols"
+    ID_SYMBOLVIEW_MARK      "Mark symbol in current source view\nMark All"
+    ID_CLASSVIEW_MARK       "Mark type in current source view\nMark All"
 END
 
 #endif    // English (U.S.) resources

@@ -102,7 +102,8 @@ public:
       RECT rcInfo = { rcWindow.right + 4, rcWindow.top, rcWindow.right + CXWINDOW, rcWindow.top + 10 };
       if( rcInfo.right > ::GetSystemMetrics(SM_CXSCREEN) ) return;
       m_wndInfo.MoveWindow(&rcInfo, FALSE);
-      // Look up information about this member
+      // Look up information about this member.
+      // While we'll allow deep-search, we'll only allow for a very short search period.
       CSimpleValArray<TAGINFO*> aList;
       m_pProject->m_TagManager.FindItem(sItem, m_sType, 99, ::GetTickCount() + 200, aList);
       if( aList.GetSize() == 0 ) return;
@@ -116,13 +117,18 @@ public:
       int iItem = 0;
       int cchLen = m_sList.GetLength();
       for( int i = 0; i < cchLen; i++ ) {
-         if( m_sList[i] == ' ' ) i++, iItem++;
+         // The | (pipe) char is the item separator
+         // The ? (question) is followed by the image number
+         if( m_sList[i] == '|' ) {
+            i++, 
+            iItem++;
+         }
          if( iItem == iIndex ) {
             CString sItem;
             for( ; i < cchLen; i++ ) {
                TCHAR c = m_sList[i];
                switch( c ) {
-               case ' ':
+               case '|':
                case '?':
                   return sItem;
                default:

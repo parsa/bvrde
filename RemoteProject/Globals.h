@@ -297,11 +297,6 @@ public:
 //////////////////////////////////////////////////////////////
 //
 
-void SecClearPassword();
-CString SecGetPassword();
-CString SecDecodePassword(LPCTSTR pstrPassword);
-CString SecEncodePassword(LPCTSTR pstrPassword);
-
 void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask = 0, DWORD dwEffects = 0, COLORREF clrText = 0);
 void GenerateError(IDevEnv* pDevEnv, HWND hWnd, UINT nErr, DWORD dwErr = (DWORD)-1);
 CString GetSystemErrorText(DWORD dwErr);

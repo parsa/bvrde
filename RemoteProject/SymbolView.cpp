@@ -248,18 +248,21 @@ LRESULT CSymbolView::OnListRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*
    DWORD dwPos = ::GetMessagePos();
    POINT ptPos = { GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos) };
    POINT ptClient = ptPos;
-   ScreenToClient(&ptClient);
-   int iItem = m_ctrlList.HitTest(ptClient, NULL);
-   // In case we clicked on a list-item we'll lookup information
-   // about the tag and its implementation status
-   TAGINFO* pTag = (TAGINFO*) m_ctrlList.GetItemData(iItem);
-   CTagDetails Info;
-   m_pProject->m_TagManager.GetItemInfo(pTag, Info);
-   m_SelectedTag = Info;
-   _GetImplementationRef(m_SelectedTag, m_SelectedImpl);
+   m_ctrlList.ScreenToClient(&ptClient);
+   UINT uFlags = 0;
+   int iItem = m_ctrlList.HitTest(ptClient, &uFlags);
+   if( (uFlags & LVHT_ONITEM) != 0 ) {
+      // In case we clicked on a list-item we'll lookup information
+      // about the tag and its implementation status
+      TAGINFO* pTag = (TAGINFO*) m_ctrlList.GetItemData(iItem);
+      CTagDetails Info;
+      m_pProject->m_TagManager.GetItemInfo(pTag, Info);
+      m_SelectedTag = Info;
+      _GetImplementationRef(m_SelectedTag, m_SelectedImpl);
+   };
    // Load and show menu...
    CMenu menu;
-   menu.LoadMenu(iItem != NULL ? IDR_SYMBOLTREE_ITEM : IDR_SYMBOLTREE);
+   menu.LoadMenu(iItem >= 0 ? IDR_SYMBOLTREE_ITEM : IDR_SYMBOLTREE);
    CMenuHandle submenu = menu.GetSubMenu(0);
    UINT nCmd = _pDevEnv->ShowPopupMenu(NULL, submenu, ptPos, FALSE, this);
    // Handle result locally
@@ -267,16 +270,19 @@ LRESULT CSymbolView::OnListRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*
    case ID_SYMBOLVIEW_SORT_ALPHA:
       {
          _pDevEnv->SetProperty(_T("window.symbolview.sort"), _T("alpha"));
+         PostMessage(WM_SYMBOL_GET_DATA);
       }
       break;
    case ID_SYMBOLVIEW_SORT_TYPE:
       {
          _pDevEnv->SetProperty(_T("window.symbolview.sort"), _T("type"));
+         PostMessage(WM_SYMBOL_GET_DATA);
       }
       break;
    case ID_SYMBOLVIEW_SORT_NONE:
       {
          _pDevEnv->SetProperty(_T("window.symbolview.sort"), _T("no"));
+         PostMessage(WM_SYMBOL_GET_DATA);
       }
       break;
    case ID_SYMBOLVIEW_GOTODECL:
@@ -294,6 +300,13 @@ LRESULT CSymbolView::OnListRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*
          CString sText;
          m_ctrlList.GetItemText(iItem, 0, sText);
          AtlSetClipboardText(m_hWnd, sText);
+      }
+      break;
+   case ID_SYMBOLVIEW_MARK:
+      {
+         CString sText = m_SelectedTag.sName;
+         if( sText.Find(_T("::")) >= 0 ) sText = sText.Mid(sText.Find(_T("::")) + 2);
+         m_pProject->m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_EDIT_MARK, 0), (LPARAM) (LPCTSTR) sText);
       }
       break;
    case ID_SYMBOLVIEW_PROPERTIES:
@@ -347,13 +360,12 @@ LRESULT CSymbolView::OnMouseHover(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    // display a tooltip below the cursor.
    POINT pt = { 0 };
    ::GetCursorPos(&pt);
-   POINT ptLocal = pt;
-   m_ctrlList.ScreenToClient(&ptLocal);
-   LVHITTESTINFO lvhti = { 0 };
-   lvhti.pt = ptLocal;
-   m_ctrlList.HitTest(&lvhti);
-   if( (lvhti.flags & TVHT_ONITEM) == 0 ) return m_ctrlList.SendMessage(WM_MOUSELEAVE);
-   TAGINFO* pTag = (TAGINFO*) m_ctrlList.GetItemData(lvhti.iItem);
+   POINT ptClient = pt;
+   m_ctrlList.ScreenToClient(&ptClient);
+   UINT uFlags = 0;
+   int iItem = m_ctrlList.HitTest(ptClient, &uFlags);
+   if( (uFlags & LVHT_ONITEM) == 0 ) return m_ctrlList.SendMessage(WM_MOUSELEAVE);
+   TAGINFO* pTag = (TAGINFO*) m_ctrlList.GetItemData(iItem);
    if( pTag == NULL ) return m_ctrlList.SendMessage(WM_MOUSELEAVE);
    if( m_pCurrentHover == pTag ) return 0;
    if( !m_ctrlHoverTip.IsWindow() ) m_ctrlHoverTip.Create(m_ctrlList, ::GetSysColor(COLOR_INFOBK));
@@ -406,7 +418,8 @@ void CSymbolView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_SYMBOLVIEW_GOTODECL, bTagIsSelected && m_pProject->FindView(m_SelectedTag.sFilename, false) != NULL);
    pUIBase->UIEnable(ID_SYMBOLVIEW_GOTOIMPL, bTagIsSelected && m_pProject->FindView(m_SelectedImpl.sFilename, false) != NULL);
    pUIBase->UIEnable(ID_SYMBOLVIEW_COPY, bTagIsSelected);
-   pUIBase->UIEnable(ID_SYMBOLVIEW_PROPERTIES,bTagIsSelected);
+   pUIBase->UIEnable(ID_SYMBOLVIEW_MARK, bTagIsSelected);
+   pUIBase->UIEnable(ID_SYMBOLVIEW_PROPERTIES, bTagIsSelected);
    pUIBase->UIEnable(ID_SYMBOLVIEW_SORT_ALPHA, TRUE);
    pUIBase->UIEnable(ID_SYMBOLVIEW_SORT_TYPE, TRUE);
    pUIBase->UIEnable(ID_SYMBOLVIEW_SORT_NONE, TRUE);
@@ -431,22 +444,52 @@ void CSymbolView::_PopulateList(CSimpleValArray<TAGINFO*>& aList)
    m_ctrlList.DeleteAllItems();
 
    int iImage;
-   CString sName;
+   CString sName, sLastName;
    CTagDetails Info;
    for( int i = 0; i < aList.GetSize(); i++ ) {
       const TAGINFO* pTag = aList[i];
       m_pProject->m_TagManager.GetItemInfo(pTag, Info);
       sName.Format(_T("%s%s%s"), Info.sBase, Info.sBase.IsEmpty() ? _T("") : _T("::"), Info.sName);
+      if( sName == sLastName ) continue;
       iImage = pTag->Type == TAGTYPE_MEMBER ? 4 : 3;
       if( iImage == 3 && (pTag->Protection == TAGPROTECTION_PROTECTED || pTag->Protection == TAGPROTECTION_PRIVATE) ) iImage = 5;
       if( iImage == 4 && (pTag->Protection == TAGPROTECTION_PROTECTED || pTag->Protection == TAGPROTECTION_PRIVATE) ) iImage = 6;
       int iItem = m_ctrlList.InsertItem(i, sName, iImage);
       m_ctrlList.SetItemData(iItem, (DWORD_PTR) pTag);
+      sLastName = sName;
    }
+
+   TCHAR szSortValue[32] = { 0 };
+   _pDevEnv->GetProperty(_T("window.symbolview.sort"), szSortValue, 31);
+   m_sSortValue = szSortValue;
+   
+   m_ctrlList.SortItemsEx(_ListSortProc, (LPARAM) this);
 
    m_ctrlList.SetColumnWidth(0, LVSCW_AUTOSIZE);
    m_ctrlList.SetRedraw(TRUE);
    m_ctrlList.Invalidate();
+}
+
+int CALLBACK CSymbolView::_ListSortProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+{
+   CSymbolView* pThis = (CSymbolView*) lParamSort;
+   TCHAR szName1[MAX_PATH];
+   TCHAR szName2[MAX_PATH];
+   LVITEM lvi1 = { 0 };
+   LVITEM lvi2 = { 0 };
+   lvi1.iItem = lParam1;
+   lvi2.iItem = lParam2;
+   lvi1.pszText = szName1;
+   lvi2.pszText = szName2;
+   lvi1.mask = lvi2.mask = LVIF_TEXT | LVIF_IMAGE;
+   lvi1.cchTextMax = lvi2.cchTextMax = MAX_PATH;
+   pThis->m_ctrlList.GetItem(&lvi1);
+   pThis->m_ctrlList.GetItem(&lvi2);
+   int iRes = 0;
+   if( pThis->m_sSortValue == _T("none") ) return 0;
+   if( pThis->m_sSortValue == _T("type") ) iRes = lvi1.iImage - lvi2.iImage;
+   if( iRes == 0 ) iRes = ::lstrcmp(lvi1.pszText, lvi2.pszText);
+   return iRes;
 }
 
 bool CSymbolView::_GetImplementationRef(const CTagDetails& Current, CTagDetails& Info)

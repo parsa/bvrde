@@ -4,6 +4,8 @@
 
 #include "Project.h"
 
+#include "Authen.h"
+
 #include "TelnetProtocol.h"
 
 #pragma code_seg( "PROTOCOLS" )

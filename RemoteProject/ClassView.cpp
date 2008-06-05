@@ -302,6 +302,13 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
          AtlSetClipboardText(m_hWnd, sText);
       }
       break;
+   case ID_CLASSVIEW_MARK:
+      {
+         CString sText = m_SelectedTag.sName;
+         if( sText.Find(_T("::")) >= 0 ) sText = sText.Mid(sText.Find(_T("::")) + 2);
+         m_pProject->m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_EDIT_MARK, 0), (LPARAM) (LPCTSTR) sText);
+      }
+      break;
    case ID_CLASSVIEW_PROPERTIES:
       {
          CTagElement prop = m_SelectedTag;
@@ -482,7 +489,8 @@ void CClassView::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_CLASSVIEW_GOTODECL, bTagIsSelected && m_pProject->FindView(m_SelectedTag.sFilename, false) != NULL);
    pUIBase->UIEnable(ID_CLASSVIEW_GOTOIMPL, bTagIsSelected && m_pProject->FindView(m_SelectedImpl.sFilename, false) != NULL);
    pUIBase->UIEnable(ID_CLASSVIEW_COPY, bTagIsSelected);
-   pUIBase->UIEnable(ID_CLASSVIEW_PROPERTIES,bTagIsSelected);
+   pUIBase->UIEnable(ID_CLASSVIEW_MARK, bTagIsSelected);
+   pUIBase->UIEnable(ID_CLASSVIEW_PROPERTIES, bTagIsSelected);
    pUIBase->UIEnable(ID_CLASSVIEW_SORT_ALPHA, TRUE);
    pUIBase->UIEnable(ID_CLASSVIEW_SORT_TYPE, TRUE);
    pUIBase->UIEnable(ID_CLASSVIEW_SORT_NONE, TRUE);

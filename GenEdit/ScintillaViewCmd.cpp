@@ -27,20 +27,14 @@ LRESULT CScintillaView::OnFind(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
    switch( nRet ) {
    case IDC_MARKALL:
       {
-         int iCurrent = GetCurrentPos();
-         int posFirstFound = _FindNext(s_frFind.Flags | FR_DOWN, s_frFind.lpstrFindWhat, false, true);
-         int posFound = posFirstFound;
-         while( posFound != -1 ) {
-            int iLineNum = LineFromPosition(posFound);
-            MarkerAdd(iLineNum, MARKER_BOOKMARK);
-            posFound = _FindNext(s_frFind.Flags | FR_DOWN | FR_WRAP, s_frFind.lpstrFindWhat, false, true);
-            if( posFound == posFirstFound ) break;
-         }
-         SetCurrentPos(iCurrent);
+         CString sText = s_frFind.lpstrFindWhat;
+         SendMessage(WM_COMMAND, MAKEWPARAM(ID_EDIT_MARK, 0), (LPARAM) (LPCTSTR) sText);
       }
-      // FALL THROUGH
+      break;
    case IDOK:
-      _FindNext(s_frFind.Flags, s_frFind.lpstrFindWhat, true, true);
+      {
+         _FindNext(s_frFind.Flags, s_frFind.lpstrFindWhat, true, true);
+      }
       break;
    }
    return 0;
@@ -330,6 +324,25 @@ LRESULT CScintillaView::OnSearchGo(WORD /*wNotifyCode*/, WORD /*wID*/, HWND hWnd
    return 0;
 }
 
+LRESULT CScintillaView::OnMarkerMark(WORD /*wNotifyCode*/, WORD /*wID*/, HWND hWndCtl, BOOL& /*bHandled*/)
+{
+   USES_CONVERSION;
+   LPCTSTR pstrText = reinterpret_cast<LPCTSTR>(hWndCtl);
+   LPCSTR pstr = T2CA(pstrText);
+   int iCurrent = GetCurrentPos();
+   int posFirstFound = _FindNext(s_frFind.Flags | FR_DOWN, pstr, false, true);
+   int posFound = posFirstFound;
+   while( posFound != -1 ) {
+      int iLineNum = LineFromPosition(posFound);
+      MarkerAdd(iLineNum, MARKER_BOOKMARK);
+      posFound = _FindNext(s_frFind.Flags | FR_DOWN | FR_WRAP, pstr, false, true);
+      if( posFound == posFirstFound ) break;
+   }
+   SetCurrentPos(iCurrent);
+   _FindNext(s_frFind.Flags, pstr, false, false);
+   return 0;
+}
+
 LRESULT CScintillaView::OnMarkerToggle(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    int iLineNum = GetCurrentLine();
@@ -407,3 +420,4 @@ LRESULT CScintillaView::OnMacroCancel(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
    bHandled = FALSE;
    return 0;
 }
+

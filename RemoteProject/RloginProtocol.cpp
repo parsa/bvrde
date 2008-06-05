@@ -4,6 +4,8 @@
 
 #include "Project.h"
 
+#include "Authen.h"
+
 #include "RloginProtocol.h"
 
 #pragma code_seg( "PROTOCOLS" )
