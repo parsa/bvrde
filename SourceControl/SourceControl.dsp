@@ -253,7 +253,7 @@ SOURCE=.\Res\diff.htm
 # End Source File
 # Begin Source File
 
-SOURCE=.\overlay.bmp
+SOURCE=.\Res\overlay.bmp
 # End Source File
 # End Group
 # End Target

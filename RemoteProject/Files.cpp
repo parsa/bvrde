@@ -281,6 +281,8 @@ void CTextFile::ActivateUI()
    if( m_sLocation == _T("local") ) 
    {
       // Check if file changed outside view?
+      // TODO: Currently we only support this for local files since
+      //       the FTP timestamp is too unreliable right now.
       TCHAR szBuffer[32] = { 0 };;
       _pDevEnv->GetProperty(_T("gui.document.detectChange"), szBuffer, 31);
       if( _tcscmp(szBuffer, _T("true")) == 0 ) {
@@ -291,12 +293,12 @@ void CTextFile::ActivateUI()
             ::GetFileTime(f, NULL, NULL, &ft);
             if( m_ftCurrent.dwLowDateTime == 0 ) m_ftCurrent = ft;
             if( ::CompareFileTime(&m_ftCurrent, &ft) != 0 ) {
+               m_ftCurrent = ft;
                _pDevEnv->GetProperty(_T("gui.document.autoLoad"), szBuffer, 31);           
                if( _tcscmp(szBuffer, _T("true")) == 0 || IDYES == _pDevEnv->ShowMessageBox(m_view, CString(MAKEINTRESOURCE(IDS_FILECHANGES)), CString(MAKEINTRESOURCE(IDS_CAPTION_QUESTION)), MB_YESNO | MB_ICONQUESTION) ) {
                   Reload();
                }
             }
-            m_ftCurrent = ft;
             f.Close();
          }
       }
@@ -416,6 +418,7 @@ BOOL CTextFile::OpenView(long lLineNum)
    else 
    {
       CWaitCursor cursor;
+
       _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_OPENFILE)));
 
       // Load the file (local file or from remote server)

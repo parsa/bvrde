@@ -2,6 +2,8 @@
 #include "StdAfx.h"
 #include "resource.h"
 
+#include "Authen.h"
+
 #include "PasswordDlg.h"
 
 #include <wincrypt.h>
@@ -10,12 +12,25 @@
 ////////////////////////////////////////////////////////
 //
 
+#define CRYPT_ENVELOPE_SIZE 30
+
 // Here we store the user's password after being prompted
 // so we needn't prompt again. This implies that the same
-// password should be used for both FTP and Telnet connections!
-// BUG: It is also not a very secure thing to leave here!!
-TCHAR g_szPassword[100];
+// password should be used for both FTP and Telnet/SSH connections!
+static TCHAR g_szPassword[100];
 
+// Due to security, the password.h file is not included in the source distribution.
+// It contains the single source code line of...
+//   static BYTE g_password[] = { 1, 2, 3, 4, 5, 6 };
+// where the numbers are the pass-phrase.
+// Put this file in the .\RemoteProject source folder.
+//
+#include "password.h"
+
+
+
+////////////////////////////////////////////////////////
+//
 
 void SecClearPassword()
 {
@@ -27,14 +42,15 @@ CString SecGetPassword()
    // Prompts for password if not known
    static CComAutoCriticalSection s_cs;
    s_cs.Lock();
-   // If we already have a password, then use it
+   // If we already have a password, then use it...
    CString sPassword = g_szPassword;
    if( !sPassword.IsEmpty() ) {      
       s_cs.Unlock();
-      return sPassword;
+      return SecDecodePassword(sPassword);
    }
    // Prompt user for password
    // TODO: Ah, we need to ensure this is called from main thread only!
+   //       How to do this?
    CWaitCursor cursor;
    CPasswordDlg dlg;
    if( dlg.DoModal() != IDOK ) {
@@ -42,20 +58,10 @@ CString SecGetPassword()
       return _T("");
    }
    sPassword = dlg.GetPassword();
-   _tcscpy(g_szPassword, sPassword);
+   _tcscpy(g_szPassword, SecEncodePassword(sPassword));
    s_cs.Unlock();
    return sPassword;
 }
-
-#define CRYPT_ENVELOPE_SIZE 30
-
-// Due to security, the password.h file is not included in the source distribution.
-// It contains the single source code line of...
-//   static BYTE g_password[] = { 1, 2, 3, 4, 5, 6 };
-// where the numbers are the pass-phrase.
-// Put this file in the .\RemoteProject source folder.
-//
-#include "password.h"
 
 CString SecEncodePassword(LPCTSTR pstrPassword)
 {
@@ -87,7 +93,7 @@ CString SecEncodePassword(LPCTSTR pstrPassword)
    if( hHash ) ::CryptDestroyHash(hHash);
    if( hProv ) ::CryptReleaseContext(hProv, 0);
    // Turn binary blob into a hex-encoded string...
-   char szPassword[(CRYPT_ENVELOPE_SIZE * 2) + 2] = { 0 };
+   CHAR szPassword[(CRYPT_ENVELOPE_SIZE * 2) + 2] = { 0 };
    LPSTR pOut = szPassword;
    *pOut++ = '~';
    for( size_t i = 0; i < CRYPT_ENVELOPE_SIZE; i++ ) {
@@ -100,7 +106,7 @@ CString SecEncodePassword(LPCTSTR pstrPassword)
 
 CString SecDecodePassword(LPCTSTR pstrPassword)
 {
-   // If the password contains the ~tilde character at the first position it
+   // If the password contains the ~ (tilde) character at the first position it
    // is assumed that it was locally encrypted.
    USES_CONVERSION;
    if( pstrPassword[0] != '~' ) return pstrPassword;
@@ -138,5 +144,4 @@ CString SecDecodePassword(LPCTSTR pstrPassword)
    memcpy(szPassword, bData, cchLen);
    return szPassword;
 }
-
 

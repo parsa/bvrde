@@ -30,7 +30,7 @@ CString ConvertFromCrLf(const CString& s)
 }
 
 // Written by Jack Handy - jakkhandy@hotmail.com
-bool wildcmp(LPCTSTR  wild, LPCTSTR  str) 
+bool wildcmp(LPCTSTR  wild, LPCTSTR str) 
 {
    LPCTSTR cp = NULL, mp = NULL;
    while( (*str) && (*wild != '*') ) {
@@ -39,7 +39,7 @@ bool wildcmp(LPCTSTR  wild, LPCTSTR  str)
       str++;
    }
    while( *str != '\0' ) {
-      if (*wild == '*') {
+      if( *wild == '*' ) {
          if (!*++wild) return true;
          mp = wild;
          cp = str + 1;

@@ -193,7 +193,7 @@ void CSolutionTypePage::OnReset()
 
 int CSolutionTypePage::OnSetActive()
 {
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnItemSelected(0, NULL, bDummy);
    return 0;
 }
@@ -219,8 +219,7 @@ int CSolutionTypePage::OnWizardNext()
    ATLASSERT(m_pProject);
    if( m_pProject == NULL ) return -1;
 
-   CString sPath;
-   sPath.Format(_T("%s%s"), CModulePath(), SOLUTIONDIR);
+   CString sPath = GetSolutionPath(m_hWnd);
    m_pProject->Initialize(m_pDevEnv, sPath);
 
    CString sName = CWindowText(m_ctrlName);
@@ -415,8 +414,8 @@ int CAssociationsOptionsPage::OnSetActive()
    sModulePath.MakeUpper();
 
    int iStart = 0;
-   TCHAR szKey[200];
-   TCHAR szValue[200];
+   TCHAR szKey[200] = { 0 };
+   TCHAR szValue[200] = { 0 };
    while( m_pDevEnv->EnumProperties(iStart, _T("file.extension.*"), szKey, szValue) ) 
    {
       CString sKey = szKey;
@@ -553,8 +552,8 @@ int CMappingsOptionsPage::OnSetActive()
    m_ctrlList.AddColumn(CString(MAKEINTRESOURCE(IDS_MAPPING_COL2)), 1);
 
    int iStart = 0;
-   TCHAR szKey[200];
-   TCHAR szValue[200];
+   TCHAR szKey[200] = { 0 };
+   TCHAR szValue[200] = { 0 };
    while( m_pDevEnv->EnumProperties(iStart, _T("file.mappings.*"), szKey, szValue) ) 
    {
       int iItem = m_ctrlList.InsertItem(-1, PropCreateSimple(_T(""), _tcsrchr(szKey, '.') + 1));
@@ -621,8 +620,8 @@ int CALLBACK CMappingsOptionsPage::CompareFunc(LPARAM lParam1, LPARAM lParam2, L
    CPropertyGridCtrl* pGrid = (CPropertyGridCtrl*) lParamSort;
    HPROPERTY hProp1 = ((IProperty**)lParam1)[0];
    HPROPERTY hProp2 = ((IProperty**)lParam2)[0];
-   TCHAR szValue1[200];
-   TCHAR szValue2[200];
+   TCHAR szValue1[200] = { 0 };
+   TCHAR szValue2[200] = { 0 };
    pGrid->GetItemText(hProp1, szValue1, 199);
    pGrid->GetItemText(hProp2, szValue2, 199);
    return _tcscmp(szValue1, szValue2);
@@ -699,7 +698,7 @@ int CAutoTextOptionsPage::OnSetActive()
    if( m_ctrlList.GetCount() == 0 ) SendMessage(WM_COMMAND, MAKEWPARAM(IDC_NEW, 0));
    m_ctrlList.SetCurSel(0);
 
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnItemSelect(0, 0, NULL, bDummy);
 
    return 0;
@@ -810,7 +809,7 @@ LRESULT CAutoTextOptionsPage::OnNewItem(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
    *pstrText = '\0';
    m_ctrlList.SetItemData(iItem, (LPARAM) pstrText);
    m_ctrlList.SetCurSel(iItem);
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnItemSelect(0, 0, NULL, bDummy);
    return 0;
 }
@@ -822,7 +821,7 @@ LRESULT CAutoTextOptionsPage::OnDeleteItem(WORD /*wNotifyCode*/, WORD /*wID*/, H
    delete [] (LPTSTR) m_ctrlList.GetItemData(iSel);
    m_ctrlList.DeleteString(iSel);
    m_ctrlList.SetCurSel(iSel);
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnItemSelect(0, 0, NULL, bDummy);
    return 0;
 }
@@ -859,7 +858,7 @@ LRESULT CEditorsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    m_ctrlEOL.AddString(_T("CR + LF"));
    m_ctrlEOL.AddString(CString(MAKEINTRESOURCE(IDS_AUTOMATIC)));
 
-   TCHAR szBuffer[32];
+   TCHAR szBuffer[32] = { 0 };
    m_pDevEnv->GetProperty(sKey + _T("caretWidth"), szBuffer, 31);
    SetDlgItemInt(IDC_CARETWIDTH, max(1, _ttol(szBuffer)));
 
@@ -874,7 +873,7 @@ LRESULT CEditorsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
 
 int CEditorsOptionsPage::OnApply()
 {
-   TCHAR szEolMode[32];
+   TCHAR szEolMode[32] = { 0 };
    _tcscpy(szEolMode, _T("auto"));
    if( m_ctrlEOL.GetCurSel() == 0 ) _tcscpy(szEolMode, _T("cr"));
    if( m_ctrlEOL.GetCurSel() == 1 ) _tcscpy(szEolMode, _T("lf"));
@@ -988,7 +987,7 @@ LRESULT CColorsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
    }
    m_ctrlList.SetCurSel(0);
 
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnItemSelect(NULL, 0, NULL, bDummy);
 
    return 0;
@@ -1044,7 +1043,7 @@ LRESULT CColorsOptionsPage::OnItemSelect(WORD /*wNotifyCode*/, WORD /*wID*/, HWN
    SetDlgItemText(IDC_FONT, m_aFonts[iIndex].szFaceName);
    if( m_ctrlFace.FindStringExact(-1, m_aFonts[iIndex].szFaceName) >= 0 ) {
       m_ctrlFace.SetCurSel(m_ctrlFace.SelectString(-1, m_aFonts[iIndex].szFaceName));
-      BOOL bDummy;
+      BOOL bDummy = FALSE;
       OnFaceChange(0, 0, NULL, bDummy);
    }
 
@@ -1160,13 +1159,13 @@ int CColorsOptionsPage::OnApply()
 
                const STYLEFONT& Info = m_aFonts[i]; 
 
-               TCHAR szTextColor[32];
+               TCHAR szTextColor[32] = { 0 };
                ::wsprintf(szTextColor, _T("#%02X%02X%02X"), 
                   GetRValue(Info.clrText),
                   GetGValue(Info.clrText),
                   GetBValue(Info.clrText));
 
-               TCHAR szBackColor[32];
+               TCHAR szBackColor[32] = { 0 };
                ::wsprintf(szBackColor, _T("#%02X%02X%02X"), 
                   GetRValue(Info.clrBack),
                   GetGValue(Info.clrBack),
@@ -1271,7 +1270,7 @@ LRESULT CFormattingOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, L
    SET_CHECK(IDC_USETABS,      sKey + _T("useTabs"));
    SET_CHECK(IDC_INDENTS,      sKey + _T("showIndents"));
 
-   TCHAR szBuffer[32];
+   TCHAR szBuffer[32] = { 0 };
    m_pDevEnv->GetProperty(sKey + _T("tabWidth"), szBuffer, 31);
    SetDlgItemInt(IDC_TABWIDTH, max(1, _ttol(szBuffer)));
    m_pDevEnv->GetProperty(sKey + _T("indentWidth"), szBuffer, 31);
@@ -1287,7 +1286,7 @@ LRESULT CFormattingOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, L
 
 int CFormattingOptionsPage::OnApply()
 {
-   TCHAR szIndentMode[32];
+   TCHAR szIndentMode[32] = { 0 };
    _tcscpy(szIndentMode, _T("none"));
    if( m_ctrlIndentMode.GetCurSel() == 1 ) _tcscpy(szIndentMode, _T("auto"));
    if( m_ctrlIndentMode.GetCurSel() == 2 ) _tcscpy(szIndentMode, _T("smart"));

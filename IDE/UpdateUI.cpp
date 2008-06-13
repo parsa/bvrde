@@ -18,6 +18,7 @@ void CMainFrame::UIReset()
    // the standard menu/toolbar items. A few of them should however be
    // turned on.
    UIClear();
+
    UISetCheck(ID_VIEW_TOOLBAR, m_DefaultToolBar.IsWindowVisible());
    UISetCheck(ID_VIEW_STATUS_BAR, m_StatusBar.IsWindowVisible());
    UIEnable(ID_NEW_SOLUTION, m_bInitialized, TRUE);
@@ -239,15 +240,11 @@ BOOL CMainFrame::OnIdle()
 
    // Here we determine if the view/tree-focus has changed and
    // update the Properties pane with the active view's properties.
-   CTreeViewCtrl& ctrlTree = m_viewExplorer.m_viewFile.m_ctrlTree;
-   HTREEITEM hItem = ctrlTree.GetSelectedItem();
-   if( hItem ) {
-      IElement* pElement = (IElement*) ctrlTree.GetItemData(hItem);
-      if( pElement != s_pOldElement ) {
-         s_pOldElement = pElement;
-         ShowProperties(pElement, FALSE);
-         UISetText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(ATL_IDS_IDLEMESSAGE)));
-      }
+   IElement* pElement = m_viewExplorer.m_viewFile.GetSelectedElement();
+   if( pElement != s_pOldElement ) {
+      s_pOldElement = pElement;
+      ShowProperties(pElement, FALSE);
+      UISetText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(ATL_IDS_IDLEMESSAGE)));
    }
 
    // Here we determine if the active view suddenly changed dirty

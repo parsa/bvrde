@@ -92,7 +92,7 @@ LRESULT CRemoteProject::OnFileAddLocal(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
    CTreeViewCtrl ctrlTree = _pDevEnv->GetHwnd(IDE_HWND_EXPLORER_TREE);
 
    // Browse for filename
-   CString sFilter(MAKEINTRESOURCE(IDS_FILTER_FILES));
+   CString sFilter(MAKEINTRESOURCE(IDS_FILTER_SRCFILES));
    for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
    TCHAR szBuffer[MAX_PATH * 10] = { 0 };
    DWORD dwStyle = OFN_NOCHANGEDIR | OFN_FILEMUSTEXIST | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ENABLESIZING | OFN_ALLOWMULTISELECT;
@@ -173,7 +173,7 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
    CTreeViewCtrl ctrlTree = _pDevEnv->GetHwnd(IDE_HWND_EXPLORER_TREE);
 
    // Browse for filename
-   CString sFilter(MAKEINTRESOURCE(IDS_FILTER_FILES));
+   CString sFilter(MAKEINTRESOURCE(IDS_FILTER_SRCFILES));
    for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
    CString sRemotePath = m_FileManager.GetCurPath();
    CRemoteFileDlg dlg(TRUE, &m_FileManager, _T(""), OFN_NOCHANGEDIR | OFN_ALLOWMULTISELECT, sFilter);

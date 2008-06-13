@@ -867,12 +867,13 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_NEW_FOLDER          "Verzeichnis"
-    IDS_FILTER_FILES        "Quellcodedateien|*.c*;*.h*;*.?c;*.inc|Web Dateien|*.htm*;*.p*;*.asp;*.js*|Alle Dateien|*.*|"
+    IDS_FILTER_SRCFILES     "Quellcodedateien|*.c*;*.h*;*.?c;*.inc|Web Dateien|*.htm*;*.p*;*.asp;*.js*|Alle Dateien|*.*|"
     IDS_FINDFAILED          "Nicht gefunden\nDer String '%s' konnte nicht gefunden werden."
     IDS_CAPTION_ERROR       "Fehler"
     IDS_CAPTION_WARNING     "Warnung"
     IDS_CAPTION_MESSAGE     "Nachricht"
     IDS_CAPTION_COMPILELOG  "Kompiler Log"
+    IDS_FILTER_BINFILES     "Binary files|*;*.*;|All Files|*.*|"
     IDS_CAPTION_COMMAND     "Befehlsfenster"
     IDS_LOG_TELNETHOST      "Keine Verbindung zum Telnet Server möglich."
     IDS_ERR_OPENVIEW        "Datei öffnen Fehler\nDie Datei konnte nicht in einer neuen Ansicht geöffnet werden."
@@ -1304,6 +1305,7 @@ BEGIN
     IDS_STACK_FILE          "Datei='"
     IDS_STACK_LINE          "Zeile="
     IDS_SYMBOLVIEW          "Find Symbols"
+    IDS_FILTER_COREFILES    "Core files|core*;core*.*;|All Files|*.*|"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1591,8 +1593,8 @@ IDR_DISASSEMBLY MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
-        MENUITEM "Step Source Line",            ID_DEBUG_STEP_INTO
-        MENUITEM "Step Instruction",            ID_DEBUG_STEP_INSTRUCTION
+        MENUITEM "Step Source Line   \tF11",    ID_DEBUG_STEP_INTO
+        MENUITEM "Step Instruction\tShift+F11", ID_DEBUG_STEP_INSTRUCTION
         MENUITEM SEPARATOR
         MENUITEM "&Copy",                       ID_EDIT_COPY
         MENUITEM SEPARATOR
@@ -2181,6 +2183,7 @@ BEGIN
     VK_CANCEL,      ID_EDIT_BREAK,          VIRTKEY, CONTROL, NOINVERT
     VK_F10,         ID_DEBUG_STEP_OVER,     VIRTKEY, NOINVERT
     VK_F11,         ID_DEBUG_STEP_INTO,     VIRTKEY, NOINVERT
+    VK_F11,         ID_DEBUG_STEP_INSTRUCTION, VIRTKEY, SHIFT, NOINVERT
     VK_F5,          ID_DEBUG_START,         VIRTKEY, NOINVERT
     VK_F5,          ID_DEBUG_DEBUG,         VIRTKEY, CONTROL, NOINVERT
     VK_F5,          ID_DEBUG_STOP,          VIRTKEY, SHIFT, NOINVERT
@@ -2331,12 +2334,13 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_NEW_FOLDER          "Folder"
-    IDS_FILTER_FILES        "Source files|*.c*;*.h*;*.?c;*.inc|Web Files|*.htm*;*.p*;*.asp;*.js*|All Files|*.*|"
+    IDS_FILTER_SRCFILES     "Source files|*.c*;*.h*;*.?c;*.inc|Web Files|*.htm*;*.p*;*.asp;*.js*|All Files|*.*|"
     IDS_FINDFAILED          "Not found\nCould not find the string '%s'."
     IDS_CAPTION_ERROR       "Error"
     IDS_CAPTION_WARNING     "Warning"
     IDS_CAPTION_MESSAGE     "Message"
     IDS_CAPTION_COMPILELOG  "Compile Log"
+    IDS_FILTER_BINFILES     "Binary files|*;*.*;|All Files|*.*|"
     IDS_CAPTION_COMMAND     "Command Window"
     IDS_LOG_TELNETHOST      "Unable to connect to Telnet server."
     IDS_ERR_OPENVIEW        "Open File Error\nUnable to open the file in a new view."
@@ -2777,6 +2781,7 @@ BEGIN
     IDS_STACK_FILE          "file='"
     IDS_STACK_LINE          "line="
     IDS_SYMBOLVIEW          "Find Symbols"
+    IDS_FILTER_COREFILES    "Core Dump files|core*;core*.*;|All Files|*.*|"
 END
 
 STRINGTABLE DISCARDABLE 

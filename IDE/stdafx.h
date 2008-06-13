@@ -39,6 +39,7 @@ extern CAppModule _Module;
 #include <atlctrlw.h>
 
 #include <shlwapi.h>
+#include <shlobj.h>
 
 #include "atlwfile.h"
 #include "atlgdix.h"

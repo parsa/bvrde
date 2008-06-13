@@ -435,7 +435,7 @@ LRESULT CCompilerPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
    m_ctrlServer.AddString(_T("UNIX (HP-UX)"));
    m_ctrlServer.AddString(_T("BSD (FreeBSD)"));
    m_ctrlServer.AddString(_T("BSD (OpenBSD)"));
-   m_ctrlServer.AddString(_T("Soliaris"));
+   m_ctrlServer.AddString(_T("Solaris"));
    m_ctrlServer.AddString(_T("Cygwin"));
    m_ctrlServer.AddString(_T("Windows"));
    m_ctrlServer.AddString(_T("MacOS"));
@@ -601,7 +601,7 @@ int CCompilerPage::OnWizardNext()
    if( !sHost.IsEmpty()
        && iTypeIndex == SHELLTRANSFER_COMSPEC )
    {
-      TCHAR szFilename[MAX_PATH];
+      TCHAR szFilename[MAX_PATH] = { 0 };
       _tcscpy(szFilename, sHost);
       ::PathAppend(szFilename, _T("gdb.exe"));
       if( !::PathFileExists(szFilename) ) {

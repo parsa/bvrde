@@ -25,6 +25,17 @@ struct CLockTagDataInit
 /////////////////////////////////////////////////////////////////////////////
 // CLexThread
 
+void CLexThread::Init(CRemoteProject* pProject, CLexInfo* pLexInfo, LPCTSTR pstrFilename, LPCSTR pstrText)
+{
+   ATLASSERT(pProject);
+   ATLASSERT(pLexInfo);
+   m_pProject = pProject;
+   m_pLexInfo = pLexInfo;
+   m_sFilename = pstrFilename;
+   m_pstrText = pstrText;
+   // NOTE: The thread owns the 'pstrText' data now!
+}
+
 DWORD CLexThread::Run()
 {
    USES_CONVERSION;
@@ -95,15 +106,12 @@ bool CLexInfo::MergeFile(LPCTSTR pstrFilename, LPCSTR pstrText, DWORD dwTimeout)
 {
    ATLASSERT(m_pProject);
 
-   // FIX: Empty files do appear as NULL text
+   // FIX: Empty files can appear as NULL text
    if( pstrText == NULL ) return false;
    if( pstrText[0] == '\0' ) return false;
 
    m_thread.Stop();
-   m_thread.m_pLexInfo = this;
-   m_thread.m_pProject = m_pProject;
-   m_thread.m_sFilename = pstrFilename;
-   m_thread.m_pstrText = pstrText;   // NOTE: The thread owns the 'pstrText' data now!
+   m_thread.Init(m_pProject, this, pstrFilename, pstrText);
    m_thread.Start();
    m_thread.WaitForThread(dwTimeout);
 
@@ -518,7 +526,7 @@ CString CLexInfo::GetLexFilename(CRemoteProject* pProject, LPCTSTR pstrFilename,
    {
       CString sDocPath;
       sDocPath.Format(_T("%sLex\\%s"), CModulePath(), sProjectName);
-      if( bCreatePath ) ::CreateDirectory(sDocPath, NULL);
+      if( bCreatePath ) ::SHCreateDirectory(NULL, sDocPath);
       CString sLexFile;
       sLexFile.Format(_T("%s\\%s.lex"), sDocPath, sName);
       return sLexFile;
@@ -528,13 +536,8 @@ CString CLexInfo::GetLexFilename(CRemoteProject* pProject, LPCTSTR pstrFilename,
       TCHAR szPath[MAX_PATH] = { 0 };
       ::SHGetSpecialFolderPath(NULL, szPath, CSIDL_LOCAL_APPDATA, TRUE);
       CString sDocPath;
-      sDocPath.Format(_T("%s\\BVRDE"), szPath);
-      if( bCreatePath ) ::CreateDirectory(sDocPath, NULL);
-      sDocPath += _T("\\Lex");
-      if( bCreatePath ) ::CreateDirectory(sDocPath, NULL);
-      sDocPath += _T("\\");
-      sDocPath += sProjectName;
-      if( bCreatePath ) ::CreateDirectory(sDocPath, NULL);
+      sDocPath.Format(_T("%s\\BVRDE\\Lex\\%s"), szPath, sProjectName);
+      if( bCreatePath ) ::SHCreateDirectory(NULL, sDocPath);
       CString sLexFile;
       sLexFile.Format(_T("%s\\%s.lex"), sDocPath, sName);
       return sLexFile;

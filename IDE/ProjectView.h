@@ -104,7 +104,7 @@ public:
 
    void Clear()
    {
-      ATLASSERT(m_ctrlTree.IsWindow());
+      ATLASSERT(::IsWindow(m_ctrlTree));
       // Remove all items and insert the default "Solution" item...
       m_ctrlTree.DeleteAllItems();
       HTREEITEM hRoot;
@@ -117,8 +117,16 @@ public:
          TVI_ROOT, TVI_LAST);
       m_ctrlTree.Expand(hRoot);
    }
+   IElement* GetSelectedElement()
+   {
+      ATLASSERT(::IsWindow(m_ctrlTree));
+      HTREEITEM hItem = m_ctrlTree.GetSelectedItem();
+      if( hItem != NULL ) return (IElement*) m_ctrlTree.GetItemData(hItem);
+      return NULL;
+   }
    void SelectRoot()
    {
+      ATLASSERT(::IsWindow(m_ctrlTree));
       m_ctrlTree.SelectItem(m_ctrlTree.GetRootItem());
       m_ctrlTree.EnsureVisible(m_ctrlTree.GetRootItem());
    }
@@ -128,6 +136,7 @@ public:
    }
    IView* GetActiveView() const
    {
+      ATLASSERT(::IsWindow(m_ctrlTree));
       HTREEITEM hItem = m_ctrlTree.GetDropHilightItem();
       if( hItem == NULL ) hItem = m_ctrlTree.GetSelectedItem();
       if( hItem == NULL ) return NULL;

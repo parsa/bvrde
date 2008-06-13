@@ -5,7 +5,7 @@
 #define IDC_ADD_WATCH                   3
 #define IDS_NEW_FOLDER                  100
 #define IDR_CPP                         101
-#define IDS_FILTER_FILES                101
+#define IDS_FILTER_SRCFILES             101
 #define IDR_TEXT                        102
 #define IDD_FILEBROWSE                  102
 #define IDS_FINDFAILED                  102
@@ -22,6 +22,7 @@
 #define IDS_CAPTION_COMPILELOG          106
 #define IDD_REPLACE                     107
 #define IDS_CAPTION_COMPILE             107
+#define IDS_FILTER_BINFILES             107
 #define IDR_MAIN                        108
 #define IDS_CAPTION_COMMAND             108
 #define IDS_LOG_TELNETHOST              109
@@ -281,6 +282,7 @@
 #define IDS_STACK_FILE                  314
 #define IDS_STACK_LINE                  315
 #define IDS_SYMBOLVIEW                  316
+#define IDS_FILTER_COREFILES            317
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003

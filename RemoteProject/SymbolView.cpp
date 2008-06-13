@@ -117,6 +117,7 @@ void CSymbolView::Close()
 
 void CSymbolView::Clear()
 {
+   m_threadLoader.SignalStop();
    if( m_ctrlList.IsWindow() ) m_ctrlList.DeleteAllItems();
 }
 

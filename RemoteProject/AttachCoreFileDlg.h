@@ -83,7 +83,7 @@ public:
    }
    LRESULT OnBrowseProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
-      CString sFilter(MAKEINTRESOURCE(IDS_FILTER_FILES));
+      CString sFilter(MAKEINTRESOURCE(IDS_FILTER_BINFILES));
       for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
       CString sRemotePath = m_pProject->m_FileManager.GetCurPath();
       CRemoteFileDlg dlg(TRUE, &m_pProject->m_FileManager, _T(""), OFN_NOCHANGEDIR | OFN_FILEMUSTEXIST, sFilter);
@@ -98,7 +98,7 @@ public:
    }
    LRESULT OnBrowseCoreFile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
-      CString sFilter(MAKEINTRESOURCE(IDS_FILTER_FILES));
+      CString sFilter(MAKEINTRESOURCE(IDS_FILTER_COREFILES));
       for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
       CString sRemotePath = m_pProject->m_FileManager.GetCurPath();
       CRemoteFileDlg dlg(TRUE, &m_pProject->m_FileManager, _T(""), OFN_NOCHANGEDIR | OFN_FILEMUSTEXIST, sFilter);

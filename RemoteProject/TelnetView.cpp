@@ -45,7 +45,7 @@ CTelnetView::~CTelnetView()
 
 void CTelnetView::Init(CShellManager* pShell)
 {
-   ATLASSERT(pShell);
+   ATLASSERT(pShell!=NULL);
    Close();
    Clear();
    m_pShell = pShell;

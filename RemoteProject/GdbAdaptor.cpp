@@ -27,6 +27,7 @@ void CGdbAdaptor::Init(CRemoteProject* /*pProject*/)
 CString CGdbAdaptor::TransformInput(LPCTSTR pstrInput)
 {
    if( *pstrInput != '-' ) return pstrInput;
+
    CString sCommand;
    sCommand.Format(_T("232%s"), pstrInput);
 

@@ -445,12 +445,12 @@ BOOL CSchemaView::_SetHtml()
    for( ppstr = ppstrTranslations; *ppstr; ppstr += 2 ) {
       if( sHTML.Find(*ppstr) >= 0 ) sHTML.Replace(*ppstr, CString(*(ppstr + 1)));
    }
-   sHTML.Replace(_T("$DBNAME"), m_pDb->GetPropertyStr(DBPROPSET_DBINIT, DBPROP_INIT_DATASOURCE));
+   sHTML.Replace(_T("$DBNAME"),     m_pDb->GetPropertyStr(DBPROPSET_DBINIT, DBPROP_INIT_DATASOURCE));
    sHTML.Replace(_T("$DBLOCATION"), m_pDb->GetPropertyStr(DBPROPSET_DBINIT, DBPROP_INIT_LOCATION));
-   sHTML.Replace(_T("$DBCATALOG"), m_pDb->GetPropertyStr(DBPROPSET_DBINIT, DBPROP_INIT_CATALOG));
-   sHTML.Replace(_T("$DBSERVER"), m_pDb->GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_SERVERNAME));
-   sHTML.Replace(_T("$DBVERSION"), m_pDb->GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_DBMSVER));      
-   sHTML.Replace(_T("$DBTYPE"), m_pDb->GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_DBMSNAME));
+   sHTML.Replace(_T("$DBCATALOG"),  m_pDb->GetPropertyStr(DBPROPSET_DBINIT, DBPROP_INIT_CATALOG));
+   sHTML.Replace(_T("$DBSERVER"),   m_pDb->GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_SERVERNAME));
+   sHTML.Replace(_T("$DBVERSION"),  m_pDb->GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_DBMSVER));      
+   sHTML.Replace(_T("$DBTYPE"),     m_pDb->GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_DBMSNAME));
    for( ppstr = ppstrTranslations; *ppstr; ppstr += 2 ) {
       // <b>$DBSERVER_LABEL:</b> $DBSERVER<br>
       CString sEmptyLine;

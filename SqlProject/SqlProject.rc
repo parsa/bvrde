@@ -123,34 +123,34 @@ BEGIN
     CONTROL         "Autocommit aktivieren",IDC_AUTOCOMMIT,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,33,92,10,
                     WS_EX_TRANSPARENT
-    CONTROL         "Ausgabe limitieren auf",IDC_LIMITRECORDS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,124,33,83,11
-    EDITTEXT        IDC_MAXROWS,208,33,33,12,ES_UPPERCASE | ES_AUTOHSCROLL | 
-                    ES_NUMBER
     CONTROL         "Kommentare lokal parsen",IDC_STRIPCOMMENTS,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,44,97,10,
                     WS_EX_TRANSPARENT
-    CONTROL         "Fehler limitieren auf",IDC_LIMITERRORS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,124,47,82,11
-    EDITTEXT        IDC_MAXERRORS,208,47,33,12,ES_UPPERCASE | ES_AUTOHSCROLL | 
-                    ES_NUMBER
     CONTROL         "Klammernblock anzeigen",IDC_MATCHBRACES,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,56,120,10,
                     WS_EX_TRANSPARENT
     LTEXT           "Keyword Case: ",IDC_STATIC,13,72,50,9
-    COMBOBOX        IDC_CASEMODE,67,70,92,67,CBS_DROPDOWN | WS_VSCROLL | 
+    COMBOBOX        IDC_CASEMODE,67,70,92,67,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "Anzeige",IDC_STATIC,0,106,33,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,33,110,224,1
+    CONTROL         "Ausgabe limitieren auf",IDC_LIMITRECORDS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,88,83,11
+    EDITTEXT        IDC_MAXROWS,98,88,33,12,ES_UPPERCASE | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    CONTROL         "Fehler limitieren auf",IDC_LIMITERRORS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,103,82,11
+    EDITTEXT        IDC_MAXERRORS,98,103,33,12,ES_UPPERCASE | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "Anzeige",IDC_STATIC,0,118,33,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,33,122,224,1
     CONTROL         "Autovervollständigungs Featuer verwenden",
                     IDC_AUTOCOMPLETE,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,14,122,176,10,WS_EX_TRANSPARENT
+                    WS_TABSTOP,14,134,176,10,WS_EX_TRANSPARENT
     CONTROL         "Ansichten in der Autovervollständigung nicht anzeigen",
                     IDC_IGNOREVIEWS,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,14,133,212,10,WS_EX_TRANSPARENT
+                    WS_TABSTOP,14,145,212,10,WS_EX_TRANSPARENT
     CONTROL         "Tabelleninformationen im Hintergundthread laden",
                     IDC_BACKGROUNDLOAD,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,14,144,207,10,WS_EX_TRANSPARENT
+                    WS_TABSTOP,14,156,207,10,WS_EX_TRANSPARENT
 END
 
 IDD_WIZARD_CONNECTION DIALOGEX 0, 0, 255, 179
@@ -585,33 +585,34 @@ BEGIN
     CONTROL         "Enable Auto Commit",IDC_AUTOCOMMIT,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,33,88,10,
                     WS_EX_TRANSPARENT
-    CONTROL         "Limit result to",IDC_LIMITRECORDS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,125,31,57,11
-    EDITTEXT        IDC_MAXROWS,187,31,33,12,ES_UPPERCASE | ES_AUTOHSCROLL | 
-                    ES_NUMBER
     CONTROL         "Parse comments locally",IDC_STRIPCOMMENTS,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,44,91,10,
                     WS_EX_TRANSPARENT
-    CONTROL         "Limit errors to",IDC_LIMITERRORS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,125,44,57,11
-    EDITTEXT        IDC_MAXERRORS,187,44,33,12,ES_UPPERCASE | ES_AUTOHSCROLL | 
-                    ES_NUMBER
     CONTROL         "Match Braces",IDC_MATCHBRACES,"Button",BS_AUTOCHECKBOX | 
                     WS_GROUP | WS_TABSTOP,14,56,120,10,WS_EX_TRANSPARENT
     LTEXT           "Keyword Case: ",IDC_STATIC,13,72,50,9
-    COMBOBOX        IDC_CASEMODE,67,70,92,64,CBS_DROPDOWN | WS_VSCROLL | 
+    COMBOBOX        IDC_CASEMODE,67,70,92,64,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "Display",IDC_STATIC,0,106,33,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,33,110,225,1
+    CONTROL         "Limit result to",IDC_LIMITRECORDS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,88,57,11
+    EDITTEXT        IDC_MAXROWS,76,87,33,12,ES_UPPERCASE | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "records.",IDC_STATIC,114,89,28,9
+    CONTROL         "Limit errors to",IDC_LIMITERRORS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,103,57,11
+    EDITTEXT        IDC_MAXERRORS,76,102,33,12,ES_UPPERCASE | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "Display",IDC_STATIC,0,118,33,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,33,122,225,1
     CONTROL         "Use Auto Completion feature",IDC_AUTOCOMPLETE,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,122,120,10,
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,134,120,10,
                     WS_EX_TRANSPARENT
     CONTROL         "Don't list views in Auto Completion",IDC_IGNOREVIEWS,
-                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,133,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,14,145,
                     127,10,WS_EX_TRANSPARENT
     CONTROL         "Load table information in background thread",
                     IDC_BACKGROUNDLOAD,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,14,144,161,10,WS_EX_TRANSPARENT
+                    WS_TABSTOP,14,156,161,10,WS_EX_TRANSPARENT
 END
 
 

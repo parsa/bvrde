@@ -36,6 +36,8 @@ public:
    CString m_sFilename;
    LPCSTR m_pstrText;
 
+   void Init(CRemoteProject* pProject, CLexInfo* pLexInfo, LPCTSTR pstrFilename, LPCSTR pstrText);
+
    DWORD Run();
 };
 

@@ -18,7 +18,7 @@ of the 3rd party projects mentioned below.
 
 One sub-project, the RemoteProject, will not compile unless you manually add a
 password.h file to the solution. More information can be found in the 
-Globals.cpp source file for that project.
+Authen.cpp source file for that project.
 
 The source distribution does not contain all the required binary files to
 successfully run the application. You can copy the remaining files 
@@ -60,7 +60,7 @@ Alternatively remove the offending line from the FtpProtocol.cpp file.
 
 The sub-project, RemoteProject, will not compile unless you manually add a
 password.h file to the solution. More information can be found in the 
-Globals.cpp source file.
+Authen.cpp source file.
 
 Compile errors regarding an unknown ATL namespace prefix can be
 corrected directly in the atldispa.h source by removing the prefix

@@ -635,7 +635,6 @@ LRESULT CMainFrame::OnAddProject(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 {
    // Browse for the project file (locally)
    CString sPath;
-   sPath.Format(_T("%s%s"), CModulePath(), SOLUTIONDIR);
    CString sFilter(MAKEINTRESOURCE(IDS_FILTER_PROJECT));
    for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
    DWORD dwStyle = OFN_NOCHANGEDIR | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ENABLESIZING;

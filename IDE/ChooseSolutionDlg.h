@@ -26,6 +26,7 @@ public:
       SOLUTION_WIZARD,
       SOLUTION_FILE,
    } m_SelectType;
+
    CString m_sFilename;
 
    CChooseSolutionDlg()
@@ -74,8 +75,12 @@ public:
    }
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
-      if( m_ctrlBlankSolution.GetCheck() == BST_CHECKED ) m_SelectType = SOLUTION_BLANK;
-      else if( m_ctrlWizard.GetCheck() == BST_CHECKED ) m_SelectType = SOLUTION_WIZARD;
+      if( m_ctrlBlankSolution.GetCheck() == BST_CHECKED ) {
+         m_SelectType = SOLUTION_BLANK;
+      }
+      else if( m_ctrlWizard.GetCheck() == BST_CHECKED ) {
+         m_SelectType = SOLUTION_WIZARD;
+      }
       else if( m_ctrlOpen.GetCheck() == BST_CHECKED ) {
          int iIndex = m_ctrlList.GetSelectedIndex();
          if( iIndex == -1 ) return 0;
@@ -131,16 +136,32 @@ public:
       m_ctrlList.DeleteAllItems();
       m_aFiles.RemoveAll();
 
-      // Include all the local projects
+      // Include all the local projects...
+      BOOL bRes;
+      CFindFile ff;
       CString sPattern;
       sPattern.Format(_T("%s%s\\*.sln"), CModulePath(), _T(SOLUTIONDIR));
-      CFindFile ff;
-      for( BOOL bRes = ff.FindFile(sPattern); bRes; bRes = ff.FindNextFile() ) {
+      for( bRes = ff.FindFile(sPattern); bRes; bRes = ff.FindNextFile() ) {
          if( ff.IsDots() ) continue;
          if( ff.IsDirectory() ) continue;
          _AddListItem(ff.GetFilePath());
       }
       ff.Close();
+      // On Windows XP we assume the solutions are
+      // located under the installation folder, but on Windows Vista we cannot write
+      // to the Program Files folder, so it's under the Documents folder.
+      OSVERSIONINFO ver = { sizeof(ver) };
+      ::GetVersionEx(&ver);
+      if( ver.dwMajorVersion >= 6 ) {
+         sPattern = GetSolutionPath(m_hWnd);
+         sPattern += _T("\\*.sln");
+         for( bRes = ff.FindFile(sPattern); bRes; bRes = ff.FindNextFile() ) {
+            if( ff.IsDots() ) continue;
+            if( ff.IsDirectory() ) continue;
+            _AddListItem(ff.GetFilePath());
+         }
+         ff.Close();
+      }
       // ... then add file history as well
       for( int i = 0; i < m_pMainFrame->m_mru.m_arrDocs.GetSize(); i++ ) {
          CString sFilename = m_pMainFrame->m_mru.m_arrDocs[i].szDocName;
@@ -158,13 +179,15 @@ public:
          }
          if( !bFound ) _AddListItem(sFilename);
       }
-      // Should we display in icon view instead
+
+      // Should we display in icon view instead?
       const int MAX_FILES_IN_ICONVIEW = 9;
       if( m_ctrlList.GetItemCount() > MAX_FILES_IN_ICONVIEW ) m_ctrlList.SetViewType(LVS_REPORT);
       m_ctrlList.SetColumnWidth(0, LVSCW_AUTOSIZE);
+      
       // Select first item
       m_ctrlList.SelectItem(0);
-      BOOL bDummy;
+      BOOL bDummy = FALSE;
       OnChanged(0, 0, NULL, bDummy);
    }
 

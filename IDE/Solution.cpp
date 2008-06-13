@@ -7,6 +7,28 @@
 #include "XmlSerializer.h"
 
 
+///////////////////////////////////////////////////
+//
+
+CString GetSolutionPath(HWND hWnd /*=NULL*/)
+{
+   OSVERSIONINFO ver = { sizeof(ver) };
+   ::GetVersionEx(&ver);
+   CString sPath;
+   sPath.Format(_T("%s%s"), CModulePath(), _T(SOLUTIONDIR));
+   if( ver.dwMajorVersion >= 6 ) {
+      TCHAR szPath[MAX_PATH] = { 0 };
+      ::SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, szPath);
+      sPath.Format(_T("%s\\BVRDE\\%s"), szPath, _T(SOLUTIONDIR));
+   }
+   ::SHCreateDirectory(NULL, sPath);
+   return sPath;
+}
+
+
+///////////////////////////////////////////////////
+//
+
 CSolution::CSolution() :
    m_Dispatch(this)
 {
@@ -113,6 +135,9 @@ BOOL CSolution::LoadSolution(LPCTSTR pstrFilename)
 
 BOOL CSolution::SaveSolution(LPCTSTR pstrFilename)
 {
+   OSVERSIONINFO ver = { sizeof(ver) };
+   ::GetVersionEx(&ver);
+
    HWND hWndMain = g_pDevEnv->GetHwnd(IDE_HWND_MAIN);
 
    // Make sure we have a filename for the solution
@@ -122,8 +147,7 @@ BOOL CSolution::SaveSolution(LPCTSTR pstrFilename)
       // Warn user first
       m_pMainFrame->_ShowMessageBox(hWndMain, IDS_SAVE_FIRST, IDS_CAPTION_MESSAGE, MB_ICONINFORMATION);
       // Browse for the project file (locally)
-      CString sPath;
-      sPath.Format(_T("%s%s"), CModulePath(), _T(SOLUTIONDIR));
+      CString sPath = GetSolutionPath();
       CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_SAVESOLUTION));
       CString sFilter(MAKEINTRESOURCE(IDS_FILTER_SOLUTION));
       for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
@@ -145,8 +169,7 @@ BOOL CSolution::SaveSolution(LPCTSTR pstrFilename)
    for( int i = 0; i < m_aProjects.GetSize(); i++ ) {
       PROJECT& Project = m_aProjects[i];
       if( Project.sFilename.IsEmpty() ) {
-         CString sPath;
-         sPath.Format(_T("%s%s"), CModulePath(), _T(SOLUTIONDIR));
+         CString sPath = GetSolutionPath();
          CString sCaption(MAKEINTRESOURCE(IDS_CAPTION_SAVEPROJECT));
          CString sFilter(MAKEINTRESOURCE(IDS_FILTER_PROJECT));
          for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
@@ -186,6 +209,8 @@ BOOL CSolution::IsDirty() const
    if( !IsLoaded() ) return FALSE;
    if( m_bIsDirty ) return TRUE;
    // The solution's dirty flag inherits the state of the project-files.
+   // NOTE: This could be a very expensive operation depending on how
+   //       the projects/plugins handle this.
    for( int i = 0; i < m_aProjects.GetSize(); i++ ) {
       if( m_aProjects[i].pProject->IsDirty() ) return TRUE;
    }
