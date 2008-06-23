@@ -138,3 +138,23 @@ bool CTagManager::OpenTagInView(const CTagDetails& Info)
    }
 }
 
+/**
+ * Attempt to find implementation tag of a C++ member.
+ */
+bool CTagManager::FindImplementationTag(const CTagDetails& Current, CTagDetails& Info)
+{
+   Info.sName.Empty();
+   Info.sFilename.Empty();
+   if( Current.sName.IsEmpty() ) return false;
+   CString sLookupName;
+   sLookupName.Format(_T("%s%s%s"), Current.sBase, Current.sBase.IsEmpty() ? _T("") : _T("::"), Current.sName);
+   CSimpleValArray<TAGINFO*> aList;
+   FindItem(sLookupName, NULL, 0, ::GetTickCount() + 500, aList);
+   for( int i = 0; i < aList.GetSize(); i++ ) {
+      if( aList[i]->Type == TAGTYPE_IMPLEMENTATION ) {
+         GetItemInfo(aList[i], Info);
+         return true;
+      }
+   }
+   return false;
+}

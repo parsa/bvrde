@@ -45,7 +45,6 @@ public:
    // Implementation
 
    void _PopulateTree();
-   bool _GetImplementationRef(const CTagDetails& Current, CTagDetails& Info);
 
    static int CALLBACK _TreeSortTypeCB(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 

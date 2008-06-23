@@ -286,7 +286,7 @@ void CTextFile::ActivateUI()
       TCHAR szBuffer[32] = { 0 };;
       _pDevEnv->GetProperty(_T("gui.document.detectChange"), szBuffer, 31);
       if( _tcscmp(szBuffer, _T("true")) == 0 ) {
-         // Detect if filetime has changed
+         // Detect if filetime has changed. If it did, warn the user.
          CFile f;
          if( f.Open(_GetRealFilename()) ) {
             FILETIME ft = { 0 };
@@ -423,10 +423,10 @@ BOOL CTextFile::OpenView(long lLineNum)
 
       // Load the file (local file or from remote server)
       // As a little hack we allow the file to be opened if we request a line-number
-      // as 0! This allows empty pages to be opened and later saved.
+      // as negative! This allows empty pages to be opened and later saved.
       CComBSTR bstrText;
       if( !GetText(&bstrText) && lLineNum > 0 ) return err.SetLastError();
-      if( ::GetLastError() != 0 ) return err.SetLastError();
+      if( ::GetLastError() != 0 && lLineNum > 0 ) return err.SetLastError();
       CString sText = bstrText;
 
       CString sName;

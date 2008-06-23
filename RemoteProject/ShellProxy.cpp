@@ -197,6 +197,13 @@ void CShellManager::BroadcastLine(VT100COLOR Color, LPCTSTR pstrText)
    }
 }
 
+/**
+ * Server Detection callback.
+ * This function receives shell lines before the username/password
+ * has been sent, and its mission is to detect the OS on the remote
+ * machine. Matching the OS will allow us to preselect the optimal
+ * settings for compiling/debugging during Wizard Project creation.
+ */
 void CShellManager::PreAuthenticatedLine(LPCTSTR pstrText)
 {
    // Try to detect server type...

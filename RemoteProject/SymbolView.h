@@ -30,7 +30,7 @@ public:
    CString m_sPattern;
    WPARAM m_dwCookie;
 
-   void Init(CSymbolView* pOwner, LPCTSTR pstrPattern, DWORD dwCookie);
+   void Init(CSymbolView* pOwner, LPCTSTR pstrPattern, WPARAM dwCookie);
    
    DWORD Run();
 };
@@ -74,7 +74,6 @@ public:
    // Implementation
 
    void _PopulateList(CSimpleValArray<TAGINFO*>& aList);
-   bool _GetImplementationRef(const CTagDetails& Current, CTagDetails& Info);
 
    static int CALLBACK CSymbolView::_ListSortProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 

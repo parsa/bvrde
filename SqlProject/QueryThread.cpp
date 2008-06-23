@@ -17,7 +17,7 @@ CQueryThread::CQueryThread(CDbOperations* pDbData) :
    m_state = STATE_NOTHING;
    m_pDbCmd = NULL;
    m_bExecuting = false;
-   m_nChunkSize = 50;     // Number of records in packet
+   m_nChunkSize = 50;
 }
 
 DWORD CQueryThread::Run()
@@ -273,7 +273,7 @@ DWORD CQueryThread::Run()
       else if( state == STATE_INFOREQUEST ) 
       {
          // Slowly populate table/column list
-         TABLEINFO* pTable = m_pDbData->EstimateNextInfoRequest();
+         TABLEINFO* pTable = m_pDbData->EstimateNextInfoRequest(&Db);
          if( pTable != NULL ) m_pDbData->LoadTableInfo(pTable, &Db);
       }
    }

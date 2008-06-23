@@ -225,7 +225,7 @@ LRESULT CClassView::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
    CTagDetails Current;
    CTagDetails ImplTag;
    m_pProject->m_TagManager.GetItemInfo(pTag, Current);
-   _GetImplementationRef(Current, ImplTag);
+   m_pProject->m_TagManager.FindImplementationTag(Current, ImplTag);
    if( !ImplTag.sName.IsEmpty() ) m_pProject->m_TagManager.OpenTagInView(ImplTag);
    else m_pProject->m_TagManager.OpenTagInView(Current);
    return 0;
@@ -256,10 +256,8 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
    // In case we clicked on a tree-item we'll lookup information
    // about the tag and its implementation status
    TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(hItem);
-   CTagDetails Info;
-   m_pProject->m_TagManager.GetItemInfo(pTag, Info);
-   m_SelectedTag = Info;
-   _GetImplementationRef(m_SelectedTag, m_SelectedImpl);
+   m_pProject->m_TagManager.GetItemInfo(pTag, m_SelectedTag);
+   m_pProject->m_TagManager.FindImplementationTag(m_SelectedTag, m_SelectedImpl);
    // Load and show menu...
    CMenu menu;
    menu.LoadMenu(hItem != NULL ? IDR_CLASSTREE_ITEM : IDR_CLASSTREE);
@@ -409,7 +407,7 @@ LRESULT CClassView::OnGetDisplayInfo(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    //       on the fly, we need to re-populate/clear the tree often.
    TAGINFO* pTag = (TAGINFO*) m_ctrlTree.GetItemData(lpNMTVDI->item.hItem);
    ATLASSERT(!::IsBadReadPtr(pTag, sizeof(TAGINFO)));
-   lpNMTVDI->item.pszText = (LPTSTR) pTag->pstrName;
+   lpNMTVDI->item.pszText = const_cast<LPTSTR>(pTag->pstrName);
    return 0;
 }
 
@@ -457,7 +455,7 @@ LRESULT CClassView::OnMouseHover(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
    m_ctrlHoverTip.MoveWindow(pt.x, pt.y + 40, TOOLTIP_WIDTH, 40);
    CTagDetails Info;
    m_pProject->m_TagManager.GetItemInfo(pTag, Info);
-   m_ctrlHoverTip.ShowItem(Info.sName, Info.sDeclaration, Info.sComment);
+   m_ctrlHoverTip.ShowItem(Info.sName, Info);
    m_pCurrentHover = pTag;
    return 0;
 }
@@ -555,8 +553,8 @@ void CClassView::_PopulateTree()
    m_ctrlTree.SortChildren(TVI_ROOT, FALSE);
 
    // Insert "Globals" tree-item
-   CString s(MAKEINTRESOURCE(IDS_GLOBALS));
-   tvis.item.pszText = (LPTSTR) (LPCTSTR) s;
+   CString sGlobals(MAKEINTRESOURCE(IDS_GLOBALS));
+   tvis.item.pszText = (LPTSTR) (LPCTSTR) sGlobals;
    tvis.item.iImage = 1;
    tvis.item.iSelectedImage = 1;
    tvis.item.lParam = 0;
@@ -570,24 +568,6 @@ void CClassView::_PopulateTree()
 
    m_bPopulated = true;
    m_aExpandedNames.RemoveAll();
-}
-
-bool CClassView::_GetImplementationRef(const CTagDetails& Current, CTagDetails& Info)
-{
-   Info.sName.Empty();
-   Info.sFilename.Empty();
-   if( Current.sName.IsEmpty() ) return false;
-   CString sLookupName;
-   sLookupName.Format(_T("%s%s%s"), Current.sBase, Current.sBase.IsEmpty() ? _T("") : _T("::"), Current.sName);
-   CSimpleValArray<TAGINFO*> aList;
-   m_pProject->m_TagManager.FindItem(sLookupName, NULL, 0, ::GetTickCount() + 500, aList);
-   for( int i = 0; i < aList.GetSize(); i++ ) {
-      if( aList[i]->Type == TAGTYPE_IMPLEMENTATION ) {
-         m_pProject->m_TagManager.GetItemInfo(aList[i], Info);
-         return true;
-      }
-   }
-   return false;
 }
 
 int CALLBACK CClassView::_TreeSortTypeCB(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)

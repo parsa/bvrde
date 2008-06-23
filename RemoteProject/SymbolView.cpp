@@ -64,7 +64,7 @@ public:
 /////////////////////////////////////////////////////////////////////////
 // CSymbolThreadLoader
 
-void CSymbolsLoaderThread::Init(CSymbolView* pOwner, LPCTSTR pstrPattern, DWORD dwCookie)
+void CSymbolsLoaderThread::Init(CSymbolView* pOwner, LPCTSTR pstrPattern, WPARAM dwCookie)
 {
    m_pOwner = pOwner;
    m_dwCookie = dwCookie;
@@ -73,10 +73,15 @@ void CSymbolsLoaderThread::Init(CSymbolView* pOwner, LPCTSTR pstrPattern, DWORD 
 
 DWORD CSymbolsLoaderThread::Run()
 {
+   // Gather result; allow cancelling at any time
    CSimpleValArray<TAGINFO*>* pList = new CSimpleValArray<TAGINFO*>;
    m_pOwner->m_pProject->m_TagManager.GetTypeList(m_sPattern, m_bStopped, *pList);
-   if( ShouldStop() ) delete pList;
-   else m_pOwner->PostMessage(WM_SYMBOL_GOT_DATA, m_dwCookie, (LPARAM) pList);
+   if( ShouldStop() ) {
+      delete pList;
+      return 0;
+   }
+   // Send result back to window; it now owns it...
+   m_pOwner->PostMessage(WM_SYMBOL_GOT_DATA, m_dwCookie, (LPARAM) pList);
    return 0;
 }
 
@@ -111,12 +116,13 @@ void CSymbolView::Init(CRemoteProject* pProject)
 
 void CSymbolView::Close()
 {
-   if( m_ctrlList.IsWindow() ) m_ctrlList.DeleteAllItems();
+   Clear();
    m_pProject = NULL;
 }
 
 void CSymbolView::Clear()
 {
+   m_dwCookie = 0;
    m_threadLoader.SignalStop();
    if( m_ctrlList.IsWindow() ) m_ctrlList.DeleteAllItems();
 }
@@ -182,27 +188,25 @@ LRESULT CSymbolView::OnGetSymbolData(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam
    // The cookie allows us to shoot off the thread at any time. When processing the result
    // we'll check that the cookie matches our latest request so we don't display
    // an old result list.
-   m_dwCookie = ::GetTickCount();
    // The pattern is a DOS type pattern, so we enclose in wildcards...
    CString sPattern;
    sPattern.Format(_T("*%s*"), sText);
    m_threadLoader.Stop();
-   m_threadLoader.Init(this, sPattern, m_dwCookie);
+   m_threadLoader.Init(this, sPattern, ++m_dwCookie);
    m_threadLoader.Start();
    return 0;
 }
 
 LRESULT CSymbolView::OnGotSymbolData(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
-   // The thread delivered data.
-   // BUG: Since we deliver futile TAGINFO* structures we need to lock the
+   // The collector thread delivered data.
+   // BUG: Since we receive futile TAGINFO* structures we need to lock the
    //      lex-manager as long as we process this!
+   //      Code in the CLexInfo::MergeIntoTree will clear the symbol
+   //      result if any new lex data is processed, but better protection
+   //      is needed here.
    CSimpleValArray<TAGINFO*>* pList = (CSimpleValArray<TAGINFO*>*) lParam;
-   if( wParam != m_dwCookie ) {
-      delete pList;
-      return 0;
-   }
-   _PopulateList(*pList);
+   if( wParam == m_dwCookie ) _PopulateList(*pList);
    delete pList;
    return 0;
 }
@@ -217,13 +221,13 @@ LRESULT CSymbolView::OnPatternChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
 LRESULT CSymbolView::OnListDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
    int iItem = m_ctrlList.GetSelectedIndex();
-   if( iItem <0 ) return 0;
+   if( iItem < 0 ) return 0;
    TAGINFO* pTag = (TAGINFO*) m_ctrlList.GetItemData(iItem);
    if( pTag == NULL ) return 0;
    CTagDetails Current;
    CTagDetails ImplTag;
    m_pProject->m_TagManager.GetItemInfo(pTag, Current);
-   _GetImplementationRef(Current, ImplTag);
+   m_pProject->m_TagManager.FindImplementationTag(Current, ImplTag);
    if( !ImplTag.sName.IsEmpty() ) m_pProject->m_TagManager.OpenTagInView(ImplTag);
    else m_pProject->m_TagManager.OpenTagInView(Current);
    return 0;
@@ -252,15 +256,12 @@ LRESULT CSymbolView::OnListRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*
    m_ctrlList.ScreenToClient(&ptClient);
    UINT uFlags = 0;
    int iItem = m_ctrlList.HitTest(ptClient, &uFlags);
-   if( (uFlags & LVHT_ONITEM) != 0 ) {
-      // In case we clicked on a list-item we'll lookup information
-      // about the tag and its implementation status
-      TAGINFO* pTag = (TAGINFO*) m_ctrlList.GetItemData(iItem);
-      CTagDetails Info;
-      m_pProject->m_TagManager.GetItemInfo(pTag, Info);
-      m_SelectedTag = Info;
-      _GetImplementationRef(m_SelectedTag, m_SelectedImpl);
-   };
+   // In case we clicked on a list-item we'll lookup information
+   // about the tag and its implementation status
+   TAGINFO* pTag = NULL;
+   if( (uFlags & LVHT_ONITEM) != 0 ) pTag = (TAGINFO*) m_ctrlList.GetItemData(iItem);
+   m_pProject->m_TagManager.GetItemInfo(pTag, m_SelectedTag);
+   m_pProject->m_TagManager.FindImplementationTag(m_SelectedTag, m_SelectedImpl);
    // Load and show menu...
    CMenu menu;
    menu.LoadMenu(iItem >= 0 ? IDR_SYMBOLTREE_ITEM : IDR_SYMBOLTREE);
@@ -377,7 +378,7 @@ LRESULT CSymbolView::OnMouseHover(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    m_ctrlHoverTip.MoveWindow(pt.x, pt.y + 40, TOOLTIP_WIDTH, 40);
    CTagDetails Info;
    m_pProject->m_TagManager.GetItemInfo(pTag, Info);
-   m_ctrlHoverTip.ShowItem(Info.sName, Info.sDeclaration, Info.sComment);
+   m_ctrlHoverTip.ShowItem(Info.sName, Info);
    m_pCurrentHover = pTag;
    return 0;
 }
@@ -444,18 +445,23 @@ void CSymbolView::_PopulateList(CSimpleValArray<TAGINFO*>& aList)
    m_ctrlList.SetRedraw(FALSE);
    m_ctrlList.DeleteAllItems();
 
-   int iImage;
+   int iItem, iImage;
    CString sName, sLastName;
    CTagDetails Info;
    for( int i = 0; i < aList.GetSize(); i++ ) {
       const TAGINFO* pTag = aList[i];
       m_pProject->m_TagManager.GetItemInfo(pTag, Info);
       sName.Format(_T("%s%s%s"), Info.sBase, Info.sBase.IsEmpty() ? _T("") : _T("::"), Info.sName);
-      if( sName == sLastName ) continue;
+      if( sName == sLastName ) {
+         // FIX: We'd like the declaration tag to appear in the list control, since we'll
+         //      lookup the implementation tag before any mouse action anyway.
+         if( Info.TagType != TAGTYPE_IMPLEMENTATION ) m_ctrlList.SetItemData(iItem, (DWORD_PTR) pTag);
+         continue;
+      }
       iImage = pTag->Type == TAGTYPE_MEMBER ? 4 : 3;
       if( iImage == 3 && (pTag->Protection == TAGPROTECTION_PROTECTED || pTag->Protection == TAGPROTECTION_PRIVATE) ) iImage = 5;
       if( iImage == 4 && (pTag->Protection == TAGPROTECTION_PROTECTED || pTag->Protection == TAGPROTECTION_PRIVATE) ) iImage = 6;
-      int iItem = m_ctrlList.InsertItem(i, sName, iImage);
+      iItem = m_ctrlList.InsertItem(i, sName, iImage);
       m_ctrlList.SetItemData(iItem, (DWORD_PTR) pTag);
       sLastName = sName;
    }
@@ -491,23 +497,5 @@ int CALLBACK CSymbolView::_ListSortProc(LPARAM lParam1, LPARAM lParam2, LPARAM l
    if( pThis->m_sSortValue == _T("type") ) iRes = lvi1.iImage - lvi2.iImage;
    if( iRes == 0 ) iRes = ::lstrcmp(lvi1.pszText, lvi2.pszText);
    return iRes;
-}
-
-bool CSymbolView::_GetImplementationRef(const CTagDetails& Current, CTagDetails& Info)
-{
-   Info.sName.Empty();
-   Info.sFilename.Empty();
-   if( Current.sName.IsEmpty() ) return false;
-   CString sLookupName;
-   sLookupName.Format(_T("%s%s%s"), Current.sBase, Current.sBase.IsEmpty() ? _T("") : _T("::"), Current.sName);
-   CSimpleValArray<TAGINFO*> aList;
-   m_pProject->m_TagManager.FindItem(sLookupName, NULL, 0, ::GetTickCount() + 500, aList);
-   for( int i = 0; i < aList.GetSize(); i++ ) {
-      if( aList[i]->Type == TAGTYPE_IMPLEMENTATION ) {
-         m_pProject->m_TagManager.GetItemInfo(aList[i], Info);
-         return true;
-      }
-   }
-   return false;
 }
 

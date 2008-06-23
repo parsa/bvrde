@@ -29,6 +29,7 @@ public:
    // Operations
 
    bool OpenTagInView(const CTagDetails& Info);
+   bool FindImplementationTag(const CTagDetails& Current, CTagDetails& Info);
 
 public:
    // Data members

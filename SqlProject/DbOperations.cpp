@@ -202,10 +202,13 @@ BOOL CDbOperations::GetDatabaseInfo(DATABASEINFO& info)
    return TRUE;
 }
 
-TABLEINFO* CDbOperations::EstimateNextInfoRequest()
+TABLEINFO* CDbOperations::EstimateNextInfoRequest(COledbDatabase* pDb /*=NULL*/)
 {
+   // Make sure database is connected
+   if( pDb == NULL ) pDb = &m_Db;
+   if( !pDb->IsOpen() ) return NULL;
    // Make sure all tables are known
-   if( !EnumTables() ) return NULL;
+   if( !EnumTables(pDb) ) return NULL;
    // Let's find the next table to investigate
    CLockStaticDataInit lock;
    TABLEINFO* pTable = NULL;
@@ -292,7 +295,7 @@ BOOL CDbOperations::ChangeProperties(HWND hWnd, LPCTSTR pstrConnectString, CStri
 {
    // Default back to old connection string
    BOOL bRes = FALSE;
-   CString sRes = pstrConnectString;
+   sResult = pstrConnectString;
    // Close any existing database
    m_Db.Close();
    // Initialize (but do not connect) the database once again
@@ -320,7 +323,7 @@ BOOL CDbOperations::ChangeProperties(HWND hWnd, LPCTSTR pstrConnectString, CStri
                LPOLESTR pwstr = NULL;
                spData->GetInitializationString(spInit, VARIANT_TRUE, &pwstr);
                if( pwstr != NULL ) {
-                  sRes = pwstr;
+                  sResult = pwstr;
                   ::CoTaskMemFree(pwstr);
                   bRes = TRUE;
                }
@@ -328,13 +331,17 @@ BOOL CDbOperations::ChangeProperties(HWND hWnd, LPCTSTR pstrConnectString, CStri
          }
       }
    }
-   // Reconnect with new properties
-   ConnectDatabase(&m_Db, sRes);
+   // Reconnect with new properties.
+   // We should reconnect always since we started with disconnecting the database.
+   // Even if the property changes fails, the user may expect the old settings to work.
+   ConnectDatabase(&m_Db, sResult);
    return bRes;
 }
 
 CComVariant CDbOperations::GetProperty(const GUID& guid, DBPROPID propid) const
 {
+   CComVariant vRes;
+   if( !m_Db.IsOpen() ) return vRes;
    // Prepare properties
    DBPROPIDSET PropIdSet;
    PropIdSet.guidPropertySet = guid;
@@ -345,7 +352,6 @@ CComVariant CDbOperations::GetProperty(const GUID& guid, DBPROPID propid) const
    ULONG lCount = 0;
    DBPROPSET* pPropSet = NULL;
    spProperties->GetProperties(1, &PropIdSet, &lCount, &pPropSet);
-   CComVariant vRes;
    if( pPropSet != NULL ) {
       vRes = pPropSet->rgProperties->vValue;
       // Free memory

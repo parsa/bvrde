@@ -112,7 +112,7 @@ public:
    BOOL GetColumnList(LPCTSTR pstrTable, CSimpleArray<CString>& aList);
    
    void MarkTable(LPCTSTR pstrName);
-   TABLEINFO* EstimateNextInfoRequest();
+   TABLEINFO* EstimateNextInfoRequest(COledbDatabase* pDb =NULL);
    
    BOOL ChangeProperties(HWND hWnd, LPCTSTR pstrConnectString, CString& sResult);
 

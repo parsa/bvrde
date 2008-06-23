@@ -144,7 +144,8 @@ UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR pstrFilename)
    // If a filename looks like it's from a remote server (UNIX syntax)
    // we'll try to snag it at any cost...
    if( pstrFilename[0] == '/' ) return 80;   
-   return 20;  // We support all file types!!!
+   // We support all file types!!!
+   return 20;
 }
 
 EXTERN_C

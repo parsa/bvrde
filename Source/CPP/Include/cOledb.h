@@ -139,7 +139,7 @@ public:
 
 public:
    BOOL BeginTrans(ISOLEVEL isoLevel);
-   BOOL Connect();
+   BOOL Connect(int iPromptMode = DBPROMPT_COMPLETEREQUIRED);
 
 protected:
    BOOL _Error(HRESULT Hr);

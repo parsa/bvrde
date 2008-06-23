@@ -28,6 +28,7 @@ extern CComModule _Module;
 #include <atlwin.h>
 #include <atlframe.h>
 #include <atlhost.h>
+#include <atlmisc.h>
 #include <atlctl.h>
 #include <atlctrls.h>
 

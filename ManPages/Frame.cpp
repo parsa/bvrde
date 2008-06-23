@@ -33,11 +33,7 @@ BOOL CFrameWindow::SetPage(LPCTSTR pstrKeyword, LPCTSTR pstrLanguage, long lPos)
       }
       else {
          // Display error message
-         TCHAR szMessage[500] = { 0 };
-         TCHAR szCaption[100] = { 0 };
-         ::LoadString(_Module.GetResourceInstance(), nRes, szMessage, 499);
-         ::LoadString(_Module.GetResourceInstance(), IDS_CAPTION_ERROR, szCaption, 99);
-         _pDevEnv->ShowMessageBox(m_hWnd, szMessage, szCaption, MB_ICONEXCLAMATION);
+         _pDevEnv->ShowMessageBox(m_hWnd, CString(MAKEINTRESOURCE(nRes)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
       }
       PostMessage(WM_CLOSE, 0, 0L);
       return FALSE;
@@ -49,10 +45,9 @@ BOOL CFrameWindow::SetPage(LPCTSTR pstrKeyword, LPCTSTR pstrLanguage, long lPos)
    m_bstrKeyword = pstrKeyword;
    m_bstrLanguage = pstrLanguage;
 
-   TCHAR szTitle[400] = { 0 };
-   ::LoadString(_Module.GetResourceInstance(), IDS_CAPTION, szTitle, 399);
-   _tcscat(szTitle, pstrKeyword);
-   SetWindowText(szTitle);
+   CString sTitle;
+   sTitle.Format(IDS_CAPTION_KEYWORD, pstrKeyword);
+   SetWindowText(sTitle);
 
    PAGEINFO info;
    info.bstrKeyword = m_bstrKeyword;
@@ -158,16 +153,11 @@ LRESULT CFrameWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*
    m_ctrlToolBar.SetExtendedStyle(TBSTYLE_EX_MIXEDBUTTONS);
    m_ctrlToolBar.SetButtonStructSize();
 
-   TCHAR szTextClose[64] = { 0 };
-   TCHAR szTextPrint[64] = { 0 };
-   TCHAR szTextPrevious[64] = { 0 };
-   TCHAR szTextNext[64] = { 0 };
-   TCHAR szTextBack[64] = { 0 };
-   ::LoadString(_Module.GetResourceInstance(), IDS_CLOSE, szTextClose, 63);
-   ::LoadString(_Module.GetResourceInstance(), IDS_PRINT, szTextPrint, 63);
-   ::LoadString(_Module.GetResourceInstance(), IDS_PREVIOUS, szTextPrevious, 63);
-   ::LoadString(_Module.GetResourceInstance(), IDS_NEXT, szTextNext, 63);
-   ::LoadString(_Module.GetResourceInstance(), IDS_BACK, szTextBack, 63);
+   CString sTextClose(MAKEINTRESOURCE(IDS_CLOSE));
+   CString sTextPrint(MAKEINTRESOURCE(IDS_PRINT));
+   CString sTextPrevious(MAKEINTRESOURCE(IDS_PREVIOUS));
+   CString sTextNext(MAKEINTRESOURCE(IDS_NEXT));
+   CString sTextBack(MAKEINTRESOURCE(IDS_BACK));
 
    // Toolbar buttons
    TBBUTTON buttons[5] = { 0, 0, 0, 0, 0 };
@@ -176,31 +166,31 @@ LRESULT CFrameWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*
    buttons[0].fsState = TBSTATE_ENABLED;
    buttons[0].fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | BTNS_SHOWTEXT;
    buttons[0].dwData = 0;
-   buttons[0].iString = (int) szTextClose;
+   buttons[0].iString = (INT_PTR) (LPCTSTR) sTextClose;
    buttons[1].iBitmap = -1;
    buttons[1].idCommand = ID_FILE_PRINT;
    buttons[1].fsState = TBSTATE_ENABLED;
    buttons[1].fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | BTNS_SHOWTEXT;
    buttons[1].dwData = 0;
-   buttons[1].iString = (int) szTextPrint;
+   buttons[1].iString = (INT_PTR) (LPCTSTR) sTextPrint;
    buttons[2].iBitmap = -1;
    buttons[2].idCommand = ID_VIEW_BACK;
    buttons[2].fsState = TBSTATE_ENABLED;
    buttons[2].fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | BTNS_SHOWTEXT;
    buttons[2].dwData = 0;
-   buttons[2].iString = (int) szTextBack;
+   buttons[2].iString = (INT_PTR) (LPCTSTR) sTextBack;
    buttons[3].iBitmap = -1;
    buttons[3].idCommand = ID_VIEW_PREVIOUS;
    buttons[3].fsState = TBSTATE_ENABLED;
    buttons[3].fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | BTNS_SHOWTEXT;
    buttons[3].dwData = 0;
-   buttons[3].iString = (int) szTextPrevious;
+   buttons[3].iString = (INT_PTR) (LPCTSTR) sTextPrevious;
    buttons[4].iBitmap = -1;
    buttons[4].idCommand = ID_VIEW_NEXT;
    buttons[4].fsState = TBSTATE_ENABLED;
    buttons[4].fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | BTNS_SHOWTEXT;
    buttons[4].dwData = 0;
-   buttons[4].iString = (int) szTextNext;
+   buttons[4].iString = (INT_PTR) (LPCTSTR) sTextNext;
    m_ctrlToolBar.AddButtons(5, buttons);
 
    // Prepare web-browser
@@ -217,11 +207,14 @@ LRESULT CFrameWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*
 
    ModifyStyleEx(0, WS_EX_CLIENTEDGE);
 
-   RECT rcDesktop;
+   int cxChar = (int) LOWORD(GetDialogBaseUnits());
+   int cyChar = (int) HIWORD(GetDialogBaseUnits());
+
+   RECT rcDesktop = { 0 };
    ::GetWindowRect(::GetDesktopWindow(), &rcDesktop);
    RECT rcWindow = { rcDesktop.right / 5, 40 };
    MoveWindow(&rcWindow);
-   ResizeClient(500, 500);
+   ResizeClient(cxChar * 62, cyChar * 32);
 
    return lRes;
 }
@@ -239,7 +232,7 @@ LRESULT CFrameWindow::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 
 LRESULT CFrameWindow::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-   RECT rcClient;
+   RECT rcClient = { 0 };
    GetClientRect(&rcClient);
    RECT rcToolBar = { 0, 0, rcClient.right, 0 };
    m_ctrlToolBar.MoveWindow(&rcToolBar);
@@ -251,10 +244,12 @@ LRESULT CFrameWindow::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 
 LRESULT CFrameWindow::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
+   if( wParam == TIMERID_LOADHTML ) 
+   {
+      KillTimer(TIMERID_LOADHTML);
+      _LoadHtml(m_spBrowser, m_bstrHTML);
+   }     
    bHandled = FALSE;
-   if( wParam != TIMERID_LOADHTML ) return 0;
-   KillTimer(TIMERID_LOADHTML);
-   _LoadHtml(m_spBrowser, m_bstrHTML);
    return 0;
 }
 

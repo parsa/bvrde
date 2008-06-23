@@ -76,10 +76,6 @@ public:
       int lLineNum;
    } SQLPART;
 
-   CDbOperations* m_pDbData;
-   HWND m_hWndNotify;
-   int m_nChunkSize;
-
    DWORD Run();
 
    void SetNotify(HWND hWnd);
@@ -96,13 +92,16 @@ public:
    BOOL _SplitSQL(const CString& sSQL, int lLineNum, CSimpleArray<SQLPART>& aParts);
    CString _GetDbErrorText(COledbDatabase* pDb, LPCTSTR pstrSQL) const;
 
-   CEvent m_event;
-   volatile STATE m_state;
-   volatile bool m_bExecuting;
-   /*volatile*/ CString m_sSQL;
-   volatile int m_lLineNum;
+   CDbOperations* m_pDbData;
+   CString m_sConnectString;              // Database connection string
+   HWND m_hWndNotify;                     // Window handle to result view
+   int m_nChunkSize;                      // Number of records in each packet
+   CEvent m_event;                        // Queue event
+   volatile STATE m_state;                // Current queue state
+   volatile bool m_bExecuting;            // Is currently executing?
+   /*volatile*/ CString m_sSQL;           // SQL statement being executed
+   volatile int m_lLineNum;               // Line-number in view where SQL start
    /*volatile*/ COledbCommand* m_pDbCmd;
-   CString m_sConnectString;
 };
 
 

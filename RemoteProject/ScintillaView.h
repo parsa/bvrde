@@ -52,18 +52,12 @@ public:
       CString sMemberName;
       CString sMemberType;
       CString sMemberScope;
+      CString sMemberNamespace;
       COLORREF clrBack;
       COLORREF clrText;
       CString sText;
       CSimpleArray<CString> aDecl;
    } TOOLTIPINFO;
-
-   typedef struct 
-   {
-      CTagDetails DeclTag;
-      CTagDetails ImplTag;
-      CString sIncludeFile;
-   } CONTEXTPOPUPINFO;
 
    CContainedWindowT<CScintillaCtrl> m_ctrlEdit;     // The Scintilla edit control
    IProject* m_pProject;                             // Reference to the project
@@ -80,7 +74,6 @@ public:
    bool m_bDelayedHoverData;                         // Awaiting mouse-hover information?
    bool m_bDwellEnds;                                // Accept tooltip timeout period?
    TOOLTIPINFO m_TipInfo;                            // Information about displayed tooltip
-   CONTEXTPOPUPINFO m_PopupInfo;                     // Information about Context menu popup
    CSimpleArray<ERRORMARKINFO> m_aErrorInfo;         // Remove squiggly lines?
 
    // Operations

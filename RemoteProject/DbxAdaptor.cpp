@@ -927,6 +927,7 @@ void CDbxAdaptor::_GetLocationArgs(const CSimpleArray<CString>& aArgs, int& iInd
    else if( _SkipArg(aArgs, iIndex, _T("line")) ) Location.lLineNum = _ttol(_GetArg(aArgs, iIndex));
    else _ParseLocationArgs(_GetArg(aArgs, iIndex), Location);
    bool bInFile = _SkipArg(aArgs, iIndex, _T("in"));
+   bInFile |= Location.sFunction == _T("file");
    bInFile |= _SkipArg(aArgs, iIndex, _T("file")); 
    if( bInFile && Location.sFile.IsEmpty() ) Location.sFile = _GetArg(aArgs, iIndex);
 }

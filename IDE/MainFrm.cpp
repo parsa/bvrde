@@ -135,7 +135,7 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
    GetProperty(_T("window.explorer.area"), szBuffer2, 63);
    m_Dock.DockWindow(m_viewExplorer, iSide, _ttoi(szBuffer1), _ttoi(szBuffer2));
 
-   // Create docked Solution Explorer views
+   // Create docked OpenFiles views
    CString sOpenFiles(MAKEINTRESOURCE(IDS_OPENFILES));
    m_viewOpenFiles.Create(m_Dock, rcDefault, sOpenFiles, ATL_SIMPLE_DOCKVIEW_STYLE);
    m_Dock.AddWindow(m_viewOpenFiles);

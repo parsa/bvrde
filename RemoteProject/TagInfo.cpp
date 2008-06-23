@@ -206,6 +206,7 @@ bool CTagInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aResult)
       case TAGTYPE_CLASS:
       case TAGTYPE_STRUCT:
       case TAGTYPE_TYPEDEF:
+      case TAGTYPE_NAMESPACE:
          TAGINFO* pTag = &m_aTags.GetData()[iIndex];
          aResult.Add(pTag);
          break;

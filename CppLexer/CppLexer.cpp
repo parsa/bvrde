@@ -62,6 +62,7 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
       else if( cr->section == MACRO_SEC ) type = 'd';
       else if( cr->section == ENUM_SEC ) type = 'e';
       else if( cr->section == IMPL_SEC ) type = 'x';
+      else if( cr->section == NAMESPACE_SEC ) type = 'n';
 
       char prot = 'g';
       if( cr->protection == PUBL ) prot = 'p';
@@ -77,7 +78,7 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
       std::replace(cr->args.begin(), cr->args.end(), '|', '¦');
 
       static char szBuffer[1025] = { 0 };
-      ::wsprintfA(szBuffer, "%s|%c%c|%s%s%s%s|%s||%ld|%s\n", 
+      ::wsprintfA(szBuffer, "%s|%c%c|%s%s%s%s|%s|%s|%d|%s\n", 
          cr->name.c_str(),  
          type,
          prot,
@@ -86,7 +87,8 @@ void _parseStructs(Entry* parent, STRINGLIST& aList)
          cr->name.c_str(),
          cr->args.c_str(),
          parent->name == cr->name && parent->section == cr->section ? "" : parent->name.c_str(),
-         (long) cr->lineNo,
+         cr->namespc.c_str(),
+         cr->lineNo,
          cr->doc.c_str());
 
       static std::string sRes = szBuffer;

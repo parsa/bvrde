@@ -108,7 +108,7 @@ BOOL COledbDatabase::Open(HWND hWnd, LPCTSTR pstrConnectionString, LPCTSTR pstrU
          if( FAILED(Hr) ) return Hr;
 
          USES_CONVERSION;
-         Hr = spDataInit->GetDataSource(NULL, CLSCTX_INPROC_SERVER, T2OLE((LPTSTR)pstrConnectionString), IID_IDBInitialize, (LPUNKNOWN*)&m_spInit);
+         Hr = spDataInit->GetDataSource(NULL, CLSCTX_INPROC_SERVER, T2OLE(const_cast<LPTSTR>(pstrConnectionString)), IID_IDBInitialize, (LPUNKNOWN*)&m_spInit);
          if( FAILED(Hr) ) return Hr;
       }
       else 
@@ -141,14 +141,14 @@ BOOL COledbDatabase::Open(HWND hWnd, LPCTSTR pstrConnectionString, LPCTSTR pstrU
          Prop[iProp].vValue.vt = VT_BSTR;
          Prop[iProp].vValue.bstrVal = T2BSTR(pstrConnectionString);
          iProp++;
-         if( pstrUser ) {
+         if( pstrUser != NULL ) {
             // User ID
             Prop[iProp].dwPropertyID = DBPROP_AUTH_USERID;
             Prop[iProp].vValue.vt = VT_BSTR;
             Prop[iProp].vValue.bstrVal = T2BSTR(pstrUser);
             iProp++;
          }
-         if( pstrPassword ) {
+         if( pstrPassword != NULL ) {
             // Password
             Prop[iProp].dwPropertyID = DBPROP_AUTH_PASSWORD;
             Prop[iProp].vValue.vt = VT_BSTR;
@@ -163,29 +163,61 @@ BOOL COledbDatabase::Open(HWND hWnd, LPCTSTR pstrConnectionString, LPCTSTR pstrU
          // Set initialization properties.
          CComQIPtr<IDBProperties> spProperties = m_spInit;
          Hr = spProperties->SetProperties(1, &PropSet);
-      
+
          // Before we check if it failed, clean up
          for( i = 0; i < nMaxProps; i++ ) ::VariantClear(&Prop[i].vValue);
       
          // Did SetProperties() fail?
          if( FAILED(Hr) ) return FALSE;
       }
-
    }
 
-   return Connect();
+   return Connect(DBPROMPT_NOPROMPT);
 }
 
-BOOL COledbDatabase::Connect()
+BOOL COledbDatabase::Connect(int iPromptMode /*= DBPROMPT_COMPLETEREQUIRED*/)
 {
    _ASSERTE(m_spInit);
+
    if( m_spInit == NULL ) return FALSE;
+   m_spSession.Release();
+
+   HRESULT Hr;
+   DBPROPSET PropSet;
+   const ULONG nMaxProps = 1;
+   DBPROP Prop[nMaxProps];
+   ULONG iProp = 0;
+
+   // Initialize common property options.
+   ULONG i;
+   for( i = 0; i < nMaxProps; i++ ) {
+      ::VariantInit(&Prop[i].vValue);
+      Prop[i].dwOptions = DBPROPOPTIONS_REQUIRED;
+      Prop[i].colid = DB_NULLID;
+   }
+
+   // Level of prompting that will be done to complete the connection process
+   Prop[iProp].dwPropertyID = DBPROP_INIT_PROMPT;
+   Prop[iProp].vValue.vt = VT_I2;
+   Prop[iProp].vValue.iVal = iPromptMode;    
+   iProp++;
+
+   // Prepare properties
+   PropSet.guidPropertySet = DBPROPSET_DBINIT;
+   PropSet.cProperties = iProp;
+   PropSet.rgProperties = Prop;
+   // Set initialization properties.
+   CComQIPtr<IDBProperties> spProperties = m_spInit;
+   Hr = spProperties->SetProperties(1, &PropSet);
+
+   // Before we check if it failed, clean up
+   for( i = 0; i < nMaxProps; i++ ) ::VariantClear(&Prop[i].vValue);
 
    // Initialize datasource
-   HRESULT Hr = m_spInit->Initialize();
+   Hr = m_spInit->Initialize();
    if( FAILED(Hr) ) return _Error(Hr);
 
-   // Create session
+   // Create session...
    CComQIPtr<IDBCreateSession> spCreateSession = m_spInit;
    if( spCreateSession == NULL ) return FALSE;
    Hr = spCreateSession->CreateSession(NULL, IID_IOpenRowset, (LPUNKNOWN*) &m_spSession);

@@ -1,3 +1,8 @@
+Version 1.2b:
+* Symbol View improved
+* Fixed problem with creating new empty documents
+* C++ lexer now sees namespaces
+
 Version 1.2:
 * Support for DBX debugger
 * Attach to core dump file from debug menu

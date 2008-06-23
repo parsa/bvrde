@@ -73,6 +73,7 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
    Info.bWordWrap = (_tcscmp(szWordWrap, _T("true")) == 0);
    Info.bListUnchanged = (_tcscmp(szListUnchanged, _T("true")) == 0);
 
+   // Process diff output...
    switch( DiffType ) {
    case DIFF_ORIGINAL:  _ParseDiffOriginal(aFile, aLines, Info); break;
    case DIFF_CONTEXT:   _ParseDiffContext(aFile, aLines, Info); break;
@@ -86,6 +87,9 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
    _GenerateInfoHeader(sFileInfo, IDS_DIFF_LEFTFILE, Info.sLeftFileInfo);
    _GenerateInfoHeader(sFileInfo, IDS_DIFF_RIGHTFILE, Info.sRightFileInfo);
    _GenerateInfoHeader(sFileInfo, IDS_DIFF_GENERALFILE, Info.sGeneralFileInfo);
+   // When the first change occours a bit down on the page and we have
+   // the 'List Unchanged lines' option enabled, we'll print a notice at the
+   // top so the user knowns he must scroll down to see the changes.
    if( Info.iFirstChange > 80 ) {
       CString sFirstChange;
       sFirstChange.Format(IDS_DIFF_FIRSTCHANGE, Info.iFirstChange);
@@ -102,13 +106,13 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
    sPage.Replace(_T("$TABLE$"), Info.sHTML);
    _LoadHtml(m_spBrowser, sPage);
 
-   int iCharWidth = 0;
+   int cxChar = 0;
    CClientDC dc = m_hWnd;
-   dc.GetCharWidth('X', 'X', &iCharWidth);
+   dc.GetCharWidth('X', 'X', &cxChar);
 
    // Resize window to 4/5 of screen width, but not too large...
    int cxScreen = ::GetSystemMetrics(SM_CXSCREEN) * 80 / 100;
-   if( cxScreen > iCharWidth * 170 ) cxScreen = iCharWidth * 170;
+   if( cxScreen > cxChar * 170 ) cxScreen = cxChar * 170;
    ResizeClient(cxScreen, -1);
    CenterWindow();
 
@@ -260,8 +264,8 @@ LRESULT CDiffCvsView::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*
 
    ModifyStyleEx(0, WS_EX_CLIENTEDGE);
 
-   ResizeClient(800, 600);
-   CenterWindow();
+   // Minimize now; resize later
+   ResizeClient(1, 1);
 
    return lRes;
 }
@@ -293,10 +297,12 @@ LRESULT CDiffCvsView::OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
 LRESULT CDiffCvsView::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
 {
+   if( wParam == TIMERID_LOADHTML )
+   {
+      KillTimer(TIMERID_LOADHTML);
+      _LoadHtml(m_spBrowser, m_bstrHTML);
+   }
    bHandled = FALSE;
-   if( wParam != TIMERID_LOADHTML ) return 0;
-   KillTimer(TIMERID_LOADHTML);
-   _LoadHtml(m_spBrowser, m_bstrHTML);
    return 0;
 }
 

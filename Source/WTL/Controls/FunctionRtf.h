@@ -60,7 +60,7 @@ public:
       rcWindow.bottom = rcWindow.top + (rcSize.bottom - rcSize.top);
       SetWindowPos(HWND_TOPMOST, &rcWindow, SWP_NOMOVE | SWP_NOACTIVATE);
    }
-   void ShowItem(LPCTSTR pstrName, LPCTSTR pstrDeclaration, LPCTSTR pstrComment)
+   void ShowItem(LPCTSTR pstrName, CTagDetails& Info)
    {
       // Format the member declaration.
       // Here follow a range of strange replacements. They will basically turn...
@@ -69,7 +69,7 @@ public:
       //    int Foo( int<nbsp>a, int<nbsp>b<nbsp>);
       // where <nbsp> is a non-breaking space. Looks good in formatting/word-
       // wrapping.
-      CString sText = pstrDeclaration;
+      CString sText = Info.sDeclaration;
       sText.Replace(_T("  "), _T(" "));
       sText.Replace(' ', 0xA0);
 #ifdef _UNICODE
@@ -91,9 +91,18 @@ public:
       sText.Replace(_T(")"), _T("\xA0)")); sText.Replace(_T("\xA0\xA0)"), _T("\xA0)"));
 #endif // _UNICODE
       int cchDeclLen = sText.GetLength();
+      // Print protection state
+      CString sProtection;
+      if( Info.Protection == TAGPROTECTION_PROTECTED ) sProtection = _T("\n  protected");
+      if( Info.Protection == TAGPROTECTION_PRIVATE ) sProtection = _T("\n  private");
+      // Print namespace
+      CString sNamespace;
+      if( !Info.sNamespace.IsEmpty() ) sNamespace.Format(_T("\n  namespace %s"), Info.sNamespace);
+      sText += sProtection;
+      sText += sNamespace;
       // Ah, we can also have a comment for this declaration. Format
       // it below. We'll color it gray in a little while too.
-      CString sComment = pstrComment;
+      CString sComment = Info.sComment;
       if( !sComment.IsEmpty() ) {
          sComment = sComment.Left(150);
          if( sComment.GetLength() == 150 ) sComment += _T("...");
@@ -120,6 +129,8 @@ public:
       _ColorText(sText, _T("="),        0, BlendRGB(clrText, RGB(0,0,128), 20));
       _ColorArgs(sText, 0, BlendRGB(clrText, RGB(0,0,255), 20));
       _ColorText(sText, sComment,       0, RGB(130,130,130));
+      _ColorText(sText, sProtection,    0, RGB(80,80,80));
+      _ColorText(sText, sNamespace,     0, RGB(80,80,80));
       // Now we will indent the declaration if it spans muliple lines.
       SetSel(0, cchDeclLen);
       PARAFORMAT2 pf;
@@ -165,12 +176,15 @@ public:
          }
       }
    }
-   void _ColorText(CString& sText, LPCTSTR pstrItem, BYTE iEffect, COLORREF clrText = CLR_NONE)
+   void _ColorText(const CString& sText, CString sItem, BYTE iEffect, COLORREF clrText = CLR_NONE)
    {
+      sItem.TrimLeft(_T("\n"));
       int cchText = sText.GetLength();
-      int cchItem = (int) _tcslen(pstrItem);
+      int cchItem = sItem.GetLength();
       int iStartPos = 0;
-      for( int iPos = 0; (iPos = sText.Find(pstrItem, iStartPos)) >= 0; iStartPos = iPos + 1 ) {
+      for( int iPos = 0; (iPos = sText.Find(sItem, iStartPos)) >= 0; iStartPos = iPos + 1 ) {
+         // When we replace the subtext we should make sure we don't replace
+         // on an entire word-boundry.
          if( iPos > 0 && _istalnum(sText[iPos - 1]) ) continue;
          if( iPos + cchItem < cchText && _istalnum(sText[iPos + cchItem]) ) continue;
          SetSel(iPos, iPos + cchItem);

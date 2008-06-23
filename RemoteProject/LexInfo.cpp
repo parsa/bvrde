@@ -280,6 +280,7 @@ bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aResult)
          case TAGTYPE_CLASS:
          case TAGTYPE_STRUCT:
          case TAGTYPE_TYPEDEF:
+         case TAGTYPE_NAMESPACE:
             TAGINFO* pTag = &pFile->aTags.GetData()[iIndex];
             aResult.Add(pTag);
             break;

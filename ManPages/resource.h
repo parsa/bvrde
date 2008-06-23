@@ -3,6 +3,7 @@
 // Used by ManPages.rc
 //
 #define IDS_CAPTION                     400
+#define IDS_CAPTION_KEYWORD             400
 #define IDS_CAPTION_MESSAGE             401
 #define IDS_CAPTION_ERROR               402
 #define IDS_CAPTION_QUESTION            403

@@ -166,7 +166,7 @@ bool CFileProtocol::DeleteFile(LPCTSTR pstrFilename)
 bool CFileProtocol::SetCurPath(LPCTSTR pstrPath)
 {
    ATLASSERT(pstrPath);
-   TCHAR szPath[MAX_PATH];
+   TCHAR szPath[MAX_PATH] = { 0 };
    _tcscpy(szPath, pstrPath);
    ::PathRemoveBackslash(szPath);
    if( ::PathIsRelative(szPath) ) {

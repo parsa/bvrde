@@ -109,7 +109,7 @@ public:
       if( aList.GetSize() == 0 ) return;
       CTagDetails Info;
       m_pProject->m_TagManager.GetItemInfo(aList[0], Info);
-      m_wndInfo.ShowItem(sItem, Info.sDeclaration, Info.sComment);
+      m_wndInfo.ShowItem(sItem, Info);
    }
 
    CString _GetListItem(int iIndex) const

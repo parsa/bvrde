@@ -148,7 +148,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             // Notify all views
             DelayedGlobalViewMessage(DEBUG_CMD_DEBUG_START);
 
-            // Open up all debugger view requested
+            // Open up all debugger views needed
             m_DockManager.OpenView(m_wndMain, m_viewWatch,       _T("showWatch"),       ID_VIEW_WATCH);
             m_DockManager.OpenView(m_wndMain, m_viewStack,       _T("showStack"),       ID_VIEW_CALLSTACK);
             m_DockManager.OpenView(m_wndMain, m_viewThread,      _T("showThread"),      ID_VIEW_THREADS);
@@ -158,6 +158,9 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             m_DockManager.OpenView(m_wndMain, m_viewVariable,    _T("showVariable"),    ID_VIEW_VARIABLES);
             m_DockManager.OpenView(m_wndMain, m_viewBreakpoint,  _T("showBreakpoint"),  ID_VIEW_BREAKPOINTS);
             m_DockManager.OpenView(m_wndMain, m_viewOutput,      _T("showOutput"),      ID_VIEW_DEBUGOUTPUT);
+
+            // Ensure the cursor is still visible after opening debug views
+            DelayedLocalViewMessage(DEBUG_CMD_CURSORVISIBLE);
          }
          break;
       case LAZY_DEBUG_KILL_EVENT:

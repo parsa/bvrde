@@ -224,18 +224,24 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
    POINT ptLocal = pt;
    ScreenToClient(&ptLocal);
+   long lPos = m_ctrlEdit.PositionFromPoint(ptLocal.x, ptLocal.y);
    if( lParam == (LPARAM) -1 ) {
-      long lPos = m_ctrlEdit.GetCurrentPos();
+      lPos = m_ctrlEdit.GetCurrentPos();
       pt.x = m_ctrlEdit.PointXFromPosition(lPos);
       pt.y = m_ctrlEdit.PointYFromPosition(lPos);
+      ClientToScreen(&pt);
+   }
+   // Place cursor at mouse if not clicked inside a selection
+   CharacterRange cr = m_ctrlEdit.GetSelection();
+   if( lPos < cr.cpMin || lPos > cr.cpMax ) {
+      m_ctrlEdit.GotoPos(lPos);
+      m_ctrlEdit.SetSel(lPos, lPos);
    }
 
-   // Place cursor at mouse if not clicked inside a selection
-   long lPos = m_ctrlEdit.PositionFromPoint(ptLocal.x, ptLocal.y);
    int iLineNum = m_ctrlEdit.LineFromPosition(lPos);
-   CharacterRange cr = m_ctrlEdit.GetSelection();
-   if( lPos < cr.cpMin || lPos > cr.cpMax ) m_ctrlEdit.GotoPos(lPos);
 
+   // When we are not debugging, we can display extra context menu-items if
+   // we recognize the C++ identifier below the clicked position.
    if( !m_pCppProject->m_DebugManager.IsDebugging() ) 
    {
       // Is there an include directive under the cursor or a member that we can look
@@ -246,7 +252,6 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
       CString sIncludeFile = _FindIncludeUnderCursor(lPos);
       if( !sIncludeFile.IsEmpty() ) 
       {
-         m_PopupInfo.sIncludeFile = sIncludeFile;
          sMenuText.Format(IDS_MENU_OPENINCLUDE, sIncludeFile);
          submenu.InsertMenu(0, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENINCLUDE, sMenuText);
       }
@@ -254,30 +259,26 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
       {
          CTagDetails Info;
          if( _GetMemberInfo(lPos, Info, 500, MATCH_NORMAL) && !Info.sFilename.IsEmpty() ) {
-            // Construct implementation prototype and see if we have any information
-            // about it...
-            CString sImplLookup;
-            sImplLookup.Format(_T("%s%s%s"), Info.sBase, Info.sBase.IsEmpty() ? _T("") : _T("::"), Info.sName);
-            CSimpleValArray<TAGINFO*> aImplResult;
-            m_pCppProject->m_TagManager.FindItem(sImplLookup, NULL, 0, ::GetTickCount() + 100, aImplResult);
+            // Lookup information about implementation tag...
+            CTagDetails ImplInfo;
+            m_pCppProject->m_TagManager.FindImplementationTag(Info, ImplInfo);
             // Insert "Open Declaration" menu item.
             // We'll try to filter out entries that match the current editor position.
+            // If we found an implementation match also, we'll use it's displayname as it
+            // contains the classname prefixed.
             int iMenuIdx = 0;
             if( !Info.sFilename.IsEmpty() 
                 && !(m_sFilename.Find(Info.sFilename) >= 0 && Info.iLineNum == iLineNum + 1) ) 
             {
-               m_PopupInfo.DeclTag = Info;
-               sMenuText.Format(IDS_MENU_OPENDECLARATION, sImplLookup);
+               sMenuText.Format(IDS_MENU_OPENDECLARATION, ImplInfo.sName.IsEmpty() ? Info.sName : ImplInfo.sName);
                submenu.InsertMenu(iMenuIdx++, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENDECLARATION, sMenuText);
             }
             // Insert "Open Implementation" menu item
-            if( aImplResult.GetSize() > 0 
-                && aImplResult[0]->Type == TAGTYPE_IMPLEMENTATION 
-                && !(m_sFilename.Find(aImplResult[0]->pstrFile) >= 0 && aImplResult[0]->iLineNum == iLineNum + 1) ) 
+            if( !ImplInfo.sName.IsEmpty()
+                && !(Info.sFilename == ImplInfo.sFilename && Info.iLineNum == ImplInfo.iLineNum)
+                && !(m_sFilename.Find(ImplInfo.sFilename) >= 0 && ImplInfo.iLineNum == iLineNum + 1) ) 
             {
-               CTagDetails Info;
-               m_pCppProject->m_TagManager.GetItemInfo(aImplResult[0], m_PopupInfo.ImplTag);
-               sMenuText.Format(IDS_MENU_OPENIMPLEMENTATION, sImplLookup);
+               sMenuText.Format(IDS_MENU_OPENIMPLEMENTATION, ImplInfo.sName);
                submenu.InsertMenu(iMenuIdx++, MF_BYPOSITION | MF_ENABLED, ID_EDIT_OPENIMPLEMENTATION, sMenuText);
             }
          }
@@ -361,21 +362,31 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
 LRESULT CScintillaView::OnEditOpenInclude(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {   
    CWaitCursor cursor;
-   m_pCppProject->OpenView(m_PopupInfo.sIncludeFile, 1, true);
+   long lPos = m_ctrlEdit.GetCurrentPos();
+   CString sIncludeFile = _FindIncludeUnderCursor(lPos);
+   if( !sIncludeFile.IsEmpty() ) m_pCppProject->OpenView(sIncludeFile, 1, true);
    return 0;
 }
 
 LRESULT CScintillaView::OnEditOpenDeclaration(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {   
    CWaitCursor cursor;
-   if( !m_pCppProject->m_TagManager.OpenTagInView(m_PopupInfo.DeclTag) ) ::MessageBeep((UINT)-1);
+   long lPos = m_ctrlEdit.GetCurrentPos();
+   CTagDetails Info;
+   if( !_GetMemberInfo(lPos, Info, 500, MATCH_NORMAL) || Info.sFilename.IsEmpty() ) return 0;
+   if( !m_pCppProject->m_TagManager.OpenTagInView(Info) ) return 0;
    return 0;
 }
 
 LRESULT CScintillaView::OnEditOpenImplementation(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {   
    CWaitCursor cursor;
-   if( !m_pCppProject->m_TagManager.OpenTagInView(m_PopupInfo.ImplTag) ) ::MessageBeep((UINT)-1);
+   long lPos = m_ctrlEdit.GetCurrentPos();
+   CTagDetails Info;
+   if( !_GetMemberInfo(lPos, Info, 500, MATCH_NORMAL) || Info.sFilename.IsEmpty() ) return 0;
+   CTagDetails ImplInfo;
+   if( !m_pCppProject->m_TagManager.FindImplementationTag(Info, ImplInfo) ) return 0;
+   if( !m_pCppProject->m_TagManager.OpenTagInView(ImplInfo) ) return 0;
    return 0;
 }
 
@@ -588,6 +599,13 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
          if( iLineNum == -1 ) iLineNum = m_ctrlEdit.GetCurrentLine();
          long lPos = m_ctrlEdit.PositionFromLine(iLineNum);
          m_ctrlEdit.GotoPos(lPos);
+         m_ctrlEdit.EnsureVisible(iLineNum);
+      }
+      break;
+   case DEBUG_CMD_CURSORVISIBLE:
+      {
+         // Ensure cursor is visible
+         int iLineNum = m_ctrlEdit.GetCurrentLine();
          m_ctrlEdit.EnsureVisible(iLineNum);
       }
       break;
@@ -1225,6 +1243,7 @@ void CScintillaView::_ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCur
       m_TipInfo.sMemberName = pInfo->sName;
       m_TipInfo.sMemberType = pInfo->sBase;
       m_TipInfo.sMemberScope = pInfo->sMemberOfScope;
+      m_TipInfo.sMemberNamespace = pInfo->sNamespace;
       m_TipInfo.bExpand = bExpand;
       // Collect declarations...
       m_TipInfo.aDecl.RemoveAll();
@@ -1286,7 +1305,10 @@ void CScintillaView::_ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCur
       CString sFind;
       sFind.Format(_T(" %s"), m_TipInfo.sMemberName);
       CString sReplace;
-      sReplace.Format(_T(" %s::%s"), m_TipInfo.sMemberScope, m_TipInfo.sMemberName);
+      sReplace.Format(_T(" %s%s%s::%s"), 
+         m_TipInfo.sMemberNamespace, m_TipInfo.sMemberNamespace.IsEmpty() ? _T("") : _T("::"), 
+         m_TipInfo.sMemberScope, 
+         m_TipInfo.sMemberName);
       sText.Replace(sFind, sReplace);
    }
    m_TipInfo.sText = sText;

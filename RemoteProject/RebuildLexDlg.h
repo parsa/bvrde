@@ -9,8 +9,8 @@
 ////////////////////////////////////////////////////////
 //
 
-#define WM_APP_REBUILDLEX_POS       WM_APP + 100
-#define WM_APP_REBUILDLEX_FILENAME  WM_APP + 101
+#define WM_APP_REBUILDLEX_POS       WM_USER + 100
+#define WM_APP_REBUILDLEX_FILENAME  WM_USER + 101
 
 
 ////////////////////////////////////////////////////////

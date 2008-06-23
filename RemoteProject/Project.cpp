@@ -924,7 +924,7 @@ int CRemoteProject::_GetElementImage(IElement* pElement) const
       { _T("Makefile"),    IDE_TREEIMAGE_MAKEFILE },
       { _T("XML"),         IDE_TREEIMAGE_XML },
       { _T("HTML"),        IDE_TREEIMAGE_HTML },
-      { _T("ASP Scrip"),   IDE_TREEIMAGE_HTML },
+      { _T("ASP Script"),  IDE_TREEIMAGE_HTML },
       { _T("PHP"),         IDE_TREEIMAGE_HTML },
       { _T("Java"),        IDE_TREEIMAGE_JAVA },
       { _T("BASIC"),       IDE_TREEIMAGE_BASIC },

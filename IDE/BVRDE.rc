@@ -988,7 +988,6 @@ BEGIN
     ID_ADD_PROJECT          "Ein existierendes Projekt dem Arbeitsbereich hinzufügen\nProjekt hinzufügen"
     ID_EDIT_GOTO            "Gehe zu..."
     ID_EDIT_DELETE          "Selektierten Eintrag löschen\nLöschen"
-    ID_VIEW_EXPLORER        "Arbeitsbereich Explorer anzeigen/verbergen\nExplorer"
     ID_WINDOW_VIEW          "Untere aktiven Fenster schließen\nFenster"
     ID_WINDOW_CLOSE         "Aktives Fenster schließen\nFenster schließen"
     ID_WINDOW_CLOSE_ALL     "Alle offenen Fenster schließen\nAlle schließen"
@@ -1003,6 +1002,7 @@ BEGIN
     ID_VIEW_OUTPUT          "Ausgabefenster anzeigen/verbergen\nAusgabe"
     ID_VIEW_COMMAND         "Befehlsfenster anzeigen/verbergen\nBefehl"
     ID_VIEW_OPEN            "Ein Dokument öffnen\nÖffnen"
+    ID_VIEW_EXPLORER        "Arbeitsbereich Explorer anzeigen/verbergen\nExplorer"
     ID_HELP_STARTPAGE       "Startseite anzeigen\nStartseite"
     ID_HELP_SEARCH          "Nach Einträgen in der Dokumentation suchen\nSuchen"
     ID_HELP_CONTENTS        "Zeigt das Inhaltsverzeichnis der Onlinedokumentation\nInhalt"
@@ -2135,8 +2135,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2,0,0
- PRODUCTVERSION 1,2,0,0
+ FILEVERSION 1,2,0,1
+ PRODUCTVERSION 1,2,0,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2154,14 +2154,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Viksoe.dk\0"
             VALUE "FileDescription", "BVRDE - Bjarke Viksoe's Remote Development Environment\0"
-            VALUE "FileVersion", "1, 2, 0, 0\0"
+            VALUE "FileVersion", "1, 2, 0, 1\0"
             VALUE "InternalName", "BVRDE\0"
             VALUE "LegalCopyright", "Copyright 2003 - 2008 Bjarke Viksoe\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "BVRDE.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "BVRDE\0"
-            VALUE "ProductVersion", "1, 2, 0, 0\0"
+            VALUE "ProductVersion", "1, 2, 0, 1\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -2353,7 +2353,6 @@ BEGIN
     ID_ADD_PROJECT          "Add an existing project to solution\nAdd project"
     ID_EDIT_GOTO            "Goto..."
     ID_EDIT_DELETE          "Delete selected item\nDelete"
-    ID_VIEW_EXPLORER        "Show/Hide the Solution Explorer\nExplorer"
     ID_WINDOW_VIEW          "Choose among active windows\nWindows"
     ID_WINDOW_CLOSE         "Close active window\nClose window"
     ID_WINDOW_CLOSE_ALL     "Close all open windows\nClose all"
@@ -2368,6 +2367,7 @@ BEGIN
     ID_VIEW_OUTPUT          "Show/Hide the Output window\nOutput"
     ID_VIEW_COMMAND         "Show/Hide the Command window\nCommand"
     ID_VIEW_OPEN            "Opens the document\\Open"
+    ID_VIEW_EXPLORER        "Show/Hide the Solution Explorer\nExplorer"
     ID_HELP_STARTPAGE       "Show Start Page\nStart Page"
     ID_HELP_SEARCH          "Search for items in documentation\nSearch"
     ID_HELP_CONTENTS        "Displays the table of contents of the online documentation\nContents"

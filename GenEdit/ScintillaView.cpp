@@ -184,16 +184,20 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    // Get the cursor position
    POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
    POINT ptLocal = pt;
-   ::MapWindowPoints(NULL, m_hWnd, &ptLocal, 1);
+   ScreenToClient(&ptLocal);
+   long lPos = PositionFromPoint(ptLocal.x, ptLocal.y);
    if( lParam == (LPARAM) -1 ) {
-      long lPos = GetCurrentPos();
+      lPos = GetCurrentPos();
       pt.x = PointXFromPosition(lPos);
       pt.y = PointYFromPosition(lPos);
+      ClientToScreen(&pt);
    }
    // Place cursor at mouse if not clicked inside a selection
-   long lPos = PositionFromPoint(ptLocal.x, ptLocal.y);
    CharacterRange cr = GetSelection();
-   if( lPos < cr.cpMin || lPos > cr.cpMax ) SetSel(lPos, lPos);
+   if( lPos < cr.cpMin || lPos > cr.cpMax ) {
+      GotoPos(lPos);
+      SetSel(lPos, lPos);
+   }
 
    // Grab EDIT submenu from main window's menu
    CMenuHandle menu = m_pDevEnv->GetMenuHandle(IDE_HWND_MAIN);

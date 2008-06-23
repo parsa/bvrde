@@ -281,7 +281,7 @@ BSTR CFileOM::get_Type()
 
 BSTR CFileOM::get_Filename()
 {
-   TCHAR szFilename[MAX_PATH] = { 0 };
+   TCHAR szFilename[MAX_PATH + 1] = { 0 };
    m_pOwner->GetFileName(szFilename, MAX_PATH);
    return ::SysAllocString(szFilename);
 }
@@ -333,7 +333,7 @@ BSTR CTextFileOM::get_Type()
 
 BSTR CTextFileOM::get_Filename()
 {
-   TCHAR szFilename[MAX_PATH] = { 0 };
+   TCHAR szFilename[MAX_PATH + 1] = { 0 };
    m_pOwner->GetFileName(szFilename, MAX_PATH);
    return ::SysAllocString(szFilename);
 }

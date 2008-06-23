@@ -26,8 +26,10 @@ extern int verb;
 #define ENUM_SEC      0x00000100
 #define STRUCT_SEC    0x00000200
 #define IMPL_SEC      0x00000400
+#define NAMESPACE_SEC 0x00000800
 
 #define onlyDocs 0
+
 
 class McString : public std::string
 {
@@ -39,6 +41,7 @@ public:
    inline void operator +=(char ch) { char x[] = { ch, '\0' }; append(x); };
    inline void operator +=(const char* p) { append(p); };
 };
+
 
 template< class T >
 class McList : public std::vector<T>
@@ -80,6 +83,7 @@ public:
    McString name;
    McString args;
    McString retrn;
+   McString namespc;
    
    McString memo;
    McString doc;

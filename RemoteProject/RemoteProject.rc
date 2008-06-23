@@ -2180,6 +2180,11 @@ BEGIN
     "8",            ID_BOOKMARKS_GOTO8,     VIRTKEY, CONTROL, NOINVERT
     "B",            ID_EDIT_RECTSELECTION,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
+    "I",            ID_EDIT_OPENINCLUDE,    VIRTKEY, SHIFT, ALT, NOINVERT
+    "T",            ID_EDIT_OPENIMPLEMENTATION, VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "T",            ID_EDIT_OPENDECLARATION, VIRTKEY, SHIFT, CONTROL, ALT, 
+                                                    NOINVERT
     VK_CANCEL,      ID_EDIT_BREAK,          VIRTKEY, CONTROL, NOINVERT
     VK_F10,         ID_DEBUG_STEP_OVER,     VIRTKEY, NOINVERT
     VK_F11,         ID_DEBUG_STEP_INTO,     VIRTKEY, NOINVERT
@@ -2201,8 +2206,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2,0,0
- PRODUCTVERSION 1,2,0,0
+ FILEVERSION 1,2,0,1
+ PRODUCTVERSION 1,2,0,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2220,14 +2225,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "viksoe.dk\0"
             VALUE "FileDescription", "BVRDE Add-In RemoteProject\0"
-            VALUE "FileVersion", "1, 2, 0, 0\0"
+            VALUE "FileVersion", "1, 2, 0, 1\0"
             VALUE "InternalName", "RemoteProject\0"
             VALUE "LegalCopyright", "Copyright © 2003 Bjarke Viksoe\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "RemoteProject.pkg\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "BVRDE RemoteProject\0"
-            VALUE "ProductVersion", "1, 2, 0, 0\0"
+            VALUE "ProductVersion", "1, 2, 0, 1\0"
             VALUE "SpecialBuild", "\0"
         END
     END

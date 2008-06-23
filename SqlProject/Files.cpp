@@ -82,6 +82,8 @@ BOOL CView::Load(ISerializable* pArc)
 
 BOOL CView::Save(ISerializable* pArc)
 {
+   // Last chance for getting the connection properties; if user fooled around with
+   // changing the connection settings, we might end up in this situation.
    if( m_Db.IsOpen() ) {
       if( m_sProvider.IsEmpty() ) m_sProvider = GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_DBMSNAME);
       if( m_sServer.IsEmpty() ) m_sServer = GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_SERVERNAME);
