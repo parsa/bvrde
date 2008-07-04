@@ -29,7 +29,7 @@ public:
 
    // Implementation
 
-   void _SelectThread(int iThreadId);
+   void _SelectThread(long iThreadId);
 
    // Message map and handlers
 

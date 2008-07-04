@@ -61,6 +61,10 @@ extern IDevEnv* _pDevEnv;
 
 #include "Globals.h"
 
+#if _MSC_VER >= 1300
+   #pragma warning(disable : 4100 4189 4996)
+#endif
+
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

@@ -873,7 +873,7 @@ BEGIN
     IDS_CAPTION_WARNING     "Warnung"
     IDS_CAPTION_MESSAGE     "Nachricht"
     IDS_CAPTION_COMPILELOG  "Kompiler Log"
-    IDS_FILTER_BINFILES     "Binary files|*;*.*;|All Files|*.*|"
+    IDS_FILTER_BINFILES     "Binary Dateien|*;*.*;|Alle Dateien|*.*|"
     IDS_CAPTION_COMMAND     "Befehlsfenster"
     IDS_LOG_TELNETHOST      "Keine Verbindung zum Telnet Server möglich."
     IDS_ERR_OPENVIEW        "Datei öffnen Fehler\nDie Datei konnte nicht in einer neuen Ansicht geöffnet werden."
@@ -1305,7 +1305,8 @@ BEGIN
     IDS_STACK_FILE          "Datei='"
     IDS_STACK_LINE          "Zeile="
     IDS_SYMBOLVIEW          "Find Symbols"
-    IDS_FILTER_COREFILES    "Core files|core*;core*.*;|All Files|*.*|"
+    IDS_FILTER_COREFILES    "Core Dataien|core*;core*.*;|Alle Dateien|*.*|"
+    IDS_ERR_BUILDSTOPPED    "Session stopped by user."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -2787,6 +2788,7 @@ BEGIN
     IDS_STACK_LINE          "line="
     IDS_SYMBOLVIEW          "Find Symbols"
     IDS_FILTER_COREFILES    "Core Dump files|core*;core*.*;|All Files|*.*|"
+    IDS_ERR_BUILDSTOPPED    "Session stopped by user."
 END
 
 STRINGTABLE DISCARDABLE 

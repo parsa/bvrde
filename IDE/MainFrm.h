@@ -100,7 +100,7 @@ public:
    BOOL m_bRecordingMacro;                 // Currently recording a macro?
    int m_iAnimatePos;                      // Frame position of statusbar animation
    LCID m_Locale;                          // Current active locale
-   DWORD m_dwGuidThreadId;                 // ID of main thread
+   DWORD m_dwGuiThreadId;                  // ID of main thread (where the GUI runs)
 
    // UI Updates
 

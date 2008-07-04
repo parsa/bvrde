@@ -157,7 +157,7 @@ LRESULT CScintillaView::OnEditAutoComplete(WORD /*wNotifyCode*/, WORD /*wID*/, H
 {
    int iLenEntered = 0;
    long lPos = GetCurrentPos();
-   while( lPos > 1 && _issqlchar(GetCharAt(--lPos)) ) iLenEntered++;
+   while( lPos > 1 && _issqlchar( (CHAR)GetCharAt(--lPos) ) ) iLenEntered++;
    _AutoComplete(GetCharAt(lPos), iLenEntered);
    return 0;
 }
@@ -255,7 +255,7 @@ int CScintillaView::_FindItem(CSimpleArray<CString>& aList, LPCTSTR pstrName) co
    return -1;
 }
 
-void CScintillaView::_AutoComplete(CHAR ch, int iLenEntered)
+void CScintillaView::_AutoComplete(int ch, int iLenEntered)
 {
    USES_CONVERSION;
 

@@ -44,14 +44,14 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    bool bUpdateEvent = false;           // Make sure to trigger debug view update only once
    CString sMessage;                    // For displaying a message-box asynchroniously
    CString sCaption;                    // -"-
-   UINT iFlags;                         // -"-
+   UINT iFlags = 0;                     // -"-
 
    for( int i = 0; i < m_aLazyData.GetSize(); i++ ) {
       LAZYDATA& data = m_aLazyData[i];
       switch( data.Action ) {
       case LAZY_OPEN_VIEW:
          {
-            OpenView(data.szFilename, data.iLineNum, false);
+            OpenView(data.szFilename, data.iLineNum, FINDVIEW_ALL, false);
          }
          break;
       case LAZY_GUI_ACTION:

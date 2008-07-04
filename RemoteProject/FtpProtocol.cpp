@@ -390,7 +390,9 @@ bool CFtpProtocol::SetCurPath(LPCTSTR pstrPath)
 {
    ATLASSERT(pstrPath);
    if( !WaitForConnection() ) return false;
-   return ::FtpSetCurrentDirectory(m_hFTP, pstrPath) == TRUE;
+   bool bRes = ::FtpSetCurrentDirectory(m_hFTP, pstrPath) == TRUE;
+   if( !bRes ) _TranslateError();
+   return bRes;
 }
 
 CString CFtpProtocol::GetCurPath()
@@ -430,30 +432,28 @@ CString CFtpProtocol::FindFile(LPCTSTR pstrFilename)
    //       it's likely to search the static file pool.
    WIN32_FIND_DATA fd = { 0 };
    DWORD dwFlags = INTERNET_FLAG_DONT_CACHE;
-   if( pstrFilename[0] == '/' ) {
+   if( pstrFilename[0] == '/' || pstrFilename[0] == '.' ) {
       HINTERNET hFind = ::FtpFindFirstFile(m_hFTP, pstrFilename, &fd, dwFlags, 0);
       if( hFind != NULL ) {
          ::InternetCloseHandle(hFind);
          return pstrFilename;
       }
    }
-   else {
-      CString sPath = m_sSearchPath;
-      while( !sPath.IsEmpty() ) {
-         CString sSubPath = sPath.SpanExcluding(_T(";"));
-         CString sFilename = sSubPath;
-         if( sFilename.Right(1) != _T("/") ) sFilename += _T("/");
-         sFilename += pstrFilename;
-         DWORD dwLen = MAX_PATH;
-         TCHAR szFilename[MAX_PATH] = { 0 };
-         ::UrlCanonicalize(sFilename, szFilename, &dwLen, 0);
-         HINTERNET hFind = ::FtpFindFirstFile(m_hFTP, szFilename, &fd, dwFlags, 0);
-         if( hFind != NULL ) {
-            ::InternetCloseHandle(hFind);
-            return sFilename;
-         }
-         sPath = sPath.Mid(sSubPath.GetLength() + 1);
+   CString sPath = m_sSearchPath;
+   while( !sPath.IsEmpty() ) {
+      CString sSubPath = sPath.SpanExcluding(_T(";"));
+      CString sFilename = sSubPath;
+      if( sFilename.Right(1) != _T("/") ) sFilename += _T("/");
+      sFilename += pstrFilename;
+      DWORD dwLen = MAX_PATH;
+      TCHAR szFilename[MAX_PATH] = { 0 };
+      ::UrlCanonicalize(sFilename, szFilename, &dwLen, 0);
+      HINTERNET hFind = ::FtpFindFirstFile(m_hFTP, szFilename, &fd, dwFlags, 0);
+      if( hFind != NULL ) {
+         ::InternetCloseHandle(hFind);
+         return sFilename;
       }
+      sPath = sPath.Mid(sSubPath.GetLength() + 1);
    }
    return _T("");
 }

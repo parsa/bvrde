@@ -261,7 +261,7 @@ BOOL CXmlSerializer::Read(LPCTSTR pstrName, BOOL& bValue)
       bValue = FALSE;
       return FALSE;
    }
-   bValue = _tcsicmp(szValue, _T("true")) == 0;
+   bValue = (_tcsicmp(szValue, _T("true")) == 0);
    return TRUE;
 }
 
@@ -330,7 +330,7 @@ BOOL CXmlSerializer::Write(LPCTSTR pstrName, SYSTEMTIME stValue)
 
 BOOL CXmlSerializer::Write(LPCTSTR pstrName, long lValue)
 {
-   TCHAR szValue[64];
+   TCHAR szValue[20];
    ::wsprintf(szValue, _T("%ld"), lValue);
    return Write(pstrName, szValue);
 }

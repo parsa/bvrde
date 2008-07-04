@@ -91,7 +91,7 @@ LRESULT CRemoteProject::OnFileAddLocal(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
 
    CTreeViewCtrl ctrlTree = _pDevEnv->GetHwnd(IDE_HWND_EXPLORER_TREE);
 
-   // Browse for filename
+   // Browse for filename(s)
    CString sFilter(MAKEINTRESOURCE(IDS_FILTER_SRCFILES));
    for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
    TCHAR szBuffer[MAX_PATH * 10] = { 0 };
@@ -129,6 +129,7 @@ LRESULT CRemoteProject::OnFileAddLocal(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
       ::PathRelativePathTo(szRelativeFilename, szPath, FILE_ATTRIBUTE_DIRECTORY, szFilename, FILE_ATTRIBUTE_NORMAL);
       if( _tcslen(szRelativeFilename) == 0 ) _tcscpy(szRelativeFilename, szFilename);
 
+      // Check that the file can be added to the project
       if( !_CheckProjectFile(szRelativeFilename, szName, false) ) return 0;
 
       // Create new object
@@ -143,7 +144,10 @@ LRESULT CRemoteProject::OnFileAddLocal(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
       pView->Load(&arc);
 
       // Add view to collection
-      m_aFiles.Add(pView);
+      if( !m_aFiles.Add(pView) ) return 0;
+
+      // Merge lexical information now
+      if( !_MergeProjectFile(szRelativeFilename, szName, false) ) return 0;
 
       // Add new tree item
       int iImage = _GetElementImage(pView);
@@ -172,7 +176,7 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
 
    CTreeViewCtrl ctrlTree = _pDevEnv->GetHwnd(IDE_HWND_EXPLORER_TREE);
 
-   // Browse for filename
+   // Browse for filename(s)
    CString sFilter(MAKEINTRESOURCE(IDS_FILTER_SRCFILES));
    for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
    CString sRemotePath = m_FileManager.GetCurPath();
@@ -215,6 +219,7 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
          sRelativeFilename.Replace(_T("\\"), sSeparator);
       }
 
+      // Check that the file can be added to the project
       if( !_CheckProjectFile(sRelativeFilename, szName, true) ) return 0;
 
       // Create new object
@@ -229,7 +234,10 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
       pView->Load(&arc);
 
       // Add to collection
-      m_aFiles.Add(pView);
+      if( !m_aFiles.Add(pView) ) return 0;
+
+      // Merge lexical information now
+      if( !_MergeProjectFile(szRelativeFilename, szName, true) ) return 0;
 
       // Add new tree item
       int iImage = _GetElementImage(pView);
@@ -630,6 +638,7 @@ LRESULT CRemoteProject::OnDebugQuickWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 
    m_pQuickWatchDlg = new CQuickWatchDlg(_pDevEnv, this, data.szMessage);
    ATLASSERT(m_pQuickWatchDlg);
+   if( m_pQuickWatchDlg == NULL ) return 0;
    m_pQuickWatchDlg->Create(m_wndMain);
    m_pQuickWatchDlg->ShowWindow(SW_SHOW);
 

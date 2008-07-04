@@ -411,7 +411,9 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, 
    if( sName == _T("Stop") ) {
       SignalStop();
       m_RebuildThread.SignalStop();
-      // Update statusbar now
+      // Update state now
+      m_ShellManager.BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_ERR_BUILDSTOPPED)));
+      m_ShellManager.BroadcastLine(VT100_HIDDEN, TERM_MARKER_LINE);
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_STOPPED)));
       ::PlaySound(_T("BVRDE_BuildCancelled"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT);
       return true;
@@ -788,6 +790,7 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    cf.crTextColor = ::GetSysColor(COLOR_WINDOWTEXT);
    if( nColor == VT100_RED ) cf.crTextColor = RGB(200,0,0);
    if( _tcsstr(pstrText, _T("error:")) != NULL 
+       || _tcsstr(pstrText, _T(": error ")) != NULL
        || _tcsstr(pstrText, _T("Error ")) != NULL ) 
    {
       cf.crTextColor = RGB(150,70,0);
@@ -797,6 +800,7 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       }
    }
    if( _tcsstr(pstrText, _T("warning:")) != NULL 
+       || _tcsstr(pstrText, _T("Warning ")) != NULL 
        || _tcsstr(pstrText, _T("not found")) != NULL ) 
    {
       cf.crTextColor = RGB(70,70,0);

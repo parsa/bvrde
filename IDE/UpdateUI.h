@@ -65,7 +65,7 @@ public:
             iIndex++;
          }
       }
-      pMap[iIndex].m_nID = -1;
+      pMap[iIndex].m_nID = (WORD) -1;
       pMap[iIndex].m_wType = 0;
 
       m_pUIMap = m_pNewMap = pMap;

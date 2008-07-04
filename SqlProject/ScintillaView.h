@@ -95,7 +95,7 @@ public:
    // Implementation
 
    void _RegisterListImages();
-   void _AutoComplete(CHAR ch, int iLenEntered);
+   void _AutoComplete(int ch, int iLenEntered);
    SQLKEYWORD _GetKeyword(CString& sKeyword) const;
    void _AnalyseText(SQLANALYZE& Info, int iLenEntered);
    int _ScintillaCompare(LPCTSTR src, LPCTSTR dst) const;

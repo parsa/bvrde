@@ -321,11 +321,11 @@ BOOL CDbOperations::ChangeProperties(HWND hWnd, LPCTSTR pstrConnectString, CStri
             CComPtr<IDataInitialize> spData;
             if( SUCCEEDED( spData.CoCreateInstance(CLSID_MSDAINITIALIZE) ) ) {
                LPOLESTR pwstr = NULL;
-               spData->GetInitializationString(spInit, VARIANT_TRUE, &pwstr);
+               spData->GetInitializationString(spInit, (boolean)VARIANT_TRUE, &pwstr);
                if( pwstr != NULL ) {
+                  bRes = TRUE;
                   sResult = pwstr;
                   ::CoTaskMemFree(pwstr);
-                  bRes = TRUE;
                }
             }
          }

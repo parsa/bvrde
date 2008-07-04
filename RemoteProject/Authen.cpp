@@ -77,7 +77,7 @@ CString SecEncodePassword(LPCTSTR pstrPassword)
    // Generate a buffer containing password and random fillings...
    BYTE bData[CRYPT_ENVELOPE_SIZE] = { 0 };
    ::CryptGenRandom(hProv, sizeof(bData), bData);
-   bData[CRYPT_ENVELOPE_SIZE - 1] = cchLen;
+   bData[CRYPT_ENVELOPE_SIZE - 1] = (BYTE) cchLen;
    bData[CRYPT_ENVELOPE_SIZE - 2] = 0;
    memcpy(bData, pstr, cchLen);
    // Encrypt the data blob using Microsoft crypt library...
@@ -126,9 +126,9 @@ CString SecDecodePassword(LPCTSTR pstrPassword)
    int i = 0;
    while( i < CRYPT_ENVELOPE_SIZE ) {
       ++pstrPassword;
-      CHAR iVal = (*pstrPassword > '9' ? *pstrPassword - 'a' + 10 : *pstrPassword - '0');
+      CHAR iVal = (CHAR)(*pstrPassword > '9' ? *pstrPassword - 'a' + 10 : *pstrPassword - '0');
       ++pstrPassword;
-      iVal = (iVal << 4) + (*pstrPassword > '9' ? *pstrPassword - 'a' + 10 : *pstrPassword - '0');
+      iVal = (iVal << 4) + (CHAR)(*pstrPassword > '9' ? *pstrPassword - 'a' + 10 : *pstrPassword - '0');
       bData[i++] = iVal;
    }
    // Decrypt using Microsoft crypt library...

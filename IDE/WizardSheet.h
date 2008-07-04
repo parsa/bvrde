@@ -94,9 +94,11 @@ public:
 
    IDevEnv* m_pDevEnv;
    ISerializable* m_pArc;
+   bool m_bChanged;
 
    CButton m_ctrlTabbed;
    CButton m_ctrlMdi;
+   CButton m_ctrlMultiInstance;
    CComboBox m_ctrlStartup;
    CComboBox m_ctrlLanguage;
    CStatic m_ctrlGreyed;
@@ -110,11 +112,13 @@ public:
    BEGIN_MSG_MAP(CGeneralOptionsPage)
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
       MESSAGE_HANDLER(WM_CTLCOLORSTATIC, OnCtlColorStatic)
+      COMMAND_HANDLER(IDC_LANGUAGE, CBN_SELCHANGE, OnChange)
       CHAIN_MSG_MAP( CPropertyPageImpl<CGeneralOptionsPage> )
    END_MSG_MAP()
 
    LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 };
 
 

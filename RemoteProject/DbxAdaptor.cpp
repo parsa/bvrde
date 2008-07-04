@@ -29,7 +29,7 @@ CDbxAdaptor::~CDbxAdaptor()
 
 void CDbxAdaptor::Init(CRemoteProject* /*pProject*/)
 {
-   // OPTI: Start with room for large buffers
+   // OPTI: Start out with space for large buffer
    m_sReturnValue.GetBuffer(8000);
    m_sReturnValue.ReleaseBuffer(0);
    // Set default values...
@@ -453,6 +453,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             // Various DBX implementations/versions have their own way of saying that
             // the debugger stopped <sigh>. Attempt all known constructs.
             // BUG: This could very well collide with program output.
+            //      Replace this with regex expressions!
             CString sCommandCase = sCommand;
             sCommand.MakeLower();
             if( sCommand == _T("stopped") 
@@ -484,7 +485,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                if( sCommand == _T("thread") ) {
                   // thread 0x81c62e80 stopped at [main:21, 0x12000730c]
                   CString sThreadId = _GetArg(aArgs, iIndex);
-                  _SkipArg(aArgs, iIndex, _T("stopped"));
+                  if( !_SkipArg(aArgs, iIndex, _T("stopped")) ) break;
                   sReason = _T("signal");
                   sReasonValue.Format(_T("thread-id=\"%s\","), sThreadId);
                }
@@ -495,8 +496,8 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                }
                if( sCommand == _T("floating") ) {
                   // Floating point exception in main at 0xd0251348
-                  _SkipArg(aArgs, iIndex, _T("point"));
-                  _SkipArg(aArgs, iIndex, _T("execption"));
+                  if( !_SkipArg(aArgs, iIndex, _T("point")) ) break;
+                  if( !_SkipArg(aArgs, iIndex, _T("execption")) ) break;
                   sReason = _T("signal");
                   sReasonValue = _T("signal-name=\"Floating Point\",");
                }
@@ -510,21 +511,30 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                }
                if( sCommand == _T("unexpected") ) {
                   // Unexpected SIGINT 
+                  // Unexpected signal SIGINT received
+                  _SkipArg(aArgs, iIndex, _T("signal"));
                   CString sName = _GetArg(aArgs, iIndex);
+                  if( sName.Find(_T("SIG")) != 0 && sName.Find(_T("SEGV")) != 0 ) break;
                   sReason = _T("signal-received");
                   sReasonValue.Format(_T("signal-name=\"Signal %s\","), sName);
                }
-               if( sCommand == _T("signal") || sCommand == _T("terminated") || sCommand == _T("program") ) {
+               if( sCommand == _T("signal") || sCommand == _T("terminated") || sCommand == _T("program") || sCommand == _T("stopped") ) {
                   // signal INT (interrupt) in main at 0xef765d44 
                   // program terminated by signal SEGV (Segmentation Fault) 
+                  // stopped on signal SIGSEGV: Segmentation violation 
                   // terminated by signal SEGV (no mapping at the fault address)
+                  bool bHasSignal = false;
+                  _SkipArg(aArgs, iIndex, _T("stopped"));
                   _SkipArg(aArgs, iIndex, _T("terminated"));
-                  _SkipArg(aArgs, iIndex, _T("by"));
-                  _SkipArg(aArgs, iIndex, _T("signal"));
-                  CString sName = _GetArg(aArgs, iIndex);
-                  CString sMeaning = _GetArg(aArgs, iIndex);
-                  sReason = _T("signal-received");
-                  sReasonValue.Format(_T("signal-name=\"Signal %s\",signal-meaning=\"%s\","), sName, sMeaning);
+                  if( _SkipArg(aArgs, iIndex, _T("by")) ) bHasSignal = true;
+                  if( _SkipArg(aArgs, iIndex, _T("on")) ) bHasSignal = true;
+                  if( _SkipArg(aArgs, iIndex, _T("signal")) ) bHasSignal = true;
+                  if( bHasSignal ) {
+                     CString sName = _GetArg(aArgs, iIndex);
+                     CString sMeaning = _GetArg(aArgs, iIndex);
+                     sReason = _T("signal-received");
+                     sReasonValue.Format(_T("signal-name=\"Signal %s\",signal-meaning=\"%s\","), sName, sMeaning);
+                  }
                }
                if( sCommandCase.Find(_T("SIG")) == 0 || sCommandCase.Find(_T("SEGV")) == 0 ) {
                   // SEGV received
@@ -555,8 +565,14 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                sMi.Format(_T("232~\"kernel event for pid=%ld\""), _ttol(sCommand.Mid(11)));
                aOutput.Add(sMi);
             }
-            if( sCommand == _T("execution") ) {
+            if( sCommand == _T("execution") ) 
+            {
                // execution stopped
+               // execution completed (exit code 144)
+               // execution completed, exit code is 0 
+               CString sVerb = _GetArg(aArgs, iIndex);
+               sVerb.TrimRight(_T(",;:"));
+               if( sVerb != _T("stopped") && sVerb != _T("completed") ) break;
                sMi = _T("232^exit,");
                aOutput.Add(sMi);
             }
@@ -580,6 +596,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             }
             long lLevel = 0;
             DBXLOCATION Location;
+            _SkipArg(aArgs, iIndex, _T("*"));
             _SkipArg(aArgs, iIndex, _T(">"));
             _SkipArg(aArgs, iIndex, _T("=>"));
             _SkipArg(aArgs, iIndex, _T("Frame"));
@@ -604,6 +621,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             // =>[1] a.out:foo(a = 2), line 15 in "a.c"
             long lLevel = 0;
             DBXLOCATION Location;
+            _SkipArg(aArgs, iIndex, _T("*"));
             _SkipArg(aArgs, iIndex, _T(">"));
             _SkipArg(aArgs, iIndex, _T("=>"));
             _SkipArg(aArgs, iIndex, _T("Frame"));
@@ -690,14 +708,24 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                m_sWatchName = _GetArg(aArgs, iIndex);
                break;
             }
+            // If this is 2nd sub-level children or higher, then ignore
+            // BUG: This assumes indent is between 3 to 5 for the 1st level.
             if( _tcsstr(pstrOutput, _T("      ")) == pstrOutput ) break;
+            // Extract name. Some versions of DBX has the type prefixed.
+            //    CFoo::a = 0
+            CString sType;
             CString sName = _GetArg(aArgs, iIndex);
             if( sName.IsEmpty() ) break;
-            CString sOutput = pstrOutput;
+            int iTypePos = sName.Find(_T("::"));
+            if( iTypePos > 0 ) {
+               sType = sName.Left(iTypePos);
+               sName = sName.Mid(iTypePos + 2);
+            }
             CString sWatchName;
             sWatchName.Format(_T("quickwatch.%s.%s"), m_sWatchName, sName);
+            CString sOutput = pstrOutput;
             CString sTemp;
-            sTemp.Format(_T("{name=\"%s\",exp=\"%s\",type=\"\",numchild=\"%d\"}"), sWatchName, sName, sOutput.Right(1) == _T("{") ? 1 : 0);
+            sTemp.Format(_T("{name=\"%s\",exp=\"%s\",type=\"%s\",numchild=\"%d\"}"), sWatchName, sName, sType, sOutput.Right(1) == _T("{") ? 1 : 0);
             _AdjustAnswerList(_T("232^done,numchild=\"0\",children=["), _T("]"), sTemp);
          }
          break;
@@ -993,11 +1021,11 @@ void CDbxAdaptor::_SplitCommand(LPCTSTR pstrInput, CSimpleArray<CString>& aArgs,
          if( iQuote == '(' ) iQuote = ')';
          else if( iQuote == '{' ) iQuote = '}';
          else if( iQuote == '[' ) iQuote = ']';
-      	 break;
+          break;
       case '\r':
       case '\n':
          // Ignore newlines...
-      	 break;
+          break;
       case ' ':
       case '\t':
          if( iQuote == '\0' ) {

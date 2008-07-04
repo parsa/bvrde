@@ -1007,8 +1007,8 @@ CString CScintillaView::_GetProperty(CString sKey) const
 }
 
 /**
-/* Find substring next occourance in text.
-/*/
+ * Find substring next occourance in text.
+ */
 int CScintillaView::_FindNext(int iFlags, LPCSTR pstrText, bool bWarnings, bool bShowFindDlg)
 {
    int iLength = strlen(pstrText);

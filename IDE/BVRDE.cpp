@@ -30,6 +30,18 @@ static bool SingleInstance()
    // to that version and terminate here.
    HANDLE hMutex = ::CreateMutex(NULL, TRUE, _T("BVRDE"));
    if( hMutex == NULL || ::GetLastError() == ERROR_ALREADY_EXISTS ) {
+      // We may have a configuration that allows multiple instances
+      // of the tool; otherwise we'll restrict it to one instance.
+      CRegSerializer reg;
+      if( reg.Open(REG_BVRDE) ) {
+         if( reg.ReadGroupBegin(_T("Settings")) ) {
+            TCHAR szBuffer[16] = { 0 };
+            reg.Read(_T("multiInstance"), szBuffer, 15);
+            if( _tcscmp(szBuffer, _T("true")) == 0 ) return true;
+         }
+         reg.Close();
+      }          
+      // Find other instance and set focus
       HWND hWnd = ::FindWindow(_T("BVRDE_Main"), NULL);
       if( !::IsWindow(hWnd) ) return true;
       LPTSTR pstrCommandLine = ::GetCommandLine();
@@ -64,6 +76,7 @@ static LCID FindUserLanguage()
             lcid = MAKELCID(lang, SORT_DEFAULT);
          }
       }
+      reg.Close();
    }
    return lcid;
 }
@@ -99,7 +112,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
    // we'd like all message-boxes (even errors at this stage) to appear
    // in the correct language.
    wndMain.m_Locale = FindUserLanguage();
-   wndMain.m_dwGuidThreadId = ::GetCurrentThreadId();
+   wndMain.m_dwGuiThreadId = ::GetCurrentThreadId();
    wndMain.SetThreadLanguage();
 
    // Show splash screen

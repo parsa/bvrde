@@ -80,6 +80,7 @@ public:
          // Load Window positions
          if( reg.ReadGroupBegin(_T("Settings")) ) {         
             m_pMain->_AddProperty(&reg, _T("language"), _T("gui.main.language"));
+            m_pMain->_AddProperty(&reg, _T("multiInstance"), _T("gui.main.multiInstance"));
             m_pMain->_AddProperty(&reg, _T("windowpos"), _T("window.main.position"));
             m_pMain->_AddProperty(&reg, _T("autohide-cx"), _T("window.autohide.cx"));
             m_pMain->_AddProperty(&reg, _T("autohide-cy"), _T("window.autohide.cy"));
@@ -505,6 +506,7 @@ void CMainFrame::_SaveSettings()
    if( reg.Create(REG_BVRDE) ) {
       reg.WriteGroupBegin(_T("Settings"));
       _StoreProperty(&reg, _T("language"), _T("gui.main.language"));
+      _StoreProperty(&reg, _T("multiInstance"), _T("gui.main.multiInstance"));
       _StoreProperty(&reg, _T("windowpos"), _T("window.main.position"));
       _StoreProperty(&reg, _T("autohide-cx"), _T("window.autohide.cx"));
       _StoreProperty(&reg, _T("autohide-cy"), _T("window.autohide.cy"));

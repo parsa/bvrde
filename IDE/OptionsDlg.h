@@ -104,7 +104,7 @@ public:
       ATLASSERT(hPage->pfnDlgProc);
 
       if( hPage == NULL ) return FALSE;
-      if( ::IsBadStringPtr(hPage->pszTitle, -1) ) return FALSE;
+      if( ::IsBadStringPtr(hPage->pszTitle, (UINT)-1) ) return FALSE;
       if( hPage->pfnDlgProc == NULL ) return FALSE;
 
       CPropertyDialog* pDlg = new CPropertyDialog();

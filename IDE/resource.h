@@ -279,6 +279,7 @@
 #define IDC_COMPACT                     1090
 #define IDC_COMMENT                     1091
 #define IDC_PREPROCESSOR                1092
+#define IDC_MULTIINSTANCE               1092
 #define IDC_ELSE                        1093
 #define IDC_TEXT                        1148
 #define IDC_DONT_SHOW                   1197
@@ -355,7 +356,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        243
 #define _APS_NEXT_COMMAND_VALUE         32875
-#define _APS_NEXT_CONTROL_VALUE         1092
+#define _APS_NEXT_CONTROL_VALUE         1093
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

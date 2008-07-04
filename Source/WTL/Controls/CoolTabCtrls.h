@@ -173,7 +173,7 @@ public:
       ATLASSERT(pItem);
       ATLASSERT(iItem==m_Items.GetSize()); // We only support appending right now
       if( iItem < 0 || iItem > m_Items.GetSize() ) iItem = m_Items.GetSize();
-      COOLTCITEM* pNewItem;
+      COOLTCITEM* pNewItem = NULL;
       ATLTRY( pNewItem = new COOLTCITEM );
       if( pNewItem == NULL ) return -1;
       ::ZeroMemory(pNewItem, sizeof(COOLTCITEM));

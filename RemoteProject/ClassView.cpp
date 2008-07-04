@@ -484,8 +484,8 @@ void CClassView::OnIdle(IUpdateUI* pUIBase)
    TCHAR szSortValue[32] = { 0 };
    _pDevEnv->GetProperty(_T("window.classview.sort"), szSortValue, 31);
 
-   pUIBase->UIEnable(ID_CLASSVIEW_GOTODECL, bTagIsSelected && m_pProject->FindView(m_SelectedTag.sFilename, false) != NULL);
-   pUIBase->UIEnable(ID_CLASSVIEW_GOTOIMPL, bTagIsSelected && m_pProject->FindView(m_SelectedImpl.sFilename, false) != NULL);
+   pUIBase->UIEnable(ID_CLASSVIEW_GOTODECL, bTagIsSelected && m_pProject->FindView(m_SelectedTag.sFilename, FINDVIEW_ALL) != NULL);
+   pUIBase->UIEnable(ID_CLASSVIEW_GOTOIMPL, bTagIsSelected && m_pProject->FindView(m_SelectedImpl.sFilename, FINDVIEW_ALL) != NULL);
    pUIBase->UIEnable(ID_CLASSVIEW_COPY, bTagIsSelected);
    pUIBase->UIEnable(ID_CLASSVIEW_MARK, bTagIsSelected);
    pUIBase->UIEnable(ID_CLASSVIEW_PROPERTIES, bTagIsSelected);

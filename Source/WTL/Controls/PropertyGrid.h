@@ -262,7 +262,7 @@ public:
       ATLASSERT(m_nColumns>0);
       ATLASSERT(m_ctrlHeader.GetItemCount()==m_nColumns);
       // Create a place-holder for all sub-items
-      IProperty** props;
+      IProperty** props = NULL;
       ATLTRY( props = new IProperty*[m_nColumns] );
       ATLASSERT(props);
       if( props == NULL ) return -1;

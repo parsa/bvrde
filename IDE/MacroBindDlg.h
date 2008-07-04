@@ -161,7 +161,7 @@ public:
    }
    LRESULT OnRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
-      MACROACCEL& macro = _FindItem(m_ctrlList.GetCurSel());
+      const MACROACCEL& macro = _FindItem(m_ctrlList.GetCurSel());
       m_mapCurrent.Remove(macro.cmd);
       //
       m_ctrlCurrent.SetHotKey(0, 0);
@@ -241,7 +241,7 @@ public:
    {
       int iCurSel = m_ctrlList.GetCurSel();
       LPARAM lParam = m_ctrlList.GetItemData(iCurSel);
-      MACROACCEL& macro = _FindItem(iCurSel);
+      const MACROACCEL& macro = _FindItem(iCurSel);
       // Clear hotkeys
       m_ctrlDefault.SetHotKey(0, 0);
       m_ctrlCurrent.SetHotKey(0, 0);

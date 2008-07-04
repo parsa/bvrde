@@ -33,6 +33,8 @@ bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, DWORD dwTimesl
    while( _iscppchar(ch) ) ch = m_ctrlEdit.GetCharAt(--lPos);
    int chDelim = ch;
    long lPosDelim = lPos;
+
+   // Try to detect if the is an immediate right-hand-side expression
    if( m_ctrlEdit.GetCharAt(lPos) == '=' ) chDelim = '=';
    if( m_ctrlEdit.GetCharAt(lPos - 1) == '=' ) chDelim = '=';
 
@@ -256,8 +258,10 @@ CString CScintillaView::_FindBlockType(long lPos)
    if( p == NULL || strncmp(p, "::", 2) == 0 ) {
       // None of the above? Assume we're inside a function
       // and its formatted like:
-      //    TYPE Foo()
-      // Skip leading return type first...
+      //    TYPE Bar()
+      // Skip leading return type first:
+      //    CFoo::TYPE CFoo::Bar()
+      while( p != NULL && strstr(p + 2, "::") != NULL && strstr(p + 2, "::") < strchr(p, '(') ) p = strstr(p + 2, "::");
       if( p != NULL ) *p = '\0';
       if( p != NULL ) p = strrchr(szBuffer, ' ');
       if( p == NULL ) p = strpbrk(szBuffer, " \t");
@@ -279,6 +283,8 @@ CString CScintillaView::_FindBlockType(long lPos)
       case TAGTYPE_STRUCT:
       case TAGTYPE_TYPEDEF:
          return sType;
+      case TAGTYPE_NAMESPACE:
+         return _T("");
       }
    }
 
@@ -442,8 +448,8 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
 }
 
 /**
-/* Determine if there is an include file at the position.
-/*/
+ * Determine if there is an include file at the position.
+ */
 CString CScintillaView::_FindIncludeUnderCursor(long lPos)
 {
    CHAR szBuffer[256] = { 0 };
@@ -553,11 +559,13 @@ bool CScintillaView::_IsRealCppEditPos(long lPos, bool bIncludeNonIdentifiers) c
    case SCE_C_COMMENT:
    case SCE_C_COMMENTDOC:
    case SCE_C_COMMENTLINE:
+   case SCE_C_PREPROCESSOR:
    case SCE_C_COMMENTLINEDOC:
    case SCE_C_COMMENTDOCKEYWORD:
    case SCE_C_COMMENTDOCKEYWORDERROR:
       return false;
    case SCE_C_UUID:
+   case SCE_C_REGEX:
    case SCE_C_NUMBER:
       return bIncludeNonIdentifiers;
    default:

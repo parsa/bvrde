@@ -123,8 +123,8 @@ int CProviderPage::OnApply()
    CComPtr<IDataInitialize> spData;
    if( SUCCEEDED( spData.CoCreateInstance(CLSID_MSDAINITIALIZE) ) ) {
       LPOLESTR pwstr = NULL;
-      spData->GetInitializationString(m_pProject->m_pWizardView->m_Db.m_spInit, VARIANT_TRUE, &pwstr);
-      if( pwstr ) {
+      spData->GetInitializationString(m_pProject->m_pWizardView->m_Db.m_spInit, (boolean)VARIANT_TRUE, &pwstr);
+      if( pwstr != NULL ) {
          m_pProject->m_pWizardView->m_sConnectString = pwstr;
          ::CoTaskMemFree(pwstr);
       }

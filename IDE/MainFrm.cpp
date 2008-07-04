@@ -21,7 +21,7 @@
 
 CMainFrame::CMainFrame() :
    m_Dispatch(this),
-   m_dwGuidThreadId(0),
+   m_dwGuiThreadId(0),
    m_bFullScreen(FALSE),
    m_bInitialized(FALSE),
    m_bRecordingMacro(FALSE)
@@ -211,7 +211,8 @@ LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
    CLockWindowUpdate lock = m_hWnd;
 
-   // Don't leave as fullscreen
+   // Don't leave as fullscreen; have to reset before
+   // we store our settings so we can bring it up at the same dimensions.
    if( m_bFullScreen ) SendMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_FULLSCREEN, 0));
 
    // At last save UI settings...

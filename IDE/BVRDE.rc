@@ -414,11 +414,14 @@ BEGIN
     LTEXT           "Beim Start: ",IDC_STATIC,14,45,35,12,SS_CENTERIMAGE
     COMBOBOX        IDC_STARTUP,52,45,111,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
+    CONTROL         "Mehrere Instanzen geöffnet werden kann",
+                    IDC_MULTIINSTANCE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    14,95,155,10
+    LTEXT           "Sprache:",IDC_STATIC,0,113,32,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,34,118,224,1
     LTEXT           "Sprache:",IDC_STATIC,14,130,35,12,SS_CENTERIMAGE
     COMBOBOX        IDC_LANGUAGE,53,129,87,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "Sprache:",IDC_STATIC,0,113,32,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,34,118,224,1
 END
 
 IDD_OPTIONS_MAPPINGS DIALOG DISCARDABLE  0, 0, 261, 178
@@ -1412,11 +1415,13 @@ BEGIN
     LTEXT           "At startup: ",IDC_STATIC,14,45,35,12,SS_CENTERIMAGE
     COMBOBOX        IDC_STARTUP,53,45,111,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
+    CONTROL         "Allow multiple instances open",IDC_MULTIINSTANCE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,14,95,155,10
+    LTEXT           "Language",IDC_STATIC,0,113,32,9
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,41,118,217,1
     LTEXT           "Language:",IDC_STATIC,14,129,35,12,SS_CENTERIMAGE
     COMBOBOX        IDC_LANGUAGE,53,128,86,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "Language",IDC_STATIC,0,113,32,9
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,41,118,217,1
     LTEXT           "Changes require restart of the application.",IDC_GREYED,
                     147,126,104,21
 END

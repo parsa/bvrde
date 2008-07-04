@@ -628,10 +628,10 @@ void CRemoteProject::SendViewMessage(UINT nCmd, LAZYDATA* pData)
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) m_aFiles[i]->SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, nCmd), (LPARAM) pData);
 }
 
-bool CRemoteProject::OpenView(LPCTSTR pstrFilename, int iLineNum, bool bShowError)
+bool CRemoteProject::OpenView(LPCTSTR pstrFilename, int iLineNum, UINT uFindState, bool bShowError)
 {
    ATLASSERT(!::IsBadStringPtr(pstrFilename,-1));
-   IView* pView = FindView(pstrFilename, false);
+   IView* pView = FindView(pstrFilename, uFindState);
    if( pView == NULL ) pView = _CreateDependencyFile(pstrFilename, ::PathFindFileName(pstrFilename));
    if( pView == NULL ) return false;
    if( pView->OpenView(iLineNum) ) return true;
@@ -640,52 +640,84 @@ bool CRemoteProject::OpenView(LPCTSTR pstrFilename, int iLineNum, bool bShowErro
    return false;
 }
 
-IView* CRemoteProject::FindView(LPCTSTR pstrFilename, bool bLocally /*= false*/) const
+IView* CRemoteProject::FindView(LPCTSTR pstrFilename, UINT uFindState) const
 {
    ATLASSERT(!::IsBadStringPtr(pstrFilename,-1));
-   // Prepare filename (strip path)
-   TCHAR szSearchFile[MAX_PATH + 1] = { 0 };
-   _tcscpy(szSearchFile, pstrFilename);
-   ::PathStripPath(szSearchFile);
    // No need to look for dummy filenames
    if( _tcslen(pstrFilename) < 2 ) return false;
    // Scan through all views and see if there's a filepath-match
-   int i;
-   for( i = 0; i < m_aFiles.GetSize(); i++ ) {
+   // in the current set of known project file.
+   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       IView* pView = m_aFiles[i];
       TCHAR szFilename[MAX_PATH + 1] = { 0 };
       pView->GetFileName(szFilename, MAX_PATH);
       if( _tcsicmp(pstrFilename, szFilename) == 0 ) return pView;
    }
-   // Scan again and see if there's a filename-match
-   for( i = 0; i < m_aFiles.GetSize(); i++ ) {
-      IView* pView = m_aFiles[i];
-      TCHAR szFilename[MAX_PATH + 1] = { 0 };
-      pView->GetFileName(szFilename, MAX_PATH);
-      ::PathStripPath(szFilename);
-      if( _tcsicmp(szSearchFile, szFilename) == 0 ) return pView;
+   // Scan in other projects too?
+   if( (uFindState & FINDVIEW_ALLPROJECTS) != 0 ) {
+      // Locate file in another project in this solution
+      ISolution* pSolution = _pDevEnv->GetSolution();
+      for( int a = 0; a < pSolution->GetItemCount(); a++ ) {
+         IProject* pProject = pSolution->GetItem(a);
+         for( INT b = 0; b < pProject->GetItemCount(); b++ ) {
+            IView* pView = pProject->GetItem(b);
+            TCHAR szFilename[MAX_PATH + 1] = { 0 };
+            pView->GetFileName(szFilename, MAX_PATH);
+            if( _tcsicmp(pstrFilename, szFilename) == 0 ) return pView;
+         }
+      }
    }
-   // Scan for project files only?
-   if( bLocally ) return NULL;
-   // Locate file in another project in this solution
-   ISolution* pSolution = _pDevEnv->GetSolution();
-   for( int a = 0; a < pSolution->GetItemCount(); a++ ) {
-      IProject* pProject = pSolution->GetItem(a);
-      for( INT b = 0; b < pProject->GetItemCount(); b++ ) {
-         IView* pView = pProject->GetItem(b);
+   // Look for the file in the dependencies?
+   if( (uFindState & FINDVIEW_DEPENDENCIES) != 0 ) {
+      for( int a = 0; a < m_aDependencies.GetSize(); a++ ) {
+         IView* pView = m_aDependencies[a];
+         TCHAR szFilename[MAX_PATH + 1] = { 0 };
+         pView->GetFileName(szFilename, MAX_PATH);
+         if( _tcsicmp(pstrFilename, szFilename) == 0 ) return pView;
+      }
+   }
+   // Scan again and see if there's a filename-match.
+   // Unfortunately some functions (debugger) only delivers the name part
+   // of the filename or doesn't have the correct relative path, so we
+   // supply a way to match on filename only. 
+   // BUG: If several files have the same name in the project(s) we might 
+   //      return the wrong file.
+   if( (uFindState & FINDVIEW_NAMEONLY) != 0 ) 
+   {
+      TCHAR szSearchFile[MAX_PATH + 1] = { 0 };
+      _tcscpy(szSearchFile, pstrFilename);
+      ::PathStripPath(szSearchFile);
+      for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
+         IView* pView = m_aFiles[i];
          TCHAR szFilename[MAX_PATH + 1] = { 0 };
          pView->GetFileName(szFilename, MAX_PATH);
          ::PathStripPath(szFilename);
          if( _tcsicmp(szSearchFile, szFilename) == 0 ) return pView;
       }
-   }
-   // Look for the file in the dependencies
-   for( i = 0; i < m_aDependencies.GetSize(); i++ ) {
-      IView* pView = m_aDependencies[i];
-      TCHAR szFilename[MAX_PATH + 1] = { 0 };
-      pView->GetFileName(szFilename, MAX_PATH);
-      ::PathStripPath(szFilename);
-      if( _tcsicmp(szSearchFile, szFilename) == 0 ) return pView;
+      // Scan in other projects too?
+      if( (uFindState & FINDVIEW_ALLPROJECTS) != 0 ) {
+         ISolution* pSolution = _pDevEnv->GetSolution();
+         for( int a = 0; a < pSolution->GetItemCount(); a++ ) {
+            IProject* pProject = pSolution->GetItem(a);
+            for( INT b = 0; b < pProject->GetItemCount(); b++ ) {
+               IView* pView = pProject->GetItem(b);
+               TCHAR szFilename[MAX_PATH + 1] = { 0 };
+               pView->GetFileName(szFilename, MAX_PATH);
+               ::PathStripPath(szFilename);
+               if( _tcsicmp(szSearchFile, szFilename) == 0 ) return pView;
+            }
+         }
+      }
+      // Look for the name in the dependencies?
+      if( (uFindState & FINDVIEW_DEPENDENCIES) != 0 ) {
+         for( int a = 0; a < m_aDependencies.GetSize(); a++ ) {
+            IView* pView = m_aDependencies[a];
+            TCHAR szFilename[MAX_PATH + 1] = { 0 };
+            pView->GetFileName(szFilename, MAX_PATH);
+            ::PathStripPath(szFilename);
+            if( _tcsicmp(szSearchFile, szFilename) == 0 ) return pView;
+         }
+      }
    }
    return NULL;
 }
@@ -1149,11 +1181,8 @@ bool CRemoteProject::_RunFileWizard(HWND hWnd, LPCTSTR pstrName, IView* pView)
    return TRUE;
 }
 
-bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, bool bRemote) 
+bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR /*pstrName*/, bool /*bRemote*/) 
 {
-   CString sUpperName = pstrName;
-   sUpperName.MakeUpper();
-
    // Check that the file doesn't already exist in the
    // project filelist.
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
@@ -1166,7 +1195,16 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
       }       
    }
 
-   // Remove current tag information if it looks like a new
+   return true;
+}
+
+bool CRemoteProject::_MergeProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, bool bRemote)
+{
+   CString sFileType = GetFileTypeFromFilename(pstrName);
+   CString sUpperName = pstrName;
+   sUpperName.MakeUpper();
+
+   // Remove current CTAGS information if it appears like a new
    // tag file has been added...
    if( sUpperName.Find(_T("TAGS")) >= 0 ) {
       m_viewClassTree.Lock();
@@ -1176,9 +1214,8 @@ bool CRemoteProject::_CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, b
       m_viewSymbols.Clear();
    }
 
-   // New C++ files are added to class-view immediately if online-scanner
+   // New C++ files are added to the class-view immediately if online-scanner
    // is also running...
-   CString sFileType = GetFileTypeFromFilename(pstrName);
    if( bRemote && (sFileType == _T("cpp") || sFileType == _T("header")) ) {
       if( m_TagManager.m_LexInfo.IsAvailable() ) {
          LPSTR pstrText = NULL;
@@ -1202,7 +1239,7 @@ IView* CRemoteProject::_CreateDependencyFile(LPCTSTR pstrFilename, LPCTSTR pstrN
 
    // Create new object
    IView* pView = _pDevEnv->CreateView(pstrFilename, this, this);
-   if( pView == NULL ) return false;
+   if( pView == NULL ) return NULL;
 
    // Load some default properties
    CViewSerializer arc;
@@ -1212,7 +1249,7 @@ IView* CRemoteProject::_CreateDependencyFile(LPCTSTR pstrFilename, LPCTSTR pstrN
    pView->Load(&arc);
 
    // Add view to collection
-   m_aDependencies.Add(pView);
+   if( !m_aDependencies.Add(pView) ) return NULL;
 
    return pView;
 }

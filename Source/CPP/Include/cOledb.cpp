@@ -199,7 +199,7 @@ BOOL COledbDatabase::Connect(int iPromptMode /*= DBPROMPT_COMPLETEREQUIRED*/)
    // Level of prompting that will be done to complete the connection process
    Prop[iProp].dwPropertyID = DBPROP_INIT_PROMPT;
    Prop[iProp].vValue.vt = VT_I2;
-   Prop[iProp].vValue.iVal = iPromptMode;    
+   Prop[iProp].vValue.iVal = (SHORT) iPromptMode;    
    iProp++;
 
    // Prepare properties

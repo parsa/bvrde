@@ -280,15 +280,15 @@ DWORD CTelnetThread::Run()
                         // Send window size immediately
                         if( nCmd == TELOPT_NAWS && nCode == TELNET_WILL ) 
                         {
-                           const BYTE SCR_WIDTH = 80;
-                           const BYTE SCR_HEIGHT = 24;
+                           const WORD SCR_WIDTH = 80;
+                           const WORD SCR_HEIGHT = 24;
                            aSend.Add( (BYTE) TELNET_IAC );
                            aSend.Add( (BYTE) TELNET_SB );
                            aSend.Add( nCmd );
-                           aSend.Add( (BYTE)((SCR_WIDTH >> 8) & 0xFF) );
-                           aSend.Add( (BYTE)(SCR_WIDTH & 0xFF) );
-                           aSend.Add( (BYTE)((SCR_HEIGHT >> 8) & 0xFF) );
-                           aSend.Add( (BYTE)(SCR_HEIGHT & 0xFF) );
+                           aSend.Add( (BYTE) ((SCR_WIDTH >> 8) & 0xFF) );
+                           aSend.Add( (BYTE) (SCR_WIDTH & 0xFF) );
+                           aSend.Add( (BYTE) ((SCR_HEIGHT >> 8) & 0xFF) );
+                           aSend.Add( (BYTE) (SCR_HEIGHT & 0xFF) );
                            aSend.Add( (BYTE) TELNET_IAC );
                            aSend.Add( (BYTE) TELNET_SE );
                            m_pManager->m_bCanWindowSize = true;

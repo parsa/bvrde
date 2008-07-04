@@ -486,7 +486,7 @@ void CTagInfo::_ResolveExtraField(TAGINFO& info, LPCTSTR pstrField) const
    //    kind:class
    if( info.Type == TAGTYPE_UNKNOWN )
    {
-      if( pstrField[0] != '\0' &&  pstrField[1] == '\0' ) {
+      if( pstrField[0] != '\0' && pstrField[1] == '\0' ) {
          if( _tcscmp(pstrField, _T("e")) == 0 )      info.Type = TAGTYPE_ENUM;
          else if( _tcscmp(pstrField, _T("c")) == 0 ) info.Type = TAGTYPE_CLASS;
          else if( _tcscmp(pstrField, _T("m")) == 0 ) info.Type = TAGTYPE_MEMBER;

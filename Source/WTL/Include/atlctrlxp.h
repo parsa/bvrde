@@ -135,7 +135,7 @@ public:
       dc.SelectBrush(hOldBrush);
       return 1;
    }
-   LRESULT OnPrint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+   LRESULT OnPrint(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {
       CDCHandle dc = (HDC) wParam;
       RECT rcWin;

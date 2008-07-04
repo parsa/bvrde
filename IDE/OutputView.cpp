@@ -105,6 +105,7 @@ LRESULT COutputView::OnLButtonDblClk(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    CString s = pstr;
    for( int iPos = s.Find('.'); iPos >= 0; iPos = s.Find('.', iPos + 1) ) {
       // Extract filename
+      // BUG: Here we assume that source files have file-extensions.
       int iStart = iPos - 1;
       if( iStart < 0 ) continue;
       while( iStart >= 0 && _tcschr(_T(" \t:;(){}\"'"), s[iStart]) == NULL ) iStart--;
@@ -114,19 +115,21 @@ LRESULT COutputView::OnLButtonDblClk(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
       CString sFilename = s.Mid(iStart, iEnd - iStart);
 
       // Extract line number
-      // Variations supported:
+      // Variations supported are:
       //    filename:x
       //    filename line x
       //    filename, line x
+      //    "filename", line x
       long lLineNum = 0;
-      while( pstr[iEnd] == ',' ) iEnd++;
+      if( pstr[iEnd] == '\"' ) iEnd++;
+      if( pstr[iEnd] == ',' ) iEnd++;
       while( pstr[iEnd] == ' ' ) iEnd++;
       if( pstr[iEnd] == ':' ) iEnd++; 
       if( _tcsncmp(pstr + iEnd, _T("line"), 4) == 0 ) iEnd += 4; 
       while( pstr[iEnd] == ' ' ) iEnd++;
       if( _istdigit(pstr[iEnd]) ) lLineNum = _ttol(pstr + iEnd);
 
-      // Locate file in project
+      // Locate file in any project. Start with active project first...
       ISolution* pSolution = g_pDevEnv->GetSolution();
       if( _OpenView(pSolution->GetActiveProject(), sFilename, lLineNum) ) return 0;
       for( int i = 0; i < pSolution->GetItemCount(); i++ ) {
@@ -168,10 +171,6 @@ bool COutputView::_OpenView(IProject* pProject, LPCTSTR pstrFilename, long lLine
    ATLASSERT(!::IsBadStringPtr(pstrFilename,-1));
    if( pProject == NULL ) return false;
    if( _tcslen(pstrFilename) < 2 ) return false;
-   // Munge filename
-   TCHAR szName[MAX_PATH];
-   _tcscpy(szName, pstrFilename);
-   ::PathStripPath(szName);
    // Locate file in project's views
    // Unfortunately we don't control in what form the filename is delivered.
    // We should consider:
@@ -191,6 +190,10 @@ bool COutputView::_OpenView(IProject* pProject, LPCTSTR pstrFilename, long lLine
       pView->GetFileName(szFilename, MAX_PATH);
       if( _tcsstr(szFilename, pstrFilename) != NULL ) return pView->OpenView(lLineNum) == TRUE;
    }
+   // Munge filename
+   TCHAR szName[MAX_PATH];
+   _tcscpy(szName, pstrFilename);
+   ::PathStripPath(szName);
    for( i = 0; i < pProject->GetItemCount(); i++ ) {
       IView* pView = pProject->GetItem(i);
       TCHAR szFilename[MAX_PATH + 1] = { 0 };

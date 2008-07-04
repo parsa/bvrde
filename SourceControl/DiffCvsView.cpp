@@ -264,8 +264,9 @@ LRESULT CDiffCvsView::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*
 
    ModifyStyleEx(0, WS_EX_CLIENTEDGE);
 
-   // Minimize now; resize later
-   ResizeClient(1, 1);
+   // Default size now; resize later
+   ResizeClient(800, 600);
+   CenterWindow(); 
 
    return lRes;
 }

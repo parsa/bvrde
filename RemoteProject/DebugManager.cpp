@@ -911,7 +911,9 @@ void CDebugManager::_ParseNewFrame(CMiInfo& info)
       // Debugger stopped in source file.
       // We'll attempt to bring the source file into view and
       // place the "current line" marker at the breaked position.
-      bool bKnownFile = m_pProject->FindView(sFilename, true) != NULL;
+      // BUG: We should investigate how to supply more arguments to the FindView() call below
+      //      to help bring in other project/dependency files.
+      bool bKnownFile = (m_pProject->FindView(sFilename, FINDVIEW_FULLPATH | FINDVIEW_NAMEONLY) != NULL);
       int iLineNum = _ttoi(info.GetItem(_T("line"), _T("frame")));
       m_pProject->DelayedOpenView(sFilename, iLineNum);
       m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_SET_CURLINE, sFilename, iLineNum);

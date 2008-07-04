@@ -109,10 +109,13 @@ void CStackView::_SelectThread(long lThreadId)
    for( int i = 0; i < nCount; i++ ) {
       if( (long) m_ctrlThreads.GetItemData(i) == lThreadId ) {
          if( m_ctrlThreads.GetCurSel() != i ) m_ctrlThreads.SetCurSel(i);
-         m_dwCurThread = (DWORD) lThreadId;
          break;
       }
    }
+   // Make a note of the current thread ID in any case. We may not
+   // have refreshed the thread list yet, but when we do we should
+   // select the correct thread as current.
+   m_dwCurThread = (DWORD) lThreadId;
 }
 
 // Message handlers
@@ -161,7 +164,7 @@ LRESULT CStackView::OnListDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
    if( iFilePos < 0 || iLinePos < 0 ) return 0;
    CString sFile = sLine.Mid(iFilePos + sFileStr.GetLength()).SpanExcluding(_T("'"));
    int iLineNum = _ttoi(sLine.Mid(iLinePos + sLineStr.GetLength()));
-   m_pProject->OpenView(sFile, iLineNum, true);
+   m_pProject->OpenView(sFile, iLineNum, FINDVIEW_ALL, true);
    return 0;
 }
 

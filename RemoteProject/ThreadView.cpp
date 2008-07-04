@@ -53,6 +53,7 @@ void CThreadView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          if( m_dwCurThread == dwThreadId ) SelectItem(iItem);
          sValue = info.FindNext(_T("thread-id"));
       }
+      if( GetSelectedIndex() < 0 ) SelectItem(0);
       SetRedraw(TRUE);
       Invalidate();
    }
@@ -75,15 +76,15 @@ void CThreadView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
 
 // Implementation
 
-void CThreadView::_SelectThread(int iThreadId)
+void CThreadView::_SelectThread(long lThreadId)
 {
    for( int i = 0; i < GetItemCount(); i++ ) {
-      if( (int) GetItemData(i) == iThreadId ) {
+      if( (long) GetItemData(i) == lThreadId ) {
          if( GetSelectedIndex() != i ) SelectItem(i);
-         m_dwCurThread = iThreadId;
          break;
       }
    }
+   m_dwCurThread = (DWORD) lThreadId;
 }
 
 // Message handlers
@@ -101,7 +102,7 @@ LRESULT CThreadView::OnDblClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
    LRESULT lRes = DefWindowProc();
    int iItem = GetSelectedIndex();
    if( iItem >= 0 ) {
-      LPARAM dwThreadId = GetItemData(iItem);
+      DWORD dwThreadId = (DWORD) GetItemData(iItem);
       CString sCommand;
       sCommand.Format(_T("-thread-select %ld"), dwThreadId);
       m_pProject->DelayedDebugCommand(sCommand);

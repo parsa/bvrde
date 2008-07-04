@@ -49,7 +49,7 @@ LRESULT CRemoteFileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    m_ctrlOK = GetDlgItem(IDOK);
 
    // We support multiple selections
-   if( m_dwFlags & OFN_ALLOWMULTISELECT ) m_ctrlList.ModifyStyle(LVS_SINGLESEL, 0);
+   if( (m_dwFlags & OFN_ALLOWMULTISELECT) != 0 ) m_ctrlList.ModifyStyle(LVS_SINGLESEL, 0);
 
    // Prepare images
    int nSmallCx = ::GetSystemMetrics(SM_CXSMICON);
@@ -199,7 +199,7 @@ LRESULT CRemoteFileDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
    m_ofn.lpstrFile = m_pstrBuffer;
 
    // Change back to original path
-   if( m_dwFlags & OFN_NOCHANGEDIR ) m_pFileManager->SetCurPath(m_sOrigPath);
+   if( (m_dwFlags & OFN_NOCHANGEDIR) != 0 ) m_pFileManager->SetCurPath(m_sOrigPath);
 
    EndDialog(wID);
    return 0;
@@ -208,7 +208,7 @@ LRESULT CRemoteFileDlg::OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, B
 LRESULT CRemoteFileDlg::OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    // Change back to original path
-   if( m_dwFlags & OFN_NOCHANGEDIR ) m_pFileManager->SetCurPath(m_sOrigPath);
+   if( (m_dwFlags & OFN_NOCHANGEDIR) != 0 ) m_pFileManager->SetCurPath(m_sOrigPath);
 
    EndDialog(wID);
    return 0;

@@ -157,9 +157,9 @@ CString CCommandView::_ParseLine() const
    ATLASSERT(iLine<GetLineCount());
    // Ok, the RTF GetLine() is kind of weird and needs the
    // first WORD to be the length...
-   WORD wSize = (iLen + 1) * sizeof(TCHAR);
+   WORD wSize = (WORD)((iLen + 1) * sizeof(TCHAR));
    LPTSTR pstr = (LPTSTR) _alloca(wSize  + sizeof(WORD));
-   * (WORD*) pstr = iLen;
+   * (WORD*) pstr = (WORD) iLen;
    iLen = GetLine(iLine, pstr);
    pstr[iLen] = '\0';
    CString s = pstr;

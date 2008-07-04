@@ -146,8 +146,8 @@ public:
 // Operations
 public:
    bool Reset();
-   bool OpenView(LPCTSTR pstrFilename, int iLineNum, bool bShowError);
-   IView* FindView(LPCTSTR pstrFilename, bool bLocally = false) const;
+   bool OpenView(LPCTSTR pstrFilename, int iLineNum, UINT uFindState, bool bShowError);
+   IView* FindView(LPCTSTR pstrFilename, UINT uFindState) const;
    void SendViewMessage(UINT nCmd, LAZYDATA* pData);
    bool IsViewsDirty() const;
    bool IsWindowVisible(UINT nID) const;
@@ -301,6 +301,7 @@ protected:
    void _RemoveView(IView* pParent);
    bool _RunFileWizard(HWND hWnd, LPCTSTR pstrName, IView* pView);
    bool _CheckProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, bool bRemote);
+   bool _MergeProjectFile(LPCTSTR pstrFilename, LPCTSTR pstrName, bool bRemote);
    IView* _CreateDependencyFile(LPCTSTR pstrFilename, LPCTSTR pstrName);
    IElement* _GetSelectedTreeElement(HTREEITEM* phItem = NULL) const;
    IElement* _GetDropTreeElement(HTREEITEM* phItem = NULL) const;

@@ -70,7 +70,7 @@ DWORD CSshThread::Run()
    int status = clib.cryptCreateSession(&cryptSession, CRYPT_UNUSED, CRYPT_SESSION_SSH);
    if( cryptStatusError(status) ) {
       cryptSession = 0;
-      m_pManager->m_dwErrorCode = clib.StatusToWin32Error(status, NTE_BAD_VER);
+      m_pManager->m_dwErrorCode = clib.StatusToWin32Error(status, (DWORD) NTE_BAD_VER);
       if( status == CRYPT_ERROR_PARAM3 ) m_pManager->m_dwErrorCode = ERROR_MEDIA_NOT_AVAILABLE;
       return 0;
    }

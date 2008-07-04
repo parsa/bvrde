@@ -38,7 +38,7 @@ LCID CMainFrame::SetThreadLanguage()
 
 DWORD CMainFrame::GetGuiThreadId()
 {
-   return m_dwGuidThreadId;
+   return m_dwGuiThreadId;
 }
 
 IDispatch* CMainFrame::GetDispatch()
@@ -163,8 +163,8 @@ BOOL CMainFrame::RemoveToolBar(HWND hWnd)
    // Remove it from the UI map
    int i;
    for( i = 0; i < m_UIElements.GetSize(); i++ ) {
-      _AtlUpdateUIElement& e = m_UIElements[i];
-      if( e.m_hWnd = hWnd ) {
+      const _AtlUpdateUIElement& e = m_UIElements[i];
+      if( e.m_hWnd == hWnd ) {
          m_UIElements.RemoveAt(i);
          break;
       }

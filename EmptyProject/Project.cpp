@@ -560,7 +560,7 @@ bool CEmptyProject::OpenView(LPCTSTR pstrFilename, long lLineNum)
    return pView->OpenView(lLineNum) == TRUE;
 }
 
-IView* CEmptyProject::FindView(LPCTSTR pstrFilename, bool bLocally/* = false*/) const
+IView* CEmptyProject::FindView(LPCTSTR pstrFilename, bool bLocally /*= false*/) const
 {
    ATLASSERT(!::IsBadStringPtr(pstrFilename,-1));
    // Prepare filename (strip path)
@@ -896,7 +896,7 @@ bool CEmptyProject::_CheckProjectFile(LPCTSTR pstrName)
    // project filelist.
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       CString sName;
-      m_aFiles[i]->GetName(sName.GetBufferSetLength(128), 128);
+      m_aFiles[i]->GetName(sName.GetBufferSetLength(MAX_PATH), MAX_PATH);
       sName.ReleaseBuffer();
       if( sName.CompareNoCase(pstrName) == 0 ) {
          ::SetLastError(0L);

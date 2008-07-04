@@ -28,10 +28,18 @@ class CRemoteProject;
 // The extra command-line does produce any output, but as soon as we see it executed in
 // the shell prompt, we'll stop the connection.
 #define TERM_MARKER _T("###BVRDE###")
+#define TERM_MARKER_LINE _T("$ ###BVRDE###")
 
 
 #define FR_WRAP  0x40000000
 #define FR_INSEL 0x20000000
+
+#define FINDVIEW_FULLPATH      0x00000000
+#define FINDVIEW_NAMEONLY      0x00000001
+#define FINDVIEW_ALLPROJECTS   0x00000002
+#define FINDVIEW_DEPENDENCIES  0x00000004
+#define FINDVIEW_ALL           0x000000ff
+
 
 enum
 {
@@ -290,7 +298,7 @@ public:
    CAutoFree(SIZE_T iSize) { cSize = iSize; pData = malloc(iSize); };
    ~CAutoFree() { free(pData); };
    T* GetData() const { return static_cast<T*>(pData); };
-   T* Detach() const { T* p = pData; pData = NULL; return p; };
+   T* Detach() const { T* p = static_cast<T*>(pData); pData = NULL; return p; };
    SIZE_T GetSize() { return cSize; };
 };
 

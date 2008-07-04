@@ -197,8 +197,7 @@ LRESULT CRemoteDirView::OnBeginDrag(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
 
 LRESULT CRemoteDirView::OnItemOpen(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
-   CWaitCursor cursor;
-  
+   CWaitCursor cursor; 
    // Is selected item a directory? 
    // We need to navigate into the subfolder then...
    if( m_ctrlFiles.GetSelectedCount() != 1 ) return 0;
@@ -212,7 +211,7 @@ LRESULT CRemoteDirView::OnItemOpen(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHa
    }
    else {
       ATLASSERT(m_pProject);
-      m_pProject->OpenView(m_sPath + sFilename, 0, true);
+      m_pProject->OpenView(m_sPath + sFilename, 1, FINDVIEW_FULLPATH | FINDVIEW_ALLPROJECTS | FINDVIEW_DEPENDENCIES, true);
    }
    return 0;
 }

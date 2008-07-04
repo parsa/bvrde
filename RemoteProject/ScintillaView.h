@@ -65,7 +65,7 @@ public:
    IView* m_pView;                                   // Reference to the view
    CString m_sFilename;                              // Name of file
    CString m_sLanguage;                              // Language
-   CString m_sOutputToken;                           // Match substring for compile view
+   CString m_sOutputToken[3];                        // Match substring for compile view
    bool m_bAutoIndent;                               // Do we need to auto-indent text?
    bool m_bSmartIndent;                              // Do we need to smart-indent text?
    bool m_bProtectDebugged;                          // Read-Only file when debugging?

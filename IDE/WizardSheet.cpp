@@ -294,6 +294,7 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    m_ctrlStartup = GetDlgItem(IDC_STARTUP);
    m_ctrlLanguage = GetDlgItem(IDC_LANGUAGE);
    m_ctrlGreyed = GetDlgItem(IDC_GREYED);
+   m_ctrlMultiInstance = GetDlgItem(IDC_MULTIINSTANCE);
 
    TCHAR szBuffer[32] = { 0 };
    m_pDevEnv->GetProperty(_T("gui.main.client"), szBuffer, 31);
@@ -315,6 +316,9 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    else if( _tcscmp(szBuffer, _T("blank")) == 0 ) m_ctrlStartup.SetCurSel(3);
    else m_ctrlStartup.SetCurSel(0);
 
+   m_pDevEnv->GetProperty(_T("gui.main.multiInstance"), szBuffer, 31);
+   if( _tcscmp(szBuffer, _T("true")) == 0 ) m_ctrlMultiInstance.Click();
+
    m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_DEFAULT)));
    m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_ENGLISH)));
    m_ctrlLanguage.AddString(CString(MAKEINTRESOURCE(IDS_LANG_GERMAN)));
@@ -324,6 +328,9 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    else if( _tcscmp(szBuffer, _T("de")) == 0 ) m_ctrlLanguage.SetCurSel(2);
    else m_ctrlLanguage.SetCurSel(0);
 
+   m_bChanged = false;
+   m_ctrlGreyed.Invalidate();
+
    return 0;
 }
 
@@ -331,11 +338,13 @@ LRESULT CGeneralOptionsPage::OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM l
 {
    bHandled = FALSE;
    if( (HWND) lParam != m_ctrlGreyed ) return 0;
+   // When user changes the language setting we change the color of the
+   // notice label too so user is aware of the need to restart the app.
    bHandled = TRUE;
    LRESULT lRes = DefWindowProc();
    CDCHandle dc = (HDC) wParam;
    dc.SetBkMode(TRANSPARENT);
-   dc.SetTextColor(::GetSysColor(COLOR_BTNSHADOW));
+   dc.SetTextColor(::GetSysColor(m_bChanged ? COLOR_HIGHLIGHT : COLOR_BTNSHADOW));
    return (LPARAM) ::GetStockObject(HOLLOW_BRUSH);
 }
 
@@ -358,11 +367,20 @@ int CGeneralOptionsPage::OnApply()
    if( m_ctrlLanguage.GetCurSel() == 2 ) _tcscpy(szBuffer, _T("de"));
    m_pDevEnv->SetProperty(_T("gui.main.language"), szBuffer);
 
+   m_pDevEnv->SetProperty(_T("gui.main.multiInstance"), m_ctrlMultiInstance.GetCheck() == BST_CHECKED ? _T("true") : _T("false"));
+
    m_pArc->ReadItem(_T("Gui"));
    m_pArc->Write(_T("client"), szClientType);
    m_pArc->Write(_T("start"), szStartType);
 
    return PSNRET_NOERROR;
+}
+
+LRESULT CGeneralOptionsPage::OnChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+   m_bChanged = true;
+   m_ctrlGreyed.Invalidate();
+   return 0;
 }
 
 

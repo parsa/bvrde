@@ -56,12 +56,12 @@ void CBreakpointView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
          Info.sFile = info.GetSubItem(_T("file"));
          Info.sFunc = info.GetSubItem(_T("func"));
          Info.iLineNum = _ttol(info.GetSubItem(_T("line")));
-         Info.bEnabled = info.GetSubItem(_T("enabled")) == _T("y");
+         Info.bEnabled = (info.GetSubItem(_T("enabled")) == _T("y"));
          Info.sAddress = info.GetSubItem(_T("addr"));
          Info.iIgnoreCount = _ttoi(info.GetSubItem(_T("ignore")));
          Info.sCondition = info.GetSubItem(_T("cond"));
          Info.iHitCount = _ttoi(info.GetSubItem(_T("times")));
-         Info.bTemporary = info.GetSubItem(_T("disp")) == _T("del");
+         Info.bTemporary = (info.GetSubItem(_T("disp")) == _T("del"));
          m_aItems.Add(Info);
 
          int iIndex = m_aItems.GetSize() - 1;
@@ -171,7 +171,7 @@ LRESULT CBreakpointView::OnItemOpenSource(WORD /*wNotifyCode*/, WORD /*wID*/, HW
    int iItem = m_ctrlList.GetSelectedIndex();
    if( iItem < 0 ) return 0;
    const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
-   m_pProject->OpenView(Info.sFile, Info.iLineNum, true);
+   m_pProject->OpenView(Info.sFile, Info.iLineNum, FINDVIEW_ALL, true);
    return 0;
 }
 

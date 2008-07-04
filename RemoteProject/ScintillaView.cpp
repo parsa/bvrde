@@ -364,7 +364,8 @@ LRESULT CScintillaView::OnEditOpenInclude(WORD /*wNotifyCode*/, WORD /*wID*/, HW
    CWaitCursor cursor;
    long lPos = m_ctrlEdit.GetCurrentPos();
    CString sIncludeFile = _FindIncludeUnderCursor(lPos);
-   if( !sIncludeFile.IsEmpty() ) m_pCppProject->OpenView(sIncludeFile, 1, true);
+   if( sIncludeFile.IsEmpty() ) return 0;
+   if( !m_pCppProject->OpenView(sIncludeFile, 1, FINDVIEW_ALL, true) ) ::MessageBeep((UINT)-1);
    return 0;
 }
 
@@ -374,7 +375,7 @@ LRESULT CScintillaView::OnEditOpenDeclaration(WORD /*wNotifyCode*/, WORD /*wID*/
    long lPos = m_ctrlEdit.GetCurrentPos();
    CTagDetails Info;
    if( !_GetMemberInfo(lPos, Info, 500, MATCH_NORMAL) || Info.sFilename.IsEmpty() ) return 0;
-   if( !m_pCppProject->m_TagManager.OpenTagInView(Info) ) return 0;
+   if( !m_pCppProject->m_TagManager.OpenTagInView(Info) ) ::MessageBeep((UINT)-1);
    return 0;
 }
 
@@ -383,10 +384,10 @@ LRESULT CScintillaView::OnEditOpenImplementation(WORD /*wNotifyCode*/, WORD /*wI
    CWaitCursor cursor;
    long lPos = m_ctrlEdit.GetCurrentPos();
    CTagDetails Info;
-   if( !_GetMemberInfo(lPos, Info, 500, MATCH_NORMAL) || Info.sFilename.IsEmpty() ) return 0;
    CTagDetails ImplInfo;
+   if( !_GetMemberInfo(lPos, Info, 500, MATCH_NORMAL) || Info.sFilename.IsEmpty() ) return 0;
    if( !m_pCppProject->m_TagManager.FindImplementationTag(Info, ImplInfo) ) return 0;
-   if( !m_pCppProject->m_TagManager.OpenTagInView(ImplInfo) ) return 0;
+   if( !m_pCppProject->m_TagManager.OpenTagInView(ImplInfo) ) ::MessageBeep((UINT)-1);
    return 0;
 }
 
@@ -573,7 +574,9 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
       {
          _ClearAllSquigglyLines();
          if( m_pCppProject != NULL && m_bMarkErrors ) {
-            m_sOutputToken.Format(_T("%s:"), ::PathFindFileName(m_sFilename));
+            m_sOutputToken[0].Format(_T("%s:"), ::PathFindFileName(m_sFilename));
+            m_sOutputToken[1].Format(_T("%s, line"), ::PathFindFileName(m_sFilename));
+            m_sOutputToken[2].Format(_T("\"%s\", line"), ::PathFindFileName(m_sFilename));
             m_pCppProject->m_CompileManager.m_ShellManager.AddLineListener(this);
          }
       }
@@ -754,7 +757,6 @@ LRESULT CScintillaView::OnDwellEnd(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHand
 
 LRESULT CScintillaView::OnAutoExpand(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
-   USES_CONVERSION;
    bHandled = FALSE;
    // We just expanded an item from the autocomplete list.
    // Do we need to add the starting function brace?
@@ -816,14 +818,21 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 {
    // Ignore some sterotypic messages
    if( _tcsstr(pstrText, _T("warning")) != NULL ) return;
+   if( _tcsstr(pstrText, _T("Warning")) != NULL ) return;
 
    // This part assumes that the compiler output is formatted as
    //   <filename>:<line>
-   // The variable 'm_sOutputToken' contains the editor's filename.
-   LPCTSTR pstrToken = _tcsstr(pstrText, m_sOutputToken);
+   //   <filename>, line <line>
+   //   "<filename>", line <line>
+   int iToken = 0;
+   LPCTSTR pstrToken = NULL;
+   for( iToken = 0; iToken < 3; iToken++ ) {
+      pstrToken = _tcsstr(pstrText, m_sOutputToken[iToken]);
+      if( pstrToken != NULL ) break;
+   }
    if( pstrToken == NULL ) return;
    if( pstrToken != pstrText && _iscppcharw(*(pstrToken - 1)) ) return;
-   int iLineNum = _ttoi(pstrToken + m_sOutputToken.GetLength());
+   int iLineNum = _ttoi(pstrToken + m_sOutputToken[iToken].GetLength());
    if( iLineNum == 0 ) return;
    --iLineNum;
 
@@ -1063,15 +1072,17 @@ void CScintillaView::_AutoComplete(int ch)
    TCHAR szText[200] = { 0 };
    SIZE_T cchText = 200 - 4;
    for( int i = 0; i < nCount; i++ ) {
+      const TAGINFO* pTag = aList[i];
       // Avoid duplicated names in list
-      if( i > 0 && _tcscmp(aList[i]->pstrName, aList[i - 1]->pstrName) == 0 ) continue;
+      if( i > 0 && _tcscmp(pTag->pstrName, aList[i - 1]->pstrName) == 0 ) continue;
       // Don't include operator overloads
-      if( !_iscppcharw(aList[i]->pstrName[0]) ) continue;
-      if( _tcschr(aList[i]->pstrName, ' ') != NULL ) continue;
+      if( !_iscppcharw(pTag->pstrName[0]) ) continue;
+      if( _tcschr(pTag->pstrName, ' ') != NULL ) continue;
+      // Don't include decendant types
+      if( pTag->Type == TAGTYPE_TYPEDEF || pTag->Type == TAGTYPE_CLASS ) continue;
       // Add this baby...
-      _tcsncpy(szText, aList[i]->pstrName, cchText);
-      szText[cchText] = '\0';
-      _tcscat(szText, aList[i]->Type == TAGTYPE_MEMBER ? _T("?0|") : _T("?1|"));
+      _tcsncpy(szText, pTag->pstrName, cchText); szText[cchText] = '\0';
+      _tcscat(szText, pTag->Type == TAGTYPE_MEMBER ? _T("?0|") : _T("?1|"));
       sList += szText;
    }
    sList.TrimRight(_T("|"));
@@ -1195,6 +1206,7 @@ void CScintillaView::_ShowToolTip(long lPos, CString sText, bool bAdjustPos, boo
    USES_CONVERSION;
    m_ctrlEdit.CallTipShow(lPos, T2CA(sText));
 
+   // Cancel tooltip when cursor moves out of hover-state?
    m_bDwellEnds = bAcceptTimeout;
 
    // Locate the new tip window and move it around.
@@ -1229,8 +1241,6 @@ void CScintillaView::_ShowToolTip(long lPos, CString sText, bool bAdjustPos, boo
  */
 void CScintillaView::_ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCurTip, bool bFilterMembers, bool bExpand, bool bAdjustPos, bool bAcceptTimeout, COLORREF clrText, COLORREF clrBack)
 {
-   USES_CONVERSION;
-
    // Providing new tip information?
    // This happens when the debugger delivers delayed debugging informatation. We should
    // expand the tooltip text with the new debugger data.
@@ -1243,7 +1253,6 @@ void CScintillaView::_ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCur
       m_TipInfo.sMemberName = pInfo->sName;
       m_TipInfo.sMemberType = pInfo->sBase;
       m_TipInfo.sMemberScope = pInfo->sMemberOfScope;
-      m_TipInfo.sMemberNamespace = pInfo->sNamespace;
       m_TipInfo.bExpand = bExpand;
       // Collect declarations...
       m_TipInfo.aDecl.RemoveAll();
@@ -1269,7 +1278,7 @@ void CScintillaView::_ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCur
       int iLineNum = m_ctrlEdit.LineFromPosition(lPos);
       if( m_ctrlEdit.GetLineLength(iLineNum) < sizeof(szLine) - 1 ) {
          m_ctrlEdit.GetLine(iLineNum, szLine);
-         int nCommas = _CountCommas(A2CT(szLine));
+         int nCommas = _CountCommas(CString(szLine));
          for( int i = 0; i < m_TipInfo.aDecl.GetSize(); i++ ) {
             if( _CountCommas(m_TipInfo.aDecl[i]) == nCommas ) lCurTip = i;
          }
@@ -1296,7 +1305,7 @@ void CScintillaView::_ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCur
 
    // Expand function names with scope-type?
    // This is nice for the debug watch, since we append more information
-   // to the tooltip text.
+   // to the tooltip text. So this is pretty-printing mostly.
    if( m_TipInfo.bExpand 
        && !m_TipInfo.sMemberScope.IsEmpty() 
        && sText.FindOneOf(_T("{<")) < 0
