@@ -181,7 +181,6 @@ bool CShellManager::RemoveLineListener(IOutputLineListener* pListener)
 void CShellManager::BroadcastLine(VT100COLOR Color, LPCTSTR pstrText)
 {
    ATLASSERT(!::IsBadStringPtr(pstrText,-1));
-
    // NOTE: To avoid too many dead-locks we make
    //       a copy of the listeners instead of locking the data array
    //       for a considerable time.

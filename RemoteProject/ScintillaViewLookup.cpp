@@ -415,6 +415,7 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
             _T("long"),
             _T("float"),
             _T("double"),
+            _T("auto"),
             _T("void"),
             _T("signed"),
             _T("unsigned"),

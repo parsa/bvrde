@@ -435,16 +435,19 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
       // Some of the derived styles need some adjustment
       // so they conform with the color-scheme.
+      // Derive Bracelight color from script when used with a
+      // PHP or other scripting language.
+      int iBraceIndex = m_sLanguage == _T("html") ? 1 : 6;
       syntax[7] = syntax[6];
       syntax[7].clrText = BlendRGB(syntax[6].clrText, RGB(0,0,0), 40);
       syntax[8] = syntax[0];
       syntax[8].clrText = RGB(100,0,0);
       syntax[8].bBold = true;
-      syntax[9] = syntax[1];
-      syntax[9].clrText = BlendRGB(syntax[1].clrText, RGB(0,0,0), 20);
-      syntax[9].clrBack = BlendRGB(syntax[1].clrBack, RGB(0,0,0), 8);
+      syntax[9] = syntax[iBraceIndex];
+      syntax[9].clrText = BlendRGB(syntax[iBraceIndex].clrText, RGB(0,0,0), 20);
+      syntax[9].clrBack = BlendRGB(syntax[iBraceIndex].clrBack, RGB(0,0,0), 8);
       syntax[9].bBold = true;
-      syntax[10] = syntax[1];
+      syntax[10] = syntax[iBraceIndex];
       syntax[10].clrText = RGB(200,0,0);
       syntax[10].bBold = true;
    }

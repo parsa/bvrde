@@ -114,7 +114,8 @@ DWORD CCompileThread::Run()
             // A send error occured.
             // Need to broadcast termination marker to allow
             // gracefull closure of views
-            m_pManager->m_ShellManager.BroadcastLine(VT100_HIDDEN, TERM_MARKER);
+            m_pManager->m_ShellManager.BroadcastLine(VT100_HIDDEN, TERM_MARKER_LINE);
+            m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_NETWORKWRITE)));
             // We should stop now
             m_pManager->SignalStop();
             // Let's just remove the remaining commands (if any was added
@@ -122,8 +123,6 @@ DWORD CCompileThread::Run()
             m_cs.Lock();
             m_aCommands.RemoveAll();
             m_cs.Unlock();
-            // Update statusbar
-            m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_NETWORKWRITE)));
             return 0;
          }
          ::Sleep(200L);  // FIX: Don't rush things; overlapping stdin/stdout
@@ -154,7 +153,7 @@ bool CCompileThread::IsQueueEmpty()
 // This flag is a 'static' because we want all projects
 // in a Solution to be aware of this state.
 // It signals that some project is currently compiling.
-bool volatile CCompileManager::s_bBusy = false;
+volatile bool CCompileManager::s_bBusy = false;
 
 
 CCompileManager::CCompileManager() :
@@ -319,17 +318,17 @@ void CCompileManager::SignalStop()
    m_Flags = 0;
 }
 
-bool CCompileManager::IsBusy() const
+bool CCompileManager::IsBusy()
 {
    return s_bBusy;
 }
 
-bool CCompileManager::IsConnected() const
+bool CCompileManager::IsConnected()
 {
    return m_CompileThread.IsRunning() && m_ShellManager.IsConnected();
 }
 
-bool CCompileManager::IsCompiling() const
+bool CCompileManager::IsCompiling()
 {
    return m_bCompiling || m_RebuildThread.IsRunning() == TRUE;
 }
@@ -411,9 +410,9 @@ bool CCompileManager::DoAction(LPCTSTR pstrName, LPCTSTR pstrParams /*= NULL*/, 
    if( sName == _T("Stop") ) {
       SignalStop();
       m_RebuildThread.SignalStop();
-      // Update state now
-      m_ShellManager.BroadcastLine(VT100_RED, CString(MAKEINTRESOURCE(IDS_ERR_BUILDSTOPPED)));
-      m_ShellManager.BroadcastLine(VT100_HIDDEN, TERM_MARKER_LINE);
+      // Update state...
+      m_pProject->DelayedCompilerBroadcast(VT100_RED, CString(MAKEINTRESOURCE(IDS_ERR_BUILDSTOPPED)));
+      m_pProject->DelayedCompilerBroadcast(VT100_HIDDEN, TERM_MARKER_LINE);
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_STOPPED)));
       ::PlaySound(_T("BVRDE_BuildCancelled"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT);
       return true;
@@ -616,8 +615,8 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    // Change statusbar and idle animation
    CString sStatus;
    sStatus.Format(IDS_STATUS_STARTED, m_sProcessName);
-   long lAnim = (Flags & (COMPFLAG_IGNOREOUTPUT | COMPFLAG_COMMANDMODE)) == 0 ? ANIM_BUILD : ANIM_TRANSFER;
    m_pProject->DelayedStatusBar(sStatus);
+   long lAnim = (Flags & (COMPFLAG_IGNOREOUTPUT | COMPFLAG_COMMANDMODE)) == 0 ? ANIM_BUILD : ANIM_TRANSFER;
    m_pProject->DelayedGuiAction(GUI_ACTION_PLAY_ANIMATION, NULL, lAnim);
 
    m_ShellManager.AddLineListener(this);

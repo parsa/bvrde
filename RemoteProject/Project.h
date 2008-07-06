@@ -170,6 +170,7 @@ public:
    void DelayedDebugBreakpoint(LPCTSTR pstrFilename, int iLineNum);
    void DelayedDebugEvent(LAZYACTION event = LAZY_DEBUG_BREAK_EVENT);
    void DelayedDebugInfo(LPCTSTR pstrCommand, CMiInfo& info);
+   void DelayedCompilerBroadcast(VT100COLOR Color, LPCTSTR pstrText);
    void DelayedClassTreeInfo(LPCTSTR pstrFilename, LEXFILE* pFile);
 
    static void InitializeToolBars();

@@ -1049,7 +1049,7 @@ LRESULT CMainFrame::OnUserIdle(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
 {  
    // Start the once-in-a-lifetime event to background load important system DLLs
    static long s_once = 0;
-   if( s_once++ == 0 ) SetTimer(DELAY_TIMERID, 500L);
+   if( ++s_once == 1 ) SetTimer(DELAY_TIMERID, 500L);
    return 0;
 }
 

@@ -84,17 +84,15 @@ public:
 
    void Init(CRemoteProject* pProject);
 
-   // ICompileManager
-
    void Clear();
    bool Load(ISerializable* pArc);
    bool Save(ISerializable* pArc);
    bool Start();
    bool Stop();
    void SignalStop();
-   bool IsBusy() const;
-   bool IsCompiling() const;
-   bool IsConnected() const;
+   bool IsBusy();
+   bool IsCompiling();
+   bool IsConnected();
 
    bool DoAction(LPCTSTR pstrName, LPCTSTR pstrParams = NULL, UINT Flags = 0);
    bool DoRebuild();

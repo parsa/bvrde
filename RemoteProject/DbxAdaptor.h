@@ -40,6 +40,7 @@ private:
    void _GetLocationArgs(const CSimpleArray<CString>& aArgs, int& iIndex, DBXLOCATION& Location) const;
    void _GetInputFileLineArgs(const CString sArg, CString& sFile, CString& sLineNum) const;
    void _ParseLocationArgs(const CString sCommand, DBXLOCATION& Location) const;
+   bool _HasSignalSignature(LPCTSTR pstrText) const;
 
 // Data members
 private:

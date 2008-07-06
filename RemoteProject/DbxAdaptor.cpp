@@ -454,10 +454,8 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             // the debugger stopped <sigh>. Attempt all known constructs.
             // BUG: This could very well collide with program output.
             //      Replace this with regex expressions!
-            CString sCommandCase = sCommand;
             sCommand.MakeLower();
             if( sCommand == _T("stopped") 
-                || sCommand == _T("bus") 
                 || sCommand == _T("thread") 
                 || sCommand == _T("signal") 
                 || sCommand == _T("program") 
@@ -467,20 +465,13 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                 || sCommand == _T("terminated") 
                 || sCommand == _T("unexpected") 
                 || sCommand == _T("segmentation") 
-                || sCommandCase.Find(_T("SIG")) == 0 
-                || sCommandCase.Find(_T("SEGV")) == 0 
-                || sCommandCase.Find(_T(" in file ")) > 0 ) 
+                || _HasSignalSignature(sCommand)
+                || sCommand.Find(_T(" in file ")) > 0 ) 
             {
                CString sReasonValue, sReason = _T("end-stepping-range");
                if( lBreakpointNo > 0 ) {
                   sReason = _T("breakpoint-hit");
                   sReasonValue.Format(_T("bkptno=\"%ld\","), lBreakpointNo);
-               }
-               if( sCommand == _T("bus") ) {
-                  // bus error in main at line 25
-                  _SkipArg(aArgs, iIndex, _T("error"));
-                  sReason = _T("signal");
-                  sReasonValue.Format(_T("signal-name=\"Signal %s\",signal-meaning=\"%s\","), sCommand, sCommand);
                }
                if( sCommand == _T("thread") ) {
                   // thread 0x81c62e80 stopped at [main:21, 0x12000730c]
@@ -514,7 +505,8 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                   // Unexpected signal SIGINT received
                   _SkipArg(aArgs, iIndex, _T("signal"));
                   CString sName = _GetArg(aArgs, iIndex);
-                  if( sName.Find(_T("SIG")) != 0 && sName.Find(_T("SEGV")) != 0 ) break;
+                  sName.MakeLower();
+                  if( !_HasSignalSignature(sName) ) break;
                   sReason = _T("signal-received");
                   sReasonValue.Format(_T("signal-name=\"Signal %s\","), sName);
                }
@@ -536,9 +528,10 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                      sReasonValue.Format(_T("signal-name=\"Signal %s\",signal-meaning=\"%s\","), sName, sMeaning);
                   }
                }
-               if( sCommandCase.Find(_T("SIG")) == 0 || sCommandCase.Find(_T("SEGV")) == 0 ) {
+               if( _HasSignalSignature(sCommand) ) {
                   // SEGV received
-                  CString sName = sCommandCase;
+                  // bus error in main at line 25
+                  CString sName = sCommand;
                   CString sMeaning = _GetArg(aArgs, iIndex);
                   sReason = _T("signal-received");
                   sReasonValue.Format(_T("signal-name=\"Signal %s\",signal-meaning=\"%s\","), sName, sMeaning);
@@ -990,6 +983,13 @@ bool CDbxAdaptor::_SkipArg(const CSimpleArray<CString>& aArgs, int& iIndex, LPCT
    if( _tcscmp(aArgs[iIndex], pstrMatch) != 0 ) return false;
    iIndex++;
    return true;
+}
+
+bool CDbxAdaptor::_HasSignalSignature(LPCTSTR pstrText) const
+{
+   if( _tcsncmp(pstrText, _T("sig"), 3) == 0 ) pstrText += 3;
+   static LPCTSTR pstrSigs = _T("hup int quit ill trap abrt emt fpe kill bus segv sys pipe alrm term usr1 usr2 chld pwr winch urg io stop tstp cont ttin ttou vtalrm prof xcpu xfsz ");
+   return (_tcsstr(pstrSigs, pstrText) != NULL);
 }
 
 /**

@@ -117,16 +117,14 @@ LRESULT COutputView::OnLButtonDblClk(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
       // Extract line number
       // Variations supported are:
       //    filename:x
+      //    filename(x)
       //    filename line x
       //    filename, line x
       //    "filename", line x
       long lLineNum = 0;
-      if( pstr[iEnd] == '\"' ) iEnd++;
-      if( pstr[iEnd] == ',' ) iEnd++;
+      while( _tcschr(_T("(\",):"), pstr[iEnd]) != NULL ) iEnd++;
       while( pstr[iEnd] == ' ' ) iEnd++;
-      if( pstr[iEnd] == ':' ) iEnd++; 
-      if( _tcsncmp(pstr + iEnd, _T("line"), 4) == 0 ) iEnd += 4; 
-      while( pstr[iEnd] == ' ' ) iEnd++;
+      if( _tcsncmp(pstr + iEnd, _T("line "), 5) == 0 ) iEnd += 5;
       if( _istdigit(pstr[iEnd]) ) lLineNum = _ttol(pstr + iEnd);
 
       // Locate file in any project. Start with active project first...

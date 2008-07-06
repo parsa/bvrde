@@ -109,6 +109,11 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             iFlags = data.iFlags;
          }
          break;
+      case LAZY_COMPILER_LINE:
+         {
+            m_CompileManager.m_ShellManager.BroadcastLine(data.Color, data.szMessage);
+         }
+         break;
       case LAZY_SET_STATUSBARTEXT:
          {
             _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, data.szMessage, TRUE);
@@ -384,6 +389,17 @@ void CRemoteProject::DelayedClassTreeInfo(LPCTSTR pstrFilename, LEXFILE* pLexFil
    data.Action = LAZY_CLASSTREE_INFO;
    data.pLexFile = pLexFile;
    _tcscpy(data.szFilename, pstrFilename);
+   m_aLazyData.Add(data);
+   m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
+}
+
+void CRemoteProject::DelayedCompilerBroadcast(VT100COLOR Color, LPCTSTR pstrText)
+{
+   CLockDelayedDataInit lock;
+   LAZYDATA data;
+   data.Action = LAZY_COMPILER_LINE;
+   data.Color = Color;
+   _tcscpy(data.szMessage, pstrText);
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }

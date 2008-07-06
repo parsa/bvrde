@@ -151,12 +151,12 @@ BEGIN
                     ES_AUTOVSCROLL | ES_READONLY
 END
 
-IDD_CONFIG_SOUNDS DIALOG DISCARDABLE  0, 0, 210, 198
+IDD_CONFIG_SOUNDS DIALOG DISCARDABLE  0, 0, 253, 198
 STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD
 FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Klänge werden im Kontrollpanel 'Sounds und Multimedia' konfiguriert",
-                    IDC_STATIC,7,7,196,19
+                    IDC_STATIC,7,7,239,19
     PUSHBUTTON      "Kontrollpanel öffnen",IDC_LAUNCH,84,34,108,14
 END
 
@@ -610,7 +610,7 @@ BEGIN
     IDD_CONFIG_SOUNDS, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 203
+        RIGHTMARGIN, 246
         TOPMARGIN, 7
         BOTTOMMARGIN, 191
     END
@@ -1261,12 +1261,12 @@ BEGIN
     PUSHBUTTON      "IDI_LOAD1",IDC_DOWN,239,7,13,13,BS_ICON
 END
 
-IDD_CONFIG_SOUNDS DIALOGEX 0, 0, 210, 198
+IDD_CONFIG_SOUNDS DIALOG DISCARDABLE  0, 0, 254, 198
 STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Sounds are configured in the Windows Sounds and Audio Control Panel applet.",
-                    IDC_STATIC,7,7,196,19
+                    IDC_STATIC,7,7,240,19
     PUSHBUTTON      "Launch Sounds applet",IDC_LAUNCH,84,34,108,14
 END
 
@@ -1744,7 +1744,7 @@ BEGIN
     IDD_CONFIG_SOUNDS, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 203
+        RIGHTMARGIN, 247
         TOPMARGIN, 7
         BOTTOMMARGIN, 191
     END

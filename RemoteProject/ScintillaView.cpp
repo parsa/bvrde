@@ -573,10 +573,13 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
    case DEBUG_CMD_COMPILE_START:
       {
          _ClearAllSquigglyLines();
+         // If settings imply that we should mark errors picked up from the compiler output
+         // we configure the filename match strings now.
          if( m_pCppProject != NULL && m_bMarkErrors ) {
-            m_sOutputToken[0].Format(_T("%s:"), ::PathFindFileName(m_sFilename));
-            m_sOutputToken[1].Format(_T("%s, line"), ::PathFindFileName(m_sFilename));
-            m_sOutputToken[2].Format(_T("\"%s\", line"), ::PathFindFileName(m_sFilename));
+            m_aOutputToken[0].Format(_T("%s:"), ::PathFindFileName(m_sFilename));
+            m_aOutputToken[1].Format(_T("%s("), ::PathFindFileName(m_sFilename));
+            m_aOutputToken[2].Format(_T("%s, line"), ::PathFindFileName(m_sFilename));
+            m_aOutputToken[3].Format(_T("\"%s\", line"), ::PathFindFileName(m_sFilename));
             m_pCppProject->m_CompileManager.m_ShellManager.AddLineListener(this);
          }
       }
@@ -822,17 +825,19 @@ void CScintillaView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 
    // This part assumes that the compiler output is formatted as
    //   <filename>:<line>
+   //   <filename>(<line>)
    //   <filename>, line <line>
    //   "<filename>", line <line>
    int iToken = 0;
    LPCTSTR pstrToken = NULL;
-   for( iToken = 0; iToken < 3; iToken++ ) {
-      pstrToken = _tcsstr(pstrText, m_sOutputToken[iToken]);
+   for( iToken = 0; iToken < sizeof(m_aOutputToken) / sizeof(m_aOutputToken[0]); iToken++ ) {
+      pstrToken = _tcsstr(pstrText, m_aOutputToken[iToken]);
       if( pstrToken != NULL ) break;
    }
    if( pstrToken == NULL ) return;
    if( pstrToken != pstrText && _iscppcharw(*(pstrToken - 1)) ) return;
-   int iLineNum = _ttoi(pstrToken + m_sOutputToken[iToken].GetLength());
+
+   int iLineNum = _ttoi(pstrToken + m_aOutputToken[iToken].GetLength());
    if( iLineNum == 0 ) return;
    --iLineNum;
 
