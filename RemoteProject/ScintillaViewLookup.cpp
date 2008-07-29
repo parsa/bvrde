@@ -310,6 +310,7 @@ CString CScintillaView::_UndecorateType(CString sType)
       _T("typedef "), 
       _T("struct "), 
       _T("enum "), 
+      _T("constexpr "), 
       NULL 
    };
    for( LPCTSTR* pp = ppstrKeywords; *pp != NULL; pp++ ) sType.Replace(*pp, _T(""));

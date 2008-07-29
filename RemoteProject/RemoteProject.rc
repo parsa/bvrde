@@ -1307,6 +1307,8 @@ BEGIN
     IDS_SYMBOLVIEW          "Find Symbols"
     IDS_FILTER_COREFILES    "Core Dataien|core*;core*.*;|Alle Dateien|*.*|"
     IDS_ERR_BUILDSTOPPED    "Session stopped by user."
+    IDS_STATUS_DEBUG_ADDRESS 
+                            "  Angehalten an Haltepunkt aus %s (Datei nicht im Projekt)..."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -2789,6 +2791,8 @@ BEGIN
     IDS_SYMBOLVIEW          "Find Symbols"
     IDS_FILTER_COREFILES    "Core Dump files|core*;core*.*;|All Files|*.*|"
     IDS_ERR_BUILDSTOPPED    "Session stopped by user."
+    IDS_STATUS_DEBUG_ADDRESS 
+                            "  Stopped at breakpoint at %s (file not in project)..."
 END
 
 STRINGTABLE DISCARDABLE 

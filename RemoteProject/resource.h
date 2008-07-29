@@ -284,6 +284,7 @@
 #define IDS_SYMBOLVIEW                  316
 #define IDS_FILTER_COREFILES            317
 #define IDS_ERR_BUILDSTOPPED            318
+#define IDS_STATUS_DEBUG_ADDRESS        319
 #define IDC_LIST                        1000
 #define IDC_FOLDER                      1001
 #define IDC_BACK                        1003

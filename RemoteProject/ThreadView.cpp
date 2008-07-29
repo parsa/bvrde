@@ -28,6 +28,7 @@ void CThreadView::Init(CRemoteProject* pProject)
 {
    m_pProject = pProject;
    m_dwCurThread = 1;
+   m_dblDbgVersion = 0.0;
 }
 
 bool CThreadView::WantsData() 
@@ -39,19 +40,45 @@ bool CThreadView::WantsData()
 
 void CThreadView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
-   if( _tcscmp(pstrType, _T("thread-ids")) == 0 ) 
+   if( _tcscmp(pstrType, _T("bvrde_init")) == 0 ) 
+   {
+      LPTSTR pstrTemp = NULL;
+      m_dblDbgVersion = _tcstod(m_pProject->m_DebugManager.GetParam(_T("DebuggerVersion")), &pstrTemp);
+   }
+   else if( _tcscmp(pstrType, _T("thread-ids")) == 0 ) 
    {
       SetRedraw(FALSE);
       DeleteAllItems();
-      CString sValue = info.GetItem(_T("thread-id"));
-      while( !sValue.IsEmpty() ) {
-         CString sText;
-         sText.Format(IDS_THREAD, sValue, sValue);
+      CString sThreadId = info.GetItem(_T("thread-id"));
+      CString sText;
+      while( !sThreadId.IsEmpty() ) {
+         DWORD dwThreadId = (DWORD) _ttol(sThreadId);
+         sText.Format(IDS_THREAD, sThreadId, sThreadId);
          int iItem = InsertItem(GetItemCount(), sText);
-         DWORD dwThreadId = (DWORD) _ttol(sText);
-         SetItemData(iItem, dwThreadId);
+         SetItemData(iItem, (LPARAM) dwThreadId);
          if( m_dwCurThread == dwThreadId ) SelectItem(iItem);
-         sValue = info.FindNext(_T("thread-id"));
+         sThreadId = info.FindNext(_T("thread-id"));
+      }
+      if( GetSelectedIndex() < 0 ) SelectItem(0);
+      SetRedraw(TRUE);
+      Invalidate();
+   }
+   else if( _tcscmp(pstrType, _T("threads")) == 0 )
+   {
+      SetRedraw(FALSE);
+      DeleteAllItems();
+      CString sCurrentId = info.GetItem(_T("current-thread-id"));
+      if( !sCurrentId.IsEmpty() ) m_dwCurThread = (DWORD) _ttol(sCurrentId);
+      CString sThreadId = info.GetItem(_T("id"), _T("threads"));
+      CString sText;
+      while( !sThreadId.IsEmpty() ) {
+         CString sTarget = info.GetSubItem(_T("target-id"));
+         DWORD dwThreadId = (DWORD) _ttol(sThreadId);
+         sText.Format(_T("%ld - %s"), dwThreadId, sTarget.IsEmpty() ? sThreadId : sTarget);
+         int iItem = InsertItem(GetItemCount(), sText);
+         SetItemData(iItem, (LPARAM) dwThreadId);
+         if( m_dwCurThread == dwThreadId ) SelectItem(iItem);
+         sThreadId = info.FindNext(_T("id"), _T("threads"));
       }
       if( GetSelectedIndex() < 0 ) SelectItem(0);
       SetRedraw(TRUE);
@@ -60,23 +87,29 @@ void CThreadView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    else if( _tcscmp(pstrType, _T("stopped")) == 0 ) 
    {
       CString sValue = info.GetItem(_T("thread-id"));
-      if( !sValue.IsEmpty() ) _SelectThread(_ttol(sValue));
+      if( !sValue.IsEmpty() ) _SelectThreadId(_ttol(sValue));
    }
    else if( _tcscmp(pstrType, _T("new-thread-id")) == 0 ) 
    {
       CString sValue = info.GetItem(_T("new-thread-id"));
-      if( !sValue.IsEmpty() ) _SelectThread(_ttol(sValue));
+      if( !sValue.IsEmpty() ) _SelectThreadId(_ttol(sValue));
    }
 }
 
 void CThreadView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
 {
-   aDbgCmd.Add(CString(_T("-thread-list-ids")));
+   if( m_dblDbgVersion >= 6.9 - EPSILON ) {
+      //aDbgCmd.Add(CString(_T("-thread-info")));
+      aDbgCmd.Add(CString(_T("-thread-list-ids")));
+   }
+   else {
+      aDbgCmd.Add(CString(_T("-thread-list-ids")));
+   }
 }
 
 // Implementation
 
-void CThreadView::_SelectThread(long lThreadId)
+void CThreadView::_SelectThreadId(long lThreadId)
 {
    for( int i = 0; i < GetItemCount(); i++ ) {
       if( (long) GetItemData(i) == lThreadId ) {

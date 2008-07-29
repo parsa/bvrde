@@ -30,6 +30,7 @@ class CRemoteProject;
 #define TERM_MARKER _T("###BVRDE###")
 #define TERM_MARKER_LINE _T("$ ###BVRDE###")
 
+#define EPSILON  0.001
 
 #define FR_WRAP  0x40000000
 #define FR_INSEL 0x20000000
@@ -91,6 +92,7 @@ typedef enum LAZYACTION
    LAZY_SEND_ACTIVE_VIEW_MESSAGE,
    LAZY_SET_DEBUG_BREAKPOINT,
    LAZY_DEBUG_START_EVENT,
+   LAZY_DEBUG_INIT_EVENT,
    LAZY_DEBUG_KILL_EVENT,
    LAZY_DEBUG_BREAK_EVENT,
    LAZY_DEBUG_INFO,
@@ -110,18 +112,18 @@ typedef enum GUIACTION
 
 typedef struct tagLAZYDATA
 {
-   LAZYACTION Action;
-   HWND hWnd;
-   VT100COLOR Color;
-   TCHAR szFilename[MAX_PATH];
-   int iLineNum;
-   TCHAR szMessage[400];
-   TCHAR szCaption[128];
-   UINT iFlags;
-   WPARAM wParam;
-   IDE_HWND_TYPE WindowType;
-   LEXFILE* pLexFile;
-   CMiInfo MiInfo;
+   LAZYACTION Action;                // What action is this?
+   HWND hWnd;                        // Window handle             (often used to direct to RichEdit control in output)
+   VT100COLOR Color;                 // Color value               (used to feed compiler output)
+   TCHAR szFilename[MAX_PATH];       // Filename                  (used to set cursor/pointer in editor)
+   int iLineNum;                     // Line number               (used to set cursor/pointer in editor)
+   TCHAR szMessage[400];             // Message                   (often used for message-boxes, or compiler output)
+   TCHAR szCaption[128];             // Window Caption            (used for message-boxes)
+   UINT iFlags;                      // Flags                     (often used for message-boxes)
+   WPARAM wParam;                    // Windows Message parameter (used for sending messages)
+   IDE_HWND_TYPE WindowType;         // Window-type               (used to direct to RichEdit control in output)
+   LEXFILE* pLexFile;                // Lexer information         (used to feed class-view)
+   CMiInfo MiInfo;                   // GDB MI information        (used to feed debugger views)
 } LAZYDATA;
 
 
@@ -168,17 +170,17 @@ typedef enum TAGSOURCE
 
 typedef struct tagTAGINFO
 {
-   TAGTYPE Type;                    // Tag type (class/struct/etc)
-   LPCTSTR pstrName;                // Name of tag
-   LPCTSTR pstrFile;                // Filename of tag
-   LPCTSTR pstrOwner;               // Owner type
-   TAGPROTECTION Protection;        // Access identifier (public/protected/etc)
-   TAGSOURCE TagSource;             // What produced this tag (lex/ctags/etc)
-   LPCTSTR pstrDeclaration;         // Member declaration
-   LPCTSTR pstrNamespace;           // Namespace
-   LPCTSTR pstrRegExMatch;          // Regular.expression for lookup in file
-   LPCTSTR pstrComment;             // Comment
-   int iLineNum;                    // Line number
+   TAGTYPE Type;                     // Tag type (class/struct/etc)
+   LPCTSTR pstrName;                 // Name of tag
+   LPCTSTR pstrFile;                 // Filename of tag
+   LPCTSTR pstrOwner;                // Owner type
+   TAGPROTECTION Protection;         // Access identifier (public/protected/etc)
+   TAGSOURCE TagSource;              // What produced this tag (lex/ctags/etc)
+   LPCTSTR pstrDeclaration;          // Member declaration
+   LPCTSTR pstrNamespace;            // Namespace
+   LPCTSTR pstrRegExMatch;           // Regular.expression for lookup in file
+   LPCTSTR pstrComment;              // Comment
+   int iLineNum;                     // Line number
 } TAGINFO;
 
 typedef struct CTagDetails
@@ -316,6 +318,7 @@ BOOL EnableSystemAccessPriveledge(LPCWSTR pwstrPriv);
 BOOL MergeMenu(HMENU hMenu, HMENU hMenuSource, UINT nPosition);
 
 CString ToString(long lValue);
+CString ToString(double dblValue);
 void ConvertToCrLf(CString& s);
 CString ConvertFromCrLf(const CString& s);
 bool wildcmp(LPCTSTR wild, LPCTSTR str);

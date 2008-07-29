@@ -82,7 +82,7 @@ protected:
    //
    CSftpThread m_thread;
    CString m_sCurDir;
-   BYTE m_bVersion;
+   BYTE m_iVersion;
    DWORD m_dwMsgId;
    volatile CRYPT_SESSION m_cryptSession;
    volatile DWORD m_dwErrorCode;

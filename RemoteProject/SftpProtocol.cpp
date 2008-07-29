@@ -22,7 +22,7 @@ static CCryptLib clib;
 
 #define CONVERT_INT32(x) x = ntohl((u_long)x)
 
-#define SSH_WRITE_STR(a, x) strcpy((char*)a, T2CA(x)); a += x.GetLength()
+#define SSH_WRITE_STR(a, x) strcpy((char*)a, x); a += strlen(x)
 #define SSH_WRITE_LONG(a, x) *((LPDWORD)a) = htonl((u_long)x); a += 4
 #define SSH_WRITE_BYTE(a, x) *a++ = (BYTE)x
 #define SSH_WRITE_DATA(a, x, s) memcpy(a, x, s); a += s
@@ -30,7 +30,9 @@ static CCryptLib clib;
 #define SSH_READ_LONG(a) htonl((u_long)*(LPDWORD)a); a += 4
 #define SSH_READ_BYTE(a) *a++
 
-#define MAX_HANDLE_SIZE 80
+#define MIN_SFTP_VERSION 3
+
+#define MAX_HANDLE_SIZE 256
 
 
 enum
@@ -64,15 +66,20 @@ enum
 
 enum
 {
-  SSH_FX_OK                = 0,
-  SSH_FX_EOF               = 1,
-  SSH_FX_NO_SUCH_FILE      = 2,
-  SSH_FX_PERMISSION_DENIED = 3,
-  SSH_FX_FAILURE           = 4,
-  SSH_FX_BAD_MESSAGE       = 5,
-  SSH_FX_NO_CONNECTION     = 6,
-  SSH_FX_CONNECTION_LOST   = 7,
-  SSH_FX_OP_UNSUPPORTED    = 8,
+  SSH_FX_OK                  = 0,
+  SSH_FX_EOF                 = 1,
+  SSH_FX_NO_SUCH_FILE        = 2,
+  SSH_FX_PERMISSION_DENIED   = 3,
+  SSH_FX_FAILURE             = 4,
+  SSH_FX_BAD_MESSAGE         = 5,
+  SSH_FX_NO_CONNECTION       = 6,
+  SSH_FX_CONNECTION_LOST     = 7,
+  SSH_FX_OP_UNSUPPORTED      = 8,
+  SSH_FX_INVALID_HANDLE      = 9,
+  SSH_FX_NO_SUCH_PATH        = 10,
+  SSH_FX_FILE_ALREADY_EXISTS = 11,
+  SSH_FX_WRITE_PROTECT       = 12,
+  SSH_FX_NO_MEDIA            = 13
 };
 
 enum
@@ -216,8 +223,8 @@ DWORD CSftpThread::Run()
    if( ShouldStop() ) return 0;
 
    // Send INIT package first
-   m_pManager->m_bVersion = (BYTE) m_pManager->_SendInit();
-   if( m_pManager->m_bVersion < 3 ) {
+   m_pManager->m_iVersion = (BYTE) m_pManager->_SendInit();
+   if( m_pManager->m_iVersion < 3 ) {
       m_pManager->m_dwErrorCode = ERROR_BAD_ENVIRONMENT;
       return 0;
    }
@@ -315,7 +322,7 @@ bool CSftpProtocol::Save(ISerializable* pArc)
 bool CSftpProtocol::Start()
 {
    Stop();
-   m_bVersion = 0;
+   m_iVersion = 0;
    m_dwMsgId = 0;
    m_thread.m_pManager = this;
    if( !m_thread.Start() ) return false;
@@ -386,8 +393,6 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
    ATLASSERT(pstrFilename);
    ATLASSERT(ppOut);
 
-   USES_CONVERSION;
-
    *ppOut = NULL;
    if( pdwSize != NULL ) *pdwSize = 0;
 
@@ -396,20 +401,27 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
    // Need a valid session
    if( m_cryptSession == 0 ) return false;
 
+   USES_CONVERSION;
+
+   // SFTP Version 4 requires UTF-8 filenames
+   if( m_iVersion >= 4 ) _acp = CP_UTF8;
+
    // Construct remote filename
    CString sFilename = pstrFilename; 
    if( pstrFilename[0] != '/' && m_sCurDir.GetLength() > 1 ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
    sFilename.Replace(_T('\\'), _T('/'));
 
-   // Open file
+   LPCSTR pstrPath = T2CA(sFilename);
+
+   // Open file...
    const SIZE_T MAX_BUFFER_SIZE = 4000;
    CAutoFree<BYTE> buffer(MAX_BUFFER_SIZE);
    LPBYTE p = buffer.GetData();
-   SSH_WRITE_LONG(p, 1 + 4 + 4 + sFilename.GetLength() + 4 + 4);
+   SSH_WRITE_LONG(p, 1 + 4 + 4 + strlen(pstrPath) + 4 + 4);
    SSH_WRITE_BYTE(p, SSH_FXP_OPEN);
    SSH_WRITE_LONG(p, ++m_dwMsgId);
-   SSH_WRITE_LONG(p, sFilename.GetLength());
-   SSH_WRITE_STR(p, sFilename);
+   SSH_WRITE_LONG(p, strlen(pstrPath));
+   SSH_WRITE_STR(p, pstrPath);
    SSH_WRITE_LONG(p, SSH_FXF_READ);
    SSH_WRITE_LONG(p, 0);
    if( _WriteData(m_cryptSession, buffer.GetData(), p - buffer.GetData()) == 0 ) return false;
@@ -472,11 +484,15 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
       else if( id == SSH_FXP_DATA )
       {
          // More data to us.
-         // Note how we limited the initial read to just 13 bytes. This is enough for the
-         // SFTP header, but not including the data stream. We'll have to read that now...
          DWORD dwBytesAvailable = dwStatus;
          ATLASSERT(dwBytesAvailable==cbSize-9);
+         
          *ppOut = (LPBYTE) realloc(*ppOut, dwOffset + dwBytesAvailable);
+         ATLASSERT(*ppOut);
+         if( *ppOut == NULL ) return false;
+
+         // Note how we limited the initial read to just 13 bytes. This is enough for the
+         // SFTP header, but not including the data stream. We'll have to read that now...
          int iBytesLeft = (int) dwBytesAvailable;
          while( iBytesLeft > 0 ) {
             int iBytesRead = _ReadData(m_cryptSession, *ppOut + dwOffset, iBytesLeft);
@@ -527,8 +543,6 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
    ATLASSERT(pstrFilename);
    ATLASSERT(pData);
    
-   USES_CONVERSION;
-
    // Prevent save of an empty file
    if( dwSize == 0 ) {
       ::SetLastError(ERROR_EMPTY);
@@ -540,20 +554,27 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
    // Need a valid session
    if( m_cryptSession == 0 ) return false;
 
+   USES_CONVERSION;
+
+   // SFTP Version 4 requires UTF-8 filenames
+   if( m_iVersion >= 4 ) _acp = CP_UTF8;
+
    // Construct remote filename
    CString sFilename = pstrFilename; 
    if( pstrFilename[0] != '/' && m_sCurDir.GetLength() > 1 ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
    sFilename.Replace(_T('\\'), _T('/'));
 
-   // Open file
+   LPCSTR pstrPath = T2CA(sFilename);
+
+   // Create file...
    const SIZE_T MAX_BUFFER_SIZE = 4000;
    CAutoFree<BYTE> buffer(MAX_BUFFER_SIZE);
    LPBYTE p = buffer.GetData();
-   SSH_WRITE_LONG(p, 1 + 4 + 4 + sFilename.GetLength() + 4 + 4 + 4 + 4 + 4);
+   SSH_WRITE_LONG(p, 1 + 4 + 4 + strlen(pstrPath) + 4 + 4 + 4 + 4 + 4);
    SSH_WRITE_BYTE(p, SSH_FXP_OPEN);
    SSH_WRITE_LONG(p, ++m_dwMsgId);
-   SSH_WRITE_LONG(p, sFilename.GetLength());
-   SSH_WRITE_STR(p, sFilename);
+   SSH_WRITE_LONG(p, strlen(pstrPath));
+   SSH_WRITE_STR(p, pstrPath);
    SSH_WRITE_LONG(p, SSH_FXF_WRITE | SSH_FXF_CREAT | SSH_FXF_TRUNC);
    SSH_WRITE_LONG(p, SSH_FILEXFER_ATTR_SIZE | SSH_FILEXFER_ATTR_PERMISSIONS);
    SSH_WRITE_LONG(p, 0);
@@ -574,6 +595,8 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
       ::SetLastError(ERROR_CANNOT_MAKE);
       if( id == SSH_FXP_STATUS ) {
          DWORD dwStatus = SSH_READ_LONG(p);
+         if( dwStatus == SSH_FX_NO_SUCH_PATH ) ::SetLastError(ERROR_PATH_NOT_FOUND);
+         if( dwStatus == SSH_FX_WRITE_PROTECT ) ::SetLastError(ERROR_WRITE_PROTECT);
          if( dwStatus == SSH_FX_PERMISSION_DENIED ) ::SetLastError(ERROR_ACCESS_DENIED);
       }
       return false;
@@ -581,6 +604,7 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
 
    DWORD cchHandle = SSH_READ_LONG(p);
    LPBYTE pHandle = p;
+
    if( cchHandle > MAX_HANDLE_SIZE ) {
       ::SetLastError(ERROR_INVALID_TARGET_HANDLE);
       return false;
@@ -667,25 +691,30 @@ bool CSftpProtocol::DeleteFile(LPCTSTR pstrFilename)
 {
    ATLASSERT(pstrFilename);
    
-   USES_CONVERSION;
-
    // Connected?
    if( !WaitForConnection() ) return false;
    // Need a valid session
    if( m_cryptSession == 0 ) return false;
+
+   USES_CONVERSION;
+
+   // SFTP Version 4 requires UTF-8 filenames
+   if( m_iVersion >= 4 ) _acp = CP_UTF8;
 
    // Construct remote filename
    CString sFilename = pstrFilename; 
    if( pstrFilename[0] != '/' && m_sCurDir.GetLength() > 1 ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
    sFilename.Replace(_T('\\'), _T('/'));
 
+   LPCSTR pstrPath = T2CA(sFilename);
+
    BYTE buffer[600] = { 0 };
    LPBYTE p = buffer;
-   SSH_WRITE_LONG(p, 1 + 4 + 4 + sFilename.GetLength());
+   SSH_WRITE_LONG(p, 1 + 4 + 4 + strlen(pstrPath));
    SSH_WRITE_BYTE(p, SSH_FXP_REMOVE);
    SSH_WRITE_LONG(p, ++m_dwMsgId);
-   SSH_WRITE_LONG(p, sFilename.GetLength());
-   SSH_WRITE_STR(p, sFilename);
+   SSH_WRITE_LONG(p, strlen(pstrPath));
+   SSH_WRITE_STR(p, pstrPath);
    if( _WriteData(m_cryptSession, buffer, p - buffer) == 0 ) return false;
 
    if( _ReadData(m_cryptSession, buffer, sizeof(buffer)) == 0 ) return false;
@@ -713,6 +742,7 @@ bool CSftpProtocol::SetCurPath(LPCTSTR pstrPath)
 
    sPath = _ResolvePath(sPath);
    if( sPath.IsEmpty() ) return false;
+
    m_sCurDir = sPath;
    
    return true;
@@ -732,16 +762,20 @@ bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool /*bUse
 
    USES_CONVERSION;
 
+   // SFTP Version 4 requires UTF-8 filenames
+   if( m_iVersion >= 4 ) _acp = CP_UTF8;
+
    CString sPath = GetCurPath();
+   LPCSTR pstrPath = T2CA(sPath);
 
    // Open directory
    BYTE buffer[600] = { 0 };
    LPBYTE p = buffer;
-   SSH_WRITE_LONG(p, 1 + 4 + 4 + sPath.GetLength());
+   SSH_WRITE_LONG(p, 1 + 4 + 4 + strlen(pstrPath));
    SSH_WRITE_BYTE(p, SSH_FXP_OPENDIR);
    SSH_WRITE_LONG(p, ++m_dwMsgId);
-   SSH_WRITE_LONG(p, sPath.GetLength());
-   SSH_WRITE_STR(p, sPath);
+   SSH_WRITE_LONG(p, strlen(pstrPath));
+   SSH_WRITE_STR(p, pstrPath);
    if( _WriteData(m_cryptSession, buffer, p - buffer) == 0 ) return false;
 
    BYTE bHandle[MAX_HANDLE_SIZE + 20];
@@ -805,6 +839,7 @@ bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool /*bUse
          CHAR szFilename[300] = { 0 };
          if( _ReadData(m_cryptSession, &dwSize, sizeof(dwSize)) == 0 ) return false;
          CONVERT_INT32(dwSize);
+         if( dwSize >= sizeof(szFilename) ) return false;
          if( _ReadData(m_cryptSession, szFilename, dwSize) == 0 ) return false;
 
          // Long filename
@@ -862,7 +897,7 @@ bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool /*bUse
          if( strcmp(szFilename, "..") == 0 ) continue;
 
          WIN32_FIND_DATA fd = { 0 };
-         _tcscpy(fd.cFileName, A2CT(szFilename));
+         _tcsncpy(fd.cFileName, A2CT(szFilename), (sizeof(fd.cFileName) / sizeof(TCHAR)) - 1);
          fd.nFileSizeLow = dwFileSize;
          // TODO: Translate more file-attributes
          if( (dwPermissions & 0x4000) != 0 ) fd.dwFileAttributes |= FILE_ATTRIBUTE_DIRECTORY;
@@ -962,7 +997,7 @@ DWORD CSftpProtocol::_SendInit()
    LPBYTE p = buffer;
    SSH_WRITE_LONG(p, 1 + 4);
    SSH_WRITE_BYTE(p, SSH_FXP_INIT);
-   SSH_WRITE_LONG(p, 3);
+   SSH_WRITE_LONG(p, MIN_SFTP_VERSION);
    if( _WriteData(m_cryptSession, buffer, p - buffer) == 0 ) {
       m_dwErrorCode = ::GetLastError();
       return 0;
@@ -975,6 +1010,8 @@ DWORD CSftpProtocol::_SendInit()
    p = buffer;
    DWORD cbSize  = SSH_READ_LONG(p); cbSize;
    BYTE id       = SSH_READ_BYTE(p); id;
+
+   // Return the server version identifier
    return SSH_READ_LONG(p);
 }
 
@@ -982,26 +1019,31 @@ bool CSftpProtocol::_CheckFileExists(LPCTSTR pstrFilename)
 {
    ATLASSERT(pstrFilename);
 
-   USES_CONVERSION;
-
    // Connected?
    if( !WaitForConnection() ) return false;
    // Need a valid session
    if( m_cryptSession == 0 ) return false;
+
+   USES_CONVERSION;
+
+   // SFTP Version 4 requires UTF-8 filenames
+   if( m_iVersion >= 4 ) _acp = CP_UTF8;
 
    // Construct remote filename
    CString sFilename = pstrFilename; 
    if( pstrFilename[0] != '/' && m_sCurDir.GetLength() > 1 ) sFilename.Format(_T("%s/%s"), m_sCurDir, pstrFilename);
    sFilename.Replace(_T('\\'), _T('/'));
 
+   LPCSTR pstrPath = T2CA(sFilename);
+
    // Open file
    BYTE buffer[600];
    LPBYTE p = buffer;
-   SSH_WRITE_LONG(p, 1 + 4 + 4 + sFilename.GetLength() + 4 + 4);
+   SSH_WRITE_LONG(p, 1 + 4 + 4 + strlen(pstrPath) + 4 + 4);
    SSH_WRITE_BYTE(p, SSH_FXP_OPEN);
    SSH_WRITE_LONG(p, ++m_dwMsgId);
-   SSH_WRITE_LONG(p, sFilename.GetLength());
-   SSH_WRITE_STR(p, sFilename);
+   SSH_WRITE_LONG(p, strlen(pstrPath));
+   SSH_WRITE_STR(p, pstrPath);
    SSH_WRITE_LONG(p, SSH_FXF_READ);
    SSH_WRITE_LONG(p, 0);
    if( _WriteData(m_cryptSession, buffer, p - buffer) == 0 ) return false;
@@ -1040,24 +1082,32 @@ bool CSftpProtocol::_CheckFileExists(LPCTSTR pstrFilename)
    return true;
 }
 
-CString CSftpProtocol::_ResolvePath(LPCTSTR pstrPath)
+CString CSftpProtocol::_ResolvePath(LPCTSTR pstrRelPath)
 {
+   ATLASSERT(pstrRelPath);
+
    // Need a valid session
    if( m_cryptSession == 0 ) return _T("");
 
    USES_CONVERSION;
-   CString sPath = pstrPath;
+
+   // SFTP Version 4 requires UTF-8 filenames
+   if( m_iVersion >= 4 ) _acp = CP_UTF8;
+
+   CString sPath = pstrRelPath;
    if( sPath.GetLength() > 3 ) sPath.TrimRight(_T("/\\"));  // BUG: What's with then length=3 ???
    sPath.Replace(_T('\\'), _T('/'));
+
+   LPCSTR pstrPath = T2CA(sPath);
 
    // Let the remote system resolve path
    BYTE buffer[300] = { 0 };
    LPBYTE p = buffer;
-   SSH_WRITE_LONG(p, 1 + 4 + 4 + sPath.GetLength());
+   SSH_WRITE_LONG(p, 1 + 4 + 4 + strlen(pstrPath));
    SSH_WRITE_BYTE(p, SSH_FXP_REALPATH);
    SSH_WRITE_LONG(p, ++m_dwMsgId);
-   SSH_WRITE_LONG(p, sPath.GetLength());
-   SSH_WRITE_STR(p, sPath);
+   SSH_WRITE_LONG(p, strlen(pstrPath));
+   SSH_WRITE_STR(p, pstrPath);
    if( _WriteData(m_cryptSession, buffer, p - buffer) == 0 ) return _T("");
    // Read reply...
    if( _ReadData(m_cryptSession, buffer, sizeof(buffer)) == 0 ) return _T("");
@@ -1073,7 +1123,9 @@ CString CSftpProtocol::_ResolvePath(LPCTSTR pstrPath)
    if( cchPath >= MAX_PATH ) return _T("");
 
    p[cchPath] = '\0';
-   return p;
+
+   // Return the resolved pathname
+   return A2CT( (char*)p );
 }
 
 int CSftpProtocol::_ReadData(CRYPT_SESSION cryptSession, LPVOID pData, int iMaxSize)

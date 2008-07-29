@@ -70,7 +70,7 @@ public:
    }
    virtual void SetEnabled(BOOL bEnable)
    {
-      m_fEnabled = bEnable == TRUE;
+      m_fEnabled = (bEnable != FALSE);
    }
    virtual BOOL IsEnabled() const
    {

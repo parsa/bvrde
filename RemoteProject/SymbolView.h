@@ -93,10 +93,10 @@ public:
       MESSAGE_HANDLER(WM_SYMBOL_GOT_DATA, OnGotSymbolData)
       COMMAND_ID_HANDLER(ID_SYMBOLS_SEARCH, OnPatternChange)      
       COMMAND_HANDLER(ID_SYMBOLS_PATTERN, EN_CHANGE, OnPatternChange)
-      NOTIFY_CODE_HANDLER(NM_DBLCLK, OnListDblClick)
       NOTIFY_CODE_HANDLER(NM_RCLICK, OnListRightClick)
       NOTIFY_CODE_HANDLER(LVN_BEGINDRAG, OnListBeginDrag)
       NOTIFY_CODE_HANDLER(LVN_ITEMCHANGED, OnListItemChanged)
+      NOTIFY_CODE_HANDLER(LVN_ITEMACTIVATE, OnListDblClick)
       // FIX: Not entirely sure why this filter is needed...
       if( uMsg == WM_NOTIFY && ((LPNMHDR)lParam)->hwndFrom == m_ctrlToolbar ) REFLECT_NOTIFICATIONS()
       //REFLECT_NOTIFICATIONS()

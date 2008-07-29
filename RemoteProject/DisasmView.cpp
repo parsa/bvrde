@@ -45,7 +45,7 @@ bool CDisasmView::WantsData()
 
 void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
-   if( _tcscmp(pstrType, _T("cwd")) == 0 ) 
+   if( _tcscmp(pstrType, _T("bvrde_init")) == 0 ) 
    {
       m_iLastStyle = 2;
    }

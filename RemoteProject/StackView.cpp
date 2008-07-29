@@ -39,7 +39,7 @@ bool CStackView::WantsData()
 
 void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
-   if( _tcscmp(pstrType, _T("cwd")) == 0 ) 
+   if( _tcscmp(pstrType, _T("bvrde_init")) == 0 ) 
    {
       m_ctrlStack.ResetContent();
       m_ctrlThreads.ResetContent();
@@ -48,15 +48,36 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    {
       m_ctrlThreads.SetRedraw(FALSE);
       m_ctrlThreads.ResetContent();
-      CString sValue = info.GetItem(_T("thread-id"));
-      while( !sValue.IsEmpty() ) {
-         CString sText;
-         sText.Format(IDS_THREAD, sValue, sValue);
+      CString sThreadId = info.GetItem(_T("thread-id"));
+      CString sText;
+      while( !sThreadId.IsEmpty() ) {
+         DWORD dwThreadId = (DWORD) _ttol(sThreadId);
+         sText.Format(IDS_THREAD, sThreadId, sThreadId);
          int iItem = m_ctrlThreads.AddString(sText);
-         DWORD dwThreadId = _ttol(sValue);
          m_ctrlThreads.SetItemData(iItem, dwThreadId);
          if( m_dwCurThread == dwThreadId ) m_ctrlThreads.SetCurSel(iItem);
-         sValue = info.FindNext(_T("thread-id"));
+         sThreadId = info.FindNext(_T("thread-id"));
+      }
+      if( m_ctrlThreads.GetCurSel() == -1 ) m_ctrlThreads.SetCurSel(0);
+      m_ctrlThreads.SetRedraw(TRUE);
+      m_ctrlThreads.Invalidate();
+   }
+   else if( _tcscmp(pstrType, _T("threads")) == 0 ) 
+   {
+      m_ctrlThreads.SetRedraw(FALSE);
+      m_ctrlThreads.ResetContent();
+      CString sCurrentId = info.GetItem(_T("current-thread-id"));
+      if( !sCurrentId.IsEmpty() ) m_dwCurThread = (DWORD) _ttol(sCurrentId);
+      CString sThreadId = info.GetItem(_T("id"), _T("threads"));
+      CString sText;
+      while( !sThreadId.IsEmpty() ) {
+         DWORD dwThreadId = (DWORD) _ttol(sThreadId);
+         CString sTarget = info.GetSubItem(_T("target-id"));
+         sText.Format(_T("%ld - %s"), dwThreadId, sTarget.IsEmpty() ? sThreadId : sTarget);
+         int iItem = m_ctrlThreads.AddString(sText);
+         m_ctrlThreads.SetItemData(iItem, (LPARAM) dwThreadId);
+         if( m_dwCurThread == dwThreadId ) m_ctrlThreads.SetCurSel(iItem);
+         sThreadId = info.FindNext(_T("id"), _T("threads"));
       }
       if( m_ctrlThreads.GetCurSel() == -1 ) m_ctrlThreads.SetCurSel(0);
       m_ctrlThreads.SetRedraw(TRUE);
@@ -67,7 +88,7 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    {
       // New current thread?
       CString sValue = info.GetItem(_T("new-thread-id"));
-      if( !sValue.IsEmpty() ) _SelectThread(_ttol(sValue));
+      if( !sValue.IsEmpty() ) _SelectThreadId(_ttol(sValue));
       // Populate stack frame list
       CString sLevel = info.GetItem(_T("level"), _T("frame"));
       if( sLevel.IsEmpty() ) return;
@@ -92,18 +113,22 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    else if( _tcscmp(pstrType, _T("stopped")) == 0 ) 
    {
       CString sValue = info.GetItem(_T("thread-id"));
-      if( !sValue.IsEmpty() ) _SelectThread(_ttol(sValue));
+      if( !sValue.IsEmpty() ) _SelectThreadId(_ttol(sValue));
    }
 }
 
 void CStackView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
 {
+   // NOTE: We also refresh the thread-list though it is handled
+   //       through the Thread View class.
+   //       @see CRemoteProject::OnProcess
+
    aDbgCmd.Add(CString(_T("-stack-list-frames")));
 }
 
 // Implementation
 
-void CStackView::_SelectThread(long lThreadId)
+void CStackView::_SelectThreadId(long lThreadId)
 {
    int nCount = m_ctrlThreads.GetCount();
    for( int i = 0; i < nCount; i++ ) {

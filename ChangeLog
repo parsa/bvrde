@@ -1,8 +1,13 @@
+Version 1.x
+* Stability of internal processing of watches improved
+* SFTP will use UTF-8 encoding when SFTP v4 is detected
+
 Version 1.2b:
 * Symbol View improved
 * Fixed problem with creating new empty documents
 * C++ lexer now sees namespaces
 * Improved SQL Query editor password handling
+* New configuration to allow multiple instances of the tool
 
 Version 1.2:
 * Support for DBX debugger

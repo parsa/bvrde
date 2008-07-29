@@ -38,7 +38,7 @@ bool CRegisterView::WantsData()
 
 void CRegisterView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
-   if( _tcscmp(pstrType, _T("cwd")) == 0 ) 
+   if( _tcscmp(pstrType, _T("bvrde_init")) == 0 ) 
    {
       m_aNames.RemoveAll();
       m_aValues.RemoveAll();

@@ -41,6 +41,12 @@ bool CWatchView::WantsData()
    return true;
 }
 
+/**
+ * Recreates watches.
+ * This method is called to recreate the watches in the debugger
+ * when a new debug session has started. At this point, only the list
+ * contains the watch expressions that were previously active.
+ */
 void CWatchView::ActivateWatches()
 {
    if( !IsWindow() ) return;
@@ -136,16 +142,23 @@ void CWatchView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       while( !sName.IsEmpty() ) {
          if( _tcsncmp(sName, _T("watch"), 5) == 0 ) {
             LPARAM lWatch = (LPARAM) _ttol(sName.Mid(5));  // formatted as "watch1234"
+            CString sInScope = info.GetSubItem(_T("in_scope"));
+            // Add this watch to change-list and in-scope-list
             aChangedWatches.Add(lWatch);
-            if( info.GetSubItem(_T("in_scope")) == _T("false") ) aOutOfScope.Add(lWatch);
+            if( sInScope == _T("false") || sInScope == _T("invalid") ) aOutOfScope.Add(lWatch);
          }
          sName = info.FindNext(_T("name"));
       }
+      // Go through all items in the list and color/disable each of them according
+      // to the changelist attributes.
       COLORREF clrChanged = ::GetSysColor(COLOR_HIGHLIGHT);
-      COLORREF clrOutOfScope = ::GetSysColor(COLOR_GRAYTEXT);
+      COLORREF clrDisabled = ::GetSysColor(COLOR_GRAYTEXT);
       int nCount = m_ctrlGrid.GetItemCount();
       for( int i = 0; i < nCount; i++ ) {
          HPROPERTY hProp = m_ctrlGrid.GetProperty(i, 0);
+         HPROPERTY hPropValue = m_ctrlGrid.GetProperty(i, 1);
+         ATLASSERT(hProp);
+         ATLASSERT(hPropValue);
          LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
          COLORREF clrItem = CLR_INVALID;
          int j;
@@ -153,9 +166,10 @@ void CWatchView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
             if( aChangedWatches[j] == lKey ) { clrItem = clrChanged; break; }
          }
          for( j = 0; j < aOutOfScope.GetSize(); j++ ) {
-            if( aOutOfScope[j] == lKey ) { clrItem = clrOutOfScope; break; }
+            if( aOutOfScope[j] == lKey ) { clrItem = clrDisabled; break; }
          }
          static_cast<CPropertyItem*>(hProp)->SetTextColor(clrItem);
+         m_ctrlGrid.SetItemEnabled(hPropValue, clrItem != clrDisabled);
       }
       // Intelligently try to refresh items.
       // The changelist may come with the an empty list repeatedly. When no changes
@@ -174,7 +188,7 @@ void CWatchView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
    // While the above debugger command gives us a list of chenged items, I still
    // perfer to evaluate *all* wathces - simply because there is slight risk that
    // we didn't catch an update.
-   // TODO: Baloney. Fix this. 
+   // TODO: Baloney. Fix this. Keep track of changelist.
    //       Well, actually the DBX integration relies on this.
    //       Even the GDB integration only uses -var-update for coloring.
 

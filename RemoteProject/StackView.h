@@ -34,7 +34,7 @@ public:
 
    // Implementation
 
-   void _SelectThread(long lThreadId);
+   void _SelectThreadId(long lThreadId);
 
    // Message map and handlers
 

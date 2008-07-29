@@ -11,8 +11,15 @@
 
 CString ToString(long lValue)
 {
-   TCHAR szBuffer[32];
+   TCHAR szBuffer[16];
    ::wsprintf(szBuffer, _T("%ld"), lValue);
+   return szBuffer;
+}
+
+CString ToString(double dblValue)
+{
+   TCHAR szBuffer[40];
+   ::wsprintf(szBuffer, _T("%d.%d"), (int) dblValue, (int)(((dblValue - (int) dblValue) + 0.05) * 10.0));
    return szBuffer;
 }
 

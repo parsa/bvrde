@@ -215,7 +215,8 @@ public:
          // Remove last item
          DeleteItem(TBase::GetItemCount() - 1);
       } 
-      else if( (dwExtStyle & PGS_EX_ADDITEMATEND) != 0 ) {
+      else if( (dwExtStyle & PGS_EX_ADDITEMATEND) != 0 ) 
+      {
          // Add last item
          InsertItem(TBase::GetItemCount(), PropCreateLastItem(_T(""))); 
       }
@@ -238,7 +239,7 @@ public:
       m_iSelectedCol = iCol;
       if( GetSelectedIndex() == m_iSelectedRow && m_iSelectedRow == iRow ) {         
          NMLISTVIEW nmlv = { m_hWnd, 0, 0, m_iSelectedRow, m_iSelectedCol, LVIS_SELECTED };
-         BOOL bDummy;   
+         BOOL bDummy = FALSE; 
          OnSelChanged(0, reinterpret_cast<LPNMHDR>(&nmlv), bDummy);
          return TRUE;
       }
@@ -320,8 +321,8 @@ public:
       // Assign value and repaint
       BOOL bRes = hProp->SetValue(*pValue);
       // Find property position and repaint it...
-      int nItem;
-      int nSubItem;
+      int nItem = 0;
+      int nSubItem = 0;
       if( !FindProperty(hProp, nItem, nSubItem) ) return FALSE;
       _InvalidateItem(nItem, nSubItem);
       // If changing selected item then recreate in-place editor
@@ -383,8 +384,8 @@ public:
    }
    IProperty* GetProperty(int iRow, int iCol) const
    {
-      ATLASSERT(iCol >= 0 && iCol < m_nColumns);
-      ATLASSERT(iRow >= 0 && iRow < TBase::GetItemCount());
+      ATLASSERT(iCol>=0 && iCol<m_nColumns);
+      ATLASSERT(iRow>=0 && iRow<TBase::GetItemCount());
       if( iCol < 0 || iCol >= m_nColumns ) return NULL;
       if( iRow < 0 || iRow >= TBase::GetItemCount() ) return NULL;
       IProperty** props = reinterpret_cast<IProperty**>(TBase::GetItemData(iRow));
@@ -420,10 +421,11 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       ATLASSERT(hProp);
       if( hProp == NULL ) return;
+      if( hProp->IsEnabled() == bEnable ) return;
       hProp->SetEnabled(bEnable);
       // Repaint item...
-      int nItem;
-      int nSubItem;
+      int nItem = 0;
+      int nSubItem = 0;
       if( !FindProperty(hProp, nItem, nSubItem) ) return;
       _InvalidateItem(nItem, nSubItem);
    }
@@ -874,7 +876,7 @@ public:
       case VK_LEFT:
          if( m_iSelectedRow >= 0 && m_iSelectedCol > 0 ) {
             // Can we navigate?
-            if( _IsLastAddItem(m_iSelectedRow ) ) return 0;
+            if( _IsLastAddItem(m_iSelectedRow) ) return 0;
             // Navigate
             m_iSelectedCol--;
             // Let owner know
@@ -890,7 +892,7 @@ public:
       case VK_RIGHT:
          if( m_iSelectedRow >= 0 && m_iSelectedCol < m_nColumns - 1 ) {
             // Can we navigate?
-            if( _IsLastAddItem(m_iSelectedRow ) ) return 0;
+            if( _IsLastAddItem(m_iSelectedRow) ) return 0;
             // Navigate
             m_iSelectedCol++;
             // Let owner know

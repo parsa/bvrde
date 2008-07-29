@@ -19,6 +19,7 @@ public:
 
    CRemoteProject* m_pProject;
    DWORD m_dwCurThread;
+   double m_dblDbgVersion;
 
    // Operations
 
@@ -29,7 +30,7 @@ public:
 
    // Implementation
 
-   void _SelectThread(long iThreadId);
+   void _SelectThreadId(long iThreadId);
 
    // Message map and handlers
 

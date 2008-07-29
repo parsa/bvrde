@@ -385,9 +385,7 @@ bool CDebugManager::RunNormal()
 
    Stop();
 
-   CString sStatus;
-   sStatus.LoadString(IDS_STATUS_CONNECT_WAIT);
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_CONNECT_WAIT)), FALSE);
    _pDevEnv->PlayAnimation(TRUE, ANIM_TRANSFER);
 
    // Initialize and show the console output view.
@@ -415,9 +413,8 @@ bool CDebugManager::RunNormal()
    }
    m_bRunning = true;
    m_bSeenExit = false;
-
-   sStatus.LoadString(IDS_STATUS_RUNNING);
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, TRUE);
+   
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_RUNNING)), TRUE);
    _pDevEnv->PlayAnimation(FALSE, 0);
 
    CString sCommand = _TranslateCommand(m_sCommandCD);
@@ -576,6 +573,7 @@ CString CDebugManager::GetParam(LPCTSTR pstrName) const
    if( sName == _T("DebugMain") ) return m_sDebugMain;
    if( sName == _T("SearchPath") ) return m_sSearchPath;
    if( sName == _T("StartTimeout") ) return ToString(m_lStartTimeout);
+   if( sName == _T("DebuggerVersion") ) return ToString(m_dblDebuggerVersion);
    if( sName == _T("MaintainSession") ) return m_bMaintainSession ? _T("true") : _T("false");
    if( sName == _T("CoreProcess") ) return m_sCoreProcess;
    if( sName == _T("CoreFile") ) return m_sCoreFile;
@@ -625,10 +623,8 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
 
    // Stop the current debug session and initiate a new?
    if( !m_bMaintainSession || !m_bSeenExit ) Stop();
- 
-   CString sStatus;
-   sStatus.LoadString(IDS_STATUS_CONNECT_WAIT);
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
+    
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_CONNECT_WAIT)), FALSE);
    _pDevEnv->PlayAnimation(TRUE, ANIM_TRANSFER);
 
    // Initialize and hide the debug-log output window
@@ -684,9 +680,8 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
    m_bRunning = true;
    m_bSeenExit = false;
    m_bDebugEvents = false;
-
-   sStatus.LoadString(IDS_STATUS_DEBUGGING);
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, FALSE);
+   
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_DEBUGGING)), FALSE);
    _pDevEnv->PlayAnimation(FALSE, 0);
 
    // Fire up the debug views
@@ -716,8 +711,10 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
       return false;
    }
 
-   sStatus.LoadString(IDS_STATUS_DEBUGGING);
-   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, sStatus, TRUE);
+   // The show begins...
+   m_pProject->DelayedDebugEvent(LAZY_DEBUG_INIT_EVENT);
+
+   _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_DEBUGGING)), TRUE);
 
    // Collect new breakpoint positions directly from open views.
    LAZYDATA data;
@@ -735,8 +732,6 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
       m_bDebugEvents = true;
    }
 
-   // This is one of the first commands we send; views can interpret the reply (cwd) as 
-   // a "startup" command.
    DoDebugCommand(_T("-environment-pwd"));
 
    // If there are no breakpoints defined, then let's
@@ -906,6 +901,7 @@ void CDebugManager::_ParseNewFrame(CMiInfo& info)
    CString sFunction = info.GetItem(_T("func"));
    if( sFunction.IsEmpty() ) sFunction = info.GetItem(_T("at"));
    CString sFilename = info.GetItem(_T("file"), _T("frame"));
+   CString sAddress = info.GetItem(_T("addr"), _T("frame"));
    if( !sFilename.IsEmpty() ) 
    {
       // Debugger stopped in source file.
@@ -919,6 +915,7 @@ void CDebugManager::_ParseNewFrame(CMiInfo& info)
       m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_SET_CURLINE, sFilename, iLineNum);
       CString sText;
       if( bKnownFile ) sText.LoadString(IDS_STATUS_DEBUG_BREAKPOINT);
+      else if( sFunction.IsEmpty() && !sAddress.IsEmpty() ) sText.Format(IDS_STATUS_DEBUG_ADDRESS, sAddress);
       else if( sFunction.IsEmpty() ) sText.LoadString(IDS_STATUS_DEBUG_NOFILE);
       else sText.Format(IDS_STATUS_DEBUG_FUNCTION, sFunction);
       m_pProject->DelayedStatusBar(sText);
@@ -986,7 +983,6 @@ void CDebugManager::_ParseOutOfBand(LPCTSTR pstrText)
          return;
       }
       // Handles reason:
-      //   'signal'
       //   'signal-received'
       if( sValue.Find(_T("signal")) == 0 && m_nIgnoreErrors == 0 ) {
          CString sMessage;
@@ -995,11 +991,19 @@ void CDebugManager::_ParseOutOfBand(LPCTSTR pstrText)
             info.GetItem(_T("signal-meaning")),
             info.GetItem(_T("addr")),
             info.GetItem(_T("func")));
-         m_pProject->DelayedMessage(sMessage, CString(MAKEINTRESOURCE(IDS_STOPPED)), MB_ICONINFORMATION);
+         m_pProject->DelayedMessage(sMessage, CString(MAKEINTRESOURCE(IDS_STOPPED)), MB_ICONEXCLAMATION);
       }
       // Handles reason:
       //    'breakpoint-hit'
       if( sValue.Find(_T("breakpoint")) == 0 ) {
+         // Play the breakpoint sound
+         ::PlaySound(_T("BVRDE_BreakpointHit"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
+      }
+      // Handles reason:
+      //    'watchpoint-trigger'
+      //    'read-watchpoint-trigger'
+      //    'access-watchpoint-trigger'
+      if( sValue.Find(_T("watchpoint")) == 0 ) {
          // Play the breakpoint sound
          ::PlaySound(_T("BVRDE_BreakpointHit"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
       }
@@ -1054,20 +1058,21 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
       static LPCTSTR pstrList[] = 
       {
          _T("BreakpointTable"),
-         _T("thread-ids"),
-         _T("new-thread-id"),
          _T("stack"),
          _T("locals"),
          _T("stack-args"),
-         _T("register-names"),
-         _T("register-values"),
+         _T("thread-ids"),
+         _T("threads"),
+         _T("new-thread-id"),
          _T("name"),
          _T("value"),
          _T("addr"),
          _T("lang"),
          _T("cwd"),
-         _T("changelist"),
          _T("ndeleted"),
+         _T("changelist"),
+         _T("register-names"),
+         _T("register-values"),
          _T("asm_insns"),
          _T("numchild"),
          NULL

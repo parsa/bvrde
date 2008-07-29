@@ -28,6 +28,8 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    // and executes a series of commands in a queue/list. This makes sure that all
    // GUI changes are called from the main thread only.
 
+   //ATLTRACE(_T("Turnpike: %ld items in queue\n"), m_aLazyData.GetSize());
+
    bHandled = FALSE;
    if( m_aLazyData.GetSize() == 0 ) return 0;
 
@@ -46,8 +48,12 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    CString sCaption;                    // -"-
    UINT iFlags = 0;                     // -"-
 
-   for( int i = 0; i < m_aLazyData.GetSize(); i++ ) {
-      LAZYDATA& data = m_aLazyData[i];
+   for( int i = 0; i < m_aLazyData.GetSize(); i++ ) 
+   {
+      // FIX: Don't &-ref this! Could be dangerous if more entries are added 
+      // to the array below.
+      LAZYDATA data = m_aLazyData[i];
+
       switch( data.Action ) {
       case LAZY_OPEN_VIEW:
          {
@@ -168,6 +174,19 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             DelayedLocalViewMessage(DEBUG_CMD_CURSORVISIBLE);
          }
          break;
+      case LAZY_DEBUG_INIT_EVENT:
+         {
+            // The debugger is running; initialize views...
+            m_viewStack.SetInfo(_T("bvrde_init"), data.MiInfo);
+            m_viewWatch.SetInfo(_T("bvrde_init"), data.MiInfo);               
+            m_viewThread.SetInfo(_T("bvrde_init"), data.MiInfo);
+            m_viewMemory.SetInfo(_T("bvrde_init"), data.MiInfo);
+            m_viewRegister.SetInfo(_T("bvrde_init"), data.MiInfo);
+            m_viewVariable.SetInfo(_T("bvrde_init"), data.MiInfo);
+            m_viewBreakpoint.SetInfo(_T("bvrde_init"), data.MiInfo);
+            m_viewDisassembly.SetInfo(_T("bvrde_init"), data.MiInfo);
+         }
+         break;
       case LAZY_DEBUG_KILL_EVENT:
          {
             // Notify all views
@@ -202,18 +221,22 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             // Most of these messages originates from the LAZY_DEBUG_BREAK_EVENT handling
             // above anyway.
 
-            if( m_viewStack.WantsData() )       m_viewStack.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewWatch.WantsData() )       m_viewWatch.SetInfo(data.szMessage, data.MiInfo);               
-            if( m_viewThread.WantsData() )      m_viewThread.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewRegister.WantsData() )    m_viewRegister.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewMemory.WantsData() )      m_viewMemory.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewDisassembly.WantsData() ) m_viewDisassembly.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewVariable.WantsData() )    m_viewVariable.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewBreakpoint.WantsData() )  m_viewBreakpoint.SetInfo(data.szMessage, data.MiInfo);
-            if( m_pQuickWatchDlg && m_pQuickWatchDlg->IsWindow() && m_pQuickWatchDlg->IsWindowVisible() ) m_pQuickWatchDlg->SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewStack.WantsData() )        m_viewStack.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewWatch.WantsData() )        m_viewWatch.SetInfo(data.szMessage, data.MiInfo);               
+            if( m_viewThread.WantsData() )       m_viewThread.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewRegister.WantsData() )     m_viewRegister.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewMemory.WantsData() )       m_viewMemory.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewDisassembly.WantsData() )  m_viewDisassembly.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewVariable.WantsData() )     m_viewVariable.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewBreakpoint.WantsData() )   m_viewBreakpoint.SetInfo(data.szMessage, data.MiInfo);
+
+            if( m_pQuickWatchDlg && m_pQuickWatchDlg->IsWindow() && m_pQuickWatchDlg->IsWindowVisible() ) {
+               m_pQuickWatchDlg->SetInfo(data.szMessage, data.MiInfo);
+            }
 
             if( _tcscmp(data.szMessage, _T("value")) == 0 ) {
-               // Pass information to active editor, since it might be mouse hover information...
+               // Pass information to active editor, since it might be mouse hover information.
+               // We need to modify the action to allow the view to recognize it.
                // NOTE: Must use SendMessage() rather than delayed message because
                //       of scope of 'data' structure.
                data.Action = LAZY_SEND_ACTIVE_VIEW_MESSAGE;
@@ -399,7 +422,8 @@ void CRemoteProject::DelayedCompilerBroadcast(VT100COLOR Color, LPCTSTR pstrText
    LAZYDATA data;
    data.Action = LAZY_COMPILER_LINE;
    data.Color = Color;
-   _tcscpy(data.szMessage, pstrText);
+   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
+   _tcsncpy(data.szMessage, pstrText, (sizeof(data.szMessage) / sizeof(TCHAR)) - 1);
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
