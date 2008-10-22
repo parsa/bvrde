@@ -217,7 +217,7 @@ LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 
    // At last save UI settings...
    _SaveUIState();   
-   _SaveSettings();
+   _SaveStartupSettings();
 
    bHandled = FALSE;
    return 0;
@@ -382,14 +382,6 @@ LRESULT CMainFrame::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOO
       RECT rcItem = { 0 };
       m_StatusBar.GetRect(1, &rcItem);
       m_StatusBar.InvalidateRect(&rcItem, FALSE);
-   }
-   else if( wParam == DELAY_TIMERID ) 
-   {
-      // Delay load some of the external libraries...
-      KillTimer(DELAY_TIMERID);
-      ::LoadLibrary(_T("GenEdit.dll"));
-      ::LoadLibrary(_T("SciLexer.dll"));
-      ::LoadLibrary(_T("CppLexer.dll"));
    }
    return 0;
 }
@@ -1048,8 +1040,9 @@ LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
 LRESULT CMainFrame::OnUserIdle(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {  
    // Start the once-in-a-lifetime event to background load important system DLLs
+   extern void PreloadPluginDependencies();
    static long s_once = 0;
-   if( ++s_once == 1 ) SetTimer(DELAY_TIMERID, 500L);
+   if( ++s_once == 1 ) PreloadPluginDependencies();
    return 0;
 }
 

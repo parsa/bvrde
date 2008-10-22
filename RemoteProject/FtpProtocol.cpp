@@ -161,7 +161,6 @@ void CFtpProtocol::Clear()
    m_bPassive = FALSE;
    m_bCompatibilityMode = FALSE;
    m_lConnectTimeout = 8;
-   m_dwCacheFlags = INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD;
 }
 
 bool CFtpProtocol::Load(ISerializable* pArc)
@@ -411,7 +410,7 @@ bool CFtpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool bUseCac
 {
    if( !WaitForConnection() ) return false;
    WIN32_FIND_DATA fd = { 0 };
-   DWORD dwFlags = bUseCache ? 0 : (INTERNET_FLAG_DONT_CACHE | INTERNET_FLAG_RELOAD);
+   DWORD dwFlags = bUseCache ? 0 : INTERNET_FLAG_RELOAD;
    HINTERNET hFind = ::FtpFindFirstFile(m_hFTP, NULL, &fd, dwFlags, 0);
    if( hFind == NULL && ::GetLastError() == ERROR_NO_MORE_FILES ) return true;
    if( hFind == NULL ) return false;

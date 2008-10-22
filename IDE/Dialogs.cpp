@@ -9,7 +9,7 @@
 #include "Macro.h"
 
 #if _MSC_VER < 1300
-	#pragma code_seg( "DIALOGS" )
+   #pragma code_seg( "DIALOGS" )
 #endif
 
 #include "AboutDlg.h"

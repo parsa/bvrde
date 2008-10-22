@@ -37,7 +37,8 @@ CString ConvertFromCrLf(const CString& s)
 }
 
 // Written by Jack Handy - jakkhandy@hotmail.com
-bool wildcmp(LPCTSTR  wild, LPCTSTR str) 
+// BUG: Works for UNICODE, but not MBCS.
+bool wildcmp(LPCTSTR wild, LPCTSTR str) 
 {
    LPCTSTR cp = NULL, mp = NULL;
    while( (*str) && (*wild != '*') ) {
@@ -47,7 +48,7 @@ bool wildcmp(LPCTSTR  wild, LPCTSTR str)
    }
    while( *str != '\0' ) {
       if( *wild == '*' ) {
-         if (!*++wild) return true;
+         if( !*++wild ) return true;
          mp = wild;
          cp = str + 1;
       } 
@@ -293,6 +294,7 @@ void PumpIdleMessages(DWORD dwTimeout)
       case WM_PAINT:
       case WM_NCPAINT:
       case WM_MOUSEMOVE:
+      case WM_ERASEBKGND:
       case WM_NCMOUSEMOVE:
       case WM_TIMER:
       case 0x0118:    // WM_SYSTIMER (caret blink)

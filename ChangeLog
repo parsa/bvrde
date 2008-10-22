@@ -1,6 +1,7 @@
 Version 1.x
 * Stability of internal processing of watches improved
 * SFTP will use UTF-8 encoding when SFTP v4 is detected
+* Fixed problem with loading multiple CTAGS files
 
 Version 1.2b:
 * Symbol View improved

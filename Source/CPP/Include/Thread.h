@@ -165,17 +165,18 @@ class CThreadImpl : public CThread
 {
 public:
    bool volatile m_bStopped; // Signals when thread should stop (thread loop should exit)
+   bool m_bScoped;
 
-   CThreadImpl() : m_bStopped(false)
+   CThreadImpl() : m_bStopped(false), m_bScoped(true)
    {
    }
    virtual ~CThreadImpl()
    {
-      // NOTE: Remember destructors cannot call overrides!
-      Stop();
+      if( m_bScoped ) Stop();
    }
    virtual BOOL Start()
    {
+      m_bScoped = true;
       m_bStopped = false;
       if( !Create(ThreadProc, (LPVOID) static_cast<T*>(this) ) ) return FALSE;
       return TRUE;
@@ -197,6 +198,11 @@ public:
    {
       _ASSERTE(m_hThread);
       return m_bStopped == true;
+   }
+   void DeleteThis()
+   {
+      m_bScoped = false;
+      delete this;
    }
 
    static DWORD WINAPI ThreadProc(LPVOID pData)

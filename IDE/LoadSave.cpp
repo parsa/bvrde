@@ -26,7 +26,52 @@ CSimpleArray<CPlugin> g_aPlugins;               /// Collection of plugins
 
 
 /////////////////////////////////////////////////////////////////
-// Loader thread
+// DLL Preloader threads
+
+class CSysDepPreloaderThread : public CThreadImpl<CSysDepPreloaderThread>
+{
+public:
+   DWORD Run()
+   {
+      ::LoadLibrary(_T("NETAPI32.DLL"));
+      ::LoadLibrary(_T("RASAPI32.DLL"));
+      ::LoadLibrary(_T("RASMAN.DLL"));
+      ::LoadLibrary(_T("RTUTILS.DLL"));
+      ::LoadLibrary(_T("SHDOC32.DLL"));
+      ::LoadLibrary(_T("SHDOCVW.DLL"));
+      ::LoadLibrary(_T("SHDOCLC.DLL"));
+      ::LoadLibrary(_T("MSHTML.DLL"));
+      ::LoadLibrary(_T("MSIMG32.DLL"));
+      ::LoadLibrary(_T("IEFRAME.DLL"));
+      ::LoadLibrary(_T("URLMON.DLL"));
+      ::LoadLibrary(_T("WININET.DLL"));
+      DeleteThis();
+      return 0;
+   }
+};
+
+class CPlugDepPreloaderThread : public CThreadImpl<CPlugDepPreloaderThread>
+{
+public:
+   DWORD Run()
+   {
+      ::LoadLibrary(_T("GENEDIT.DLL"));
+      ::LoadLibrary(_T("SCILEXER.DLL"));
+      ::LoadLibrary(_T("CPPLEXER.DLL"));
+      DeleteThis();
+      return 0;
+   }
+};
+
+void PreloadPluginDependencies()
+{
+   CPlugDepPreloaderThread* pPreloader = new CPlugDepPreloaderThread;
+   pPreloader->Start();
+}
+
+
+/////////////////////////////////////////////////////////////////
+// Settings Loader thread
 
 /**
  * The Settings Loader thread.
@@ -41,13 +86,30 @@ public:
    CMainFrame* m_pMain;
    bool m_bFailed;
 
+   CSettingsLoaderThread() : m_pMain(NULL)
+   {
+   }
+
+   void Init(CMainFrame* pMain)
+   {
+      m_pMain = pMain;
+      m_bFailed = false;
+   }
+
    DWORD Run()
    {
+      ATLASSERT(m_pMain);
+
+      CCoInitialize cominit;
+
       _Init();
-      _LoadStartup();
+      _LoadStartupSettings();
       _CheckConfigVersion();
       _LoadSettings();
-      _PreloadLibraries();
+
+      CSysDepPreloaderThread* pPreloader = new CSysDepPreloaderThread;
+      pPreloader->Start();
+
       return 0;
    }
 
@@ -63,61 +125,11 @@ public:
 
       // We'll have a resonable bucket-size for our hash table
       m_pMain->m_aProperties.Resize(513);
-
-      // Default printer settings
-      m_pMain->m_hDevMode = NULL;
-      m_pMain->m_hDevNames = NULL;
-      ::SetRectEmpty(&m_pMain->m_rcPageMargins);
-
-      m_bFailed = false;
    }
 
-   void _LoadStartup()
+   void _LoadStartupSettings()
    {
-      // Read mutable properties
-      CRegSerializer reg;
-      if( reg.Open(REG_BVRDE) ) {
-         // Load Window positions
-         if( reg.ReadGroupBegin(_T("Settings")) ) {         
-            m_pMain->_AddProperty(&reg, _T("language"), _T("gui.main.language"));
-            m_pMain->_AddProperty(&reg, _T("multiInstance"), _T("gui.main.multiInstance"));
-            m_pMain->_AddProperty(&reg, _T("windowpos"), _T("window.main.position"));
-            m_pMain->_AddProperty(&reg, _T("autohide-cx"), _T("window.autohide.cx"));
-            m_pMain->_AddProperty(&reg, _T("autohide-cy"), _T("window.autohide.cy"));
-            m_pMain->_AddProperty(&reg, _T("pane-left"), _T("window.pane.left"));
-            m_pMain->_AddProperty(&reg, _T("pane-top"), _T("window.pane.top"));
-            m_pMain->_AddProperty(&reg, _T("pane-right"), _T("window.pane.right"));
-            m_pMain->_AddProperty(&reg, _T("pane-bottom"), _T("window.pane.bottom"));
-            m_pMain->_AddProperty(&reg, _T("properties-cy"), _T("window.properties.cy"));
-            m_pMain->_AddProperty(&reg, _T("properties-pos"), _T("window.properties.pos"));
-            m_pMain->_AddProperty(&reg, _T("properties-area"), _T("window.properties.area"));
-            m_pMain->_AddProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
-            m_pMain->_AddProperty(&reg, _T("explorer-pos"), _T("window.explorer.pos"));
-            m_pMain->_AddProperty(&reg, _T("explorer-area"), _T("window.explorer.area"));
-            m_pMain->_AddProperty(&reg, _T("openfiles-cy"), _T("window.openfiles.cy"));
-            m_pMain->_AddProperty(&reg, _T("openfiles-pos"), _T("window.openfiles.pos"));
-            m_pMain->_AddProperty(&reg, _T("openfiles-area"), _T("window.openfiles.area"));
-            m_pMain->_AddProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
-            m_pMain->_AddProperty(&reg, _T("symbolview-sort"), _T("window.symbolview.sort"));
-            m_pMain->_AddProperty(&reg, _T("config-timestamp"), _T("config.timestamp"));
-            reg.ReadGroupEnd();
-         }
-         // Load debugview settings
-         if( reg.ReadGroupBegin(_T("DebugViews")) )
-         {
-             m_pMain->_AddProperty(&reg, _T("showWatch"), _T("gui.debugViews.showWatch"));
-             m_pMain->_AddProperty(&reg, _T("showStack"), _T("gui.debugViews.showStack"));
-             m_pMain->_AddProperty(&reg, _T("showThread"), _T("gui.debugViews.showThread"));
-             m_pMain->_AddProperty(&reg, _T("showMemory"), _T("gui.debugViews.showMemory"));
-             m_pMain->_AddProperty(&reg, _T("showOutput"), _T("gui.debugViews.showOutput"));
-             m_pMain->_AddProperty(&reg, _T("showVariable"), _T("gui.debugViews.showVariable"));
-             m_pMain->_AddProperty(&reg, _T("showRegister"), _T("gui.debugViews.showRegister"));
-             m_pMain->_AddProperty(&reg, _T("showBreakpoint"), _T("gui.debugViews.showBreakpoint"));
-             m_pMain->_AddProperty(&reg, _T("showDisassembly"), _T("gui.debugViews.showDisassembly"));
-             reg.ReadGroupEnd();
-         }
-         reg.Close();
-      }
+      m_pMain->_LoadStartupSettings();
    }
 
    void _CheckConfigVersion()
@@ -156,8 +168,6 @@ public:
 
    void _LoadSettings()
    {
-      CCoInitialize cominit;
-
       CString sFilename = CMainFrame::GetSettingsFilename();
 
       // Create XML document
@@ -185,28 +195,14 @@ public:
          return;
       }
 
-      // Open archive and load settings...
+      // Open archive and load settings.
+      // Delegate the actual loading to the CMainFrm implementation.
       CXmlSerializer arc;
       if( !arc.Open(spConfigDoc, _T("Settings"), sFilename) ) return;
       if( !m_pMain->_LoadSettings(arc) ) return;
       arc.Close();
 
       spConfigDoc.Release();
-   }
-
-   void _PreloadLibraries()
-   {
-      ::LoadLibrary(_T("NETAPI32.DLL"));
-      ::LoadLibrary(_T("RASAPI32.DLL"));
-      ::LoadLibrary(_T("RASMAN.DLL"));
-      ::LoadLibrary(_T("RTUTILS.DLL"));
-      ::LoadLibrary(_T("SHDOC32.DLL"));
-      ::LoadLibrary(_T("SHDOCVW.DLL"));
-      ::LoadLibrary(_T("SHDOCLC.DLL"));
-      ::LoadLibrary(_T("MSHTML.DLL"));
-      ::LoadLibrary(_T("MSIMG32.DLL"));
-      ::LoadLibrary(_T("IEFRAME.DLL"));
-      ::LoadLibrary(_T("URLMON.DLL"));
    }
 };
 
@@ -218,7 +214,7 @@ CSettingsLoaderThread g_LoaderThread;           /// Thread that loads the settin
 
 void LoadSettings(CMainFrame* pMain)
 {
-   g_LoaderThread.m_pMain = pMain;
+   g_LoaderThread.Init(pMain);
    g_LoaderThread.Start();
 }
 
@@ -500,7 +496,60 @@ bool CMainFrame::_LoadSettings(CXmlSerializer& arc)
    return true;
 }
 
-void CMainFrame::_SaveSettings()
+void CMainFrame::_LoadStartupSettings()
+{
+   // Default printer setup
+   m_hDevMode = NULL;
+   m_hDevNames = NULL;
+   ::SetRectEmpty(&m_rcPageMargins);
+
+   // Read mutable properties
+   CRegSerializer reg;
+   if( reg.Open(REG_BVRDE) ) {
+      // Load Window positions
+      if( reg.ReadGroupBegin(_T("Settings")) ) {         
+         _AddProperty(&reg, _T("language"), _T("gui.main.language"));
+         _AddProperty(&reg, _T("multiInstance"), _T("gui.main.multiInstance"));
+         _AddProperty(&reg, _T("windowpos"), _T("window.main.position"));
+         _AddProperty(&reg, _T("autohide-cx"), _T("window.autohide.cx"));
+         _AddProperty(&reg, _T("autohide-cy"), _T("window.autohide.cy"));
+         _AddProperty(&reg, _T("pane-left"), _T("window.pane.left"));
+         _AddProperty(&reg, _T("pane-top"), _T("window.pane.top"));
+         _AddProperty(&reg, _T("pane-right"), _T("window.pane.right"));
+         _AddProperty(&reg, _T("pane-bottom"), _T("window.pane.bottom"));
+         _AddProperty(&reg, _T("properties-cy"), _T("window.properties.cy"));
+         _AddProperty(&reg, _T("properties-pos"), _T("window.properties.pos"));
+         _AddProperty(&reg, _T("properties-area"), _T("window.properties.area"));
+         _AddProperty(&reg, _T("explorer-cy"), _T("window.explorer.cy"));
+         _AddProperty(&reg, _T("explorer-pos"), _T("window.explorer.pos"));
+         _AddProperty(&reg, _T("explorer-area"), _T("window.explorer.area"));
+         _AddProperty(&reg, _T("openfiles-cy"), _T("window.openfiles.cy"));
+         _AddProperty(&reg, _T("openfiles-pos"), _T("window.openfiles.pos"));
+         _AddProperty(&reg, _T("openfiles-area"), _T("window.openfiles.area"));
+         _AddProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
+         _AddProperty(&reg, _T("symbolview-sort"), _T("window.symbolview.sort"));
+         _AddProperty(&reg, _T("config-timestamp"), _T("config.timestamp"));
+         reg.ReadGroupEnd();
+      }
+      // Load debugview settings
+      if( reg.ReadGroupBegin(_T("DebugViews")) )
+      {
+          _AddProperty(&reg, _T("showWatch"), _T("gui.debugViews.showWatch"));
+          _AddProperty(&reg, _T("showStack"), _T("gui.debugViews.showStack"));
+          _AddProperty(&reg, _T("showThread"), _T("gui.debugViews.showThread"));
+          _AddProperty(&reg, _T("showMemory"), _T("gui.debugViews.showMemory"));
+          _AddProperty(&reg, _T("showOutput"), _T("gui.debugViews.showOutput"));
+          _AddProperty(&reg, _T("showVariable"), _T("gui.debugViews.showVariable"));
+          _AddProperty(&reg, _T("showRegister"), _T("gui.debugViews.showRegister"));
+          _AddProperty(&reg, _T("showBreakpoint"), _T("gui.debugViews.showBreakpoint"));
+          _AddProperty(&reg, _T("showDisassembly"), _T("gui.debugViews.showDisassembly"));
+          reg.ReadGroupEnd();
+      }
+      reg.Close();
+   }
+}
+
+void CMainFrame::_SaveStartupSettings()
 {
    CRegSerializer reg;
    if( reg.Create(REG_BVRDE) ) {

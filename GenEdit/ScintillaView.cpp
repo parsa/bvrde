@@ -41,11 +41,13 @@ CScintillaView::CScintillaView(IDevEnv* pDevEnv) :
 
 void CScintillaView::SetFilename(LPCTSTR pstrFilename)
 {
+   ATLASSERT(!::IsBadStringPtr(pstrFilename,(UINT)-1));
    m_sFilename = pstrFilename;
 }
 
 void CScintillaView::SetLanguage(LPCTSTR pstrLanguage)
 {
+   ATLASSERT(!::IsBadStringPtr(pstrLanguage,(UINT)-1));
    m_sLanguage = pstrLanguage;
 }
 

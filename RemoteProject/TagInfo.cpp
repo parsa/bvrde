@@ -54,6 +54,7 @@ void CTagInfo::Clear()
    CLockTagDataInit lock;
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) free(m_aFiles[i]);
    m_aFiles.RemoveAll();
+   m_aTags.RemoveAll();
    m_bLoaded = false;
    m_bSorted = false;
 }
@@ -362,37 +363,35 @@ bool CTagInfo::_LoadTags()
       pView->GetName(sName.GetBufferSetLength(MAX_PATH), MAX_PATH);
       sName.ReleaseBuffer();
       sName.MakeUpper();
-      if( sName.Find(_T("TAGS")) >= 0 ) 
-      {
-         // Load the file content. This gets us an UNICODE version
-         // which is just what we need...
-         CComBSTR bstrText;
-         if( !pView->GetText(&bstrText) ) return false;
-         if( bstrText.Length() == 0 ) continue;
-         // Done. Now parse it...
-         LPTSTR pstrText = (LPTSTR) malloc( (bstrText.Length() + 1) * sizeof(TCHAR) );
-         if( pstrText == NULL ) return false;
-         _tcscpy(pstrText, bstrText);
-         if( _ParseTagFile(pstrText) ) {
-            // File parsed successfully! Notice that we
-            // own the memory because we only store pointers
-            // into the text memory.
-            m_aFiles.Add(pstrText);
-         }
-         else {
-            free(pstrText);
-         }
+      if( sName.Find(_T("TAGS")) < 0 ) continue;
+      // Load the file content. This gets us an UNICODE version
+      // which is just what we need...
+      CComBSTR bstrText;
+      if( !pView->GetText(&bstrText) ) return false;
+      if( bstrText.Length() == 0 ) continue;
+      // Done. Now parse it...
+      LPTSTR pstrText = (LPTSTR) malloc( (bstrText.Length() + 1) * sizeof(TCHAR) );
+      if( pstrText == NULL ) return false;
+      _tcscpy(pstrText, bstrText);
+      if( _ParseTagFile(pstrText) ) {
+         // File parsed successfully! Notice that we
+         // own the memory because we only store pointers
+         // into the text memory.
+         m_aFiles.Add(pstrText);
+      }
+      else {
+         free(pstrText);
       }
    }
 
    if( m_aFiles.GetSize() > 1 ) m_bSorted = false;
 
-   // Check if list is sorted.
+   // Check if list is really sorted.
    // NOTE: When multiple files are encountered we cannot rely
    //       on the list being sorted because we don't merge the files.
    //       This will significantly slow down the processing!!
-   for( i = 0; m_bSorted && i < m_aTags.GetSize(); i += 50 ) {
-      if( _tcscmp(m_aTags[i].pstrName, m_aTags[i].pstrName) > 0 ) m_bSorted = false;
+   for( i = 0; m_bSorted && i < m_aTags.GetSize() - 50; i += 50 ) {
+      if( _tcscmp(m_aTags[i].pstrName, m_aTags[i + 25].pstrName) > 0 ) m_bSorted = false;
    }
 
    return true;
@@ -412,7 +411,7 @@ bool CTagInfo::_ParseTagFile(LPTSTR pstrText)
       if( *(pstrNext - 1) == '\r' ) *(pstrNext - 1) = '\0';
       pstrNext++;
 
-      // Ignore comments
+      // Ignore comments; interpret header directives.
       if( *pstrText == '!' ) {
          if( _tcsstr(pstrText, _T("!_TAG_FILE_SORTED\t0")) != NULL ) m_bSorted = false;
          continue;

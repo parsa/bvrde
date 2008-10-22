@@ -45,11 +45,7 @@ public:
 
    CMainFrame();
 
-   enum 
-   { 
-      ANIMATE_TIMERID = 22,
-      DELAY_TIMERID = 23,
-   };
+   enum { ANIMATE_TIMERID = 22 };
 
    typedef struct TOOLBAR
    {
@@ -404,7 +400,8 @@ public:
    void _AddTextButton(CToolBarCtrl tb, UINT nID, UINT nRes);
    void _AddDropDownButton(CToolBarCtrl tb, UINT nID);
    bool _IsSettingsLoaded() const;
-   void _SaveSettings();
+   void _LoadStartupSettings();
+   void _SaveStartupSettings();
    bool _LoadSettings(CXmlSerializer& arc);
    void _AddProperty(ISerializable* pArc, LPCTSTR pstrAttribute, LPCTSTR pstrKey);
    void _StoreProperty(ISerializable* pArc, LPCTSTR pstrAttribute, LPCTSTR pstrKey);

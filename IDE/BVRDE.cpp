@@ -105,7 +105,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
    CMainFrame wndMain;
 
-   // Grab the XML configuration file
+   // Grab the XML configuration file; it spawns a thread
+   // that does the actual loading for startup-performance reasons.
    LoadSettings(&wndMain);
 
    // Change the language now; this is a setting in the registry because

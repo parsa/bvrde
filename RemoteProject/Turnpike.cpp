@@ -51,7 +51,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    for( int i = 0; i < m_aLazyData.GetSize(); i++ ) 
    {
       // FIX: Don't &-ref this! Could be dangerous if more entries are added 
-      // to the array below.
+      // to the array while we're processing.
       LAZYDATA data = m_aLazyData[i];
 
       switch( data.Action ) {
@@ -110,9 +110,11 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             // NOTE: Multiple popup-messages will not be displayed because 
             //       we overwrite the text variables here. Don't bother user
             //       with multiple nonsense.
-            sMessage = data.szMessage;
-            sCaption = data.szCaption;
-            iFlags = data.iFlags;
+            if( sMessage.IsEmpty() ) {
+               sMessage = data.szMessage;
+               sCaption = data.szCaption;
+               iFlags = data.iFlags;
+            }
          }
          break;
       case LAZY_COMPILER_LINE:
@@ -230,7 +232,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             if( m_viewVariable.WantsData() )     m_viewVariable.SetInfo(data.szMessage, data.MiInfo);
             if( m_viewBreakpoint.WantsData() )   m_viewBreakpoint.SetInfo(data.szMessage, data.MiInfo);
 
-            if( m_pQuickWatchDlg && m_pQuickWatchDlg->IsWindow() && m_pQuickWatchDlg->IsWindowVisible() ) {
+            if( m_pQuickWatchDlg != NULL && m_pQuickWatchDlg->IsWindow() && m_pQuickWatchDlg->IsWindowVisible() ) {
                m_pQuickWatchDlg->SetInfo(data.szMessage, data.MiInfo);
             }
 

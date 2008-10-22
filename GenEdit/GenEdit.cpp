@@ -55,14 +55,14 @@ HWND GENEDIT_API Bvrde_CreateScintillaView(HWND hWndParent,
    CScintillaView* pView = new CScintillaView(pDevEnv);
    ATLASSERT(pView);
    if( pView == NULL ) return NULL;
+   pView->SetFilename(pstrFilename);
+   pView->SetLanguage(pstrLanguage);
    HWND hWnd = pView->Create(hWndParent, CWindow::rcDefault, NULL, WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, WS_EX_CLIENTEDGE);
    ATLASSERT(::IsWindow(hWnd));
    if( !::IsWindow(hWnd) ) {
       delete pView;
       return NULL;
    }
-   pView->SetFilename(pstrFilename);
-   pView->SetLanguage(pstrLanguage);
 
    return hWnd;
 }

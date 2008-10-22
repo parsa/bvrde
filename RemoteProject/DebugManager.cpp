@@ -1040,7 +1040,9 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
    if( sCommand == _T("error") ) {
       // Ignore errors might have been requested, so fulfill thy wish...
       if( m_nIgnoreErrors > 0 ) return;
-      // Extract error description and display it formatted nicely
+      // Extract error description and display it formatted nicely.
+      // Our MessageBox implementation has a title, subtitle and description section.
+      // If the text contains a newline, try to distribute the text in those sections.
       CMiInfo info = sLine;
       CString sMessage;
       sMessage.Format(IDS_ERR_DEBUG, info.GetItem(_T("msg")));
@@ -1133,9 +1135,10 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
       } DEBUGERR;
       static DEBUGERR errs[] = 
       {
-         { _T("No debugging symbols found"),  IDS_CAPTION_MESSAGE, IDS_ERR_NODEBUGINFO },
          { _T("Unable to attach to process"), IDS_CAPTION_MESSAGE, IDS_ERR_NOATTACH },
+         { _T("Can't attach to process"),     IDS_CAPTION_MESSAGE, IDS_ERR_NOATTACH },
          { _T("No such process"),             IDS_CAPTION_MESSAGE, IDS_ERR_NOATTACH },
+         { _T("No debugging symbols found"),  IDS_CAPTION_MESSAGE, IDS_ERR_NODEBUGINFO },
          { _T("No symbol table is loaded"),   IDS_CAPTION_MESSAGE, IDS_ERR_NODEBUGINFO },
          { _T("No such file"),                IDS_CAPTION_ERROR,   IDS_ERR_NODEBUGFILE },
          { _T("gdb: unrecognized option"),    IDS_CAPTION_ERROR,   IDS_ERR_DEBUGVERSION },
@@ -1298,8 +1301,8 @@ void CDebugManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
       LPCTSTR pstr = _tcsstr(pstrText, _T("232^"));
       if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("^connected")), iOffset = 1;
       if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("^running")), iOffset = 1;
-      if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("^exit")), iOffset = 1;
       if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("^error")), iOffset = 1;
+      if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("^exit")), iOffset = 1;
       if( pstr == NULL ) pstr = _tcsstr(pstrText, _T("^done")), iOffset = 1;
       if( pstr != NULL ) _ParseResultRecord(pstr + iOffset);
       // Parse OutOfBand records...

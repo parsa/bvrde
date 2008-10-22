@@ -6,7 +6,7 @@
 #include "WizardSheet.h"
 
 #if _MSC_VER < 1300
-	#pragma code_seg( "WIZARDS" )
+   #pragma code_seg( "WIZARDS" )
 #endif
 
 

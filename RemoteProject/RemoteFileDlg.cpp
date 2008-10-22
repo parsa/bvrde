@@ -85,9 +85,9 @@ LRESULT CRemoteFileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
    m_ctrlRefresh.SetIcon(m_RefreshIcon);
 
    // Prepare filter
-   if( m_pstrFilter ) {
+   if( m_pstrFilter != NULL ) {
       LPCTSTR pstrFilter = m_pstrFilter;
-      while( *pstrFilter ) {
+      while( *pstrFilter != '\0' ) {
          CString sName = pstrFilter;
          m_ctrlTypes.AddString(sName);
          pstrFilter += ::lstrlen(pstrFilter) + 1;

@@ -229,6 +229,8 @@ void CDiffCvsView::_GenerateRow(CString& sHTML, CString& sTemp, int iLineNo, LPC
    if( iLineNo != 0 ) ::wsprintf(szLineNo, _T("%d"), iLineNo);
    // OPTI: We need to HTMLize the strings, but for most of the display, both sides are the same; so we
    //       need only convert one of them in this case.
+   // OPTI: To avoid the alloc/free of a temporary string every time we need
+   //       to concatenate more data, we pass a reusable temp. string to use for this purpose.
    CString sLine1 = _Htmlize(sLeft);
    CString sLine2 = sLeft == sRight ? sLine1 : _Htmlize(sRight);
    // Produce the HTML table cell snippet

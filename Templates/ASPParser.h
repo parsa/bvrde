@@ -60,7 +60,7 @@ private:
       m_dwSize *= 2;
       LPWSTR pNew = new WCHAR[m_dwSize];
       if( pNew == NULL ) return; // AARGH!
-      ::CopyMemory(pNew, m_pMemoryStart, m_dwSize/2 );
+      ::CopyMemory(pNew, m_pMemoryStart, m_dwSize / 2 );
       delete [] m_pMemoryStart;
       m_pMemoryStart = pNew;
       pDst = pNew + dwOffset;
@@ -143,7 +143,7 @@ public:
       ATLTRACE("CASP: Script size before parse: %d\n", wcslen(pSrc));
 
       m_dwSize = wcslen(pSrc) * 4;
-      if( m_dwSize<4096 ) m_dwSize = 4096;
+      if( m_dwSize < 4096 ) m_dwSize = 4096;
       LPWSTR pDst = new WCHAR[m_dwSize];
       if( pDst == NULL ) return NULL;
       m_pMemoryStart = pDst;
