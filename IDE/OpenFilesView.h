@@ -66,7 +66,7 @@ public:
       m_ctrlList.SetColumnWidth(0, LVSCW_AUTOSIZE_USEHEADER);
       return 0;
    }
-   LRESULT OnItemDblClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
+   LRESULT OnItemDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       int iCurSel = m_ctrlList.GetSelectedIndex();
       if( iCurSel < 0 ) return 0;
@@ -74,11 +74,11 @@ public:
       ATLTRY( pView->OpenView(0) );
       return 0;
    }
-   LRESULT OnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
+   LRESULT OnRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       return 0;
    }
-   LRESULT OnViewCreated(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+   LRESULT OnViewCreated(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       CWindow wndFrame = (HWND) lParam;
       if( !wndFrame.IsWindow() ) return 0;

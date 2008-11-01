@@ -38,7 +38,7 @@ LRESULT CMainOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM 
    return 0;
 }
 
-LRESULT CMainOptionsPage::OnTypeChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+LRESULT CMainOptionsPage::OnTypeChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    int iIndex = m_ctrlType.GetCurSel();
 

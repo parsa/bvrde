@@ -416,7 +416,7 @@ bool CScCommands::RemoveFile(CSimpleArray<CString>& aFiles)
    return true;
 }
 
-bool CScCommands::LogIn(CSimpleArray<CString>& aFiles)
+bool CScCommands::LogIn(CSimpleArray<CString>& /*aFiles*/)
 {
    CString sCmd;
    CString sPassword;
@@ -443,7 +443,7 @@ bool CScCommands::LogIn(CSimpleArray<CString>& aFiles)
    return true;
 }
 
-bool CScCommands::LogOut(CSimpleArray<CString>& aFiles)
+bool CScCommands::LogOut(CSimpleArray<CString>& /*aFiles*/)
 {
    CString sCmd;
    sCmd.Format(_T("%s %s %s"), sProgram, sOptCommon, sCmdLogOut);

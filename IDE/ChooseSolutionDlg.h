@@ -107,7 +107,7 @@ public:
       EndDialog(IDOK);
       return 0;
    }
-   LRESULT OnChanged(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+   LRESULT OnChanged(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       BOOL bEnable = TRUE;
       if( m_ctrlOpen.GetCheck() == BST_CHECKED && m_ctrlList.GetSelectedCount() == 0 ) bEnable = FALSE;

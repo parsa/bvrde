@@ -238,7 +238,7 @@ LRESULT CMainFrame::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
    return 0;
 }
 
-LRESULT CMainFrame::OnMenuSelect(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CMainFrame::OnMenuSelect(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
    // NOTE: This method overrides the CMDIFrameWindowImpl::OnMenuSelect
    //       because of the special statusbar text-update handling.
@@ -324,7 +324,7 @@ LRESULT CMainFrame::OnDropFiles(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
    return 0;
 }
 
-LRESULT CMainFrame::OnCopyData(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+LRESULT CMainFrame::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {
    // Handle WM_COPYDATA for the sake of only starting a single instance
    // of the application. We'll use this IPC method for communicating the
@@ -386,7 +386,7 @@ LRESULT CMainFrame::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOO
    return 0;
 }
 
-LRESULT CMainFrame::OnHelp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+LRESULT CMainFrame::OnHelp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    SendMessage(WM_COMMAND, MAKEWPARAM(ID_HELP_CONTENTS, 0));
    return 0;
@@ -482,7 +482,7 @@ LRESULT CMainFrame::OnCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
    return 0;
 }
 
-LRESULT CMainFrame::OnFileOpen(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT CMainFrame::OnFileOpen(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    CString sFilter(MAKEINTRESOURCE(IDS_FILTER_ALL));
    for( int i = 0; i < sFilter.GetLength(); i++ ) if( sFilter[i] == '|' ) sFilter.SetAt(i, '\0');
@@ -993,7 +993,7 @@ LRESULT CMainFrame::OnHelpSearch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
    return 0;
 }
 
-LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {  
    SendMessage(WM_APP_VIEWCHANGE);
 
@@ -1037,7 +1037,7 @@ LRESULT CMainFrame::OnUserInit(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
    return 0;
 }
 
-LRESULT CMainFrame::OnUserIdle(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+LRESULT CMainFrame::OnUserIdle(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {  
    // Start the once-in-a-lifetime event to background load important system DLLs
    extern void PreloadPluginDependencies();
@@ -1100,7 +1100,7 @@ LRESULT CMainFrame::OnUserViewMessage(UINT /*uMsg*/, WPARAM wParam, LPARAM lPara
    return 0;
 }
 
-LRESULT CMainFrame::OnUserBuildSolutionUI(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+LRESULT CMainFrame::OnUserBuildSolutionUI(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    _BuildSolutionUI();
    return 0;
@@ -1190,7 +1190,7 @@ LRESULT CMainFrame::OnUserCommandLine(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
    return 0;
 }
 
-LRESULT CMainFrame::OnUserCloseStartPage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+LRESULT CMainFrame::OnUserCloseStartPage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    HWND hWnd  = ::GetWindow(m_hWndMDIClient, GW_CHILD);
    while( hWnd != NULL ) {
@@ -1237,7 +1237,7 @@ LRESULT CMainFrame::OnRebarLayoutChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL&
    return 0;
 }
 
-LRESULT CMainFrame::OnRebarRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
+LRESULT CMainFrame::OnRebarRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
 {
    bHandled = FALSE;
    DWORD dwPos = ::GetMessagePos();

@@ -42,7 +42,7 @@ public:
       return 0;
    }
 
-   BOOL PreTranslateMessage(MSG* pMsg)
+   BOOL PreTranslateMessage(MSG* /*pMsg*/)
    {
       return FALSE;
    }

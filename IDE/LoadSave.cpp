@@ -690,7 +690,7 @@ void CMainFrame::_SaveUIState()
    if( iDockState < IDE_DOCK_FLOAT || iDockState == IDE_DOCK_HIDE  ) {
       ::wsprintf(szBuffer, _T("%ld"), rcPane.bottom - rcPane.top);
       SetProperty(_T("window.explorer.cy"), szBuffer);
-      ::wsprintf(szBuffer, _T("%ld"), m_Dock.GetPaneHeight(iDockState));
+      ::wsprintf(szBuffer, _T("%ld"), m_Dock.GetPaneHeight((short)iDockState));
       SetProperty(_T("window.explorer.area"), szBuffer);
       ::wsprintf(szBuffer, _T("%ld"), iDockState);
       SetProperty(_T("window.explorer.pos"), szBuffer);
@@ -699,7 +699,7 @@ void CMainFrame::_SaveUIState()
    if( iDockState < IDE_DOCK_FLOAT || iDockState == IDE_DOCK_HIDE ) {
       ::wsprintf(szBuffer, _T("%ld"), rcPane.bottom - rcPane.top);
       SetProperty(_T("window.properties.cy"), szBuffer);
-      ::wsprintf(szBuffer, _T("%ld"), m_Dock.GetPaneHeight(iDockState));
+      ::wsprintf(szBuffer, _T("%ld"), m_Dock.GetPaneHeight((short)iDockState));
       SetProperty(_T("window.properties.area"), szBuffer);
       ::wsprintf(szBuffer, _T("%ld"), iDockState);
       SetProperty(_T("window.properties.pos"), szBuffer);

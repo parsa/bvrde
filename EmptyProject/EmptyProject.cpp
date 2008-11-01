@@ -15,7 +15,7 @@ IDevEnv* _pDevEnv;
 // DllMain
 
 EXTERN_C
-BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
+BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 {  
    if( dwReason == DLL_PROCESS_ATTACH ) 
    {
@@ -95,7 +95,7 @@ BOOL WINAPI Plugin_DestroyProject(IProject* pProject)
 }
 
 EXTERN_C
-UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR pstrFilename)
+UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR /*pstrFilename*/)
 {
    // We support all file types!!!
    return 10;

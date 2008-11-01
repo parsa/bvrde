@@ -35,7 +35,7 @@ BOOL CViewImpl::GetText(BSTR* pbstrText)
 BOOL CViewImpl::GetFileName(LPTSTR pstrName, UINT cchMax) const
 {
    ATLASSERT(pstrName);
-   _tcscpy(pstrName, _T(""));
+   _tcsncpy(pstrName, _T(""), cchMax);
    return TRUE;
 }
 
@@ -110,12 +110,12 @@ IDispatch* CViewImpl::GetDispatch()
    return _pDevEnv->CreateStdDispatch(_T("View"), this);
 }
 
-LRESULT CViewImpl::PostMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CViewImpl::PostMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
    return 0;
 }
 
-LRESULT CViewImpl::SendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CViewImpl::SendMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
    return 0;
 }

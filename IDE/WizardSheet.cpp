@@ -334,7 +334,7 @@ LRESULT CGeneralOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPAR
    return 0;
 }
 
-LRESULT CGeneralOptionsPage::OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CGeneralOptionsPage::OnCtlColorStatic(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
    bHandled = FALSE;
    if( (HWND) lParam != m_ctrlGreyed ) return 0;
@@ -675,7 +675,7 @@ LRESULT CAutoTextOptionsPage::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    return 0;
 }
 
-LRESULT CAutoTextOptionsPage::OnCtlColorListBox(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CAutoTextOptionsPage::OnCtlColorListBox(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    static CBrush br;
    if( br.IsNull() ) {
@@ -1011,7 +1011,7 @@ LRESULT CColorsOptionsPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
    return 0;
 }
 
-LRESULT CColorsOptionsPage::OnCtlColorListBox(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CColorsOptionsPage::OnCtlColorListBox(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    static CBrush br;
    if( br.IsNull() ) {

@@ -343,8 +343,8 @@ public:
       ATLASSERT(pidlPath);
 
       // Create PARAM data
-      PSHELLITEMINFO pItem;
-      ATLTRY(pItem = new SHELLITEMINFO);
+      PSHELLITEMINFO pItem = NULL;
+      ATLTRY( pItem = new SHELLITEMINFO );
       ATLASSERT(pItem);
       pItem->pidlFull.Copy( pidlPath );
       pItem->pidlFull.Concatenate( pidlNode );
@@ -573,8 +573,8 @@ public:
       ATLASSERT(pidlPath);
 
       // Create PARAM data
-      PSHELLITEMINFO pItem;
-      ATLTRY(pItem = new SHELLITEMINFO);
+      PSHELLITEMINFO pItem = NULL;
+      ATLTRY( pItem = new SHELLITEMINFO );
       ATLASSERT(pItem);
       pItem->pidlFull.Copy( pidlPath );
       pItem->pidlFull.Concatenate( pidlNode );

@@ -272,7 +272,7 @@ LRESULT CFrameWindow::OnFileClose(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    return 0;
 }
 
-LRESULT CFrameWindow::OnEditFind(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CFrameWindow::OnEditFind(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    const DWORD HTMLID_FIND = 1;
    CComQIPtr<IOleCommandTarget> spOleTarget = m_spBrowser;
@@ -308,10 +308,10 @@ LRESULT CFrameWindow::OnViewBack(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
 // Dispatch handlers
 
 void __stdcall CFrameWindow::__BeforeNavigate2(
-   /*[in]*/ IDispatch* pDisp, 
+   /*[in]*/ IDispatch* /*pDisp*/, 
    /*[in]*/ VARIANT* URL, 
-   /*[in]*/ VARIANT* Flags, 
-   /*[in]*/ VARIANT* TargetFrameName, 
+   /*[in]*/ VARIANT* /*Flags*/, 
+   /*[in]*/ VARIANT* /*TargetFrameName*/, 
    /*[in]*/ VARIANT* PostData, 
    /*[in]*/ VARIANT* Headers, 
    /*[out]*/ VARIANT_BOOL* Cancel)

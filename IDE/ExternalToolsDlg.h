@@ -274,7 +274,7 @@ public:
       return 0;
    }
 
-   LRESULT OnCbChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+   LRESULT OnCbChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       _UpdateButtons();
       return 0;

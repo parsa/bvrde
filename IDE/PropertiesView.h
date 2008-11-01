@@ -143,14 +143,14 @@ public:
 
    // ISerializable
 
-   BOOL ReadGroupBegin(LPCTSTR pstrName) { return FALSE; };
+   BOOL ReadGroupBegin(LPCTSTR /*pstrName*/) { return FALSE; };
    BOOL ReadGroupEnd() { return FALSE; };
-   BOOL ReadItem(LPCTSTR pstrName) { return FALSE; };
-   BOOL Read(LPCTSTR pstrName, LPTSTR szValue, UINT cchMax) { return FALSE; };
-   BOOL Read(LPCTSTR pstrName, SYSTEMTIME& stValue) { return FALSE; };
-   BOOL Read(LPCTSTR pstrName, long& lValue) { return FALSE; };
-   BOOL Read(LPCTSTR pstrName, BOOL& bValue) { return FALSE; };
-   BOOL WriteGroupBegin(LPCTSTR pstrName) 
+   BOOL ReadItem(LPCTSTR /*pstrName*/) { return FALSE; };
+   BOOL Read(LPCTSTR /*pstrName*/, LPTSTR /*szValue*/, UINT /*cchMax*/) { return FALSE; };
+   BOOL Read(LPCTSTR /*pstrName*/, SYSTEMTIME& /*stValue*/) { return FALSE; };
+   BOOL Read(LPCTSTR /*pstrName*/, long& /*lValue*/) { return FALSE; };
+   BOOL Read(LPCTSTR /*pstrName*/, BOOL& /*bValue*/) { return FALSE; };
+   BOOL WriteGroupBegin(LPCTSTR /*pstrName*/) 
    { 
       // Denies serialization of nested objects.
       // We only want the main properties.
@@ -179,7 +179,7 @@ public:
       m_ctrlList.AddItem( PropCreateReadOnlyItem(sName, pstrValue) );
       return TRUE;
    }
-   BOOL Write(LPCTSTR pstrName, SYSTEMTIME stValue)
+   BOOL Write(LPCTSTR /*pstrName*/, SYSTEMTIME /*stValue*/)
    { 
       return TRUE; 
    }

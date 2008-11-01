@@ -1040,12 +1040,12 @@ int CALLBACK CRemoteProject::_SortTreeCB(LPARAM lParam1, LPARAM lParam2, LPARAM 
    TCHAR szName2[128];
    TCHAR szType1[64];
    TCHAR szType2[64];
-   pItem1->GetName(szName1, 127);
-   pItem2->GetName(szName2, 127);
-   pItem1->GetType(szType1, 63);
-   pItem2->GetType(szType2, 63);
-   bool bIsFolder1 = _tcscmp(szType1, _T("Folder")) == 0;
-   bool bIsFolder2 = _tcscmp(szType2, _T("Folder")) == 0;
+   pItem1->GetName(szName1, 127); szName1[127] = '\0';
+   pItem2->GetName(szName2, 127); szName2[127] = '\0';
+   pItem1->GetType(szType1, 63); szType1[127] = '\0';
+   pItem2->GetType(szType2, 63); szType2[127] = '\0';
+   bool bIsFolder1 = (_tcscmp(szType1, _T("Folder")) == 0);
+   bool bIsFolder2 = (_tcscmp(szType2, _T("Folder")) == 0);
    if( bIsFolder1 && !bIsFolder2 ) return -1;
    if( !bIsFolder1 && bIsFolder2 ) return 1;
    if( bIsFolder1 && bIsFolder2 ) return 0; // Folders are not sorted alphabetically!

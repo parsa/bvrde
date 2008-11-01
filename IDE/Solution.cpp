@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////////
 //
 
-CString GetSolutionPath(HWND hWnd /*=NULL*/)
+CString GetSolutionPath(HWND /*hWnd*/ /*=NULL*/)
 {
    OSVERSIONINFO ver = { sizeof(ver) };
    ::GetVersionEx(&ver);

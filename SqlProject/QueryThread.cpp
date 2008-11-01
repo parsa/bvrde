@@ -82,7 +82,7 @@ DWORD CQueryThread::Run()
             if( pDbRec != NULL ) delete pDbRec;
 
             int iAffected = 0;
-            short iColumns = 0;
+            short nColumns = 0;
 
             // Create new command / recordset
             pDbCmd = new COledbCommand(&Db);
@@ -111,7 +111,7 @@ DWORD CQueryThread::Run()
                   Prop.dwStatus = 0;
                   Prop.dwPropertyID = DBPROP_MAXROWS;
                   Prop.vValue.vt = VT_I4;
-                  Prop.vValue.iVal = iMaxRecords;
+                  Prop.vValue.lVal = iMaxRecords;
                   DBPROPSET PropSet = { 0 };
                   PropSet.guidPropertySet = DBPROPSET_ROWSET;
                   PropSet.cProperties = 1;
@@ -129,13 +129,13 @@ DWORD CQueryThread::Run()
                }
                else 
                {
-                  iColumns = pDbRec->GetColumnCount();
+                  nColumns = pDbRec->GetColumnCount();
                   iAffected = pDbCmd->GetRowCount();
-                  SHORT* aColumnType = new SHORT[ iColumns ];
+                  SHORT* aColumnType = new SHORT[ nColumns ];
 
                   // Post information about columns
-                  DATAPACKET* pColInfo = new DATAPACKET(PACKET_COLUMNINFO, iColumns, 0, new CString[ iColumns ], new LONG[ iColumns ]);
-                  for( short i = 0; i < iColumns; i++ ) {
+                  DATAPACKET* pColInfo = new DATAPACKET(PACKET_COLUMNINFO, nColumns, 0, new CString[ nColumns ], new LONG[ nColumns ]);
+                  for( short i = 0; i < nColumns; i++ ) {
                      TCHAR szName[100] = { 0 };
                      pDbRec->GetColumnName(i, szName, sizeof(szName)/sizeof(TCHAR)-1);
                      pColInfo->pstrData[i] = szName;
@@ -145,7 +145,7 @@ DWORD CQueryThread::Run()
                   ::PostMessage(m_hWndNotify, WM_USER_DATA_AVAILABLE, 0, (LPARAM) pColInfo);
 
                   // Collect records
-                  DATAPACKET* pRowInfo = new DATAPACKET(PACKET_ROWINFO, iColumns, 0, new CString[ m_nChunkSize * iColumns ]);
+                  DATAPACKET* pRowInfo = new DATAPACKET(PACKET_ROWINFO, nColumns, 0, new CString[ m_nChunkSize * nColumns ]);
 
                   int iPos = 0;
                   int nTotal = 0;
@@ -157,7 +157,7 @@ DWORD CQueryThread::Run()
                
                   while( !pDbRec->IsEOF() ) 
                   {
-                     for( int i = 0; i < iColumns; i++ ) {
+                     for( short i = 0; i < nColumns; i++ ) {
                         // Extract field value
                         sValue = _T("");
                         switch( aColumnType[i] ) {
@@ -245,7 +245,7 @@ DWORD CQueryThread::Run()
                         ::Sleep(nTotal > 4000 ? 150L : 0L);
                         ::WaitForInputIdle(m_hWndNotify, 200L);
                         // Ready with new packet
-                        pRowInfo = new DATAPACKET(PACKET_ROWINFO, iColumns, 0, new CString[ m_nChunkSize * iColumns ]);
+                        pRowInfo = new DATAPACKET(PACKET_ROWINFO, nColumns, 0, new CString[ m_nChunkSize * nColumns ]);
                         nTotal += iPos;
                         iPos = 0;
                      }
@@ -258,7 +258,7 @@ DWORD CQueryThread::Run()
                   delete [] aColumnType;
 
                   // Send finish packet
-                  ::PostMessage(m_hWndNotify, WM_USER_DATA_AVAILABLE, 0, (LPARAM) new DATAPACKET(PACKET_FINISH, iColumns, iAffected));
+                  ::PostMessage(m_hWndNotify, WM_USER_DATA_AVAILABLE, 0, (LPARAM) new DATAPACKET(PACKET_FINISH, nColumns, iAffected));
                }
                pDbCmd->Close();
             }
@@ -466,7 +466,7 @@ CString CQueryThread::_GetDbErrorText(COledbDatabase* pDb, LPCTSTR pstrSQL) cons
    sSQL.TrimLeft();
    sSQL.TrimRight();
    CString sText;
-   for( int i = 0; i < pDb->GetErrors()->GetCount(); i++ ) {
+   for( short i = 0; i < pDb->GetErrors()->GetCount(); i++ ) {
       CDbError* pErr = pDb->GetErrors()->GetError(i);
       long lCode = pErr->GetErrorCode();
       TCHAR szSource[128] = { 0 };

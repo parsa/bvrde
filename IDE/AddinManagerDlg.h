@@ -98,7 +98,7 @@ public:
 
       return TRUE;
    }
-   LRESULT OnCtlColorStatic(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+   LRESULT OnCtlColorStatic(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {
       if( lParam != (LPARAM) (HWND) m_ctrlDescription ) {
          bHandled = FALSE;

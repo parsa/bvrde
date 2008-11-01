@@ -48,7 +48,7 @@ BOOL CView::GetText(BSTR* pbstrText)
 BOOL CView::GetFileName(LPTSTR pstrName, UINT cchMax) const
 {
    ATLASSERT(pstrName);
-   _tcscpy(pstrName, m_sFilename);
+   _tcsncpy(pstrName, m_sFilename, cchMax);
    return TRUE;
 }
 
@@ -57,7 +57,7 @@ IElement* CView::GetParent() const
    return m_pParent;
 }
 
-BOOL CView::SetName(LPCTSTR pstrName)
+BOOL CView::SetName(LPCTSTR /*pstrName*/)
 {
    return FALSE;
 }
@@ -106,7 +106,7 @@ BOOL CView::IsDirty() const
    return FALSE;   
 }
 
-BOOL CView::OpenView(long lLineNum)
+BOOL CView::OpenView(long /*lLineNum*/)
 {
    if( m_wndFrame.IsWindow() ) 
    {
@@ -170,12 +170,12 @@ void CView::EnableModeless(BOOL bEnable)
    if( m_wndFrame.IsWindow() ) m_wndFrame.EnableWindow(bEnable);
 }
 
-LRESULT CView::PostMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CView::PostMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
    return 0;
 }
 
-LRESULT CView::SendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CView::SendMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
    return 0;
 }

@@ -149,7 +149,7 @@ void CDesignView::OnIdle(IUpdateUI* pUIBase)
 
 // Message map and handlers
 
-LRESULT CDesignView::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CDesignView::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
 {
    // Create the control for me
    LRESULT lRes = DefWindowProc(uMsg, wParam, lParam);

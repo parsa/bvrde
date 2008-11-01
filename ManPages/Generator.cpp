@@ -5,7 +5,7 @@
 #include "Generator.h"
 
 
-UINT CManPageGenerator::Generate(HWND hWnd, LPCTSTR pstrKeyword, LPCTSTR pstrLanguage, long& lPos, long& lCount, CComBSTR& bstrResult)
+UINT CManPageGenerator::Generate(HWND /*hWnd*/, LPCTSTR pstrKeyword, LPCTSTR /*pstrLanguage*/, long& lPos, long& lCount, CComBSTR& bstrResult)
 {
    ATLASSERT(!::IsBadStringPtr(pstrKeyword,-1));
 

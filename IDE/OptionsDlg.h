@@ -95,7 +95,7 @@ public:
       return m_hGroup != NULL;
    }
 
-   BOOL AddWizardPage(UINT nID, LPCPROPSHEETPAGE hPage)
+   BOOL AddWizardPage(UINT /*nID*/, LPCPROPSHEETPAGE hPage)
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ATLASSERT(m_ctrlContainer.IsWindow());

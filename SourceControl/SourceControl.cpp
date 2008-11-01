@@ -48,11 +48,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
 class CWizardListener : public IWizardListener
 {
 public:
-   BOOL OnInitProperties(IWizardManager* pManager, IElement* pElement)
+   BOOL OnInitProperties(IWizardManager* /*pManager*/, IElement* /*pElement*/)
    {
       return TRUE;
    }
-   BOOL OnInitWizard(IWizardManager* pManager, IProject* pProject, LPCTSTR pstrName)
+   BOOL OnInitWizard(IWizardManager* /*pManager*/, IProject* /*pProject*/, LPCTSTR /*pstrName*/)
    {
       return TRUE;
    }

@@ -16,11 +16,11 @@ public:
       m_sType(pstrType), m_sName(pstrName)
    {
    }
-   BOOL Load(ISerializable* pArchive)
+   BOOL Load(ISerializable* /*pArchive*/)
    {
       return FALSE;
    }  
-   BOOL Save(ISerializable* pArchive)
+   BOOL Save(ISerializable* /*pArchive*/)
    {
       return FALSE;
    }  

@@ -105,7 +105,7 @@ BOOL CStartPageView::IsDirty() const
    return FALSE;
 }
 
-BOOL CStartPageView::Load(ISerializable* pArc)
+BOOL CStartPageView::Load(ISerializable* /*pArc*/)
 {
    return TRUE;
 }
@@ -276,10 +276,11 @@ LRESULT CStartPageView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
 ///////////////////////////////////////////////////////7
 // Dispatch handlers
 
-void __stdcall CStartPageView::__BeforeNavigate2(/*[in]*/ IDispatch* pDisp, 
+void __stdcall CStartPageView::__BeforeNavigate2(
+   /*[in]*/ IDispatch* /*pDisp*/, 
    /*[in]*/ VARIANT* URL, 
-   /*[in]*/ VARIANT* Flags, 
-   /*[in]*/ VARIANT* TargetFrameName, 
+   /*[in]*/ VARIANT* /*Flags*/, 
+   /*[in]*/ VARIANT* /*TargetFrameName*/, 
    /*[in]*/ VARIANT* PostData, 
    /*[in]*/ VARIANT* Headers, 
    /*[out]*/ VARIANT_BOOL* Cancel)
@@ -322,8 +323,8 @@ void __stdcall CStartPageView::__BeforeNavigate2(/*[in]*/ IDispatch* pDisp,
    *Cancel = bCancel ? VARIANT_TRUE : VARIANT_FALSE;
 }
 
-void __stdcall CStartPageView::__DocumentComplete(/*[in]*/ IDispatch* pDisp, 
-   /*[in]*/ BSTR bstrText)
+void __stdcall CStartPageView::__DocumentComplete(/*[in]*/ IDispatch* /*pDisp*/, 
+   /*[in]*/ BSTR /*bstrText*/)
 {
    enum { WM_APP_IDLETIME = WM_APP + 1001 };
    CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);

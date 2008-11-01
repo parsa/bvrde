@@ -303,7 +303,7 @@ LRESULT CScintillaView::OnMacroRecord(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHan
    SCNotification* pSCN = (SCNotification*) pnmh;
    // BUG: Not all SCI_xxx commands take a string argument, so we'll do
    //      an optimistic checking on the LPARAM parameter.
-   if( pSCN->lParam != 0 && ::IsBadStringPtrA((LPCSTR) pSCN->lParam, -1) ) return 0;
+   if( pSCN->lParam != 0 && ::IsBadStringPtrA((LPCSTR) pSCN->lParam, (UINT)-1) ) return 0;
    CString sMacro;
    sMacro.Format(_T("Call ActiveWindow.SendRawMessage(%ld,%ld,\"%hs\")"), 
       (long) pSCN->message,
@@ -335,7 +335,7 @@ LRESULT CScintillaView::OnNeedShown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandl
 void CScintillaView::_MatchBraces(long lPos)
 {
    if( !m_bMatchBraces ) return;
-   CHAR ch = (CHAR) GetCharAt(lPos);
+   int ch = (CHAR) GetCharAt(lPos);
    int iStyle = GetStyleAt(lPos);
    if( (ch == '{' && m_sLanguage == _T("cpp") && iStyle == SCE_C_OPERATOR )
        || (ch == '(' && m_sLanguage == _T("cpp") && iStyle == SCE_C_OPERATOR )
@@ -364,7 +364,7 @@ void CScintillaView::_MatchBraces(long lPos)
  * typically inserts a whole section of text (e.g. user types 'while' and presses
  * TAB key to insert a complete 'while(true) { ...'-block).
  */
-void CScintillaView::_AutoText(CHAR ch)
+void CScintillaView::_AutoText(int ch)
 {
    USES_CONVERSION;
 
@@ -464,7 +464,7 @@ void CScintillaView::_AutoText(CHAR ch)
  * Auto-suggest pops up a simple auto-completion tip based
  * on similar words located in the surrounding text.
  */
-void CScintillaView::_AutoSuggest(CHAR ch)
+void CScintillaView::_AutoSuggest(int ch)
 {
    USES_CONVERSION;
 
@@ -544,7 +544,7 @@ void CScintillaView::_AutoSuggest(CHAR ch)
  * Do auto-completion for general languages. We can handle auto-completion
  * for XML, HTML, PERL and PHP languages out-of-the-box.
  */
-void CScintillaView::_AutoComplete(CHAR ch)
+void CScintillaView::_AutoComplete(int ch)
 {
    USES_CONVERSION;
 
@@ -598,7 +598,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
       // Construct the first letter of the search pattern
       CHAR cLetter = szText[lPos - iMin - 1];
       if( cLetter == '/' ) return;      
-      CHAR szFind[] = { ch, cLetter, '\0' };
+      CHAR szFind[] = { (CHAR) ch, cLetter, '\0' };
       // Create array of items found from text
       CSimpleArray<CString> aList;
       LPSTR pstr = strstr(szText, szFind);
@@ -664,7 +664,7 @@ void CScintillaView::_AutoComplete(CHAR ch)
  * The function maintains indentation for the general programming languages
  * and for HTML and XML as well.
  */
-void CScintillaView::_MaintainIndent(CHAR ch)
+void CScintillaView::_MaintainIndent(int ch)
 {
    if( !m_bAutoIndent && !m_bSmartIndent ) return;
    int iCurPos = GetCurrentPos();
@@ -796,7 +796,7 @@ void CScintillaView::_MaintainIndent(CHAR ch)
  * Auto-close tags.
  * This function automatically closes tags for the HTML and XML languages.
  */
-void CScintillaView::_MaintainTags(CHAR ch)
+void CScintillaView::_MaintainTags(int ch)
 {
    USES_CONVERSION;
 
@@ -858,7 +858,7 @@ void CScintillaView::_MaintainTags(CHAR ch)
 
    // Standard auto-complete rules
 
-   CHAR chPrev = GetCharAt(lPosition - 2);
+   int chPrev = GetCharAt(lPosition - 2);
    int iStylePrev = GetStyleAt(lPosition - 2);
 
    if( ch == '>' 
@@ -1237,7 +1237,7 @@ bool CScintillaView::_IsValidInsertPos(long lPos) const
    return true;
 }
 
-bool CScintillaView::_iseditchar(char ch) const
+bool CScintillaView::_iseditchar(int ch) const
 {
    return isalnum(ch) || ch == '_' || ch == '$' || ch == '~';
 }

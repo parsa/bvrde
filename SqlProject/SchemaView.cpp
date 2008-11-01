@@ -557,10 +557,10 @@ BOOL CSchemaView::_LoadHtml(IUnknown* pUnk, LPCTSTR pstrHTML)
 
 HTREEITEM CSchemaView::_FindTreeItem(HTREEITEM hItem, LPARAM lParam)
 {
-   while( hItem ) {
+   while( hItem != NULL ) {
       if( (LPARAM) m_ctrlTree.GetItemData(hItem) == lParam ) return hItem;
       HTREEITEM hNext;
-      if( (hNext = _FindTreeItem(m_ctrlTree.GetChildItem(hItem), lParam)) ) return hNext;
+      if( (hNext = _FindTreeItem(m_ctrlTree.GetChildItem(hItem), lParam)) != NULL ) return hNext;
       hItem = m_ctrlTree.GetNextSiblingItem(hItem);
    }
    return NULL;

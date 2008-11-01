@@ -954,7 +954,7 @@ public:
       return 1; // handled, no background painting needed
    }
 
-   LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+   LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( m_map.GetSize() == 0 ) return 1;
       T* pT = static_cast<T*>(this);

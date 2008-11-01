@@ -48,7 +48,7 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv->ReserveUIRange(ID_EDIT_FINDFILES, ID_EDIT_FINDFILES + 1);
 
    HMODULE hRichEdit = ::LoadLibrary(CRichEditCtrl::GetLibraryName());
-   ATLASSERT(hRichEdit);
+   ATLASSERT(hRichEdit); hRichEdit;
 
    return TRUE;
 }

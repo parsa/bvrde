@@ -85,7 +85,7 @@ static LCID FindUserLanguage()
 ///////////////////////////////////////////////////
 //
 
-int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
+int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR /*lpstrCmdLine*/, int /*nCmdShow*/)
 {
    // NOTE: We need single-threaded COM because of Active Scripting
    //       and OLE drag'n'drop below runs in this scope...

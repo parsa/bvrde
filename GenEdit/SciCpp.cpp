@@ -38,7 +38,7 @@ void Platform::DebugPrintf(const char *, ...)
 { 
 }
 
-void Platform::Assert(const char *c, const char *file, int line) 
+void Platform::Assert(const char* /*c*/, const char* /*file*/, int /*line*/) 
 {
 }
 
@@ -490,7 +490,7 @@ static void FoldCppDoc(unsigned int startPos, int length, int initStyle,
 static const char* LexerName = "BVRDE_cpp";
 
 extern "C" void EXT_LEXER_DECL Lex(
-   unsigned int lexer, 
+   unsigned int /*lexer*/, 
    unsigned int startPos, 
    int length, 
    int initStyle,
@@ -520,7 +520,7 @@ extern "C" void EXT_LEXER_DECL Lex(
 }
 
 extern "C" void EXT_LEXER_DECL Fold(
-   unsigned int lexer, 
+   unsigned int /*lexer*/, 
    unsigned int startPos, 
    int length, 
    int initStyle,
@@ -554,7 +554,7 @@ extern "C" int EXT_LEXER_DECL GetLexerCount()
    return 1;
 }
 
-extern "C" void EXT_LEXER_DECL GetLexerName(unsigned int Index, char *name, int buflength)
+extern "C" void EXT_LEXER_DECL GetLexerName(unsigned int /*Index*/, char *name, int buflength)
 {
    strncpy(name, LexerName, buflength);
 }

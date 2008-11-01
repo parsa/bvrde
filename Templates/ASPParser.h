@@ -76,7 +76,7 @@ private:
       ATLASSERT(pSrc);
       ATLASSERT(pDst);
       WCHAR ch;
-      while( ch = *pSrc++ ) {
+      while( (ch = *pSrc++) != 0 ) {
          if( ch == L'%' ) {
             if( *pSrc == L'>' ) {
                pSrc++;

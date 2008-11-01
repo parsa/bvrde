@@ -6,6 +6,7 @@
 
 #pragma code_seg( "MISC" )
 
+#pragma warning(disable : 4239)
 
 ////////////////////////////////////////////////////////
 // Parse Original Diff format
@@ -447,3 +448,5 @@ BOOL CDiffCvsView::_ParseDiffUnidiff(CSimpleArray<CString>& aFile, CSimpleArray<
    }
    return (iLineNo > 0);
 }
+
+#pragma warning(default : 4239)

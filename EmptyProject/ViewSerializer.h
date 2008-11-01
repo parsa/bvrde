@@ -26,16 +26,16 @@ public:
    BOOL Read(LPCTSTR pstrName, long& lValue);
    BOOL Read(LPCTSTR pstrName, BOOL& bValue);
 
-   BOOL WriteGroupBegin(LPCTSTR pstrName) { return FALSE; };
+   BOOL WriteGroupBegin(LPCTSTR /*pstrName*/) { return FALSE; };
    BOOL WriteGroupEnd() { return FALSE; };
-   BOOL WriteItem(LPCTSTR pstrName) { return FALSE; };
-   BOOL Write(LPCTSTR pstrName, LPCTSTR pstrValue) { return FALSE; };
-   BOOL Write(LPCTSTR pstrName, SYSTEMTIME stValue) { return FALSE; };
-   BOOL Write(LPCTSTR pstrName, long lValue) { return FALSE; };
-   BOOL Write(LPCTSTR pstrName, BOOL bValue) { return FALSE; };
-   BOOL WriteExternal(LPCTSTR pstrName) { return FALSE; };
+   BOOL WriteItem(LPCTSTR /*pstrName*/) { return FALSE; };
+   BOOL Write(LPCTSTR /*pstrName*/, LPCTSTR /*pstrValue*/) { return FALSE; };
+   BOOL Write(LPCTSTR /*pstrName*/, SYSTEMTIME /*stValue*/) { return FALSE; };
+   BOOL Write(LPCTSTR /*pstrName*/, long /*lValue*/) { return FALSE; };
+   BOOL Write(LPCTSTR /*pstrName*/, BOOL /*bValue*/) { return FALSE; };
+   BOOL WriteExternal(LPCTSTR /*pstrName*/) { return FALSE; };
 
-   BOOL Delete(LPCTSTR pstrName) { return FALSE; };
+   BOOL Delete(LPCTSTR /*pstrName*/) { return FALSE; };
 };
 
 

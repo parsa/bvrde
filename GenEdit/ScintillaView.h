@@ -159,11 +159,11 @@ public:
    
    // Implementation
 
-   void _AutoText(CHAR ch);
-   void _AutoSuggest(CHAR ch);
-   void _AutoComplete(CHAR ch);
-   void _MaintainTags(CHAR ch);
-   void _MaintainIndent(CHAR ch);
+   void _AutoText(int ch);
+   void _AutoSuggest(int ch);
+   void _AutoComplete(int ch);
+   void _MaintainTags(int ch);
+   void _MaintainIndent(int ch);
    void _MatchBraces(long lPos);
    CString _GetProperty(CString sKey) const;
    void _SetLineIndentation(int iLine, int iIndent);
@@ -171,7 +171,7 @@ public:
    bool _ReplaceOnce();
    int _FindNext(int iFlags, LPCSTR pstrText, bool bWarnings, bool bShowFindDlg);
    CString _GetNearText(long lPosition);
-   bool _iseditchar(char ch) const;
+   bool _iseditchar(int ch) const;
    bool _IsValidInsertPos(long lPos) const;
    void _GetSyntaxStyle(LPCTSTR pstrName, SYNTAXCOLOR& syntax);
    bool _AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) const;

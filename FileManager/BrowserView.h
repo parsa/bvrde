@@ -57,7 +57,7 @@ public:
       CHAIN_MSG_MAP( CShellTreeCtrl )
    END_MSG_MAP()
 
-   LRESULT OnRightClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
+   LRESULT OnRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       CPidl pidl;
       HTREEITEM hItem = GetDropHilightItem();
@@ -144,7 +144,7 @@ public:
       TrackPopupMenu(pidl, x, y, m_hWnd);
       return 0;
    }
-   LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
+   LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       SetColumnWidth(0, LVSCW_AUTOSIZE_USEHEADER);
       return 0;

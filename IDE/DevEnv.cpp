@@ -244,14 +244,14 @@ BOOL CMainFrame::AddDockView(HWND hWnd, IDE_DOCK_TYPE Direction, RECT rcWin)
       break;
    case IDE_DOCK_LEFT:
    case IDE_DOCK_RIGHT:
-      bRes = m_Dock.DockWindow(hWnd, Direction, rcWin.bottom - rcWin.top);
+      bRes = m_Dock.DockWindow(hWnd, (short) Direction, rcWin.bottom - rcWin.top);
       break;
    case IDE_DOCK_TOP:
    case IDE_DOCK_BOTTOM:
-      bRes = m_Dock.DockWindow(hWnd, Direction, rcWin.right - rcWin.left);
+      bRes = m_Dock.DockWindow(hWnd, (short) Direction, rcWin.right - rcWin.left);
       break;
    default:
-      bRes = m_Dock.DockWindow(hWnd, Direction);
+      bRes = m_Dock.DockWindow(hWnd, (short) Direction);
       break;
    }
    return bRes;

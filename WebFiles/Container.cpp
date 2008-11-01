@@ -97,7 +97,7 @@ void CContainerWindow::SetViewText(LPCTSTR pstrText)
    // Will be assigned to view next time we switch tab folder.
    m_sText = pstrText;
    // Switch tab folder
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnTabChange(0, NULL, bDummy);
    int iCurSel = m_ctrlTab.GetCurSel();
    if( iCurSel < 0 ) m_ctrlTab.SetCurSel(0);
@@ -146,7 +146,7 @@ LRESULT CContainerWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
    return 0;
 }
 
-LRESULT CContainerWindow::OnQueryEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+LRESULT CContainerWindow::OnQueryEndSession(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {   
    if( m_wndSource.GetModify() ) {
       TCHAR szBuffer[32] = { 0 };
@@ -171,7 +171,7 @@ LRESULT CContainerWindow::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
    if( !m_ctrlTab.IsWindow() ) return 0;
    if( !m_hWndClient.IsWindow() ) return 0;
    // Place the tab control and client window
-   RECT rc;
+   RECT rc = { 0 };
    GetClientRect(&rc);
    int cy = ::GetSystemMetrics(SM_CYMENU) + 6;
    m_hWndClient.MoveWindow(rc.left, rc.top, rc.right, rc.bottom - cy);

@@ -23,7 +23,7 @@
 
 
 
-LRESULT CMainFrame::OnFilePrintSetup(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT CMainFrame::OnFilePrintSetup(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    PAGESETUPDLG pdlg = 
    {

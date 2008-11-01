@@ -291,7 +291,7 @@ void CEmptyProject::OnMenuCommand(LPCTSTR /*pstrType*/, LPCTSTR /*pstrCommand*/,
 
 // Message handlers
 
-LRESULT CEmptyProject::OnFileRemove(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CEmptyProject::OnFileRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    HTREEITEM hItem = NULL;
    IElement* pElement = _GetSelectedTreeElement(&hItem);
@@ -317,7 +317,7 @@ LRESULT CEmptyProject::OnFileRemove(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
    return 0;
 }
 
-LRESULT CEmptyProject::OnFileRename(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CEmptyProject::OnFileRename(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    HTREEITEM hItem = NULL;
    if( _GetSelectedTreeElement(&hItem) == NULL ) { bHandled = FALSE; return 0; }
@@ -327,7 +327,7 @@ LRESULT CEmptyProject::OnFileRename(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
    return 0;
 }
 
-LRESULT CEmptyProject::OnFileAddFolder(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CEmptyProject::OnFileAddFolder(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    HTREEITEM hItem = { 0 };
    IElement* pElement = _GetSelectedTreeElement(&hItem);
@@ -354,7 +354,7 @@ LRESULT CEmptyProject::OnFileAddFolder(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
    return 0;
 }
 
-LRESULT CEmptyProject::OnFileAddLocal(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& bHandled)
+LRESULT CEmptyProject::OnFileAddLocal(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    // Need to make sure the project file itself has been saved
    if( m_aFiles.GetSize() == 0 ) m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_SAVE_ALL, 0));
@@ -464,7 +464,7 @@ LRESULT CEmptyProject::OnProjectSetDefault(WORD /*wNotifyCode*/, WORD /*wID*/, H
    return 0;
 }
 
-LRESULT CEmptyProject::OnTreeLabelBegin(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
+LRESULT CEmptyProject::OnTreeLabelBegin(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
    IElement* pElement = _GetSelectedTreeElement();
    if( pElement == NULL ) return TRUE;
@@ -784,7 +784,7 @@ UINT CEmptyProject::_GetMenuPosFromID(HMENU hMenu, UINT ID) const
    return (UINT) -1;
 }
 
-int CALLBACK CEmptyProject::_SortTreeCB(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+int CALLBACK CEmptyProject::_SortTreeCB(LPARAM lParam1, LPARAM lParam2, LPARAM /*lParamSort*/)
 {
    IView* pItem1 = (IView*) lParam1;
    IView* pItem2 = (IView*) lParam2;
@@ -792,12 +792,12 @@ int CALLBACK CEmptyProject::_SortTreeCB(LPARAM lParam1, LPARAM lParam2, LPARAM l
    TCHAR szName2[128];
    TCHAR szType1[64];
    TCHAR szType2[64];
-   pItem1->GetName(szName1, 127);
-   pItem2->GetName(szName2, 127);
-   pItem1->GetType(szType1, 63);
-   pItem2->GetType(szType2, 63);
-   bool bIsFolder1 = _tcscmp(szType1, _T("Folder")) == 0;
-   bool bIsFolder2 = _tcscmp(szType2, _T("Folder")) == 0;
+   pItem1->GetName(szName1, 127); szName1[127] = '\0';
+   pItem2->GetName(szName2, 127); szName2[127] = '\0';
+   pItem1->GetType(szType1, 63); szType1[63] = '\0';
+   pItem2->GetType(szType2, 63); szType2[63] = '\0';
+   bool bIsFolder1 = (_tcscmp(szType1, _T("Folder")) == 0);
+   bool bIsFolder2 = (_tcscmp(szType2, _T("Folder")) == 0);
    if( bIsFolder1 && !bIsFolder2 ) return -1;
    if( !bIsFolder1 && bIsFolder2 ) return 1;
    if( bIsFolder1 && bIsFolder2 ) return 0; // Folders are not sorted alphabetically!

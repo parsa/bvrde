@@ -509,8 +509,9 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    // Special contrast settings (BUG #1348377)
    if( clrBack == RGB(0,0,0) ) {
-      clrBackShade = BlendRGB(clrBack, RGB(255,255,255), 3);
-      clrBackDarkShade = BlendRGB(clrBack, RGB(255,255,255), 8);
+      COLORREF clrWhite = RGB(255,255,255);
+      clrBackShade = BlendRGB(clrBack, clrWhite, 3);
+      clrBackDarkShade = BlendRGB(clrBack, clrWhite, 8);
       SetCaretFore(RGB(255,255,255));
    }
 

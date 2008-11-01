@@ -42,7 +42,7 @@ BOOL APIENTRY Templates_NewFile(HWND hWndParent, IDevEnv* pDevEnv, ISolution* pS
 }
 
 EXTERN_C
-BOOL APIENTRY Templates_NewProject(HWND hWndParent, IDevEnv* pDevEnv, ISolution* pSolution, IProject* pProject)
+BOOL APIENTRY Templates_NewProject(HWND /*hWndParent*/, IDevEnv* /*pDevEnv*/, ISolution* /*pSolution*/, IProject* /*pProject*/)
 {   
    ATLASSERT(false);  // TODO: Implement this...
    return FALSE;
