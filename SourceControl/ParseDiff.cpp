@@ -8,6 +8,7 @@
 
 #pragma warning(disable : 4239)
 
+
 ////////////////////////////////////////////////////////
 // Parse Original Diff format
 

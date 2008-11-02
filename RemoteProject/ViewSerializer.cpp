@@ -16,7 +16,7 @@ void CViewSerializer::Add(LPCTSTR pstrKey, LPCTSTR pstrValue)
    m_aItems.Add(sKey, sValue);
 }
 
-BOOL CViewSerializer::ReadGroupBegin(LPCTSTR pstrName)
+BOOL CViewSerializer::ReadGroupBegin(LPCTSTR /*pstrName*/)
 {
    return FALSE;
 }
@@ -26,7 +26,7 @@ BOOL CViewSerializer::ReadGroupEnd()
    return FALSE;
 }
 
-BOOL CViewSerializer::ReadItem(LPCTSTR pstrName)
+BOOL CViewSerializer::ReadItem(LPCTSTR /*pstrName*/)
 {
    return FALSE;
 }
@@ -41,17 +41,17 @@ BOOL CViewSerializer::Read(LPCTSTR pstrName, LPTSTR szValue, UINT cchMax)
    return TRUE;
 }
 
-BOOL CViewSerializer::Read(LPCTSTR pstrName, SYSTEMTIME& stValue)
+BOOL CViewSerializer::Read(LPCTSTR /*pstrName*/, SYSTEMTIME& /*stValue*/)
 {
    return FALSE;
 }
 
-BOOL CViewSerializer::Read(LPCTSTR pstrName, long& lValue)
+BOOL CViewSerializer::Read(LPCTSTR /*pstrName*/, long& /*lValue*/)
 {
    return FALSE;
 }
 
-BOOL CViewSerializer::Read(LPCTSTR pstrName, BOOL& bValue)
+BOOL CViewSerializer::Read(LPCTSTR /*pstrName*/, BOOL& /*bValue*/)
 {
    return FALSE;
 }

@@ -288,9 +288,9 @@ void CRemoteProject::DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UI
    LAZYDATA data;
    ATLASSERT(_tcslen(pstrCaption)<(sizeof(data.szCaption)/sizeof(TCHAR)));
    ATLASSERT(_tcslen(pstrMessage)<(sizeof(data.szMessage)/sizeof(TCHAR)));
+   data.Action = LAZY_SHOW_MESSAGE;
    ::ZeroMemory(data.szCaption, sizeof(data.szCaption));
    ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
-   data.Action = LAZY_SHOW_MESSAGE;
    _tcsncpy(data.szCaption, pstrCaption, (sizeof(data.szCaption) / sizeof(TCHAR)) - 1);
    _tcsncpy(data.szMessage, pstrMessage, (sizeof(data.szMessage) / sizeof(TCHAR)) - 1);
    data.iFlags = iFlags;
@@ -325,10 +325,10 @@ void CRemoteProject::DelayedGuiAction(UINT iAction, IDE_HWND_TYPE WindowType, LP
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
-   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
    data.Action = LAZY_GUI_ACTION;
    data.wParam = iAction;
    data.WindowType = WindowType;
+   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
    _tcsncpy(data.szMessage, pstrMessage == NULL ? _T("") : pstrMessage, (sizeof(data.szMessage) / sizeof(TCHAR)) - 1);
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
@@ -340,7 +340,8 @@ void CRemoteProject::DelayedStatusBar(LPCTSTR pstrText)
    LAZYDATA data;
    ATLASSERT(_tcslen(pstrText)<(sizeof(data.szMessage)/sizeof(TCHAR)));
    data.Action = LAZY_SET_STATUSBARTEXT;
-   _tcscpy(data.szMessage, pstrText);
+   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
+   _tcsncpy(data.szMessage, pstrText, (sizeof(data.szMessage) / sizeof(TCHAR)) - 1);
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
@@ -350,8 +351,8 @@ void CRemoteProject::DelayedDebugCommand(LPCTSTR pstrCommand)
    CLockDelayedDataInit lock;
    LAZYDATA data;
    ATLASSERT(_tcslen(pstrCommand)<(sizeof(data.szMessage)/sizeof(TCHAR)));
-   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
    data.Action = LAZY_DEBUGCOMMAND;
+   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
    _tcsncpy(data.szMessage, pstrCommand, (sizeof(data.szMessage) / sizeof(TCHAR)) - 1);
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
@@ -437,8 +438,8 @@ void CRemoteProject::DelayedDebugInfo(LPCTSTR pstrCommand, CMiInfo& info)
    m_aLazyData.Add(dummy);
    LAZYDATA& data = m_aLazyData[m_aLazyData.GetSize() - 1];
    ATLASSERT(_tcslen(pstrCommand)<(sizeof(data.szMessage)/sizeof(TCHAR)));
-   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
    data.Action = LAZY_DEBUG_INFO;
+   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
    _tcsncpy(data.szMessage, pstrCommand, (sizeof(data.szMessage) / sizeof(TCHAR)) - 1);
    data.MiInfo.Copy(info);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
