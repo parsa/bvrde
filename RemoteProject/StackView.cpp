@@ -119,8 +119,7 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 
 void CStackView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
 {
-   // NOTE: We also refresh the thread-list though it is handled
-   //       through the Thread View class.
+   // NOTE: We also refresh the thread-list, though it is handled through the CThreadView class.
    //       @see CRemoteProject::OnProcess
 
    aDbgCmd.Add(CString(_T("-stack-list-frames")));

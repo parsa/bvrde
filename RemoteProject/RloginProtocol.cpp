@@ -61,12 +61,12 @@ DWORD CRloginThread::Run()
    SOCKADDR_IN a = { 0 };
    a.sin_family = AF_INET;
    a.sin_addr.s_addr = INADDR_ANY;
-   
+
    // Let's try not to go below port 512 so we don't
    // mess with all the default system port numbers.
    static short s_iBindPort = 1024;
    if( s_iBindPort <= 512 ) s_iBindPort = 1024;
-   
+
    while( true ) {
       // Try next port
       s_iBindPort--;
@@ -339,7 +339,7 @@ DWORD CRloginThread::Run()
 
    m_pManager->m_bConnected = false;
    return 0;
-};
+}
 
 CHAR CRloginThread::_GetByte(CSocket& socket, const LPBYTE pBuffer, DWORD dwRead, DWORD& iPos) const
 {
@@ -347,8 +347,8 @@ CHAR CRloginThread::_GetByte(CSocket& socket, const LPBYTE pBuffer, DWORD dwRead
    // First check if the cache contains the data
    if( iPos < dwRead ) return pBuffer[iPos++];
    // Ok, we need to receive the data!
-   // BUG: Could hang the system in a blocking loop!!!
    CHAR b = 0;
+   if( !socket.WaitForData(200) ) return b;
    BOOL bRet = socket.Read(&b, 1, NULL);
    switch( ::WSAGetLastError() ) {
    case WSAEINPROGRESS:

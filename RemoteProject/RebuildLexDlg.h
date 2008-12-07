@@ -19,13 +19,14 @@
 class CRebuildLexThread : public CThreadImpl<CRebuildLexThread>
 {
 public:
-   CRemoteProject* pProject;     // Reference to project
-   CWindow wndParent;            // Reference to dialog
-   TCHAR szFilename[MAX_PATH];   // These are defined pr instance because the name-part is
-   LPCTSTR pstrNamePart;         // ...used in both thread and dialog (points to szFilename)
+   CRemoteProject* pProject;         // Reference to project
+   CWindow wndParent;                // Reference to dialog
+   TCHAR szFilename[MAX_PATH + 1];   // These are defined pr instance because the name-part is
+   LPCTSTR pstrNamePart;             // ...used in both thread and dialog (points to szFilename)
 
    DWORD Run()
    {
+      ::ZeroMemory(szFilename, sizeof(szFilename));
       for( int i = 0; i < pProject->GetItemCount(); i++ ) {
          IView* pFile = pProject->GetItem(i);
          pFile->GetFileName(szFilename, MAX_PATH);

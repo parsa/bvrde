@@ -108,6 +108,7 @@ typedef enum GUIACTION
    GUI_ACTION_STOP_ANIMATION,
    GUI_ACTION_FILE_RELOAD,
    GUI_ACTION_COMPILESTART,
+   GUI_ACTION_PRINTOUTPUT,
 };
 
 typedef struct tagLAZYDATA
@@ -115,10 +116,10 @@ typedef struct tagLAZYDATA
    LAZYACTION Action;                // What action is this?
    HWND hWnd;                        // Window handle             (often used to direct to RichEdit control in output)
    VT100COLOR Color;                 // Color value               (used to feed compiler output)
-   TCHAR szFilename[MAX_PATH];       // Filename                  (used to set cursor/pointer in editor)
+   CString sFilename;                // Filename                  (used to set cursor/pointer in editor)
    int iLineNum;                     // Line number               (used to set cursor/pointer in editor)
-   TCHAR szMessage[400];             // Message                   (often used for message-boxes, or compiler output)
-   TCHAR szCaption[128];             // Window Caption            (used for message-boxes)
+   CString sMessage;                 // Message                   (often used for message-boxes, or compiler output)
+   CString sCaption;                 // Window Caption            (used for message-boxes)
    UINT iFlags;                      // Flags                     (often used for message-boxes)
    WPARAM wParam;                    // Windows Message parameter (used for sending messages)
    IDE_HWND_TYPE WindowType;         // Window-type               (used to direct to RichEdit control in output)

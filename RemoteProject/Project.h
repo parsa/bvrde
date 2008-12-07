@@ -164,7 +164,7 @@ public:
    void DelayedDebugCommand(LPCTSTR pstrCommand);
    void DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UINT iFlags);
    void DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename = NULL, int iLineNum = -1);
-   void DelayedGuiAction(UINT iAction, IDE_HWND_TYPE WindowType, LPCTSTR pstrMessage = NULL);
+   void DelayedGuiAction(UINT iAction, IDE_HWND_TYPE WindowType, LPCTSTR pstrMessage = NULL, VT100COLOR Color = VT100_DEFAULT);
    void DelayedLocalViewMessage(WPARAM wCmd, LPCTSTR pstrFilename = NULL, int iLineNum = -1, UINT iFlags = 0);
    void DelayedGlobalViewMessage(WPARAM wCmd, LPCTSTR pstrFilename = NULL, int iLineNum = -1, UINT iFlags = 0);
    void DelayedDebugBreakpoint(LPCTSTR pstrFilename, int iLineNum);

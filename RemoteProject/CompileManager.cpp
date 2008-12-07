@@ -702,55 +702,12 @@ SIZE CCompileManager::_GetViewWindowSize() const
    return size;
 }
 
-
-/////////////////////////////////////////////////////////////////////////
-// IOutputLineListener
-
-void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
+void CCompileManager::AppendOutputText(IDE_HWND_TYPE WindowType, LPCTSTR pstrText, VT100COLOR nColor)
 {
-   ATLASSERT(!::IsBadStringPtr(pstrText,-1));
-
-   CString sText;
-   sText.Format(_T("%s\r\n"), pstrText);
-
-   // Is this the termination marker? 
-   // Let's finish the session.
-   if( sText.Find(TERM_MARKER) > 0 ) 
-   {
-      m_ShellManager.RemoveLineListener(this);
-      // Notify the rest of the environment
-      if( (m_Flags & COMPFLAG_SILENT) == 0 ) {
-         CString sStatus;
-         sStatus.Format(IDS_STATUS_FINISHED, m_sProcessName);
-         m_pProject->DelayedStatusBar(sStatus);
-      }
-      m_pProject->DelayedGuiAction(GUI_ACTION_STOP_ANIMATION);
-      m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_COMPILE_STOP);
-      // Play annoying build sound
-      if( (m_Flags & COMPFLAG_BUILDSESSION) != 0 ) ::PlaySound(_T("BVRDE_BuildSucceeded"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
-      else ::PlaySound(_T("BVRDE_CommandComplete"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
-      // Reset state
-      m_Flags = 0;
-      s_bBusy = false;
-      m_bCompiling = false;
-      m_bWarningPlayed = false;
-      return;
-   }
-
-   if( nColor == VT100_HIDDEN ) return;
-   if( sText.Find(TERM_MARKER) == 0 ) return;
-
-   // Yield control?
-   if( ::InSendMessage() ) ::ReplyMessage(TRUE);
-
-   // Output text
-   // BUG: Accessing the EDIT hwnd outside the main thread is dangerous! We need to
-   //      put this in a delayed event.
-   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_OUTPUTVIEW);
-   if( (m_Flags & COMPFLAG_COMMANDMODE) != 0 ) ctrlEdit = _pDevEnv->GetHwnd(IDE_HWND_COMMANDVIEW);
-   if( (m_Flags & COMPFLAG_IGNOREOUTPUT) != 0 ) return;
-
+   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(WindowType);
    ATLASSERT(ctrlEdit.IsWindow());
+   if( !ctrlEdit.IsWindow() ) return;
+
    SCROLLINFO sinfo = { 0 };
    sinfo.cbSize = sizeof(SCROLLINFO);
    sinfo.fMask = SIF_ALL;
@@ -774,7 +731,7 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    LONG iStartPos = 0;
    LONG iDummy = 0;
    ctrlEdit.GetSel(iStartPos, iDummy);
-   ctrlEdit.ReplaceSel(sText);
+   ctrlEdit.ReplaceSel(pstrText);
    LONG iEndPos = 0;
    ctrlEdit.GetSel(iDummy, iEndPos);
 
@@ -812,6 +769,8 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
 
    // Mark prompts...
    // Some lines that look like prompts aren't really prompts.
+   // TODO: I can't make heads and tails of this anymore, but it does colour most prompts
+   //       correctly. Rewrite and make it dynamic.
    if( _tcschr(m_sPromptPrefix, *pstrText) != NULL ) cf.dwEffects |= CFE_BOLD;
    if( *pstrText == '[' && _tcsstr(pstrText, _T("]$ ")) != NULL ) cf.dwEffects |= CFE_BOLD;
    if( _tcsstr(pstrText, _T(" $ ")) != NULL && _tcschr(pstrText, ':') != NULL ) cf.dwEffects |= CFE_BOLD;
@@ -843,5 +802,51 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    }
    ctrlEdit.HideSelection(FALSE);
    ctrlEdit.UpdateWindow();
+}
+
+
+/////////////////////////////////////////////////////////////////////////
+// IOutputLineListener
+
+void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
+{
+   ATLASSERT(!::IsBadStringPtr(pstrText,-1));
+
+   CString sText;
+   sText.Format(_T("%s\r\n"), pstrText);
+
+   // Is this the termination marker? 
+   // Let's finish the session.
+   if( sText.Find(TERM_MARKER) > 0 ) 
+   {
+      m_ShellManager.RemoveLineListener(this);
+      // Notify the rest of the environment
+      if( (m_Flags & COMPFLAG_SILENT) == 0 ) {
+         CString sStatus;
+         sStatus.Format(IDS_STATUS_FINISHED, m_sProcessName);
+         m_pProject->DelayedStatusBar(sStatus);
+      }
+      m_pProject->DelayedGuiAction(GUI_ACTION_STOP_ANIMATION);
+      m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_COMPILE_STOP);
+      // Play annoying build sound
+      if( (m_Flags & COMPFLAG_BUILDSESSION) != 0 ) ::PlaySound(_T("BVRDE_BuildSucceeded"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
+      else ::PlaySound(_T("BVRDE_CommandComplete"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
+      // Reset state
+      m_Flags = 0;
+      s_bBusy = false;
+      m_bCompiling = false;
+      return;
+   }
+
+   if( nColor == VT100_HIDDEN ) return;
+   if( sText.Find(TERM_MARKER) == 0 ) return;
+
+   // Output text.
+   // To avoid a GUI dead-lock we'll have to make sure that access of the actual
+   // output window is made in the GUI thread only - so we delay the text processing.
+   IDE_HWND_TYPE WindowType = IDE_HWND_OUTPUTVIEW;
+   if( (m_Flags & COMPFLAG_COMMANDMODE) != 0 ) WindowType = IDE_HWND_COMMANDVIEW;
+   if( (m_Flags & COMPFLAG_IGNOREOUTPUT) != 0 ) return;
+   m_pProject->DelayedGuiAction(GUI_ACTION_PRINTOUTPUT, WindowType, sText, nColor);
 }
 

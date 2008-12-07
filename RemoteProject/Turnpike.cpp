@@ -28,7 +28,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    // and executes a series of commands in a queue/list. This makes sure that all
    // GUI changes are called from the main thread only.
 
-   //ATLTRACE(_T("Turnpike: %ld items in queue\n"), m_aLazyData.GetSize());
+   //ATLTRACE(_T("Turnpike: %ld items in queue (%ld)\n"), m_aLazyData.GetSize(), ::GetTickCount());
 
    bHandled = FALSE;
    if( m_aLazyData.GetSize() == 0 ) return 0;
@@ -57,7 +57,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
       switch( data.Action ) {
       case LAZY_OPEN_VIEW:
          {
-            OpenView(data.szFilename, data.iLineNum, FINDVIEW_ALL, false);
+            OpenView(data.sFilename, data.iLineNum, FINDVIEW_ALL, false);
          }
          break;
       case LAZY_GUI_ACTION:
@@ -72,7 +72,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             case GUI_ACTION_APPENDVIEW:
                {
                   CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(data.WindowType);
-                  if( ctrlEdit.IsWindow() ) AppendRtfText(ctrlEdit, data.szMessage);
+                  if( ctrlEdit.IsWindow() ) AppendRtfText(ctrlEdit, data.sMessage);
                }
                break;
             case GUI_ACTION_ACTIVATEVIEW:
@@ -102,6 +102,11 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
                   m_bNeedsRecompile = false;
                }
                break;
+            case GUI_ACTION_PRINTOUTPUT:
+               {
+                  m_CompileManager.AppendOutputText(data.WindowType, data.sMessage, data.Color);
+               }
+               break;
             }
          }
          break;
@@ -111,20 +116,20 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             //       we overwrite the text variables here. Don't bother user
             //       with multiple nonsense.
             if( sMessage.IsEmpty() ) {
-               sMessage = data.szMessage;
-               sCaption = data.szCaption;
+               sMessage = data.sMessage;
+               sCaption = data.sCaption;
                iFlags = data.iFlags;
             }
          }
          break;
       case LAZY_COMPILER_LINE:
          {
-            m_CompileManager.m_ShellManager.BroadcastLine(data.Color, data.szMessage);
+            m_CompileManager.m_ShellManager.BroadcastLine(data.Color, data.sMessage);
          }
          break;
       case LAZY_SET_STATUSBARTEXT:
          {
-            _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, data.szMessage, TRUE);
+            _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, data.sMessage, TRUE);
          }
          break;
       case LAZY_SEND_GLOBAL_VIEW_MESSAGE:
@@ -148,12 +153,12 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
          break;
       case LAZY_CLASSTREE_INFO:
          {
-            m_TagManager.m_LexInfo.MergeIntoTree(data.szFilename, data.pLexFile);
+            m_TagManager.m_LexInfo.MergeIntoTree(data.sFilename, data.pLexFile);
          }
          break;
       case LAZY_DEBUGCOMMAND:
          {
-            aDbgCmd.Add(CString(data.szMessage));
+            aDbgCmd.Add(CString(data.sMessage));
          }
          break;
       case LAZY_DEBUG_START_EVENT:
@@ -223,20 +228,20 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             // Most of these messages originates from the LAZY_DEBUG_BREAK_EVENT handling
             // above anyway.
 
-            if( m_viewStack.WantsData() )        m_viewStack.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewWatch.WantsData() )        m_viewWatch.SetInfo(data.szMessage, data.MiInfo);               
-            if( m_viewThread.WantsData() )       m_viewThread.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewRegister.WantsData() )     m_viewRegister.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewMemory.WantsData() )       m_viewMemory.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewDisassembly.WantsData() )  m_viewDisassembly.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewVariable.WantsData() )     m_viewVariable.SetInfo(data.szMessage, data.MiInfo);
-            if( m_viewBreakpoint.WantsData() )   m_viewBreakpoint.SetInfo(data.szMessage, data.MiInfo);
+            if( m_viewStack.WantsData() )        m_viewStack.SetInfo(data.sMessage, data.MiInfo);
+            if( m_viewWatch.WantsData() )        m_viewWatch.SetInfo(data.sMessage, data.MiInfo);               
+            if( m_viewThread.WantsData() )       m_viewThread.SetInfo(data.sMessage, data.MiInfo);
+            if( m_viewRegister.WantsData() )     m_viewRegister.SetInfo(data.sMessage, data.MiInfo);
+            if( m_viewMemory.WantsData() )       m_viewMemory.SetInfo(data.sMessage, data.MiInfo);
+            if( m_viewDisassembly.WantsData() )  m_viewDisassembly.SetInfo(data.sMessage, data.MiInfo);
+            if( m_viewVariable.WantsData() )     m_viewVariable.SetInfo(data.sMessage, data.MiInfo);
+            if( m_viewBreakpoint.WantsData() )   m_viewBreakpoint.SetInfo(data.sMessage, data.MiInfo);
 
             if( m_pQuickWatchDlg != NULL && m_pQuickWatchDlg->IsWindow() && m_pQuickWatchDlg->IsWindowVisible() ) {
-               m_pQuickWatchDlg->SetInfo(data.szMessage, data.MiInfo);
+               m_pQuickWatchDlg->SetInfo(data.sMessage, data.MiInfo);
             }
 
-            if( _tcscmp(data.szMessage, _T("value")) == 0 ) {
+            if( data.sMessage == _T("value") ) {
                // Pass information to active editor, since it might be mouse hover information.
                // We need to modify the action to allow the view to recognize it.
                // NOTE: Must use SendMessage() rather than delayed message because
@@ -286,13 +291,9 @@ void CRemoteProject::DelayedMessage(LPCTSTR pstrMessage, LPCTSTR pstrCaption, UI
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
-   ATLASSERT(_tcslen(pstrCaption)<(sizeof(data.szCaption)/sizeof(TCHAR)));
-   ATLASSERT(_tcslen(pstrMessage)<(sizeof(data.szMessage)/sizeof(TCHAR)));
    data.Action = LAZY_SHOW_MESSAGE;
-   ::ZeroMemory(data.szCaption, sizeof(data.szCaption));
-   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
-   _tcsncpy(data.szCaption, pstrCaption, (sizeof(data.szCaption) / sizeof(TCHAR)) - 1);
-   _tcsncpy(data.szMessage, pstrMessage, (sizeof(data.szMessage) / sizeof(TCHAR)) - 1);
+   data.sCaption = pstrCaption;
+   data.sMessage = pstrMessage;
    data.iFlags = iFlags;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
@@ -303,7 +304,7 @@ void CRemoteProject::DelayedOpenView(LPCTSTR pstrFilename, int iLineNum)
    CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_OPEN_VIEW;
-   _tcscpy(data.szFilename, pstrFilename);
+   data.sFilename = pstrFilename;
    data.iLineNum = iLineNum;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
@@ -315,21 +316,21 @@ void CRemoteProject::DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename, int iL
    LAZYDATA data;
    data.Action = LAZY_GUI_ACTION;
    data.wParam = iAction;
-   _tcscpy(data.szFilename, pstrFilename == NULL ? _T("") : pstrFilename);
+   data.sFilename = pstrFilename == NULL ? _T("") : pstrFilename;
    data.iLineNum = iLineNum;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
 
-void CRemoteProject::DelayedGuiAction(UINT iAction, IDE_HWND_TYPE WindowType, LPCTSTR pstrMessage)
+void CRemoteProject::DelayedGuiAction(UINT iAction, IDE_HWND_TYPE WindowType, LPCTSTR pstrMessage, VT100COLOR nColor)
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_GUI_ACTION;
    data.wParam = iAction;
    data.WindowType = WindowType;
-   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
-   _tcsncpy(data.szMessage, pstrMessage == NULL ? _T("") : pstrMessage, (sizeof(data.szMessage) / sizeof(TCHAR)) - 1);
+   data.sMessage = pstrMessage == NULL ? _T("") : pstrMessage;
+   data.Color = nColor;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
@@ -338,10 +339,8 @@ void CRemoteProject::DelayedStatusBar(LPCTSTR pstrText)
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
-   ATLASSERT(_tcslen(pstrText)<(sizeof(data.szMessage)/sizeof(TCHAR)));
    data.Action = LAZY_SET_STATUSBARTEXT;
-   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
-   _tcsncpy(data.szMessage, pstrText, (sizeof(data.szMessage) / sizeof(TCHAR)) - 1);
+   data.sMessage = pstrText;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
@@ -350,10 +349,8 @@ void CRemoteProject::DelayedDebugCommand(LPCTSTR pstrCommand)
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
-   ATLASSERT(_tcslen(pstrCommand)<(sizeof(data.szMessage)/sizeof(TCHAR)));
    data.Action = LAZY_DEBUGCOMMAND;
-   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
-   _tcsncpy(data.szMessage, pstrCommand, (sizeof(data.szMessage) / sizeof(TCHAR)) - 1);
+   data.sMessage = pstrCommand;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
@@ -364,9 +361,7 @@ void CRemoteProject::DelayedGlobalViewMessage(WPARAM wCmd, LPCTSTR pstrFilename 
    LAZYDATA data;
    data.Action = LAZY_SEND_GLOBAL_VIEW_MESSAGE;
    data.wParam = wCmd;
-   _tcscpy(data.szFilename, pstrFilename == NULL ? _T("") : pstrFilename);
-   _tcscpy(data.szMessage, _T(""));
-   _tcscpy(data.szCaption, _T(""));
+   data.sFilename = pstrFilename == NULL ? _T("") : pstrFilename;
    data.iLineNum = iLineNum;
    data.iFlags = iFlags;
    m_aLazyData.Add(data);
@@ -379,9 +374,7 @@ void CRemoteProject::DelayedLocalViewMessage(WPARAM wCmd, LPCTSTR pstrFilename /
    LAZYDATA data;
    data.Action = LAZY_SEND_ACTIVE_VIEW_MESSAGE;
    data.wParam = wCmd;
-   _tcscpy(data.szFilename, pstrFilename == NULL ? _T("") : pstrFilename);
-   _tcscpy(data.szMessage, _T(""));
-   _tcscpy(data.szCaption, _T(""));
+   data.sFilename = pstrFilename == NULL ? _T("") : pstrFilename;
    data.iLineNum = iLineNum;
    data.iFlags = iFlags;
    m_aLazyData.Add(data);
@@ -393,7 +386,7 @@ void CRemoteProject::DelayedDebugBreakpoint(LPCTSTR pstrFilename, int iLineNum)
    CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_SET_DEBUG_BREAKPOINT;
-   _tcscpy(data.szFilename, pstrFilename);
+   data.sFilename = pstrFilename;
    data.iLineNum = iLineNum;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
@@ -413,8 +406,8 @@ void CRemoteProject::DelayedClassTreeInfo(LPCTSTR pstrFilename, LEXFILE* pLexFil
    CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_CLASSTREE_INFO;
+   data.sFilename = pstrFilename;
    data.pLexFile = pLexFile;
-   _tcscpy(data.szFilename, pstrFilename);
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
@@ -424,9 +417,8 @@ void CRemoteProject::DelayedCompilerBroadcast(VT100COLOR Color, LPCTSTR pstrText
    CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = LAZY_COMPILER_LINE;
+   data.sMessage = pstrText;
    data.Color = Color;
-   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
-   _tcsncpy(data.szMessage, pstrText, (sizeof(data.szMessage) / sizeof(TCHAR)) - 1);
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
@@ -437,10 +429,8 @@ void CRemoteProject::DelayedDebugInfo(LPCTSTR pstrCommand, CMiInfo& info)
    LAZYDATA dummy;
    m_aLazyData.Add(dummy);
    LAZYDATA& data = m_aLazyData[m_aLazyData.GetSize() - 1];
-   ATLASSERT(_tcslen(pstrCommand)<(sizeof(data.szMessage)/sizeof(TCHAR)));
    data.Action = LAZY_DEBUG_INFO;
-   ::ZeroMemory(data.szMessage, sizeof(data.szMessage));
-   _tcsncpy(data.szMessage, pstrCommand, (sizeof(data.szMessage) / sizeof(TCHAR)) - 1);
+   data.sMessage = pstrCommand;
    data.MiInfo.Copy(info);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }

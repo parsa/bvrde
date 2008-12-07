@@ -487,7 +487,7 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
          // sets its cursor. We'll follow its bidding.
          m_ctrlEdit.MarkerDeleteAll(MARKER_CURLINE);
          m_ctrlEdit.MarkerDeleteAll(MARKER_RUNNING);
-         if( _tcscmp(::PathFindFileName(pData->szFilename), sName) == 0 ) {
+         if( _tcscmp(::PathFindFileName(pData->sFilename), sName) == 0 ) {
             int iLineNum = pData->iLineNum;
             if( iLineNum >= 0 ) {
                m_ctrlEdit.MarkerAdd(iLineNum - 1, MARKER_CURLINE);
@@ -544,8 +544,7 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
          // Primarily used by the "QuickWatch" functionality.
          CString sText = _GetSelectedText();
          if( sText.IsEmpty() ) sText = _GetNearText(m_ctrlEdit.GetCurrentPos());
-         ::ZeroMemory(pData->szMessage, sizeof(pData->szMessage));
-         _tcsncpy(pData->szMessage, sText, (sizeof(pData->szMessage) / sizeof(TCHAR)) - 1);
+         pData->sMessage = sText;
       }
       break;
    case DEBUG_CMD_HOVERINFO:
@@ -595,7 +594,7 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
       {
          // Locate text in source file.
          // Primarily used in "Go To Declaration" functionality.
-         FindText(FR_DOWN | FR_WRAP | (UINT) pData->iFlags, pData->szFilename, false);
+         FindText(FR_DOWN | FR_WRAP | (UINT) pData->iFlags, pData->sFilename, false);
       }
       break;
    case DEBUG_CMD_FOLDCURSOR:

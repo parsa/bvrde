@@ -256,7 +256,7 @@ DWORD CTelnetThread::Run()
                   SignalStop();
                   break;
                case TELNET_IAC:
-                  *(pBuffer + dwPos) = b; // NOTE: variable 'b' still contains IAC (escape)
+                  *(pBuffer + dwPos) = b;  // NOTE: variable 'b' still contains IAC (escape)
                   dwPos++;
                   break;
                case TELNET_DO:
@@ -404,10 +404,17 @@ CHAR CTelnetThread::_GetByte(CSocket& socket, const LPBYTE pBuffer, DWORD dwRead
    ATLASSERT(pBuffer);
    // First check if the cache contains the data
    if( iPos < dwRead ) return pBuffer[iPos++];
-   // Ok, we need to receive the data!
-   // BUG: Could hang the system in blocking loop!!!
+   // Ok, we need to receive more data!
    CHAR b = 0;
+   if( !socket.WaitForData(200) ) return b;
    BOOL bRet = socket.Read(&b, 1, NULL);
+   switch( ::WSAGetLastError() ) {
+   case WSAEINPROGRESS:
+   case WSAEWOULDBLOCK:
+      ::Sleep(100L);
+      bRet = socket.Read(&b, 1, NULL);
+      break;
+   }
    ATLASSERT(bRet); bRet;
    return b;
 }

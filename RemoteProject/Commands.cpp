@@ -636,7 +636,7 @@ LRESULT CRemoteProject::OnDebugQuickWatch(WORD /*wNotifyCode*/, WORD /*wID*/, HW
    data.wParam = DEBUG_CMD_GET_CARET_TEXT;
    m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_DEBUG_EDIT_LINK, data.wParam), (LPARAM) &data);
 
-   m_pQuickWatchDlg = new CQuickWatchDlg(_pDevEnv, this, data.szMessage);
+   m_pQuickWatchDlg = new CQuickWatchDlg(_pDevEnv, this, data.sMessage);
    ATLASSERT(m_pQuickWatchDlg);
    if( m_pQuickWatchDlg == NULL ) return 0;
    m_pQuickWatchDlg->Create(m_wndMain);

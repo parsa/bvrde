@@ -100,6 +100,8 @@ public:
    CString GetParam(LPCTSTR pstrName) const;
    void SetParam(LPCTSTR pstrName, LPCTSTR pstrValue);
 
+   void AppendOutputText(IDE_HWND_TYPE WindowType, LPCTSTR pstrText, VT100COLOR Color);
+
    // Implementation
 
    SIZE _GetViewWindowSize() const;

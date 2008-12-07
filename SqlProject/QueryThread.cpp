@@ -24,8 +24,6 @@ DWORD CQueryThread::Run()
 {
    _pDevEnv->SetThreadLanguage();
 
-   ::SetMessageQueue(100);  // HACK: For the sake of any OLE DB dependencies
-
    CCoInitialize cominit;
 
    COledbDatabase Db(&_DbSystem);
