@@ -47,12 +47,13 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    CString sMessage;                    // For displaying a message-box asynchroniously
    CString sCaption;                    // -"-
    UINT iFlags = 0;                     // -"-
+   int iIndex;
 
-   for( int i = 0; i < m_aLazyData.GetSize(); i++ ) 
+   for( iIndex = 0; iIndex < m_aLazyData.GetSize(); iIndex++ ) 
    {
       // FIX: Don't &-ref this! Could be dangerous if more entries are added 
       // to the array while we're processing.
-      LAZYDATA data = m_aLazyData[i];
+      LAZYDATA data = m_aLazyData[iIndex];
 
       switch( data.Action ) {
       case LAZY_OPEN_VIEW:
@@ -269,6 +270,11 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
       if( m_viewRegister.WantsData() )    m_viewRegister.EvaluateView(aDbgCmd);
    }
 
+   // Make sure we're processing all commands in the queue; new commands may
+   // get added during the processing above but we should detect them during
+   // the loop.
+   ATLASSERT(iIndex==m_aLazyData.GetSize());
+
    // Empty queue
    m_aLazyData.RemoveAll();
 
@@ -392,11 +398,11 @@ void CRemoteProject::DelayedDebugBreakpoint(LPCTSTR pstrFilename, int iLineNum)
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
 
-void CRemoteProject::DelayedDebugEvent(LAZYACTION event /*= LAZY_DEBUG_BREAK_EVENT*/)
+void CRemoteProject::DelayedDebugEvent(LAZYACTION Event /*= LAZY_DEBUG_BREAK_EVENT*/)
 {
    CLockDelayedDataInit lock;
    LAZYDATA data;
-   data.Action = event;
+   data.Action = Event;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }

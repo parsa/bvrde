@@ -89,9 +89,9 @@ void AppendRtfText(CRichEditCtrl ctrlEdit, LPCTSTR pstrText, DWORD dwMask /*= 0*
    LONG iStartPos = 0;
    LONG iEndPos = 0;
    LONG iDummy = 0;
-   CHARFORMAT cf;
+   CHARFORMAT cf = { 0 };
    cf.cbSize = sizeof(CHARFORMAT);
-   cf.dwMask = dwMask;;
+   cf.dwMask = dwMask;
    cf.dwEffects = dwEffects;
    cf.crTextColor = clrText;
    ctrlEdit.SetSel(-1, -1);

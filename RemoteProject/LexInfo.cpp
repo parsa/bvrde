@@ -510,7 +510,7 @@ CString CLexInfo::GetLexFilename(CRemoteProject* pProject, LPCTSTR pstrFilename,
    CString sName = ::PathFindFileName(pstrFilename);
    if( sName.IsEmpty() ) return _T("");
    // Remove illegal characters from name
-   static TCHAR bad[] = { '.', '*', '?', ':', '\\', '/' };
+   static TCHAR bad[] = { '.', '*', '?', ':', '\\', '/', '|', '<', '>' };
    for( int i = 0; i < sizeof(bad) / sizeof(bad[0]); i++ ) {
       sProjectName.Replace(bad[i], '_');
       sName.Replace(bad[i], '_');
@@ -521,28 +521,21 @@ CString CLexInfo::GetLexFilename(CRemoteProject* pProject, LPCTSTR pstrFilename,
    ::GetVersionEx(&ver);
    if( _tcscmp(pstrFilename, _T("CommonLex")) == 0 ) {
       sProjectName = _T(""); 
-      ver.dwMajorVersion = 0;  // CommonLex is local; don't try to place in %AppData% folder
+      ver.dwMajorVersion = 0;  // CommonLex is local & read-only; don't try to place in %AppData% folder
    }
-   if( ver.dwMajorVersion < 6 ) 
-   {
-      CString sDocPath;
+   CString sDocPath;
+   if( ver.dwMajorVersion < 6 ) {
       sDocPath.Format(_T("%sLex\\%s"), CModulePath(), sProjectName);
-      if( bCreatePath ) ::SHCreateDirectory(NULL, sDocPath);
-      CString sLexFile;
-      sLexFile.Format(_T("%s\\%s.lex"), sDocPath, sName);
-      return sLexFile;
    }
-   else 
-   {
+   else {
       TCHAR szPath[MAX_PATH] = { 0 };
       ::SHGetSpecialFolderPath(NULL, szPath, CSIDL_LOCAL_APPDATA, TRUE);
-      CString sDocPath;
       sDocPath.Format(_T("%s\\BVRDE\\Lex\\%s"), szPath, sProjectName);
-      if( bCreatePath ) ::SHCreateDirectory(NULL, sDocPath);
-      CString sLexFile;
-      sLexFile.Format(_T("%s\\%s.lex"), sDocPath, sName);
-      return sLexFile;
    }
+   if( bCreatePath ) ::SHCreateDirectory(NULL, sDocPath);
+   CString sLexFile;
+   sLexFile.Format(_T("%s\\%s.lex"), sDocPath, sName);
+   return sLexFile;
 }
 
 LEXFILE* CLexInfo::ParseFile(CRemoteProject* pProject, LPCTSTR pstrFilename)

@@ -274,7 +274,7 @@ void CDisasmView::OnGetMenuText(UINT /*wID*/, LPTSTR /*pstrText*/, int /*cchMax*
 DWORD CALLBACK CDisasmView::_EditStreamCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)
 {
    STREAMCOOKIE* cookie = (STREAMCOOKIE*) dwCookie;
-   *pcb = min(cb, (LONG) _tcslen(cookie->pstr + cookie->pos));
+   *pcb = min(cb, (LONG) _tcslen(cookie->pstr + cookie->pos) + 1);
    AtlW2AHelper( (LPSTR) pbBuff, cookie->pstr + cookie->pos, (int) *pcb );
    cookie->pos += *pcb;
    return *pcb >= 0 ? 0 : 1;

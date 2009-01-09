@@ -280,13 +280,13 @@ void __stdcall CStartPageView::__BeforeNavigate2(
    /*[in]*/ IDispatch* /*pDisp*/, 
    /*[in]*/ VARIANT* URL, 
    /*[in]*/ VARIANT* /*Flags*/, 
-   /*[in]*/ VARIANT* /*TargetFrameName*/, 
+   /*[in]*/ VARIANT* TargetFrameName, 
    /*[in]*/ VARIANT* PostData, 
    /*[in]*/ VARIANT* Headers, 
    /*[out]*/ VARIANT_BOOL* Cancel)
 {
    ATLASSERT(V_VT(URL) == VT_BSTR);
-   ATLASSERT(V_VT(TargetFrameName) == VT_BSTR);
+   ATLASSERT(V_VT(TargetFrameName) == VT_BSTR); TargetFrameName;
    ATLASSERT(V_VT(PostData) == (VT_VARIANT | VT_BYREF)); PostData;
    ATLASSERT(V_VT(Headers) == VT_BSTR); Headers;
    ATLASSERT(Cancel != NULL);
