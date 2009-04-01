@@ -35,7 +35,7 @@ public:
 
       static CString sTitle(MAKEINTRESOURCE(IDS_TREE_ADVANCED));
 
-      s_pageSqlAdvanced.SetTitle((LPCTSTR)sTitle);
+      s_pageSqlAdvanced.SetTitle(static_cast<LPCTSTR>(sTitle));
       s_pageSqlAdvanced.m_sLanguage = _T("sql");
       s_pageSqlAdvanced.m_pArc = pArc;
 
@@ -59,11 +59,11 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
       _Module.Init(NULL, hInstance);
       ::DisableThreadLibraryCalls(hInstance);
    }
-   else if( dwReason == DLL_PROCESS_DETACH ) 
+   if( dwReason == DLL_PROCESS_DETACH ) 
    {
      _Module.Term();
    }
-    return TRUE;
+   return TRUE;
 }
 
 

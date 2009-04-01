@@ -113,7 +113,7 @@ LRESULT CRemoteProject::OnFileAddLocal(WORD /*wNotifyCode*/, WORD wID, HWND /*hW
    LPTSTR dst = &szFilename[dlg.m_ofn.nFileOffset];
    _tcsncpy(szFilename, szBuffer, dlg.m_ofn.nFileOffset);
    szFilename[dlg.m_ofn.nFileOffset - 1] = '\\';
-   while (*src != '\0') {
+   while( *src != '\0' ) {
       _tcscpy(dst, src);
       src = &src[_tcslen(src) + 1];
 
@@ -197,7 +197,7 @@ LRESULT CRemoteProject::OnFileAddRemote(WORD /*wNotifyCode*/, WORD wID, HWND /*h
    if( sPath.Right(1) != sSeparator ) sPath += sSeparator;
    HTREEITEM hFirst = NULL;
    LPCTSTR ppstrPath = dlg.m_ofn.lpstrFile + _tcslen(dlg.m_ofn.lpstrFile) + 1;
-   while( *ppstrPath ) {
+   while( *ppstrPath != NULL ) {
       CString sFilename = sPath + ppstrPath;
 
       // NOTE: Before we can use PathRelativePathTo() we need to

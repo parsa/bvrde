@@ -272,7 +272,9 @@ bool CDebugManager::AddBreakpoint(LPCTSTR pstrFilename, int iLineNum)
    if( IsDebugging() ) {     
       // Attempt to halt app if currently running
       bool bRestartApp = _PauseDebugger();
-      // Send GDB commands
+      // Send GDB commands.
+      // TODO: Support spaces and stuff in filenames. 
+      //        -break-insert "\"a b.cpp\":5"
       if( !DoDebugCommandV(_T("-break-insert %s"), sText) ) return false;
       if( !DoDebugCommand(_T("-break-list")) ) return false;
       // Warn about GDB's inability to add ASYNC breakpoints
@@ -734,6 +736,24 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
 
    DoDebugCommand(_T("-environment-pwd"));
 
+   // Set the GDB search paths. The user can add additional search paths
+   // once GDB is started.
+   // Paths can be separated by comma and semi-colon characters.
+   if( !m_sSearchPath.IsEmpty() ) {
+      CString sPathList;
+      CString sPath = m_sSearchPath;
+      CString sToken = sPath.SpanExcluding(_T(";,"));
+      while( !sToken.IsEmpty() ) {
+         CString sTemp;
+         sTemp.Format(_T(" \"%s\""), sToken);
+         sPathList += sTemp;
+         sPath = sPath.Mid(sToken.GetLength() + 1);
+         sToken = sPath.SpanExcluding(_T(";,"));
+      }
+      DoDebugCommandV(_T("-environment-directory %s"), sPathList);
+      DoDebugCommandV(_T("-environment-path %s"), sPathList);
+   }
+
    // If there are no breakpoints defined, then let's
    // set a breakpoint in the main function
    if( !bExternalProcess && m_aBreakpoints.GetSize() == 0 ) {
@@ -745,23 +765,6 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
    // old breakpoints from the list.
    for( int b = 0; b < m_aBreakpoints.GetSize(); b++ ) {
       DoDebugCommandV(_T("-break-insert %s"), m_aBreakpoints.GetKeyAt(b));
-   }
-
-   // Set the GDB search paths. The user can here add additional search paths
-   // once GDB is started.
-   if( !m_sSearchPath.IsEmpty() ) {
-      CString sPaths;
-      CString s = m_sSearchPath;
-      CString sToken = s.SpanExcluding(_T(";,"));
-      while( !sToken.IsEmpty() ) {
-         sPaths += _T(" \"");
-         sPaths += sToken;
-         sPaths += _T("\"");
-         s = s.Mid(sToken.GetLength() + 1);
-         sToken = s.SpanExcluding(_T(";,"));
-      }
-      DoDebugCommandV(_T("-environment-directory %s"), sPaths);
-      DoDebugCommandV(_T("-environment-path %s"), sPaths);
    }
 
    return true;
@@ -793,7 +796,8 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
    // Some commands might spuriously fail and we don't want to see error
    // messages all the time, so we'll bluntly ignore these.
    if( sCommand.Find(_T("-delete")) >= 0 ) m_nIgnoreErrors++;
-   if( sCommand.Find(_T("-evaluate")) >= 0 ) m_nIgnoreErrors++;
+   if( sCommand.Find(_T("-gdb-set")) >= 0 ) m_nIgnoreErrors++;
+   if( sCommand.Find(_T("-evaluate")) >= 0 ) m_nIgnoreErrors++;  
 
    // For some commands we really need to track the information that
    // was asked. We book-keep this in an internal state variable. This
@@ -821,7 +825,7 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
    sCommand.Replace(_T("\\n"), _T("\r\n"));
    if( pstrParam != NULL ) {
       TCHAR szName[MAX_PATH + 1] = { 0 };
-      _tcscpy(szName, pstrParam);
+      _tcsncpy(szName, pstrParam, (sizeof(szName) / sizeof(szName[0])) - 1);
       sCommand.Replace(_T("$FILEPATH$"), szName);
       ::PathStripPath(szName);
       sCommand.Replace(_T("$FILENAME$"), szName);
@@ -845,11 +849,11 @@ void CDebugManager::_ClearLink()
       m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_SET_CURLINE);
       m_pProject->DelayedStatusBar(CString(MAKEINTRESOURCE(IDS_STATUS_DEBUG_STOPPED)));
    }
+   // Detach listener
+   m_ShellManager.RemoveLineListener(this);
    // Detach adaptor
    if( m_pAdaptor != NULL ) delete m_pAdaptor;
    m_pAdaptor = NULL;
-   // Detach listener
-   m_ShellManager.RemoveLineListener(this);
    // Clear state
    m_bCommandMode = false;
    m_bDebugging = false;
@@ -1101,7 +1105,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
       if( sCommand == _T("frame") ) _ParseNewFrame(info);
       if( sCommand == _T("bkpt") ) _UpdateBreakpoint(info);
       // Let all the debug views get a shot at this information.
-      for( LPCTSTR* ppList = pstrList; *ppList; ppList++ ) {
+      for( LPCTSTR* ppList = pstrList; *ppList != NULL; ppList++ ) {
          if( sCommand == *ppList ) {
             m_pProject->DelayedDebugInfo(sCommand, info);
             return;
@@ -1121,8 +1125,8 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
       // Verify correct version of debugger...
       int iPos = sLine.Find(_T("GNU gdb "));
       if( iPos == 0 || iPos == 1 ) {
-         LPTSTR pEnd = NULL;
-         m_dblDebuggerVersion = _tcstod(sLine.Mid(iPos + 8), &pEnd);
+         LPTSTR pstrEnd = NULL;
+         m_dblDebuggerVersion = _tcstod(sLine.Mid(iPos + 8), &pstrEnd);
          if( m_dblDebuggerVersion >= 4.0 && m_dblDebuggerVersion < 5.3 ) {
             m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_DEBUGVERSION)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONEXCLAMATION);
          }

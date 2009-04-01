@@ -1,5 +1,5 @@
 Version 1.x
-* Stability of internal processing of debug watches improved
+* Stability of internal processing of debug data improved
 * SFTP will use UTF-8 encoding when SFTP v4 is detected
 * Fixed problem with loading multiple CTAGS files
 

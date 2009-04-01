@@ -53,16 +53,16 @@ public:
 
       static CString sAdvanced(MAKEINTRESOURCE(IDS_TREE_ADVANCED));
 
-      s_pageHtmlAdvanced.SetTitle((LPCTSTR)sAdvanced);
+      s_pageHtmlAdvanced.SetTitle(static_cast<LPCTSTR>(sAdvanced));
       s_pageHtmlAdvanced.m_sLanguage = _T("html");
       s_pageHtmlAdvanced.m_pArc = pArc;
-      s_pagePhpAdvanced.SetTitle((LPCTSTR)sAdvanced);
+      s_pagePhpAdvanced.SetTitle(static_cast<LPCTSTR>(sAdvanced));
       s_pagePhpAdvanced.m_sLanguage = _T("php");
       s_pagePhpAdvanced.m_pArc = pArc;
-      s_pageAspAdvanced.SetTitle((LPCTSTR)sAdvanced);
+      s_pageAspAdvanced.SetTitle(static_cast<LPCTSTR>(sAdvanced));
       s_pageAspAdvanced.m_sLanguage = _T("asp");
       s_pageAspAdvanced.m_pArc = pArc;
-      s_pageXmlAdvanced.SetTitle((LPCTSTR)sAdvanced);
+      s_pageXmlAdvanced.SetTitle(static_cast<LPCTSTR>(sAdvanced));
       s_pageXmlAdvanced.m_sLanguage = _T("xml");
       s_pageXmlAdvanced.m_pArc = pArc;
 
@@ -100,6 +100,8 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv->SetProperty(_T("file.extension.php"), _T("PHP File"));
    _pDevEnv->SetProperty(_T("file.extension.asp"), _T("ASP File"));
    _pDevEnv->SetProperty(_T("file.extension.xml"), _T("XML File"));
+   _pDevEnv->SetProperty(_T("file.extension.xsl"), _T("XML File"));
+   _pDevEnv->SetProperty(_T("file.extension.xslt"), _T("XML File"));
 
    static CWizardListener wizard;
    _pDevEnv->AddWizardListener(&wizard);
@@ -146,6 +148,7 @@ UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR pstrFilename)
       _T(".HTML"),
       _T(".HTM"),
       _T(".XML"),
+      _T(".XSLT"),
       _T(".XSL"),
       _T(".PHP"),
       _T(".PHP3"),
@@ -191,6 +194,7 @@ IView* WINAPI Plugin_CreateView(LPCTSTR pstrFilename, IProject* pProject, IEleme
    if( _tcsicmp(pstrExt, _T(".TPL")) == 0 ) iType = TYPE_HTML;
    if( _tcsicmp(pstrExt, _T(".XML")) == 0 ) iType = TYPE_XML;
    if( _tcsicmp(pstrExt, _T(".XSL")) == 0 ) iType = TYPE_XML;
+   if( _tcsicmp(pstrExt, _T(".XSLT")) == 0 ) iType = TYPE_XML;
    if( _tcsicmp(pstrExt, _T(".PY")) == 0 ) iType = TYPE_HTML;
 
    if( iType == TYPE_HTML ) return new CHtmlView(pProject, pParent, pstrFilename);

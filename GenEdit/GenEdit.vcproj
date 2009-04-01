@@ -234,7 +234,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_ATL_MIN_CRT"
 					/>
 				</FileConfiguration>
 			</File>
@@ -255,7 +254,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_ATL_MIN_CRT"
 					/>
 				</FileConfiguration>
 			</File>
@@ -300,7 +298,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_ATL_MIN_CRT"
 					/>
 				</FileConfiguration>
 			</File>
@@ -321,7 +318,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_ATL_MIN_CRT"
 					/>
 				</FileConfiguration>
 			</File>
@@ -342,7 +338,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_ATL_MIN_CRT"
 					/>
 				</FileConfiguration>
 			</File>
@@ -363,7 +358,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_ATL_MIN_CRT"
 					/>
 				</FileConfiguration>
 			</File>
@@ -384,7 +378,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_ATL_MIN_CRT"
 					/>
 				</FileConfiguration>
 			</File>
@@ -405,7 +398,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_ATL_MIN_CRT"
 					/>
 				</FileConfiguration>
 			</File>
@@ -426,7 +418,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_ATL_MIN_CRT"
 					/>
 				</FileConfiguration>
 			</File>
@@ -448,7 +439,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="_ATL_MIN_CRT"
 						UsePrecompiledHeader="1"
 					/>
 				</FileConfiguration>
@@ -473,7 +463,6 @@
 						<Tool
 							Name="VCCLCompilerTool"
 							AdditionalIncludeDirectories=""
-							PreprocessorDefinitions="_ATL_MIN_CRT"
 						/>
 					</FileConfiguration>
 				</File>
@@ -494,7 +483,6 @@
 						<Tool
 							Name="VCCLCompilerTool"
 							AdditionalIncludeDirectories=""
-							PreprocessorDefinitions="_ATL_MIN_CRT"
 						/>
 					</FileConfiguration>
 				</File>
@@ -515,7 +503,6 @@
 						<Tool
 							Name="VCCLCompilerTool"
 							AdditionalIncludeDirectories=""
-							PreprocessorDefinitions="_ATL_MIN_CRT"
 						/>
 					</FileConfiguration>
 				</File>

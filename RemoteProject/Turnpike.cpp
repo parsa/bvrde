@@ -273,7 +273,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    // Make sure we're processing all commands in the queue; new commands may
    // get added during the processing above but we should detect them during
    // the loop.
-   ATLASSERT(iIndex==m_aLazyData.GetSize());
+   ATLASSERT(m_aLazyData.GetSize()==iIndex);
 
    // Empty queue
    m_aLazyData.RemoveAll();

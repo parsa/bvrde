@@ -336,7 +336,6 @@ LRESULT CMainFrame::OnCopyData(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, 
    case 1:
       {
          // Parse command line
-         CCommandLine cmd;
          SendMessage(WM_APP_COMMANDLINE, 0, (LPARAM) pCDS->lpData);
          if( IsIconic() ) ShowWindow(SW_RESTORE);
       }
@@ -376,12 +375,14 @@ LRESULT CMainFrame::OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOO
    if( wParam == ANIMATE_TIMERID ) 
    {
       if( m_iAnimatePos < 0 ) return 0;
+      if( m_AnimateImages.GetImageCount() == 0 ) return 0;
       // Draw the little statusbar animation
       // TODO: How to prevent that nasty animation flickering?
+      //       Vista needs the TRUE flag on InvalidateRect(), XP does not.
       m_iAnimatePos = (m_iAnimatePos + 1) % m_AnimateImages.GetImageCount();
       RECT rcItem = { 0 };
       m_StatusBar.GetRect(1, &rcItem);
-      m_StatusBar.InvalidateRect(&rcItem, FALSE);
+      m_StatusBar.InvalidateRect(&rcItem, TRUE);
    }
    return 0;
 }
@@ -605,8 +606,9 @@ LRESULT CMainFrame::OnEditCopy(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCt
 {
    // Copy/Cut/Paste is handled before view gets a change. The
    // view must override the clipboard if possible!
-   ::SendMessage(::GetFocus(), WM_COPY, 0, 0L);
    bHandled = FALSE;
+   HWND hWndFocus = ::GetFocus();
+   if( hWndFocus != m_hWnd ) ::SendMessage(hWndFocus, WM_COPY, 0, 0L);
    return 0;
 }
 
@@ -776,19 +778,22 @@ LRESULT CMainFrame::OnMacroShortcut(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndC
 
 LRESULT CMainFrame::OnViewExplorer(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-   if( m_viewExplorer.IsWindowVisible() ) m_Dock.HideWindow(m_viewExplorer); else m_Dock.DockWindow(m_viewExplorer, DOCK_LASTKNOWN);
+   if( m_viewExplorer.IsWindowVisible() ) m_Dock.HideWindow(m_viewExplorer); 
+   else m_Dock.DockWindow(m_viewExplorer, DOCK_LASTKNOWN);
    return 0;
 }
 
 LRESULT CMainFrame::OnViewOpenFiles(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-   if( m_viewOpenFiles.IsWindowVisible() ) m_Dock.HideWindow(m_viewOpenFiles); else m_Dock.DockWindow(m_viewOpenFiles, DOCK_RIGHT);
+   if( m_viewOpenFiles.IsWindowVisible() ) m_Dock.HideWindow(m_viewOpenFiles); 
+   else m_Dock.DockWindow(m_viewOpenFiles, DOCK_RIGHT);
    return 0;
 }
 
 LRESULT CMainFrame::OnViewPropertyBar(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
-   if( m_viewProperties.IsWindowVisible() ) m_Dock.HideWindow(m_viewProperties); else m_Dock.DockWindow(m_viewProperties, DOCK_LASTKNOWN);
+   if( m_viewProperties.IsWindowVisible() ) m_Dock.HideWindow(m_viewProperties); 
+   else m_Dock.DockWindow(m_viewProperties, DOCK_LASTKNOWN);
    return 0;
 }
 
@@ -989,7 +994,7 @@ LRESULT CMainFrame::OnHelpSearch(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWnd
    sFilename.Format(_T("%sBVRDE.chm"), CModulePath());
    HH_FTS_QUERY q = { 0 };
    q.cbStruct = sizeof(q);
-   ::HtmlHelp(m_hWnd, sFilename, HH_DISPLAY_SEARCH, (DWORD) &q);
+   ::HtmlHelp(m_hWnd, sFilename, HH_DISPLAY_SEARCH, (DWORD_PTR) &q);
    return 0;
 }
 
@@ -1182,7 +1187,7 @@ LRESULT CMainFrame::OnUserCommandLine(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
       }
       else {
          IView* pView = CreateView(sFilename);
-         if( pView ) ATLTRY( pView->OpenView(1) );
+         if( pView != NULL ) ATLTRY( pView->OpenView(1) );
       }
    }
    // Bring focus back to main app

@@ -202,7 +202,7 @@ bool CTagInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aResult)
    // List all classes/structs available in TAG file...
    int nCount = m_aTags.GetSize();
    for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
-      TAGINFO& info = m_aTags[iIndex];
+      const TAGINFO& info = m_aTags[iIndex];
       switch( info.Type ) {
       case TAGTYPE_CLASS:
       case TAGTYPE_STRUCT:
@@ -227,7 +227,7 @@ bool CTagInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aResult)
    // List all classes/structs available in TAG file...
    int nCount = m_aTags.GetSize();
    for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
-      TAGINFO& info = m_aTags[iIndex];
+      const TAGINFO& info = m_aTags[iIndex];
       // Must not be parent of something
       if( info.pstrOwner[0] != '\0' ) continue;
       if( info.pstrFile == NULL ) continue;
@@ -252,7 +252,7 @@ bool CTagInfo::GetTypeList(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleV
 
    int nCount = m_aTags.GetSize();
    for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
-      TAGINFO& info = m_aTags[iIndex];
+      const TAGINFO& info = m_aTags[iIndex];
       if( wildcmp(pstrPattern, info.pstrName) ) {
          TAGINFO* pTag = &m_aTags.GetData()[iIndex];
          aResult.Add(pTag);

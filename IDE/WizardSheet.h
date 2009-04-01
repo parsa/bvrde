@@ -64,10 +64,10 @@ public:
 
    // Overloads
 
-	void OnReset();
+   void OnReset();
    int OnSetActive();
-	int OnWizardNext();
-	int OnApply();
+   int OnWizardNext();
+   int OnApply();
 
    // Message map and handlers
 

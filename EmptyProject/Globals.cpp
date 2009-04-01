@@ -141,6 +141,7 @@ CString GetFileTypeFromFilename(LPCTSTR pstrFilename)
    TCHAR szExtension[MAX_PATH];
    _tcscpy(szExtension, sFilename);
    CString sExtension = ::PathFindExtension(szExtension);  
+   if( sExtension.IsEmpty() ) sExtension = _T(".(none)");
    CString sKey;
    sKey.Format(_T("file.mappings%s"), sExtension);
    TCHAR szValue[200] = { 0 };

@@ -303,9 +303,9 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    BOOL bCompiling = m_CompileManager.IsCompiling();
    BOOL bProcessStarted = m_DebugManager.IsBusy();
    BOOL bDebugging = m_DebugManager.IsDebugging();
-   BOOL bBusy = bCompiling || bProcessStarted;
+   BOOL bBusy = (bCompiling || bProcessStarted);
    BOOL bDebugBreak = m_DebugManager.IsBreaked();
-   BOOL bIsFolder = sFileType == _T("Project") || sFileType == _T("Folder");
+   BOOL bIsFolder = (sFileType == _T("Project") || sFileType == _T("Folder"));
 
    pUIBase->UIEnable(ID_VIEW_SYMBOLS, TRUE);
    pUIBase->UIEnable(ID_VIEW_FILEMANAGER, TRUE);
@@ -454,19 +454,19 @@ BOOL CRemoteProject::OnInitProperties(IWizardManager* pManager, IElement* pEleme
    static CString sDebuggerCommandsTitle(MAKEINTRESOURCE(IDS_CONFIG_COMMANDS));
 
    s_pageTransfer.m_pProject = this;
-   s_pageTransfer.SetTitle((LPCTSTR)sTransferTitle);
+   s_pageTransfer.SetTitle(static_cast<LPCTSTR>(sTransferTitle));
    s_pageTransferOptions.m_pProject = this;
-   s_pageTransferOptions.SetTitle((LPCTSTR)sTransferOptionsTitle);
+   s_pageTransferOptions.SetTitle(static_cast<LPCTSTR>(sTransferOptionsTitle));
    s_pageCompiler.m_pProject = this;
    s_pageCompiler.SetTitle((LPCTSTR)sStartTitle);
    s_pageCompilerCommands.m_pProject = this;
-   s_pageCompilerCommands.SetTitle((LPCTSTR)sCompilerCommandsTitle);
+   s_pageCompilerCommands.SetTitle(static_cast<LPCTSTR>(sCompilerCommandsTitle));
    s_pageCompilerSteps.m_pProject = this;
-   s_pageCompilerSteps.SetTitle((LPCTSTR)sCompilerStepsTitle);
+   s_pageCompilerSteps.SetTitle(static_cast<LPCTSTR>(sCompilerStepsTitle));
    s_pageDebugger.m_pProject = this;
-   s_pageDebugger.SetTitle((LPCTSTR)sDebuggerTitle);
+   s_pageDebugger.SetTitle(static_cast<LPCTSTR>(sDebuggerTitle));
    s_pageDebuggerCommands.m_pProject = this;
-   s_pageDebuggerCommands.SetTitle((LPCTSTR)sDebuggerCommandsTitle);
+   s_pageDebuggerCommands.SetTitle(static_cast<LPCTSTR>(sDebuggerCommandsTitle));
 
    CString sConfiguration(MAKEINTRESOURCE(IDS_CONFIG_CONFIGURATION));
    pManager->AddWizardGroup(sConfiguration, CString(MAKEINTRESOURCE(IDS_CONFIG_TRANSFER)));
@@ -1065,7 +1065,7 @@ void CRemoteProject::AddButtonTextToToolBar(CToolBarCtrl tb, UINT nID, UINT nRes
    tbi.dwMask = TBIF_STYLE | TBIF_TEXT;
    tbi.fsStyle |= TBSTYLE_AUTOSIZE | BTNS_SHOWTEXT;
    CString s(MAKEINTRESOURCE(nRes));
-   tbi.pszText = (LPTSTR) (LPCTSTR) s;
+   tbi.pszText = (LPTSTR) static_cast<LPCTSTR>(s);
    tb.SetButtonInfo(nID, &tbi);
 }
 

@@ -52,7 +52,7 @@ public:
 
       static CString sTitle(MAKEINTRESOURCE(IDS_TREE_ADVANCED));
 
-      s_pageCppAdvanced.SetTitle((LPCTSTR)sTitle);
+      s_pageCppAdvanced.SetTitle(static_cast<LPCTSTR>(sTitle));
       s_pageCppAdvanced.m_sLanguage = _T("cpp");
       s_pageCppAdvanced.m_pArc = pArc;
 

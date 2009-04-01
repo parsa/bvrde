@@ -280,6 +280,12 @@ bool CScCommands::CollectFiles(CSimpleArray<CString>& aFiles)
    if( dd == NULL ) return false;
 
    // Does it have a collection of files?
+   // We assume that we grabbed an object that supports COM collection methods:
+   //   Element.Item
+   //   Element.Count
+   // And that each of the items in the collection supports the...
+   //   Filename
+   // property.
    DISPID dispItem = 0;
    HRESULT HrHasItem = dd.GetIDOfName(L"Item", &dispItem);
    CComVariant vFiles;

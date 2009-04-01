@@ -89,15 +89,15 @@ CString SecEncodePassword(LPCTSTR pstrPassword)
    if( !::CryptDeriveKey(hProv, CALG_RC4, hHash, CRYPT_EXPORTABLE, &hKey) ) return pstrPassword;
    DWORD cbData = sizeof(bData);
    if( !::CryptEncrypt(hKey, 0, TRUE, 0, bData, &cbData, cbData) ) return pstrPassword;
-   if( hKey ) ::CryptDestroyKey(hKey);
-   if( hHash ) ::CryptDestroyHash(hHash);
-   if( hProv ) ::CryptReleaseContext(hProv, 0);
+   if( hKey != NULL ) ::CryptDestroyKey(hKey);
+   if( hHash != NULL ) ::CryptDestroyHash(hHash);
+   if( hProv != NULL ) ::CryptReleaseContext(hProv, 0);
    // Turn binary blob into a hex-encoded string...
    CHAR szPassword[(CRYPT_ENVELOPE_SIZE * 2) + 2] = { 0 };
    LPSTR pOut = szPassword;
    *pOut++ = '~';
    for( size_t i = 0; i < CRYPT_ENVELOPE_SIZE; i++ ) {
-      static char s_hex[] = "0123456789abcdef";
+      static CHAR s_hex[] = "0123456789abcdef";
       *pOut++ = s_hex[(bData[i] & 0xf0) >> 4];
       *pOut++ = s_hex[bData[i] & 0x0f];
    }
@@ -123,20 +123,20 @@ CString SecDecodePassword(LPCTSTR pstrPassword)
    if( !::CryptDeriveKey(hProv, CALG_RC4, hHash, CRYPT_EXPORTABLE, &hKey)) return _T("");
    // Convert hex-encoded to character string...
    BYTE bData[CRYPT_ENVELOPE_SIZE * 2];
+   CHAR iVal;
    int i = 0;
    while( i < CRYPT_ENVELOPE_SIZE ) {
-      ++pstrPassword;
-      CHAR iVal = (CHAR)(*pstrPassword > '9' ? *pstrPassword - 'a' + 10 : *pstrPassword - '0');
-      ++pstrPassword;
-      iVal = (iVal << 4) + (CHAR)(*pstrPassword > '9' ? *pstrPassword - 'a' + 10 : *pstrPassword - '0');
+      iVal = (CHAR)(pstrPassword[0] > '9' ? pstrPassword[0] - 'a' + 10 : pstrPassword[0] - '0');
+      iVal = (CHAR)(pstrPassword[1] > '9' ? pstrPassword[1] - 'a' + 10 : pstrPassword[1] - '0') + (iVal << 4);
       bData[i++] = iVal;
+      pstrPassword += 2;
    }
    // Decrypt using Microsoft crypt library...
    DWORD cbData = sizeof(bData);
    if( !::CryptDecrypt(hKey, 0, TRUE, 0, bData, &cbData)) return _T("");
-   if( hKey ) ::CryptDestroyKey(hKey);
-   if( hHash ) ::CryptDestroyHash(hHash);
-   if( hProv ) ::CryptReleaseContext(hProv, 0);
+   if( hKey != NULL ) ::CryptDestroyKey(hKey);
+   if( hHash != NULL ) ::CryptDestroyHash(hHash);
+   if( hProv != NULL ) ::CryptReleaseContext(hProv, 0);
    // Turn into a password string...
    size_t cchLen = bData[CRYPT_ENVELOPE_SIZE - 1];
    if( cchLen == 0 || cchLen >= CRYPT_ENVELOPE_SIZE - 1 ) return _T("");

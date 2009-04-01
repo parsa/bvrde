@@ -247,6 +247,7 @@ CString GetFileTypeFromFilename(LPCTSTR pstrFilename)
    CString sFilename = pstrFilename;
    sFilename.MakeLower();
    CString sExtension = ::PathFindExtension(sFilename);
+   if( sExtension.IsEmpty() ) sExtension = _T(".(none)");
    CString sKey;
    sKey.Format(_T("file.mappings%s"), sExtension);  // NOTE: Extension includes a dot char.
    TCHAR szValue[100] = { 0 };
