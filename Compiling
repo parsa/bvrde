@@ -5,8 +5,8 @@ How to compile the project
    These are generic compilation instructions.
 
 The solution compiles with Microsoft Developer Studio 6, but has been known
-to compile with the later Visual Studio.NET versions. You must however import
-the DSW project files to do this.
+to compile with the latest Visual Studio.NET versions. Project files are included
+for VS6 and VS2008.
 
 Installation of Microsoft Windows Template Library (WTL), the HTML Help Workshop
 and Microsoft Windows SDK is required. Links for these libraries are available below.

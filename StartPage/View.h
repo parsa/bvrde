@@ -83,10 +83,6 @@ public:
       /*[out]*/ VARIANT_BOOL* Cancel);
    void __stdcall __DocumentComplete(/*[in]*/ IDispatch* pDisp, 
       /*[in]*/ BSTR bstrText);
-
-   // Implementation
-
-   void WaitBusy() const;
 };
 
 
