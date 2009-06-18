@@ -35,10 +35,12 @@ public:
          m_sProcess.Format(_T("./%s"), szProjectName);
       }
    }
+
    CString GetSelectedProcess() const
    {
       return m_sProcess;
    }
+   
    CString GetSelectedCoreFile() const
    {
       return m_sCoreFile;
@@ -55,6 +57,8 @@ public:
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      CenterWindow();
+
       m_ctrlProcess = GetDlgItem(IDC_PROCESS);
       m_ctrlCoreFile = GetDlgItem(IDC_COREFILE);
 
@@ -65,6 +69,7 @@ public:
       OnChange(0, 0, NULL, bDummy);
       return 0;
    }
+
    LRESULT OnOk(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       // NOTE: When the debug-manager attaches to the core file, it stores
@@ -76,11 +81,13 @@ public:
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {      
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnBrowseProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CString sFilter(MAKEINTRESOURCE(IDS_FILTER_BINFILES));
@@ -96,6 +103,7 @@ public:
       m_ctrlProcess.SetWindowText(sFilename);
       return 0;
    }
+   
    LRESULT OnBrowseCoreFile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CString sFilter(MAKEINTRESOURCE(IDS_FILTER_COREFILES));
@@ -111,6 +119,7 @@ public:
       m_ctrlCoreFile.SetWindowText(sFilename);
       return 0;
    }
+   
    LRESULT OnChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {      
       BOOL bEnabled = TRUE;

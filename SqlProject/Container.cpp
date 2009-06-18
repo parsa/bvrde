@@ -128,17 +128,17 @@ LRESULT CContainerWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lP
    //
    item.iImage = 0;
    s.LoadString(IDS_SQL);
-   item.pszText = (LPTSTR) (LPCTSTR) s;
+   item.pszText = (LPTSTR) static_cast<LPCTSTR>(s);
    InsertItem(0, &item);
    //
    item.iImage = 1;
    s.LoadString(IDS_RESULT);
-   item.pszText = (LPTSTR) (LPCTSTR) s;
+   item.pszText = (LPTSTR) static_cast<LPCTSTR>(s);
    InsertItem(1, &item);
    //
    item.iImage = 2;
    s.LoadString(IDS_SCHEMA);
-   item.pszText = (LPTSTR) (LPCTSTR) s;
+   item.pszText = (LPTSTR) static_cast<LPCTSTR>(s);
    InsertItem(2, &item);
    //
    SetCurSel(0);

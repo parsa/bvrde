@@ -162,10 +162,12 @@ public:
          return E_NOINTERFACE;
       }
    }
+   
    virtual ULONG STDMETHODCALLTYPE AddRef()
    {
       return 1;
    }
+   
    virtual ULONG STDMETHODCALLTYPE Release()
    {
       return 1;
@@ -292,7 +294,9 @@ public:
       }
       return Hr;
    }
+   
    HRESULT GetTI(LCID lcid);
+   
    HRESULT EnsureTI(LCID lcid)
    {
       HRESULT Hr = S_OK;
@@ -410,6 +414,7 @@ public:
       }
       return Hr;
    }
+   
    HRESULT LoadNameCache(ITypeInfo* /*pTypeInfo*/)
    {
       // A name cache is really not useful here since we already have

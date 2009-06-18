@@ -137,10 +137,12 @@ public:
       }
       return E_NOINTERFACE;
    }
+
    ULONG STDMETHODCALLTYPE AddRef(void)
    {
       return 1;
    }
+   
    ULONG STDMETHODCALLTYPE Release(void)
    {
       return 1;
@@ -204,6 +206,7 @@ public:
 
       return lRes;
    }
+   
    LRESULT OnLButtonDblClk(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       CWaitCursor cursor;
@@ -237,6 +240,7 @@ public:
       }
       return 0;
    }
+   
    LRESULT OnPrintClient(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       // NOTE: We need to handle WM_PRINTCLIENT because we're using this
@@ -261,7 +265,7 @@ public:
       //rcOutput.top += ::MulDiv(rcMargin.top, 1440, 1000);
       //rcOutput.bottom -= ::MulDiv(rcMargin.bottom, 1440, 1000);
   
-      FORMATRANGE fr;
+      FORMATRANGE fr = { 0 };
       fr.hdc = dc;
       fr.hdcTarget = dc;
       fr.rc = rcOutput;
@@ -269,7 +273,7 @@ public:
       fr.chrg.cpMin = LineIndex(GetFirstVisibleLine());
       fr.chrg.cpMax = -1;
 
-      POINT pt;
+      POINT pt = { 0 };
       pt = PosFromChar(fr.chrg.cpMin);
       dc.SetViewportOrg(pt.x - 1, pt.y - 1);
 
@@ -297,6 +301,7 @@ public:
       m_thread.m_iFlags = iFlags;
       m_thread.Start();
    }
+
    BOOL IsRunning() const
    {
       return m_thread.IsRunning();

@@ -29,10 +29,12 @@ public:
    {
       return m_szPattern;
    }
+
    LPCTSTR GetFolder() const
    {
       return m_szFolder;
    }
+   
    UINT GetFlags() const
    {
       return m_iFlags;
@@ -52,6 +54,8 @@ public:
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       USES_CONVERSION;
+
+      CenterWindow();
 
       m_ctrlFindText.SubclassWindow(GetDlgItem(IDC_FINDTEXT));
       m_ctrlFindText.LimitText(100);
@@ -106,6 +110,7 @@ public:
 
       return (LRESULT) TRUE;
    }
+
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       m_ctrlFindText.WriteToRegistry(REG_BVRDE _T("\\Mru"), _T("Find"));
@@ -113,6 +118,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       _tcscpy(m_szPattern, CWindowText(m_ctrlFindText));
@@ -130,11 +136,13 @@ public:
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       _UpdateButtons();

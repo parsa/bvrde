@@ -18,10 +18,12 @@ public:
    CTagElement(const CTagDetails& Tag) : Info(Tag) 
    {
    }
+
    BOOL Load(ISerializable* /*pArc*/)
    {
       return FALSE;
    }
+
    BOOL Save(ISerializable* pArc)
    {
       CString sKind(MAKEINTRESOURCE(IDS_UNKNOWN));
@@ -42,18 +44,22 @@ public:
       pArc->Write(_T("match"), Info.sRegExMatch.IsEmpty() ? Info.sDeclaration : Info.sRegExMatch);
       return TRUE;
    }
+
    BOOL GetName(LPTSTR pstrName, UINT cchMax) const
    {
       return _tcsncpy(pstrName, Info.sName, cchMax) > 0;
    }
+
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const
    {
       return _tcsncpy(pstrType, _T("Tag"), cchMax) > 0;
    }
+
    IElement* GetParent() const
    {
       return NULL;
    }
+
    IDispatch* GetDispatch()
    {
       return NULL;
@@ -304,7 +310,7 @@ LRESULT CClassView::OnTreeRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*b
       {
          CString sText = m_SelectedTag.sName;
          if( sText.Find(_T("::")) >= 0 ) sText = sText.Mid(sText.Find(_T("::")) + 2);
-         m_pProject->m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_EDIT_MARK, 0), (LPARAM) (LPCTSTR) sText);
+         m_pProject->m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_EDIT_MARK, 0), (LPARAM) static_cast<LPCTSTR>(sText));
       }
       break;
    case ID_CLASSVIEW_PROPERTIES:
@@ -335,7 +341,8 @@ LRESULT CClassView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
 {
    LPNMTREEVIEW lpNMTV = (LPNMTREEVIEW) pnmh;
    TVITEM& tvi = lpNMTV->itemNew;
-   if( (lpNMTV->action & TVE_EXPAND) != 0 ) {
+   if( (lpNMTV->action & TVE_EXPAND) != 0 ) 
+   {
       CWaitCursor cursor;
       CSimpleValArray<TAGINFO*> aList;
       TAGINFO* pParent = (TAGINFO*) m_ctrlTree.GetItemData(tvi.hItem);
@@ -345,7 +352,7 @@ LRESULT CClassView::OnTreeExpanding(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
       else {
          // NOTE: We are only collection members attached directly to the
          //       base so we will not list inherited members here.
-         m_pProject->m_TagManager.GetMemberList(pParent->pstrName, 0, ::GetTickCount() + 1000, aList);
+         m_pProject->m_TagManager.GetMemberList(pParent->pstrName, 0, ::GetTickCount() + 1500, aList);
       }
       for( int i = 0; i < aList.GetSize(); i++ ) {
          const TAGINFO* pTag = aList[i];
@@ -554,7 +561,7 @@ void CClassView::_PopulateTree()
 
    // Insert "Globals" tree-item
    CString sGlobals(MAKEINTRESOURCE(IDS_GLOBALS));
-   tvis.item.pszText = (LPTSTR) (LPCTSTR) sGlobals;
+   tvis.item.pszText = (LPTSTR) static_cast<LPCTSTR>(sGlobals);
    tvis.item.iImage = 1;
    tvis.item.iSelectedImage = 1;
    tvis.item.lParam = 0;

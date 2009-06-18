@@ -38,25 +38,30 @@ public:
    {
       ::ZeroMemory(&m_bi, sizeof(m_bi));
    }
+
    ~CDib()
    {
       if( !IsEmpty() ) DeleteObject();
    }
+
    CDib& operator=(const CDib& src)
    {
       src.CopyTo(this);
       return *this;
    }
+   
    void DeleteObject()
    {
       ATLASSERT(!IsEmpty());
       free(m_hDib);
       m_hDib = NULL;
    }
+   
    BOOL IsEmpty() const
    {
       return m_hDib==NULL;
    }
+   
    BOOL CopyTo(CDib *pDst) const
    {
       ATLASSERT(pDst);
@@ -72,6 +77,7 @@ public:
       pDst->m_nColors = m_nColors;
       return TRUE;
    }
+   
    BOOL LoadBitmap(LPCTSTR lpszPathName)
    {
       ATLASSERT(!::IsBadStringPtr(lpszPathName,-1));
@@ -82,6 +88,7 @@ public:
       ::DeleteObject(hBitmap);
       return res;
    }
+   
    BOOL LoadBitmap(UINT nRes)
    {
       HBITMAP hBitmap = (HBITMAP) ::LoadImage(_Module.GetResourceInstance(), MAKEINTRESOURCE(nRes), IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
@@ -91,6 +98,7 @@ public:
       ::DeleteObject(hBitmap);
       return res;
    }
+   
    BOOL Create(HBITMAP hBitmap)
    {
       ATLASSERT(::GetObjectType(hBitmap)==OBJ_BITMAP);
@@ -103,6 +111,7 @@ public:
       if( lines != bm.bmHeight ) return FALSE;
       return TRUE;
    }
+   
    BOOL Create(DWORD dwWidth, DWORD dwHeight, WORD wBitCount)
    {
       #define WIDTHBYTES(bits)  (((bits) + 31) / 32 * 4)
@@ -155,39 +164,47 @@ public:
       *lpbi = m_bi;
       return TRUE;
    }
+   
    DWORD GetByteSize() const
    {
       return m_bi.biSize + m_bi.biSizeImage + GetPaletteSize();
    }
-   inline LPBYTE GetBits() const
+   
+   LPBYTE GetBits() const
    {
       ATLASSERT(!IsEmpty());
       return( (BYTE*) m_hDib + ( *(LPDWORD) m_hDib ) + GetPaletteSize() ); 
    }
-   inline DWORD GetWidth() const
+   
+   DWORD GetWidth() const
    {
       ATLASSERT(!IsEmpty());
       return m_bi.biWidth;
    }
-   inline DWORD GetHeight() const
+   
+   DWORD GetHeight() const
    {
       ATLASSERT(!IsEmpty());
       return m_bi.biHeight;
    }
-   inline DWORD GetLineWidth() const
+   
+   DWORD GetLineWidth() const
    {
       ATLASSERT(!IsEmpty());
       return m_dwLineWidth;
    }
-   inline DWORD GetPixelWidth() const
+   
+   DWORD GetPixelWidth() const
    {
       ATLASSERT(!IsEmpty());
       return m_dwPixelWidth;
    }
+   
    WORD GetColorCount() const
    {
       return m_nColors;
    }
+   
    WORD GetPaletteSize() const
    {
       WORD wNumColors = GetColorCount();
@@ -196,6 +213,7 @@ public:
       else
          return (WORD) (wNumColors * sizeof(RGBQUAD));
    }
+   
    WORD GetBitCount() const
    {
       ATLASSERT(!IsEmpty());
@@ -209,6 +227,7 @@ public:
       LPBYTE lp = GetBits() + (y * m_dwLineWidth) + (x * m_dwPixelWidth);
       return RGB(lp[0], lp[1], lp[2]);
    }
+   
    void SetPixel(int x, int y, COLORREF rgb)
    {
       ATLASSERT(!IsEmpty());
@@ -229,6 +248,7 @@ public:
          (BITMAPINFO*) m_hDib, DIB_RGB_COLORS);
       return TRUE;
    }
+   
    BOOL Stretch(HDC hDC, long xoffset, long yoffset, long xsize, long ysize) const
    {
       if( (m_hDib == NULL) || (hDC == NULL) ) return FALSE;
@@ -238,6 +258,7 @@ public:
          GetBits(), (BITMAPINFO*) m_hDib, DIB_RGB_COLORS, SRCCOPY);
       return TRUE;
    }
+   
    BOOL Stretch(HDC hDC, RECT rc) const
    {
       return Stretch(hDC, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top);

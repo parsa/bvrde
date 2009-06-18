@@ -87,14 +87,17 @@ class CMessageLoopEx : public CMessageLoop
 {
 public:
    CSimpleArray<CIdleHandlerEx*> m_aIdleHandler;
+   
    BOOL AddIdleHandler(CIdleHandlerEx* pIdleHandler)
    {
       return m_aIdleHandler.Add(pIdleHandler);
    }
+   
    BOOL RemoveIdleHandler(CIdleHandlerEx* pIdleHandler)
    {
       return m_aIdleHandler.Remove(pIdleHandler);
    }
+   
    virtual BOOL OnIdle(int nIdleCount)
    {
       if( m_aIdleHandler.GetSize() == 0 ) return FALSE;
@@ -124,6 +127,7 @@ public:
    CTransparentWindow(HWND hWnd = NULL) : CWindow(hWnd)
    {
    }
+   
    CTransparentWindow& operator=(HWND hWnd)
    {
       m_hWnd = hWnd;
@@ -139,6 +143,7 @@ public:
       if( pfnSetLayeredWindowAttributes == NULL ) return FALSE;
       return pfnSetLayeredWindowAttributes(m_hWnd, crKey, bAlpha, dwFlags);
    }
+   
    BOOL UpdateLayeredWindow(HDC hdcDst, POINT *pptDst, SIZE *psize, HDC hdcSrc, POINT *pptSrc, COLORREF crKey, BLENDFUNCTION *pblend, DWORD dwFlags)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -173,6 +178,7 @@ public:
    CAnimateWindow(HWND hWnd = NULL) : CWindow(hWnd)
    {
    }
+   
    CAnimateWindow& operator=(HWND hWnd)
    {
       m_hWnd = hWnd;
@@ -210,10 +216,12 @@ public:
    CResource() : m_hglb(NULL), m_hrsrc(NULL), m_bLocked(false)
    { 
    }
+   
    ~CResource()
    {
-      Release();
+      Release();   
    }
+   
    BOOL Load(_U_STRINGorID Type, _U_STRINGorID ID)
    {
       ATLASSERT(m_hrsrc==NULL);
@@ -235,6 +243,7 @@ public:
       }
       return TRUE;
    }
+   
    BOOL LoadEx(_U_STRINGorID Type, _U_STRINGorID ID, WORD wLanguage)
    {
       ATLASSERT(m_hrsrc==NULL);
@@ -256,6 +265,7 @@ public:
       }
       return TRUE;
    }
+   
    DWORD GetSize() const
    {
       ATLASSERT(m_hrsrc);
@@ -265,6 +275,7 @@ public:
       return ::SizeofResource(_Module.GetResourceInstance(), m_hrsrc);
 #endif // _ATL_VER
    }
+   
    LPVOID Lock()
    {
       ATLASSERT(m_hrsrc);
@@ -275,6 +286,7 @@ public:
       m_bLocked = true;
       return pVoid;
    }
+   
    void Unlock()
    {
       ATLASSERT(m_hrsrc);
@@ -283,6 +295,7 @@ public:
       m_bLocked = false;
       UnlockResource(m_hglb);
    }
+   
    void Release()
    {
       if( m_bLocked ) Unlock();
@@ -309,10 +322,12 @@ public:
    {
       m_szStr[0] = '\0';
    }
+   
    CResString(UINT ID)
    {
       LoadString(ID);
    }
+   
    inline int LoadString(UINT ID)
    {
 #if (_ATL_VER >= 0x0700)
@@ -321,7 +336,9 @@ public:
       return ::LoadString(_Module.GetResourceInstance(), ID, m_szStr, sizeof(m_szStr)/sizeof(TCHAR));
 #endif // _ATL_VER
    }
+
 #ifdef _VA_LIST_DEFINED
+
    int FormatString(UINT ID, ...)
    {
       TCHAR szFormat[nSize];
@@ -337,11 +354,14 @@ public:
       va_end(arglist);
       return cch;
    }
+
 #endif // _VA_LIST_DEFINED
+
    inline int GetLength() const
    {
       return ::lstrlen(m_szStr);
    }
+
    operator LPCTSTR() const 
    { 
       return m_szStr; 
@@ -365,9 +385,13 @@ public:
    #endif
 #endif // CHAR_FUDGE
    CLangString() { };
+
    CLangString(const CString& s) : CString(s) { };
+   
    CLangString(const CLangString& s) : CString(s) { };
+   
    CLangString(LPCTSTR pstr) : CString(pstr) { };
+   
    CLangString(WORD wLanguage, UINT nID) { LoadString(wLanguage, nID); };
 
    BOOL LoadString(WORD wLanguage, UINT nID)
@@ -399,6 +423,7 @@ public:
 
       return nLen > 0;
    }
+   
    BOOL __cdecl Format(WORD wLanguage, UINT nFormatID, ...)
    {
       CLangString strFormat;
@@ -485,15 +510,18 @@ public:
    {
       Set(hInst);
    }
+   
    CModulePath(const CModulePath& src)
    {
       m_pstr = new TCHAR[MAX_PATH];
       ::lstrcpy(m_pstr, src.m_pstr);
    }
+   
    ~CModulePath()
    {
       if( m_pstr ) delete [] m_pstr;
    }
+   
    void Set(HINSTANCE hInst)
    {
       // Allocate string memory
@@ -515,6 +543,7 @@ public:
       ATLASSERT(pSep);
       *(pSep + 1) = '\0';
    }
+   
    operator LPCTSTR() const 
    { 
       return m_pstr; 
@@ -533,6 +562,7 @@ public:
    CWindowText() : m_pstr(NULL)
    {
    }
+   
    CWindowText(const CWindowText& src)
    {
       int len = ::lstrlen(src.m_pstr) + 1;
@@ -540,32 +570,39 @@ public:
       ATLASSERT(m_pstr);
       ::lstrcpy(m_pstr, src.m_pstr);
    }
+   
    CWindowText(HWND hWnd) : m_pstr(NULL)
    {
       Assign(hWnd);
    }
+   
    ~CWindowText()
    {
       delete [] m_pstr;
    }
+   
    int GetLength() const
    {
       return ::lstrlen(m_pstr);
    }
+   
    CWindowText& operator=(HWND hWnd)
    {
       Assign(hWnd);
       return *this;
    }
+   
    CWindowText& operator=(const CWindowText& src)
    {
       Assign(src.m_pstr);
       return *this;
    }
+   
    operator LPCTSTR() const 
    { 
       return m_pstr; 
    }
+   
    int Assign(HWND hWnd)
    {
       ATLASSERT(::IsWindow(hWnd));
@@ -575,6 +612,7 @@ public:
       ATLASSERT(m_pstr);
       return ::GetWindowText(hWnd, m_pstr, len);
    }
+   
    int Assign(LPCTSTR pstrSrc)
    {
       ATLASSERT(!::IsBadStringPtr(pstrSrc, -1));
@@ -601,6 +639,7 @@ public:
       ATLASSERT(::IsWindow(hWnd));
       ::LockWindowUpdate(hWnd);
    }
+   
    ~CLockWindowUpdate()
    {
       ::LockWindowUpdate(NULL);
@@ -622,6 +661,7 @@ public:
       // NOTE: See Q130611 for using this with a TreeView control.
       ::SendMessage(m_hWnd, WM_SETREDRAW, (WPARAM) FALSE, 0);
    }
+   
    ~CWindowRedraw()
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -642,15 +682,18 @@ public:
    CLoadLibrary() : m_hInst(NULL)
    {
    }
+   
    CLoadLibrary(LPCTSTR pstrFileName)
    {
       m_hInst = NULL;
       Load(pstrFileName);
    }
+   
    ~CLoadLibrary()
    {
       Free();
    }
+   
    BOOL Load(LPCTSTR pstrFileName, DWORD dwFlags = 0)
    {
       ATLASSERT(!::IsBadStringPtr(pstrFileName, MAX_PATH));
@@ -658,6 +701,7 @@ public:
       m_hInst = ::LoadLibraryEx(pstrFileName, NULL, dwFlags);
       return m_hInst != NULL;
    }
+   
    void Free()
    {
       if( IsLoaded() ) {
@@ -665,27 +709,32 @@ public:
          m_hInst = NULL;
       }
    }
+   
    HINSTANCE Detach()
    {
       HINSTANCE hInst = m_hInst;
       m_hInst = NULL;
       return hInst;
    }
+   
    BOOL IsLoaded() const 
    { 
       return m_hInst != NULL; 
    }
+   
    FARPROC GetProcAddress(LPCSTR pszFuncName) const
    { 
       ATLASSERT(!::IsBadStringPtrA(pszFuncName,-1));
       ATLASSERT(IsLoaded()); 
       return ::GetProcAddress(m_hInst, pszFuncName);
    }
+   
    BOOL GetFileName(LPTSTR pstrFilename, DWORD cchMax = MAX_PATH) const
    {
       ATLASSERT(IsLoaded());
       return ::GetModuleFileName(m_hInst, pstrFilename, cchMax);
    }
+   
    operator HINSTANCE() const
    { 
       return m_hInst; 
@@ -734,10 +783,12 @@ public:
     m_hdwp = ::BeginDeferWindowPos(nWindows); 
     ATLASSERT(m_hdwp);
   }
+  
   ~CDeferWindowPos()
   {
     ::EndDeferWindowPos(m_hdwp);       
   }
+  
   void DeferWindowPos(HWND hWnd, RECT &rc, DWORD nFlags = 0)
   {
     ATLASSERT(m_hdwp);
@@ -749,6 +800,7 @@ public:
       rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top,
       nFlags | (bIsParent ? SWP_NOZORDER : 0) );
   }
+  
   void DeferWindowPos(HWND hWnd, int rcLeft, int rcTop, int rcWidth, int rcHeight, DWORD nFlags = 0)
   {
     ATLASSERT(m_hdwp);
@@ -827,16 +879,19 @@ public:
       length = sizeof(WINDOWPLACEMENT);
       showCmd = SW_NORMAL;
    }
+   
    CWindowPlacement(HWND hWnd)
    {
       length = sizeof(WINDOWPLACEMENT);
       GetPosData(hWnd);
    }
+   
    BOOL GetPosData(HWND hWnd)
    {
       ATLASSERT(::IsWindow(hWnd));
       return ::GetWindowPlacement(hWnd, this);
    }
+   
    BOOL GetPosData(LPCTSTR pstr)
    {
       ATLASSERT(!::IsBadStringPtr(pstr, -1));
@@ -853,6 +908,7 @@ public:
       rcNormalPosition.bottom = _GetInt(pstr);
       return TRUE;
    }
+   
    BOOL GetPosData(HKEY hReg, LPCTSTR pstrKeyName)
    {
       ATLASSERT(hReg);
@@ -864,6 +920,7 @@ public:
       if( lRes != ERROR_SUCCESS ) return FALSE;
       return GetPosData(szData);
    }
+   
    BOOL SetPosData(HWND hWnd)
    {
       // NOTE: Do not place this call in the window's own WM_CREATE handler.
@@ -878,6 +935,7 @@ public:
       // Show it...
       return ::SetWindowPlacement(hWnd, this);
    }
+   
    BOOL SetPosData(LPTSTR pstr, UINT cchMax) const
    {
       ATLASSERT(!::IsBadWritePtr(pstr, cchMax));
@@ -895,6 +953,7 @@ public:
          rcNormalPosition.bottom);
       return TRUE;
    }
+   
    BOOL SetPosData(HKEY hReg, LPCTSTR pstrValueName) const
    {
       ATLASSERT(!::IsBadStringPtr(pstrValueName,-1));
@@ -903,6 +962,9 @@ public:
       if( !SetPosData(szData, (UINT) sizeof(szData)/sizeof(TCHAR)) ) return FALSE;
       return ::RegSetValueEx(hReg, pstrValueName, NULL, REG_SZ, (CONST BYTE*) szData, (::lstrlen(szData)+1)*sizeof(TCHAR)) == ERROR_SUCCESS;
    }
+
+   // Implementation
+   
    long _GetInt(LPCTSTR& pstr) const
    {
       // NOTE: 'pstr' argument is "byref"
@@ -935,29 +997,34 @@ public:
    CWinProp(HWND hWnd = NULL) : m_hWnd(hWnd)
    {
    }
+   
    CWinProp& operator=(HWND hWnd)
    {
       m_hWnd = hWnd;
       return *this;
    }
+   
    template< typename T >
    BOOL SetProperty(LPCTSTR pstrName, T pValue)
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return ::SetProp(m_hWnd, pstrName, reinterpret_cast<HANDLE>(pValue));
    }
+   
    template< typename T >
    void GetProperty(LPCTSTR pstrName, T& pValue) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       pValue = (T) ::GetProp(m_hWnd, pstrName);
    }
+   
    BOOL Enumerate(PROPENUMPROCEX Proc, LPARAM lParam) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ATLASSERT(!::IsBadCodePtr((FARPROC)Proc));
       return ::EnumPropsEx(m_hWnd, Proc, lParam) != -1;
    }  
+   
    typedef struct PROPFIND { LPCTSTR pstrName; BOOL bFound; };
    BOOL FindProperty(LPCTSTR pstrName) const
    {
@@ -966,16 +1033,19 @@ public:
       ::EnumPropsEx(m_hWnd, _FindProc, (LPARAM) &pf); 
       return pf.bFound;
    }
+   
    void RemoveProperty(LPCTSTR pstrName)
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ::RemoveProp(m_hWnd, pstrName);
    }
+   
    void RemoveAll()
    {
       ATLASSERT(::IsWindow(m_hWnd));
       ::EnumPropsEx(m_hWnd, _RemoveAllProc, 0); 
    }
+   
    static BOOL CALLBACK _FindProc(HWND /*hWnd*/, LPTSTR pstrName, HANDLE /*hData*/, ULONG_PTR lParam)
    {
       PROPFIND* pf = (PROPFIND*) lParam;
@@ -987,6 +1057,7 @@ public:
       }
       return TRUE;
    }
+   
    static BOOL CALLBACK _RemoveAllProc(HWND hWnd, LPTSTR pstrName, HANDLE /*hData*/, ULONG_PTR /*lParam*/)
    {
       ::RemoveProp(hWnd, pstrName);
@@ -1005,6 +1076,7 @@ struct CCoInitialize
       HRESULT Hr = ::CoInitializeEx(NULL, dwCoInit);
       ATLASSERT(SUCCEEDED(Hr)); Hr;
    }
+
    ~CCoInitialize()
    {
       ::CoUninitialize();
@@ -1024,11 +1096,13 @@ public:
    {
       m_szFilename[0] = '\0';
    }
+   
    void SetFilename(LPCTSTR pstrFilename)
    {
       ATLASSERT(!::IsBadStringPtr(pstrFilename,-1));
       ::lstrcpy(m_szFilename, pstrFilename);
    }
+   
    BOOL GetString(LPCTSTR pstrSection, LPCTSTR pstrKey, LPTSTR pstrValue, UINT cchMax, LPCTSTR pstrDefault = NULL) const
    {
       ATLASSERT(m_szFilename[0]);
@@ -1037,7 +1111,9 @@ public:
       ATLASSERT(!::IsBadWritePtr(pstrValue,cchMax));
       return ::GetPrivateProfileString(pstrSection, pstrKey, pstrDefault, pstrValue, cchMax,  m_szFilename) > 0;
    }
+
 #if defined(__ATLSTR_H__) || defined(_WTL_USE_CSTRING)
+
    BOOL GetString(LPCTSTR pstrSection, LPCTSTR pstrKey, CString& sValue, LPCTSTR pstrDefault = NULL) const
    {      
       enum { MAX_INIVALUE_LEN = 1024 };
@@ -1045,7 +1121,9 @@ public:
       sValue.ReleaseBuffer(bRes ? -1 : 0);
       return bRes;
    }
+
 #endif // __ATLSTR_H__ _WTL_USE_CSTRING
+
    BOOL GetInt(LPCTSTR pstrSection, LPCTSTR pstrKey, int& iValue, int iDefault = 0) const
    {
       ATLASSERT(m_szFilename[0]);
@@ -1054,6 +1132,7 @@ public:
       iValue = ::GetPrivateProfileInt(pstrSection, pstrKey, iDefault, m_szFilename);
       return TRUE;
    }
+
    BOOL GetBool(LPCTSTR pstrSection, LPCTSTR pstrKey, bool& bValue, bool bDefault = true) const
    {
       TCHAR szValue[2] = { 0 };
@@ -1078,6 +1157,7 @@ public:
       }
       return TRUE;
    }
+   
    BOOL PutString(LPCTSTR pstrSection, LPCTSTR pstrKey, LPCTSTR pstrValue)
    {
       ATLASSERT(m_szFilename[0]);
@@ -1085,12 +1165,14 @@ public:
       ATLASSERT(!::IsBadStringPtr(pstrKey,-1));
       return ::WritePrivateProfileString(pstrSection, pstrKey, pstrValue, m_szFilename);
    }
+   
    BOOL PutInt(LPCTSTR pstrSection, LPCTSTR pstrKey, int iValue)
    {
       TCHAR szValue[32];
       ::wsprintf(szValue, _T("%ld"), iValue);
       return PutString(pstrSection, pstrKey, szValue);
    }
+   
    BOOL PutBool(LPCTSTR pstrSection, LPCTSTR pstrKey, bool bValue)
    {
       TCHAR szValue[2] = { 0 };
@@ -1105,12 +1187,14 @@ public:
       ATLASSERT(!::IsBadStringPtr(pstrKey,-1));
       ::WritePrivateProfileString(pstrSection, pstrKey, NULL, m_szFilename);
    }
+   
    void DeleteSection(LPCTSTR pstrSection)
    {
       ATLASSERT(m_szFilename[0]);
       ATLASSERT(!::IsBadStringPtr(pstrSection,-1));
       ::WritePrivateProfileString(pstrSection, NULL, NULL, m_szFilename);
    }
+   
    void Flush()
    {
       ATLASSERT(m_szFilename[0]);

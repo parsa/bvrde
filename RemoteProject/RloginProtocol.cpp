@@ -37,6 +37,8 @@ DWORD CRloginThread::Run()
 
    if( iPort == 0 ) iPort = 513;         // default rlogin port
    if( lSpeed == 0 ) lSpeed = 38600L;    // default terminal speed
+
+   // Prompt for password?
    if( sPassword.IsEmpty() ) sPassword = SecGetPassword();
 
    m_pManager->m_dwErrorCode = 0;

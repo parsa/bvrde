@@ -22,17 +22,19 @@ public:
       m_dwTimeout(dwTimeout)
    {
       m_event.Create();
-      Start();
    }
+
    DWORD Run()
    {
       if( !m_event.WaitForEvent(m_dwTimeout) ) ::InternetCloseHandle(m_hInternet);
       return 0;
    }
+
    void SetEvent()
    {
       m_event.SetEvent();
    }
+
    HINTERNET m_hInternet;
    DWORD m_dwTimeout;
    CEvent m_event;
@@ -48,15 +50,19 @@ DWORD CFtpThread::Run()
 
    // Get connect parameters
    // TODO: Protect these guys with thread-lock
-   CString sHost = m_pManager->m_sHost;
-   CString sUsername = m_pManager->m_sUsername;
-   CString sPassword = m_pManager->m_sPassword;
-   long lPort = m_pManager->m_lPort;
-   CString sPath = m_pManager->m_sPath;
-   CString sProxy = m_pManager->m_sProxy;
-   BOOL bPassive = m_pManager->m_bPassive;
+   CString sHost = m_pManager->GetParam(_T("Host"));
+   CString sUsername = m_pManager->GetParam(_T("Username"));
+   CString sPassword = m_pManager->GetParam(_T("Password"));
+   long lPort = _ttol(m_pManager->GetParam(_T("Port")));
+   CString sPath = m_pManager->GetParam(_T("Path"));
+   CString sProxy = m_pManager->GetParam(_T("Proxy"));
+   BOOL bPassive = (m_pManager->GetParam(_T("Passive")) == _T("true"));
+   long lConnectTimeout = _ttol(m_pManager->GetParam(_T("ConnectTimeout"))) - 2;
 
    if( lPort == 0 ) lPort = INTERNET_DEFAULT_FTP_PORT;
+   if( lConnectTimeout < 5 ) lConnectTimeout = 5;
+
+   // Prompt for password?
    if( sPassword.IsEmpty() ) sPassword = SecGetPassword();
 
    m_pManager->m_dwErrorCode = 0;
@@ -64,7 +70,7 @@ DWORD CFtpThread::Run()
 
    m_pManager->m_hInternet = ::InternetOpen(_T("Mozilla/4.0 (compatible; MSIE 5.5; BVRDE)"),
       sProxy.IsEmpty() ? INTERNET_OPEN_TYPE_DIRECT : INTERNET_OPEN_TYPE_PROXY,
-      sProxy.IsEmpty() ? NULL : (LPCTSTR) sProxy,
+      sProxy.IsEmpty() ? NULL : static_cast<LPCTSTR>(sProxy),
       NULL,
       0);
 
@@ -74,14 +80,18 @@ DWORD CFtpThread::Run()
 
    if( m_pManager->m_hInternet == NULL )  return 0;
 
-   // HACK: See Q176420 why timeouts are not working!
-   CFtpCancelThread cancel(m_pManager->m_hInternet, 5000UL);
+   DWORD dwTimeout = (DWORD) lConnectTimeout * 1000UL;
+   ::InternetSetOption(m_pManager->m_hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &dwTimeout, sizeof(dwTimeout));
+
+   // HACK: See Q176420 why INTERNET_OPTION_CONNECT_TIMEOUT is not working!
+   CFtpCancelThread cancel(m_pManager->m_hInternet, dwTimeout);
+   cancel.Start();
 
    m_pManager->m_hFTP = InternetConnect(m_pManager->m_hInternet,
       sHost,
       (INTERNET_PORT) lPort,
-      sUsername.IsEmpty() ? NULL : (LPCTSTR) sUsername,
-      sPassword.IsEmpty() ? NULL : (LPCTSTR) sPassword,      
+      sUsername.IsEmpty() ? NULL : static_cast<LPCTSTR>(sUsername),
+      sPassword.IsEmpty() ? NULL : static_cast<LPCTSTR>(sPassword),      
       bPassive ? INTERNET_FLAG_PASSIVE : 0);
 
    cancel.SetEvent();
@@ -227,11 +237,11 @@ bool CFtpProtocol::Stop()
 {
    m_bCancel = true;
    m_thread.Stop();
-   if( m_hFTP ) {
+   if( m_hFTP != NULL ) {
       ::InternetCloseHandle(m_hFTP);
       m_hFTP = NULL;
    }
-   if( m_hInternet ) {
+   if( m_hInternet != NULL ) {
       ::InternetCloseHandle(m_hInternet);
       m_hInternet = NULL;
    } 

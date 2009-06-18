@@ -28,13 +28,14 @@
 class CCommandLine
 {
 public:
-
    struct TCmdString
    {
       TCmdString(LPCTSTR p) { ::lstrcpy(szStr, p); };
       operator LPCTSTR() const { return szStr; };
       TCHAR szStr[MAX_CMDPARAM_LEN];
    };
+
+   CSimpleArray<TCmdString> m_arr;
 
    BOOL Parse(LPCTSTR pstrCmdLine = NULL)
    {
@@ -67,28 +68,30 @@ public:
       }
       return TRUE;
    }
+
    LPCTSTR GetItem(int i) const
    {
       if( i < 0 || i >= m_arr.GetSize() ) return NULL;
       return m_arr[i];
    }
+   
    int GetSize() const 
    { 
       return m_arr.GetSize(); 
    }
+   
    BOOL IsFlag(int i) const
    {
       LPCTSTR p = GetItem(i);
       ATLASSERT(p);
       return (*p == _T('/')) || (*p == _T('-')); 
    }
+   
    LPCTSTR GetFlag(int i) const
    {
       ATLASSERT(IsFlag(i));
       return GetItem(i) + 1;
    }
-
-   CSimpleArray<TCmdString> m_arr;
 };
 
 

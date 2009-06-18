@@ -168,6 +168,7 @@ class CDbAutoTrans
 {
 public:
    CDbDatabase* m_pDb;
+
 public:
    CDbAutoTrans(CDbDatabase* pDb) : m_pDb(pDb)
    {
@@ -175,12 +176,14 @@ public:
       _ASSERTE(m_pDb->IsOpen());
       m_pDb->BeginTrans();
    }
+
    ~CDbAutoTrans()
    {
       // Automatically call Rollback(). You must
       // have called Commit() at some point to commit the transaction.
       Rollback();
    }
+
    BOOL Commit()
    {
       if( m_pDb == NULL ) return FALSE;
@@ -189,6 +192,7 @@ public:
       m_pDb = NULL;
       return bRes;
    }
+
    BOOL Rollback()
    {
       if( m_pDb == NULL ) return FALSE;

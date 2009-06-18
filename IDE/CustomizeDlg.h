@@ -16,8 +16,7 @@
 #include "MacroBindDlg.h"
 
 
-class CCustomizeDlg :
-   public CPropertySheetImpl<CCustomizeDlg>
+class CCustomizeDlg : public CPropertySheetImpl<CCustomizeDlg>
 {
 public:
    CMainFrame* m_pMainFrame;

@@ -40,6 +40,8 @@ public:
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      CenterWindow();
+
       m_ctrlUsername = GetDlgItem(IDC_USERNAME);
       m_ctrlPassword = GetDlgItem(IDC_PASSWORD);
       m_ctrlServer = GetDlgItem(IDC_SERVER);
@@ -85,6 +87,7 @@ public:
       _UpdateButtons();
       return 0;
    }
+
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       m_sOptions.Empty();
@@ -96,11 +99,13 @@ public:
       EndDialog(wID);
       return 0;
    }
+
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+
    LRESULT OnChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       if( wID != IDC_CONNECT ) _UpdateButtons();
@@ -113,6 +118,7 @@ public:
    {
       CWindow(GetDlgItem(IDC_CONNECT)).SetWindowText(_GetFullCvsRoot());
    }
+
    CString _GetFullCvsRoot() const
    {
       CString sUsername = CWindowText(m_ctrlUsername);

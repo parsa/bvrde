@@ -34,9 +34,9 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
       //
       AtlAxWinInit();
    }
-   else if( dwReason == DLL_PROCESS_DETACH ) 
+   if( dwReason == DLL_PROCESS_DETACH ) 
    {
-     _Module.Term();
+      _Module.Term();
    }
    return TRUE;
 }
@@ -52,10 +52,12 @@ public:
    {
       return TRUE;
    }
+
    BOOL OnInitWizard(IWizardManager* /*pManager*/, IProject* /*pProject*/, LPCTSTR /*pstrName*/)
    {
       return TRUE;
    }
+
    BOOL OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    {
       pManager->AddWizardGroup(CString(MAKEINTRESOURCE(IDS_TREE_ROOT)), CString(MAKEINTRESOURCE(IDS_TREE_SOURCECONTROL)));

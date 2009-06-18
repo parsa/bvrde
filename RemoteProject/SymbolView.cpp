@@ -18,10 +18,12 @@ public:
    CTagElement(const CTagDetails& Tag) : Info(Tag) 
    {
    }
+
    BOOL Load(ISerializable* /*pArc*/)
    {
       return FALSE;
    }
+   
    BOOL Save(ISerializable* pArc)
    {
       CString sKind(MAKEINTRESOURCE(IDS_UNKNOWN));
@@ -42,18 +44,22 @@ public:
       pArc->Write(_T("match"), Info.sRegExMatch.IsEmpty() ? Info.sDeclaration : Info.sRegExMatch);
       return TRUE;
    }
+   
    BOOL GetName(LPTSTR pstrName, UINT cchMax) const
    {
       return _tcsncpy(pstrName, Info.sName, cchMax) > 0;
    }
+   
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const
    {
       return _tcsncpy(pstrType, _T("Tag"), cchMax) > 0;
    }
+   
    IElement* GetParent() const
    {
-      return NULL;
+      return NULL;   
    }
+   
    IDispatch* GetDispatch()
    {
       return NULL;
@@ -75,7 +81,7 @@ DWORD CSymbolsLoaderThread::Run()
 {
    // Gather result; allow cancelling at any time
    CSimpleValArray<TAGINFO*>* pList = new CSimpleValArray<TAGINFO*>;
-   m_pOwner->m_pProject->m_TagManager.GetTypeList(m_sPattern, m_bStopped, *pList);
+   m_pOwner->m_pProject->m_TagManager.MatchSymbols(m_sPattern, m_bStopped, *pList);
    if( ShouldStop() ) {
       delete pList;
       return 0;
@@ -370,7 +376,7 @@ LRESULT CSymbolView::OnMouseHover(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPa
    UINT uFlags = 0;
    int iItem = m_ctrlList.HitTest(ptClient, &uFlags);
    if( (uFlags & LVHT_ONITEM) == 0 ) return m_ctrlList.SendMessage(WM_MOUSELEAVE);
-   TAGINFO* pTag = (TAGINFO*) m_ctrlList.GetItemData(iItem);
+   const TAGINFO* pTag = (TAGINFO*) m_ctrlList.GetItemData(iItem);
    if( pTag == NULL ) return m_ctrlList.SendMessage(WM_MOUSELEAVE);
    if( m_pCurrentHover == pTag ) return 0;
    if( !m_ctrlHoverTip.IsWindow() ) m_ctrlHoverTip.Create(m_ctrlList, ::GetSysColor(COLOR_INFOBK));

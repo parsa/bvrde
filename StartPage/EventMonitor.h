@@ -19,6 +19,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    BOOL PreTranslateMessage(MSG* pMsg)
    {
       if( ::GetFocus() != m_wndStartPage ) return FALSE;

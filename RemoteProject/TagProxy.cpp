@@ -97,12 +97,24 @@ bool CTagManager::GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTime
 /**
  * Return all tags matching a pattern.
  */
-bool CTagManager::GetTypeList(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult)
+bool CTagManager::MatchSymbols(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult)
 {
    if( pstrPattern == NULL ) return false;
    if( _tcslen(pstrPattern) == 0 ) return false;
-   if( m_LexInfo.GetTypeList(pstrPattern, bCancel, aResult) ) return true;
-   if( m_TagInfo.GetTypeList(pstrPattern, bCancel, aResult) ) return true;
+   m_LexInfo.MatchSymbols(pstrPattern, bCancel, aResult);
+   m_TagInfo.MatchSymbols(pstrPattern, bCancel, aResult);
+   return false;
+}
+
+/**
+ * Get members of a specific class or structure.
+ */
+bool CTagManager::GetNamespaceList(LPCTSTR pstrType, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult)
+{
+   if( pstrType == NULL ) return false;
+   if( _tcslen(pstrType) == 0 ) return false;
+   if( m_LexInfo.GetNamespaceList(pstrType, dwTimeout, aResult) ) return true;
+   if( m_TagInfo.GetNamespaceList(pstrType, dwTimeout, aResult) ) return true;
    return false;
 }
 
@@ -148,8 +160,10 @@ bool CTagManager::FindImplementationTag(const CTagDetails& Current, CTagDetails&
    if( Current.sName.IsEmpty() ) return false;
    CString sLookupName;
    sLookupName.Format(_T("%s%s%s"), Current.sBase, Current.sBase.IsEmpty() ? _T("") : _T("::"), Current.sName);
+   DWORD dwTimeout = ::GetTickCount() + 500;
    CSimpleValArray<TAGINFO*> aList;
-   FindItem(sLookupName, NULL, 0, ::GetTickCount() + 500, aList);
+   FindItem(sLookupName, NULL, 0, dwTimeout, aList);
+   if( aList.GetSize() == 0 ) FindItem(Current.sName, Current.sBase, 0, dwTimeout, aList);
    for( int i = 0; i < aList.GetSize(); i++ ) {
       if( aList[i]->Type == TAGTYPE_IMPLEMENTATION ) {
          GetItemInfo(aList[i], Info);

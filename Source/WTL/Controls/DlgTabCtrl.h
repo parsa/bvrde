@@ -95,12 +95,14 @@ public:
       // Return new position
       return m_aViews.GetSize() - 1;
    }
+
    BOOL RemoveItem(HWND hWnd)
    {
       ATLASSERT(::IsWindow(hWnd));
       int iPos = m_aViews.Find(hWnd);
       return RemoveItem(iPos);
    }
+   
    BOOL RemoveItem(int iPos)
    {
       if( iPos < 0 || iPos >= m_aViews.GetSize() ) return NULL;
@@ -110,15 +112,18 @@ public:
       // Remove view
       return m_aViews.RemoveAt(iPos);
    }
+   
    HWND GetItem(int iPos) const
    {
       if( iPos < 0 || iPos >= m_aViews.GetSize() ) return NULL;
       return m_aViews[iPos];
    }
+   
    int GetItemCount() const
    {
       return m_aViews.GetSize();
    }
+   
    BOOL SetCurSel(int iPos)
    {
       if( iPos < 0 || iPos >= m_aViews.GetSize() ) return FALSE;
@@ -175,10 +180,12 @@ public:
       _Init();
       return 0;
    }
+   
    LRESULT OnEraseBkgnd(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       return TRUE; // View fills entire client area
    }
+   
    LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       // Set focus to first child of the view instead
@@ -188,10 +195,11 @@ public:
       if( hWndChild ) ::SetFocus(hWndChild);
       return 0;
    }
+   
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( m_hWndClient == NULL ) return 0;
-      RECT rc;
+      RECT rc = { 0 };
       GetClientRect(&rc);
       ::SetWindowPos(m_hWndClient, NULL, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, SWP_NOACTIVATE | SWP_NOZORDER);
       return 0;
@@ -257,6 +265,7 @@ public:
       OnSize(WM_SIZE, 0, 0, bDummy);
       return bRes;
    }
+
    BOOL DeleteItem(int nItem)
    {
       // Notify owner
@@ -266,11 +275,13 @@ public:
       m_ctrlViews.RemoveItem(nItem);
       return TBase::DeleteItem(nItem);
    }
+   
    BOOL DeleteAllItems()
    {
       while( m_ctrlViews.GetItemCount() > 0 ) m_ctrlViews.RemoveItem(0);
       return TBase::DeleteAllItems();
    }
+   
    int SetCurSel(int iTab)
    {
       // Trigger first tab selection
@@ -283,6 +294,7 @@ public:
       }
       return iLastTab;
    }
+   
    HWND GetContainer() const
    {
       return m_hWndClient;
@@ -304,10 +316,11 @@ public:
       _Init();
       return lRes;
    }
+   
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( m_hWndClient == NULL ) return 0;
-      RECT rc;
+      RECT rc = { 0 };
       GetClientRect(&rc);
       AdjustRect(FALSE, &rc);
       ::SetWindowPos(m_hWndClient, NULL, 
@@ -315,6 +328,7 @@ public:
          SWP_NOACTIVATE | SWP_NOZORDER);
       return 0;
    }
+
    LRESULT OnEraseBkgnd(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       // Need to repaint only the outer regions of the tab control.
@@ -322,7 +336,7 @@ public:
       // to paint that area. Also an embedded ListView control sometimes fail
       // to repaint properly if we don't do this...
       CDCHandle dc = (HDC) wParam;
-      RECT rc;
+      RECT rc = { 0 };
       GetClientRect(&rc);
       CRgn rgn1, rgn2, rgn;
       rgn1.CreateRectRgnIndirect(&rc);

@@ -63,6 +63,7 @@ public:
    {
       return Add(t);
    }
+
    T Pop()
    {
       int nLast = GetSize() - 1;
@@ -71,6 +72,7 @@ public:
       if( !RemoveAt(nLast) ) return NULL;
       return t;
    }
+
    T GetCurrent()
    {
       int nLast = GetSize() - 1;
@@ -100,18 +102,21 @@ public:
       pT->MDICascade();
       return 0;
    }
+   
    LRESULT OnWindowTileHorz(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       T* pT = static_cast<T*>(this);
       pT->MDITile(MDITILE_HORIZONTAL);
       return 0;
    }
+   
    LRESULT OnWindowTileVert(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       T* pT = static_cast<T*>(this);
       pT->MDITile(MDITILE_VERTICAL);
       return 0;
    }   
+   
    LRESULT OnWindowArrangeIcons(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       T* pT = static_cast<T*>(this);
@@ -206,40 +211,51 @@ public:
    {
       return CDRF_DODEFAULT;
    }
+   
    DWORD OnPostPaint(int /*idCtrl*/, TNMCUSTOMDRAW /*lpNM*/)
    {
       return CDRF_DODEFAULT;
    }
+   
    DWORD OnPreErase(int /*idCtrl*/, TNMCUSTOMDRAW /*lpNM*/)
    {
       return CDRF_DODEFAULT;
    }
+   
    DWORD OnPostErase(int /*idCtrl*/, TNMCUSTOMDRAW /*lpNM*/)
    {
       return CDRF_DODEFAULT;
    }
+   
    DWORD OnItemPrePaint(int /*idCtrl*/, TNMCUSTOMDRAW /*lpNM*/)
    {
       return CDRF_DODEFAULT;
    }
+   
    DWORD OnItemPostPaint(int /*idCtrl*/, TNMCUSTOMDRAW /*lpNM*/)
    {
       return CDRF_DODEFAULT;
    }
+
 #if (_WIN32_IE >= 0x0400)
+
    DWORD OnSubItemPrePaint(int /*idCtrl*/, TNMCUSTOMDRAW /*lpNM*/)
    {
       return CDRF_DODEFAULT;
    }
+   
    DWORD OnSubItemPostPaint(int /*idCtrl*/, TNMCUSTOMDRAW /*lpNM*/)
    {
       return CDRF_DODEFAULT;
    }
+
 #endif // _WIN32_IE
+
    DWORD OnItemPreErase(int /*idCtrl*/, TNMCUSTOMDRAW /*lpNM*/)
    {
       return CDRF_DODEFAULT;
    }
+   
    DWORD OnItemPostErase(int /*idCtrl*/, TNMCUSTOMDRAW /*lpNM*/)
    {
       return CDRF_DODEFAULT;
@@ -448,16 +464,19 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnTbEndAdjust(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
    {
       bHandled = FALSE;
       return TRUE;
    }
+   
    LRESULT OnTbToolBarChange(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
    {
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnTbReset(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
    {
       LPTBNOTIFY lpTbNotify = (LPTBNOTIFY) pnmh;
@@ -467,16 +486,19 @@ public:
       tb.AddButtons(m_aButtons.GetSize(), m_aButtons.GetData());
       return TRUE;
    }
+   
    LRESULT OnTbQueryInsert(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       // Allow all buttons!
       return TRUE;
    }
+   
    LRESULT OnTbQueryDelete(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       // All buttons can be deleted!
       return TRUE;
    }
+   
    LRESULT OnTbGetButtonInfo(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
    {
       LPTBNOTIFY lpTbNotify = (LPTBNOTIFY) pnmh;

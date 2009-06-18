@@ -157,21 +157,25 @@ public:
       SendMessage(WM_SETTINGCHANGE);
       return 0;
    }
+
    LRESULT OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       m_sizeBorder.cx = ::GetSystemMetrics(SM_CYSIZEFRAME);
       m_sizeBorder.cy = ::GetSystemMetrics(SM_CYSIZEFRAME);
       return 0;
    }
+   
    LRESULT OnDisplayChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( IsWindowVisible() ) ::SetFocus(m_hwndOwner);  // Just close it...
       return 0;
    }
+   
    LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       return 1; // handled, no background painting needed
    }
+   
    LRESULT OnNcPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       LRESULT lRes = DefWindowProc();
@@ -179,6 +183,7 @@ public:
       _DrawFrame(dc);
       return lRes;
    }
+   
    LRESULT OnNcActivate(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
       // When it becomes inactive, close the view
@@ -194,6 +199,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnHitTest(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       LRESULT lRes = DefWindowProc();
@@ -216,6 +222,7 @@ public:
       }
       return lRes;
    }
+   
    LRESULT OnSysCommand(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
       switch( wParam & 0xFFF0 ) {
@@ -226,6 +233,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( !::IsWindow(m_pane.hWnd) ) return 0;
@@ -234,12 +242,14 @@ public:
       ::SetWindowPos(m_pane.hWnd, HWND_TOP, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER|SWP_SHOWWINDOW);
       return 0;
    }
+   
    LRESULT OnPrint(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       LRESULT lRes = DefWindowProc();
       if( (lParam & PRF_NONCLIENT) != 0 ) _DrawFrame( (HDC) wParam );
       return lRes;
    }
+   
    LRESULT OnSetPane(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       ATLASSERT(::IsWindow((HWND)wParam));
@@ -341,6 +351,7 @@ public:
       pT->UpdateLayout();
       Invalidate();
    }
+   
    void RemovePane(AUTOPANE *pPane)
    {
       ATLASSERT(pPane);
@@ -354,11 +365,13 @@ public:
       pT->UpdateLayout();
       Invalidate();
    }
+   
    const AUTOPANE* FindPane(HWND hWnd) const
    {
       for( int i = 0; i < m_panes.GetSize(); i++ ) if( m_panes[i].hWnd == hWnd ) return &m_panes[i];
       return NULL;
    }
+   
    BOOL ActivatePane(HWND hWnd)
    {
       const AUTOPANE* pPane = FindPane(hWnd);
@@ -367,6 +380,7 @@ public:
       PostMessage(WM_AUTOHIDE_VIEWOPEN, 0, MAKELPARAM(pPane->rc.left, pPane->rc.top));
       return TRUE;
    }
+   
    void SetImageList(HIMAGELIST hImageList)
    {
       m_Images = hImageList;
@@ -436,6 +450,7 @@ public:
       SendMessage(WM_SETTINGCHANGE);
       return 0;
    }
+   
    LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       CPaintDC dc(m_hWnd);
@@ -467,6 +482,7 @@ public:
 
       return 0;
    }
+   
    LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       CDCHandle dc = (HDC) wParam;
@@ -477,6 +493,7 @@ public:
       dc.SelectBrush(hOldBrush);
       return 1;
    }
+   
    LRESULT OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       CWindowDC dc(NULL);
@@ -517,6 +534,7 @@ public:
       Invalidate();
       return 0;
    }
+   
    LRESULT OnMouseMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       if( m_bMouseTracked ) return 0;
@@ -534,18 +552,21 @@ public:
       m_iPaneTracked = iHit;
       return 0;
    }
+   
    LRESULT OnMouseHover(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       m_bMouseTracked = false;
       SendMessage(WM_AUTOHIDE_VIEWOPEN, wParam, lParam);
       return 0;
    }
+   
    LRESULT OnMouseLeave(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       m_iPaneTracked = -1;
       m_bMouseTracked = false;
       return 0;
    }
+   
    LRESULT OnButtonClick(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       // HACK: Because the floating pane closes itself on WM_NCACTIVATE which
@@ -556,6 +577,7 @@ public:
       SendMessage(WM_AUTOHIDE_VIEWOPEN, wParam, lParam);
       return 0;
    }
+   
    LRESULT OnOpenView(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
@@ -583,6 +605,7 @@ public:
       m_iCurPaneShown = iHit;
       return 0;
    }
+   
    LRESULT OnCloseView(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       // Close view and remember width/height of panel
@@ -703,6 +726,7 @@ public:
       ATLASSERT(::GetWindowLong(hWnd, GWL_STYLE) & WS_CHILD);
       m_hWndClient = hWnd;
    }
+   
    BOOL AddView(HWND hWnd, int iDirection, int iImage)
    {
       ATLASSERT(::IsWindow(hWnd));
@@ -719,6 +743,7 @@ public:
       pT->UpdateLayout();
       return TRUE;
    }
+   
    BOOL RemoveView(HWND hWnd)
    {
       ATLASSERT(::IsWindow(hWnd));
@@ -730,6 +755,7 @@ public:
       pT->UpdateLayout();
       return TRUE;
    }
+   
    BOOL ActivateView(HWND hWnd)
    {
       ATLASSERT(::IsWindow(hWnd));
@@ -737,16 +763,19 @@ public:
       if( !bRes ) bRes |= m_wndPane[AUTOHIDE_BOTTOM].ActivatePane(hWnd);
       return bRes;
    }
+   
    void SetPaneSize(int iDirection, int cx)
    {
       ATLASSERT(iDirection==AUTOHIDE_LEFT || iDirection==AUTOHIDE_BOTTOM);
       m_wndPane[iDirection].m_cxy = cx;
    }
+   
    int GetPaneSize(int iDirection) const
    {
       ATLASSERT(iDirection==AUTOHIDE_LEFT || iDirection==AUTOHIDE_BOTTOM);
       return m_wndPane[iDirection].m_cxy;
    }
+   
    void SetImageList(HIMAGELIST hImageList)
    {
       m_wndPane[AUTOHIDE_LEFT].SetImageList(hImageList);

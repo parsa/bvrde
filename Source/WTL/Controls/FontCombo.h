@@ -124,6 +124,7 @@ public:
       if( bRet ) _Init();
       return bRet;
    }
+
    DWORD SetExtendedFontStyle(DWORD dwStyle)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -150,12 +151,14 @@ public:
       }
       return GetCount() - 1;
    }
+   
    BOOL GetLogFont(int iIndex, LOGFONT& lf) const
    {
       if( iIndex < 0 || iIndex >= GetCount() ) return FALSE;
       lf = m_aFonts[GetItemData(iIndex)];
       return TRUE;
    }
+   
    BOOL GetTextMetrics(int iIndex, TEXTMETRIC& tm) const
    {
       if( iIndex < 0 || iIndex >= GetCount() ) return FALSE;
@@ -227,6 +230,7 @@ public:
       _Init();
       return lRes;
    }
+   
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       ::DestroyIcon(m_hTtIcon);
@@ -254,6 +258,7 @@ public:
       }
       lpMIS->itemHeight = tm.tmHeight + 1;
    }
+   
    void DrawItem(LPDRAWITEMSTRUCT lpDIS)
    {
       int iIndex = lpDIS->itemID;

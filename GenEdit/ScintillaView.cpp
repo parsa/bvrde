@@ -18,7 +18,6 @@ CScintillaView::CScintillaView(IDevEnv* pDevEnv) :
    m_wndParent(this, 1),   
    m_pDevEnv(pDevEnv),
    m_bInitialized(false),
-   m_bAutoCompleteNext(false),
    m_bAutoTextDisplayed(false),
    m_bSuggestionDisplayed(false)
 {
@@ -244,8 +243,7 @@ LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
 {
    SCNotification* pSCN = (SCNotification*) pnmh;
 
-   if( _iseditchar(pSCN->ch) ) _AutoComplete(m_cPrevChar);
-   m_bAutoCompleteNext = false;
+   if( _iseditchar(pSCN->ch) ) _AutoComplete(pSCN->ch);
 
    switch( pSCN->ch ) {
    case '\n':
@@ -268,11 +266,6 @@ LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
 
    _AutoText(pSCN->ch);
    _AutoSuggest(pSCN->ch);
-
-   m_cPrevChar = (CHAR) pSCN->ch;
-   if( m_cPrevChar == '$' && m_sLanguage == _T("php") ) m_bAutoCompleteNext = true;
-   if( m_cPrevChar == '<' && m_sLanguage == _T("xml") ) m_bAutoCompleteNext = true;
-   if( m_cPrevChar == '<' && m_sLanguage == _T("html") ) m_bAutoCompleteNext = true;
 
    bHandled = FALSE;
    return 0;
@@ -378,7 +371,7 @@ void CScintillaView::_AutoText(int ch)
    // if needed.
    if( m_bAutoTextDisplayed ) 
    {
-      if( ch == '\t' || ch == '\0xFF' ) {
+      if( ch == '\t' || ch == '\b' ) {
          long lPos = GetCurrentPos();
          int iLineNum = LineFromPosition(lPos);
          int iIndent = GetLineIndentation(iLineNum);
@@ -416,7 +409,7 @@ void CScintillaView::_AutoText(int ch)
    if( _iseditchar(ch) || ch == '(' ) s_iSuggestWord = max(1, s_iSuggestWord + 1); 
    else if( isspace(ch) ) s_iSuggestWord = 0;
    else s_iSuggestWord = -999;
-   if( s_iSuggestWord < AUTOTEXT_AFTER_TYPED_CHARS ) return;
+   if( s_iSuggestWord < AUTOTEXT_AFTER_TYPED_CHARS && ch != '\b' ) return;
 
    // Can we display new tooltip at all?
    if( AutoCActive() ) return;
@@ -425,6 +418,9 @@ void CScintillaView::_AutoText(int ch)
    long lPos = GetCurrentPos();
    CString sName = _GetNearText(lPos - 1);
    if( sName.IsEmpty() ) return;
+
+   // Don't popup within comments and stuff
+   if( !_IsValidInsertPos(lPos) ) return;
 
    // Look for a match in auto-text list
    long i = 1;
@@ -470,6 +466,8 @@ void CScintillaView::_AutoSuggest(int ch)
 
    if( !m_bAutoSuggest ) return;
 
+   const WORD AUTOSUGGEST_AFTER_TYPED_CHARS = 4;
+
    static int s_iSuggestWord = 0;
    static long s_lSuggestPos = 0;
    static CString s_sSuggestWord;
@@ -491,9 +489,9 @@ void CScintillaView::_AutoSuggest(int ch)
    if( CallTipActive() ) return;
    if( AutoCActive() ) return;
 
-   // Display tip only after 3 valid characters has been entered.
+   // Display tip only after 4 valid characters has been entered.
    if( _iseditchar(ch) ) s_iSuggestWord++; else s_iSuggestWord = 0;
-   if( s_iSuggestWord <= 3 && ch != '\b' ) return;
+   if( s_iSuggestWord < AUTOSUGGEST_AFTER_TYPED_CHARS && ch != '\b' ) return;
 
    // Get the typed identifier
    long lPos = GetCurrentPos();
@@ -516,8 +514,7 @@ void CScintillaView::_AutoSuggest(int ch)
    // Skip first word (may be incomplete)
    while( szText[i] != '\0' && !isspace(szText[i]) ) i++;
    // Find best keyword (assumed to be the latest match)
-   CString sKeyword;
-   CString sSuggest;
+   CString sKeyword, sSuggest;
    while( szText[i] != '\0' ) {
       // Gather next word
       sSuggest = _T("");
@@ -533,10 +530,16 @@ void CScintillaView::_AutoSuggest(int ch)
    CallTipSetFore(RGB(255,255,255));
    CallTipSetBack(RGB(0,0,0));
    CallTipShow(lPos, T2CA(sKeyword));
+
    // Remember what triggered suggestion
    s_sSuggestWord = sKeyword;
    m_bSuggestionDisplayed = true;
    s_lSuggestPos = lPos - sName.GetLength();
+}
+
+static int QCompareCString(const void* a, const void* b)
+{
+   return ((CString*)a)->Compare(*(CString*)b);
 }
 
 /**
@@ -553,8 +556,10 @@ void CScintillaView::_AutoComplete(int ch)
 
    CString sList;
    long lPos = GetCurrentPos();
+   int chPrev = GetCharAt(lPos - 2);
+
    // Get auto-completion words from HTML text
-   if( ch == '<' && m_sLanguage == _T("html") )
+   if( chPrev == '<' && m_sLanguage == _T("html") )
    {
       // Get the list of known keywords from the general editor configuration
       CString sProperty;
@@ -583,10 +588,11 @@ void CScintillaView::_AutoComplete(int ch)
       if( m_bAutoCase ) sList.MakeLower();
       AutoCSetFillUps(">");
    }
+
    // Get auto-completion words from PHP or XML text
-   if( (ch == '$' && m_sLanguage == _T("php")) 
-       || (ch == '$' && m_sLanguage == _T("perl")) 
-       || (ch == '<' && m_sLanguage == _T("xml")) )
+   if( (chPrev == '$' && m_sLanguage == _T("php")) 
+       || (chPrev == '$' && m_sLanguage == _T("perl")) 
+       || (chPrev == '<' && m_sLanguage == _T("xml")) )
    {
       // Grab the last 512 characters or so
       CHAR szText[512] = { 0 };
@@ -635,20 +641,11 @@ void CScintillaView::_AutoComplete(int ch)
       sList.GetBuffer(aList.GetSize() * 20);
       sList.ReleaseBuffer(0);
       // Sort the list
-      for( int a = 0; a < aList.GetSize(); a++ ) {
-         for( int b = a + 1; b < aList.GetSize(); b++ ) {
-            // Right; Scintilla uses strcmp() to compile its items
-            // for non case-sensitive compares
-            if( stricmp(T2CA(aList[a]), T2CA(aList[b])) > 0 ) {
-               CString sTemp = aList[a];
-               aList[a] = aList[b];
-               aList[b] = sTemp;
-            }
-         }
-      }
+      ::qsort(aList.GetData(), aList.GetSize(), sizeof(CString), QCompareCString);
       // Build Scrintilla string
       for( int i = 0; i < aList.GetSize(); i++ ) sList += aList[i] + '|';
    }
+   
    // Display popup list
    sList.TrimRight(_T("|"));
    if( sList.IsEmpty() ) return;
@@ -677,7 +674,8 @@ void CScintillaView::_MaintainIndent(int ch)
    while( iLastLine >= 0 && GetLineLength(iLastLine) == 0 ) iLastLine--;
    if( iLastLine < 0 ) return;
    iIndentAmount = GetLineIndentation(iLastLine);
-   if( m_bSmartIndent ) {
+   if( m_bSmartIndent ) 
+   {
       int iIndentWidth = GetIndent();
       if( iIndentWidth == 0 ) iIndentWidth = GetTabWidth();
       if( m_sLanguage == _T("cpp") 
@@ -892,6 +890,7 @@ void CScintillaView::_MaintainTags(int ch)
       SetSel(lPosition, lPosition);
       EndUndoAction();
    }
+
    if( ch == '{' 
        && (m_sLanguage == _T("cpp") || m_sLanguage == _T("java") || m_sLanguage == _T("php")) )
    {
@@ -918,6 +917,7 @@ void CScintillaView::_MaintainTags(int ch)
          EndUndoAction();
       }
    }
+
    if( ch == '[' 
        && (m_sLanguage == _T("cpp") || m_sLanguage == _T("php") || m_sLanguage == _T("java")) ) 
    {
@@ -927,6 +927,7 @@ void CScintillaView::_MaintainTags(int ch)
       ReplaceSel("]");
       SetSel(lPosition, lPosition);
    }
+
    if( ch == '?' && chPrev == '<' && m_sLanguage == _T("php") )
    {
       //
@@ -935,6 +936,7 @@ void CScintillaView::_MaintainTags(int ch)
       ReplaceSel("?>");
       SetSel(lPosition, lPosition);
    }
+
    if( ch == '%' && chPrev == '<' && m_sLanguage == _T("asp") )
    {
       //
@@ -946,7 +948,7 @@ void CScintillaView::_MaintainTags(int ch)
 }
 
 /**
- *	Find the last open XML/HTML tag.
+ * Find the last open XML/HTML tag.
  */
 CString CScintillaView::_FindOpenXmlTag(LPCSTR pstrText, int nSize) const
 {

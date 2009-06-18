@@ -41,12 +41,13 @@ public:
       m_ctrlLarge = GetDlgItem(IDC_LARGE_ICONS);
       return true;
    }
+
    int OnApply()
    {
       CReBarCtrl Rebar = m_pMainFrame->m_Rebar;
       HTREEITEM hItem = m_ctrlTree.GetRootItem();
       int iIndex = 0;
-      while( hItem ) {
+      while( hItem != NULL ) {
          if( iIndex >= m_pMainFrame->m_aToolBars.GetSize() ) break;
          CMainFrame::TOOLBAR& tbi = m_pMainFrame->m_aToolBars[iIndex];
          for( UINT i = 0; i < Rebar.GetBandCount(); i++ ) {
@@ -76,11 +77,13 @@ public:
       m_pMainFrame->_SaveToolBarState();
       return PSNRET_NOERROR;
    }
+   
    LRESULT OnChanged(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       SetModified(TRUE);
       return 0;
    }
+   
    LRESULT OnItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       SetModified(TRUE);

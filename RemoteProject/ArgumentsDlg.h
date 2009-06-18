@@ -35,17 +35,20 @@ public:
       CWindow(GetDlgItem(IDOK)).EnableWindow(FALSE);
       return FALSE;
    }
+
    LRESULT OnOk(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {      
       m_pProject->m_DebugManager.SetParam(_T("AppArgs"), CWindowText(GetDlgItem(IDC_ARGUMENTS)));
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CWindow(GetDlgItem(IDOK)).EnableWindow(TRUE);

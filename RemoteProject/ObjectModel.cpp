@@ -395,7 +395,9 @@ BSTR CTextFileOM::GetSelection()
 {
    if( !m_pOwner->IsOpen() ) m_pOwner->OpenView(0L);
    CharacterRange cr = m_pOwner->m_view.m_ctrlEdit.GetSelection();
-   LPSTR pstrBuffer = (LPSTR) malloc(cr.cpMax - cr.cpMin + 1);
+   int cch = cr.cpMax - cr.cpMin;
+   if( cch == 0 ) return ::SysAllocString(L"");
+   LPSTR pstrBuffer = (LPSTR) malloc(cch + 1);
    if( pstrBuffer == NULL ) return NULL;
    m_pOwner->m_view.m_ctrlEdit.GetSelText(pstrBuffer);
    CComBSTR bstr = pstrBuffer;

@@ -21,7 +21,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
       _Module.Init(NULL, hInstance);
       ::DisableThreadLibraryCalls(hInstance);
    }
-   else if( dwReason == DLL_PROCESS_DETACH ) 
+   if( dwReason == DLL_PROCESS_DETACH ) 
    {
      _Module.Term();
    }
@@ -39,10 +39,12 @@ public:
    {
       return TRUE;
    }
+
    BOOL OnInitWizard(IWizardManager* /*pManager*/, IProject* /*pProject*/, LPCTSTR /*pstrName*/)
    {
       return TRUE;
    }
+
    BOOL OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    {
       static CHexEditorOptionsPage s_pageHexEditor;

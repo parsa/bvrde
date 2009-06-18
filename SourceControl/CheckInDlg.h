@@ -43,6 +43,8 @@ public:
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      CenterWindow();
+
       m_ctrlFiles = GetDlgItem(IDC_FILES);
       m_ctrlComment = GetDlgItem(IDC_COMMENT);
       m_ctrlKeepCheckedOut = GetDlgItem(IDC_KEEPOUT);
@@ -61,6 +63,7 @@ public:
       CWindow(GetDlgItem(IDOK)).EnableWindow(m_ctrlComment.GetWindowTextLength() > 0);
       return 0;
    }
+
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CString sComment = CWindowText(m_ctrlComment);
@@ -79,11 +82,13 @@ public:
       EndDialog(wID);
       return 0;
    }
+
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+
    LRESULT OnChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CWindow(GetDlgItem(IDOK)).EnableWindow(TRUE);

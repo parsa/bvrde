@@ -20,6 +20,7 @@ public:
    {
       m_bstrResult = L"";
    }
+   
    VOID __stdcall Write(BSTR str)
    {
       m_bstrResult += str;
@@ -51,6 +52,7 @@ public:
    {
       return (LONG) m_map.GetSize();
    }
+
    BSTR __stdcall get_Item(BSTR Index)
    {
       CComBSTR bstrKey = Index;
@@ -59,6 +61,7 @@ public:
       CComBSTR bstrValue = m_map.GetValueAt(iIndex);
       return bstrValue.Detach();
    }
+   
    VOID __stdcall put_Item(BSTR Index, BSTR Value)
    {
       CComBSTR bstrKey = Index;
@@ -207,6 +210,7 @@ public:
    {
       return m_Container.m_Response.m_bstrResult;
    }
+   
    CGlobals* GetGlobals()
    {
       return &m_Container.m_Globals;

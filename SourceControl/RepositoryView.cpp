@@ -192,10 +192,12 @@ public:
    CTagElement(FILEINFO* pFile) : m_pInfo(pFile) 
    {
    }
+
    BOOL Load(ISerializable* /*pArc*/)
    {
       return FALSE;
    }
+
    BOOL Save(ISerializable* pArc)
    {
       ATLASSERT(!::IsBadReadPtr(m_pInfo,sizeof(FILEINFO)));
@@ -206,18 +208,22 @@ public:
       pArc->Write(_T("version"), m_pInfo->sVersion);
       return TRUE;
    }
+   
    BOOL GetName(LPTSTR pstrName, UINT cchMax) const
    {
       return _tcsncpy(pstrName, ::PathFindFileName(m_pInfo->sFilename), cchMax) > 0;
    }
+   
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const
    {
       return _tcsncpy(pstrType, _T("Revision Info"), cchMax) > 0;
    }
+   
    IElement* GetParent() const
    {
       return NULL;
    }
+   
    IDispatch* GetDispatch()
    {
       return NULL;

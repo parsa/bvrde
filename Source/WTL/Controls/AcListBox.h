@@ -81,6 +81,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnRequestResize(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
    {
       REQRESIZE* pRR = (REQRESIZE*) pnmh;

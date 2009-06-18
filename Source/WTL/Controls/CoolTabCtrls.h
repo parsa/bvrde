@@ -160,6 +160,7 @@ public:
       tci.iImage = iImage;
       return InsertItem(iItem, &tci);
    }
+
    int InsertItem(int iItem, const LPTCITEM pItem)
    {
       COOLTCITEM tci;
@@ -167,6 +168,7 @@ public:
       ::CopyMemory(&tci, pItem, sizeof(TCITEM));
       return InsertItem(iItem, &tci);
    }
+
    int InsertItem(int iItem, const COOLTCITEM* pItem)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -197,6 +199,7 @@ public:
       m_iScrollPos = 0;
       return TRUE;
    }
+
    BOOL DeleteItem(int iItem)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -231,6 +234,7 @@ public:
       ::CopyMemory(&tci, pItem, sizeof(TCITEM));
       return SetItem(iItem, &tci);
    }
+
    BOOL SetItem(int iItem, const COOLTCITEM* pItem)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -269,6 +273,7 @@ public:
       ATLASSERT((pItem->mask & (TCIF_WIDTH|TCIF_TOOLTIP|TCIF_TEXTCOLOR|TCIF_BKCOLOR))==0);
       return GetItem(iItem, reinterpret_cast<COOLTCITEM*>(pItem));
    }
+
    BOOL GetItem(int iItem, COOLTCITEM* pItem) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -340,6 +345,7 @@ public:
 
       return iOldSel;
    }
+
    int GetCurSel() const
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -356,6 +362,7 @@ public:
    {
       m_ImageList = hImageList;
    }
+
    CImageList GetImageList() const
    {
       return m_ImageList;
@@ -367,6 +374,7 @@ public:
       tchti.pt = pt;
       return HitTest(&tchti);
    }
+
    int HitTest(LPTCHITTESTINFO pinfo) const
    {
       ATLASSERT(!::IsBadWritePtr(pinfo,sizeof(TCHITTESTINFO)));
@@ -384,6 +392,7 @@ public:
       ATLASSERT(::IsWindow(m_hWnd));
       return m_dwExtStyle;
    }
+
    DWORD SetExtendedStyle(DWORD dwExMask, DWORD dwExStyle)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -397,6 +406,7 @@ public:
    {
       return 1;
    }
+
    CToolTipCtrl GetToolTips() const
    {
       return m_Tip;
@@ -406,6 +416,7 @@ public:
    {
       return m_iScrollPos;
    }
+
    void SetScrollPos(int iPos)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -421,10 +432,12 @@ public:
       m_iScrollPos = iPos;
       _Repaint();
    }
+
    void SetScrollStep(int iStep)
    {
       m_iScrollStep = iStep;
    }
+
    BOOL IsScrollVisible(int Side) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -439,10 +452,12 @@ public:
       ATLASSERT(::IsWindow(hWnd));
       m_wndNotify = hWnd;
    }
+
    void SetMinTabWidth(int nWidth = -1)
    {
       m_nMinWidth = nWidth;
    }
+
    DWORD SetItemSize(int iItem, int cx, int cy)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -470,6 +485,7 @@ public:
       ATLASSERT(!::IsBadWritePtr(pMetrics,sizeof(TCMETRICS)));
       *pMetrics = m_metrics;
    }
+
    void SetMetrics(const TCMETRICS *pMetrics)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -482,6 +498,7 @@ public:
    {
       m_hSelFont = hFont;
    }
+
    HFONT GetSelFont() const
    {
       return (m_dwExtStyle & TCS_EX_SELHIGHLIGHT) != 0 ? m_hSelFont : m_hFont;
@@ -550,6 +567,7 @@ public:
       if( iItem < 0 || iItem >= m_Items.GetSize() ) return false;
       return true;
    }
+
    ATLINLINE void _Repaint()
    {
       T* pT = static_cast<T*>(this);
@@ -585,6 +603,7 @@ public:
       _Init();
       return lRes;
    }
+
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    { 
       m_bCanRepaint = false;
@@ -593,6 +612,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       T* pT = static_cast<T*>(this);
@@ -600,6 +620,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnNcHitTest(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
@@ -609,10 +630,12 @@ public:
       if( iItem == -1 ) return HTTRANSPARENT;
       return HTCLIENT;
    }
+
    LRESULT OnGetFont(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       return (LRESULT) (HFONT)( m_hFont != NULL ? m_hFont : AtlGetDefaultGuiFont() );
    }
+
    LRESULT OnSetFont(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       m_hFont = (HFONT) wParam;
@@ -625,6 +648,7 @@ public:
       _Repaint();
       return 0;
    }
+
    LRESULT OnGetDlgCode(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       return DefWindowProc(uMsg, wParam, lParam) | DLGC_WANTARROWS;
@@ -645,6 +669,7 @@ public:
       }
       return 0;
    }
+
    LRESULT OnMButtonClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
@@ -657,6 +682,7 @@ public:
       }
       return 0;
    }
+
    LRESULT OnRButtonClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
@@ -679,6 +705,7 @@ public:
       m_ctrlLeft.SetButtonStyle(BS_PUSHBUTTON);
       return 0;
    }
+
    LRESULT OnScrollRight(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       SetScrollPos(GetScrollPos() + m_iScrollStep);

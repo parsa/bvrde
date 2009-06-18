@@ -146,17 +146,19 @@ DWORD CSftpThread::Run()
    CString sCertificate = m_pManager->GetParam(_T("Certificate"));
    CString sPath = m_pManager->GetParam(_T("Path"));
    CString sProxy = m_pManager->GetParam(_T("Proxy"));
-   bool bPassive = m_pManager->GetParam(_T("Passive")) == _T("true");
    long lConnectTimeout = _ttol(m_pManager->GetParam(_T("ConnectTimeout")));
 
    // Check for the presence of a private key
    if( sCertificate.IsEmpty() ) {
-      CString sFilename;
-      sFilename.Format(_T("%sprivate.key"), CModulePath());
-      if( CFile::FileExists(sFilename) ) sCertificate = sFilename;
+      CString sKeyFilename;
+      sKeyFilename.Format(_T("%sprivate.key"), CModulePath());
+      if( CFile::FileExists(sKeyFilename) ) sCertificate = sKeyFilename;
    }
 
    if( lPort == 0 ) lPort = 22;
+   if( lConnectTimeout < 5 ) lConnectTimeout = 5;
+
+   // Prompt for password?
    if( sPassword.IsEmpty() && sCertificate.IsEmpty() ) sPassword = SecGetPassword();
 
    USES_CONVERSION;
@@ -219,8 +221,8 @@ DWORD CSftpThread::Run()
 
    // Set timeout values
    clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_CONNECTTIMEOUT, max(4, lConnectTimeout - 2));
-   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_READTIMEOUT, max(6, lConnectTimeout));
-   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_WRITETIMEOUT, max(6, lConnectTimeout));
+   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_READTIMEOUT, min(6, lConnectTimeout));
+   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_WRITETIMEOUT, min(6, lConnectTimeout));
 
    // Start connection
    status = clib.cryptSetAttribute(cryptSession, CRYPT_SESSINFO_ACTIVE, TRUE);
@@ -288,7 +290,7 @@ void CSftpProtocol::Clear()
    m_sProxy.Empty();
    m_bPassive = FALSE;
    m_bCompatibilityMode = FALSE;
-   m_lConnectTimeout = 10;
+   m_lConnectTimeout = 8;
 }
 
 bool CSftpProtocol::Load(ISerializable* pArc)
@@ -313,7 +315,7 @@ bool CSftpProtocol::Load(ISerializable* pArc)
    m_sPath.TrimRight(_T("/"));
    if( m_sPath.IsEmpty() ) m_sPath = _T("/");
    m_sPassword = SecDecodePassword(m_sPassword);
-   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 10;
+   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
 
    return true;
 }
@@ -398,7 +400,7 @@ void CSftpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Proxy") ) m_sProxy = pstrValue;
    if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
    m_sPath.TrimRight(_T("/"));
-   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 10;
+   if( m_lConnectTimeout <= 0 ) m_lConnectTimeout = 8;
 }
 
 bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, DWORD* pdwSize /* = NULL*/)

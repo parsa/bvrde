@@ -41,10 +41,11 @@ public:
       m_ctrlList.SetExtendedListStyle(PLS_EX_CATEGORIZED|PLS_EX_XPLOOK);
       return 0;
    }
+
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( !m_ctrlName.IsWindow() || !m_ctrlList.IsWindow() ) return 0;
-      RECT rcClient;
+      RECT rcClient = { 0 };
       GetClientRect(&rcClient);
       ::InflateRect(&rcClient, -2, -2);
       RECT rc = { rcClient.left, rcClient.top, rcClient.right, rcClient.top + 140 };
@@ -53,12 +54,14 @@ public:
       m_ctrlList.MoveWindow(&rcList);
       return 0;
    }
+   
    LRESULT OnDrawItem(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {
       if( wParam != IDC_NAME ) {
          bHandled = FALSE;
          return 0;
       }
+   
       DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*) lParam;
       CDCHandle dc = pDIS->hDC;
       
@@ -144,12 +147,19 @@ public:
    // ISerializable
 
    BOOL ReadGroupBegin(LPCTSTR /*pstrName*/) { return FALSE; };
+
    BOOL ReadGroupEnd() { return FALSE; };
+   
    BOOL ReadItem(LPCTSTR /*pstrName*/) { return FALSE; };
+   
    BOOL Read(LPCTSTR /*pstrName*/, LPTSTR /*szValue*/, UINT /*cchMax*/) { return FALSE; };
+   
    BOOL Read(LPCTSTR /*pstrName*/, SYSTEMTIME& /*stValue*/) { return FALSE; };
+   
    BOOL Read(LPCTSTR /*pstrName*/, long& /*lValue*/) { return FALSE; };
+   
    BOOL Read(LPCTSTR /*pstrName*/, BOOL& /*bValue*/) { return FALSE; };
+   
    BOOL WriteGroupBegin(LPCTSTR /*pstrName*/) 
    { 
       // Denies serialization of nested objects.
@@ -157,10 +167,12 @@ public:
       m_bIgnoreRest = true;
       return FALSE;
    }
+   
    BOOL WriteGroupEnd() 
    { 
       return FALSE; 
    }
+   
    BOOL WriteItem(LPCTSTR pstrName)
    { 
       if( m_bIgnoreRest ) return TRUE;
@@ -170,6 +182,7 @@ public:
       m_ctrlList.AddItem( PropCreateCategory(sName) );
       return TRUE; 
    }
+   
    BOOL Write(LPCTSTR pstrName, LPCTSTR pstrValue)
    { 
       if( m_bIgnoreRest ) return TRUE;
@@ -179,20 +192,24 @@ public:
       m_ctrlList.AddItem( PropCreateReadOnlyItem(sName, pstrValue) );
       return TRUE;
    }
+   
    BOOL Write(LPCTSTR /*pstrName*/, SYSTEMTIME /*stValue*/)
    { 
       return TRUE; 
    }
+   
    BOOL Write(LPCTSTR pstrName, long lValue)
    { 
       TCHAR szValue[20];
       ::wsprintf(szValue, _T("%ld"), lValue);
       return Write(pstrName, szValue);
    }
+   
    BOOL Write(LPCTSTR pstrName, BOOL bValue)
    {
       return Write(pstrName, CString(MAKEINTRESOURCE(bValue ? IDS_TRUE : IDS_FALSE)));
    }
+   
    BOOL WriteExternal(LPCTSTR /*pstrName*/)
    {      
       // Denies serialization of nested objects.
@@ -200,6 +217,7 @@ public:
       m_bIgnoreRest = true;
       return FALSE;
    }
+   
    BOOL Delete(LPCTSTR /*pstrName*/)
    {      
       return FALSE;

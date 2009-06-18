@@ -16,6 +16,8 @@ CReplaceDlg::CReplaceDlg(IDevEnv* pDevEnv, HWND hWndScintilla, FINDREPLACEA& fr)
 
 LRESULT CReplaceDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+   CenterWindow();
+
    m_ctrlFindText.SubclassWindow(GetDlgItem(IDC_FINDTEXT));
    m_ctrlReplaceText.SubclassWindow(GetDlgItem(IDC_REPLACETEXT));
    m_ctrlMatchWholeWord = GetDlgItem(IDC_WHOLEWORD);

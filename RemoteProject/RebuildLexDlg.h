@@ -29,6 +29,7 @@ public:
       ::ZeroMemory(szFilename, sizeof(szFilename));
       for( int i = 0; i < pProject->GetItemCount(); i++ ) {
          IView* pFile = pProject->GetItem(i);
+         if( pFile == NULL ) break;
          pFile->GetFileName(szFilename, MAX_PATH);
          pstrNamePart = ::PathFindFileName(szFilename);
          wndParent.PostMessage(WM_APP_REBUILDLEX_FILENAME);
@@ -37,6 +38,7 @@ public:
             CComBSTR bstrText;
             pFile->GetText(&bstrText);
             int nLen = bstrText.Length();
+            if( nLen == 0 ) continue;
             LPSTR pstrData = (LPSTR) malloc((nLen * 2) + 1);
             ATLASSERT(pstrData);
             if( pstrData == NULL ) return 0;
@@ -83,6 +85,7 @@ public:
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       ATLASSERT(m_pProject);
+      CenterWindow();
       CLogFont lf = AtlGetDefaultGuiFont();
       lf.MakeBolder();
       m_fontBold.CreateFontIndirect(&lf);
@@ -96,16 +99,19 @@ public:
       m_thread.Start();
       return FALSE;
    }
+
    LRESULT OnAppMsgPos(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       m_ctrlProgress.SetPos(wParam);
       return 0;
    }
+   
    LRESULT OnAppMsgFilename(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       m_ctrlFilename.SetWindowText(m_thread.pstrNamePart);
       return 0;
    }
+   
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       m_thread.SignalStop();

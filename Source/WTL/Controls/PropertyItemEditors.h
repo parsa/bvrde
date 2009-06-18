@@ -64,6 +64,7 @@ public:
       SetMargins(PROP_TEXT_INDENT, 0);   // Force EDIT margins so text doesn't jump
       return lRes;
    }
+
    LRESULT OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
       switch( wParam ) {
@@ -91,6 +92,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
       switch( LOWORD(wParam) ) {
@@ -102,12 +104,14 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       m_fCancel = false;
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnKillFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       LRESULT lRes = DefWindowProc(uMsg, wParam, lParam);
@@ -115,6 +119,7 @@ public:
       ::SendMessage(GetParent(), m_fCancel ? WM_USER_PROP_CANCELPROPERTY : WM_USER_PROP_UPDATEPROPERTY, 0, (LPARAM) m_hWnd);
       return lRes;
    }
+   
    LRESULT OnGetDlgCode(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       return DefWindowProc(uMsg, wParam, lParam) | DLGC_WANTALLKEYS | DLGC_WANTARROWS;
@@ -176,6 +181,7 @@ public:
       m_bReadOnly = true;
       return lRes;
    }
+   
    LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       if( !m_bReadOnly ) {
@@ -188,12 +194,14 @@ public:
       }
       return 0;
    }
+   
    LRESULT OnKillFocus(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
       if( (HWND) wParam != m_wndButton ) ::SendMessage(GetParent(), WM_USER_PROP_UPDATEPROPERTY, 0, (LPARAM) m_hWnd);
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
       if( m_bReadOnly ) {
@@ -229,12 +237,14 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnChar(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       // Don't allow any editing
       if( !m_bReadOnly ) bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnMouseButtonClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       // Don't allow selection or context menu for edit box
@@ -262,6 +272,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnGetDlgCode(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       return DefWindowProc(uMsg, wParam, lParam) | DLGC_WANTALLKEYS;
@@ -305,12 +316,14 @@ public:
       m_bReadOnly = false;
       return lRes;
    }
+   
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       if( m_wndCalendar.IsWindow() ) m_wndCalendar.DestroyWindow();
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnButtonClicked(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       // Set selection
@@ -331,6 +344,7 @@ public:
       m_wndCalendar.SetFocus();
       return 0;
    }
+   
    LRESULT OnDateSelect(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       USES_CONVERSION;
@@ -405,6 +419,7 @@ public:
       m_wndList.AddString(pstrItem);
       m_cyList = 0;
    }
+   
    void SelectItem(int idx)
    {
       ATLASSERT(m_wndList.IsWindow());      
@@ -422,12 +437,14 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       if( m_wndList.IsWindow() ) m_wndList.DestroyWindow();
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnChar(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       // Let the dropdown-box handle the keypress...
@@ -444,6 +461,7 @@ public:
       }
       return 0; // Don't allow any editing
    }
+   
    LRESULT OnButtonClicked(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       if( m_cyList == 0 ) {
@@ -453,7 +471,7 @@ public:
          m_cyList = min( MAX_HEIGHT, cy + (::GetSystemMetrics(SM_CYBORDER)*2) );
       }
       // Move the dropdown under the item
-      RECT rcWin;
+      RECT rcWin = { 0 };
       GetWindowRect(&rcWin);
       RECT rc = { rcWin.left, rcWin.bottom, rcWin.right, rcWin.bottom + m_cyList };
       m_wndList.SetWindowPos(HWND_TOPMOST, &rc, SWP_SHOWWINDOW);
@@ -489,6 +507,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnLButtonUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       LRESULT lRes = m_wndList.DefWindowProc();
@@ -497,6 +516,7 @@ public:
       OnKeyDown(WM_KEYDOWN, VK_RETURN, 0, bDummy);
       return lRes;
    }
+   
    LRESULT OnKillFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       LRESULT lRes = m_wndList.DefWindowProc();
@@ -561,6 +581,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       if( ::GetCapture() == m_wndList ) ::ReleaseCapture();
@@ -569,12 +590,13 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       CPaintDC dc( m_hWnd );      
-      RECT rcButton;
+      RECT rcButton = { 0 };
       m_wndButton.GetWindowRect(&rcButton);
-      RECT rcClient;
+      RECT rcClient = { 0 };
       GetClientRect(&rcClient);
       rcClient.right -= rcButton.right - rcButton.left;
       DRAWITEMSTRUCT dis = { 0 };
@@ -589,6 +611,7 @@ public:
       m_wndList.SendMessage(OCM_DRAWITEM, dis.CtlID, (LPARAM) &dis);
       return 0;
    }
+
    LRESULT OnButtonClicked(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       if( m_cyList == 0 ) {
@@ -598,7 +621,7 @@ public:
          m_cyList = min( MAX_HEIGHT, cy + (::GetSystemMetrics(SM_CYBORDER)*2) );
       }
       // Move the dropdown under the item
-      RECT rcWin;
+      RECT rcWin = { 0 };
       GetWindowRect(&rcWin);
       RECT rc = { rcWin.left, rcWin.bottom, rcWin.right, rcWin.bottom + m_cyList };
       m_wndList.SetWindowPos(HWND_TOPMOST, &rc, SWP_SHOWWINDOW);

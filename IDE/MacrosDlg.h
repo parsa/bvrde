@@ -46,6 +46,8 @@ public:
 
    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      CenterWindow();
+
       m_clrBack = BlendRGB(::GetSysColor(COLOR_WINDOW), RGB(0,0,0), 6);
       m_brBack.CreateSolidBrush(m_clrBack);
 
@@ -64,11 +66,12 @@ public:
       }
       m_ctrlFiles.SetCurSel(0);
 
-      BOOL bDummy;
+      BOOL bDummy = FALSE;
       OnFileChange(0, 0, NULL, bDummy);
 
       return TRUE;
    }
+
    LRESULT OnColorListBox(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       CDCHandle dc = (HDC) wParam;
@@ -76,21 +79,25 @@ public:
       dc.SetBkColor(m_clrBack);
       return (LRESULT) (HBRUSH) m_brBack;
    }
+   
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       PostMessage(WM_COMMAND, MAKELPARAM(IDOK, 0));
       return 0;
    }
+   
    LRESULT OnListChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       int iSel = m_ctrlFiles.GetCurSel();
@@ -107,6 +114,7 @@ public:
       ::EnableWindow(GetDlgItem(IDOK), TRUE);
       return 0;
    }
+   
    LRESULT OnFileChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CWaitCursor cursor;

@@ -56,6 +56,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnGetDlgCode(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
       return DefWindowProc() | DLGC_WANTALLKEYS;

@@ -35,6 +35,8 @@ public:
    {
       ATLASSERT(m_wndMDI.IsWindow());
 
+      CenterWindow();
+
       m_ctrlImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 100);
 
       m_ctrlList = GetDlgItem(IDC_LIST);
@@ -59,20 +61,21 @@ public:
 
       _UpdateButtons();
 
-      CenterWindow();
-
       return TRUE;
    }
+
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnActivate(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       int iItem = m_ctrlList.GetNextItem(-1, LVIS_SELECTED);
@@ -80,6 +83,7 @@ public:
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnItemClose(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       int iItem = m_ctrlList.GetNextItem(-1, LVIS_SELECTED);
@@ -95,11 +99,13 @@ public:
       _UpdateButtons();
       return 0;
    }
+   
    LRESULT OnItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       _UpdateButtons();
       return 0;
    }
+   
    LRESULT OnItemOpen(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       PostMessage(WM_COMMAND, MAKEWPARAM(IDC_ACTIVATE, 0));

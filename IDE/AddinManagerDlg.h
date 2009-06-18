@@ -35,6 +35,8 @@ public:
    {
       ATLASSERT(m_pMainFrame);
 
+      CenterWindow();
+
       m_ctrlImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 100);
 
       COLORREF clrBack = BlendRGB(::GetSysColor(COLOR_WINDOW), RGB(0,0,0), 6);
@@ -48,7 +50,8 @@ public:
 
       m_ctrlDescription = GetDlgItem(IDC_DESCRIPTION);
 
-      for( int i = 0; i < g_aPlugins.GetSize(); i++ ) {
+      for( int i = 0; i < g_aPlugins.GetSize(); i++ ) 
+      {
          const CPlugin& plugin = g_aPlugins[i];
          SHFILEINFO sfi = { 0 };
          ::SHGetFileInfo(plugin.GetFilename(), 
@@ -98,6 +101,7 @@ public:
 
       return TRUE;
    }
+
    LRESULT OnCtlColorStatic(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {
       if( lParam != (LPARAM) (HWND) m_ctrlDescription ) {
@@ -110,9 +114,11 @@ public:
       dc.SetBkMode(TRANSPARENT);
       return (LRESULT) ::GetSysColorBrush(COLOR_BTNFACE);
    }
+   
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
-      if( m_bChanged ) {
+      if( m_bChanged ) 
+      {
          // Delete registry key that holds list of items and recreate it...
          CRegKey regParent;
          if( regParent.Create(HKEY_CURRENT_USER, REG_BVRDE) == ERROR_SUCCESS ) {
@@ -141,11 +147,13 @@ public:
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
    {
       LPNMLISTVIEW pNMLV = (LPNMLISTVIEW) pnmh;

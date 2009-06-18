@@ -57,6 +57,9 @@ DWORD CSshThread::Run()
    }
 
    if( lPort == 0 ) lPort = 22;
+   if( lConnectTimeout < 4 ) lConnectTimeout = 4;
+
+   // Prompt for password?
    if( sPassword.IsEmpty() && sCertificate.IsEmpty() ) sPassword = SecGetPassword();
 
    USES_CONVERSION;
@@ -110,7 +113,6 @@ DWORD CSshThread::Run()
 
    // Set timeout values
    clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_CONNECTTIMEOUT, lConnectTimeout - 2);
-   //clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_TIMEOUT, lConnectTimeout);
    clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_READTIMEOUT, 0);
    clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_WRITETIMEOUT, 2);
 
@@ -296,7 +298,9 @@ CHAR CSshThread::_GetByte(CRYPT_SESSION cryptSession, const LPBYTE pBuffer, int 
    // Ok, we need to receive more data...
    CHAR b = 0;
    int iRead = 0;
+   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_READTIMEOUT, 1);
    clib.cryptPopData(cryptSession, &b, 1, &iRead);
+   clib.cryptSetAttribute(cryptSession, CRYPT_OPTION_NET_READTIMEOUT, 0);
    ATLASSERT(iRead==1); iRead;
    return b;
 }

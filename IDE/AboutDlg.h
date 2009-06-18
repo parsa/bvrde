@@ -42,7 +42,7 @@ public:
       CWindowRect rcWin = GetDlgItem(IDC_SPLASH);
       ResizeClient(rcWin.right - rcWin.left, rcWin.bottom - rcWin.top, FALSE);
       // Center to parent
-      CenterWindow(GetParent());
+      CenterWindow();
       // Create a really small font
       CLogFont lf = AtlGetDefaultGuiFont();
       _tcscpy(lf.lfFaceName, _T("Small Fonts"));
@@ -73,17 +73,20 @@ public:
       SetTimer(SCROLL_TIMERID, SCROLL_SPEED);
       return TRUE;
    }
+
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       KillTimer(SCROLL_TIMERID);
       bHandled = FALSE;
       return TRUE;
    }
+   
    LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       EndDialog(IDOK);
       return TRUE;
    }
+   
    LRESULT OnTimer(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
       if( wParam != SCROLL_TIMERID ) {
@@ -116,6 +119,7 @@ public:
       if( m_iScrollPos / (m_tm.tmHeight + TEXT_GAP) > m_aLines.GetSize() ) m_iScrollPos = 0;
       return 0;
    }
+
    LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);

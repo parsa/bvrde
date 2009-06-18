@@ -16,6 +16,7 @@ public:
    {
       m_hOldCursor = ::SetCursor( ::LoadCursor(NULL, IDC_WAIT) );
    }
+
    ~CWaitCursor()
    {
       ::SetCursor(m_hOldCursor);

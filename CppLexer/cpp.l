@@ -191,7 +191,7 @@ static int yyread(char *buf,int max_size)
 
 <FindMembers>"typedef"[ \t\r\n]+"enum"[ \t\r\n]+	{
 					  msg( "found enum       ", current->name ) ;
-					  current->section = ENUM_SEC ;
+					  current->section = TYPEDEF_SEC ;
 					  current->lineNo = yyLineNr ;
 					  current->type = "typedef enum" ;
 					  current->name.clear() ;
@@ -203,7 +203,7 @@ static int yyread(char *buf,int max_size)
 
 <FindMembers>"typedef"[ \t\r\n]+"enum"[ \t\r\n]*"{"	{
 					  msg( "found struct     ", current->name ) ;
-					  current->section = ENUM_SEC ;
+					  current->section = TYPEDEF_SEC ;
 					  current->lineNo = yyLineNr ;
 					  current->type = "typedef enum" ;
 					  current->name.clear() ;
@@ -220,6 +220,20 @@ static int yyread(char *buf,int max_size)
 					  current->type = "typedef union" ;
 					  current->name.clear() ;
 					  lineCount() ;
+					  current->startLine = yyLineNr ;
+					  lastTContext = 1;
+				  	  BEGIN( ClassName ) ;
+					}
+
+<FindMembers>"typedef"[ \t\r\n]+	{
+					  msg( "found typedef    ", current->name ) ;
+					  current->section = TYPEDEF_SEC ;
+					  current->lineNo = yyLineNr ;
+					  current->type = "typedef" ;
+					  current->name.clear() ;
+					  lineCount() ;
+					  current->startLine = yyLineNr ;
+					  lastTContext = 1;
 				  	  BEGIN( ClassName ) ;
 					}
 
@@ -254,7 +268,7 @@ static int yyread(char *buf,int max_size)
 					}
 <FindMembers>"enum"[ \t\r\n]+		{ 
 					  msg( "found enum      ", current->name ) ;
-					  current->section = ENUM_SEC ;
+					  current->section = TYPEDEF_SEC ;
 					  addType( current ) ;
 					  current->lineNo = yyLineNr ;
 					  if( !current->type.empty() ) current->type += " ";
@@ -336,6 +350,11 @@ static int yyread(char *buf,int max_size)
 					  current->name  = yytext ;
 					}
 
+<FindMembers>^[ \t]*"#if 0[ \t\r\n]+"	{ 
+					  msg( "found #if0" ) ;
+					  lineCount() ; 
+					  BEGIN( SkipElse ) ; 
+					}
 <FindMembers>^[ \t]*"#"			{ 
 					  msg( "found compiler-directive" ) ;
 					  lineCount() ; 
@@ -394,15 +413,25 @@ static int yyread(char *buf,int max_size)
 
 <FindMembers>[;=,]			{ 
 					  BEGIN( FindMembers ) ;
-					  if( current->lineNo == 0 ) current->lineNo = yyLineNr + 1;
+					  if( current->lineNo == 0 )
+					    current->lineNo = yyLineNr + 1;
 					  msg( "found variable   ", current->name ) ;
 					  if( current->section != TYPEDEF_SEC )
 					    current->section = VARIABLE_SEC ;
-					  current_root->addSubEntry( current ) ;
+					  if( current_root->section == TYPEDEF_SEC && current_root->type.find("enum") != McString::npos )
+					    current->section = ENUM_SEC ;
+					  if( *yytext == '=' && current->section == VARIABLE_SEC && current->name.find("::") != McString::npos )
+					    current->section = IMPL_SEC ;
+				          current_root->addSubEntry( current ) ;
 					  current = new Entry ;
 					  current->protection = protection ;
 					  if( *yytext == '=' )
 					    BEGIN( NextSemi ) ;
+					}
+
+<FindMembers>"EXEC SQL"			{ 
+				  	  msg( "found embedded sql" ) ;
+					  BEGIN( NextSemi ) ;
 					}
 
 <FindMembers>"["			{ 
@@ -462,7 +491,7 @@ static int yyread(char *buf,int max_size)
 					  {
 					    current->args += " {...}";
 
-					    if( lastTContext ) 
+					    if( lastTContext != 0 ) 
 					    {
 					      BEGIN( TypedefName ) ;
 					    }
@@ -554,19 +583,21 @@ static int yyread(char *buf,int max_size)
 					    BEGIN( FindMembers ) ;
 					}
 
-<Bases,ClassName>";"			{ 
-					  current->section = VARIABLE_SEC ;
+<Bases,ClassName>[ \t]*";"		{ 
 					  current_root->addSubEntry(current);
 					  current = new Entry ;
 					  current->protection = protection ;
 					  BEGIN( FindMembers ) ;
 					}
-<ClassName>[a-z_A-Z0-9\[\]*&]+		{ 
+<ClassName>[a-z_A-Z0-9\[\]*&]+("::"[a-z_A-Z0-9\[\]*&]+)*	{ 
 					  if( !current->type.empty() && !current->name.empty() ) current->type += " " ;
 					  current->type += current->name ;
 				  	  current->name = yytext ;
 					  current->namespc = nmspc;
 					  current->lineNo = yyLineNr ;
+					}
+<ClassName>"<".*">"			{
+					  current->name += yytext;
 					}
 <ClassName>[ \t]*":"[ \t]*		{ 
 					  current->args = " :" ;
@@ -609,7 +640,6 @@ static int yyread(char *buf,int max_size)
 					  current_root->addNextEntry( current ) ;
 					  current = new Entry ;
 					  current->protection = protection ;
-					  if( section == CLASS_SEC ) current->protection = GLOB ;
 
 					  BEGIN( NextSemi ) ;
 					}
@@ -622,7 +652,6 @@ static int yyread(char *buf,int max_size)
 					  current_root->addNextEntry( current ) ;
 					  current = new Entry ;
 					  current->protection = protection ;
-					  if( section == CLASS_SEC ) current->protection = GLOB ;
 
 					  if( *yytext == ',' )
 					    BEGIN( NextSemi ) ;
@@ -878,14 +907,14 @@ void parseCppClasses(Entry* rt)
 			current->section = EMPTY_SEC ;
 			if( cr->section == CLASS_SEC )
 				current->protection = protection = PRIV ;
+			else if( cr->section == TYPEDEF_SEC && !cr->name.empty() )
+				current->protection = protection = PUBL ;
 			else if( cr->section == STRUCT_SEC )
 				current->protection = protection = PUBL ;
 			else if( cr->section == UNION_SEC )
 				current->protection = protection = PUBL ;
-			else if( cr->section == ENUM_SEC )
-				current->protection = protection = PUBL ;
 			else
-				current->protection = protection = GLOB ;
+				current->protection = protection = cr->protection ;
 			callcpplex() ;
 			cr->program.clear() ;
 		}

@@ -35,12 +35,14 @@ public:
       m_sTitle = pstr;
       Invalidate();
    }
+
    void SetMessage(LPCTSTR pstr)
    {
       ATLASSERT(::IsWindow(m_hWnd));
       m_sText = pstr;
       Invalidate();
    }
+   
    BOOL SetIcon(HICON hIcon)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -133,6 +135,7 @@ public:
       m_ctrlCancel(this, 1)
    {
    }
+
    ~CMsgBoxDlg()
    {
       if( IsWindow() ) DestroyWindow();
@@ -251,7 +254,7 @@ public:
       // Make it sound like a Windows MessageBox
       ::MessageBeep(m_uType & MB_ICONMASK);
 
-      CenterWindow(GetParent());
+      CenterWindow();
 
       // Handle default-button change
       if( (m_uType & MB_TYPEMASK) == MB_OK 
@@ -269,6 +272,7 @@ public:
 
       return FALSE;
    }
+   
    LRESULT OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
       // Handle accelrator keys manually.
@@ -283,6 +287,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       // Display once message?
@@ -310,6 +315,7 @@ public:
       for( int i = 0; i < m_sMessage.GetLength(); i++ ) lHash += (lHash << 5) + m_sMessage.GetAt(i);
       return lHash;
    }
+   
    bool _FindTextHash() const
    {
       CRegKey key;
@@ -322,6 +328,7 @@ public:
       ::wsprintf(szNumber, _T(",%ld,"), m_lHash);
       return _tcsstr(szMessages, szNumber) != NULL;
    }
+   
    bool _SaveTextHash() const
    {
       // Already there?

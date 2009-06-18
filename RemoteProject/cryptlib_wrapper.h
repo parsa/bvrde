@@ -66,6 +66,7 @@ public:
    CCryptLib() : hInst(NULL)
    {
    }
+
    ~CCryptLib()
    {
       if( hInst != NULL ) cryptEnd();
@@ -150,7 +151,6 @@ public:
       }
       return CRYPT_OK;
    }
-
 };
 
 

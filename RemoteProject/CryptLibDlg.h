@@ -25,6 +25,7 @@ public:
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      CenterWindow();
       CLogFont lf = GetFont();
       lf.MakeBolder();
       lf.MakeLarger(6);
@@ -34,6 +35,7 @@ public:
       m_ctrlLink.SubclassWindow(GetDlgItem(IDC_LINK));
       return TRUE;
    }
+
    LRESULT OnCtlColorStatic(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {
       if( (HWND) lParam != m_ctrlTitle ) {
@@ -44,6 +46,7 @@ public:
       dc.SetBkMode(TRANSPARENT);
       return (LRESULT) (HBRUSH) AtlGetStockBrush(WHITE_BRUSH);
    }
+
    LRESULT OnClose(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);

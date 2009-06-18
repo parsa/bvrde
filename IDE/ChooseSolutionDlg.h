@@ -35,6 +35,7 @@ public:
       m_sFilename.Empty();
       m_SelectType = SOLUTION_BLANK;
    }
+
    void Init(CMainFrame* pMainFrame)
    {
       m_pMainFrame = pMainFrame;
@@ -52,6 +53,8 @@ public:
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      CenterWindow();
+
       m_ctrlBlankSolution = GetDlgItem(IDC_RADIO1);
       m_ctrlWizard = GetDlgItem(IDC_RADIO2);
       m_ctrlOpen = GetDlgItem(IDC_RADIO3);
@@ -69,10 +72,9 @@ public:
       if( m_ctrlList.GetItemCount() > 0 ) m_ctrlOpen.Click();
       else m_ctrlWizard.Click();
 
-      CenterWindow(GetParent());
-
       return TRUE;
    }
+
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       if( m_ctrlBlankSolution.GetCheck() == BST_CHECKED ) {
@@ -90,11 +92,13 @@ public:
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnBrowse(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CString sFilter(MAKEINTRESOURCE(IDS_FILTER_SOLUTION));
@@ -107,6 +111,7 @@ public:
       EndDialog(IDOK);
       return 0;
    }
+   
    LRESULT OnChanged(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       BOOL bEnable = TRUE;
@@ -114,12 +119,14 @@ public:
       CWindow(GetDlgItem(IDOK)).EnableWindow(bEnable);
       return 0;
    }
+   
    LRESULT OnItemOpen(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       if( m_ctrlOpen.GetCheck() != BST_CHECKED ) m_ctrlOpen.Click();
       PostMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0));
       return 0;
    }
+   
    LRESULT OnItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       if( m_ctrlOpen.GetCheck() != BST_CHECKED ) m_ctrlOpen.Click();
@@ -161,6 +168,7 @@ public:
       BOOL bDummy = FALSE;
       OnChanged(0, 0, NULL, bDummy);
    }
+   
    void _FillListFromPath(LPCTSTR pstrPattern)
    {
       CFindFile ff;
@@ -171,6 +179,7 @@ public:
       }
       ff.Close();
    }
+   
    void _AddListItem(LPCTSTR pstrFilename)
    {
       TCHAR szName[MAX_PATH] = { 0 };

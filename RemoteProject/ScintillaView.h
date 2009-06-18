@@ -28,6 +28,13 @@ public:
       MATCH_LHS,
    };
 
+   enum { MAX_CONTEXT_ENTRIES = 10 };
+
+   typedef struct {
+      CString sName;
+      DWORD dwTimestamp;
+   } CONTEXTENTRY;
+
    typedef struct 
    {
       int iLineNum;
@@ -73,7 +80,9 @@ public:
    bool m_bMarkErrors;                               // Mark errors with squiggly lines?
    bool m_bDelayedHoverData;                         // Awaiting mouse-hover information?
    bool m_bDwellEnds;                                // Accept tooltip timeout period?
+   bool m_bSuggestionDisplayed;                      // Context-suggestion displayed?
    TOOLTIPINFO m_TipInfo;                            // Information about displayed tooltip
+   CONTEXTENTRY m_aContexts[MAX_CONTEXT_ENTRIES];    // Recent Context entries
    CSimpleArray<ERRORMARKINFO> m_aErrorInfo;         // Remove squiggly lines?
 
    // Operations
@@ -112,6 +121,7 @@ public:
       NOTIFY_CODE_HANDLER(SCN_AUTOCSELECTION, OnAutoExpand)
       CHAIN_COMMANDS_HWND( m_ctrlEdit )
    ALT_MSG_MAP(1) // CScintillCtrl
+      MESSAGE_HANDLER(WM_KEYDOWN, OnKeyDown)
       MESSAGE_HANDLER(WM_SETFOCUS, OnSetEditFocus)
       MESSAGE_HANDLER(WM_KILLFOCUS, OnKillEditFocus)
       MESSAGE_HANDLER(WM_CONTEXTMENU, OnContextMenu)
@@ -122,9 +132,9 @@ public:
    LRESULT OnSettingChange(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnHelp(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+   LRESULT OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSetFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnContextMenu(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-   LRESULT OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnSetEditFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnKillEditFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
    LRESULT OnFileSave(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
@@ -158,6 +168,7 @@ public:
    // Implementation
 
    void _AutoComplete(int ch);
+   void _AutoSuggest(int ch);
    void _FunctionTip(int ch);
    void _ClearAllSquigglyLines();
    void _ClearSquigglyLine(long lPos);
@@ -169,7 +180,9 @@ public:
    bool _IsRealCppEditPos(long lPos, bool bIncludeNonIdentifiers) const;
    void _ShowToolTip(long lPos, CString sText, bool bAdjustPos, bool bAcceptTimeout, COLORREF clrText, COLORREF clrBack);
    void _ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCurTip, bool bFilterMembers, bool bExpand, bool bAdjustPos, bool bAcceptTimeout, COLORREF clrBack, COLORREF clrText);
-   bool _GetMemberInfo(long lPos, CTagDetails& Info, DWORD dwTimeslice, MEMBERMATCHMODE Mode);
+   bool _GetMemberInfo(long lPos, CTagDetails& Info, DWORD dwTimeout, MEMBERMATCHMODE Mode);
+   bool _GetContextList(long lPos, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aList);
+   bool _AddContextEntry(LPCTSTR pstrEntry);
    CString _FindBlockType(long lPos);
    CString _FindIncludeUnderCursor(long lPos);
    bool _FindLocalVariableType(const CString& sName, long lPos, CTagDetails& Info);
@@ -177,6 +190,7 @@ public:
    CString _GetSelectedText();
    CString _GetNearText(long lPosition, bool bExcludeKeywords = true);
    bool _iswhitechar(int ch) const;
+   bool _issepchar(WCHAR ch) const;
    bool _iscppchar(int ch) const;
    bool _iscppcharw(WCHAR ch) const;
 };

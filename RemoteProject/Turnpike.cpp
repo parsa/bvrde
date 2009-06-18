@@ -28,7 +28,7 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
    // and executes a series of commands in a queue/list. This makes sure that all
    // GUI changes are called from the main thread only.
 
-   //ATLTRACE(_T("Turnpike: %ld items in queue (%ld)\n"), m_aLazyData.GetSize(), ::GetTickCount());
+   //ATLTRACE(_T("Turnpike: %ld items in queue (%lu)\n"), m_aLazyData.GetSize(), ::GetTickCount());
 
    bHandled = FALSE;
    if( m_aLazyData.GetSize() == 0 ) return 0;

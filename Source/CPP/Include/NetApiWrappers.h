@@ -38,6 +38,7 @@ public:
    CMailSlot(HANDLE hMailSlot = INVALID_HANDLE_VALUE) : m_hMailSlot(hMailSlot)
    {
    }
+
    ~CMailSlot()
    {
       Close();
@@ -54,6 +55,7 @@ public:
       m_fReadSlot = true;
       return TRUE;
    }
+
    BOOL Open(LPCTSTR pstrName)
    {
       _ASSERTE(m_hMailSlot==INVALID_HANDLE_VALUE);
@@ -62,27 +64,32 @@ public:
       m_fReadSlot = false;
       return TRUE;
    }
+
    void Close()
    {
       if( m_hMailSlot == INVALID_HANDLE_VALUE ) return;
       ::CloseHandle(m_hMailSlot); 
       m_hMailSlot = INVALID_HANDLE_VALUE;
    }
+
    BOOL IsNull() const
    {
       return m_hMailSlot == INVALID_HANDLE_VALUE;
    }
+
    void Attach(HANDLE hPipe)
    {
       _ASSERTE(m_hMailSlot==INVALID_HANDLE_VALUE);
       m_hMailSlot = hPipe;
    }
+
    HANDLE Detach()
    {
       HANDLE hPipe = m_hMailSlot;
       m_hMailSlot = INVALID_HANDLE_VALUE;
       return hPipe;
    }
+
    BOOL Read(LPVOID pData, DWORD dwSize, LPDWORD pdwRead = NULL)
    {
       _ASSERTE(m_hMailSlot!=INVALID_HANDLE_VALUE);
@@ -95,6 +102,7 @@ public:
       if( pdwRead == NULL ) pdwRead = &dwDummy;
       return ::ReadFile(m_hMailSlot, pData, dwSize, pdwRead, NULL);
    }
+
    BOOL Write(LPCVOID pData, DWORD dwSize, LPDWORD pdwWritten = NULL)
    {
       _ASSERTE(m_hMailSlot!=INVALID_HANDLE_VALUE);
@@ -107,6 +115,7 @@ public:
       if( pdwWritten == NULL ) pdwWritten = &dwDummy;
       return ::WriteFile(m_hMailSlot, pData, dwSize, pdwWritten, NULL);
    }
+
    BOOL GetInfo(LPDWORD lpMessageCount = NULL, LPDWORD lpNextSize = NULL, LPDWORD lpMaxMessageSize = NULL, LPDWORD lpReadTimeout = NULL) const
    {
       _ASSERTE(m_hMailSlot!=INVALID_HANDLE_VALUE);
@@ -114,12 +123,14 @@ public:
       // NOTE: Problems with lpNextSize; see Q192276
       return ::GetMailslotInfo(m_hMailSlot, lpMaxMessageSize, lpNextSize, lpMessageCount, lpReadTimeout);
    }
+
    BOOL SetInfo(DWORD dwTimeOut) const
    {
       _ASSERTE(m_hMailSlot!=INVALID_HANDLE_VALUE);
       _ASSERTE(m_fReadSlot);
       return ::SetMailslotInfo(m_hMailSlot, dwTimeOut);
    }
+
    DWORD GetPendingMessageCount() const
    {
       _ASSERTE(m_hMailSlot!=INVALID_HANDLE_VALUE);
@@ -128,7 +139,11 @@ public:
       if( ::GetMailslotInfo(m_hMailSlot, NULL, NULL, &dwCount, NULL) == FALSE ) return 0;
       return dwCount;
    }
-   operator HANDLE() const { return m_hMailSlot; }
+
+   operator HANDLE() const 
+   { 
+      return m_hMailSlot; 
+   }
 };
 
 
@@ -148,6 +163,7 @@ public:
       m_hEvent(NULL)
    {
    }
+
    ~CNamedPipe()
    {
       Close();
@@ -175,6 +191,7 @@ public:
          ) == INVALID_HANDLE_VALUE ) return FALSE;
       return TRUE;
    }
+
    BOOL Accept()
    {
       _ASSERTE(m_hPipe!=INVALID_HANDLE_VALUE);
@@ -189,6 +206,7 @@ public:
       }
       return fConnected;
    }
+
    BOOL Open(LPCTSTR pstrName, DWORD dwAccess = GENERIC_READ|GENERIC_WRITE, LPSECURITY_ATTRIBUTES lpSecurityAttributes = NULL)
    {
       _ASSERTE(m_hPipe==INVALID_HANDLE_VALUE);
@@ -196,6 +214,7 @@ public:
       if( (m_hPipe = ::CreateFile(pstrName, dwAccess, 0, lpSecurityAttributes, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE ) return FALSE;
       return TRUE;
    }
+
    void Close()
    {
       if( m_hEvent != NULL ) {
@@ -212,21 +231,25 @@ public:
          m_hPipe = INVALID_HANDLE_VALUE;
       }
    }
+
    BOOL IsNull() const
    {
       return m_hPipe == INVALID_HANDLE_VALUE;
    }
+
    void Attach(HANDLE hPipe)
    {
       _ASSERTE(m_hPipe==INVALID_HANDLE_VALUE);
       m_hPipe = hPipe;
    }
+
    HANDLE Detach()
    {
       HANDLE hPipe = m_hPipe;
       m_hPipe = INVALID_HANDLE_VALUE;
       return hPipe;
    }
+
    BOOL Read(LPVOID pData, DWORD dwSize, LPDWORD pdwRead = NULL, LPOVERLAPPED lpOverlapped = NULL)
    {
       _ASSERTE(m_hPipe!=INVALID_HANDLE_VALUE);
@@ -237,6 +260,7 @@ public:
       if( pdwRead == NULL ) pdwRead = &dwDummy;
       return ::ReadFile(m_hPipe, pData, dwSize, pdwRead, lpOverlapped);
    }
+
    BOOL Write(LPCVOID pData, DWORD dwSize, LPDWORD pdwWritten = NULL, LPOVERLAPPED lpOverlapped = NULL)
    {
       _ASSERTE(m_hPipe!=INVALID_HANDLE_VALUE);
@@ -247,26 +271,31 @@ public:
       if( pdwWritten == NULL ) pdwWritten = &dwDummy;
       return ::WriteFile(m_hPipe, pData, dwSize, pdwWritten, lpOverlapped);
    }
+
    BOOL GetInfo(LPDWORD lpFlags, LPDWORD lpOutBufferSize = NULL, LPDWORD lpInBufferSize = NULL, LPDWORD lpMaxInstances = NULL) const
    {
       _ASSERTE(m_hPipe!=INVALID_HANDLE_VALUE);
       return ::GetNamedPipeInfo(m_hPipe, lpFlags, lpOutBufferSize, lpInBufferSize, lpMaxInstances);
    }
+
    BOOL GetHandleState(LPDWORD lpState, LPDWORD lpCurInstances = NULL, LPDWORD lpMaxCollectionCount = NULL, LPDWORD lpCollectDataTimeout = NULL, LPTSTR lpUserName = NULL, DWORD nMaxUserNameSize = 0) const
    {
       _ASSERTE(m_hPipe!=INVALID_HANDLE_VALUE);
       return ::GetNamedPipeHandleState(m_hPipe, lpState, lpCurInstances, lpMaxCollectionCount, lpCollectDataTimeout, lpUserName, nMaxUserNameSize);
    }
+
    BOOL SetHandleState(LPDWORD lpMode, LPDWORD lpMaxCollectionCount = NULL, LPDWORD lpCollectDataTimeout = NULL) const
    {
       _ASSERTE(m_hPipe!=INVALID_HANDLE_VALUE);
       return ::SetNamedPipeHandleState(m_hPipe, lpMode, lpMaxCollectionCount, lpCollectDataTimeout);
    }
+
    BOOL Peek(LPDWORD lpTotalBytesAvail, LPDWORD lpBytesLeftThisMessage = NULL, LPVOID lpBuffer = NULL, DWORD nBufferSize = 0, LPDWORD lpBytesRead = NULL) const
    {
       _ASSERTE(m_hPipe!=INVALID_HANDLE_VALUE);
       return ::PeekNamedPipe(m_hPipe, lpBuffer, nBufferSize, lpBytesRead, lpTotalBytesAvail, lpBytesLeftThisMessage);
    }
+
    BOOL WaitForData(DWORD dwTimeOut=INFINITE)
    {
       _ASSERTE(m_hPipe!=INVALID_HANDLE_VALUE);
@@ -290,6 +319,7 @@ public:
       if( ::GetOverlappedResult(m_hPipe, &Ovlap, &dwRead, FALSE) == 0 ) return TRUE;
       return TRUE;
    }
+
    DWORD GetAvailableDataCount() const
    {
       _ASSERTE(m_hPipe!=INVALID_HANDLE_VALUE);
@@ -297,12 +327,17 @@ public:
       if( ::PeekNamedPipe(m_hPipe, NULL, 0, NULL, &dwAvailable, NULL) == FALSE ) return 0;
       return dwAvailable;
    }
+
    static BOOL WaitNamedPipe(LPCTSTR pstrName, DWORD dwTimeOut = NMPWAIT_WAIT_FOREVER)
    {
       _ASSERTE(!::IsBadStringPtr(pstrName,-1));
       return ::WaitNamedPipe(pstrName, dwTimeOut);
    }
-   operator HANDLE() const { return m_hPipe; }
+
+   operator HANDLE() const 
+   { 
+      return m_hPipe; 
+   }
 };
 
 
@@ -329,6 +364,7 @@ struct WSAInit
       if( pData == NULL ) pData = &dummy;
       ::WSAStartup(MAKEWORD(bMajor,bMinor), pData);
    }
+
    ~WSAInit()
    {
       ::WSACleanup();
@@ -344,10 +380,12 @@ public:
    CSocket(SOCKET hSocket = INVALID_SOCKET) : m_hSocket(hSocket)
    {
    }
+
    ~CSocket()
    {
       Close();
    }
+
    BOOL Create(u_short iPort, LPCTSTR pstrName = NULL, int iBacklog = 8)
    {
       // Pass NULL as 'pstrName' to bind to default IP interface
@@ -357,6 +395,7 @@ public:
       }
       return ::listen(m_hSocket, iBacklog) == 0;
    }
+
    BOOL Open(u_short iPort, LPCTSTR pstrName)
    {
       _ASSERTE(!::IsBadStringPtr(pstrName,-1));
@@ -366,6 +405,7 @@ public:
       }
       return TRUE;
    }
+
    BOOL OpenSocket(u_short iPort, LPCTSTR pstrName)
    {
       _ASSERTE(m_hSocket==INVALID_SOCKET);
@@ -389,6 +429,7 @@ public:
       m_sockaddr.sin_port = ::htons(iPort);
       return TRUE;
    }
+
    void Close()
    {
       if( m_hSocket == INVALID_SOCKET ) return;
@@ -397,27 +438,32 @@ public:
       m_hSocket = INVALID_SOCKET;
       return;
    }
+
    SOCKET Accept(PSOCKADDR pClient, int *pAddrSize)
    {
       _ASSERTE(pClient);
       _ASSERTE(pAddrSize);
       return ::accept(m_hSocket, pClient, pAddrSize);
    }
+
    BOOL IsNull() const
    {
       return m_hSocket == INVALID_SOCKET;
    }
+
    void Attach(SOCKET hSocket)
    {
       _ASSERTE(m_hSocket==INVALID_SOCKET);
       m_hSocket = hSocket;
    }
+
    SOCKET Detach()
    {
       SOCKET hSocket = m_hSocket;
       m_hSocket = INVALID_SOCKET;
       return hSocket;
    }
+
    BOOL Read(LPVOID pData, DWORD dwSize, LPDWORD pdwRead = NULL, int iFlags = 0)
    {
       _ASSERTE(m_hSocket!=INVALID_SOCKET);
@@ -431,6 +477,7 @@ public:
       if( pdwRead != NULL ) *pdwRead = ret;
       return TRUE;
    }
+
    BOOL Write(LPCVOID pData, DWORD dwSize, LPDWORD pdwWritten = NULL, int iFlags = 0)
    {
       _ASSERTE(m_hSocket!=INVALID_SOCKET);
@@ -450,6 +497,7 @@ public:
       if( pdwWritten != NULL ) *pdwWritten = dwSize;
       return TRUE;
    }
+
    BOOL WaitForData(DWORD dwTimeOut = 0) const
    {
       _ASSERTE(m_hSocket!=INVALID_SOCKET);
@@ -474,6 +522,7 @@ public:
          }
       }
    }
+
    BOOL WaitForSendReady(DWORD dwTimeOut = 0) const
    {
       _ASSERTE(m_hSocket!=INVALID_SOCKET);
@@ -498,6 +547,7 @@ public:
          }
       }
    }
+
    DWORD GetAvailableDataCount() const
    {
       _ASSERTE(m_hSocket!=INVALID_SOCKET);
@@ -506,7 +556,11 @@ public:
       if( ::ioctlsocket(m_hSocket, FIONREAD, &ulRead) != 0 ) return 0;
       return (DWORD) ulRead;
    }
-   operator SOCKET() const { return m_hSocket; }
+
+   operator SOCKET() const 
+   { 
+      return m_hSocket; 
+   }
 };
 
 #endif // _NO_WINSOCK

@@ -255,6 +255,11 @@ int CScintillaView::_FindItem(CSimpleArray<CString>& aList, LPCTSTR pstrName) co
    return -1;
 }
 
+static int QCompareCString(const void* a, const void* b)
+{
+   return ((CString*)a)->Compare(*(CString*)b);
+}
+
 void CScintillaView::_AutoComplete(int ch, int iLenEntered)
 {
    USES_CONVERSION;
@@ -374,16 +379,7 @@ void CScintillaView::_AutoComplete(int ch, int iLenEntered)
    }
 
    // Sort list items
-   for( int a = 0; a < aList.GetSize(); a++ ) {
-      for( int b = a + 1; b < aList.GetSize(); b++ ) {
-         // Scintilla uses a strange compare scheme
-         if( _ScintillaCompare(aList[a], aList[b]) > 0 ) {
-            CString sTemp = aList[a];
-            aList[a] = aList[b];
-            aList[b] = sTemp;
-         }
-      }
-   }
+   ::qsort(aList.GetData(), aList.GetSize(), sizeof(CString), QCompareCString);
 
    // Create popup contents
    CString sList;
@@ -621,19 +617,6 @@ CScintillaView::SQLKEYWORD CScintillaView::_GetKeyword(CString& sKeyword) const
       if( sKeyword.CompareNoCase(aList[i].pstrName) == 0 ) return aList[i].kw;
    }
    return SQL_CONTEXT_UNKNOWN;
-}
-
-int CScintillaView::_ScintillaCompare(LPCTSTR src, LPCTSTR dst) const
-{
-   // Scintilla control has an obscure sorting of items!
-   while( *dst ) {
-      TCHAR c1 = *src < 'a' || *src > 'z' ? *src : *src - 'a' + 'A';
-      TCHAR c2 = *dst < 'a' || *dst > 'z' ? *dst : *dst - 'a' + 'A';
-      if( c1 - c2 != 0 ) return c1 - c2;
-      src++;
-      dst++;
-   }
-   return 1;
 }
 
 bool CScintillaView::_issqlchar(CHAR ch) const

@@ -495,7 +495,7 @@ public:
 
    void UpdateLayout()
    {
-      RECT rc;
+      RECT rc = { 0 };
       GetWindowRect(&rc);
       m_pCtx->sizeFloat.cx = rc.right - rc.left;
       m_pCtx->sizeFloat.cy = rc.bottom - rc.top;
@@ -590,7 +590,7 @@ public:
       T* pT = static_cast<T*>(this);
       CPaintDC dc = m_hWnd;
       dc.ExcludeClipRect(&m_rcChild);
-      RECT rc;
+      RECT rc = { 0 };
       GetClientRect(&rc);
       dc.FillRect(&rc, ::GetSysColorBrush(COLOR_3DFACE));
       short Side = m_pCtx->Side;
@@ -669,7 +669,7 @@ public:
             ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_QUERYTRACK, 0, (LPARAM) &ti);
             if( ti.Side == m_pCtx->Side ) {
                // Dragged window to same side. Move the window to top position...
-               RECT rc;
+               RECT rc = { 0 };
                GetWindowRect(&rc);
                if( !::PtInRect(&rc, m_ptEndDragPoint) ) ::SendMessage(m_pCtx->hwndRoot, WM_DOCK_REPOSITIONWINDOW, 0, (LPARAM) m_pCtx);
             }
@@ -988,13 +988,13 @@ public:
          ::ClientToScreen(m_hWnd,& ptPos);
          m_ptStartDragPoint = m_ptEndDragPoint = m_ptDeltaDragPoint = ptPos;
          //
-         RECT rcWin;
+         RECT rcWin = { 0 };
          GetWindowRect(&rcWin);
          m_rcTracker = m_rcSplitter;
          ::OffsetRect(&m_rcTracker, rcWin.left, rcWin.top);
          //
          ::GetWindowRect(GetParent(),& m_rcTrackerBounds);
-         RECT rcLimit;
+         RECT rcLimit = { 0 };
          ::SendMessage(GetParent(), WM_DOCK_QUERYRECT, DOCK_INFO_CHILD, (LPARAM) &rcLimit);
          switch( m_Side ) {
          case DOCK_LEFT:   m_rcTrackerBounds.right = rcLimit.right; break;
@@ -1453,7 +1453,7 @@ public:
       TRACKINFO* pTI = (TRACKINFO*) lParam;
       ATLASSERT(pTI);
       POINT& pt = pTI->ptPos;
-      RECT rc;
+      RECT rc = { 0 };
 
       if( (pTI->pCtx->dwFlags & DCK_NOFLOAT) != 0 ) {
          // If we're not allowed to float, we're still docked to where we came from
@@ -1565,7 +1565,7 @@ public:
 
    void UpdateLayout()
    {
-      RECT rect;   
+      RECT rect = { 0 };
       GetClientRect(&rect);
       RECT rcClient = rect;
 

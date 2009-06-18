@@ -32,6 +32,7 @@ public:
       m_sProcessName = pstrName;
       m_sProcessName.TrimLeft(_T("./"));   // Don't want "./foo.exe" because pids have absolute paths
    }
+
    long GetSelectedPid() const
    {
       return m_lPid;
@@ -48,6 +49,8 @@ public:
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      CenterWindow();
+
       m_ctrlList = GetDlgItem(IDC_LIST);
       m_ctrlList.SetFont(AtlGetStockFont(ANSI_FIXED_FONT));
       m_ctrlList.SetHorizontalExtent(1200);
@@ -74,6 +77,7 @@ public:
 
       return TRUE;
    }
+   
    LRESULT OnOk(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {      
       int iIndex = m_ctrlList.GetCurSel();
@@ -82,16 +86,19 @@ public:
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CWindow(GetDlgItem(IDOK)).EnableWindow(m_ctrlList.GetCurSel() > 0);
       return 0;
    }
+   
    LRESULT OnDblClick(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       PostMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0));
@@ -172,10 +179,12 @@ public:
       }
       return E_NOINTERFACE;
    }
+
    ULONG STDMETHODCALLTYPE AddRef(void)
    {
       return 1;
    }
+   
    ULONG STDMETHODCALLTYPE Release(void)
    {
       return 1;

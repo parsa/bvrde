@@ -16,26 +16,32 @@ public:
       m_sType(pstrType), m_sName(pstrName)
    {
    }
+   
    BOOL Load(ISerializable* /*pArchive*/)
    {
       return FALSE;
    }  
+   
    BOOL Save(ISerializable* /*pArchive*/)
    {
       return FALSE;
    }  
+   
    BOOL GetName(LPTSTR pstrName, UINT cchMax) const
    {
       return _tcsncpy(pstrName, m_sName, cchMax) > 0;
    }  
+   
    BOOL GetType(LPTSTR pstrType, UINT cchMax) const
    {
       return _tcsncpy(pstrType, m_sType, cchMax) > 0;
    }  
+   
    IElement* GetParent() const
    {
       return NULL;
    }
+   
    IDispatch* GetDispatch()
    {
       return NULL;

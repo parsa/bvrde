@@ -75,6 +75,7 @@ public:
       m_ctrlTree.SelectItem(m_ctrlTree.GetRootItem());
       return TRUE;
    }
+
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       m_TreeImages.Destroy();
@@ -82,6 +83,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CWaitCursor cursor;
@@ -122,16 +124,19 @@ public:
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnItemActivate(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       PostMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0));
       return 0;
    }
+   
    LRESULT OnItemChanged(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       int iIndex = m_ctrlList.GetSelectedIndex();
@@ -144,6 +149,7 @@ public:
       _UpdateButtons();
       return 0;
    }
+   
    LRESULT OnTreeSelection(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       _PopulateList();
@@ -159,10 +165,12 @@ public:
       if( iIndex < 0 ) return false;
       return ::lstrcpy(pstrName, m_aFiles[m_ctrlList.GetItemData(iIndex)].szName) > 0;
    }
+   
    void _UpdateButtons()
    {
       m_ctrlOK.EnableWindow(m_ctrlList.GetSelectedCount() > 0);
    }
+   
    void _PopulateTree()
    {
       int iIndex = 0;
@@ -176,6 +184,7 @@ public:
          iIndex++;
       }
    }
+   
    void _PopulateList()
    {
       CWaitCursor cursor;

@@ -40,6 +40,7 @@ class CShellMalloc
 {
 public:
    LPMALLOC m_pMalloc;
+
    void Init()
    {
       m_pMalloc = NULL;
@@ -49,20 +50,24 @@ public:
          // TODO: TERMINATE
       }
    }
+
    void Term()
    {
       if( m_pMalloc!=NULL ) m_pMalloc->Release();
    }
+
    operator LPMALLOC() const
    {
       return m_pMalloc;
    }
+
    LPVOID Alloc(ULONG cb)
    {
       ATLASSERT(m_pMalloc!=NULL);
       ATLASSERT(cb>0);
       return m_pMalloc->Alloc(cb);
    }
+
    void Free(LPVOID p)
    {
       ATLASSERT(m_pMalloc!=NULL);
@@ -77,15 +82,18 @@ class CShellImageLists
 public:
    HIMAGELIST m_hImageListSmall;
    HIMAGELIST m_hImageListLarge;
+
    CShellImageLists() :
       m_hImageListSmall(NULL), m_hImageListLarge(NULL)
    {
    }
+
    virtual ~CShellImageLists()
    {
       if( m_hImageListSmall ) ImageList_Destroy(m_hImageListSmall);
       if( m_hImageListLarge ) ImageList_Destroy(m_hImageListLarge);
    }
+
    BOOL Create(HINSTANCE hResource, LPCTSTR RootID, LPCTSTR FolderID)
    {
       // Set the small image list
@@ -168,11 +176,13 @@ public:
       m_Allocator.Init();
       return CComModule::Init(p, h, plibid);
    }
+
    void Term()
    {
       m_Allocator.Term();
       CComModule::Term();
    }
+
    // Shell Allocator
    CShellMalloc m_Allocator;
 #ifndef _NO_CLIPFORMATS

@@ -24,6 +24,7 @@ public:
       m_bm.LoadBitmap(IDB_SPLASH);
       ATLASSERT(!m_bm.IsNull());
    }
+
    ~CSplashWindow()
    {
       while( IsWindow() ) 
@@ -44,6 +45,7 @@ public:
       ::WaitForInputIdle(::GetCurrentProcess(), 300L);
       return TRUE;
    }
+   
    void RemoveSplash(UINT dwDelay = 1000L)
    {
       ATLTRACE("%08X CSplash::RemoveSplash()\n", ::GetTickCount());
@@ -109,6 +111,7 @@ public:
       m_bCreated = true;
       return 0;
    }
+   
    LRESULT OnPaint(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       ATLTRACE("%08X CSplash::OnPaint()\n", ::GetTickCount());
@@ -123,11 +126,13 @@ public:
       }
       return 0;
    }
+   
    LRESULT OnSetCursor(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       ::SetCursor(::LoadCursor(NULL, IDC_APPSTARTING));
       return TRUE;
    }
+   
    LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       KillTimer(TIMERID);
@@ -135,6 +140,7 @@ public:
       DestroyWindow();
       return 0;
    }
+   
    LRESULT OnRemoveSplash(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       SetTimer(TIMERID, lParam);

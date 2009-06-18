@@ -135,6 +135,7 @@ public:
       dc.SelectBrush(hOldBrush);
       return 1;
    }
+
    LRESULT OnPrint(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {
       CDCHandle dc = (HDC) wParam;
@@ -278,6 +279,7 @@ public:
    }
 
 #ifndef _WTL_USE_MDI
+
    BOOL SetMDIClient(HWND /*hWndMDIClient*/)
    {
       // Use CMDICommandBarCtrl for MDI support
@@ -285,6 +287,7 @@ public:
       ATLASSERT(false);
       return FALSE;
    }
+
 #endif // _WTL_USE_MDI
 
    void Prepare()

@@ -46,12 +46,10 @@ public:
    bool m_bInitialized;             // Initialized first time?
    //
    static FINDREPLACEA s_frFind;    // The Find dialog information
-   bool m_bAutoCompleteNext;        // AutoComplete displayed at next char added?
    bool m_bAutoTextDisplayed;       // AutoText currently displayed?
    bool m_bSuggestionDisplayed;     // Suggestion word curently displayed
    long lAutoTextPos;               // Text Position for start of AutoText
    int iAutoTextEntry;              // AutoText to activate
-   CHAR m_cPrevChar;                // Preivously typed char
 
    // IIdleListener
 

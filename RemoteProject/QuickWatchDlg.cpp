@@ -137,6 +137,8 @@ void CQuickWatchDlg::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 
 LRESULT CQuickWatchDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+   CenterWindow();
+
    m_pDevEnv->EnableModeless(FALSE);
 
    m_sDefault.TrimLeft();

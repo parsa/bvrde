@@ -40,6 +40,8 @@ public:
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      CenterWindow();
+
       m_ctrlFiles = GetDlgItem(IDC_FILES);
       m_ctrlUpdateDirs = GetDlgItem(IDC_DIRS);
       m_ctrlResetSticky = GetDlgItem(IDC_RESETSTICKS);
@@ -53,11 +55,12 @@ public:
       }
       m_ctrlFiles.SetWindowText(sFiles);
 
-      BOOL bDummy;
+      BOOL bDummy = FALSE;
       OnChange(0, 0, NULL, bDummy);
 
       return 0;
    }
+
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       bool bBranch = m_ctrlBranch.GetCheck() == BST_CHECKED;
@@ -80,11 +83,13 @@ public:
       EndDialog(wID);
       return 0;
    }
+
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+
    LRESULT OnChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       m_ctrlBranchText.EnableWindow(m_ctrlBranch.GetCheck() == BST_CHECKED);

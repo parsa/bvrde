@@ -24,13 +24,16 @@ public:
    CSimpleWizardManager(CPropertySheetWindow wndSheet) : m_wndSheet(wndSheet)
    {
    }
+
    CSimpleWizardManager(CPropertySheet* pSheet) : m_pSheet(pSheet)
    {
    }
+   
    BOOL AddWizardGroup(LPCTSTR /*pstrParent*/, LPCTSTR /*pstrName*/)
    {
       return FALSE;
    }
+   
    BOOL AddWizardPage(UINT /*nID*/, LPCPROPSHEETPAGE hPage)
    {
       if( m_wndSheet.IsWindow() ) return m_wndSheet.AddPage(hPage);
@@ -38,6 +41,7 @@ public:
       ATLASSERT(false);
       return FALSE;
    }
+   
    BOOL SetWizardGroup(LPCTSTR /*pstrName*/)
    {
       return FALSE;
@@ -481,7 +485,8 @@ int CAssociationsOptionsPage::OnSetActive()
 
 int CAssociationsOptionsPage::OnApply()
 {
-   for( int i = 0; i < m_ctrlList.GetItemCount(); i++ ) {
+   for( int i = 0; i < m_ctrlList.GetItemCount(); i++ ) 
+   {
       BOOL bNowState = m_ctrlList.GetCheckState(i);
       BOOL bOldState = (BOOL) m_ctrlList.GetItemData(i);
       if( bNowState != bOldState ) {

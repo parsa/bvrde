@@ -8,8 +8,7 @@
 #include "RegSerializer.h"
 
 
-class CExternalToolsDlg :
-   public CDialogImpl<CExternalToolsDlg>
+class CExternalToolsDlg : public CDialogImpl<CExternalToolsDlg>
 {
 public:
    enum { IDD = IDD_TOOLS };
@@ -89,7 +88,7 @@ public:
 
    LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
-      CenterWindow(GetParent());
+      CenterWindow();
 
       CLogFont lf = GetFont();
       lf.MakeLarger(2);
@@ -158,11 +157,13 @@ public:
       EndDialog(wID);
       return 0;
    }
+
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnNew(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {    
       CString sNewTool(MAKEINTRESOURCE(IDS_NEWTOOL));
@@ -179,6 +180,7 @@ public:
       m_nTools++;
       return 0;
    }
+   
    LRESULT OnDelete(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       m_ctrlList.DeleteItem(m_ctrlList.GetSelectedIndex());
@@ -187,6 +189,7 @@ public:
       m_ctrlDelete.SetButtonStyle(BS_PUSHBUTTON);
       return 0;
    }
+   
    LRESULT OnUp(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       int iIndex = m_ctrlList.GetSelectedIndex();
@@ -202,6 +205,7 @@ public:
       m_ctrlUp.SetButtonStyle(BS_PUSHBUTTON);
       return 0;
    }
+   
    LRESULT OnDown(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       int iIndex = m_ctrlList.GetSelectedIndex();
@@ -217,6 +221,7 @@ public:
       m_ctrlDown.SetButtonStyle(BS_PUSHBUTTON);
       return 0;
    }
+   
    LRESULT OnBrowseFile(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CString sFilter(MAKEINTRESOURCE(IDS_FILTER_EXE));
@@ -231,6 +236,7 @@ public:
       m_ctrlBrowseFile.SetButtonStyle(BS_PUSHBUTTON);
       return 0;
    }
+   
    LRESULT OnBrowseArgs(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CMenu menu;
@@ -244,6 +250,7 @@ public:
       m_ctrlArguments.SetFocus();
       return 0;
    }
+   
    LRESULT OnBrowsePath(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CFolderDialog dlg;
@@ -251,6 +258,7 @@ public:
       m_ctrlPath.SetWindowText(dlg.m_szFolderPath);
       return 0;
    }
+   
    LRESULT OnToolToken(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CEdit ctrlEdit = ::GetFocus();
@@ -348,6 +356,7 @@ public:
          arc.Close();
       }
    }
+   
    void _SaveItems()
    {
       // HACK: To commit latest changes!

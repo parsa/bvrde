@@ -27,7 +27,7 @@ public:
       m_Info = Info;
    }
 
-   BEGIN_MSG_MAP(CRunArgumentsDlg)
+   BEGIN_MSG_MAP(CBreakpointInfoDlg)
       MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
       COMMAND_ID_HANDLER(IDOK, OnOk)
       COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
@@ -37,6 +37,7 @@ public:
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       ATLASSERT(m_pProject);
+      CenterWindow();
       CLogFont lf = AtlGetDefaultGuiFont();
       lf.MakeBolder();
       m_fontBold.CreateFontIndirect(&lf);
@@ -63,6 +64,7 @@ public:
       _UpdateButtons();
       return FALSE;
    }
+
    LRESULT OnOk(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       // Set or clear "Ignore count"
@@ -83,11 +85,13 @@ public:
       EndDialog(wID);
       return 0;
    }
+
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnClicked(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       _UpdateButtons();

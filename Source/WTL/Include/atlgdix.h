@@ -108,6 +108,7 @@ public:
 #endif
       return m_hIcon;
    }
+
    HICON LoadIcon(_U_STRINGorID icon, int cxDesired, int cyDesired, UINT fuLoad = 0)
    {
       ATLASSERT(m_hIcon==NULL);
@@ -118,12 +119,14 @@ public:
 #endif
       return m_hIcon;
    }
+
    HICON LoadOEMIcon(UINT nIDIcon) // for IDI_ types
    {
       ATLASSERT(m_hIcon==NULL);
       m_hIcon = ::LoadIcon(NULL, MAKEINTRESOURCE(nIDIcon));
       return m_hIcon;
    }
+   
    HICON CreateIcon(int nWidth, int nHeight, BYTE cPlanes, BYTE cBitsPixel, CONST BYTE* lpbANDButs, CONST BYTE *lpbXORbits)
    {
       ATLASSERT(m_hIcon==NULL);
@@ -136,6 +139,7 @@ public:
 #endif
       return m_hIcon;
    }
+   
    HICON CreateIconFromResource(PBYTE pBits, DWORD dwResSize, DWORD dwVersion = 0x00030000)
    {
       ATLASSERT(m_hIcon==NULL);
@@ -143,6 +147,7 @@ public:
       m_hIcon = ::CreateIconFromResource(pBits, dwResSize, TRUE, dwVersion);
       return m_hIcon;
    }
+   
    HICON CreateIconFromResourceEx(PBYTE pbBits, DWORD cbBits, DWORD dwVersion = 0x00030000, int cxDesired = 0, int cyDesired = 0, UINT uFlags = LR_DEFAULTCOLOR)
    {
       ATLASSERT(m_hIcon==NULL);
@@ -151,6 +156,7 @@ public:
       m_hIcon = ::CreateIconFromResourceEx(pbBits, cbBits, TRUE, dwVersion, cxDesired,  cyDesired, uFlags);
       return m_hIcon;
    }
+   
    HICON CreateIconIndirect(PICONINFO pIconInfo)
    {
       ATLASSERT(m_hIcon==NULL);
@@ -158,6 +164,7 @@ public:
       m_hIcon = ::CreateIconIndirect(pIconInfo);
       return m_hIcon;
    }
+   
    HICON ExtractIcon(LPCTSTR lpszExeFileName, UINT nIconIndex)
    {
       ATLASSERT(m_hIcon==NULL);
@@ -169,6 +176,7 @@ public:
 #endif
       return m_hIcon;
    }
+   
    HICON ExtractAssociatedIcon(HINSTANCE hInst, LPCTSTR lpIconPath, LPWORD lpiIcon)
    {
       ATLASSERT(m_hIcon==NULL);
@@ -187,11 +195,13 @@ public:
       if( bRet ) m_hIcon = NULL;
       return bRet;
    }
+   
    HICON CopyIcon()
    {
       ATLASSERT(m_hIcon!=NULL);
       return ::CopyIcon(m_hIcon);
    }
+   
    HICON DuplicateIcon()
    {
       ATLASSERT(m_hIcon!=NULL);
@@ -203,16 +213,19 @@ public:
       ATLASSERT(m_hIcon!=NULL);
       return ::DrawIcon(hDC, x, y, m_hIcon);
    }
+   
    BOOL DrawIcon(HDC hDC, POINT pt)
    {
       ATLASSERT(m_hIcon!=NULL);
       return ::DrawIcon(hDC, pt.x, pt.y, m_hIcon);
    }
+   
    BOOL DrawIconEx(HDC hDC, int x, int y, int cxWidth, int cyWidth, UINT uStepIfAniCur = 0, HBRUSH hbrFlickerFreeDraw = NULL, UINT uFlags = DI_NORMAL)
    {
       ATLASSERT(m_hIcon!=NULL);
       return ::DrawIconEx(hDC, x, y, m_hIcon, cxWidth, cyWidth, uStepIfAniCur, hbrFlickerFreeDraw, uFlags);
    }
+   
    BOOL DrawIconEx(HDC hDC, POINT pt, SIZE size, UINT uStepIfAniCur = 0, HBRUSH hbrFlickerFreeDraw = NULL, UINT uFlags = DI_NORMAL)
    {
       ATLASSERT(m_hIcon!=NULL);
@@ -290,12 +303,14 @@ public:
 #endif
       return m_hCursor;
    }
+   
    HCURSOR LoadOEMCursor(UINT nIDCursor) // for IDC_ types
    {
       ATLASSERT(m_hCursor==NULL);
       m_hCursor = ::LoadCursor(NULL, MAKEINTRESOURCE(nIDCursor));
       return m_hCursor;
    }
+   
    HICON LoadCursor(_U_STRINGorID cursor, int cxDesired, int cyDesired, UINT fuLoad = 0)
    {
       ATLASSERT(m_hCursor==NULL);
@@ -306,6 +321,7 @@ public:
 #endif
       return m_hCursor;
    }
+   
    HCURSOR LoadCursorFromFile(LPCTSTR pstrFilename)
    {
       ATLASSERT(m_hCursor==NULL);
@@ -313,6 +329,7 @@ public:
       m_hCursor = ::LoadCursorFromFile(pstrFilename);
       return m_hCursor;
    }
+   
    HCURSOR CreateCursor(int xHotSpot, int yHotSpot, int nWidth, int nHeight, CONST VOID *pvANDPlane, CONST VOID *pvXORPlane)
    {
       ATLASSERT(m_hCursor==NULL);
@@ -323,6 +340,7 @@ public:
 #endif
       return m_hCursor;
    }
+   
    HICON CreateCursorFromResource(PBYTE pBits, DWORD dwResSize, DWORD dwVersion = 0x00030000)
    {
       ATLASSERT(m_hIcon==NULL);
@@ -330,6 +348,7 @@ public:
       m_hIcon = ::CreateIconFromResource(pBits, dwResSize, FALSE, dwVersion);
       return m_hIcon;
    }
+   
    HICON CreateCursorFromResourceEx(PBYTE pbBits, DWORD cbBits, DWORD dwVersion = 0x00030000, int cxDesired = 0, int cyDesired = 0, UINT uFlags = LR_DEFAULTCOLOR)
    {
       ATLASSERT(m_hIcon==NULL);
@@ -356,12 +375,14 @@ public:
    }
 
 #if(WINVER >= 0x0500)
+
    BOOL GetCursorInfo(LPCURSORINFO pCursorInfo)
    {
       ATLASSERT(m_hCursor!=NULL);
       ATLASSERT(pCursorInfo);
       return ::GetCursorInfo(pCursorInfo);
    }
+
 #endif
 };
 
@@ -408,6 +429,7 @@ public:
       if( t_bManaged && m_hAccel != NULL ) ::DestroyAcceleratorTable(m_hAccel);
       m_hAccel = hAccel;
    }  
+
    HCURSOR Detach()
    {
       HACCEL hAccel = m_hAccel;
@@ -431,6 +453,7 @@ public:
 #endif
       return m_hAccel;
    }
+   
    HACCEL CreateAcceleratorTable(LPACCEL pAccel, int cEntries)
    {
       ATLASSERT(m_hAccel==NULL);
@@ -471,47 +494,57 @@ public:
    { 
       ::ZeroMemory( (LOGFONT*) this, sizeof(LOGFONT) );
    }
+
    CLogFont(const LOGFONT& lf) 
    { 
       Copy(&lf);
    }
+   
    CLogFont(HFONT hFont)
    {
       ATLASSERT(::GetObjectType(hFont)==OBJ_FONT);
       ::GetObject(hFont, sizeof(LOGFONT), (LOGFONT*) this);
    }
+   
    HFONT CreateFontIndirect() 
    { 
       return ::CreateFontIndirect(this); 
    }
+   
    void SetBold() 
    { 
       lfWeight = FW_BOLD; 
    }
+   
    BOOL IsBold() const 
    { 
       return lfWeight >= FW_BOLD; 
    }
+   
    void MakeBolder(int iScale = 1)
    {
-      lfWeight += FW_BOLD * iScale;
+      lfWeight += FW_BOLD * iScale;   
    }
+   
    void MakeLarger(int iScale)
    {
       if( lfHeight > 0 ) lfHeight += iScale; else lfHeight -= iScale;
    }
+   
    void SetHeight(long PointSize, HDC hDC = NULL) 
    { 
       // For MM_TEXT mapping mode...
       // NOTE: MulDiv() gives correct rounding.
-      lfHeight = -MulDiv(PointSize, ::GetDeviceCaps(hDC, LOGPIXELSY), 72); 
+      lfHeight = -MulDiv(PointSize, ::GetDeviceCaps(hDC, LOGPIXELSY), 72);    
    }
+   
    long GetHeight(HDC hDC = NULL) const
    {
       // For MM_TEXT mapping mode...
       // NOTE: MulDiv() gives correct rounding.
       return MulDiv(-lfHeight, 72, ::GetDeviceCaps(hDC, LOGPIXELSY));
    }
+   
    long GetDeciPointHeight(HDC hDC = NULL)
    {
       POINT ptOrg = { 0, 0 };
@@ -521,15 +554,17 @@ public:
       ::LPtoDP(hDC,&pt,1);
       return MulDiv(pt.y, 720, ::GetDeviceCaps(hDC,LOGPIXELSY)); // 72 points/inch, 10 decipoints/point
    }
+   
    void SetHeightFromDeciPoint(long DeciPtHeight, HDC hDC = NULL)
    {
-      POINT pt;
+      POINT pt = { 0 };
       pt.y = MulDiv(::GetDeviceCaps(hDC, LOGPIXELSY), DeciPtHeight, 720); // 72 points/inch, 10 decipoints/point
       ::DPtoLP(hDC, &pt, 1);
       POINT ptOrg = { 0, 0 };
       ::DPtoLP(hDC, &ptOrg, 1);
       lfHeight = -abs(pt.y - ptOrg.y);
    }
+   
    void SetCaptionFont()
    {
       NONCLIENTMETRICS ncm = { 0 };
@@ -537,6 +572,7 @@ public:
       ::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0);
       Copy(&ncm.lfCaptionFont);
    }
+
    void SetMenuFont()
    {
       NONCLIENTMETRICS ncm = { 0 };
@@ -544,6 +580,7 @@ public:
       ::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0);
       Copy(&ncm.lfMenuFont);
    }
+   
    void SetStatusFont()
    {
       NONCLIENTMETRICS ncm = { 0 };
@@ -551,6 +588,7 @@ public:
       ::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0);
       Copy(&ncm.lfStatusFont);
    }
+   
    void SetMessageBoxFont()
    {
       NONCLIENTMETRICS ncm = { 0 };
@@ -558,27 +596,32 @@ public:
       ::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0);
       Copy(&ncm.lfMessageFont);
    }
+   
    void Copy(const LOGFONT* lf)
    {
       ATLASSERT(lf);
       ::CopyMemory( (LOGFONT*) this, lf, sizeof(LOGFONT) );
    }
+   
    CLogFont& operator=(const CLogFont& src)
    {
       Copy(&src);
       return *this;
    }
+   
    CLogFont& operator=(const LOGFONT& src)
    {
       Copy(&src);
       return *this;
    }
+   
    CLogFont& operator=(HFONT hFont)
    {
       ATLASSERT(::GetObjectType(hFont)==OBJ_FONT);
       ::GetObject(hFont, sizeof(LOGFONT), (LOGFONT*) this);
       return *this;
    }
+   
    bool operator==(const LOGFONT& logfont) const
    {
       return( logfont.lfHeight == lfHeight &&
@@ -625,6 +668,7 @@ public:
       ::DPtoLP(m_dc, (LPPOINT) &m_rc, sizeof(RECT) / sizeof(POINT));
       SetWindowOrg(m_rc.left, m_rc.top);
    }
+
    ~CMemDC()
    {
       // Copy the offscreen bitmap onto the screen.
@@ -668,10 +712,12 @@ public:
       }
       return 0;
    }
+   
    LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       return 1; // handled; no need to erase background; do it in DoPaint();
    }
+   
    void DoPaint(CDCHandle dc)
    {
       ATLASSERT(false); // must override this
@@ -705,10 +751,12 @@ public:
       }
       return 0;
    }
+   
    LRESULT OnEraseBackground(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       return 1; // handled; no need to erase background; do it in DoPaint();
    }
+   
    void DoPaint(CDCHandle dc, RECT& rcClip)
    {
       ATLASSERT(false); // must override this
@@ -731,10 +779,12 @@ public:
       m_iState = ::SaveDC(hDC);
       ATLASSERT(m_iState!=0);
    }
+   
    ~CSaveDC()
    {
       Restore();
    }
+   
    void Restore()
    {
       if( m_iState == 0 ) return;
@@ -871,6 +921,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnMouseLeave(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       T* pT = static_cast<T*>(this);
@@ -884,6 +935,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    BOOL _StartTrackMouseLeave(HWND hWnd) const
    {
       ATLASSERT(::IsWindow(hWnd));
@@ -893,6 +945,7 @@ public:
       tme.hwndTrack = hWnd;
       return _TrackMouseEvent(&tme);
    }
+   
    BOOL _CancelTrackMouseLeave(HWND hWnd) const
    {
       TRACKMOUSEEVENT tme = { 0 };

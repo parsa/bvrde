@@ -69,6 +69,7 @@ public:
       SetItemData(iItem, (DWORD) clr);
       return iItem;
    }
+
    BOOL RemoveColor(COLORREF clr)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -76,6 +77,7 @@ public:
       if( iItem == -1 ) return FALSE;
       return DeleteString(iItem);
    }
+   
    BOOL ChangeColor(int iIndex, COLORREF clr)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -85,6 +87,7 @@ public:
       Invalidate();
       return TRUE;
    }
+   
    BOOL SelectColor(COLORREF clr)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -92,6 +95,7 @@ public:
       if( iItem == -1 ) return FALSE;
       return SetCurSel(iItem);
    }
+   
    COLORREF GetSelectedColor() const
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -99,6 +103,7 @@ public:
       if( iItem == -1 ) return (COLORREF) -1; // Returns -1 if none if selected
       return (COLORREF) GetItemData(iItem) & 0xFFFFFF;
    }
+   
    int FindColor(COLORREF clr) const
    {
       ATLASSERT(::IsWindow(m_hWnd));

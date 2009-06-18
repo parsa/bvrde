@@ -16,11 +16,13 @@ public:
    CSpeedList(HWND hWnd) : CListViewCtrl(hWnd)
    {
    }
+
    void AddItem(UINT nRes, LPCTSTR pstrValue)
    {
       int iItem = InsertItem(GetItemCount(), CString(MAKEINTRESOURCE(nRes)));
       SetItemText(iItem, 1, pstrValue);
    }
+
    void AddItem(UINT nRes, long lValue)
    {
       int iItem = InsertItem(GetItemCount(), CString(MAKEINTRESOURCE(nRes)));
@@ -28,6 +30,7 @@ public:
       sValue.Format(_T("%ld"), lValue);
       SetItemText(iItem, 1, sValue);
    }
+   
    void AddItem(UINT nRes, bool bValue)
    {
       int iItem = InsertItem(GetItemCount(), CString(MAKEINTRESOURCE(nRes)));

@@ -17,10 +17,12 @@ class CWaitCursor
 {
 public:
    HCURSOR m_hOldCursor;
+
    CWaitCursor()
    {
       m_hOldCursor = ::SetCursor( ::LoadCursor(NULL, IDC_WAIT) );
    }
+
    ~CWaitCursor()
    {
       ::SetCursor(m_hOldCursor);
@@ -144,6 +146,7 @@ public:
       TrackPopupMenu(pidl, x, y, m_hWnd);
       return 0;
    }
+
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       SetColumnWidth(0, LVSCW_AUTOSIZE_USEHEADER);
@@ -235,6 +238,7 @@ public:
 
       return 0;
    }
+   
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       CClientRect rcClient = m_hWnd;
@@ -255,6 +259,7 @@ public:
       if( !m_ctrlFiles.Populate(pidl) ) return 0;
       return 0;
    }
+   
    LRESULT OnDblClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
    {
       LPNMLISTVIEW pnmlv = (LPNMLISTVIEW) pnmh;
@@ -275,6 +280,7 @@ public:
       }
       return 0;
    }
+   
    LRESULT OnKeyDown(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
    {
       LPNMLVKEYDOWN lpNMLVD = (LPNMLVKEYDOWN) pnmh;
@@ -285,6 +291,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnBeginDrag(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
    {
       LPNMLISTVIEW pnmlv = (LPNMLISTVIEW) pnmh;

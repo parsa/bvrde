@@ -26,6 +26,8 @@ public:
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      CenterWindow();
+      
       m_ctrlCommand = GetDlgItem(IDC_COMMAND);
       m_ctrlArguments = GetDlgItem(IDC_ARGUMENTS);
 
@@ -39,6 +41,7 @@ public:
       
       return FALSE;
    }
+
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       m_sCommand = CWindowText(m_ctrlCommand);
@@ -46,6 +49,7 @@ public:
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);

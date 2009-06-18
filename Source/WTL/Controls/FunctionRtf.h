@@ -49,6 +49,7 @@ public:
       HideSelection();
       return m_hWnd;
    }
+
    void SetResize(REQRESIZE* pRR)
    {
       ATLASSERT(IsWindow());
@@ -60,6 +61,7 @@ public:
       rcWindow.bottom = rcWindow.top + (rcSize.bottom - rcSize.top);
       SetWindowPos(HWND_TOPMOST, &rcWindow, SWP_NOMOVE | SWP_NOACTIVATE);
    }
+
    void ShowItem(LPCTSTR pstrName, CTagDetails& Info)
    {
       // Format the member declaration.
@@ -176,6 +178,7 @@ public:
          }
       }
    }
+
    void _ColorText(const CString& sText, CString sItem, BYTE iEffect, COLORREF clrText = CLR_NONE)
    {
       sItem.TrimLeft(_T("\n"));

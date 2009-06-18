@@ -54,28 +54,34 @@ public:
    {
       m_hFile = hFile;
    }
+
    CFileT(const CFileT<t_bManaged>& file) 
    {
       m_hFile = INVALID_HANDLE_VALUE;
       DuplicateHandle(file.m_hFile);
    }
+
    ~CFileT()
    { 
       if( t_bManaged ) Close(); 
    }
+   
    operator HFILE() const 
    { 
       return (HFILE) m_hFile; 
    }
+   
    operator HANDLE() const 
    { 
       return m_hFile; 
    }
+   
    const CFileT<t_bManaged>& operator=(const CFileT<t_bManaged>& file)
    {
       DuplicateHandle(file.m_hFile);
       return *this;
    }
+   
    BOOL Open(LPCTSTR pstrFileName, 
              DWORD dwAccess = GENERIC_READ, 
              DWORD dwShareMode = FILE_SHARE_READ, 
@@ -96,6 +102,7 @@ public:
       m_hFile = hFile;
       return TRUE;
    }
+   
    BOOL Create(LPCTSTR pstrFileName,
                DWORD dwAccess = GENERIC_WRITE, 
                DWORD dwShareMode = 0 /*DENY ALL*/, 
@@ -104,27 +111,32 @@ public:
    {
       return Open(pstrFileName, dwAccess, dwShareMode, dwFlags, dwAttributes);
    }
+   
    void Close()
    {
       if( m_hFile == INVALID_HANDLE_VALUE ) return;
       ::CloseHandle(m_hFile);
       m_hFile = INVALID_HANDLE_VALUE;
    }
+   
    BOOL IsOpen() const
    {
       return m_hFile != INVALID_HANDLE_VALUE;
    }
+   
    void Attach(HANDLE hHandle)
    {
       Close();
       m_hFile = hHandle;
    }   
+   
    HANDLE Detach()
    {
       HANDLE h = m_hFile;
       m_hFile = INVALID_HANDLE_VALUE;
       return h;
    }
+   
    BOOL Read(LPVOID lpBuf, DWORD nCount)
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
@@ -135,6 +147,7 @@ public:
       if( !::ReadFile(m_hFile, lpBuf, nCount, &dwRead, NULL) ) return FALSE;
       return TRUE;
    }
+   
    BOOL Read(LPVOID lpBuf, DWORD nCount, LPDWORD pdwRead)
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
@@ -146,6 +159,7 @@ public:
       if( !::ReadFile(m_hFile, lpBuf, nCount, pdwRead, NULL) ) return FALSE;
       return TRUE;
    }
+   
    BOOL Write(LPCVOID lpBuf, DWORD nCount)
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
@@ -156,6 +170,7 @@ public:
       if( !::WriteFile(m_hFile, lpBuf, nCount, &dwWritten, NULL) ) return FALSE;
       return TRUE;
    }
+   
    BOOL Write(LPCVOID lpBuf, DWORD nCount, LPDWORD pdwWritten)
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
@@ -167,6 +182,7 @@ public:
       if( !::WriteFile(m_hFile, lpBuf, nCount, pdwWritten, NULL) ) return FALSE;
       return TRUE;
    }
+   
    DWORD Seek(LONG lOff, UINT nFrom)
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
@@ -174,6 +190,7 @@ public:
       if( dwNew == INVALID_SET_FILE_POINTER ) return (DWORD) -1;
       return dwNew;
    }
+   
    DWORD GetPosition() const
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
@@ -181,46 +198,55 @@ public:
       if( dwPos == INVALID_SET_FILE_POINTER ) return (DWORD) -1;
       return dwPos;
    }
+   
    BOOL Lock(DWORD dwOffset, DWORD dwSize)
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
       return ::LockFile(m_hFile, dwOffset, 0, dwSize, 0);
    }
+   
    BOOL Unlock(DWORD dwOffset, DWORD dwSize)
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
       return ::UnlockFile(m_hFile, dwOffset, 0, dwSize, 0);
    }
+   
    BOOL SetEOF()
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
       return ::SetEndOfFile(m_hFile);
    }
+   
    BOOL Flush()
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
       return ::FlushFileBuffers(m_hFile);
    }
+   
    DWORD GetSize() const
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
       return ::GetFileSize(m_hFile, NULL);
    }
+   
    DWORD GetType() const
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
       return ::GetFileType(m_hFile);
    }
+   
    BOOL GetFileTime(FILETIME* ftCreate, FILETIME* ftAccess, FILETIME* ftModified)
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
       return ::GetFileTime(m_hFile, ftCreate, ftAccess, ftModified);
    }
+   
    BOOL SetFileTime(const FILETIME* ftCreate, const FILETIME* ftAccess, const FILETIME* ftModified)
    {
       _ASSERTE(m_hFile!=INVALID_HANDLE_VALUE);
       return ::SetFileTime(m_hFile, ftCreate, ftAccess, ftModified);
    }
+   
    BOOL DuplicateHandle(HANDLE hOther)
    {
       ATLASSERT(m_hFile==INVALID_HANDLE_VALUE);
@@ -230,6 +256,7 @@ public:
       _ASSERTE(res);
       return res;
    }
+   
    static BOOL FileExists(LPCTSTR pstrFileName)
    {
       _ASSERTE(!::IsBadStringPtr(pstrFileName, MAX_PATH));
@@ -238,11 +265,13 @@ public:
       ::SetErrorMode(dwErrMode);
       return bRes;
    }
+   
    static BOOL Delete(LPCTSTR pstrFileName)
    {
       _ASSERTE(!::IsBadStringPtr(pstrFileName, MAX_PATH));
       return ::DeleteFile(pstrFileName);
    }
+   
    static BOOL Rename(LPCTSTR pstrSourceFileName, LPCTSTR pstrTargetFileName)
    {
       _ASSERTE(!::IsBadStringPtr(pstrSourceFileName, MAX_PATH));
@@ -268,6 +297,7 @@ public:
       Close();
       Delete(m_szFileName);
    }
+
    BOOL Create(LPTSTR pstrFileName, 
                UINT cchFilename,
                DWORD dwAccess = GENERIC_WRITE, 

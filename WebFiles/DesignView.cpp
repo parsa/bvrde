@@ -20,8 +20,8 @@ HWND CDesignView::Create(HWND hWndParent, RECT& rcPos /*= CWindow::rcDefault*/)
 
 BOOL CDesignView::PreTranslateMessage(MSG* pMsg)
 {
-   if( (pMsg->message < WM_KEYFIRST || pMsg->message > WM_KEYLAST) &&
-      (pMsg->message < WM_MOUSEFIRST || pMsg->message > WM_MOUSELAST) )
+   if( (pMsg->message < WM_KEYFIRST || pMsg->message > WM_KEYLAST) 
+       && (pMsg->message < WM_MOUSEFIRST || pMsg->message > WM_MOUSELAST) )
    {
       return FALSE;
    }

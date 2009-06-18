@@ -33,15 +33,18 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    BOOL PreTranslateMessage(MSG* /*pMsg*/)
    {
       return FALSE;
    }
+
    void OnIdle(IUpdateUI* pUIBase)
    {
       pUIBase->UIEnable(ID_VIEW_FILEMANAGER, TRUE);
       pUIBase->UISetCheck(ID_VIEW_FILEMANAGER, m_viewBrowser.IsWindow());
    }
+   
    void OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
    {
 #if (_ATL_VER >= 0x0700)

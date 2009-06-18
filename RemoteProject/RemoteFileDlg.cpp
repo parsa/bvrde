@@ -35,6 +35,8 @@ LRESULT CRemoteFileDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 {
    ATLASSERT(m_pFileManager);
 
+   CenterWindow();
+
    m_sSeparator = m_pFileManager->GetParam(_T("Separator"));
    ATLASSERT(!m_sSeparator.IsEmpty());
 
@@ -268,7 +270,7 @@ LRESULT CRemoteFileDlg::OnTypeChanged(WORD /*wNotifyCode*/, WORD wID, HWND /*hWn
 
 LRESULT CRemoteFileDlg::OnItemOpen(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
 {
-   BOOL bDummy;
+   BOOL bDummy = FALSE;
    OnOK(0, IDOK, NULL, bDummy);
    return 0;
 }

@@ -219,7 +219,8 @@ void CCommandView::_ExecAndCapture(LPCTSTR pstrCommandLine)
       AppendRtfText(m_hWnd, GetSystemErrorText(::GetLastError()), CFM_COLOR, 0, COLOR_RED);
    }
 
-   while( bRunning ) {
+   while( bRunning ) 
+   {
       DWORD dwBytesRead = 0;
       DWORD dwBytesAvail = 0;
       BYTE bBuffer[1024 + 1];
@@ -329,7 +330,7 @@ LRESULT CCommandView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/,
 
 LRESULT CCommandView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {   
-   POINT pt;
+   POINT pt = { 0 };
    ::GetCursorPos(&pt);
    CMenu menu;
    menu.LoadMenu(IDR_COMMANDVIEW);
@@ -364,7 +365,7 @@ LRESULT CCommandView::OnPrintClient(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lPara
    rcOutput.top += ::MulDiv(rcMargin.top, 1440, 1000);
    //rcOutput.bottom -= ::MulDiv(rcMargin.bottom, 1440, 1000);
    
-   FORMATRANGE fr;
+   FORMATRANGE fr = { 0 };
    fr.hdc = dc;
    fr.hdcTarget = dc;
    fr.rc = rcOutput;

@@ -38,6 +38,7 @@ public:
       m_bTabsVisible(true)
    {
    }
+
    ~CMDIContainer()
    {
       if( m_wndMDIClient.IsWindow() )
@@ -72,6 +73,7 @@ public:
       tci.pszText = (LPTSTR) (LPCTSTR) sName;
       m_ctrlTab.SetItem(iIndex, &tci);
    }
+   
    void RefreshItems()
    {
       int nCount = m_ctrlTab.GetItemCount();
@@ -111,11 +113,13 @@ public:
       m_ctrlTab.SetExtendedStyle(0, TCS_EX_SELHIGHLIGHT | TCS_EX_FLATSEPARATORS | TCS_EX_SCROLLBUTTONS);
       return lRes;
    }
+   
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       UpdateLayout();
       return 0;
    }
+   
    LRESULT OnSelChange(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       // Someone clicked on a tab...
@@ -127,6 +131,7 @@ public:
       m_wndMDIClient.SendMessage(WM_MDIACTIVATE, (WPARAM) tci.lParam);
       return 0;
    }
+   
    LRESULT OnRequestRemove(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       int iIndex = m_ctrlTab.GetCurSel();
@@ -137,6 +142,7 @@ public:
       ::PostMessage((HWND)tci.lParam, WM_CLOSE, 0, 0L);
       return 0;
    }
+   
    LRESULT OnRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       // Someone right-clicked on a tab...
@@ -245,6 +251,7 @@ public:
       bHandled = FALSE; // MDI stuff relies on this, so...
       return 0;
    }
+   
    LRESULT OnMDINext(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       if( m_ctrlTab.GetItemCount() <= 1 ) return 0;

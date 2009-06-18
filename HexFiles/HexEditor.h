@@ -19,6 +19,7 @@ public:
    CMapFile() : m_hMapFile(NULL), m_p(NULL), m_dwSize(0UL)
    {
    }
+
    ~CMapFile()
    {
       Close();
@@ -35,6 +36,7 @@ public:
       if( m_p == NULL ) return false;
       return true;
    }
+
    void Close()
    {
       if( m_p ) ::UnmapViewOfFile(m_p);
@@ -44,14 +46,17 @@ public:
       m_hMapFile = NULL;
       f.Close();
    }
+   
    inline bool IsOpen() const
    {
       return m_hMapFile != NULL;
    }
+   
    inline LPBYTE GetData() const
    {
       return (LPBYTE) m_p;
    }
+   
    inline DWORD GetSize() const
    {
       return m_dwSize;

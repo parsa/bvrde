@@ -54,45 +54,53 @@ public:
       ATLASSERT(m_pszName);
       ::lstrcpy(m_pszName, pstrName);
    }
+   
    virtual ~CProperty()
    {
       delete [] m_pszName;
    }
+   
    virtual void SetOwner(HWND hWnd, LPVOID /*pData*/)
    {
       ATLASSERT(::IsWindow(hWnd));
       ATLASSERT(m_hWndOwner==NULL); // Cannot set it twice
       m_hWndOwner = hWnd;
    }
+   
    virtual LPCTSTR GetName() const
    {
       return m_pszName; // Dangerous!
    }
+   
    virtual void SetEnabled(BOOL bEnable)
    {
       m_fEnabled = (bEnable != FALSE);
    }
+   
    virtual BOOL IsEnabled() const
    {
       return m_fEnabled;
    }
+   
    virtual void SetItemData(LPARAM lParam)
    {
       m_lParam = lParam;
    }
+   
    virtual LPARAM GetItemData() const
    {
       return m_lParam;
    }
+   
    virtual void DrawName(PROPERTYDRAWINFO& di)
    {
       CDCHandle dc(di.hDC);
       COLORREF clrBack, clrFront;
-      if( di.state & ODS_DISABLED ) {
+      if( (di.state & ODS_DISABLED) != 0 ) {
          clrFront = di.clrDisabled;
          clrBack = di.clrBack;
       }
-      else if( di.state & ODS_SELECTED ) {
+      else if( (di.state & ODS_SELECTED) != 0 ) {
          clrFront = di.clrSelText;
          clrBack = di.clrSelBack;
       }
@@ -108,34 +116,42 @@ public:
       dc.SetTextColor(clrFront);
       dc.DrawText(m_pszName, -1, &rcItem, DT_LEFT | DT_SINGLELINE | DT_EDITCONTROL | DT_NOPREFIX | DT_VCENTER);
    }
+   
    virtual void DrawValue(PROPERTYDRAWINFO& /*di*/) 
    { 
    }
+   
    virtual HWND CreateInplaceControl(HWND /*hWnd*/, const RECT& /*rc*/) 
    { 
       return NULL; 
    }
+   
    virtual BOOL Activate(UINT /*action*/, LPARAM /*lParam*/) 
    { 
       return TRUE; 
    }
+   
    virtual BOOL GetDisplayValue(LPTSTR /*pstr*/, UINT /*cchMax*/) const 
    { 
       return FALSE; 
    }
+   
    virtual UINT GetDisplayValueLength() const 
    { 
       return 0; 
    }
+   
    virtual BOOL GetValue(VARIANT* /*pValue*/) const 
    { 
       return FALSE; 
    }
+   
    virtual BOOL SetValue(const VARIANT& /*value*/) 
    { 
       ATLASSERT(false);
       return FALSE; 
    }
+   
    virtual BOOL SetValue(HWND /*hWnd*/) 
    { 
       ATLASSERT(false);
@@ -160,10 +176,12 @@ public:
       m_clrText( (COLORREF) CLR_INVALID )
    {
    }
+
    BYTE GetKind() const 
    { 
       return PROPKIND_SIMPLE; 
    }
+   
    void DrawValue(PROPERTYDRAWINFO& di)
    {
       UINT cchMax = GetDisplayValueLength() + 1;
@@ -187,6 +205,7 @@ public:
          &rcText, 
          DT_LEFT | DT_SINGLELINE | DT_EDITCONTROL | DT_NOPREFIX | DT_END_ELLIPSIS | DT_VCENTER);
    }
+   
    BOOL GetDisplayValue(LPTSTR pstr, UINT cchMax) const
    {      
       ATLASSERT(!::IsBadStringPtr(pstr, cchMax));
@@ -197,6 +216,7 @@ public:
       ::lstrcpyn(pstr, OLE2CT(v.bstrVal), cchMax);
       return TRUE;
    }
+   
    UINT GetDisplayValueLength() const
    {
       // Hmm, need to convert it to display string first and
@@ -206,10 +226,12 @@ public:
       if( FAILED( v.ChangeType(VT_BSTR, &m_val) ) ) return 0;
       return v.bstrVal == NULL ? 0 : ::lstrlenW(v.bstrVal);
    }
+   
    BOOL GetValue(VARIANT* pVal) const
    {
       return SUCCEEDED( CComVariant(m_val).Detach(pVal) );
    }
+   
    BOOL SetValue(const VARIANT& value)
    {
       m_val = value;
@@ -222,6 +244,7 @@ public:
       m_clrBack = clrBack;
       return clrOld;
    }
+   
    COLORREF SetTextColor(COLORREF clrText)
    {
       COLORREF clrOld = m_clrText;
@@ -251,7 +274,8 @@ public:
       m_hIcon(NULL)
    {
    }
-   void DrawValue(PROPERTYDRAWINFO& di)
+   
+      void DrawValue(PROPERTYDRAWINFO& di)
    {
       // Get property text
       UINT cchMax = GetDisplayValueLength() + 1;
@@ -297,18 +321,21 @@ public:
       m_clrBack = clrBack;
       return clrOld;
    }
+   
    COLORREF SetTextColor(COLORREF clrText)
    {
       COLORREF clrOld = m_clrText;
       m_clrText = clrText;
       return clrOld;
    }
+   
    HICON SetIcon(HICON hIcon)
    {
       HICON hOldIcon = m_hIcon;
       m_hIcon = hIcon;
       return hOldIcon;
    }
+   
    void ModifyDrawStyle(UINT uRemove, UINT uAdd)
    {
       m_uStyle = (m_uStyle & ~uRemove) | uAdd;
@@ -332,10 +359,12 @@ public:
       m_uStyle(0)
    {
    }
+   
    BYTE GetKind() const 
    { 
       return PROPKIND_EDIT; 
    }
+   
    HWND CreateInplaceControl(HWND hWnd, const RECT& rc) 
    {
       // Get default text
@@ -358,11 +387,13 @@ public:
       }
       return m_hwndEdit;
    }
+   
    BOOL SetValue(const VARIANT& value)
    {
       if( m_val.vt == VT_EMPTY ) m_val = value;
       return SUCCEEDED( m_val.ChangeType(m_val.vt, &value) );
    }
+   
    BOOL SetValue(HWND hWnd) 
    { 
       ATLASSERT(::IsWindow(hWnd));
@@ -376,10 +407,12 @@ public:
       CComVariant v = pstr;
       return SetValue(v);
    }
+   
    void SetEditStyle(UINT uStyle)
    {
       m_uStyle = uStyle;
    }
+   
    BOOL Activate(UINT action, LPARAM /*lParam*/)
    {
       switch( action ) {
@@ -407,6 +440,7 @@ public:
       CPropertyEditItem(pstrName, lParam)
    {
    }
+   
    HWND CreateInplaceControl(HWND hWnd, const RECT& rc) 
    {
       // Get default text
@@ -422,6 +456,7 @@ public:
       ATLASSERT(win->IsWindow());
       return *win;
    }
+   
    BOOL GetDisplayValue(LPTSTR pstr, UINT cchMax) const
    {
       if( m_val.date == 0.0 ) {
@@ -430,6 +465,7 @@ public:
       }
       return CPropertyEditItem::GetDisplayValue(pstr, cchMax);
    }
+   
    BOOL SetValue(const VARIANT& value)
    {
       if( value.vt == VT_BSTR && ::SysStringLen(value.bstrVal) == 0 ) {
@@ -438,6 +474,7 @@ public:
       }
       return CPropertyEditItem::SetValue(value);
    }
+   
    BOOL SetValue(HWND hWnd)
    {
       if( ::GetWindowTextLength(hWnd) == 0 ) {
@@ -463,14 +500,17 @@ public:
       m_bValue(bValue)
    {
    }
+   
    BYTE GetKind() const 
    { 
       return PROPKIND_CHECK; 
    }
+   
    BOOL GetValue(VARIANT* pVal) const
    {
       return SUCCEEDED( CComVariant(m_bValue).Detach(pVal) );
    }
+   
    BOOL SetValue(const VARIANT& value)
    {
       // Set a new value
@@ -483,6 +523,7 @@ public:
          return FALSE;
       }
    }
+   
    void DrawValue(PROPERTYDRAWINFO& di)
    {
       int cxThumb = ::GetSystemMetrics(SM_CXMENUCHECK);
@@ -500,6 +541,7 @@ public:
       if( di.state & ODS_DISABLED ) uState |= DFCS_INACTIVE;
       ::DrawFrameControl(di.hDC, &rcMark, DFC_BUTTON, uState);
    }
+   
    BOOL Activate(UINT action, LPARAM /*lParam*/) 
    { 
       switch( action ) {
@@ -526,6 +568,7 @@ public:
    CPropertyFileNameItem(LPCTSTR pstrName, LPARAM lParam) : CPropertyItem(pstrName, lParam)
    {
    }
+   
    HWND CreateInplaceControl(HWND hWnd, const RECT& rc) 
    {
       // Get default text
@@ -540,18 +583,21 @@ public:
       ATLASSERT(win->IsWindow());
       return *win;
    }
+   
    BOOL SetValue(const VARIANT& value)
    {
       ATLASSERT(V_VT(&value)==VT_BSTR);
       m_val = value;
       return TRUE;
    }
+   
    BOOL SetValue(HWND /*hWnd*/) 
    {
       // Do nothing... A value should be set on reacting to the button notification.
       // In other words: Use SetItemValue() in response to the PLN_BROWSE notification!
       return TRUE;
    }
+   
    BOOL Activate(UINT action, LPARAM /*lParam*/)
    {
       switch( action ) {
@@ -563,6 +609,7 @@ public:
       }
       return TRUE;
    }
+   
    BOOL GetDisplayValue(LPTSTR pstr, UINT cchMax) const
    {
       ATLASSERT(!::IsBadStringPtr(pstr, cchMax));
@@ -579,6 +626,7 @@ public:
       ::lstrcpyn(pstr, pstrFileName, cchMax);
       return TRUE;
    }
+   
    UINT GetDisplayValueLength() const
    {
       TCHAR szPath[MAX_PATH] = { 0 };
@@ -604,10 +652,12 @@ public:
    {
       m_val = -1L;
    }
+   
    BYTE GetKind() const 
    { 
       return PROPKIND_LIST; 
    }
+   
    HWND CreateInplaceControl(HWND hWnd, const RECT& rc) 
    {
       // Get default text
@@ -628,6 +678,7 @@ public:
       // Go...
       return *win;
    }
+   
    BOOL Activate(UINT action, LPARAM /*lParam*/)
    {
       switch( action ) {
@@ -648,6 +699,7 @@ public:
       }
       return TRUE;
    }
+   
    BOOL GetDisplayValue(LPTSTR pstr, UINT cchMax) const
    {
       ATLASSERT(m_val.vt==VT_I4);
@@ -658,13 +710,14 @@ public:
       ::lstrcpyn( pstr, OLE2CT(m_arrList[m_val.lVal]), cchMax) ;
       return TRUE;
    }
+   
    UINT GetDisplayValueLength() const
    {
       ATLASSERT(m_val.vt==VT_I4);
       if( m_val.lVal < 0 || m_val.lVal >= m_arrList.GetSize() ) return 0;
       BSTR bstr = m_arrList[m_val.lVal];
       return bstr == NULL ? 0 : ::lstrlenW(bstr);
-   };
+   }
 
    BOOL SetValue(const VARIANT& value)
    {
@@ -688,6 +741,7 @@ public:
          return TRUE;
       }
    }
+   
    BOOL SetValue(HWND hWnd)
    { 
       ATLASSERT(::IsWindow(hWnd));
@@ -700,6 +754,7 @@ public:
       CComVariant v = pstr;
       return SetValue(v);
    }
+   
    void SetList(LPCTSTR* ppList)
    {
       ATLASSERT(ppList);
@@ -711,6 +766,7 @@ public:
       }
       if( m_val.lVal == -1 ) m_val = 0;
    }
+   
    void AddListItem(LPCTSTR pstrText)
    {
       ATLASSERT(!::IsBadStringPtr(pstrText,-1));
@@ -755,6 +811,7 @@ public:
       CPropertyItem(pstrName, lParam)
    {
    }
+   
    HWND CreateInplaceControl(HWND hWnd, const RECT& rc) 
    {
       ATLASSERT(::IsWindow(m_ctrl));
@@ -767,10 +824,12 @@ public:
       ATLASSERT(::IsWindow(*win));
       return *win;
    }
+   
    BYTE GetKind() const 
    { 
       return PROPKIND_CONTROL; 
    }
+   
    void DrawValue(PROPERTYDRAWINFO& di) 
    { 
       RECT rc = di.rcItem;
@@ -786,17 +845,20 @@ public:
       dis.itemData = (int) m_ctrl.GetItemData(dis.itemID);
       ::SendMessage(m_ctrl, OCM_DRAWITEM, dis.CtlID, (LPARAM) &dis);
    }
+   
    BOOL GetValue(VARIANT* pValue) const 
    { 
       CComVariant v = (int) m_ctrl.GetItemData(m_ctrl.GetCurSel());
       return SUCCEEDED( v.Detach(pValue) );
    }
+   
    BOOL SetValue(HWND /*hWnd*/) 
    {      
       int iSel = m_ctrl.GetCurSel();
       CComVariant v = (int) m_ctrl.GetItemData(iSel);
       return SetValue(v); 
    }
+   
    BOOL SetValue(const VARIANT& value)
    {
       ATLASSERT(value.vt==VT_I4);

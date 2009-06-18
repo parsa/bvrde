@@ -14,6 +14,7 @@ CGotoDlg::CGotoDlg(HWND hWndScintilla) :
 
 LRESULT CGotoDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+   CenterWindow();
    m_ctrlLine = GetDlgItem(IDC_GOLINE);
    SetDlgItemInt(IDC_CURRLINE, m_ctrlScintilla.GetCurrentLine() + 1);
    SetDlgItemInt(IDC_LASTLINE, m_ctrlScintilla.GetLineCount());

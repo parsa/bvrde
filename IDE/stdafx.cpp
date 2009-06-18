@@ -30,14 +30,19 @@
 // Workaround for the latest Platform SDK and import the HtmlHelp.lib
 #if _MSC_VER < 1300
 extern "C" {
+
 void* __security_cookie = 0;
+
 static void __cdecl report_failure()
 {
 }
+
 void __declspec(naked) __fastcall __security_check_cookie(void* /*cookie*/)
 {
    __asm { ret }
 }
+
 } // extern "C"
+
 #endif // _MSC_VER < 1300
 

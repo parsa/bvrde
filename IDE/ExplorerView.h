@@ -43,6 +43,7 @@ public:
       m_ctrlTab.Invalidate();  // Repaint tab control nicely
       return (iItem >= 0);
    }
+
    BOOL RemoveView(HWND hWnd)
    {
       // Remove interval dialog view
@@ -54,6 +55,7 @@ public:
       m_ctrlTab.Invalidate();
       return TRUE;
    }
+
    BOOL SelectView(HWND hWnd)
    {
       int iIndex = FindView(hWnd);
@@ -62,6 +64,7 @@ public:
       m_ctrlTab.Invalidate();
       return TRUE;
    }
+   
    int FindView(HWND hWnd) const
    {
       for( int i = 0; i < m_ctrlTab.GetItemCount(); i++ ) {
@@ -96,10 +99,12 @@ public:
       m_ctrlTab.SetCurSel(0);      
       return 0;
    }
+   
    LRESULT OnEraseBkgnd(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       return TRUE; // Children fills entire client area
    }
+   
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( !m_ctrlViews.IsWindow() || !m_ctrlTab.IsWindow() ) return 0;
@@ -111,6 +116,7 @@ public:
       m_ctrlTab.MoveWindow(&rcTab);
       return 0;
    }
+   
    LRESULT OnSelChange(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       // Change container view to match tab-selection

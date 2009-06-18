@@ -266,7 +266,7 @@ bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aResult)
 
    CLockTagDataInit lock;
 
-   // List all classes available in TAG file...
+   // List all classes available in LEX file...
    // NOTE: This is doing a full filescan!
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       const LEXFILE* pFile = m_aFiles[i];
@@ -276,7 +276,6 @@ bool CLexInfo::GetOuterList(CSimpleValArray<TAGINFO*>& aResult)
          const TAGINFO& info = pFile->aTags[iIndex];
          if( info.pstrFile == NULL ) continue;
          switch( info.Type ) {
-         case TAGTYPE_ENUM:
          case TAGTYPE_CLASS:
          case TAGTYPE_STRUCT:
          case TAGTYPE_TYPEDEF:
@@ -298,7 +297,7 @@ bool CLexInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aResult)
 
    CLockTagDataInit lock;
 
-   // List all globals available in TAG file.
+   // List all globals available in LEX file.
    // Actually we list all types - even if they are defined locally, since
    // our Class View tree does not allow multiple expansion levels.
    // NOTE: This is doing a full filescan!
@@ -324,7 +323,7 @@ bool CLexInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aResult)
    return aResult.GetSize() > 0;
 }
 
-bool CLexInfo::GetTypeList(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult)
+bool CLexInfo::MatchSymbols(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult)
 {
    if( !m_bLoaded ) _LoadTags();
    if( m_aFiles.GetSize() == 0 ) return false;
@@ -358,7 +357,7 @@ bool CLexInfo::GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout
 
    CLockTagDataInit lock;
 
-   // List all classes available in TAG file...
+   // List all classes available in LEX file...
    // NOTE: This is doing a full filescan!
    for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
       const LEXFILE* pFile = m_aFiles[i];
@@ -391,6 +390,32 @@ bool CLexInfo::GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout
                }
                break;
             }
+         }
+      }
+   }
+
+   return aResult.GetSize() > 0;
+}
+
+bool CLexInfo::GetNamespaceList(LPCTSTR pstrType, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult)
+{
+   ATLASSERT(!::IsBadStringPtr(pstrType,-1));
+
+   if( !m_bLoaded ) _LoadTags();
+   if( m_aFiles.GetSize() == 0 ) return false;
+
+   CLockTagDataInit lock;
+
+   // List all classes available in LEX file...
+   // NOTE: This is doing a full filescan!
+   for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
+      const LEXFILE* pFile = m_aFiles[i];
+      int nCount = pFile->aTags.GetSize();
+      for( int iIndex = 0; iIndex < nCount; iIndex++ ) {
+         const TAGINFO& info = pFile->aTags[iIndex];
+         if( _tcscmp(info.pstrNamespace, pstrType) == 0 ) {
+            TAGINFO* pTag = &pFile->aTags.GetData()[iIndex];
+            aResult.Add(pTag);
          }
       }
    }
@@ -463,7 +488,7 @@ CString CLexInfo::_FindTagParent(const TAGINFO* pTag, int iPos) const
 void CLexInfo::_LoadTags()
 {
    // NOTE: Now what is GUI stuff doing here? Well, we're delay-loading much of this
-   //       stuff so we can't really predict when the tag files will load.
+   //       stuff so we can't really predict when the lex files will load.
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_LOADTAG)));
 
    Clear();

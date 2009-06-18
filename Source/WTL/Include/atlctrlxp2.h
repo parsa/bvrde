@@ -122,6 +122,7 @@ public:
       dc.FillSolidRect(&lpNMCustomDraw->rc, CCommandBarXPCtrl::m_xpstyle.clrMenu);
       return CDRF_NOTIFYITEMDRAW;   // We need per-item notifications
    }
+
    DWORD OnItemPrePaint(int /*idCtrl*/, LPNMCUSTOMDRAW lpNMCustomDraw)
    {
       CDCHandle dc(lpNMCustomDraw->hdc);
@@ -222,6 +223,7 @@ public:
       _Init();
       return lRes;
    }
+
    LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       CPaintDC dc(m_hWnd);
@@ -284,6 +286,7 @@ public:
       
       return lRes;
    }
+
    LRESULT OnFocusChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       LRESULT lRes = DefWindowProc();
@@ -309,6 +312,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnEditMouseLeave(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       if( m_fMouseOverEdit ) {
@@ -406,6 +410,7 @@ public:
       _Init();
       return lRes;
    }
+
    LRESULT OnPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       CPaintDC dc(m_hWnd);
@@ -447,6 +452,7 @@ public:
       
       return lRes;
    }
+
    LRESULT OnFocusChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       LRESULT lRes = DefWindowProc();
@@ -472,6 +478,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnEditMouseLeave(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       if( m_fMouseOverEdit ) {

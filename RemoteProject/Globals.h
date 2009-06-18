@@ -142,6 +142,7 @@ typedef struct tagLAZYDATA
 typedef enum TAGTYPE
 {
    TAGTYPE_UNKNOWN = 0,
+   // TAG types
    TAGTYPE_CLASS,
    TAGTYPE_STRUCT,
    TAGTYPE_TYPEDEF,
@@ -150,8 +151,10 @@ typedef enum TAGTYPE
    TAGTYPE_MEMBER,
    TAGTYPE_ENUM,
    TAGTYPE_IMPLEMENTATION,
-   TAGTYPE_INTRINSIC,
    TAGTYPE_NAMESPACE,
+   // Internally used types
+   TAGTYPE_INTRINSIC,
+   TAGTYPE_PROTOTYPE,
 };
 
 typedef enum TAGPROTECTION
@@ -286,7 +289,8 @@ public:
    virtual bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult) = 0;
    virtual bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult) = 0;
    virtual bool GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult) = 0;
-   virtual bool GetTypeList(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult) = 0;
+   virtual bool MatchSymbols(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult) = 0;
+   virtual bool GetNamespaceList(LPCTSTR pstrType, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult) = 0;
 };
 
 

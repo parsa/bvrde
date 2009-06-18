@@ -54,7 +54,7 @@ public:
    CSymbolsLoaderThread m_threadLoader;          // Thread that collects result
    CTagDetails m_SelectedTag;                    // Data about selected tag item during context-menu
    CTagDetails m_SelectedImpl;                   // Data about source implementation
-   TAGINFO* m_pCurrentHover;                     // Reference to item during hover
+   const TAGINFO* m_pCurrentHover;               // Reference to item during hover
    bool m_bMouseTracked;                         // Mouse is tracked in window?
    WPARAM m_dwCookie;                            // Cookie to keep thread in sync with pattern entered
    CString m_sSortValue;                         // List sorting direction

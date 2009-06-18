@@ -73,11 +73,13 @@ public:
       ATLASSERT(dwNum<t_maxBuffer);
       m_nMaxEntries = dwNum;
    }
+
    void UpdateList()
    {
       while( GetCount() > 0 ) DeleteString(0);
       for( int i = m_arrDocs.GetSize() - 1; i >= 0 ; --i ) AddString(m_arrDocs[i].szDocName);
    }
+
    BOOL AddToList(LPCTSTR pstrDocName = NULL)
    {
       // Grab text from combo edit control if not otherwise specified
@@ -152,6 +154,7 @@ public:
       pT->UpdateList();
       return TRUE;
    }
+
    BOOL WriteToRegistry(LPCTSTR pstrRegKey, LPCTSTR pstrName)
    {
       ATLASSERT(!::IsBadStringPtr(pstrRegKey,-1));

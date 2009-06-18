@@ -22,7 +22,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
      _Module.Init(NULL, hInstance);
      ::DisableThreadLibraryCalls(hInstance);
    }
-   else if( dwReason == DLL_PROCESS_DETACH ) 
+   if( dwReason == DLL_PROCESS_DETACH ) 
    {
      _Module.Term();
    }

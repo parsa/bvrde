@@ -786,8 +786,8 @@ UINT CEmptyProject::_GetMenuPosFromID(HMENU hMenu, UINT ID) const
 
 int CALLBACK CEmptyProject::_SortTreeCB(LPARAM lParam1, LPARAM lParam2, LPARAM /*lParamSort*/)
 {
-   IView* pItem1 = (IView*) lParam1;
-   IView* pItem2 = (IView*) lParam2;
+   IView* pItem1 = reinterpret_cast<IView*>(lParam1);
+   IView* pItem2 = reinterpret_cast<IView*>(lParam2);
    TCHAR szName1[128];
    TCHAR szName2[128];
    TCHAR szType1[64];

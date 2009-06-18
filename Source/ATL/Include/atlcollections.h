@@ -38,6 +38,7 @@ public:
    CSimpleList() : m_pHead(NULL)
    {
    }
+
    ~CSimpleList()
    {
       RemoveAll();
@@ -48,10 +49,12 @@ public:
       while( !IsEmpty() ) Remove(m_pHead);
       m_pHead = NULL;
    }
+   
    BOOL IsEmpty() const
    {
       return m_pHead == NULL;
    }
+   
    T* Unlink(T* Arg)
    {
       if( Arg && m_pHead ) {
@@ -70,12 +73,14 @@ public:
       }
       return NULL;
    }
+   
    BOOL Remove(T* Arg)
    {
       Arg = Unlink(Arg);
       if( Arg ) delete Arg;
       return Arg != NULL;
    }
+   
    T* Append(T* Arg)
    {
       if( Arg ) {
@@ -91,6 +96,7 @@ public:
       }
       return Arg;
    }
+   
    T* Push(T* Arg)
    {
     if( Arg ) {
@@ -99,6 +105,7 @@ public:
     }
     return Arg;
    }
+   
    template< typename TValue >
    T* Find(TValue Value) const
    {
@@ -158,6 +165,7 @@ public:
       m_aT = new ITEM*[nSize];
       memset(m_aT, 0, nSize * sizeof(ITEM*));
    }
+
    ~CHashMap()
    {
       int len = m_nBuckets;
@@ -171,6 +179,7 @@ public:
       }
       delete [] m_aT;
    }
+   
    void Resize(int nSize)
    {
       ATLASSERT(GetSize()==0);
@@ -179,6 +188,7 @@ public:
       memset(m_aT, 0, nSize * sizeof(ITEM*));
       m_nBuckets = nSize;
    }
+   
    bool Find(const TKey& Key, TItem** ppData = NULL) const
    {
       UINT slot = HashKey(Key) % m_nBuckets;
@@ -190,6 +200,7 @@ public:
       }
       return false;
    }
+   
    bool Lookup(const TKey& Key, TItem& Data) const
    {
       UINT slot = HashKey(Key) % m_nBuckets;
@@ -201,6 +212,7 @@ public:
       }
       return false;
    }
+   
    bool Insert(const TKey& Key, const TItem& Item)
    {
       // Cannot accept duplicates
@@ -218,6 +230,7 @@ public:
       m_aT[slot] = pItem;
       return true;
    }
+   
    bool Set(const TKey& Key, const TItem& Data)
    {
       UINT slot = HashKey(Key) % m_nBuckets;
@@ -231,6 +244,7 @@ public:
       // Insert new instead
       return Insert(Key, Data);
    }
+   
    bool Remove(const TKey& Key)
    {
       UINT slot = HashKey(Key) % m_nBuckets;
@@ -246,6 +260,7 @@ public:
       }
       return false;
    }
+   
    int GetSize() const
    {
       int nCount = 0;
@@ -255,6 +270,7 @@ public:
       }
       return nCount;
    }
+   
    bool GetItemAt(int iIndex, TKey& Key, TItem& Data) const
    {
       int pos = 0;

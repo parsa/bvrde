@@ -34,12 +34,35 @@ extern int verb;
 class McString : public std::string
 {
 public:
-   McString() { };
-   McString(const char* p) { append(p); };
-   inline void clear() { assign(""); };
-   inline operator const char*() const { return c_str(); }
-   inline void operator +=(char ch) { char x[] = { ch, '\0' }; append(x); };
-   inline void operator +=(const char* p) { append(p); };
+   McString() 
+   { 
+   }
+
+   McString(const char* p) 
+   { 
+      append(p); 
+   }
+
+   inline void clear() 
+   { 
+      assign(""); 
+   }
+   
+   inline operator const char*() const 
+   { 
+      return c_str(); 
+   }
+   
+   inline void operator +=(char ch) 
+   { 
+      char x[] = { ch, '\0' }; 
+      append(x); 
+   }
+   
+   inline void operator +=(const char* p) 
+   { 
+      append(p); 
+   }
 };
 
 
@@ -51,8 +74,16 @@ public:
    {
       for( size_t i = 0; i < size(); i++ ) delete at(i);
    }
-   inline T last() const { return at(size() - 1); };
-   inline void append(T p) { push_back(p); };
+
+   inline T last() const 
+   { 
+      return at(size() - 1); 
+   }
+
+   inline void append(T p) 
+   { 
+      push_back(p); 
+   }
 };
 
 
@@ -62,13 +93,24 @@ public:
    Entry() : protection(0), section(0), done(0), startLine(0), lineNo(0), sub(NULL), next(NULL)
    {
    }
+
    ~Entry()
    {
       if( sub ) delete sub;
       if( next ) delete next;
    }
-   void addSubEntry(Entry* p) { p->sub = sub; sub = p; };
-   void addNextEntry(Entry* p) { p->next = next; next = p; };
+
+   void addSubEntry(Entry* p) 
+   { 
+      p->sub = sub; 
+      sub = p; 
+   }
+   
+   void addNextEntry(Entry* p) 
+   { 
+      p->next = next; 
+      next = p; 
+   }
 
 public:
    int protection;
@@ -106,6 +148,7 @@ inline void xxx_fatal_error(const char* msg)
 #endif
    throw 1;
 }
+
 
 #define YY_FATAL_ERROR(msg) xxx_fatal_error(msg)
 

@@ -106,7 +106,7 @@ BOOL APIENTRY CppLexer_Parse(LPCSTR pstrSourceName, LPCSTR pstrText, LPCWSTR pst
    if( root == NULL ) return FALSE;
    STRINGLIST aList;
    root->program = pstrText;
-   ::WaitForSingleObject(hMutex, 3000 /*INFINITE*/);
+   ::WaitForSingleObject(hMutex, 5000 /*INFINITE*/);
    try
    {
       parseCpp(root);

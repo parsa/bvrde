@@ -24,8 +24,9 @@ public:
    bool GetGlobalList(CSimpleValArray<TAGINFO*>& aResult);
    bool FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult);
    bool GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult);
-   bool GetTypeList(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult);
-
+   bool MatchSymbols(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult);
+   bool GetNamespaceList(LPCTSTR pstrType, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult);
+   
    // Operations
 
    bool OpenTagInView(const CTagDetails& Info);

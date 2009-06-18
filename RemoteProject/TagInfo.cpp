@@ -243,7 +243,7 @@ bool CTagInfo::GetGlobalList(CSimpleValArray<TAGINFO*>& aResult)
    return aResult.GetSize() > 0;
 }
 
-bool CTagInfo::GetTypeList(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult)
+bool CTagInfo::MatchSymbols(LPCTSTR pstrPattern, volatile bool& bCancel, CSimpleValArray<TAGINFO*>& aResult)
 {
    if( !m_bLoaded ) _LoadTags();
    if( m_aTags.GetSize() == 0 ) return false;
@@ -304,6 +304,12 @@ bool CTagInfo::GetMemberList(LPCTSTR pstrType, int iInheritance, DWORD dwTimeout
    }
 
    return aResult.GetSize() > 0;
+}
+
+bool CTagInfo::GetNamespaceList(LPCTSTR /*pstrType*/, DWORD /*dwTimeout*/, CSimpleValArray<TAGINFO*>& /*aResult*/)
+{
+   // CTAG files don't store namespace information!
+   return false;
 }
 
 // Implementation
@@ -403,6 +409,7 @@ bool CTagInfo::_ParseTagFile(LPTSTR pstrText)
    if( _tcsncmp(pstrText, _T("!_TAG"), 5) != 0 ) return false;
 
    // Parse all lines...
+   int nCount = 0;
    for( LPTSTR pstrNext = NULL; *pstrText != '\0'; pstrText = pstrNext ) {
       // First find the EOL marker
       pstrNext = _tcschr(pstrText, '\n');
@@ -472,7 +479,20 @@ bool CTagInfo::_ParseTagFile(LPTSTR pstrText)
       p = const_cast<LPTSTR>(_tcsstr(info.pstrOwner, _T("::<ano")));
       if( p != NULL ) *p = '\0';
 
+      // Struggle with implementation vs function...
+      if( nCount > 0 && info.Type == TAGTYPE_PROTOTYPE && info.pstrOwner[0] != '\0' ) {
+         TAGINFO* prev = m_aTags.GetData() + nCount - 1;
+         if( prev->Type == TAGTYPE_FUNCTION && _tcscmp(prev->pstrName, info.pstrName) == 0 && _tcscmp(prev->pstrOwner, info.pstrOwner) == 0 ) {
+            prev->Type = TAGTYPE_IMPLEMENTATION;
+            info.Type = TAGTYPE_FUNCTION;
+         }
+      }
+
+      if( info.Type == TAGTYPE_PROTOTYPE ) continue;
+      if( info.Type == TAGTYPE_INTRINSIC ) continue;
+
       m_aTags.Add(info);
+      nCount++;
    }
    return true;
 }
@@ -486,13 +506,20 @@ void CTagInfo::_ResolveExtraField(TAGINFO& info, LPCTSTR pstrField) const
    if( info.Type == TAGTYPE_UNKNOWN )
    {
       if( pstrField[0] != '\0' && pstrField[1] == '\0' ) {
-         if( _tcscmp(pstrField, _T("e")) == 0 )      info.Type = TAGTYPE_ENUM;
-         else if( _tcscmp(pstrField, _T("c")) == 0 ) info.Type = TAGTYPE_CLASS;
-         else if( _tcscmp(pstrField, _T("m")) == 0 ) info.Type = TAGTYPE_MEMBER;
-         else if( _tcscmp(pstrField, _T("d")) == 0 ) info.Type = TAGTYPE_DEFINE;
-         else if( _tcscmp(pstrField, _T("s")) == 0 ) info.Type = TAGTYPE_STRUCT;
-         else if( _tcscmp(pstrField, _T("t")) == 0 ) info.Type = TAGTYPE_TYPEDEF;
-         else if( _tcscmp(pstrField, _T("f")) == 0 ) info.Type = TAGTYPE_FUNCTION;
+         switch( pstrField[0] ) {
+         case 'e': info.Type = TAGTYPE_ENUM; break;
+         case 'c': info.Type = TAGTYPE_CLASS; break;
+         case 'm': info.Type = TAGTYPE_MEMBER; break;
+         case 'v': info.Type = TAGTYPE_MEMBER; break;
+         case 'd': info.Type = TAGTYPE_DEFINE; break;
+         case 's': info.Type = TAGTYPE_STRUCT; break;
+         case 'u': info.Type = TAGTYPE_STRUCT; break;
+         case 't': info.Type = TAGTYPE_TYPEDEF; break;
+         case 'g': info.Type = TAGTYPE_TYPEDEF; break;
+         case 'f': info.Type = TAGTYPE_FUNCTION; break;
+         case 'p': info.Type = TAGTYPE_PROTOTYPE; break;
+         case 'F': info.Type = TAGTYPE_INTRINSIC; break;
+         }
       }
       else if( _tcsncmp(pstrField, _T("kind:"), 5) == 0 ) {
          if( _tcscmp(pstrField + 5, _T("class")) == 0 )           info.Type = TAGTYPE_CLASS;
@@ -502,14 +529,17 @@ void CTagInfo::_ResolveExtraField(TAGINFO& info, LPCTSTR pstrField) const
          else if( _tcscmp(pstrField + 5, _T("typedef")) == 0 )    info.Type = TAGTYPE_TYPEDEF;
          else if( _tcscmp(pstrField + 5, _T("enumerator")) == 0 ) info.Type = TAGTYPE_ENUM;
          else if( _tcscmp(pstrField + 5, _T("function")) == 0 )   info.Type = TAGTYPE_FUNCTION;
+         else if( _tcscmp(pstrField + 5, _T("prototype")) == 0 )  info.Type = TAGTYPE_PROTOTYPE;
       }
       else if( _tcscmp(pstrField, _T("class")) == 0 )      info.Type = TAGTYPE_CLASS;
       else if( _tcscmp(pstrField, _T("macro")) == 0 )      info.Type = TAGTYPE_DEFINE;
       else if( _tcscmp(pstrField, _T("member")) == 0 )     info.Type = TAGTYPE_MEMBER;
+      else if( _tcscmp(pstrField, _T("variable")) == 0 )   info.Type = TAGTYPE_MEMBER;
       else if( _tcscmp(pstrField, _T("struct")) == 0 )     info.Type = TAGTYPE_STRUCT;
       else if( _tcscmp(pstrField, _T("typedef")) == 0 )    info.Type = TAGTYPE_TYPEDEF;
       else if( _tcscmp(pstrField, _T("enumerator")) == 0 ) info.Type = TAGTYPE_ENUM;
       else if( _tcscmp(pstrField, _T("function")) == 0 )   info.Type = TAGTYPE_FUNCTION;
+      else if( _tcscmp(pstrField, _T("prototype")) == 0 )  info.Type = TAGTYPE_PROTOTYPE;
    }
    // Resolve owner. Sample format:
    //    struct:<typename>

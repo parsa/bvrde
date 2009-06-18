@@ -24,7 +24,8 @@ CScintillaView::CScintillaView() :
    m_pCppProject(NULL),
    m_pView(NULL),
    m_bDwellEnds(true),
-   m_bDelayedHoverData(false)
+   m_bDelayedHoverData(false),
+   m_bSuggestionDisplayed(false)
 {
 }
 
@@ -47,6 +48,7 @@ BOOL CScintillaView::Init(CRemoteProject* pCppProject, IProject* pProject, IView
    m_pView = pView;
    m_sLanguage = pstrLanguage;
    m_sFilename = pstrFilename;
+   for( int i = 0; i < MAX_CONTEXT_ENTRIES; i++ ) m_aContexts[i].dwTimestamp = 0;
    return TRUE;
 }
 
@@ -258,7 +260,7 @@ LRESULT CScintillaView::OnContextMenu(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM l
       else 
       {
          CTagDetails Info;
-         if( _GetMemberInfo(lPos, Info, 500, MATCH_NORMAL) && !Info.sFilename.IsEmpty() ) {
+         if( _GetMemberInfo(lPos, Info, ::GetTickCount() + 500, MATCH_NORMAL) && !Info.sFilename.IsEmpty() ) {
             // Lookup information about implementation tag...
             CTagDetails ImplInfo;
             m_pCppProject->m_TagManager.FindImplementationTag(Info, ImplInfo);
@@ -374,7 +376,7 @@ LRESULT CScintillaView::OnEditOpenDeclaration(WORD /*wNotifyCode*/, WORD /*wID*/
    CWaitCursor cursor;
    long lPos = m_ctrlEdit.GetCurrentPos();
    CTagDetails Info;
-   if( !_GetMemberInfo(lPos, Info, 500, MATCH_NORMAL) || Info.sFilename.IsEmpty() ) return 0;
+   if( !_GetMemberInfo(lPos, Info, ::GetTickCount() + 500, MATCH_NORMAL) || Info.sFilename.IsEmpty() ) return 0;
    if( !m_pCppProject->m_TagManager.OpenTagInView(Info) ) ::MessageBeep((UINT)-1);
    return 0;
 }
@@ -383,9 +385,8 @@ LRESULT CScintillaView::OnEditOpenImplementation(WORD /*wNotifyCode*/, WORD /*wI
 {   
    CWaitCursor cursor;
    long lPos = m_ctrlEdit.GetCurrentPos();
-   CTagDetails Info;
-   CTagDetails ImplInfo;
-   if( !_GetMemberInfo(lPos, Info, 500, MATCH_NORMAL) || Info.sFilename.IsEmpty() ) return 0;
+   CTagDetails Info, ImplInfo;
+   if( !_GetMemberInfo(lPos, Info, ::GetTickCount() + 500, MATCH_NORMAL) || Info.sFilename.IsEmpty() ) return 0;
    if( !m_pCppProject->m_TagManager.FindImplementationTag(Info, ImplInfo) ) return 0;
    if( !m_pCppProject->m_TagManager.OpenTagInView(ImplInfo) ) ::MessageBeep((UINT)-1);
    return 0;
@@ -403,8 +404,8 @@ LRESULT CScintillaView::OnDebugBreakpoint(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 {
    if( m_sLanguage != _T("cpp") || m_pCppProject == NULL ) return 0;
 
-   int iLine = m_ctrlEdit.GetCurrentLine();
-   long lValue = m_ctrlEdit.MarkerGet(iLine);
+   int iLineNum = m_ctrlEdit.GetCurrentLine();
+   long lValue = m_ctrlEdit.MarkerGet(iLineNum);
    long lMarkerMask = (1 << MARKER_BREAKPOINT);
 
    CString sName;
@@ -412,20 +413,20 @@ LRESULT CScintillaView::OnDebugBreakpoint(WORD /*wNotifyCode*/, WORD /*wID*/, HW
    sName.ReleaseBuffer();
 
    if( (lValue & lMarkerMask) != 0 ) {
-      bool bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLine);
+      bool bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLineNum);
       // HACK: Because the breakpoint may have been moved due to editing
       //       we'll try to delete any breakpoint in the neighborhood.
       const int DEBUG_LINE_FUDGE = 4;
       for( int iOffset = 1; !bRes && iOffset < DEBUG_LINE_FUDGE; iOffset++ ) {
-         bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLine + iOffset);
-         if( !bRes ) bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLine - iOffset);
+         bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLineNum + iOffset);
+         if( !bRes ) bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLineNum - iOffset);
       }
-      if( bRes ) m_ctrlEdit.MarkerDelete(iLine, MARKER_BREAKPOINT);
+      if( bRes ) m_ctrlEdit.MarkerDelete(iLineNum, MARKER_BREAKPOINT);
       else ::MessageBeep((UINT)-1);
    }
    else {
-      if( m_pCppProject->m_DebugManager.AddBreakpoint(sName, iLine) ) {
-         m_ctrlEdit.MarkerAdd(iLine, MARKER_BREAKPOINT);
+      if( m_pCppProject->m_DebugManager.AddBreakpoint(sName, iLineNum) ) {
+         m_ctrlEdit.MarkerAdd(iLineNum, MARKER_BREAKPOINT);
       }
    }
    return 0;
@@ -440,8 +441,8 @@ LRESULT CScintillaView::OnDebugRunTo(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*
    CString sName;
    m_pView->GetName(sName.GetBufferSetLength(128), 128);
    sName.ReleaseBuffer();
-   long iLine = m_ctrlEdit.GetCurrentLine();
-   m_pCppProject->m_DebugManager.RunTo(sName, iLine + 1);
+   long iLineNum = m_ctrlEdit.GetCurrentLine();
+   m_pCppProject->m_DebugManager.RunTo(sName, iLineNum + 1);
 
    return 0;
 }
@@ -455,14 +456,14 @@ LRESULT CScintillaView::OnDebugSetNext(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
    CString sName;
    m_pView->GetName(sName.GetBufferSetLength(128), 128);
    sName.ReleaseBuffer();
-   long iLine = m_ctrlEdit.GetCurrentLine();
+   long iLineNum = m_ctrlEdit.GetCurrentLine();
 
-   if( m_pCppProject->m_DebugManager.SetNextStatement(sName, iLine + 1) ) {
+   if( m_pCppProject->m_DebugManager.SetNextStatement(sName, iLineNum + 1) ) {
       // HACK: GDB doesn't support a MI command like 'jump' and it
       //       doesn't react normal on the breakpoint either <sigh> so
       //       we simulate the action...
       m_ctrlEdit.MarkerDeleteAll(MARKER_CURLINE);
-      m_ctrlEdit.MarkerAdd(iLine, MARKER_CURLINE);
+      m_ctrlEdit.MarkerAdd(iLineNum, MARKER_CURLINE);
    }
    return 0;
 }
@@ -618,6 +619,17 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
    return 0;
 }
 
+LRESULT CScintillaView::OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
+{
+   if( m_bSuggestionDisplayed ) {
+      if( wParam == VK_TAB ) return 0;
+      if( wParam == VK_BACK ) m_bSuggestionDisplayed = false;
+      if( wParam == VK_ESCAPE ) m_ctrlEdit.AutoCCancel();
+   }
+   bHandled = FALSE;
+   return 0;
+}
+
 LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
    SCNotification* pSCN = (SCNotification*) pnmh;
@@ -630,6 +642,7 @@ LRESULT CScintillaView::OnCharAdded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled
    }
 
    _AutoComplete(pSCN->ch);
+   _AutoSuggest(pSCN->ch);
 
    bHandled = FALSE;
    return 0;
@@ -740,7 +753,7 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
    // Ask lexer to deliver info also; the lexer can
    // give us information about type and decoration.
    CTagDetails Info;
-   if( !_GetMemberInfo(lPos, Info, 1000, MATCH_NORMAL) ) return 0;
+   if( !_GetMemberInfo(lPos, Info, ::GetTickCount() + 1000, MATCH_NORMAL) ) return 0;
 
    // Show tooltip. Even if the debugger returns delayed information we
    // still show the name immediately. If the debugger finally arrives
@@ -752,7 +765,8 @@ LRESULT CScintillaView::OnDwellStart(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHand
 LRESULT CScintillaView::OnDwellEnd(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
 {
    if( m_bDwellEnds ) m_ctrlEdit.CallTipCancel();
-   m_bDelayedHoverData = false;  // We no longer expect more data
+   m_bSuggestionDisplayed = false;   // We no longer see suggestions
+   m_bDelayedHoverData = false;      // We no longer expect more data
    bHandled = FALSE;
    return 0;
 }
@@ -765,7 +779,7 @@ LRESULT CScintillaView::OnAutoExpand(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
    SCNotification* pSCN = (SCNotification*) pnmh;
    if( m_pCppProject == NULL ) return 0;
    CTagDetails ParentInfo;
-   if( !_GetMemberInfo(pSCN->lParam, ParentInfo, 300, MATCH_ALLOW_PARTIAL) ) return 0;
+   if( !_GetMemberInfo(pSCN->lParam, ParentInfo, ::GetTickCount() + 300, MATCH_ALLOW_PARTIAL) ) return 0;
    CSimpleValArray<TAGINFO*> aList;
    m_pCppProject->m_TagManager.FindItem(CString(pSCN->text), ParentInfo.sBase, 99, ::GetTickCount() + 100, aList);
    if( aList.GetSize() == 0 ) return 0;
@@ -784,6 +798,9 @@ LRESULT CScintillaView::OnAutoExpand(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
    for( int i = 0; i < sText.GetLength(); i++ ) {
       m_ctrlEdit.PostMessage(WM_CHAR, sText.GetAt(i), 0);
    }
+   // Finally, add this entry to the context list so we make sure
+   // it gets an updated timestamp.
+   _AddContextEntry(ParentInfo.sName);
    bHandled = TRUE;
    return 0;
 }
@@ -812,7 +829,6 @@ void CScintillaView::OnGetMenuText(UINT wID, LPTSTR pstrText, int cchMax)
 {
    AtlLoadString(wID, pstrText, cchMax);
 }
-
 
 // IOutputLineListener
 
@@ -993,6 +1009,14 @@ int CScintillaView::FindText(UINT uFlags, LPCTSTR pstrPattern, bool bShowWarning
    return iFindPos;
 }
 
+static int QCompareTAGINFO(const void* a, const void* b)
+{
+   // So Scintilla uses strcmp() to compare its items.
+   // BUG: Obviously there's a difference between the mapping of UNICODE and MBCS
+   //      but since C++ identifiers are mainly ASCII we'll cross our fingers.
+   return _tcscmp((*(TAGINFO**)a)->pstrName, (*(TAGINFO**)b)->pstrName);
+}
+
 /**
  * Handle auto-completion.
  * Here we handle auto-completion of the C++ language. Support for other languages is
@@ -1024,7 +1048,7 @@ void CScintillaView::_AutoComplete(int ch)
    // Attempt auto-completion after 3 characters have been typed on a new line.
    // We'll also check if this really could be time to auto-complete!
    static long s_lCharsTyped = 0;
-   if( ch == '\n' || ch == ';' || ch == ' ' || ch == '\t' || ch == '=' ) s_lCharsTyped = 0;
+   if( _issepchar(ch) ) s_lCharsTyped = 0;
    const WORD AUTOCOMPLETE_AFTER_TYPED_CHARS = 3;
    if( _iscppchar(ch) && ++s_lCharsTyped == AUTOCOMPLETE_AFTER_TYPED_CHARS ) bShow = true;
    // Don't popup too close to start
@@ -1035,17 +1059,28 @@ void CScintillaView::_AutoComplete(int ch)
    // So, does it show?
    if( !bShow ) return;
 
+   // The auto-completion process must be time-limited
+   DWORD dwTimeout = ::GetTickCount() + 300;
+#ifdef _DEBUG
+   dwTimeout = ::GetTickCount() + 300000;
+#endif // _DEBUG
+
    // Get information about type under cursor
-   const DWORD DEEP_TIMEOUT_MS = 400;
-   DWORD dwTimeout = ::GetTickCount() + DEEP_TIMEOUT_MS;
-
    CTagDetails Info;
-   if( !_GetMemberInfo(lPos, Info, DEEP_TIMEOUT_MS, MATCH_ALLOW_PARTIAL) ) return;
-
-   // Yippie, we found something!!!
-
    CSimpleValArray<TAGINFO*> aList;
-   m_pCppProject->m_TagManager.GetMemberList(Info.sBase, 99, dwTimeout, aList);
+   if( _GetMemberInfo(lPos, Info, dwTimeout, MATCH_ALLOW_PARTIAL) ) {
+      m_pCppProject->m_TagManager.GetMemberList(Info.sBase, 99, dwTimeout, aList);
+      if( !Info.sNamespace.IsEmpty() ) m_pCppProject->m_TagManager.GetNamespaceList(Info.sNamespace, dwTimeout, aList);
+   }
+
+   // Add the word before the separator to the context-list if
+   // it is a type. This is how we build the history
+   // of recently seen types.
+   CTagDetails ContextInfo;
+   if( _GetMemberInfo(lPos - 5, ContextInfo, dwTimeout, MATCH_NORMAL) ) {
+      _AddContextEntry(ContextInfo.sName);
+      _AddContextEntry(ContextInfo.sBase);
+   }
 
    // We'll not allow 0 nor more than 300 items in the list.
    // This prevents a global-scope dropdown which would be horrible slow!
@@ -1053,20 +1088,8 @@ void CScintillaView::_AutoComplete(int ch)
    int nCount = aList.GetSize();
    if( nCount == 0 || nCount > MAX_LIST_COUNT ) return;
 
-   // Need to sort the items Scintilla-style [bubble-sort]
-   for( int a = 0; a < nCount; a++ ) {
-      for( int b = a + 1; b < nCount; b++ ) {
-         // So Scintilla uses strcmp() to compare its items.
-         // BUG: Obviously there's a difference between the mapping of UNICODE and MBCS
-         //      but since C++ identifiers are mainly ASCII we'll cross our fingers.
-         if( _tcscmp(aList[a]->pstrName, aList[b]->pstrName) > 0 ) {
-            TAGINFO* pTemp1 = aList[a];
-            TAGINFO* pTemp2 = aList[b];
-            aList.SetAtIndex(a, pTemp2);
-            aList.SetAtIndex(b, pTemp1);
-         }
-      }
-   }
+   // Need to sort the items Scintilla-style
+   ::qsort(aList.GetData(), aList.GetSize(), sizeof(TAGINFO*), QCompareTAGINFO);
 
    // Right, Scintilla requires a list of space-separated tokens
    // so let's build one...
@@ -1083,10 +1106,17 @@ void CScintillaView::_AutoComplete(int ch)
       if( !_iscppcharw(pTag->pstrName[0]) ) continue;
       if( _tcschr(pTag->pstrName, ' ') != NULL ) continue;
       // Don't include decendant types
-      if( pTag->Type == TAGTYPE_TYPEDEF || pTag->Type == TAGTYPE_CLASS ) continue;
-      // Add this baby...
+      if( Info.sNamespace.IsEmpty() && (pTag->Type == TAGTYPE_TYPEDEF || pTag->Type == TAGTYPE_CLASS) ) continue;
+      // Add this entry...
       _tcsncpy(szText, pTag->pstrName, cchText); szText[cchText] = '\0';
-      _tcscat(szText, pTag->Type == TAGTYPE_MEMBER ? _T("?0|") : _T("?1|"));
+      switch( pTag->Type ) {
+      case TAGTYPE_MEMBER:  _tcscat(szText, _T("?0|")); break;
+      case TAGTYPE_CLASS:   _tcscat(szText, _T("?2|")); break;
+      case TAGTYPE_TYPEDEF: _tcscat(szText, _T("?2|")); break;
+      case TAGTYPE_DEFINE:  _tcscat(szText, _T("?3|")); break;
+      case TAGTYPE_ENUM:    _tcscat(szText, _T("?3|")); break;
+      default:              _tcscat(szText, _T("?1|")); break;
+      }
       sList += szText;
    }
    sList.TrimRight(_T("|"));
@@ -1109,6 +1139,70 @@ void CScintillaView::_AutoComplete(int ch)
 }
 
 /**
+ * Display auto-suggestion.
+ * Auto-suggest pops up a simple auto-completion tip based
+ * on similar words located in the surrounding text.
+ */
+void CScintillaView::_AutoSuggest(int ch)
+{
+   USES_CONVERSION;
+
+   if( m_sLanguage != _T("cpp") || m_pCppProject == NULL ) return;
+
+   if( !m_bAutoComplete ) return;
+
+   static int s_iSuggestWord = 0;
+   static long s_lSuggestPos = 0;
+   static CString s_sSuggestWord;
+   // Cancel suggestion tip if displayed already.
+   // Do actual text-replacement if needed.
+   if( m_bSuggestionDisplayed ) 
+   {
+      if( ch == '\t' ) {
+         long lPos = m_ctrlEdit.GetCurrentPos();
+         m_ctrlEdit.SetSel(s_lSuggestPos, lPos);
+         m_ctrlEdit.ReplaceSel(T2CA(s_sSuggestWord));
+      }
+      m_ctrlEdit.CallTipCancel();
+      m_bSuggestionDisplayed = false;
+   }
+
+   // Display tip at all?
+   if( !m_bAutoComplete && ch != '\b' ) return;
+   if( m_ctrlEdit.CallTipActive() ) return;
+   if( m_ctrlEdit.AutoCActive() ) return;
+
+   // Display tip only after 3 valid characters has been entered.
+   if( _iscppchar(ch) ) s_iSuggestWord++; else s_iSuggestWord = 0;
+   if( s_iSuggestWord <= 3 && ch != '\b' ) return;
+
+   // Get the typed identifier
+   long lPos = m_ctrlEdit.GetCurrentPos();
+   CString sName = _GetNearText(lPos - 1);
+   if( sName.IsEmpty() ) return;
+
+   // Don't popup within comments and stuff
+   if( !_IsRealCppEditPos(lPos - 1, false) ) return;
+   if( !_IsRealCppEditPos(lPos - 2, false) ) return;
+
+   DWORD dwTimeout = ::GetTickCount() + 100;
+   CSimpleValArray<TAGINFO*> aList;
+   _GetContextList(lPos, dwTimeout, aList);
+   if( aList.GetSize() == 0 ) return;
+
+   // Display suggestion tip
+   CString sKeyword = aList[0]->pstrName;
+   m_ctrlEdit.CallTipSetFore(RGB(255,255,255));
+   m_ctrlEdit.CallTipSetBack(RGB(0,0,0));
+   m_ctrlEdit.CallTipShow(lPos, T2CA(sKeyword));
+
+   // Remember what triggered suggestion
+   s_sSuggestWord = sKeyword;
+   m_bSuggestionDisplayed = true;
+   s_lSuggestPos = lPos - sName.GetLength();
+}
+
+/**
  * Show function declaration tool-tip.
  * Attempts to determine the function syntax of the currently entered
  * function call (if any).
@@ -1124,9 +1218,9 @@ void CScintillaView::_FunctionTip(int ch)
    }
    ATLASSERT(ch=='(');
    // Get information about the function below
-   CTagDetails Info;
    long lPos = m_ctrlEdit.GetCurrentPos() - 2;
-   if( !_GetMemberInfo(lPos, Info, 300, MATCH_NORMAL) ) return;
+   CTagDetails Info;
+   if( !_GetMemberInfo(lPos, Info, ::GetTickCount() + 300, MATCH_NORMAL) ) return;
    // Show tooltip
    _ShowMemberToolTip(lPos, &Info, 0, true, false, false, false, RGB(0,0,0), RGB(255,255,255));
 }
@@ -1213,10 +1307,11 @@ void CScintillaView::_ShowToolTip(long lPos, CString sText, bool bAdjustPos, boo
    // Cancel tooltip when cursor moves out of hover-state?
    m_bDwellEnds = bAcceptTimeout;
 
-   // Locate the new tip window and move it around.
+   // Locate the new tip window and move it around?
    // Scintilla places the tooltip too close to the cursor (especially
    // when it's hovering over a selection), so we'll move it ourselves.
    if( !bAdjustPos ) return;
+
    CToolTipCtrl ctrlTip = ::FindWindow(NULL, _T("ACallTip"));
    if( !ctrlTip.IsWindow() ) return;
    if( !ctrlTip.IsWindowVisible() ) return;
@@ -1329,13 +1424,13 @@ void CScintillaView::_ShowMemberToolTip(long lPos, CTagDetails* pInfo, long lCur
    _ShowToolTip(m_TipInfo.lPos, sText, bAdjustPos, bAcceptTimeout, m_TipInfo.clrText, m_TipInfo.clrBack);
 }
 
-void CScintillaView::_SetLineIndentation(int iLine, int iIndent) 
+void CScintillaView::_SetLineIndentation(int iLineNum, int iIndent) 
 {
    if( iIndent < 0 ) return;
    CharacterRange cr = m_ctrlEdit.GetSelection();
-   int posBefore = m_ctrlEdit.GetLineIndentPosition(iLine);
-   m_ctrlEdit.SetLineIndentation(iLine, iIndent);
-   int posAfter = m_ctrlEdit.GetLineIndentPosition(iLine);
+   int posBefore = m_ctrlEdit.GetLineIndentPosition(iLineNum);
+   m_ctrlEdit.SetLineIndentation(iLineNum, iIndent);
+   int posAfter = m_ctrlEdit.GetLineIndentPosition(iLineNum);
    int posDifference = posAfter - posBefore;
    if( posAfter > posBefore ) {
       // Move selection on
@@ -1381,6 +1476,11 @@ bool CScintillaView::_iscppchar(int ch) const
 bool CScintillaView::_iscppcharw(WCHAR ch) const
 {
    return iswalnum(ch) || ch == '_' || ch == '~';
+}
+
+bool CScintillaView::_issepchar(WCHAR ch) const
+{
+   return ch == '\n' || ch == ';' || ch == ' ' || ch == '\t' || ch == '=' || ch == '(' || ch == '<';
 }
 
 bool CScintillaView::_iswhitechar(int ch) const
@@ -1441,11 +1541,65 @@ static char* FunctionImage[] = {
 "aaaaaaaaaaaaaaaa",
 "aaaaaaaaaaaaaaaa",
 };
+static char* ClassImage[] = {
+/* width height num_colors chars_per_pixel */
+"16 16 4 1",
+/* colors */
+"a c None",
+"b c #808080",
+"c c #F0F000",
+"d c #000a00",
+/* pixels */
+"aaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaa",
+"aaaaaaabaaaaaaaa",
+"aaaaaabcbaaaaaaa",
+"aaaaabcccbaaaaaa",
+"aaaadcccccbaaaaa",
+"aaaaddcccccbaaaa",
+"aaaadbdcccbbaaaa",
+"aaaadbbdcbcbaaaa",
+"aaaaadbbdccbaaaa",
+"aaaaaadbdcbaaaaa",
+"aaaaaaaddbaaaaaa",
+"aaaaaaaadaaaaaaa",
+"aaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaa",
+};
+static char* DefineImage[] = {
+/* width height num_colors chars_per_pixel */
+"16 16 4 1",
+/* colors */
+"a c None",
+"b c #808080",
+"c c #808080",
+"d c #040a04",
+/* pixels */
+"aaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaa",
+"aaaaaaabaaaaaaaa",
+"aaaaaabcbaaaaaaa",
+"aaaaabcccbaaaaaa",
+"aaaadcccccbaaaaa",
+"aaaaddcccccbaaaa",
+"aaaadbdcccbbaaaa",
+"aaaadbbdcbcbaaaa",
+"aaaaadbbdccbaaaa",
+"aaaaaadbdcbaaaaa",
+"aaaaaaaddbaaaaaa",
+"aaaaaaaadaaaaaaa",
+"aaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaa",
+"aaaaaaaaaaaaaaaa",
+};
 
 void CScintillaView::_RegisterListImages()
 {
    m_ctrlEdit.ClearRegisteredImages();
    m_ctrlEdit.RegisterImage(0, (LPBYTE) MemberImage);
    m_ctrlEdit.RegisterImage(1, (LPBYTE) FunctionImage);
+   m_ctrlEdit.RegisterImage(2, (LPBYTE) ClassImage);
+   m_ctrlEdit.RegisterImage(3, (LPBYTE) DefineImage);
 }
 

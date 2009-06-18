@@ -35,6 +35,8 @@ DWORD CTelnetThread::Run()
    CString sPasswordPrompt = m_pManager->GetParam(_T("PasswordPrompt"));
 
    if( iPort == 0 ) iPort = 23; // default telnet port
+
+   // Prompt for password?
    if( sPassword.IsEmpty() ) sPassword = SecGetPassword();
 
    m_pManager->m_dwErrorCode = 0;

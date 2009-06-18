@@ -87,6 +87,7 @@ public:
 
       return TRUE;
    }
+
    int OnApply()
    {
       if( *m_phAccel != NULL ) ::DestroyAcceleratorTable(*m_phAccel);
@@ -131,6 +132,7 @@ public:
       SetModified(TRUE);
       return 0;
    }
+   
    LRESULT OnRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       WORD cmd = (WORD) m_ctrlList.GetItemData(m_ctrlList.GetCurSel());
@@ -151,6 +153,7 @@ public:
       _UpdateButtons();
       return 0;
    }
+   
    LRESULT OnItemChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       _UpdateButtons();
@@ -162,13 +165,14 @@ public:
    void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
    {
       CClientDC dc(m_ctrlList);
-      TEXTMETRIC tm;
+      TEXTMETRIC tm = { 0 };
       HFONT hOldFont = dc.SelectFont(lpMeasureItemStruct->itemData == 0 ? m_fontBold : m_fontNormal);
       dc.GetTextMetrics(&tm);
       dc.SelectFont(hOldFont);
       if( lpMeasureItemStruct->itemData == 0 ) tm.tmHeight += 4;
       lpMeasureItemStruct->itemHeight = tm.tmHeight;
    }
+   
    void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
    {
       CDCHandle dc = lpDrawItemStruct->hDC;
@@ -247,6 +251,7 @@ public:
       for( int i = 0; i < nCount; i++ ) map.Add(aAccel[i].cmd, aAccel[i]);
       return true;
    }
+
    HACCEL _BuildAccel(const ACCELMAP& map) const
    {
       ACCEL aAccel[MAX_ACCELS];
@@ -265,6 +270,7 @@ public:
       if( (accel.fVirt & FSHIFT) != 0 ) wFlags |= HOTKEYF_SHIFT;
       return MAKEWORD(wKey, wFlags);
    }
+   
    ACCEL _GetAccelFromHotKey(WORD wCmd, WORD wKey) const
    {
       ATLASSERT(wCmd!=0);

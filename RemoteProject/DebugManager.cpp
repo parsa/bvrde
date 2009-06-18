@@ -730,8 +730,8 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
    // Initialize some GDB settings depending on connection type
    CString sShellType = m_ShellManager.GetParam(_T("Type"));
    if( sShellType == _T("comspec") ) {
-      DoDebugCommand(_T("-gdb-set debugevents on"));  
       m_bDebugEvents = true;
+      DoDebugCommand(_T("-gdb-set debugevents on"));  
    }
 
    DoDebugCommand(_T("-environment-pwd"));

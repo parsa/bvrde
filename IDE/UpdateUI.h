@@ -18,10 +18,12 @@ public:
    CUpdateDynamicUI() : m_pNewMap(NULL)
    {
    }
+   
    virtual ~CUpdateDynamicUI()
    {
       RemoveData();
    }
+   
    BOOL ReserveUIRange(UINT nStart, UINT nEnd)
    {
       // Check for overlapping ranges
@@ -72,6 +74,7 @@ public:
       memset(m_pUIData, 0, sizeof(_AtlUpdateUIData) * (nOrigCount + nAdditional));
       return TRUE;
    }
+   
    void RemoveData()
    {
       if( m_pNewMap == NULL ) return;
@@ -80,6 +83,7 @@ public:
       m_pUIMap = pT->GetUpdateUIMap();
       m_pNewMap = NULL;
    }
+   
    void UIClear()
    {
       for( int i = 0; i < m_ranges.GetSize(); i++ ) {

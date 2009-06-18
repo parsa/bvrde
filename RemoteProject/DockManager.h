@@ -37,6 +37,7 @@ public:
       if( !m_panels.SetAt(hWnd, info) ) return false;
       return true;
    }
+
    bool SetInfo(HWND hWnd, IDE_DOCK_TYPE DockType, RECT rcWindow)
    {
       if( !::IsWindow(hWnd) ) return false;
@@ -46,6 +47,7 @@ public:
       ::ZeroMemory(&info.rcDocked, sizeof(info.rcDocked));
       return m_panels.Add(hWnd, info) == TRUE;
    }
+
    bool GetInfo(HWND hWnd, IDE_DOCK_TYPE& DockType, RECT& rcWindow)
    {
       int iIndex =  m_panels.FindKey(hWnd);
@@ -55,6 +57,7 @@ public:
       if( DockType == IDE_DOCK_FLOAT ) rcWindow = info.rcWindow; else rcWindow = info.rcDocked;
       return true;
    }
+
    bool IsAutoShown(HWND hWnd, LPCTSTR pstrProperty) const
    {
       TCHAR szProperty[64];
@@ -70,6 +73,7 @@ public:
       if( !IsAutoShown(hWndView, pstrProperty) ) return false;
       return ::SendMessage(hWndMain, WM_COMMAND, MAKEWPARAM(nCmd, 0), 0L) == TRUE;
    }
+
    bool CloseView(HWND hWndMain, HWND hWndView, LPCTSTR pstrProperty, UINT nCmd)
    {
       ATLASSERT(::IsWindow(hWndMain));

@@ -723,7 +723,7 @@ BEGIN
 END
 
 IDD_ATTACHCORE DIALOG DISCARDABLE  0, 0, 273, 97
-STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Attach to Core file"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -1881,7 +1881,7 @@ BEGIN
                     SS_CENTERIMAGE,WS_EX_TRANSPARENT
     CTEXT           "Enter the password for connecting to the remote server.",
                     IDC_STATIC,10,54,198,10,0,WS_EX_TRANSPARENT
-    CTEXT           "This password will be to login on all connections which was configured with a blank password.",
+    CTEXT           "This password will be used to login on all connections which was configured with a blank password.",
                     IDC_SUBNOTE,7,67,204,20,SS_NOPREFIX,WS_EX_TRANSPARENT
 END
 
@@ -2002,7 +2002,7 @@ BEGIN
 END
 
 IDD_ATTACHCORE DIALOG DISCARDABLE  0, 0, 273, 97
-STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Attach to Core file"
 FONT 8, "MS Sans Serif"
 BEGIN

@@ -34,6 +34,7 @@ typedef struct DATAPACKET
       pstrData = NULL;
       plData = NULL;
    }
+
    DATAPACKET(PACKETTYPE _Type, int _iCols = 0, int _iRows = 0, CString* _pstrData = NULL, LONG* _plData = NULL)
    {
       Type = _Type;
@@ -42,6 +43,7 @@ typedef struct DATAPACKET
       pstrData = _pstrData;
       plData = _plData;
    }
+
    PACKETTYPE Type;
    int iCols;
    int iRows;

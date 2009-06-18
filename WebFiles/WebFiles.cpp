@@ -40,10 +40,12 @@ public:
    {
       return TRUE;
    }
+
    BOOL OnInitWizard(IWizardManager* /*pManager*/, IProject* /*pProject*/, LPCTSTR /*pstrName*/)
    {
       return TRUE;
    }
+   
    BOOL OnInitOptions(IWizardManager* pManager, ISerializable* pArc)
    {
       static CAdvancedEditOptionsPage s_pageHtmlAdvanced;

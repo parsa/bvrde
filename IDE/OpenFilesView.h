@@ -47,16 +47,19 @@ public:
       g_pDevEnv->AddViewListener(this);
       return 0;
    }
+
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       g_pDevEnv->RemoveViewListener(this);
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnEraseBkgnd(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       return TRUE; // Children fills entire client area
    }
+   
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( !m_ctrlList.IsWindow() ) return 0;
@@ -66,6 +69,7 @@ public:
       m_ctrlList.SetColumnWidth(0, LVSCW_AUTOSIZE_USEHEADER);
       return 0;
    }
+   
    LRESULT OnItemDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       int iCurSel = m_ctrlList.GetSelectedIndex();
@@ -74,10 +78,12 @@ public:
       ATLTRY( pView->OpenView(0) );
       return 0;
    }
+   
    LRESULT OnRClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
    {
       return 0;
    }
+   
    LRESULT OnViewCreated(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       CWindow wndFrame = (HWND) lParam;
@@ -102,6 +108,7 @@ public:
       m_ctrlList.SetItemData(iItem, (DWORD_PTR) pView);
       return 0;
    }
+   
    LRESULT OnViewDestroyed(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       int nCount = m_ctrlList.GetItemCount();

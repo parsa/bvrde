@@ -83,10 +83,12 @@ public:
       CProperty(pstrName, lParam)
    {
    }
+
    BYTE GetKind() const 
    { 
       return PROPKIND_SIMPLE;
    }
+
    void DrawValue(PROPERTYDRAWINFO& di)
    {
 #ifdef IDS_LASTVALUE
@@ -106,6 +108,7 @@ public:
          &rcText, 
          DT_LEFT | DT_SINGLELINE | DT_EDITCONTROL | DT_NOPREFIX | DT_END_ELLIPSIS | DT_VCENTER);
    }
+
    BOOL Activate(UINT action, LPARAM /*lParam*/) 
    { 
       switch( action ) {
@@ -141,12 +144,14 @@ public:
    { 
       return PROPKIND_SIMPLE;
    }
+
    void DrawValue(PROPERTYDRAWINFO& di)
    {
       RECT rc = di.rcItem;
       rc.bottom--;
       ::DrawFrameControl(di.hDC, &rc, DFC_BUTTON, DFCS_BUTTONPUSH);
    }
+
    BOOL Activate(UINT action, LPARAM /*lParam*/) 
    { 
       switch( action ) {
@@ -225,6 +230,7 @@ public:
       // Recalc colours and fonts
       SendMessage(WM_SETTINGCHANGE);
    }
+
    DWORD GetExtendedGridStyle() const
    {
       return m_di.dwExtStyle;
@@ -247,11 +253,13 @@ public:
          return TBase::SelectItem(iRow);
       }
    }
+
    int GetItemCount() const
    {
       if( (m_di.dwExtStyle & PGS_EX_ADDITEMATEND) != 0 ) return max(0, TBase::GetItemCount() - 1);
       return TBase::GetItemCount();
    }
+
    int InsertItem(int nItem, HPROPERTY hProp)
    {
       // NOTE: This is the only InsertItem() we support...
@@ -276,6 +284,7 @@ public:
       if( iItem != -1 ) hProp->SetOwner(m_hWnd, NULL);
       return iItem;
    }
+
    BOOL SetSubItem(int nItem, int nSubItem, HPROPERTY hProp)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -292,10 +301,12 @@ public:
       // Trick ListView into thinking there is a subitem...
       return TBase::SetItemText(nItem, nSubItem, _T(""));
    }
+
    BOOL GetItemText(int iItem, int iSubItem, LPTSTR pstrText, UINT cchMax) const
    {
       return GetItemText(GetProperty(iItem, iSubItem), pstrText, cchMax);
    }
+
    BOOL GetItemText(HPROPERTY hProp, LPTSTR pstrText, UINT cchMax) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -304,6 +315,7 @@ public:
       if( hProp == NULL || pstrText == NULL ) return FALSE;
       return hProp->GetDisplayValue(pstrText, cchMax);
    }
+
    BOOL GetItemValue(HPROPERTY hProp, VARIANT* pValue) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -312,6 +324,7 @@ public:
       if( hProp == NULL || pValue == NULL ) return FALSE;
       return hProp->GetValue(pValue);
    }
+
    BOOL SetItemValue(HPROPERTY hProp, VARIANT* pValue)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -329,11 +342,13 @@ public:
       if( (m_hwndInplace != NULL) && (nItem == m_iInplaceRow) && (nSubItem == m_iInplaceCol) ) _SpawnInplaceWindow(hProp, m_iInplaceRow, m_iInplaceCol);
       return bRes;
    }
+
    int GetSelectedColumn() const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return m_iSelectedCol;
    }
+
    BOOL DeleteColumn(int nCol)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -344,11 +359,13 @@ public:
       ATLASSERT(false); // Remove items first
       return FALSE;
    }
+
    BOOL GetColumnCount() const
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return GetHeader().GetItemCount();
    }
+
    BOOL FindProperty(IProperty* prop, int& iItem, int& iSubItem) const
    {
       // Looks up the item index based on the property class.
@@ -382,6 +399,7 @@ public:
       }
       return FALSE;
    }
+
    IProperty* GetProperty(int iRow, int iCol) const
    {
       ATLASSERT(iCol>=0 && iCol<m_nColumns);
@@ -396,6 +414,7 @@ public:
                        // Use read-only properties to fill out with dummies.
       return prop;
    }
+
    LPARAM GetItemData(HPROPERTY hProp) const
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -403,6 +422,7 @@ public:
       if( hProp == NULL ) return 0;
       return hProp->GetItemData();
    }
+
    void SetItemData(HPROPERTY hProp, LPARAM lParam)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -410,12 +430,14 @@ public:
       if( hProp == NULL ) return;
       hProp->SetItemData(lParam);
    }
+
    BOOL GetItemEnabled(HPROPERTY hProp) const
    {
       ATLASSERT(hProp);
       if( hProp == NULL ) return FALSE;
       return hProp->IsEnabled();
    }
+
    void SetItemEnabled(HPROPERTY hProp, BOOL bEnable)
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -429,6 +451,7 @@ public:
       if( !FindProperty(hProp, nItem, nSubItem) ) return;
       _InvalidateItem(nItem, nSubItem);
    }
+
    void Navigate(UINT wCode)
    {
       SendMessage(WM_USER_PROP_NAVIGATE, wCode);
@@ -442,16 +465,19 @@ public:
       ATLASSERT(false);
       return FALSE;
    }
+
    BOOL SetItemText(int /*nItem*/, int /*nSubItem*/, LPCTSTR /*lpszText*/)
    {
       ATLASSERT(false);
       return FALSE;
    }
+
    DWORD SetViewType(DWORD /*dwType*/)
    {
       ATLASSERT(false);
       return FALSE;
    }
+
    CEdit EditLabel(int /*nItem*/)
    {
       ATLASSERT(false);
@@ -481,6 +507,7 @@ public:
       // Update colours and text
       SendMessage(WM_SETTINGCHANGE);
    }
+
    BOOL _SpawnInplaceWindow(IProperty* prop, int iItem, int iSubItem)
    {
       ATLASSERT(prop);
@@ -508,6 +535,7 @@ public:
       }
       return m_hwndInplace != NULL;
    }
+
    void _DestroyInplaceWindow()
    {
       if( ::IsWindow(m_hwndInplace) ) {
@@ -529,6 +557,7 @@ public:
       m_iInplaceRow = -1;
       m_iInplaceCol = -1;
    }
+
    void _GetSubItemRect(int iItem, int iSubItem, RECT* pRect) const
    {
       if( iSubItem == 0 && _IsLastAddItem(iItem) ) {
@@ -546,6 +575,7 @@ public:
          GetSubItemRect(iItem, iSubItem, LVIR_BOUNDS, pRect);
       }
    }
+
    void _InvalidateItem(int iItem, int iSubItem)
    {
       if( iItem == -1 || iSubItem == -1 ) return;
@@ -553,11 +583,13 @@ public:
       _GetSubItemRect(iItem, iSubItem, &rc);
       InvalidateRect(&rc);
    }
+
    bool _IsValidSelection() const
    {
       ATLASSERT(m_iSelectedRow==GetSelectedIndex()); // Should be in sync!
       return (m_iSelectedRow != -1) && (m_iSelectedCol != -1);
    }
+
    bool _IsLastAddItem(int iItem) const
    {
       return (m_di.dwExtStyle & PGS_EX_ADDITEMATEND) != 0 && 
@@ -605,12 +637,14 @@ public:
       _Init();
       return lRes;
    }
+
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {      
       DeleteAllItems(); // Make sure we clean up all items...
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {      
       // Avoid focus-rectangle problem in ownerdrawn ListView
@@ -618,6 +652,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnScroll(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {      
       // HACK: When scrolling we need to destroy the in-place editor
@@ -626,6 +661,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       // Repaint previous item in any case
@@ -715,6 +751,7 @@ public:
       }
       return lRes;
    }
+
    LRESULT OnKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {      
       switch( wParam ) {
@@ -764,6 +801,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnChar(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {      
       // If the user is typing stuff, we should spawn an editor right away
@@ -787,10 +825,12 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnGetDlgCode(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {      
       return DefWindowProc() | DLGC_WANTALLKEYS;
    }
+
    LRESULT OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       // Standard colors
@@ -914,6 +954,7 @@ public:
       }
       return 0;
    }
+
    LRESULT OnUpdateProperty(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       // Updates a property value using an active editor window.
@@ -941,6 +982,7 @@ public:
       _DestroyInplaceWindow();
       return 0;
    }
+
    LRESULT OnCancelProperty(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
    {
       // Restores a property value using an active editor window.
@@ -961,6 +1003,7 @@ public:
       _DestroyInplaceWindow();
       return 0;
    }
+
    LRESULT OnChangedProperty(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       // Updates a property value.
@@ -1025,10 +1068,12 @@ public:
    {
       return CDRF_NOTIFYITEMDRAW;   // We need per-item notifications
    }
+
    DWORD OnItemPrePaint(int /*idCtrl*/, LPNMCUSTOMDRAW /*lpNMCustomDraw*/)
    {
       return CDRF_NOTIFYSUBITEMDRAW; // We need per-subitem notifications
    }
+
    DWORD OnSubItemPrePaint(int /*idCtrl*/, LPNMCUSTOMDRAW lpNMCustomDraw)
    {
       T* pT = static_cast<T*>(this);

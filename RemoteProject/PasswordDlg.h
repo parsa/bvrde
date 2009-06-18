@@ -34,6 +34,7 @@ public:
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
+      CenterWindow();
       m_ctrlOK = GetDlgItem(IDOK);
       CLogFont lf = GetFont();
       lf.MakeBolder();
@@ -46,6 +47,7 @@ public:
       m_ctrlSubNote = GetDlgItem(IDC_SUBNOTE);
       return TRUE;
    }
+
    LRESULT OnCtlColorStatic(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
    {
       if( (HWND) lParam == m_ctrlTitle ) {
@@ -62,12 +64,14 @@ public:
       bHandled = FALSE;
       return 0;
    }
+
    LRESULT OnClose(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       m_sPassword = CWindowText(m_ctrlPassword);
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnChange(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       _UpdateButtons();

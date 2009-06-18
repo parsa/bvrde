@@ -48,7 +48,7 @@ enum
 
 // This structure contains the choices of the initial page's settings, so
 // that we can pick similar settings on the remaining page in Wizard-mode.
-// Meaning Telnet automatically picks FTP, SSH leads to SFTP, etc.
+// Meaning Telnet can automatically pick FTP, SSH leads to SFTP, etc.
 struct WIZDATA
 {
    WIZDATA() : bIsWizard(false), iFileTransferType(-1), iShellType(-1) { };

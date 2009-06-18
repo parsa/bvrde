@@ -45,10 +45,12 @@ public:
    CThreadT(HANDLE hThread = NULL) : m_hThread(hThread), m_bSuspended(false)
    {
    }
+
    virtual ~CThreadT()
    {
       if( t_bManaged ) Release();
    }
+   
    BOOL Create(LPTHREAD_START_ROUTINE pThreadProc, 
                LPVOID pParam = NULL, 
                int iPriority = THREAD_PRIORITY_NORMAL)
@@ -69,6 +71,7 @@ public:
       }
       return ::ResumeThread(m_hThread) != (DWORD) -1;
    }
+   
    BOOL Release()
    {
       if( m_hThread == NULL ) return TRUE;
@@ -76,27 +79,32 @@ public:
       m_hThread = NULL;
       return TRUE;
    }
+   
    void Attach(HANDLE hThread)
    {
       _ASSERTE(m_hThread==NULL);
       m_hThread = hThread;
    }
+   
    HANDLE Detach()
    {
       HANDLE hThread = m_hThread;
       m_hThread = NULL;
       return hThread;
    }
+   
    BOOL SetPriority(int iPriority) const
    {
       _ASSERTE(m_hThread);
       return ::SetThreadPriority(m_hThread, iPriority);
    }
+   
    int GetPriority() const
    {
       _ASSERTE(m_hThread);
       return ::GetThreadPriority(m_hThread);
    }
+   
    BOOL Suspend()
    {
       _ASSERTE(m_hThread);
@@ -105,6 +113,7 @@ public:
       m_bSuspended = true;
       return TRUE;
    }
+   
    BOOL Resume()
    {
       _ASSERTE(m_hThread);
@@ -113,11 +122,13 @@ public:
       m_bSuspended = false;
       return TRUE;
    }
+   
    BOOL IsSuspended() const
    {
       _ASSERTE(m_hThread);
       return m_bSuspended == true;
    }
+   
    BOOL IsRunning() const
    {
       if( m_hThread == NULL ) return FALSE;
@@ -125,31 +136,38 @@ public:
       ::GetExitCodeThread(m_hThread, &dwCode);
       return dwCode == STILL_ACTIVE;
    }
+   
    BOOL WaitForThread(DWORD dwTimeout = INFINITE) const
    {
       _ASSERTE(m_hThread);
       return ::WaitForSingleObject(m_hThread, dwTimeout) == WAIT_OBJECT_0;
    }
+   
    BOOL Terminate(DWORD dwExitCode = 0) const
    {
       // See Q254956 why calling this could be a bad idea!
       _ASSERTE(m_hThread);
       return ::TerminateThread(m_hThread, dwExitCode);
    }
+   
    BOOL GetExitCode(DWORD* pExitCode) const
    {
       _ASSERTE(m_hThread);
       _ASSERTE(pExitCode);
       return ::GetExitCodeThread(m_hThread, pExitCode);
    }
+
 #if(WINVER >= 0x0500)
+
    BOOL GetThreadTimes(LPFILETIME lpCreationTime, LPFILETIME lpExitTime, LPFILETIME lpKernelTime, LPFILETIME lpUserTime) const
    {
       _ASSERTE(m_hThread);
       _ASSERTE(lpExitTime!=NULL && lpKernelTime!=NULL && lpUserTime!=NULL);
       return ::GetThreadTimes(m_hThread, lpExitTime, lpKernelTime, lpUserTime);
    }
+
 #endif
+
    operator HANDLE() const { return m_hThread; }
 };
 
@@ -170,10 +188,12 @@ public:
    CThreadImpl() : m_bStopped(false), m_bScoped(true)
    {
    }
+   
    virtual ~CThreadImpl()
    {
       if( m_bScoped ) Stop();
    }
+   
    virtual BOOL Start()
    {
       m_bScoped = true;
@@ -181,12 +201,14 @@ public:
       if( !Create(ThreadProc, (LPVOID) static_cast<T*>(this) ) ) return FALSE;
       return TRUE;
    }
+   
    virtual void Stop()
    {
       if( !SignalStop() ) return;
       WaitForThread();
       Release();
    }
+   
    BOOL SignalStop()
    {
       if( m_hThread == NULL ) return FALSE;
@@ -194,16 +216,20 @@ public:
       if( m_bSuspended ) Resume();
       return TRUE;
    }
+   
    BOOL ShouldStop() const
    {
       _ASSERTE(m_hThread);
       return m_bStopped == true;
    }
-   void DeleteThis()
+   
+   void DeleteThis()   
    {
       m_bScoped = false;
       delete this;
    }
+
+   // Static members
 
    static DWORD WINAPI ThreadProc(LPVOID pData)
    {
@@ -242,10 +268,12 @@ public:
    CEvent(HANDLE hEvent = INVALID_HANDLE_VALUE) : m_hEvent(hEvent)
    { 
    }
+
    ~CEvent()
    {
       Close();
    }
+   
    BOOL Create(LPCTSTR pstrName = NULL, BOOL bManualReset = FALSE, BOOL bInitialState = FALSE, LPSECURITY_ATTRIBUTES pEventAttributes = NULL)
    {
       _ASSERTE(pstrName==NULL || !::IsBadStringPtr(pstrName,-1));
@@ -254,6 +282,7 @@ public:
       _ASSERTE(m_hEvent!=INVALID_HANDLE_VALUE);
       return m_hEvent != INVALID_HANDLE_VALUE;
    }
+   
    BOOL Open(LPCTSTR pstrName, DWORD dwDesiredAccess = EVENT_ALL_ACCESS, BOOL bInheritHandle = TRUE)
    {
       _ASSERTE(!::IsBadStringPtr(pstrName,-1));
@@ -262,42 +291,50 @@ public:
       _ASSERTE(m_hEvent!=INVALID_HANDLE_VALUE);
       return m_hEvent != INVALID_HANDLE_VALUE;
    }
+   
    BOOL IsOpen() const
    {
       return m_hEvent != INVALID_HANDLE_VALUE;
    }
+   
    void Close()
    {
       if( m_hEvent == INVALID_HANDLE_VALUE ) return;
       ::CloseHandle(m_hEvent);
       m_hEvent = INVALID_HANDLE_VALUE;
    }
+   
    void Attach(HANDLE hEvent)
    {
       _ASSERTE(m_hEvent==INVALID_HANDLE_VALUE);
       m_hEvent= hEvent;
    }  
+   
    HANDLE Detach()
    {
       HANDLE hEvent = m_hEvent;
       m_hEvent = INVALID_HANDLE_VALUE;
       return hEvent;
    }
+   
    BOOL ResetEvent()
    {
       _ASSERTE(m_hEvent!=INVALID_HANDLE_VALUE);
       return ::ResetEvent(m_hEvent);
    }
+   
    BOOL SetEvent()
    {
       _ASSERTE(m_hEvent!=INVALID_HANDLE_VALUE);
       return ::SetEvent(m_hEvent);
    }
+   
    BOOL PulseEvent()
    {
       _ASSERTE(m_hEvent!=INVALID_HANDLE_VALUE);
       return ::PulseEvent(m_hEvent);
    }
+   
    BOOL WaitForEvent(DWORD dwTimeout = INFINITE)
    {
       _ASSERTE(m_hEvent!=INVALID_HANDLE_VALUE);
@@ -321,14 +358,17 @@ public:
    {
       ::InitializeCriticalSection(&m_sec);
    }
+   
    void Term() 
    {
       ::DeleteCriticalSection(&m_sec);
    }
+   
    void Lock() 
    {
       ::EnterCriticalSection(&m_sec);
    }
+   
    void Unlock() 
    {
       ::LeaveCriticalSection(&m_sec);
@@ -344,14 +384,17 @@ public:
    {
       ::InitializeCriticalSection(&m_sec);
    }
+   
    ~CAutoCriticalSection() 
    {
       ::DeleteCriticalSection(&m_sec);
    }
+   
    void Lock() 
    {
       ::EnterCriticalSection(&m_sec);
    }
+   
    void Unlock() 
    {
       ::LeaveCriticalSection(&m_sec);

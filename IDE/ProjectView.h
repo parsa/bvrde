@@ -41,10 +41,12 @@ public:
 
       return 0;
    }
+
    LRESULT OnEraseBkgnd(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       return TRUE; // Children fills entire client area
    }
+   
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( !m_ctrlToolbar.IsWindow() || !m_ctrlTree.IsWindow() ) return 0;
@@ -57,10 +59,12 @@ public:
       m_ctrlTree.MoveWindow(&rcTree);
       return 0;
    }
+   
    LRESULT OnTreeMessage(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled*/)
    {
       return ::SendMessage(GetTopLevelWindow(), WM_APP_TREEMESSAGE, 0, (LPARAM) pnmh);
    }
+   
    LRESULT OnItemExpanded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
    {
       bHandled = FALSE;
@@ -77,6 +81,7 @@ public:
       }
       return 0;
    }
+   
    LRESULT OnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
    {
       bHandled = FALSE;
@@ -117,6 +122,7 @@ public:
          TVI_ROOT, TVI_LAST);
       m_ctrlTree.Expand(hRoot);
    }
+   
    IElement* GetSelectedElement()
    {
       ATLASSERT(::IsWindow(m_ctrlTree));
@@ -124,16 +130,19 @@ public:
       if( hItem != NULL ) return (IElement*) m_ctrlTree.GetItemData(hItem);
       return NULL;
    }
+   
    void SelectRoot()
    {
       ATLASSERT(::IsWindow(m_ctrlTree));
       m_ctrlTree.SelectItem(m_ctrlTree.GetRootItem());
       m_ctrlTree.EnsureVisible(m_ctrlTree.GetRootItem());
    }
+   
    void SetActiveProject(IProject* pProject)
    {
       _EnumTreeItems(_SetActiveProjectProc, (long) pProject, m_ctrlTree.GetRootItem());
    }
+   
    IView* GetActiveView() const
    {
       ATLASSERT(::IsWindow(m_ctrlTree));
@@ -144,6 +153,7 @@ public:
       if( lParam == NULL ) return NULL;
       return (IView*) lParam;
    }
+   
    void SetActiveView(IView* pView)
    {
       _EnumTreeItems(_SetActiveViewProc, (long) pView, m_ctrlTree.GetRootItem());
@@ -167,6 +177,7 @@ public:
       }
       return TRUE;
    }
+   
    static BOOL CALLBACK _SetActiveViewProc(CTreeViewCtrl& tree, HTREEITEM hItem, LPARAM lParam)
    {
       if( (LPARAM) tree.GetItemData(hItem) == lParam ) {
@@ -176,16 +187,17 @@ public:
       }
       return TRUE;
    }
+   
    BOOL _EnumTreeItems(TREEENUMPROC pProc, LPARAM lParam, HTREEITEM hItem)
    {
       if( !(*pProc)(m_ctrlTree, hItem, lParam) ) return FALSE;
       HTREEITEM hSibling = m_ctrlTree.GetNextSiblingItem(hItem);
-      while( hSibling ) {
+      while( hSibling != NULL ) {
          if( !(*pProc)(m_ctrlTree, hSibling, lParam) ) return FALSE;
          hSibling = m_ctrlTree.GetNextSiblingItem(hSibling);
       }
       HTREEITEM hChild = m_ctrlTree.GetChildItem(hItem);
-      if( hChild ) {
+      if( hChild != NULL ) {
          if( !(*pProc)(m_ctrlTree, hChild, lParam) ) return FALSE;
          if( !_EnumTreeItems(pProc, lParam, hChild) ) return FALSE;
       }

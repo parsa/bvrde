@@ -111,6 +111,7 @@ CString SecDecodePassword(LPCTSTR pstrPassword)
    USES_CONVERSION;
    if( pstrPassword[0] != '~' ) return pstrPassword;
    if( _tcslen(pstrPassword) != (CRYPT_ENVELOPE_SIZE * 2) + 1 ) return pstrPassword;
+   ++pstrPassword;  // skip "~"-prefix
    // Prepare encryption library...
    static LPCTSTR pstrProvider = _T("Microsoft Base Cryptographic Provider v1.0");
    HCRYPTPROV hProv = NULL;
@@ -122,12 +123,11 @@ CString SecDecodePassword(LPCTSTR pstrPassword)
    HCRYPTKEY hKey = NULL;
    if( !::CryptDeriveKey(hProv, CALG_RC4, hHash, CRYPT_EXPORTABLE, &hKey)) return _T("");
    // Convert hex-encoded to character string...
-   BYTE bData[CRYPT_ENVELOPE_SIZE * 2];
-   CHAR iVal;
+   BYTE iVal, bData[CRYPT_ENVELOPE_SIZE * 2];
    int i = 0;
    while( i < CRYPT_ENVELOPE_SIZE ) {
-      iVal = (CHAR)(pstrPassword[0] > '9' ? pstrPassword[0] - 'a' + 10 : pstrPassword[0] - '0');
-      iVal = (CHAR)(pstrPassword[1] > '9' ? pstrPassword[1] - 'a' + 10 : pstrPassword[1] - '0') + (iVal << 4);
+      iVal = (BYTE)(pstrPassword[0] > '9' ? pstrPassword[0] - 'a' + 10 : pstrPassword[0] - '0');
+      iVal = (BYTE)(pstrPassword[1] > '9' ? pstrPassword[1] - 'a' + 10 : pstrPassword[1] - '0') + (iVal << 4);
       bData[i++] = iVal;
       pstrPassword += 2;
    }

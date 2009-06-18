@@ -33,11 +33,13 @@ public:
       m_hWnd = wnd;
       return m_hWnd;
    }
+
    BOOL EndDialog(int nRetCode)
    {
       ATLASSERT(::IsWindow(m_hWnd));
       return ::EndDialog(m_hWnd, nRetCode);
    }
+
    BOOL DestroyWindow()
    {
       ATLASSERT(::IsWindow(m_hWnd));
@@ -88,6 +90,7 @@ public:
       m_hGroup = m_ctrlTree.InsertItem(pstrName, 0, 0, m_hGroup, TVI_LAST);
       return m_hGroup != NULL;
    }
+   
    BOOL SetWizardGroup(LPCTSTR pstrName)
    {
       m_hGroup = _FindTreeItem(m_ctrlTree.GetRootItem(), pstrName);
@@ -141,7 +144,7 @@ public:
 
    LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
-      CenterWindow(GetParent());
+      CenterWindow();
 
       COLORREF clrBack = BlendRGB(::GetSysColor(COLOR_WINDOW), RGB(0,0,0), 6);
 
@@ -182,6 +185,7 @@ public:
 
       return TRUE;
    }
+   
    LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
    {
       _SendNotifications(PSN_RESET);
@@ -192,6 +196,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnOK(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       BOOL bDummy = FALSE;
@@ -199,11 +204,13 @@ public:
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       EndDialog(wID);
       return 0;
    }
+   
    LRESULT OnApply(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
    {
       CWaitCursor cursor;
@@ -217,6 +224,7 @@ public:
       if( wID == IDC_APPLY ) CWindow(GetParent()).SendMessage(WM_SETTINGCHANGE);
       return 0;
    }
+   
    LRESULT OnItemExpanded(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
    {
       LPNMTREEVIEW lpnmtv = (LPNMTREEVIEW) pnmh;
@@ -232,6 +240,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
+   
    LRESULT OnItemSelected(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
    {
       LPNMTREEVIEW lpnmtv = (LPNMTREEVIEW) pnmh;
@@ -258,6 +267,7 @@ public:
          m_aViews[i]->SendMessage(WM_NOTIFY, pshn.hdr.idFrom, (LPARAM) &pshn);
       }
    }
+   
    HTREEITEM _FindTreeItem(HTREEITEM hItem, LPCTSTR pstrName)
    {
       while( hItem != NULL ) {
