@@ -1,6 +1,7 @@
 Version 1.x
 * Stability of internal processing of debug data improved
 * SFTP will use UTF-8 encoding when SFTP v4 is detected
+* Fixed SFTP for OpenSSH 5.1 release
 * Fixed problem with loading multiple CTAGS files
 * Added context list to improve auto-completion
 

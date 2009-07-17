@@ -789,6 +789,7 @@ LRESULT CScintillaView::OnAutoExpand(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandle
    if( MemberInfo.sDeclaration.Find('(') >= 0 ) sText = _T("(");
    if( MemberInfo.sDeclaration.Find(_T("()")) >= 0 ) sText = _T("()");
    if( MemberInfo.sDeclaration.Find(_T("( )")) >= 0 ) sText = _T("()");
+   if( MemberInfo.sDeclaration.Find(_T("(void)")) >= 0 ) sText = _T("()");
    // FIX: Scintilla will add its auto-character if you press ( in the dropdown
    //      and we need to prevent this. SHIFT+( indicates fill-up is used.
    //      See http://sourceforge.net/tracker/index.php?aid=1763109&group_id=2439&atid=352439
@@ -1470,23 +1471,24 @@ int CScintillaView::_CountCommas(LPCTSTR pstrText) const
 
 bool CScintillaView::_iscppchar(int ch) const
 {
-   return isalnum(ch) || ch == '_' || ch == '~';
+   return isalnum(ch) || ch == '_' || ch == '~' || ch == '$';
 }
 
 bool CScintillaView::_iscppcharw(WCHAR ch) const
 {
-   return iswalnum(ch) || ch == '_' || ch == '~';
+   return iswalnum(ch) || ch == '_' || ch == '~' || ch == '$';
 }
 
 bool CScintillaView::_issepchar(WCHAR ch) const
 {
-   return ch == '\n' || ch == ';' || ch == ' ' || ch == '\t' || ch == '=' || ch == '(' || ch == '<';
+   return ch == '\n' || ch == ';' || ch == ' ' || ch == '\t' || ch == '=' || ch == '(' || ch == ')' || ch == '<' || ch == '-' || ch == '+';
 }
 
 bool CScintillaView::_iswhitechar(int ch) const
 {
    return ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n';
 }
+
 
 /* XPM */
 static char* MemberImage[] = {

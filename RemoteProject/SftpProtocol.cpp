@@ -1020,11 +1020,16 @@ DWORD CSftpProtocol::_SendInit()
       return 0;
    }
    p = buffer;
-   DWORD cbSize  = SSH_READ_LONG(p); cbSize;
-   BYTE id       = SSH_READ_BYTE(p); id;
+   DWORD cbSize    = SSH_READ_LONG(p); cbSize;
+   BYTE id         = SSH_READ_BYTE(p); id;
+   DWORD dwVersion = SSH_READ_LONG(p);
+
+   // Spool remainder of reply...
+   BYTE dummy[500];
+   if( cbSize > 60 ) _ReadData(m_cryptSession, dummy, min(sizeof(dummy), cbSize - 60));
 
    // Return the server version identifier
-   return SSH_READ_LONG(p);
+   return dwVersion;
 }
 
 bool CSftpProtocol::_CheckFileExists(LPCTSTR pstrFilename)

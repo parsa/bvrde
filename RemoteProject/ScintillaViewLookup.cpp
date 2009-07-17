@@ -445,7 +445,10 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
 
    // See if we can find a matching type from the tag information.
    // NOTE: While it would be more correct to process the lines from the bottom-up (in case of variable 
-   //       name re-use) , it has been shown to be faster to process them top-down.
+   //       name re-use) , it has been shown to be faster to process them top-down. Also since our
+   //       parsing is less than accurate, we have a better chance of determining the type on the
+   //       first hit rather than needing to parse over lines where the type is just used but not
+   //       declared.
    for( int iLineNum = iStartLine; iLineNum <= iEndLine; iLineNum++ ) {
       CHAR szBuffer[256] = { 0 };
       if( m_ctrlEdit.GetLineLength(iLineNum) >= sizeof(szBuffer) - 1 ) continue;
@@ -479,8 +482,9 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
          //    MYTYPE a; b->
          //    a = b->
          //    a = (CASTTYPE) b->
+         //    foo(b
          TCHAR ch = sLine[iEndPos];
-         if( ch == ';' || ch == ')' || ch == '=' || ch == '<' ) continue;
+         if( _issepchar(ch) ) continue;
 
          // Special case of:
          //    MYTYPE a, b;

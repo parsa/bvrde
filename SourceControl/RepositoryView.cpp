@@ -86,10 +86,12 @@ HRESULT CFileEnumThread::_ParseCvsLine(BSTR bstr)
       FILEINFO empty;
       m_Info = empty;
    }
-   p = wcsstr(bstr, L"Repository revision:");
+   p = wcsstr(bstr, L"Repository revision: ");
    if( p != NULL ) {
+      // Must include format "Repository revision: <version> "
       if( wcslen(p) < 31 ) return S_OK;
       CString sFile = p;
+      sFile.TrimRight();
       int iPos = sFile.ReverseFind(' ');
       if( iPos > 0 ) sFile = sFile.Mid(iPos + 1);
       iPos = sFile.ReverseFind(',');
@@ -373,19 +375,25 @@ LRESULT CRepositoryView::OnFileEnumDone(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
             CString sPath = _GetItemPath(hParent);
             if( m_sSelPath.IsEmpty() ) m_sSelPath = sPath;
             if( sPath != m_sSelPath ) continue;
-            int iImage = 0;
             int iOverlay = 0;
-            if( sStatus.Find(_T("Modified")) >= 0 )    iOverlay = 1;
-            if( sStatus.Find(_T("Patch")) >= 0 )       iOverlay = 2;
-            if( sStatus.Find(_T("Out-of-date")) >= 0 ) iOverlay = 2;
-            if( sStatus.Find(_T("Conflict")) >= 0 )    iOverlay = 3;
-            if( sStatus.Find(_T("Deleted")) >= 0 )     iOverlay = 3;
+            struct {
+               LPCTSTR pstrToken; int iOverlay;
+            } aTokens[] = {
+               { _T("Modified"),    1 },
+               { _T("Patch"),       2 },
+               { _T("Out-of-date"), 2 },
+               { _T("Conflict"),    3 },
+               { _T("Deleted"),     3 },
+            };
+            for( int x = 0; x < sizeof(aTokens) / sizeof(aTokens[0]); x++ ) {
+               if( sStatus.Find(aTokens[x].pstrToken) >= 0 ) iOverlay = aTokens[x].iOverlay;
+            }
             UINT uState = INDEXTOOVERLAYMASK(iOverlay);
             m_ctrlFiles.InsertItem(LVIF_TEXT | LVIF_IMAGE | LVIF_STATE | LVIF_PARAM, 
                m_ctrlFiles.GetItemCount(), 
                sPart, 
                uState, LVIS_OVERLAYMASK, 
-               iImage, 
+               0, 
                (LPARAM) i);
             m_ctrlFolders.Expand(hParent);
             m_ctrlFolders.SelectItem(hParent);
