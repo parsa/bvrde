@@ -32,7 +32,7 @@ static CCryptLib clib;
 
 #define MIN_SFTP_VERSION 3
 
-#define MAX_HANDLE_SIZE 256
+#define MAX_SFTP_HANDLE_SIZE 256
 
 
 enum
@@ -440,7 +440,7 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
    SSH_WRITE_LONG(p, 0);
    if( _WriteData(m_cryptSession, buffer.GetData(), p - buffer.GetData()) == 0 ) return false;
 
-   BYTE bHandle[MAX_HANDLE_SIZE + 20];
+   BYTE bHandle[MAX_SFTP_HANDLE_SIZE + 20];
    if( _ReadData(m_cryptSession, bHandle, sizeof(bHandle)) == 0 ) return false;
    p = bHandle;
    DWORD cbSize    = SSH_READ_LONG(p);
@@ -455,7 +455,7 @@ bool CSftpProtocol::LoadFile(LPCTSTR pstrFilename, bool bBinary, LPBYTE* ppOut, 
       ::SetLastError(ERROR_FILE_NOT_FOUND);
       return false;
    }
-   if( cchHandle > MAX_HANDLE_SIZE ) {
+   if( cchHandle > MAX_SFTP_HANDLE_SIZE ) {
       ::SetLastError(ERROR_INVALID_TARGET_HANDLE);
       return false;
    }
@@ -596,7 +596,7 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
                               //      since it might cause a security conflict!
    if( _WriteData(m_cryptSession, buffer.GetData(), p - buffer.GetData()) == 0 ) return false;
 
-   BYTE bHandle[MAX_HANDLE_SIZE + 20];
+   BYTE bHandle[MAX_SFTP_HANDLE_SIZE + 20];
    if( _ReadData(m_cryptSession, bHandle, sizeof(bHandle)) == 0 ) return false;
    p = bHandle;
    DWORD cbSize         = SSH_READ_LONG(p);
@@ -618,7 +618,7 @@ bool CSftpProtocol::SaveFile(LPCTSTR pstrFilename, bool /*bBinary*/, LPBYTE pDat
    DWORD cchHandle = SSH_READ_LONG(p);
    LPBYTE pHandle = p;
 
-   if( cchHandle > MAX_HANDLE_SIZE ) {
+   if( cchHandle > MAX_SFTP_HANDLE_SIZE ) {
       ::SetLastError(ERROR_INVALID_TARGET_HANDLE);
       return false;
    }
@@ -790,7 +790,7 @@ bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool /*bUse
    SSH_WRITE_STR(p, pstrPath);
    if( _WriteData(m_cryptSession, buffer, p - buffer) == 0 ) return false;
 
-   BYTE bHandle[MAX_HANDLE_SIZE + 20];
+   BYTE bHandle[MAX_SFTP_HANDLE_SIZE + 20];
    if( _ReadData(m_cryptSession, bHandle, sizeof(bHandle)) == 0 ) return false;
    p = bHandle;
    DWORD cbSize    = SSH_READ_LONG(p);
@@ -805,7 +805,7 @@ bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool /*bUse
       ::SetLastError(ERROR_NOT_CONTAINER);
       return false;
    }
-   if( cchHandle > MAX_HANDLE_SIZE ) {
+   if( cchHandle > MAX_SFTP_HANDLE_SIZE ) {
       ::SetLastError(ERROR_INVALID_TARGET_HANDLE);
       return false;
    }
@@ -1064,7 +1064,7 @@ bool CSftpProtocol::_CheckFileExists(LPCTSTR pstrFilename)
    SSH_WRITE_LONG(p, 0);
    if( _WriteData(m_cryptSession, buffer, p - buffer) == 0 ) return false;
 
-   BYTE bHandle[MAX_HANDLE_SIZE + 20];
+   BYTE bHandle[MAX_SFTP_HANDLE_SIZE + 20];
    if( _ReadData(m_cryptSession, bHandle, sizeof(bHandle)) == 0 ) return false;
    p = bHandle;
    DWORD cbSize    = SSH_READ_LONG(p);
@@ -1076,7 +1076,7 @@ bool CSftpProtocol::_CheckFileExists(LPCTSTR pstrFilename)
    LPBYTE pHandle = p;
 
    if( id != SSH_FXP_HANDLE ) return false;
-   if( cchHandle > MAX_HANDLE_SIZE ) return false;
+   if( cchHandle > MAX_SFTP_HANDLE_SIZE ) return false;
 
    // Close handle
    p = buffer;

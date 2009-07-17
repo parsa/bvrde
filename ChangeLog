@@ -4,6 +4,7 @@ Version 1.x
 * Fixed SFTP for OpenSSH 5.1 release
 * Fixed problem with loading multiple CTAGS files
 * Added context list to improve auto-completion
+* Auto-completion lexer now lists namespaces
 
 Version 1.2b:
 * Symbol View improved

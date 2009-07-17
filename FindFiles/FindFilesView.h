@@ -12,10 +12,12 @@ class CWaitCursor
 {
 public:
    HCURSOR m_hOldCursor;
+
    CWaitCursor()
    {
       m_hOldCursor = ::SetCursor( ::LoadCursor(NULL, IDC_WAIT) );
    }
+
    ~CWaitCursor()
    {
       ::SetCursor(m_hOldCursor);

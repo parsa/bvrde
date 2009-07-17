@@ -129,6 +129,8 @@ public:
 
    void _LoadStartupSettings()
    {
+      // Loading of the XML settings is available in the CMainFrame class as it is also used
+      // for reloading after a manual configuration change.
       m_pMain->_LoadStartupSettings();
    }
 
@@ -159,6 +161,9 @@ public:
       TCHAR szOrigValue[64] = { 0 };
       ::wsprintf(szOrigValue, _T("%08X%08X"), ftOrig.dwHighDateTime, ftOrig.dwLowDateTime);
       if( _tcscmp(szDocValue, szOrigValue) != 0 || ftUser.dwLowDateTime == 0 ) {
+         // Warn user that master xml file seems to have changed - we can use it instead.
+         // BUG: We don't have the xml configuration and thus the language settings, so we can only present the prompt
+         //      in English.
          if( _tcslen(szDocValue) == 0 || IDYES == AtlMessageBox(NULL, _T("The Master Configuration file has changed!\r\n\r\nDo you wish to copy it and use it as the current configuration?\r\nThis is recommended if you just reinstalled the tool."), _T("BVRDE"), MB_ICONQUESTION | MB_YESNO | MB_SETFOREGROUND | MB_TOPMOST) ) {
             ::CopyFile(sOrigFilename, sDocFilename, FALSE);
          }

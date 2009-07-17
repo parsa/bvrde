@@ -15,13 +15,16 @@ class CComRefCount : public TBase
 {
 public:
    LONG m_dwRef;
+
    CComRefCount() : m_dwRef(1L) 
    { 
    }
+
    virtual ULONG STDMETHODCALLTYPE AddRef()
    {
       return ++m_dwRef;
    }
+
    virtual ULONG STDMETHODCALLTYPE Release()
    {
       LONG lRef = --m_dwRef;
