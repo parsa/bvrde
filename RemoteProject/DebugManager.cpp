@@ -682,7 +682,7 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
    m_bRunning = true;
    m_bSeenExit = false;
    m_bDebugEvents = false;
-   
+
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_DEBUGGING)), FALSE);
    _pDevEnv->PlayAnimation(FALSE, 0);
 

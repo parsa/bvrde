@@ -56,45 +56,45 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    CString sOut;
    if( sCommand == _T("-exec-next") )
    {
-      return _T("next;  ## dbx");
+      return _T("next;  ## dbx\n");
    }
    if( sCommand == _T("-exec-step") )
    {
-      return _T("step;  ## dbx");
+      return _T("step;  ## dbx\n");
    }
    if( sCommand == _T("-exec-step-instruction") )
    {
-      return _T("stepi;  ## dbx");
+      return _T("stepi;  ## dbx\n");
    }
    if( sCommand == _T("-exec-run") )
    {
-      return _T("run;  ## dbx");
+      return _T("run;  ## dbx\n");
    }
    if( sCommand == _T("-exec-continue") )
    {
-      return _T("cont;  ## dbx");
+      return _T("cont;  ## dbx\n");
    }   
    if( sCommand == _T("-exec-finish") )
    {
-      return _T("step up;  ## dbx");
+      return _T("step up;  ## dbx\n");
    }
    if( sCommand == _T("-exec-until") )
    {
       CString sFile, sLineNum;
       _GetInputFileLineArgs(sFullArgs, sFile, sLineNum);
-      sOut.Format(_T("stop at \"%s\"%s -temp; cont;  ## dbx"), sFile, sLineNum);
+      sOut.Format(_T("stop at \"%s\"%s -temp; cont;  ## dbx\n"), sFile, sLineNum);
       return sOut;
    }
    if( sCommand == _T("-exec-jump") )
    {
       CString sFile, sLineNum;
       _GetInputFileLineArgs(sFullArgs, sFile, sLineNum);
-      sOut.Format(_T("cont at %ld;  ## dbx"), _ttol(sLineNum.Mid(1)));
+      sOut.Format(_T("cont at %ld;  ## dbx\n"), _ttol(sLineNum.Mid(1)));
       return sOut;
    }
    if( sCommand == _T("-data-evaluate-expression") )
    {
-      sOut.Format(_T("print %s;  ## dbx"), _GetArg(aArgs, iIndex));
+      sOut.Format(_T("print %s;  ## dbx\n"), _GetArg(aArgs, iIndex));
       return sOut;
    }
    if( sCommand == _T("-data-read-memory") )
@@ -104,7 +104,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
       CString sByteSize = _GetArg(aArgs, iIndex);
       CString sRowSize = _GetArg(aArgs, iIndex);
       if( sByteSize == _T("4") ) sFormat.MakeUpper();
-      sOut.Format(_T("examine %s / %ld %s;  ## dbx"), sAddress, _ttol(sRowSize) * _ttol(sByteSize), sFormat);
+      sOut.Format(_T("examine %s / %ld %s;  ## dbx\n"), sAddress, _ttol(sRowSize) * _ttol(sByteSize), sFormat);
       return sOut;
    }
    if( sCommand == _T("-var-create") )
@@ -119,7 +119,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
       }
       // Add watch expression to a local cache
       if( !m_aWatches.SetAt(sName, sExpr) ) m_aWatches.Add(sName, sExpr);
-      sOut.Format(_T("display %s;  ## dbx"), sExpr);
+      sOut.Format(_T("display %s;  ## dbx\n"), sExpr);
       return sOut;
    }
    if( sCommand == _T("-var-delete") )
@@ -129,7 +129,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
       if( iKeyIndex < 0 ) return _T("");
       CString sExpr = m_aWatches.GetValueAt(iKeyIndex);
       m_aWatches.Remove(sName);
-      sOut.Format(_T("undisplay %s;  ## dbx"), sExpr);
+      sOut.Format(_T("undisplay %s;  ## dbx\n"), sExpr);
       return sOut;
    }
    if( sCommand == _T("-var-assign") )
@@ -139,7 +139,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
       int iKeyIndex = m_aWatches.FindKey(sName);
       if( iKeyIndex < 0 ) return _T("");
       CString sExpr = m_aWatches.GetValueAt(iKeyIndex);
-      sOut.Format(_T("assign %s = %s;  ## dbx"), sExpr, sValue);
+      sOut.Format(_T("assign %s = %s;  ## dbx\n"), sExpr, sValue);
       return sOut;
    }
    if( sCommand == _T("-var-info-type") )
@@ -148,7 +148,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
       int iKeyIndex = m_aWatches.FindKey(sName);
       if( iKeyIndex < 0 ) return _T("");
       CString sExpr = m_aWatches.GetValueAt(iKeyIndex);
-      sOut.Format(_T("whatis %s;  ## dbx"), sExpr);
+      sOut.Format(_T("whatis %s;  ## dbx\n"), sExpr);
       return sOut;
    }
    if( sCommand == _T("-var-evaluate-expression") )
@@ -163,7 +163,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
       else {
          sExpr = m_aWatches.GetValueAt(iKeyIndex);
       }
-      sOut.Format(_T("print %s;  ## dbx"), sExpr);
+      sOut.Format(_T("print %s;  ## dbx\n"), sExpr);
       return sOut;
    }
    if( sCommand == _T("-var-list-children") )
@@ -172,7 +172,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
       int iKeyIndex = m_aWatches.FindKey(sName);
       if( iKeyIndex < 0 ) return _T("");
       CString sExpr = m_aWatches.GetValueAt(iKeyIndex);
-      sOut.Format(_T("print -r %s;  ## dbx"), sExpr);
+      sOut.Format(_T("print -r %s;  ## dbx\n"), sExpr);
       return sOut;
    }
    if( sCommand == _T("-var-update") )
@@ -180,58 +180,58 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    }
    if( sCommand == _T("-stack-list-arguments") )
    {
-      return _T("where 1;  ## dbx");
+      return _T("where 1;  ## dbx\n");
    }
    if( sCommand == _T("-stack-list-locals") )
    {
-      return _T("dump;  ## dbx");
+      return _T("dump;  ## dbx\n");
    }
    if( sCommand == _T("-stack-list-frames") )
    {
-      return _T("where -l -v;  ## dbx");
+      return _T("where -l -v;  ## dbx\n");
    }
    if( sCommand == _T("-thread-select") )
    {
-      sOut.Format(_T("%s%ld;  ## dbx"), m_bThreadSupport ? _T("thread t@") : _T("lwp l@"), _ttol(sFullArgs));
+      sOut.Format(_T("%s%ld;  ## dbx\n"), m_bThreadSupport ? _T("thread t@") : _T("lwp l@"), _ttol(sFullArgs));
       return sOut;
    }
    if( sCommand == _T("-thread-list-ids") )
    {
-      sOut.Format(_T("%s;  ## dbx"), m_bThreadSupport ? _T("threads") : _T("lwps"));
+      sOut.Format(_T("%s;  ## dbx\n"), m_bThreadSupport ? _T("threads") : _T("lwps"));
       return sOut;
    }   
    if( sCommand == _T("-stack-select-frame") )
    {
-      sOut.Format(_T("frame %ld;  ## dbx"), _ttol(_GetArg(aArgs, iIndex)) + 1);
+      sOut.Format(_T("frame %ld;  ## dbx\n"), _ttol(_GetArg(aArgs, iIndex)) + 1);
       return sOut;
    }
    if( sCommand == _T("-data-disassemble") )
    {
       if( aArgs.GetSize() < 3 ) return _T("");
-      sOut.Format(_T("dis %s;  ## dbx"), aArgs[2]);
+      sOut.Format(_T("dis %s;  ## dbx\n"), aArgs[2]);
       return sOut;
    }   
    if( sCommand == _T("-data-list-register-names") )
    {
-      return _T("regs -F;  ## dbx names");
+      return _T("regs -F;  ## dbx names\n");
    }
    if( sCommand == _T("-data-list-register-values") )
    {
-      return _T("regs -F;  ## dbx");
+      return _T("regs -F;  ## dbx\n");
    }
    if( sCommand == _T("-data-read-memory") )
    {
       if( aArgs.GetSize() < 5 ) return _T("");
-      sOut.Format(_T("examine %s %s;  ## dbx"), aArgs[1], aArgs[3]);
+      sOut.Format(_T("examine %s %s;  ## dbx\n"), aArgs[1], aArgs[3]);
       return sOut;
    }   
    if( sCommand == _T("-thread-list-ids") )
    {
-      return _T("threads;  ## dbx");
+      return _T("threads;  ## dbx\n");
    }
    if( sCommand == _T("-exec-arguments") )
    {
-      sOut.Format(_T("runargs %s;  ## dbx"), sFullArgs);
+      sOut.Format(_T("runargs %s;  ## dbx\n"), sFullArgs);
       return sOut;
    }
    if( sCommand == _T("-break-insert") )
@@ -242,58 +242,58 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
       CString sFile, sLineNum;
       _GetInputFileLineArgs(_GetArg(aArgs, iIndex), sFile, sLineNum);
       if( sLineNum.IsEmpty() ) sOut.Format(_T("stop in %s %s"), sFile, sMarkTemp);
-      else sOut.Format(_T("stop at \"%s\"%s %s;  ## dbx"), sFile, sLineNum, sMarkTemp);
+      else sOut.Format(_T("stop at \"%s\"%s %s;  ## dbx\n"), sFile, sLineNum, sMarkTemp);
       return sOut;
    }
    if( sCommand == _T("-break-delete") )
    {
-      sOut.Format(_T("delete %s;  ## dbx"), sFullArgs);
+      sOut.Format(_T("delete %s;  ## dbx\n"), sFullArgs);
       return sOut;
    }
    if( sCommand == _T("-break-after") )
    {
-      sOut.Format(_T("handler -count %s;  ## dbx"), sFullArgs);
+      sOut.Format(_T("handler -count %s;  ## dbx\n"), sFullArgs);
       return sOut;
    }     
    if( sCommand == _T("-break-condition") )
    {
-      sOut.Format(_T("when %s;  ## dbx"), sFullArgs);
+      sOut.Format(_T("when %s;  ## dbx\n"), sFullArgs);
       return sOut;
    }     
    if( sCommand == _T("-break-enable") )
    {
-      sOut.Format(_T("handler -enable %s;  ## dbx"), sFullArgs);
+      sOut.Format(_T("handler -enable %s;  ## dbx\n"), sFullArgs);
       return sOut;
    }  
    if( sCommand == _T("-break-disable") )
    {
-      sOut.Format(_T("handler -disable %s;  ## dbx"), sFullArgs);
+      sOut.Format(_T("handler -disable %s;  ## dbx\n"), sFullArgs);
       return sOut;
    }  
    if( sCommand == _T("-break-list") )
    {      
-      return _T("status;  ## dbx");
+      return _T("status;  ## dbx\n");
    }  
    if( sCommand == _T("-gdb-set") )
    {
       if( _SkipArg(aArgs, iIndex, _T("confirm")) ) {
-         return _T("set $page=0; set $prompt=\"(dbx) \"; set $pagewidth=999; PS1=\"(dbx) \";  ## dbx");
+         return _T("set $page=0; set $prompt=\"(dbx) \"; set $pagewidth=999; PS1=\"(dbx) \";  ## dbx\n");
       }
       if( _SkipArg(aArgs, iIndex, _T("variable")) ) {
-         sOut.Format(_T("assign %s;  ## dbx"), sFullArgs.Mid(9));  // "variable "=len9
+         sOut.Format(_T("assign %s;  ## dbx\n"), sFullArgs.Mid(9));  // "variable "=len9
          return sOut;
       }
    }
    if( sCommand == _T("-environment-pwd") )
    {
-      return _T("pwd;  ## dbx");
+      return _T("pwd;  ## dbx\n");
    }
    if( sCommand == _T("-environment-path") )
    {
    }
    if( sCommand == _T("-environment-directory") )
    {
-      sOut.Format(_T("use %s;  ## dbx"), sFullArgs);
+      sOut.Format(_T("use %s;  ## dbx\n"), sFullArgs);
       return sOut;
    }
    if( sCommand == _T("-interpreter-exec") ) {
@@ -306,7 +306,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    }
    if( sCommand == _T("-gdb-exit") )
    {
-      return _T("quit;  ## dbx");
+      return _T("quit;  ## dbx\n");
    }
    return _T("");   
 }
@@ -338,36 +338,36 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
       // Update state in state-machine
       struct
       {
-         DBXSTATE State;
          LPCTSTR pstrCommand;
+         DBXSTATE State;
          LPCTSTR pstrEmptyResult;
       } cat[] = 
       {
-         { DBX_RUNARGS,        _T("(dbx) runargs")                 _T("(gdb)") },
-         { DBX_RUNNING,        _T("(dbx) run"),                    _T("(gdb)") },
-         { DBX_RUNNING,        _T("(dbx) cont"),                   _T("(gdb)") },
-         { DBX_RUNNING,        _T("(dbx) next"),                   _T("(gdb)") },
-         { DBX_RUNNING,        _T("(dbx) step"),                   _T("(gdb)") },
-         { DBX_RUNNING,        _T("(dbx) stepi"),                  _T("(gdb)") },
-         { DBX_RUNNING,        _T("(dbx) until"),                  _T("(gdb)") },
-         { DBX_RUNNING,        _T("(dbx) return"),                 _T("(gdb)") },
-         { DBX_STACKARGS,      _T("(dbx) where 1"),                _T("(gdb)") },
-         { DBX_WHERE,          _T("(dbx) where"),                  _T("(gdb)") },
-         { DBX_PRINTC,         _T("(dbx) print -r"),               _T("(gdb)") },
-         { DBX_PRINT,          _T("(dbx) print"),                  _T("(gdb)") },
-         { DBX_DUMP,           _T("(dbx) dump"),                   _T("232^done,locals=[]") },
-         { DBX_DISPLAY,        _T("(dbx) display"),                _T("(gdb)") },
-         { DBX_DIS,            _T("(dbx) dis"),                    _T("(gdb)") },
-         { DBX_REGNAMES,       _T("(dbx) regs -F;  ## dbx names"), _T("(gdb)") },
-         { DBX_REGS,           _T("(dbx) regs -F"),                _T("(gdb)") },
-         { DBX_FRAME,          _T("(dbx) frame"),                  _T("(gdb)") },
-         { DBX_STOP,           _T("(dbx) stop"),                   _T("(gdb)") },
-         { DBX_STATUS,         _T("(dbx) status"),                 _T("232^done,BreakpointTable={nr_rows=\"0\",nr_cols=\"9\",hdr=[{}],body=[]") },
-         { DBX_THREADS,        _T("(dbx) threads"),                _T("232^done,thread-ids={}") },
-         { DBX_LWPS,           _T("(dbx) lwps"),                   _T("232^done,thread-ids={}") },
-         { DBX_EXAMINE,        _T("(dbx) examine"),                _T("232^done,addr=\"\",memory=[]") },
-         { DBX_PWD,            _T("(dbx) pwd"),                    _T("(gdb)") },
-         { DBX_UNKNOWN,        _T("(dbx)"),                        _T("(gdb)") },
+         { _T("(dbx) runargs"),                DBX_RUNARGS,        _T("(gdb)") },
+         { _T("(dbx) run"),                    DBX_RUNNING,        _T("(gdb)") },
+         { _T("(dbx) cont"),                   DBX_RUNNING,        _T("(gdb)") },
+         { _T("(dbx) next"),                   DBX_RUNNING,        _T("(gdb)") },
+         { _T("(dbx) step"),                   DBX_RUNNING,        _T("(gdb)") },
+         { _T("(dbx) stepi"),                  DBX_RUNNING,        _T("(gdb)") },
+         { _T("(dbx) until"),                  DBX_RUNNING,        _T("(gdb)") },
+         { _T("(dbx) return"),                 DBX_RUNNING,        _T("(gdb)") },
+         { _T("(dbx) where 1"),                DBX_STACKARGS,      _T("(gdb)") },
+         { _T("(dbx) where"),                  DBX_WHERE,          _T("(gdb)") },
+         { _T("(dbx) print -r"),               DBX_PRINTC,         _T("(gdb)") },
+         { _T("(dbx) print"),                  DBX_PRINT,          _T("(gdb)") },
+         { _T("(dbx) dump"),                   DBX_DUMP,           _T("232^done,locals=[]") },
+         { _T("(dbx) display"),                DBX_DISPLAY,        _T("(gdb)") },
+         { _T("(dbx) dis"),                    DBX_DIS,            _T("(gdb)") },
+         { _T("(dbx) regs -F;  ## dbx names"), DBX_REGNAMES,       _T("(gdb)") },
+         { _T("(dbx) regs -F"),                DBX_REGS,           _T("(gdb)") },
+         { _T("(dbx) frame"),                  DBX_FRAME,          _T("(gdb)") },
+         { _T("(dbx) stop"),                   DBX_STOP,           _T("(gdb)") },
+         { _T("(dbx) status"),                 DBX_STATUS,         _T("232^done,BreakpointTable={nr_rows=\"0\",nr_cols=\"9\",hdr=[{}],body=[]") },
+         { _T("(dbx) threads"),                DBX_THREADS,        _T("232^done,thread-ids={}") },
+         { _T("(dbx) lwps"),                   DBX_LWPS,           _T("232^done,thread-ids={}") },
+         { _T("(dbx) examine"),                DBX_EXAMINE,        _T("232^done,addr=\"\",memory=[]") },
+         { _T("(dbx) pwd"),                    DBX_PWD,            _T("(gdb)") },
+         { _T("(dbx)"),                        DBX_UNKNOWN,        _T("(gdb)") },
       };
       m_sReturnValue = _T("(gdb)");
       for( int i = 0; i < sizeof(cat) / sizeof(cat[0]); i++ ) {
@@ -411,7 +411,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
    }
    else if( *pstrOutput == '\0' || _tcsstr(pstrOutput, _T(" ## dbx")) != NULL ) 
    {
-      // We're not seing our own or empty commands
+      // We're not seing our submitted own commands or empty commands
    }
    else
    {
