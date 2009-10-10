@@ -532,6 +532,7 @@ void CMainFrame::_LoadStartupSettings()
          _AddProperty(&reg, _T("openfiles-pos"), _T("window.openfiles.pos"));
          _AddProperty(&reg, _T("openfiles-area"), _T("window.openfiles.area"));
          _AddProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
+         _AddProperty(&reg, _T("symbolview-show"), _T("window.symbolview.show"));
          _AddProperty(&reg, _T("symbolview-sort"), _T("window.symbolview.sort"));
          _AddProperty(&reg, _T("config-timestamp"), _T("config.timestamp"));
          reg.ReadGroupEnd();
@@ -578,6 +579,7 @@ void CMainFrame::_SaveStartupSettings()
       _StoreProperty(&reg, _T("openfiles-pos"), _T("window.openfiles.pos"));
       _StoreProperty(&reg, _T("openfiles-area"), _T("window.openfiles.area"));
       _StoreProperty(&reg, _T("classview-sort"), _T("window.classview.sort"));
+      _StoreProperty(&reg, _T("symbolview-show"), _T("window.symbolview.show"));
       _StoreProperty(&reg, _T("symbolview-sort"), _T("window.symbolview.sort"));
       _StoreProperty(&reg, _T("config-timestamp"), _T("config.timestamp"));
       reg.WriteGroupEnd();

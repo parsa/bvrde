@@ -302,13 +302,15 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
          { NULL, NULL }
       };
       static FILEIMAGE ppstrFileExt[] = {
-         { _T(".TXT"), 1 },
-         { _T(".CFG"), 1 },
-         { _T(".LOG"), 1 },
-         { _T(".INI"), 1 },
-         { _T(".CMD"), 6 },
-         { _T(".BAT"), 6 },
-         { _T(".EXE"), 7 },
+         { _T(".TXT"),     1 },
+         { _T(".CFG"),     1 },
+         { _T(".LOG"),     1 },
+         { _T(".INI"),     1 },
+         { _T(".CONFIG"),  1 },
+         { _T(".CMD"),     6 },
+         { _T(".BAT"),     6 },
+         { _T(".SH"),      6 },
+         { _T(".EXE"),     7 },
          { NULL, NULL }
       };
       int j;

@@ -59,7 +59,7 @@ private:
       DBX_EXAMINE,
       DBX_REGNAMES,
       DBX_REGS,
-      DBX_DIS,
+      DBX_DISASM,
       DBX_FRAME,
       DBX_HANDLER,
       DBX_STOP,

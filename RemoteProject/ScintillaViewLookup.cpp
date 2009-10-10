@@ -483,8 +483,7 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
          //    a = b->
          //    a = (CASTTYPE) b->
          //    foo(b
-         TCHAR ch = sLine[iEndPos];
-         if( _issepchar(ch) ) continue;
+         if( iEndPos > 0 && _isdelimchar(sLine[iEndPos - 1]) ) continue;
 
          // Special case of:
          //    MYTYPE a, b;

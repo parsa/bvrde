@@ -81,6 +81,8 @@ BOOL CRemoteProject::Close()
    if( m_pQuickWatchDlg ) delete m_pQuickWatchDlg;
    m_pQuickWatchDlg = NULL;
 
+   _pDevEnv->SetProperty(_T("window.symbolview.show"), m_viewSymbols.IsWindow() ? _T("true") : _T("false"));
+
    return TRUE;
 }
 
@@ -780,7 +782,7 @@ void CRemoteProject::_InitializeData()
 
    m_accel.LoadAccelerators(IDR_ACCELERATOR);
 
-   // Create the Compile Log view
+   // Create the Compile Log view...
    sCaption.LoadString(IDS_CAPTION_COMPILELOG);
    dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
    m_viewCompileLog.Init(&m_CompileManager.m_ShellManager);
@@ -788,7 +790,7 @@ void CRemoteProject::_InitializeData()
    m_viewCompileLog.SetLineCount(80);
    _pDevEnv->AddDockView(m_viewCompileLog, IDE_DOCK_HIDE, CWindow::rcDefault);
 
-   // Create the Debug Log view
+   // Create the Debug Log view...
    COLORREF clrBack = BlendRGB(::GetSysColor(COLOR_WINDOW), RGB(0,0,0), 5);
    sCaption.LoadString(IDS_CAPTION_DEBUGLOG);
    dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
@@ -798,7 +800,7 @@ void CRemoteProject::_InitializeData()
    m_viewDebugLog.SetLineCount(80);
    _pDevEnv->AddDockView(m_viewDebugLog, IDE_DOCK_HIDE, CWindow::rcDefault);
 
-   // Create the Class view
+   // Create the Class view...
    dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_BORDER;
    m_viewClassTree.Init(this);
    m_viewClassTree.Create(m_wndMain, CWindow::rcDefault, NULL, dwStyle);
@@ -810,6 +812,11 @@ void CRemoteProject::_InitializeData()
    _pDevEnv->ShowToolBar(m_ctrlDebug, TRUE, TRUE);
    _pDevEnv->ShowToolBar(m_ctrlBookmarks, TRUE, TRUE);
    _pDevEnv->ShowToolBar(m_ctrlSearch, TRUE, TRUE);
+
+   // Show the Symbol View panel as default?
+   TCHAR szSymbolsValue[10] = { 0 };
+   _pDevEnv->GetProperty(_T("window.symbolview.show"), szSymbolsValue, 9);
+   if( _tcscmp(szSymbolsValue, _T("true")) == 0 ) m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_SYMBOLS_NEW, 0), 0L);
 }
 
 bool CRemoteProject::_LoadSettings(ISerializable* pArc)

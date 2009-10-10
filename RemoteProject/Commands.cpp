@@ -517,7 +517,7 @@ LRESULT CRemoteProject::OnViewRemoteDir(WORD /*wNotifyCode*/, WORD /*wID*/, HWND
    return 0;
 }
 
-LRESULT CRemoteProject::OnViewSymbols(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+LRESULT CRemoteProject::OnViewSymbols(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
 {
    // Create/remove Symbols view
    if( !m_viewSymbols.IsWindow() ) {
@@ -526,9 +526,12 @@ LRESULT CRemoteProject::OnViewSymbols(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
       DWORD dwStyle = WS_CHILD | WS_VISIBLE;
       m_viewSymbols.Create(wndMain, CWindow::rcDefault, sTitle, dwStyle);
       _pDevEnv->AddExplorerView(m_viewSymbols, sTitle, 7);
-      _pDevEnv->ActivateExplorerView(m_viewSymbols);
+      if( wID == ID_VIEW_SYMBOLS ) _pDevEnv->ActivateExplorerView(m_viewSymbols);
    }
-   else {
+   else if( wID == ID_VIEW_SYMBOLS_NEW ) {
+      // Ignore
+   }
+   else {      
       _pDevEnv->RemoveExplorerView(m_viewSymbols);
       m_viewSymbols.PostMessage(WM_CLOSE);
    }

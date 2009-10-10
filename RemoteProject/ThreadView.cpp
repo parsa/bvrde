@@ -50,11 +50,11 @@ void CThreadView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       SetRedraw(FALSE);
       DeleteAllItems();
       CString sThreadId = info.GetItem(_T("thread-id"));
-      CString sText;
+      CString sInfo;
       while( !sThreadId.IsEmpty() ) {
          DWORD dwThreadId = (DWORD) _ttol(sThreadId);
-         sText.Format(IDS_THREAD, sThreadId, sThreadId);
-         int iItem = InsertItem(GetItemCount(), sText);
+         sInfo.Format(IDS_THREAD, sThreadId, sThreadId);
+         int iItem = InsertItem(GetItemCount(), sInfo);
          SetItemData(iItem, (LPARAM) dwThreadId);
          if( m_dwCurThread == dwThreadId ) SelectItem(iItem);
          sThreadId = info.FindNext(_T("thread-id"));
@@ -70,12 +70,14 @@ void CThreadView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       CString sCurrentId = info.GetItem(_T("current-thread-id"));
       if( !sCurrentId.IsEmpty() ) m_dwCurThread = (DWORD) _ttol(sCurrentId);
       CString sThreadId = info.GetItem(_T("id"), _T("threads"));
-      CString sText;
+      CString sInfo, sTarget, sText;
       while( !sThreadId.IsEmpty() ) {
-         CString sTarget = info.GetSubItem(_T("target-id"));
          DWORD dwThreadId = (DWORD) _ttol(sThreadId);
-         sText.Format(_T("%ld - %s"), dwThreadId, sTarget.IsEmpty() ? sThreadId : sTarget);
-         int iItem = InsertItem(GetItemCount(), sText);
+         sTarget = info.GetSubItem(_T("target-id"));
+         sText = info.GetSubItem(_T("info"));
+         sInfo.Format(_T("%ld - %s - %s"), dwThreadId, sTarget.IsEmpty() ? sThreadId : sTarget, sText);
+         sInfo.TrimRight(_T(" -"));
+         int iItem = InsertItem(GetItemCount(), sInfo);
          SetItemData(iItem, (LPARAM) dwThreadId);
          if( m_dwCurThread == dwThreadId ) SelectItem(iItem);
          sThreadId = info.FindNext(_T("id"), _T("threads"));

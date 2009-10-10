@@ -1481,7 +1481,12 @@ bool CScintillaView::_iscppcharw(WCHAR ch) const
 
 bool CScintillaView::_issepchar(WCHAR ch) const
 {
-   return ch == '\n' || ch == ';' || ch == ' ' || ch == '\t' || ch == '=' || ch == '(' || ch == ')' || ch == '<' || ch == '-' || ch == '+';
+   return ch == '\r' || ch == '\n' || ch == ';' || ch == ' ' || ch == '\t' || ch == ',' || ch == '=' || ch == '(' || ch == ')' || ch == '<' || ch == '-' || ch == '+';
+}
+
+bool CScintillaView::_isdelimchar(WCHAR ch) const
+{
+   return ch == ';' || ch == '=' || ch == '(' || ch == ')' || ch == '<' || ch == '-' || ch == '+';
 }
 
 bool CScintillaView::_iswhitechar(int ch) const

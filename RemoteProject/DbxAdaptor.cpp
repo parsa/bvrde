@@ -48,6 +48,12 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    // Just like the GDB debugger is prefixing with 232 sentinel we'll
    // also postfix DBX commands. This allows us to recognize the echo
    // that some protocols will insist on delivering.
+   // NOTE: There is an subtle dependency here: we add a newline now and
+   //       the session handler will also add one. These cause two empty
+   //       dbx prompts to be printed when the command finishes its task,
+   //       allowing us to detect the first empty prompt as the end-of-task
+   //       marker, and the system to get ready for more input on the second
+   //       prompt.
    CString sFullArgs;
    CSimpleArray<CString> aArgs;
    _SplitCommand(pstrInput, aArgs, sFullArgs);
@@ -241,7 +247,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
       if( _SkipArg(aArgs, iIndex, _T("-t")) ) sMarkTemp = _T("-temp");
       CString sFile, sLineNum;
       _GetInputFileLineArgs(_GetArg(aArgs, iIndex), sFile, sLineNum);
-      if( sLineNum.IsEmpty() ) sOut.Format(_T("stop in %s %s"), sFile, sMarkTemp);
+      if( sLineNum.IsEmpty() ) sOut.Format(_T("stop in %s %s;  ## dbx\n"), sFile, sMarkTemp);
       else sOut.Format(_T("stop at \"%s\"%s %s;  ## dbx\n"), sFile, sLineNum, sMarkTemp);
       return sOut;
    }
@@ -299,6 +305,7 @@ CString CDbxAdaptor::TransformInput(LPCTSTR pstrInput)
    if( sCommand == _T("-interpreter-exec") ) {
       if( _SkipArg(aArgs, iIndex, _T("console")) ) {
          sOut = _GetArg(aArgs, iIndex);
+         sOut += _T("\n");
          sOut.Replace(_T("\\\\"), _T("\\"));
          sOut.Replace(_T("\\\""), _T("\""));
          return sOut;
@@ -357,7 +364,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
          { _T("(dbx) print"),                  DBX_PRINT,          _T("(gdb)") },
          { _T("(dbx) dump"),                   DBX_DUMP,           _T("232^done,locals=[]") },
          { _T("(dbx) display"),                DBX_DISPLAY,        _T("(gdb)") },
-         { _T("(dbx) dis"),                    DBX_DIS,            _T("(gdb)") },
+         { _T("(dbx) dis"),                    DBX_DISASM,         _T("(gdb)") },
          { _T("(dbx) regs -F;  ## dbx names"), DBX_REGNAMES,       _T("(gdb)") },
          { _T("(dbx) regs -F"),                DBX_REGS,           _T("(gdb)") },
          { _T("(dbx) frame"),                  DBX_FRAME,          _T("(gdb)") },
@@ -396,7 +403,10 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
          { _T("syntax error"),                                     _T("232^error,msg=\"Syntax Error. $$OUTPUT$$\"") },
          { _T("unreadable"),                                       _T("232^error,msg=\"Failed. $$OUTPUT$$\"") },
          { _T("in the scope"),                                     _T("232^error,msg=\"Failed. $$OUTPUT$$\"") },
+         { _T("<value of '"),                                      _T("232^error,msg=\"Value not available. $$OUTPUT$$\"") },
+         { _T("internal error: signal "),                          _T("~\"An internal GDB error was detected.\"") },
          { _T("no source compiled with -g"),                       _T("~\"No debugging symbols found. Compile with -g.\"") },
+         { _T("Cannot attach to process"),                         _T("~\"Can't attach to process. $$OUTPUT$$\"") },
          { _T("program is not active"),                            _T("232^exit,") },
          { _T("can't continue execution -- no active process"),    _T("232^exit,") },
       };
@@ -652,7 +662,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             aOutput.Add(sMi);
          }
          break;
-      case DBX_DIS:
+      case DBX_DISASM:
          {
             // 0x08050a16: foo+0x0006: movl     0x00000008(%ebp),%eax
             CString sCommand = pstrOutput;
@@ -784,8 +794,9 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             CString sCommand = _GetArg(aArgs, iIndex);
             if( sCommand == _T("current") ) m_lReturnIndex = 0;
             else {
+               CString sValue = sCommand;
                CString sTemp;
-               sTemp.Format(_T("\"%s\""), sCommand);
+               sTemp.Format(_T("\"%s\""), sValue);
                _AdjustAnswerList(_T("232^done,register-names=["), _T("]"), sTemp);
             }
          }
@@ -794,6 +805,8 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
          {
             // current frame: [1]
             // esi      0x08047da8
+            // ccr      0x00000000 0x00000000
+            // pc       0x00000000 0xff2b0bb8:strlen+0x18      ldub     [%o2], %o1
             CString sCommand = _GetArg(aArgs, iIndex);
             if( sCommand == _T("current") ) m_lReturnIndex = 0;
             else {
@@ -839,22 +852,34 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
          {
             // *>t@1 single stepped   in main()
             CString sCommand = _GetArg(aArgs, iIndex);
+            sCommand.TrimLeft(_T("=>o"));
+            if( sCommand.IsEmpty() ) sCommand = _GetArg(aArgs, iIndex);
             if( sCommand.Find('@') < 0 ) break;
             sCommand.TrimLeft(_T("=>o*t@"));
+            CString sValue = sFullArgs;
+            sValue.Replace(_T("\\"), _T("\\\\"));
+            sValue.Replace(_T("\""), _T("\\\""));
+            sValue.TrimLeft();
             CString sTemp;
-            sTemp.Format(_T("thread-id=\"%s\""), sCommand);
-            _AdjustAnswerList(_T("232^done,thread-ids={"), _T("}"), sTemp);
+            sTemp.Format(_T("{id=\"%s\",info=\"%s\"}"), sCommand, sValue);
+            _AdjustAnswerList(_T("232^done,threads=["), _T("]"), sTemp);
          }
          break;
       case DBX_LWPS:
          {
             // *>l@1 single stepped   in main()
             CString sCommand = _GetArg(aArgs, iIndex);
+            sCommand.TrimLeft(_T("=>o"));
+            if( sCommand.IsEmpty() ) sCommand = _GetArg(aArgs, iIndex);
             if( sCommand.Find('@') < 0 ) break;
             sCommand.TrimLeft(_T("=>o*l@"));
+            CString sValue = sFullArgs;
+            sValue.Replace(_T("\\"), _T("\\\\"));
+            sValue.Replace(_T("\""), _T("\\\""));
+            sValue.TrimLeft();
             CString sTemp;
-            sTemp.Format(_T("thread-id=\"%s\""), sCommand);
-            _AdjustAnswerList(_T("232^done,thread-ids={"), _T("}"), sTemp);
+            sTemp.Format(_T("{id=\"%s\",info=\"%s\"}"), sCommand, sValue);
+            _AdjustAnswerList(_T("232^done,threads=["), _T("]"), sTemp);
          }
          break;
       case DBX_UNKNOWN:
@@ -948,7 +973,7 @@ void CDbxAdaptor::_GetLocationArgs(const CSimpleArray<CString>& aArgs, int& iInd
    else if( _SkipArg(aArgs, iIndex, _T("line")) ) Location.lLineNum = _ttol(_GetArg(aArgs, iIndex));
    else _ParseLocationArgs(_GetArg(aArgs, iIndex), Location);
    bool bInFile = _SkipArg(aArgs, iIndex, _T("in"));
-   bInFile |= Location.sFunction == _T("file");
+   bInFile |= (Location.sFunction == _T("file"));
    bInFile |= _SkipArg(aArgs, iIndex, _T("file")); 
    if( bInFile && Location.sFile.IsEmpty() ) Location.sFile = _GetArg(aArgs, iIndex);
 }

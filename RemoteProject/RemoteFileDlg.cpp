@@ -18,10 +18,10 @@ CRemoteFileDlg::CRemoteFileDlg(BOOL bOpenFileDialog, // TRUE for FileOpen, FALSE
    m_pstrFilter = pstrFilter;
    m_sDefExt = pstrDefExt;
    m_dwFlags = dwFlags;
-   ::ZeroMemory(&m_ofn, sizeof(m_ofn));
    m_bInside = false;
    m_bUseCache = true;
    m_pstrBuffer = NULL;
+   ::ZeroMemory(&m_ofn, sizeof(m_ofn));
 }
 
 CRemoteFileDlg::~CRemoteFileDlg()

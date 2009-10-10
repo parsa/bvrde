@@ -190,6 +190,7 @@ public:
    CString _GetSelectedText();
    CString _GetNearText(long lPosition, bool bExcludeKeywords = true);
    bool _iswhitechar(int ch) const;
+   bool _isdelimchar(WCHAR ch) const;
    bool _issepchar(WCHAR ch) const;
    bool _iscppchar(int ch) const;
    bool _iscppcharw(WCHAR ch) const;
