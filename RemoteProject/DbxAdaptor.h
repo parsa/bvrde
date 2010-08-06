@@ -41,6 +41,7 @@ private:
    void _GetInputFileLineArgs(const CString sArg, CString& sFile, CString& sLineNum) const;
    void _ParseLocationArgs(const CString sCommand, DBXLOCATION& Location) const;
    bool _HasSignalSignature(LPCTSTR pstrText) const;
+   void _SanitizeGdbString(CString& s) const;
 
 // Data members
 private:

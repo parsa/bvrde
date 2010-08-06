@@ -166,31 +166,31 @@ LRESULT CFrameWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*
    buttons[0].fsState = TBSTATE_ENABLED;
    buttons[0].fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | BTNS_SHOWTEXT;
    buttons[0].dwData = 0;
-   buttons[0].iString = (INT_PTR) (LPCTSTR) sTextClose;
+   buttons[0].iString = (INT_PTR) static_cast<LPCTSTR>(sTextClose);
    buttons[1].iBitmap = -1;
    buttons[1].idCommand = ID_FILE_PRINT;
    buttons[1].fsState = TBSTATE_ENABLED;
    buttons[1].fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | BTNS_SHOWTEXT;
    buttons[1].dwData = 0;
-   buttons[1].iString = (INT_PTR) (LPCTSTR) sTextPrint;
+   buttons[1].iString = (INT_PTR) static_cast<LPCTSTR>(sTextPrint);
    buttons[2].iBitmap = -1;
    buttons[2].idCommand = ID_VIEW_BACK;
    buttons[2].fsState = TBSTATE_ENABLED;
    buttons[2].fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | BTNS_SHOWTEXT;
    buttons[2].dwData = 0;
-   buttons[2].iString = (INT_PTR) (LPCTSTR) sTextBack;
+   buttons[2].iString = (INT_PTR) static_cast<LPCTSTR>(sTextBack);
    buttons[3].iBitmap = -1;
    buttons[3].idCommand = ID_VIEW_PREVIOUS;
    buttons[3].fsState = TBSTATE_ENABLED;
    buttons[3].fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | BTNS_SHOWTEXT;
    buttons[3].dwData = 0;
-   buttons[3].iString = (INT_PTR) (LPCTSTR) sTextPrevious;
+   buttons[3].iString = (INT_PTR) static_cast<LPCTSTR>(sTextPrevious);
    buttons[4].iBitmap = -1;
    buttons[4].idCommand = ID_VIEW_NEXT;
    buttons[4].fsState = TBSTATE_ENABLED;
    buttons[4].fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | BTNS_SHOWTEXT;
    buttons[4].dwData = 0;
-   buttons[4].iString = (INT_PTR) (LPCTSTR) sTextNext;
+   buttons[4].iString = (INT_PTR) static_cast<LPCTSTR>(sTextNext);
    m_ctrlToolBar.AddButtons(5, buttons);
 
    // Prepare web-browser

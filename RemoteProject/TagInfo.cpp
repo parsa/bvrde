@@ -30,6 +30,8 @@ CTagInfo::CTagInfo() :
 
 CTagInfo::~CTagInfo()
 {
+   // See the Clear() method for an explanation why we need to call it twice here
+   Clear();
    Clear();
 }
 
@@ -52,7 +54,12 @@ bool CTagInfo::MergeFile(LPCTSTR /*pstrFilename*/)
 void CTagInfo::Clear()
 {
    CLockTagDataInit lock;
-   for( int i = 0; i < m_aFiles.GetSize(); i++ ) free(m_aFiles[i]);
+   // To alliviate a possible multi-thread problem we keep the "cleaned" tag memory
+   // in a temporary list and delete it the next time around.
+   // BUG: Investigate a real thread-safe cleanup solution.
+   for( int i = 0; i < m_aDelayedFiles.GetSize(); i++ ) free(m_aDelayedFiles[i]);
+   m_aDelayedFiles.RemoveAll();
+   for( int j = 0; j < m_aFiles.GetSize(); j++ ) m_aDelayedFiles.Add(m_aFiles[j]);
    m_aFiles.RemoveAll();
    m_aTags.RemoveAll();
    m_bLoaded = false;
@@ -163,6 +170,7 @@ bool CTagInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, D
 
 void CTagInfo::GetItemInfo(const TAGINFO* pTag, CTagDetails& Info)
 {
+   ATLASSERT(pTag);
    if( pTag == NULL ) return;
    Info.TagType = pTag->Type;
    Info.Protection = pTag->Protection;

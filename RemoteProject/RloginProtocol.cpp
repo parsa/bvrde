@@ -106,7 +106,6 @@ DWORD CRloginThread::Run()
    DWORD dwPos = 0;
    DWORD dwStartLinePos = 0;
    DWORD dwBufferSize = MAX_BUFFER_SIZE;
-   bool bInitialized = false;
 
    CEvent event;
    event.Create();
@@ -134,6 +133,10 @@ DWORD CRloginThread::Run()
    //       At least we should process "urgent" TCP packets.
 
    bool bNextIsPrompt = false;         // Next line is likely to be prompt/command line prefix
+   bool bAuthenticated = false;        // Session fully authenticated?
+   bool bLoginSent = false;            // Seen Login prompt?
+   bool bPasswordSent = false;         // Seen Password prompt?
+   bool bInitialized = false;          // We sent RLOGIN prolog
    VT100COLOR nColor = VT100_DEFAULT;  // Color code from terminal
 
    while( !ShouldStop() ) {
@@ -181,32 +184,52 @@ DWORD CRloginThread::Run()
          {
             CString sLine = _GetLine(bReadBuffer, 0, dwRead);
             m_pCallback->PreAuthenticatedLine(sLine);
-            sLine.MakeUpper();
             // Server answered with 0-byte?
-            if( sLine.IsEmpty() ) {
-               if( dwRead > 0 ) {
-                  // Skip the 0-answer
-                  BYTE b = _GetByte(socket, bReadBuffer, dwRead, dwPos);
-                  if( b == 0 ) {
-                     if( dwRead > 1 ) {
-                        // Negotiate window size may be initiated
-                        b = _GetByte(socket, bReadBuffer, dwRead, dwPos);
-                        if( b == 0x80 ) {
-                           CLockStaticDataInit lock;
-                           int iTermWidth = 80;
-                           int iTermHeight = 24;
-                           BYTE b[12] = { 0xFF, 0xFF, 0x73, 0x73, 0, 0, 0, 0, 0, 0, 0, 0 };
-                           b[4] = (BYTE) ((iTermHeight >> 8) & 0xFF);
-                           b[5] = (BYTE) (iTermHeight & 0xFF);
-                           b[6] = (BYTE) ((iTermWidth >> 8) & 0xFF);
-                           b[7] = (BYTE) (iTermWidth & 0xFF);
-                           socket.Write(b, sizeof(b));
-                           m_pManager->m_bCanWindowSize = true;
-                        }
+            if( sLine.IsEmpty() && dwRead > 0 ) {
+               // Skip the 0-answer
+               BYTE b = _GetByte(socket, bReadBuffer, dwRead, dwPos);
+               if( b == 0 ) {
+                  if( dwRead > 1 ) {
+                     // Negotiate window size may be initiated
+                     b = _GetByte(socket, bReadBuffer, dwRead, dwPos);
+                     if( b == 0x80 ) {
+                        CLockStaticDataInit lock;
+                        int iTermWidth = 80;
+                        int iTermHeight = 24;
+                        BYTE b[12] = { 0xFF, 0xFF, 0x73, 0x73, 0, 0, 0, 0, 0, 0, 0, 0 };
+                        b[4] = (BYTE) ((iTermHeight >> 8) & 0xFF);
+                        b[5] = (BYTE) (iTermHeight & 0xFF);
+                        b[6] = (BYTE) ((iTermWidth >> 8) & 0xFF);
+                        b[7] = (BYTE) (iTermWidth & 0xFF);
+                        socket.Write(b, sizeof(b));
+                        m_pManager->m_bCanWindowSize = true;
                      }
-                     bInitialized = true;
                   }
+                  bInitialized = true;
                }
+            }
+         }
+         else if( !bAuthenticated )
+         {
+            CString sLine = _GetLine(bReadBuffer, 0, dwRead);
+            m_pCallback->PreAuthenticatedLine(sLine);
+            sLine.MakeUpper();
+            if( !bLoginSent && sLine.Find(sLoginPrompt) >= 0 )
+            {
+               CLockStaticDataInit lock;
+               CHAR szBuffer[200];
+               ::wsprintfA(szBuffer, "%ls\r\n", sUsername);
+               ::send(socket, szBuffer, strlen(szBuffer), 0);
+               ::Sleep(300L);
+               bLoginSent = true;
+            }
+            if( !bPasswordSent && sLine.Find(sPasswordPrompt) >= 0 ) {
+               CLockStaticDataInit lock;
+               CHAR szBuffer[200];
+               ::wsprintfA(szBuffer, "%ls\r\n", sPassword);
+               ::send(socket, szBuffer, strlen(szBuffer), 0);
+               bPasswordSent = true;
+               bAuthenticated = true;
             }
          }
          else if( !m_pManager->m_bConnected ) 
@@ -214,7 +237,8 @@ DWORD CRloginThread::Run()
             CString sLine = _GetLine(bReadBuffer, 0, dwRead);
             sLine.MakeUpper();
             // Did authorization fail?
-            static LPCTSTR pstrFailed[] =
+            // BUG: Localization!!!
+            static LPCTSTR aFailed[] =
             {
                _T("AUTHORIZATION FAILED"),
                _T("PERMISSION DENIED"),
@@ -222,43 +246,25 @@ DWORD CRloginThread::Run()
                _T("LOGIN INCORRECT"),
                _T("LOGIN FAILED"),
                _T("UNKNOWN USER"),
-               NULL,
+               NULL
             };
-            const LPCTSTR* ppstr = pstrFailed;
-            while( *ppstr ) {
+            for( const LPCTSTR* ppstr = aFailed; *ppstr != NULL; ppstr++ ) {
                if( sLine.Find(*ppstr) >= 0 ) {
                   m_pManager->m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_LOGIN_FAILED)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR | MB_MODELESS);
                   m_pManager->m_dwErrorCode = ERROR_LOGIN_WKSTA_RESTRICTION;
                   SignalStop();
                   break;
                }
-               ppstr++;
             }
-            if( sLine.Find(sLoginPrompt) >= 0 ) {
+            // Send our own post-login commands
+            if( !sExtraCommands.IsEmpty() ) {
                CLockStaticDataInit lock;
-               CHAR szBuffer[200];
-               ::wsprintfA(szBuffer, "%ls\r\n", sUsername);
+               CHAR szBuffer[1024];
+               ::wnsprintfA(szBuffer, 1024, "%ls\r\n", sExtraCommands);
                ::send(socket, szBuffer, strlen(szBuffer), 0);
-               ::Sleep(500L);
+               ::Sleep(100L);
             }
-            else if( sLine.Find(sPasswordPrompt) >= 0 ) {
-               CLockStaticDataInit lock;
-               CHAR szBuffer[200];
-               ::wsprintfA(szBuffer, "%ls\r\n", sPassword);
-               ::send(socket, szBuffer, strlen(szBuffer), 0);
-            }
-            else if( *ppstr == NULL ) {
-               // Not a login prompt or error; we assume it's the login banner and
-               // we successfully entered the system.
-               // Send additional login commands
-               if( !sExtraCommands.IsEmpty() ) {
-                  CLockStaticDataInit lock;
-                  CHAR szBuffer[1024];
-                  ::wsprintfA(szBuffer, "%ls\r\n", sExtraCommands);
-                  ::send(socket, szBuffer, strlen(szBuffer), 0);
-               }
-               m_pManager->m_bConnected = true;
-            }
+            m_pManager->m_bConnected = true;
          }
 
          DWORD iPos = 0;

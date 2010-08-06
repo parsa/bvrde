@@ -30,23 +30,23 @@ DWORD CComSpecThread::Run()
 
    _pDevEnv->SetThreadLanguage();
 
-   CString sBinPath = m_pManager->GetParam(_T("Host"));
    CString sPath = m_pManager->GetParam(_T("Path"));
+   CString sBinPath = m_pManager->GetParam(_T("Host"));
    CString sExtraCommands = m_pManager->GetParam(_T("Extra"));
 
    // If user supplied a path to the MinGW /bin folder, let's make
    // sure to actually find the needed processes there.
    // We'll currently just look for gdb.exe since we don't know what
    // compilation environment is eventually used.
-   if( !sBinPath.IsEmpty() ) {
+   if( !sBinPath.IsEmpty() ) 
+   {
       TCHAR szFilename[MAX_PATH];
       _tcscpy(szFilename, sBinPath);
       ::PathAppend(szFilename, _T("gdb.exe"));
       if( !::PathFileExists(szFilename) ) {
          m_pManager->m_dwErrorCode = ERROR_PATH_BUSY;
          return 0;
-      }
-      
+      }      
    }
 
    m_pManager->m_dwErrorCode = 0;
@@ -139,6 +139,11 @@ DWORD CComSpecThread::Run()
          BOOL bTest = ::ReadFile(m_hPipeRead, bReadBuffer, sizeof(bReadBuffer) - 1, &dwBytesRead, NULL);
          if( !bTest ) break;
          bReadBuffer[dwBytesRead] = '\0';
+
+#ifdef _DEBUG
+         ATLTRACE(_T("COM: '%hs' len=%ld\n"), bReadBuffer, dwBytesRead);
+#endif // _DEBUG
+
          // We might need to grow the data buffer
          if( dwPos + dwBytesRead > dwBufferSize ) {
             dwBufferSize = dwPos + dwBytesRead;

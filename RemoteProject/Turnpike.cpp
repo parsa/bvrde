@@ -61,54 +61,48 @@ LRESULT CRemoteProject::OnProcess(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWn
             OpenView(data.sFilename, data.iLineNum, FINDVIEW_ALL, false);
          }
          break;
-      case LAZY_GUI_ACTION:
+      case LAZY_GUI_CLEARVIEW:
          {
-            switch( data.wParam ) {
-            case GUI_ACTION_CLEARVIEW:
-               {
-                  CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(data.WindowType);
-                  if( ctrlEdit.IsWindow() ) ctrlEdit.SetWindowText(_T(""));
-               }
-               break;
-            case GUI_ACTION_APPENDVIEW:
-               {
-                  CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(data.WindowType);
-                  if( ctrlEdit.IsWindow() ) AppendRtfText(ctrlEdit, data.sMessage);
-               }
-               break;
-            case GUI_ACTION_ACTIVATEVIEW:
-               {
-                  CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(data.WindowType);
-                  if( ctrlEdit.IsWindow() ) _pDevEnv->ActivateAutoHideView(ctrlEdit);
-               }
-               break;
-            case GUI_ACTION_PLAY_ANIMATION:
-               {
-                  _pDevEnv->PlayAnimation(TRUE, data.iLineNum);
-               }
-               break;
-            case GUI_ACTION_STOP_ANIMATION:
-               {
-                  _pDevEnv->PlayAnimation(FALSE, 0);
-               }
-               break;
-            case GUI_ACTION_FILE_RELOAD:
-               {
-                  IView* pView = _pDevEnv->GetActiveView();
-                  if( pView != NULL ) pView->Reload();
-               }
-               break;
-            case GUI_ACTION_COMPILESTART:
-               {
-                  m_bNeedsRecompile = false;
-               }
-               break;
-            case GUI_ACTION_PRINTOUTPUT:
-               {
-                  m_CompileManager.AppendOutputText(data.WindowType, data.sMessage, data.Color);
-               }
-               break;
-            }
+            CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(data.WindowType);
+            if( ctrlEdit.IsWindow() ) ctrlEdit.SetWindowText(_T(""));
+         }
+         break;
+      case LAZY_GUI_APPENDVIEW:
+         {
+            CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(data.WindowType);
+            if( ctrlEdit.IsWindow() ) AppendRtfText(ctrlEdit, data.sMessage);
+         }
+         break;
+      case LAZY_GUI_ACTIVATEVIEW:
+         {
+            CRichEditCtrl ctrlEdit = _pDevEnv->GetHwnd(data.WindowType);
+            if( ctrlEdit.IsWindow() ) _pDevEnv->ActivateAutoHideView(ctrlEdit);
+         }
+         break;
+      case LAZY_GUI_PLAY_ANIMATION:
+         {
+            _pDevEnv->PlayAnimation(TRUE, data.iLineNum);
+         }
+         break;
+      case LAZY_GUI_STOP_ANIMATION:
+         {
+            _pDevEnv->PlayAnimation(FALSE, 0);
+         }
+         break;
+      case LAZY_GUI_FILE_RELOAD:
+         {
+            IView* pView = _pDevEnv->GetActiveView();
+            if( pView != NULL ) pView->Reload();
+         }
+         break;
+      case LAZY_GUI_COMPILESTART:
+         {
+            m_bNeedsRecompile = false;
+         }
+         break;
+      case LAZY_GUI_PRINTOUTPUT:
+         {
+            m_CompileManager.AppendOutputText(data.WindowType, data.sMessage, data.Color);
          }
          break;
       case LAZY_SHOW_MESSAGE:
@@ -316,24 +310,24 @@ void CRemoteProject::DelayedOpenView(LPCTSTR pstrFilename, int iLineNum)
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
 
-void CRemoteProject::DelayedGuiAction(UINT iAction, LPCTSTR pstrFilename, int iLineNum)
+void CRemoteProject::DelayedGuiAction(LAZYACTION Action, LPCTSTR pstrFilename, int iLineNum)
 {
+   ATLASSERT(Action>=LAZY_GUI_ACTIVATEVIEW && Action<=LAZY_GUI_PRINTOUTPUT);
    CLockDelayedDataInit lock;
    LAZYDATA data;
-   data.Action = LAZY_GUI_ACTION;
-   data.wParam = iAction;
+   data.Action = Action;
    data.sFilename = pstrFilename == NULL ? _T("") : pstrFilename;
    data.iLineNum = iLineNum;
    m_aLazyData.Add(data);
    m_wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_PROCESS, 0));
 }
 
-void CRemoteProject::DelayedGuiAction(UINT iAction, IDE_HWND_TYPE WindowType, LPCTSTR pstrMessage, VT100COLOR nColor)
+void CRemoteProject::DelayedGuiAction(LAZYACTION Action, IDE_HWND_TYPE WindowType, LPCTSTR pstrMessage, VT100COLOR nColor)
 {
+   ATLASSERT(Action>=LAZY_GUI_ACTIVATEVIEW && Action<=LAZY_GUI_PRINTOUTPUT);
    CLockDelayedDataInit lock;
    LAZYDATA data;
-   data.Action = LAZY_GUI_ACTION;
-   data.wParam = iAction;
+   data.Action = Action;
    data.WindowType = WindowType;
    data.sMessage = pstrMessage == NULL ? _T("") : pstrMessage;
    data.Color = nColor;
@@ -400,6 +394,7 @@ void CRemoteProject::DelayedDebugBreakpoint(LPCTSTR pstrFilename, int iLineNum)
 
 void CRemoteProject::DelayedDebugEvent(LAZYACTION Event /*= LAZY_DEBUG_BREAK_EVENT*/)
 {
+   ATLASSERT(Event>=LAZY_DEBUG_START_EVENT && Event<=LAZY_DEBUG_INFO);
    CLockDelayedDataInit lock;
    LAZYDATA data;
    data.Action = Event;

@@ -712,6 +712,7 @@ void CEmptyProject::_PopulateTree(CTreeViewCtrl& ctrlTree,
 int CEmptyProject::_GetElementImage(IElement* pElement) const
 {
    ATLASSERT(pElement);
+   if( pElement == NULL ) return IDE_TREEIMAGE_TEXT;
    TCHAR szType[64] = { 0 };
    pElement->GetType(szType, 63);
    typedef struct tagFILEIMAGE {

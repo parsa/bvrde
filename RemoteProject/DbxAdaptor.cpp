@@ -343,7 +343,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
       m_lLevel = 0;
       m_lReturnIndex = 0;
       // Update state in state-machine
-      struct
+      static struct
       {
          LPCTSTR pstrCommand;
          DBXSTATE State;
@@ -395,20 +395,22 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
    {
       CString sText = pstrOutput + 5;
       sText.Replace(_T("\""), _T("\\\""));
-      struct {
-         LPCTSTR pstrText;
-         LPCTSTR pstrResult;
+      static struct {
+         LPCTSTR pstrText;                                         LPCTSTR pstrResult;
       } translate[] =
       {
          { _T("syntax error"),                                     _T("232^error,msg=\"Syntax Error. $$OUTPUT$$\"") },
          { _T("unreadable"),                                       _T("232^error,msg=\"Failed. $$OUTPUT$$\"") },
          { _T("in the scope"),                                     _T("232^error,msg=\"Failed. $$OUTPUT$$\"") },
          { _T("<value of '"),                                      _T("232^error,msg=\"Value not available. $$OUTPUT$$\"") },
-         { _T("internal error: signal "),                          _T("~\"An internal GDB error was detected.\"") },
-         { _T("no source compiled with -g"),                       _T("~\"No debugging symbols found. Compile with -g.\"") },
-         { _T("Cannot attach to process"),                         _T("~\"Can't attach to process. $$OUTPUT$$\"") },
+         { _T("modified more recently"),                           _T("232^error,msg=\"Modified already. $$OUTPUT$$\"") },
+         { _T("will trigger on first instruction"),                _T("232^error,msg=\"Debug problem found. $$OUTPUT$$.\"") },         
+         { _T("Cannot attach to process"),                         _T("232^error,msg=\"Can't attach to process. $$OUTPUT$$\"") },
+         { _T("no executable"),                                    _T("232^error,msg=\"Can't attach to process. $$OUTPUT$$\"") },
          { _T("program is not active"),                            _T("232^exit,") },
          { _T("can't continue execution -- no active process"),    _T("232^exit,") },
+         { _T("internal error: signal "),                          _T("~\"An internal GDB error was detected.\"") },
+         { _T("no source compiled with -g"),                       _T("~\"No debugging symbols found. Compile with -g.\"") },
       };
       CString sMi = _T("232&\"$$OUTPUT$$\"");
       for( int i = 0; i < sizeof(translate) / sizeof(translate[0]); i++ ) {
@@ -643,10 +645,8 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                sArgs = sArgs.Mid(sValue.GetLength() + 1);
                int iPos = sValue.Find('=');
                if( iPos > 0 ) { sName = sValue.Left(iPos); sValue = sValue.Mid(iPos + 1); }
-               sName.TrimLeft(); sName.TrimRight();
-               sValue.TrimLeft(); sValue.TrimRight();
-               sValue.Replace(_T("\\"), _T("\\\\"));
-               sValue.Replace(_T("\""), _T("\\\""));
+               _SanitizeGdbString(sName);
+               _SanitizeGdbString(sValue);
                CString sTemp;
                sTemp.Format(_T("{name=\"%s\",type=\"\",value=\"%s\"}"), sName, sValue);
                sMi += sTemp;
@@ -678,11 +678,10 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                sOffset = sTemp.Mid(sFunction.GetLength()).SpanExcluding(_T(": "));
             }
             sDisasm = sCommand.Mid(iPos + 2);
-            sFunction.TrimLeft(); sFunction.TrimRight();
-            sOffset.TrimLeft(_T(" +")); sOffset.TrimRight();
-            sDisasm.TrimLeft(); sDisasm.TrimRight();
-            sFunction.Replace('\"', '\'');
-            sDisasm.Replace('\"', '\'');
+            sOffset.TrimLeft(_T(" +"));
+            _SanitizeGdbString(sFunction);
+            _SanitizeGdbString(sOffset);
+            _SanitizeGdbString(sDisasm);
             sTemp.Format(_T("{address=\"%s\",func-name=\"%s\",offset=\"%s\",inst=\"%s\"}"),
                sAddress, sFunction, sOffset, sDisasm);
             _AdjustAnswerList(_T("232^done,asm_insns=["), _T("]"), sTemp);
@@ -695,8 +694,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             LPCTSTR pstr = _tcsstr(pstrOutput, _T(" = "));
             if( pstr == NULL ) pstr = pstrOutput; else pstr += 3, m_lReturnIndex++;
             CString sResult = pstr;
-            sResult.Replace(_T("\\"), _T("\\\\"));
-            sResult.Replace(_T("\""), _T("\\\""));
+            _SanitizeGdbString(sResult);
             if( sResult.Right(1) == _T("{") ) sResult += _T("...}");
             m_sReturnValue.Format(_T("232^done,value=\"%s\""), sResult);
          }
@@ -742,8 +740,8 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             if( _tcsstr(pstrOutput, _T("   ")) == pstrOutput ) break;
             CString sName = _GetArg(aArgs, iIndex);
             CString sValue = _GetArg(aArgs, iIndex);
-            sValue.Replace(_T("\\"), _T("\\\\"));
-            sValue.Replace(_T("\""), _T("\\\""));
+            _SanitizeGdbString(sName);
+            _SanitizeGdbString(sValue);
             sMi.Format(_T("232^done,name=\"%s\",value=\"%s\""), sName, sValue);
             aOutput.Add(sMi);
          }
@@ -778,10 +776,8 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             CString sValue = sCommand.Mid(iPos + 1);
             if( sName.IsEmpty() ) break;
             if( sName.FindOneOf(_T("(<;[-)")) >= 0 ) break;
-            sName.TrimLeft(); sName.TrimRight();
-            sValue.TrimLeft(); sValue.TrimRight();
-            sValue.Replace(_T("\\"), _T("\\\\"));
-            sValue.Replace(_T("\""), _T("\\\""));
+            _SanitizeGdbString(sName);
+            _SanitizeGdbString(sValue);
             CString sTemp;
             sTemp.Format(_T("{name=\"%s\",type=\"\",value=\"%s\"}"), sName, sValue);
             _AdjustAnswerList(_T("232^done,locals=["), _T("]"), sTemp);
@@ -795,6 +791,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             if( sCommand == _T("current") ) m_lReturnIndex = 0;
             else {
                CString sValue = sCommand;
+               _SanitizeGdbString(sValue);
                CString sTemp;
                sTemp.Format(_T("\"%s\""), sValue);
                _AdjustAnswerList(_T("232^done,register-names=["), _T("]"), sTemp);
@@ -811,9 +808,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             if( sCommand == _T("current") ) m_lReturnIndex = 0;
             else {
                CString sValue = sFullArgs;
-               sValue.Replace(_T("\\"), _T("\\\\"));
-               sValue.Replace(_T("\""), _T("\\\""));
-               sValue.TrimLeft();
+               _SanitizeGdbString(sValue);
                CString sTemp;
                sTemp.Format(_T("{number=\"%ld\",value=\"%s\"}"), m_lReturnIndex, sValue);
                _AdjustAnswerList(_T("232^done,register-values=["), _T("]"), sTemp);
@@ -857,9 +852,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             if( sCommand.Find('@') < 0 ) break;
             sCommand.TrimLeft(_T("=>o*t@"));
             CString sValue = sFullArgs;
-            sValue.Replace(_T("\\"), _T("\\\\"));
-            sValue.Replace(_T("\""), _T("\\\""));
-            sValue.TrimLeft();
+            _SanitizeGdbString(sValue);
             CString sTemp;
             sTemp.Format(_T("{id=\"%s\",info=\"%s\"}"), sCommand, sValue);
             _AdjustAnswerList(_T("232^done,threads=["), _T("]"), sTemp);
@@ -874,9 +867,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             if( sCommand.Find('@') < 0 ) break;
             sCommand.TrimLeft(_T("=>o*l@"));
             CString sValue = sFullArgs;
-            sValue.Replace(_T("\\"), _T("\\\\"));
-            sValue.Replace(_T("\""), _T("\\\""));
-            sValue.TrimLeft();
+            _SanitizeGdbString(sValue);
             CString sTemp;
             sTemp.Format(_T("{id=\"%s\",info=\"%s\"}"), sCommand, sValue);
             _AdjustAnswerList(_T("232^done,threads=["), _T("]"), sTemp);
@@ -1010,6 +1001,14 @@ bool CDbxAdaptor::_SkipArg(const CSimpleArray<CString>& aArgs, int& iIndex, LPCT
    return true;
 }
 
+void CDbxAdaptor::_SanitizeGdbString(CString& s) const
+{
+   s.TrimLeft();
+   s.TrimRight();
+   s.Replace(_T("\\"), _T("\\\\"));
+   s.Replace(_T("\""), _T("\\\""));
+}
+
 bool CDbxAdaptor::_HasSignalSignature(LPCTSTR pstrText) const
 {
    if( _tcsncmp(pstrText, _T("sig"), 3) == 0 ) pstrText += 3;
@@ -1046,7 +1045,7 @@ void CDbxAdaptor::_SplitCommand(LPCTSTR pstrInput, CSimpleArray<CString>& aArgs,
          if( iQuote == '(' ) iQuote = ')';
          else if( iQuote == '{' ) iQuote = '}';
          else if( iQuote == '[' ) iQuote = ']';
-          break;
+         break;
       case '\r':
       case '\n':
          // Ignore newlines...

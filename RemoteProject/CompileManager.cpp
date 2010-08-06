@@ -19,7 +19,7 @@ DWORD CRebuildThread::Run()
 
    CCoInitialize cominit;
 
-   // Build the projects
+   // Build all projects...
    ISolution* pSolution = _pDevEnv->GetSolution();
    INT nProjects = pSolution->GetItemCount();
    for( INT i = 0; i < nProjects; i++ ) {
@@ -33,26 +33,25 @@ DWORD CRebuildThread::Run()
       if( pProject == NULL ) break;
       CComDispatchDriver dd = pProject->GetDispatch();
       DISPID dispid = 0;
-      if( dd.GetIDOfName(L"Rebuild", &dispid) != S_OK ) continue;
       if( dd.GetIDOfName(L"IsBusy", &dispid) != S_OK ) continue;
+      if( dd.GetIDOfName(L"Rebuild", &dispid) != S_OK ) continue;
       // Start the build process
       dd.Invoke0(L"Rebuild");
-      ::Sleep(100L);
       // Allow the build action to get started for 3 seconds
-      for( int x = 0; x < 3 && !ShouldStop(); x++ ) {
+      for( int x = 0; x < 3000 && !ShouldStop(); x += 500 ) {
          // See if it started by itself
          CComVariant vRet;
          dd.GetPropertyByName(L"IsBusy", &vRet);
-         if( vRet.boolVal == VARIANT_TRUE ) break;
-         ::Sleep(1000L);
+         if( vRet.boolVal != VARIANT_FALSE ) break;
+         ::Sleep(500L);
       }
       // ...then monitor it until it stops
       while( !ShouldStop() ) {
          // Just poll to see if it's done
          CComVariant vRet;
          dd.GetPropertyByName(L"IsBusy", &vRet);
-         if( vRet.boolVal != VARIANT_TRUE ) break;
-         ::Sleep(1000L);
+         if( vRet.boolVal == VARIANT_FALSE ) break;
+         ::Sleep(500L);
       }
       if( ShouldStop() ) break;
    }
@@ -131,7 +130,7 @@ DWORD CCompileThread::Run()
 
       // Request for re-loading of active file?
       if( (m_pManager->m_Flags & COMPFLAG_RELOADFILE) != 0 ) {
-         m_pProject->DelayedGuiAction(GUI_ACTION_FILE_RELOAD);
+         m_pProject->DelayedGuiAction(LAZY_GUI_FILE_RELOAD);
       }
 
       // Idle wait for completion before accepting new prompt commands...
@@ -307,7 +306,7 @@ bool CCompileManager::Stop()
 
 void CCompileManager::SignalStop()
 {
-   m_pProject->DelayedGuiAction(GUI_ACTION_STOP_ANIMATION);
+   m_pProject->DelayedGuiAction(LAZY_GUI_STOP_ANIMATION);
    m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_COMPILE_STOP);
    m_ShellManager.SignalStop();
    m_CompileThread.SignalStop();
@@ -337,8 +336,8 @@ bool CCompileManager::DoRebuild()
 {
    if( m_RebuildThread.IsRunning() ) return false;
    // Clear the compile output window
-   m_pProject->DelayedGuiAction(GUI_ACTION_CLEARVIEW, IDE_HWND_OUTPUTVIEW);
-   m_pProject->DelayedGuiAction(GUI_ACTION_ACTIVATEVIEW, IDE_HWND_OUTPUTVIEW);
+   m_pProject->DelayedGuiAction(LAZY_GUI_CLEARVIEW, IDE_HWND_OUTPUTVIEW);
+   m_pProject->DelayedGuiAction(LAZY_GUI_ACTIVATEVIEW, IDE_HWND_OUTPUTVIEW);
    // Start thread
    m_RebuildThread.Stop();
    m_RebuildThread.m_pProject = m_pProject;
@@ -465,6 +464,7 @@ CString CCompileManager::GetParam(LPCTSTR pstrName) const
    if( sName == _T("CompileFlags") ) return m_sCompileFlags;
    if( sName == _T("LinkFlags") ) return m_sLinkFlags;
    if( sName == _T("BuildMode") ) return m_sBuildMode;
+   if( sName == _T("ActiveProcess") ) return m_sProcessName;
    if( sName == _T("InCommand") ) return (m_Flags & COMPFLAG_COMMANDMODE) != 0 ? _T("true") : _T("false");
    return m_ShellManager.GetParam(pstrName);
 }
@@ -574,6 +574,8 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
 
    m_sProcessName = pstrName;
+   m_sUserName = GetParam(_T("Username")) + _T("@");
+   if( m_sUserName.GetLength() < 4 ) m_sUserName = _T("user@");
 
    // If the remote session isn't running, then it's about time...
    if( !IsConnected() ) Start();
@@ -617,7 +619,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    sStatus.Format(IDS_STATUS_STARTED, m_sProcessName);
    m_pProject->DelayedStatusBar(sStatus);
    long lAnim = (Flags & (COMPFLAG_IGNOREOUTPUT | COMPFLAG_COMMANDMODE)) == 0 ? ANIM_BUILD : ANIM_TRANSFER;
-   m_pProject->DelayedGuiAction(GUI_ACTION_PLAY_ANIMATION, NULL, lAnim);
+   m_pProject->DelayedGuiAction(LAZY_GUI_PLAY_ANIMATION, NULL, lAnim);
 
    m_ShellManager.AddLineListener(this);
 
@@ -639,8 +641,8 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    if( (Flags & (COMPFLAG_IGNOREOUTPUT | COMPFLAG_COMMANDMODE)) == 0 ) {
       // We should clean the compile output panel and bring it up
       if( (Flags & COMPFLAG_SILENT) == 0 ) {
-         m_pProject->DelayedGuiAction(GUI_ACTION_CLEARVIEW, IDE_HWND_OUTPUTVIEW);
-         m_pProject->DelayedGuiAction(GUI_ACTION_ACTIVATEVIEW, IDE_HWND_OUTPUTVIEW);
+         m_pProject->DelayedGuiAction(LAZY_GUI_CLEARVIEW, IDE_HWND_OUTPUTVIEW);
+         m_pProject->DelayedGuiAction(LAZY_GUI_ACTIVATEVIEW, IDE_HWND_OUTPUTVIEW);
       }
       // Notify views that an actual compiler session is starting.
       // A "compiler session" may be any makefile or direct gcc issued command.
@@ -663,7 +665,7 @@ bool CCompileManager::_StartProcess(LPCTSTR pstrName, CSimpleArray<CString>& aCo
    // The COMPFLAG_COMPILENOTIFY event just tells the project that
    // it can clear various internal states related to the project being
    // fully recompiled.
-   if( (Flags & COMPFLAG_COMPILENOTIFY) != 0 ) m_pProject->DelayedGuiAction(GUI_ACTION_COMPILESTART);
+   if( (Flags & COMPFLAG_COMPILENOTIFY) != 0 ) m_pProject->DelayedGuiAction(LAZY_GUI_COMPILESTART);
 
    // If this is in Command Mode, we'll be polite and wait for the command to
    // actually be submitted to the remote server before we continue...
@@ -770,7 +772,8 @@ void CCompileManager::AppendOutputText(IDE_HWND_TYPE WindowType, LPCTSTR pstrTex
    // Mark prompts...
    // Some lines that look like prompts aren't really prompts.
    // TODO: I can't make heads and tails of this anymore, but it does colour most prompts
-   //       correctly. Rewrite and make it dynamic.
+   //       correctly. Rewrite and make it dynamic. Make option to disable.
+   if( _tcsstr(pstrText, m_sUserName) != NULL ) cf.dwEffects |= CFE_BOLD;
    if( _tcschr(m_sPromptPrefix, *pstrText) != NULL ) cf.dwEffects |= CFE_BOLD;
    if( *pstrText == '[' && _tcsstr(pstrText, _T("]$ ")) != NULL ) cf.dwEffects |= CFE_BOLD;
    if( _tcsstr(pstrText, _T(" $ ")) != NULL && _tcschr(pstrText, ':') != NULL ) cf.dwEffects |= CFE_BOLD;
@@ -826,7 +829,7 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
          sStatus.Format(IDS_STATUS_FINISHED, m_sProcessName);
          m_pProject->DelayedStatusBar(sStatus);
       }
-      m_pProject->DelayedGuiAction(GUI_ACTION_STOP_ANIMATION);
+      m_pProject->DelayedGuiAction(LAZY_GUI_STOP_ANIMATION);
       m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_COMPILE_STOP);
       // Play annoying build sound
       if( (m_Flags & COMPFLAG_BUILDSESSION) != 0 ) ::PlaySound(_T("BVRDE_BuildSucceeded"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
@@ -847,6 +850,6 @@ void CCompileManager::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    IDE_HWND_TYPE WindowType = IDE_HWND_OUTPUTVIEW;
    if( (m_Flags & COMPFLAG_COMMANDMODE) != 0 ) WindowType = IDE_HWND_COMMANDVIEW;
    if( (m_Flags & COMPFLAG_IGNOREOUTPUT) != 0 ) return;
-   m_pProject->DelayedGuiAction(GUI_ACTION_PRINTOUTPUT, WindowType, sText, nColor);
+   m_pProject->DelayedGuiAction(LAZY_GUI_PRINTOUTPUT, WindowType, sText, nColor);
 }
 

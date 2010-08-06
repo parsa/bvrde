@@ -197,7 +197,10 @@ LRESULT CQuickWatchDlg::OnAddWatch(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCt
    LPARAM lKey = (LPARAM) ::GetTickCount();
    sCommand.Format(_T("-var-create watch%ld * \"%s\""), lKey, CWindowText(m_ctrlLine));
    m_pProject->DelayedDebugCommand(sCommand);
-   m_pProject->DelayedDebugCommand(_T("-var-update *"));
+   sCommand.Format(_T("-var-evaluate-expression watch%ld"), lKey);
+   m_pProject->DelayedDebugCommand(sCommand);
+   sCommand = _T("-var-update *");
+   m_pProject->DelayedDebugCommand(sCommand);
 
    m_pDevEnv->EnableModeless(TRUE);
    DestroyWindow();
@@ -214,14 +217,14 @@ LRESULT CQuickWatchDlg::OnSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
    // FIX: First we need to strip away the "quickwatch" pseudo-name, and
    //      then hack our way through the GDB peculiarities, such as the
    //      "public", "private" entries...
-   LPCTSTR pstrTokens[] = 
+   static LPCTSTR aTokens[] = 
    { 
       _T(".quickwatch."), 
       _T("public."), 
       _T("private."), 
       _T("protected.") 
    };
-   for( int x = 0; x < sizeof(pstrTokens) / sizeof(pstrTokens[0]); x++ ) sText.Replace(pstrTokens[x], _T(""));
+   for( int x = 0; x < sizeof(aTokens) / sizeof(aTokens[0]); x++ ) sText.Replace(aTokens[x], _T(""));
    // The root item is our variable; still it's named "quickwatch"
    sText.Replace(_T("quickwatch"), m_aItems[0].sName);
    // Remove the types...

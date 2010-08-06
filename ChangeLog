@@ -1,3 +1,8 @@
+Version 1.4:
+* Fixed crash when calculating auto-completion list
+* Compatibility fixes when running against certain platforms
+* Disabled breakpoints are now persisted
+
 Version 1.3:
 * Stability of internal processing of debug data improved
 * SFTP will use UTF-8 encoding when SFTP v4 is detected

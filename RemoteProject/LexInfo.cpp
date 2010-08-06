@@ -136,11 +136,20 @@ bool CLexInfo::MergeIntoTree(LPCTSTR pstrFilename, LEXFILE* pFile)
    // Tag lock...
    {
       CLockTagDataInit lock;
-      // Replace the old entry in the file list
+
+      // Cleanup old files now?
+      if( m_aDelayedFiles.GetSize() >= 10 ) {
+         for( int i = 0; i < m_aDelayedFiles.GetSize(); i++ ) delete m_aDelayedFiles[i];
+         m_aDelayedFiles.RemoveAll();
+      }
+
+      // Replace the old entry in the file list. Keep the old memory alive in a temporary
+      // list which will eventually get cleaned up. This may resolve multi-thread problems.
+      // BUG: Investigate a real thread-safe cleanup solution.
       bool bFound = false;
       for( int i = 0; i < m_aFiles.GetSize(); i++ ) {
          if( m_aFiles[i]->sFilename == pstrFilename ) {
-            delete m_aFiles[i];
+            m_aDelayedFiles.Add(m_aFiles[i]);
             m_aFiles[i] = pFile;
             bFound = true;
             break;
@@ -154,6 +163,7 @@ bool CLexInfo::MergeIntoTree(LPCTSTR pstrFilename, LEXFILE* pFile)
    // This is important since we've removed some of the TAGINFO pointers
    // from the list and need to unlock the data.
    m_pProject->GetClassView()->Rebuild();
+
    m_pProject->GetClassView()->Unlock();
 
    return true;
@@ -161,8 +171,12 @@ bool CLexInfo::MergeIntoTree(LPCTSTR pstrFilename, LEXFILE* pFile)
 
 void CLexInfo::Clear()
 {
-   for( int i = 0; i < m_aFiles.GetSize(); i++ ) delete m_aFiles[i];
+   CLockTagDataInit lock;
+   int i;
+   for( i = 0; i < m_aFiles.GetSize(); i++ ) delete m_aFiles[i];
    m_aFiles.RemoveAll();
+   for( i = 0; i < m_aDelayedFiles.GetSize(); i++ ) delete m_aDelayedFiles[i];
+   m_aDelayedFiles.RemoveAll();
 }
 
 bool CLexInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, DWORD dwTimeout, CSimpleValArray<TAGINFO*>& aResult)
@@ -245,6 +259,7 @@ bool CLexInfo::FindItem(LPCTSTR pstrName, LPCTSTR pstrOwner, int iInheritance, D
 
 void CLexInfo::GetItemInfo(const TAGINFO* pTag, CTagDetails& Info)
 {
+   ATLASSERT(pTag);
    if( pTag == NULL ) return;
    Info.sName = pTag->pstrName;
    Info.TagType = pTag->Type;

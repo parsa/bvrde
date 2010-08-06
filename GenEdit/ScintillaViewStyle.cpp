@@ -456,7 +456,8 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
    ClearDocumentStyle();
 
    // Define bookmark markers
-   _DefineMarker(MARKER_BOOKMARK, SC_MARK_SMALLRECT, RGB(0,0,64), RGB(128,128,128));
+   _DefineMarker(MARKER_BOOKMARK,  SC_MARK_SMALLRECT, RGB(0,0,64),   RGB(128,128,128));
+   _DefineMarker(MARKER_HIGHLIGHT, SC_MARK_SMALLRECT, RGB(100,0,64), RGB(128,128,128));
 
    // If this Editor is part of a C++ project we
    // know how to link it up with the debugger
@@ -469,14 +470,16 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       if( m_pDevEnv->GetProperty(sKey + _T("breakpointLines"), szBuffer, (sizeof(szBuffer) / sizeof(TCHAR)) - 1) ) bBreakpointAsLines = _tcscmp(szBuffer, _T("true")) == 0;
       // Define markers for current-line and breakpoint
       if( bBreakpointAsLines ) {
-         _DefineMarker(MARKER_BREAKPOINT, SC_MARK_BACKGROUND, RGB(250,62,62), RGB(250,62,62));
-         _DefineMarker(MARKER_CURLINE, SC_MARK_BACKGROUND, RGB(0,245,0), RGB(0,245,0));
-         _DefineMarker(MARKER_RUNNING, SC_MARK_BACKGROUND, RGB(245,245,0), RGB(245,245,0));
+         _DefineMarker(MARKER_BREAKPOINT_ENABLED,  SC_MARK_BACKGROUND, RGB(250,62,62),   RGB(250,62,62));
+         _DefineMarker(MARKER_BREAKPOINT_DISABLED, SC_MARK_BACKGROUND, RGB(162,162,162), RGB(162,162,162));
+         _DefineMarker(MARKER_CURLINE,             SC_MARK_BACKGROUND, RGB(0,245,0),     RGB(0,245,0));
+         _DefineMarker(MARKER_RUNNING,             SC_MARK_BACKGROUND, RGB(245,245,0),   RGB(245,245,0));
       }
       else {
-         _DefineMarker(MARKER_BREAKPOINT, SC_MARK_CIRCLE, RGB(0,0,0), RGB(200,32,32));
-         _DefineMarker(MARKER_CURLINE, SC_MARK_SHORTARROW, RGB(0,0,0), RGB(0,200,0));
-         _DefineMarker(MARKER_RUNNING, SC_MARK_SHORTARROW, RGB(0,0,0), RGB(240,240,0));
+         _DefineMarker(MARKER_BREAKPOINT_ENABLED,  SC_MARK_CIRCLE,     RGB(0,0,0),       RGB(200,32,32));
+         _DefineMarker(MARKER_BREAKPOINT_DISABLED, SC_MARK_CIRCLE,     RGB(0,0,0),       RGB(162,162,162));
+         _DefineMarker(MARKER_CURLINE,             SC_MARK_SHORTARROW, RGB(0,0,0),       RGB(0,200,0));
+         _DefineMarker(MARKER_RUNNING,             SC_MARK_SHORTARROW, RGB(0,0,0),       RGB(240,240,0));
       }
       // Set other debugging options
       SetMouseDwellTime(800);
@@ -676,5 +679,44 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 
    bHandled = FALSE;
    return 0;
+}
+
+void CScintillaView::_DefineMarker(int nMarker, int nType, COLORREF clrFore, COLORREF clrBack)
+{
+   MarkerDefine(nMarker, nType);
+   MarkerSetFore(nMarker, clrFore);
+   MarkerSetBack(nMarker, clrBack);
+}
+
+#ifndef RGR2RGB
+   #define RGR2RGB(x) RGB((x >> 16) & 0xFF, (x >> 8) & 0xFF, x & 0xFF)
+#endif
+
+void CScintillaView::_GetSyntaxStyle(LPCTSTR pstrName, SYNTAXCOLOR& syntax)
+{
+   // Reset syntax settings
+   _tcscpy(syntax.szFont, _T(""));
+   syntax.iHeight = 0;
+   syntax.clrText = ::GetSysColor(COLOR_WINDOWTEXT);
+   syntax.clrBack = ::GetSysColor(COLOR_WINDOW);
+   syntax.bBold = FALSE;
+   syntax.bItalic = FALSE;
+
+   CString sKey = pstrName;
+   LPTSTR p = NULL;
+   TCHAR szBuffer[64] = { 0 };
+
+   _tcscpy(syntax.szFont, _GetProperty(sKey + _T("font")));
+   syntax.iHeight = _ttol(_GetProperty(sKey + _T("height")));
+   if( m_pDevEnv->GetProperty(sKey + _T("color"), szBuffer, (sizeof(szBuffer) / sizeof(TCHAR)) - 1) ) {
+      syntax.clrText = _tcstol(szBuffer + 1, &p, 16);
+      syntax.clrText = RGR2RGB(syntax.clrText);
+   }
+   if( m_pDevEnv->GetProperty(sKey + _T("back"), szBuffer, (sizeof(szBuffer) / sizeof(TCHAR)) - 1) ) {
+      syntax.clrBack = _tcstol(szBuffer + 1, &p, 16);
+      syntax.clrBack = RGR2RGB(syntax.clrBack);
+   }
+   if( _GetProperty(sKey + _T("bold")) == _T("true") ) syntax.bBold = true;
+   if( _GetProperty(sKey + _T("italic")) == _T("true") ) syntax.bItalic = true;
 }
 

@@ -9,11 +9,6 @@
 #pragma code_seg( "MISC" )
 
 
-#ifndef RGR2RGB
-   #define RGR2RGB(x) RGB((x >> 16) & 0xFF, (x >> 8) & 0xFF, x & 0xFF)
-#endif
-
-
 CScintillaView::CScintillaView(IDevEnv* pDevEnv) :
    m_wndParent(this, 1),   
    m_pDevEnv(pDevEnv),
@@ -1118,13 +1113,6 @@ CString CScintillaView::_GetNearText(long lPosition)
    return szText + iStart;
 }
 
-void CScintillaView::_DefineMarker(int nMarker, int nType, COLORREF clrFore, COLORREF clrBack)
-{
-   MarkerDefine(nMarker, nType);
-   MarkerSetFore(nMarker, clrFore);
-   MarkerSetBack(nMarker, clrBack);
-}
-
 void CScintillaView::_SaveBookmarks()
 {
    LPCTSTR pstrName = ::PathFindFileName(m_sFilename);
@@ -1155,34 +1143,6 @@ void CScintillaView::_RestoreBookmarks()
       if( _tcslen(szValue) == 0 ) break;
       MarkerAdd(_ttoi(szValue), MARKER_BOOKMARK);
    }
-}
-
-void CScintillaView::_GetSyntaxStyle(LPCTSTR pstrName, SYNTAXCOLOR& syntax)
-{
-   // Reset syntax settings
-   _tcscpy(syntax.szFont, _T(""));
-   syntax.iHeight = 0;
-   syntax.clrText = ::GetSysColor(COLOR_WINDOWTEXT);
-   syntax.clrBack = ::GetSysColor(COLOR_WINDOW);
-   syntax.bBold = FALSE;
-   syntax.bItalic = FALSE;
-
-   CString sKey = pstrName;
-   LPTSTR p = NULL;
-   TCHAR szBuffer[64] = { 0 };
-
-   _tcscpy(syntax.szFont, _GetProperty(sKey + _T("font")));
-   syntax.iHeight = _ttol(_GetProperty(sKey + _T("height")));
-   if( m_pDevEnv->GetProperty(sKey + _T("color"), szBuffer, (sizeof(szBuffer) / sizeof(TCHAR)) - 1) ) {
-      syntax.clrText = _tcstol(szBuffer + 1, &p, 16);
-      syntax.clrText = RGR2RGB(syntax.clrText);
-   }
-   if( m_pDevEnv->GetProperty(sKey + _T("back"), szBuffer, (sizeof(szBuffer) / sizeof(TCHAR)) - 1) ) {
-      syntax.clrBack = _tcstol(szBuffer + 1, &p, 16);
-      syntax.clrBack = RGR2RGB(syntax.clrBack);
-   }
-   if( _GetProperty(sKey + _T("bold")) == _T("true") ) syntax.bBold = true;
-   if( _GetProperty(sKey + _T("italic")) == _T("true") ) syntax.bItalic = true;
 }
 
 bool CScintillaView::_AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) const

@@ -41,8 +41,8 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 {
    if( _tcscmp(pstrType, _T("bvrde_init")) == 0 ) 
    {
-      m_ctrlStack.ResetContent();
-      m_ctrlThreads.ResetContent();
+      if( m_ctrlStack.IsWindow() ) m_ctrlStack.ResetContent();
+      if( m_ctrlThreads.IsWindow() ) m_ctrlThreads.ResetContent();
    }
    else if( _tcscmp(pstrType, _T("thread-ids")) == 0 ) 
    {

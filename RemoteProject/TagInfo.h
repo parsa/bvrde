@@ -49,6 +49,7 @@ private:
    CRemoteProject* m_pProject;
    CSimpleArray<TAGINFO> m_aTags;
    CSimpleArray<LPTSTR> m_aFiles;
+   CSimpleArray<LPTSTR> m_aDelayedFiles;
    bool m_bLoaded;
    bool m_bSorted;
 

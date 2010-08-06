@@ -61,15 +61,15 @@ LRESULT CRemoteDirView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
    if( !m_FolderImages.IsNull() ) m_FolderImages.Destroy();
    m_FolderImages.Create(nSmallCx, nSmallCy, ILC_COLOR32 | ILC_MASK, 4, 0);
    if( m_FolderImages.IsNull() ) return (LRESULT) -1;
-   _AddShellIcon(m_FolderImages, _T(""), FILE_ATTRIBUTE_DIRECTORY);
-   _AddShellIcon(m_FolderImages, _T(""), FILE_ATTRIBUTE_DIRECTORY, SHGFI_OPENICON);
+   _AddShellIcon(m_FolderImages, _T("C:\\XXX"), FILE_ATTRIBUTE_DIRECTORY);
+   _AddShellIcon(m_FolderImages, _T("C:\\XXX"), FILE_ATTRIBUTE_DIRECTORY, SHGFI_OPENICON);
    _AddShellIcon(m_FolderImages, m_bWin32Path ? _T("C:\\") : _T("X:\\"), 0);
    m_ctrlFolders.SetImageList(m_FolderImages);
 
    if( !m_FileImages.IsNull() ) m_FileImages.Destroy();
    m_FileImages.Create(nSmallCx, nSmallCy, ILC_COLOR32 | ILC_MASK, 8, 0);
    if( m_FileImages.IsNull() ) return (LRESULT) -1;
-   _AddShellIcon(m_FileImages, _T(""), FILE_ATTRIBUTE_DIRECTORY);
+   _AddShellIcon(m_FileImages, _T("C:\\XXX"), FILE_ATTRIBUTE_DIRECTORY);
    _AddShellIcon(m_FileImages, _T(".txt"), FILE_ATTRIBUTE_NORMAL);
    _AddShellIcon(m_FileImages, _T(".cpp"), FILE_ATTRIBUTE_NORMAL);
    _AddShellIcon(m_FileImages, _T(".tmp"), FILE_ATTRIBUTE_NORMAL);

@@ -134,8 +134,8 @@ DWORD CTelnetThread::Run()
             if( !bLoginSent && sLine.Find(sLoginPrompt) >= 0 ) {
                // Need to send login?
                CLockStaticDataInit lock;
-               CHAR szBuffer[200];
-               ::wsprintfA(szBuffer, "%ls\r\n", sUsername);
+               CHAR szBuffer[200] = { 0 };
+               ::wnsprintfA(szBuffer, 199, "%ls\r\n", sUsername);
                socket.Write(szBuffer, strlen(szBuffer));
                ::Sleep(100L);
                bLoginSent = true;
@@ -143,8 +143,8 @@ DWORD CTelnetThread::Run()
             if( !bPasswordSent && sLine.Find(sPasswordPrompt) >= 0 ) {
                // Need to send password?
                CLockStaticDataInit lock;
-               CHAR szBuffer[200];
-               ::wsprintfA(szBuffer, "%ls\r\n", sPassword);
+               CHAR szBuffer[200] = { 0 };
+               ::wnsprintfA(szBuffer, 199, "%ls\r\n", sPassword);
                socket.Write(szBuffer, strlen(szBuffer));
                ::Sleep(100L);
                bPasswordSent = true;
@@ -157,7 +157,7 @@ DWORD CTelnetThread::Run()
             sLine.MakeUpper();
             // Did authorization fail?
             // BUG: Localization!!!
-            static LPCTSTR pstrFailed[] =
+            static LPCTSTR aFailed[] =
             {
                _T("AUTHORIZATION FAILED"),
                _T("PERMISSION DENIED"),
@@ -165,23 +165,21 @@ DWORD CTelnetThread::Run()
                _T("LOGIN INCORRECT"),
                _T("LOGIN FAILED"),
                _T("UNKNOWN USER"),
-               NULL,
+               NULL
             };
-            const LPCTSTR* ppstr = pstrFailed;
-            while( *ppstr != NULL ) {
+            for( const LPCTSTR* ppstr = aFailed; *ppstr != NULL; ppstr++ ) {
                if( sLine.Find(*ppstr) >= 0 ) {
                   m_pManager->m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_LOGIN_FAILED)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR | MB_MODELESS);
                   m_pManager->m_dwErrorCode = ERROR_LOGIN_WKSTA_RESTRICTION;
                   SignalStop();
                   break;
                }
-               ppstr++;
             }
-            // Send our own login commands
+            // Send our own post-login commands
             if( !sExtraCommands.IsEmpty() ) {
                CLockStaticDataInit lock;
-               CHAR szBuffer[1024];
-               ::wsprintfA(szBuffer, "%ls\r\n", sExtraCommands);
+               CHAR szBuffer[1025] = { 0 };
+               ::wnsprintfA(szBuffer, 1024, "%ls\r\n", sExtraCommands);
                socket.Write(szBuffer, strlen(szBuffer));
                ::Sleep(100L);
             }

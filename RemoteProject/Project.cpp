@@ -653,6 +653,13 @@ IView* CRemoteProject::FindView(LPCTSTR pstrFilename, UINT uFindState) const
       IView* pView = m_aFiles[i];
       TCHAR szFilename[MAX_PATH + 1] = { 0 };
       pView->GetFileName(szFilename, MAX_PATH);
+      if( _tcscmp(pstrFilename, szFilename) == 0 ) return pView;
+   }
+   // Repeat but with case-insentitive search
+   for( int j = 0; j < m_aFiles.GetSize(); j++ ) {
+      IView* pView = m_aFiles[j];
+      TCHAR szFilename[MAX_PATH + 1] = { 0 };
+      pView->GetFileName(szFilename, MAX_PATH);
       if( _tcsicmp(pstrFilename, szFilename) == 0 ) return pView;
    }
    // Scan in other projects too?
@@ -950,6 +957,7 @@ void CRemoteProject::_RemoveView(IView* pParent)
 int CRemoteProject::_GetElementImage(IElement* pElement) const
 {
    ATLASSERT(pElement);
+   if( pElement == NULL ) return IDE_TREEIMAGE_TEXT;
    TCHAR szType[64] = { 0 };
    pElement->GetType(szType, 63);
    typedef struct tagFILEIMAGE {

@@ -44,9 +44,16 @@ public:
    CDebugStopThread m_StopThread;
 
 private:
-   CRemoteProject* m_pProject;
-   IDebuggerAdaptor* m_pAdaptor;
-   CSimpleMap<CString, long> m_aBreakpoints;   /// Breakpoints; key=<filename:lineno> value=<break-nr>
+   typedef struct tagBPINFO {
+      CString sFile;
+      int iLineNo;
+      int iBreakNo;
+      bool bEnabled;
+   } BPINFO;
+
+   CRemoteProject* m_pProject;                 /// Reference to project
+   IDebuggerAdaptor* m_pAdaptor;               /// Debugger translation layer
+   CSimpleArray<BPINFO> m_aBreakpoints;        /// Breakpoints
    CEvent m_eventAck;                          /// New debug information is available?
    volatile int m_nDebugAck;                   /// No of debug acknoledge
    volatile int m_nLastAck;                    /// Last known acknoledge
@@ -99,11 +106,14 @@ public:
    bool IsBreaked() const;
    bool IsDebugging() const;
 
+   void ClearLink();
+
    bool ClearBreakpoints();
    bool AddBreakpoint(LPCTSTR pstrFilename, int iLineNum);
    bool RemoveBreakpoint(LPCTSTR pstrFilename, int iLineNum);
-   bool GetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLines) const;
-   bool SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLines);
+   bool EnableBreakpoint(LPCTSTR pstrFilename, int iLineNum, BOOL bEnable);
+   bool GetBreakpoints(LPCTSTR pstrFilename, CSimpleValArray<int>& aLines, CSimpleValArray<int>& aStates) const;
+   bool SetBreakpoints(LPCTSTR pstrFilename, CSimpleValArray<int>& aLines, CSimpleValArray<int>& aStates);
 
    bool RunTo(LPCTSTR pstrFilename, int iLineNum);
    bool SetNextStatement(LPCTSTR pstrFilename, int iLineNum);
@@ -123,7 +133,6 @@ private:
    bool _PauseDebugger();
    void _ResumeDebugger();
    bool _WaitForDebuggerStart();
-   void _ClearLink();
    bool _AttachDebugger(CSimpleArray<CString>& aCommands, bool bExternalProcess);
    CString _TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam = NULL);
    void _ParseNewFrame(CMiInfo& info);

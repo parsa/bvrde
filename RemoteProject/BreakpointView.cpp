@@ -180,7 +180,7 @@ LRESULT CBreakpointView::OnItemDelete(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
    int iItem = m_ctrlList.GetSelectedIndex();
    if( iItem < 0 ) return 0;
    const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
-   m_pProject->m_DebugManager.RemoveBreakpoint(Info.sFile, Info.iLineNum - 1);
+   m_pProject->m_DebugManager.RemoveBreakpoint(Info.sFile, Info.iLineNum);
    BOOL bDummy = FALSE;
    OnItemRefresh(0, 0, NULL, bDummy);
    return 0;
@@ -191,9 +191,7 @@ LRESULT CBreakpointView::OnItemEnable(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /
    int iItem = m_ctrlList.GetSelectedIndex();
    if( iItem < 0 ) return 0;
    const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
-   CString sCommand;
-   sCommand.Format(_T("-break-enable %d"), Info.iBrkNr);
-   m_pProject->DelayedDebugCommand(sCommand);
+   m_pProject->m_DebugManager.EnableBreakpoint(Info.sFile, Info.iLineNum, TRUE);
    BOOL bDummy = FALSE;
    OnItemRefresh(0, 0, NULL, bDummy);
    return 0;
@@ -204,9 +202,7 @@ LRESULT CBreakpointView::OnItemDisable(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
    int iItem = m_ctrlList.GetSelectedIndex();
    if( iItem < 0 ) return 0;
    const BREAKINFO& Info = m_aItems[ m_ctrlList.GetItemData(iItem) ];
-   CString sCommand;
-   sCommand.Format(_T("-break-disable %d"), Info.iBrkNr);
-   m_pProject->DelayedDebugCommand(sCommand);
+   m_pProject->m_DebugManager.EnableBreakpoint(Info.sFile, Info.iLineNum, FALSE);
    BOOL bDummy = FALSE;
    OnItemRefresh(0, 0, NULL, bDummy);
    return 0;

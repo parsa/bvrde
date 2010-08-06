@@ -177,35 +177,38 @@ public:
    {
       ATLASSERT(!m_dc.IsNull());
       RECT rect = m_rcTracker;
-      if( !::IsRectEmpty(&rect) ) {
-         // Invert the brush pattern (looks just like frame window sizing)
-         CBrush brush = CDCHandle::GetHalftoneBrush();
-         if( brush.m_hBrush != NULL ) {
-            ATLASSERT(!m_dc.IsNull());
-            CBrushHandle brushOld = m_dc.SelectBrush(brush);
-            m_dc.PatBlt(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, PATINVERT);
-            m_dc.SelectBrush(brushOld);
-         }
-      }
+      if( ::IsRectEmpty(&rect) ) return;
+      // Invert the brush pattern (looks just like frame window sizing)
+      CBrush brush = CDCHandle::GetHalftoneBrush();
+      if( brush.m_hBrush == NULL ) return;
+      ATLASSERT(!m_dc.IsNull());
+      CBrushHandle brushOld = m_dc.SelectBrush(brush);
+      m_dc.PatBlt(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, PATINVERT);
+      m_dc.SelectBrush(brushOld);
    }
 
    void DrawDragBar()
    {
       ATLASSERT(!m_dc.IsNull());
       RECT rect = m_rcTracker;
-      if( !::IsRectEmpty(&rect) ) {
-         // Invert the brush pattern (looks just like frame window sizing)
-         CBrush brush = CDCHandle::GetHalftoneBrush();
-         if( brush.m_hBrush != NULL ) {
-            ATLASSERT(!m_dc.IsNull());
-            CBrushHandle brushOld = m_dc.SelectBrush(brush);
-            m_dc.PatBlt(rect.left + m_sizeTracker.cx, rect.top, rect.right - rect.left - (m_sizeTracker.cx * 2), m_sizeTracker.cy, PATINVERT);
-            m_dc.PatBlt(rect.left, rect.bottom - m_sizeTracker.cy, rect.right - rect.left, m_sizeTracker.cy, PATINVERT);
-            m_dc.PatBlt(rect.left, rect.top, m_sizeTracker.cx, rect.bottom - rect.top - m_sizeTracker.cy, PATINVERT);
-            m_dc.PatBlt(rect.right - m_sizeTracker.cx, rect.top, m_sizeTracker.cx, rect.bottom - rect.top - m_sizeTracker.cy, PATINVERT);
-            m_dc.SelectBrush(brushOld);
-         }
-      }
+      if( ::IsRectEmpty(&rect) ) return;
+      // Invert the brush pattern (looks just like frame window sizing on Windows 2000)
+      CBrush brush = CDCHandle::GetHalftoneBrush();
+      if( brush.m_hBrush == NULL ) return;
+      ATLASSERT(!m_dc.IsNull());
+      CBrushHandle brushOld = m_dc.SelectBrush(brush);
+      CRgn rgnNew, rgnOutside, rgnInside;
+      rgnOutside.CreateRectRgnIndirect(&rect);
+      RECT rcInside = rect;
+      ::InflateRect(&rcInside, -m_sizeTracker.cx, -m_sizeTracker.cy);
+      ::IntersectRect(&rcInside, &rcInside, &rect);
+      rgnInside.CreateRectRgnIndirect(&rcInside);
+      rgnNew.CreateRectRgn(0, 0, 0, 0);
+      rgnNew.CombineRgn(rgnOutside, rgnInside, RGN_XOR);
+      m_dc.SelectClipRgn(rgnNew);
+      m_dc.PatBlt(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, PATINVERT);
+      m_dc.SelectClipRgn(NULL);
+      m_dc.SelectBrush(brushOld);
    }
 
    void DrawSplitterBar(CDCHandle dc, bool bVertical, RECT& rect)

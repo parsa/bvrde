@@ -317,7 +317,7 @@ LRESULT CSymbolView::OnListRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*
       {
          CString sText = m_SelectedTag.sName;
          if( sText.Find(_T("::")) >= 0 ) sText = sText.Mid(sText.Find(_T("::")) + 2);
-         m_pProject->m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_EDIT_MARK, 0), (LPARAM) (LPCTSTR) sText);
+         m_pProject->m_wndMain.SendMessage(WM_COMMAND, MAKEWPARAM(ID_EDIT_MARK, 0), (LPARAM) static_cast<LPCTSTR>(sText));
       }
       break;
    case ID_SYMBOLVIEW_PROPERTIES:

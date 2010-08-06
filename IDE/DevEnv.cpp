@@ -91,7 +91,10 @@ IView* CMainFrame::CreateView(LPCTSTR pstrFilename, IProject* pProject /*= NULL*
 
 IDispatch* CMainFrame::CreateStdDispatch(LPCTSTR pstrType, IElement* pElement)
 {
+   ATLASSERT(pstrType);
    ATLASSERT(pElement);
+   if( pstrType == NULL ) return NULL;
+   if( pElement == NULL ) return NULL;
    if( _tcscmp(pstrType, _T("Project")) == 0 ) return new CProjectOM( (IProject*) pElement );
    if( _tcscmp(pstrType, _T("View")) == 0 ) return new CFileOM( (IView*) pElement );
    ATLASSERT(false);

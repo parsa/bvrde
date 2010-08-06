@@ -395,8 +395,8 @@ void CSftpProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    if( sName == _T("Username") ) m_sUsername = pstrValue;
    if( sName == _T("Password") ) m_sPassword = pstrValue;
    if( sName == _T("Port") ) m_lPort = _ttol(pstrValue);
-   if( sName == _T("Passive") ) m_bPassive = _tcscmp(pstrValue, _T("true")) == 0;
-   if( sName == _T("CompatibilityMode") ) m_bCompatibilityMode = _tcscmp(pstrValue, _T("true")) == 0;
+   if( sName == _T("Passive") ) m_bPassive = (_tcscmp(pstrValue, _T("true")) == 0);
+   if( sName == _T("CompatibilityMode") ) m_bCompatibilityMode = (_tcscmp(pstrValue, _T("true")) == 0);
    if( sName == _T("Proxy") ) m_sProxy = pstrValue;
    if( sName == _T("ConnectTimeout") ) m_lConnectTimeout = _ttol(pstrValue);
    m_sPath.TrimRight(_T("/"));

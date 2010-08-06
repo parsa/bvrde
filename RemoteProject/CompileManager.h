@@ -119,6 +119,7 @@ public:
    CCompileThread m_CompileThread;         /// Thread that pumps Compile commands
    CRebuildThread m_RebuildThread;         /// Thread that controls a Solution Rebuild
    CString m_sProcessName;                 /// Name of program (Compile, Rebuild etc)
+   CString m_sUserName;                    /// Name of login user
    CEvent m_event;                         /// Event that triggers command/batch execution
    static volatile bool s_bBusy;           /// Flag signals thread busy state
    volatile bool m_bCompiling;             /// Are we currently compiling?

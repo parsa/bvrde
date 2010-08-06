@@ -180,7 +180,7 @@ DWORD CSshThread::Run()
          // Did authorization fail? 
          // TODO: Do we need this check at all?
          //       What if shell is not a telnet dude!?
-         static LPCTSTR pstrFailed[] =
+         static LPCTSTR aFailed[] =
          {
             _T("AUTHORIZATION FAILED"),
             _T("PERMISSION DENIED"),
@@ -188,26 +188,23 @@ DWORD CSshThread::Run()
             _T("LOGIN INCORRECT"),
             _T("LOGIN FAILED"),
             _T("UNKNOWN USER"),
-            NULL,
+            NULL
          };
-         const LPCTSTR* ppstr = pstrFailed;
-         while( *ppstr ) {
+         for( const LPCTSTR* ppstr = aFailed; *ppstr != NULL; ppstr++ ) {
             if( sLine.Find(*ppstr) >= 0 ) {
                m_pManager->m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_LOGIN_FAILED)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR | MB_MODELESS);
                m_pManager->m_dwErrorCode = ERROR_LOGIN_WKSTA_RESTRICTION;
                SignalStop();
                break;
             }
-            ppstr++;
          }
-         // Ok, signal that we're connected
-         m_pManager->m_bConnected = (*ppstr == NULL);
-         // Send our own login commands
+         // Send our own post-login commands
          if( m_pManager->m_bConnected && !sExtraCommands.IsEmpty() ) {
             CString sCustom = sExtraCommands;
             sCustom.Remove('\r');
             m_pManager->WriteData(sCustom);
          }
+         m_pManager->m_bConnected = true;
       }
 
       int iPos = 0;

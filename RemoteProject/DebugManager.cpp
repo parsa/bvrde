@@ -35,6 +35,7 @@ DWORD CDebugStopThread::Run()
    // If its still alive after waiting this long, we'll
    // need to force a termination.
    if( m_pManager->IsBusy() ) m_pManager->SignalStop();
+   else m_pManager->ClearLink();
    return 0;
 }
 
@@ -196,7 +197,7 @@ void CDebugManager::SignalStop()
 {
    m_ShellManager.SignalStop();
    m_StopThread.SignalStop();
-   _ClearLink();
+   ClearLink();
 }
 
 bool CDebugManager::Stop()
@@ -205,7 +206,7 @@ bool CDebugManager::Stop()
    //       already sent the DelayedXXX messages once...
    m_ShellManager.Stop();
    m_StopThread.Stop();
-   _ClearLink();
+   ClearLink();
    return true;
 }
 
@@ -244,7 +245,7 @@ bool CDebugManager::ClearBreakpoints()
          CString sArgs;
          for( long i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
             if( i > 0 ) sArgs += _T(" ");
-            sArgs.Append(m_aBreakpoints.GetValueAt(i));
+            sArgs.Append(m_aBreakpoints[i].iBreakNo);
          }
          DoDebugCommandV(_T("-break-delete %s"), sArgs);
          DoDebugCommand(_T("-break-list"));
@@ -261,13 +262,17 @@ bool CDebugManager::ClearBreakpoints()
 bool CDebugManager::AddBreakpoint(LPCTSTR pstrFilename, int iLineNum)
 {
    CLockBreakpointData lock;
-   // Add it to internal list
    pstrFilename = ::PathFindFileName(pstrFilename);
-   CString sText;
-   sText.Format(_T("%s:%d"), pstrFilename, iLineNum + 1);
+   // Remove any disabled breakpoint
+   RemoveBreakpoint(pstrFilename, iLineNum);
    // We add a dummy entry now. We don't know the internal GDB breakpoint-no
-   // for this breakpoint, but we'll soon learn when GDB answers our request.
-   m_aBreakpoints.Add(sText, 0);
+   // for this breakpoint, but we'll soon learn when GDB answers our requests.
+   BPINFO bp;
+   bp.sFile = pstrFilename;
+   bp.iLineNo = iLineNum;
+   bp.iBreakNo = 0;
+   bp.bEnabled = true;
+   m_aBreakpoints.Add(bp);
    // If we're debugging, we need to update GDB as well...
    if( IsDebugging() ) {     
       // Attempt to halt app if currently running
@@ -275,7 +280,7 @@ bool CDebugManager::AddBreakpoint(LPCTSTR pstrFilename, int iLineNum)
       // Send GDB commands.
       // TODO: Support spaces and stuff in filenames. 
       //        -break-insert "\"a b.cpp\":5"
-      if( !DoDebugCommandV(_T("-break-insert %s"), sText) ) return false;
+      if( !DoDebugCommandV(_T("-break-insert %s:%d"), bp.sFile, bp.iLineNo) ) return false;
       if( !DoDebugCommand(_T("-break-list")) ) return false;
       // Warn about GDB's inability to add ASYNC breakpoints
       if( !IsBreaked() ) {
@@ -293,65 +298,85 @@ bool CDebugManager::RemoveBreakpoint(LPCTSTR pstrFilename, int iLineNum)
 {
    CLockBreakpointData lock;
    pstrFilename = ::PathFindFileName(pstrFilename);
-   CString sText;
-   sText.Format(_T("%s:%d"), pstrFilename, iLineNum + 1);
-   if( IsDebugging() ) {
-      // Find the internal GDB breakpoint-nr for this breakpoint
-      int iIndex = m_aBreakpoints.FindKey(sText);;
-      if( iIndex >= 0 ) {
-         long lNumber = m_aBreakpoints.Lookup(sText);
-         bool bRestartApp = _PauseDebugger();
-         // We have it; let's ask GDB to delete the breakpoint
-         if( !DoDebugCommandV(_T("-break-delete %ld"), lNumber) ) return false;
-         if( !DoDebugCommand(_T("-break-list")) ) return false;
-         if( bRestartApp ) _ResumeDebugger();
+   for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
+      const BPINFO& bp = m_aBreakpoints[i];
+      if( bp.sFile == pstrFilename && bp.iLineNo == iLineNum ) {
+         if( IsDebugging() ) {
+            bool bRestartApp = _PauseDebugger();
+            // We have it; let's ask GDB to delete the breakpoint
+            if( !DoDebugCommandV(_T("-break-delete %ld"), bp.iBreakNo) ) return false;
+            if( !DoDebugCommand(_T("-break-list")) ) return false;
+            if( bRestartApp ) _ResumeDebugger();
+         }
+         // Remove it from our own internal list too 
+         return m_aBreakpoints.RemoveAt(i) == TRUE;
       }
    }
-   // Remove it from our own internal list too 
-   return m_aBreakpoints.Remove(sText) == TRUE;
+   return FALSE;
 }
 
-bool CDebugManager::GetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLines) const
+bool CDebugManager::EnableBreakpoint(LPCTSTR pstrFilename, int iLineNum, BOOL bEnable)
 {
    CLockBreakpointData lock;
    pstrFilename = ::PathFindFileName(pstrFilename);
-   size_t cchName = _tcslen(pstrFilename);
    for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
-      if( _tcsncmp(m_aBreakpoints.GetKeyAt(i), pstrFilename, cchName) == 0 ) {
-         LPCTSTR pstr = _tcschr(m_aBreakpoints.GetKeyAt(i), ':');
-         if( pstr != NULL ) {
-            int iLine = _ttoi(pstr + 1) - 1;
-            aLines.Add(iLine);
+      BPINFO& bp = m_aBreakpoints[i];
+      if( bp.sFile == pstrFilename && bp.iLineNo == iLineNum ) {
+         bp.bEnabled = (bEnable != FALSE);
+         if( IsDebugging() ) {
+            bool bRestartApp = _PauseDebugger();
+            // We have it; let's ask GDB to manipulate the breakpoint
+            if( !DoDebugCommandV(_T("-break-%s %ld"), bEnable ? _T("enable") : _T("disable"), bp.iBreakNo) ) return false;
+            if( !DoDebugCommand(_T("-break-list")) ) return false;
+            if( bRestartApp ) _ResumeDebugger();
          }
+         break;
       }
+   }
+   return FALSE;
+}
+
+bool CDebugManager::GetBreakpoints(LPCTSTR pstrFilename, CSimpleValArray<int>& aLines, CSimpleValArray<int>& aStates) const
+{
+   CLockBreakpointData lock;
+   pstrFilename = ::PathFindFileName(pstrFilename);
+   for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
+      const BPINFO& bp = m_aBreakpoints[i];
+      if( bp.sFile != pstrFilename ) continue;
+      aLines.Add(bp.iLineNo);
+      aStates.Add(bp.bEnabled ? 1 : 0);
    }
    return true;
 }
 
-bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleArray<int>& aLines)
+bool CDebugManager::SetBreakpoints(LPCTSTR pstrFilename, CSimpleValArray<int>& aLines, CSimpleValArray<int>& aStates)
 {
    ATLASSERT(IsDebugging());
    // This method is called from the views upon a DEBUG_CMD_REQUEST_BREAKPOINTS request
    // where we ask the views to identify all active breakpoints. We're supposed to
-   // clear our internal breakpoint-list for that file and add the active items.
+   // clear our internal breakpoint-list for that file and add the active items back.
    // It must be run *before* the debugger is started!
-   // First, let's remove all existing breakpoints from this file.
+   // First, let's remove all existing breakpoints for this file.
    CLockBreakpointData lock;
-   size_t cchName = _tcslen(pstrFilename);
+   pstrFilename = ::PathFindFileName(pstrFilename);
    int i;
    for( i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
-      if( _tcsncmp(m_aBreakpoints.GetKeyAt(i), pstrFilename, cchName) == 0 ) {
-         m_aBreakpoints.Remove(m_aBreakpoints.GetKeyAt(i));
-         i = -1;
-         continue;
-      }
+      const BPINFO& bp = m_aBreakpoints[i];
+      if( bp.sFile != pstrFilename ) continue;
+      m_aBreakpoints.RemoveAt(i);
+      i = -1;
    }
    // Add all the new breakpoints...
-   CString sText;
    for( i = 0; i < aLines.GetSize(); i++ ) {
-      sText.Format(_T("%s:%d"), pstrFilename, aLines[i] + 1);
-      m_aBreakpoints.Add(sText, 0L);
+      BPINFO bp;
+      bp.sFile = pstrFilename;
+      bp.iBreakNo = 0;
+      bp.iLineNo = aLines[i];
+      bp.bEnabled = (aStates[i] != 0);
+      m_aBreakpoints.Add(bp);
    }
+   // The actual insertion of breakpoints in the debugger must be handled
+   // by the calling function. See also _AttachDebugger().
    return true;
 }
 
@@ -396,8 +421,17 @@ bool CDebugManager::RunNormal()
    CTelnetView* pView = m_pProject->GetDebugView();
    pView->Clear();
    pView->Init(&m_ShellManager);
-   pView->ModifyFlags(0, TELNETVIEW_TERMINATEONCLOSE);
-   RECT rcLogWin = { 120, 120, 800 + 120, 600 + 120 };   // TODO: Memorize this position
+   pView->ModifyFlags(0, TELNETVIEW_TERMINATEONCLOSE | TELNETVIEW_SAVEPOS);
+   // Position the view...
+   TCHAR szPos[40] = { 0 };
+   _pDevEnv->GetProperty(_T("window.telnetview.xy"), szPos, 39);
+   POINT pt = { 0 };
+   pt.x = _ttoi(szPos); if( _tcschr(szPos, ',') != NULL ) pt.y = _ttoi(_tcschr(szPos, ',') + 1);
+   RECT rcLogWin = { 120, 120, 800 + 120, 600 + 120 };
+   if( ::PtInRect(&rcLogWin, pt) ) {
+      ::OffsetRect(&rcLogWin, -120, -120);
+      ::OffsetRect(&rcLogWin, pt.x, pt.y);
+   }
    _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_HIDE, rcLogWin);
    _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_FLOAT, rcLogWin);
    pView->CenterWindow();
@@ -413,6 +447,7 @@ bool CDebugManager::RunNormal()
       Stop();
       return false;
    }
+
    m_bRunning = true;
    m_bSeenExit = false;
    
@@ -449,6 +484,8 @@ bool CDebugManager::RunDebug()
    aList.Add(sCommand);   
    sCommand.Format(_T("%s %s"), m_sDebuggerExecutable, m_sAttachExe);
    aList.Add(sCommand);   
+   sCommand = _T("\r\n");
+   aList.Add(sCommand);   
    if( !_AttachDebugger(aList, false) ) return false;
    // Start debugging session
    DoDebugCommandV(_T("-exec-arguments %s"), m_sAppArgs);
@@ -467,6 +504,8 @@ bool CDebugManager::AttachProcess(long lPID)
    aList.Add(sCommand);   
    sCommand.Format(_T("%s %s"), m_sDebuggerExecutable, m_sAttachPid);
    sCommand.Replace(_T("$PID$"), ToString(lPID));
+   aList.Add(sCommand);   
+   sCommand = _T("\r\n");
    aList.Add(sCommand);   
    if( !_AttachDebugger(aList, true) ) return false;
    // The sessions starts as halted; update views
@@ -491,6 +530,8 @@ bool CDebugManager::AttachCoreFile(LPCTSTR pstrProcess, LPCTSTR pstrCoreFilename
    sCommand.Format(_T("%s %s"), m_sDebuggerExecutable, m_sAttachCore);
    sCommand.Replace(_T("$PROCESS$"), pstrProcess);
    sCommand.Replace(_T("$COREFILE$"), pstrCoreFilename);
+   aList.Add(sCommand);   
+   sCommand = _T("\r\n");
    aList.Add(sCommand);   
    if( !_AttachDebugger(aList, true) ) return false;
    // The sessions starts as halted; update views
@@ -690,7 +731,8 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
    m_pProject->DelayedDebugEvent(LAZY_DEBUG_START_EVENT);
 
    // Execute the commands
-   for( int i = 0; i < aCommands.GetSize(); i++ ) {
+   int i;
+   for( i = 0; i < aCommands.GetSize(); i++ ) {
       // Run debugger on remote server
       CString sCommand = _TranslateCommand(aCommands[i]);
       if( !m_ShellManager.WriteData(sCommand) ) {
@@ -754,17 +796,24 @@ bool CDebugManager::_AttachDebugger(CSimpleArray<CString>& aCommands, bool bExte
       DoDebugCommandV(_T("-environment-path %s"), sPathList);
    }
 
+   // Set known breakpoints.
+   // This includes newly updated breakpoints from active views and
+   // old breakpoints from the list.
+   CString sDisableList;
+   for( i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
+      const BPINFO& bp = m_aBreakpoints[i];
+      DoDebugCommandV(_T("-break-insert %s:%d"), bp.sFile, bp.iLineNo);
+      if( bp.bEnabled ) continue;
+      // BUG: We should wait for the breakno to arrive instead of guessing here!
+      if( !sDisableList.IsEmpty() ) sDisableList += _T(" ");
+      sDisableList.Append(i + 1);
+   }
+   if( !sDisableList.IsEmpty() ) DoDebugCommandV(_T("-break-disable %s"), sDisableList);
+
    // If there are no breakpoints defined, then let's
    // set a breakpoint in the main function
    if( !bExternalProcess && m_aBreakpoints.GetSize() == 0 ) {
       DoDebugCommandV(_T("-break-insert -t %s"), m_sDebugMain);
-   }
-
-   // Set known breakpoints.
-   // This includes newly updated breakpoints from active views and
-   // old breakpoints from the list.
-   for( int b = 0; b < m_aBreakpoints.GetSize(); b++ ) {
-      DoDebugCommandV(_T("-break-insert %s"), m_aBreakpoints.GetKeyAt(b));
    }
 
    return true;
@@ -841,7 +890,7 @@ CString CDebugManager::_TranslateCommand(LPCTSTR pstrCommand, LPCTSTR pstrParam 
  * Notifies the UI that debugging stopped. Clears links and state to signal
  * that we are no longer debugging the app.
  */
-void CDebugManager::_ClearLink()
+void CDebugManager::ClearLink()
 {
    // Send event that we have stopped
    if( m_bDebugging ) {
@@ -941,19 +990,22 @@ void CDebugManager::_ParseNewFrame(CMiInfo& info)
 /**
  * Update internal breakpoint structures.
  * This method gets called when the GDB debugger delivers an updated
- * debug list and tells us which internal breakpoint-nr it assigned to 
+ * debug entry and tells us which internal breakpoint-nr it assigned to 
  * our new breakpoint.
  */
 void CDebugManager::_UpdateBreakpoint(CMiInfo& info)
 {   
    CString sFile = info.GetItem(_T("file"));
-   CString sLine = info.GetItem(_T("line"));
-   if( sFile.IsEmpty() || sLine.IsEmpty() ) return;
-   long lNumber = _ttol(info.GetItem(_T("number")));
-   CString sLocation;
-   sLocation.Format(_T("%s:%s"), ::PathFindFileName(sFile), sLine);
-   if( !m_aBreakpoints.SetAt(sLocation, lNumber) ) {
-      m_aBreakpoints.Add(sLocation, lNumber);
+   int iLineNum = _ttoi(info.GetItem(_T("line")));
+   if( sFile.IsEmpty() || iLineNum == 0 ) return;
+   int iNumber = _ttoi(info.GetItem(_T("number")));
+   LPCTSTR pstrFilename = ::PathFindFileName(sFile);
+   for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
+      BPINFO& bp = m_aBreakpoints[i];
+      if( bp.sFile == pstrFilename && bp.iLineNo == iLineNum ) {
+         bp.iBreakNo = iNumber;
+         break;
+      }
    }
 }
 
@@ -1036,7 +1088,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
    if( sCommand == _T("exit") ) {
       m_pProject->DelayedStatusBar(_T(""));
       // We should flag that we did a clean exit!
-      _ClearLink();
+      ClearLink();
       m_bSeenExit = true;
       return;
    }
@@ -1134,10 +1186,11 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
       // Some outdated versions of GDB didn't include these texts in the console-stream
       // tags, but merely printed them as text. We'll try to detect both (hence the skipping
       // of the first character in error messages).
-      typedef struct tagDEBUGERR {
-         LPCTSTR pstrText; UINT nCaption; UINT nMsg;
-      } DEBUGERR;
-      static DEBUGERR errs[] = 
+      static struct {
+         LPCTSTR pstrText; 
+         UINT nCaption; 
+         UINT nMsg;
+      } errs[] = 
       {
          { _T("Unable to attach to process"), IDS_CAPTION_MESSAGE, IDS_ERR_NOATTACH },
          { _T("Can't attach to process"),     IDS_CAPTION_MESSAGE, IDS_ERR_NOATTACH },
@@ -1178,7 +1231,7 @@ void CDebugManager::_ParseConsoleOutput(LPCTSTR pstrText)
       CString sText = sLine.Mid(1, sLine.GetLength() - 2);
       sText.Replace(_T("\\n"), _T("\r\n"));
       sText.Replace(_T("\\t"), _T("\t"));
-      m_pProject->DelayedGuiAction(GUI_ACTION_APPENDVIEW, IDE_HWND_COMMANDVIEW, sText);
+      m_pProject->DelayedGuiAction(LAZY_GUI_APPENDVIEW, IDE_HWND_COMMANDVIEW, sText);
    }
 }
 
@@ -1192,7 +1245,7 @@ void CDebugManager::_ParseTargetOutput(LPCTSTR pstrText)
       CString sText = sLine.Mid(1, sLine.GetLength() - 2);
       sText.Replace(_T("\\n"), _T("\r\n"));
       sText.Replace(_T("\\t"), _T("\t"));
-      m_pProject->DelayedGuiAction(GUI_ACTION_APPENDVIEW, IDE_HWND_COMMANDVIEW, sText);
+      m_pProject->DelayedGuiAction(LAZY_GUI_APPENDVIEW, IDE_HWND_COMMANDVIEW, sText);
    }
 }
 

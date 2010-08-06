@@ -17,6 +17,9 @@ BOOL CDiffCvsView::GeneratePage(IElement* pElement, CSimpleArray<CString>& aLine
    ATLASSERT(m_spBrowser);
    ATLASSERT(pElement);
 
+   if( m_spBrowser == NULL ) return FALSE;
+   if( pElement == NULL ) return FALSE;
+
    CWaitCursor cursor;
    _pDevEnv->ShowStatusText(ID_DEFAULT_PANE, CString(MAKEINTRESOURCE(IDS_STATUS_DIFFVIEW)));
 

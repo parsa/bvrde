@@ -222,10 +222,12 @@ public:
       }
       return lRes;
    }
-   
+
    LRESULT OnSysCommand(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled)
    {
       switch( wParam & 0xFFF0 ) {
+      case SC_MOVE:
+         return TRUE;
       case SC_CLOSE:
          ::SetFocus(m_hwndOwner); // Kill focus; that'll set off the close-view action!
          return 0;
@@ -233,7 +235,7 @@ public:
       bHandled = FALSE;
       return 0;
    }
-   
+
    LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
    {
       if( !::IsWindow(m_pane.hWnd) ) return 0;

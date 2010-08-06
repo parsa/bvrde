@@ -23,10 +23,10 @@ public:
       if( !::IsWindow(hWnd) ) return false;
       // Get dock state from window
       TDockInfo info;
-      bool bAutoShow = ::IsWindowVisible(hWnd) == TRUE;
+      bool bAutoShow = (::IsWindowVisible(hWnd) == TRUE);
       // Set global value
-      TCHAR szProperty[64];
-      ::wsprintf(szProperty, _T("gui.debugViews.%s"), pstrProperty);
+      TCHAR szProperty[64] = { 0 };
+      ::wnsprintf(szProperty, 63, _T("gui.debugViews.%s"), pstrProperty);
       _pDevEnv->SetProperty(szProperty, bAutoShow ? _T("true") : _T("false"));
       // Record the internal settings
       RECT rcWin = { 0 };
@@ -60,8 +60,8 @@ public:
 
    bool IsAutoShown(HWND hWnd, LPCTSTR pstrProperty) const
    {
-      TCHAR szProperty[64];
-      ::wsprintf(szProperty, _T("gui.debugViews.%s"), pstrProperty);
+      TCHAR szProperty[64] = { 0 };
+      ::wnsprintf(szProperty, 63, _T("gui.debugViews.%s"), pstrProperty);
       TCHAR szValue[32] = { 0 };
       _pDevEnv->GetProperty(szProperty, szValue, 31);
       return _tcscmp(szValue, _T("true")) == 0;

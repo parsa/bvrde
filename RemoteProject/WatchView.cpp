@@ -100,7 +100,7 @@ void CWatchView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
                LPARAM lKey = m_ctrlGrid.GetItemData(hProp);
                if( lKey == lWatch ) bFound = true;
             }
-            if( !bFound ) {
+            if( !bFound && lWatch != 0 ) {
                int iItem = m_ctrlGrid.InsertItem(-1, PropCreateSimple(_T(""), sName, lWatch));
                m_ctrlGrid.SetSubItem(iItem, 1, PropCreateSimple(_T(""), _T("")));
                // Let's not be satisfied with the "watchXXX" name. The debugger can name
@@ -185,7 +185,7 @@ void CWatchView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
    CString sCommand = _T("-var-update *");
    aDbgCmd.Add(sCommand);
 
-   // While the above debugger command gives us a list of chenged items, I still
+   // While the above debugger command gives us a list of changed items, I still
    // perfer to evaluate *all* wathces - simply because there is slight risk that
    // we didn't catch an update.
    // TODO: Baloney. Fix this. Keep track of changelist.
@@ -317,7 +317,8 @@ LRESULT CWatchView::OnItemChanged(int /*idCtrl*/, LPNMHDR pnmh, BOOL& /*bHandled
       vName.Clear();
       m_ctrlGrid.GetItemValue(hProp, &vName);
       CString sName = CString(vName.bstrVal);
-      if( sName.IsEmpty() ) _DeleteWatch(hProp); else _CreateWatch(hProp, sName);
+      if( sName.IsEmpty() ) _DeleteWatch(hProp); 
+      else _CreateWatch(hProp, sName);
    }
    else
    {

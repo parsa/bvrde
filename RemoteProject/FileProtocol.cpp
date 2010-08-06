@@ -98,7 +98,7 @@ void CFileProtocol::SetParam(LPCTSTR pstrName, LPCTSTR pstrValue)
    CString sName = pstrName;
    if( sName == _T("Path") ) m_sPath = pstrValue;
    if( sName == _T("SearchPath") ) m_sSearchPath = pstrValue;
-   if( sName == _T("CompatibilityMode") ) m_bCompatibilityMode = _tcscmp(pstrValue, _T("true")) == 0;
+   if( sName == _T("CompatibilityMode") ) m_bCompatibilityMode = (_tcscmp(pstrValue, _T("true")) == 0);
    m_sPath.TrimRight(_T("\\"));
 }
 

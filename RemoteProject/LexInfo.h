@@ -86,6 +86,7 @@ private:
 private:
    CRemoteProject* m_pProject;
    CSimpleArray<LEXFILE*> m_aFiles;
+   CSimpleArray<LEXFILE*> m_aDelayedFiles;
    CLexThread m_thread;
    bool m_bLoaded;
 };

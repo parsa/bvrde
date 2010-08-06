@@ -336,10 +336,11 @@ LRESULT CScintillaView::OnFileSave(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hW
       DWORD dwErr = ::GetLastError();
       _pDevEnv->PlayAnimation(FALSE, 0);
       // Show nasty error dialog; allow user to CANCEL to stay alive!
-      TCHAR szName[128] = { 0 };
-      m_pView->GetName(szName, 127);
+      CString sName;
+      m_pView->GetName(sName.GetBufferSetLength(128), 128);
+      sName.ReleaseBuffer();
       CString sMsg;
-      sMsg.Format(IDS_ERR_FILESAVE, szName, GetSystemErrorText(dwErr));
+      sMsg.Format(IDS_ERR_FILESAVE, sName, GetSystemErrorText(dwErr));
       if( IDOK == _pDevEnv->ShowMessageBox(m_hWnd, sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONEXCLAMATION | MB_OKCANCEL) ) return 0;
       return 1; // Return ERROR indication
    }
@@ -406,27 +407,32 @@ LRESULT CScintillaView::OnDebugBreakpoint(WORD /*wNotifyCode*/, WORD /*wID*/, HW
 
    int iLineNum = m_ctrlEdit.GetCurrentLine();
    long lValue = m_ctrlEdit.MarkerGet(iLineNum);
-   long lMarkerMask = (1 << MARKER_BREAKPOINT);
+   long lMarkerMask = (1 << MARKER_BREAKPOINT_ENABLED);
 
    CString sName;
    m_pView->GetName(sName.GetBufferSetLength(128), 128);
    sName.ReleaseBuffer();
 
+   // User clicked on breakpoint on margin. Add/remove a new breakpoint.
+   // HACK: Because the breakpoint may have been moved due to editing
+   //       we'll try to delete any breakpoint in the neighborhood.
    if( (lValue & lMarkerMask) != 0 ) {
-      bool bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLineNum);
-      // HACK: Because the breakpoint may have been moved due to editing
-      //       we'll try to delete any breakpoint in the neighborhood.
+      bool bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLineNum + 1);
       const int DEBUG_LINE_FUDGE = 4;
       for( int iOffset = 1; !bRes && iOffset < DEBUG_LINE_FUDGE; iOffset++ ) {
-         bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLineNum + iOffset);
-         if( !bRes ) bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLineNum - iOffset);
+         bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLineNum + iOffset + 1);
+         if( !bRes ) bRes = m_pCppProject->m_DebugManager.RemoveBreakpoint(sName, iLineNum - iOffset + 1);
       }
-      if( bRes ) m_ctrlEdit.MarkerDelete(iLineNum, MARKER_BREAKPOINT);
+      if( bRes ) {
+         m_ctrlEdit.MarkerDelete(iLineNum, MARKER_BREAKPOINT_ENABLED);
+         m_ctrlEdit.MarkerDelete(iLineNum, MARKER_BREAKPOINT_DISABLED);
+      }
       else ::MessageBeep((UINT)-1);
    }
    else {
-      if( m_pCppProject->m_DebugManager.AddBreakpoint(sName, iLineNum) ) {
-         m_ctrlEdit.MarkerAdd(iLineNum, MARKER_BREAKPOINT);
+      if( m_pCppProject->m_DebugManager.AddBreakpoint(sName, iLineNum + 1) ) {
+         m_ctrlEdit.MarkerDelete(iLineNum, MARKER_BREAKPOINT_DISABLED);
+         m_ctrlEdit.MarkerAdd(iLineNum, MARKER_BREAKPOINT_ENABLED);
       }
    }
    return 0;
@@ -510,7 +516,8 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
       break;
    case DEBUG_CMD_CLEAR_BREAKPOINTS:
       {
-         m_ctrlEdit.MarkerDeleteAll(MARKER_BREAKPOINT);
+         m_ctrlEdit.MarkerDeleteAll(MARKER_BREAKPOINT_ENABLED);
+         m_ctrlEdit.MarkerDeleteAll(MARKER_BREAKPOINT_DISABLED);
       }
       break;
    case DEBUG_CMD_REQUEST_BREAKPOINTS:
@@ -518,25 +525,28 @@ LRESULT CScintillaView::OnDebugLink(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl
          if( m_pCppProject == NULL ) return 0;
          // Before the debugger starts, it collects breakpoint information
          // directly from the views.
+         CSimpleValArray<int> aLines, aStates;
          int iLineNum = 0;
-         CSimpleArray<int> aLines;
-         while( (iLineNum = m_ctrlEdit.MarkerNext(iLineNum, 1 << MARKER_BREAKPOINT)) >= 0 ) {
-            aLines.Add(iLineNum);
-            iLineNum++;
+         while( (iLineNum = m_ctrlEdit.MarkerNext(iLineNum, 1 << MARKER_BREAKPOINT_ENABLED)) >= 0 ) {
+            aLines.Add(iLineNum + 1); aStates.Add(1); iLineNum++;
          }
-         m_pCppProject->m_DebugManager.SetBreakpoints(sName, aLines);
+         iLineNum = 0;
+         while( (iLineNum = m_ctrlEdit.MarkerNext(iLineNum, 1 << MARKER_BREAKPOINT_DISABLED)) >= 0 ) {
+            aLines.Add(iLineNum + 1); aStates.Add(0); iLineNum++;
+         }
+         m_pCppProject->m_DebugManager.SetBreakpoints(sName, aLines, aStates);
       }
       break;
    case DEBUG_CMD_SET_BREAKPOINTS:
       {
          if( m_pCppProject == NULL ) return 0;
-         CString sName;
-         m_pView->GetName(sName.GetBufferSetLength(128), 128);
-         sName.ReleaseBuffer();
-         CSimpleArray<int> aLines;
-         m_pCppProject->m_DebugManager.GetBreakpoints(sName, aLines);
-         m_ctrlEdit.MarkerDeleteAll(MARKER_BREAKPOINT);
-         for( int i = 0; i < aLines.GetSize(); i++ ) m_ctrlEdit.MarkerAdd(aLines[i], MARKER_BREAKPOINT);
+         CSimpleValArray<int> aLines, aStates;
+         m_pCppProject->m_DebugManager.GetBreakpoints(sName, aLines, aStates);
+         m_ctrlEdit.MarkerDeleteAll(MARKER_BREAKPOINT_ENABLED);
+         m_ctrlEdit.MarkerDeleteAll(MARKER_BREAKPOINT_DISABLED);
+         for( int i = 0; i < aLines.GetSize(); i++ ) {
+            m_ctrlEdit.MarkerAdd(aLines[i] - 1, aStates[i] ? MARKER_BREAKPOINT_ENABLED : MARKER_BREAKPOINT_DISABLED);
+         }
       }
       break;
    case DEBUG_CMD_GET_CARET_TEXT:
