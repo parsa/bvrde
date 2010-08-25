@@ -48,8 +48,12 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    {
       m_ctrlThreads.SetRedraw(FALSE);
       m_ctrlThreads.ResetContent();
-      CString sThreadId = info.GetItem(_T("thread-id"));
+      // New current thread?
+      CString sCurrentId = info.GetItem(_T("current-thread-id"));
+      if( !sCurrentId.IsEmpty() ) m_dwCurThread = (DWORD) _ttol(sCurrentId);
+      // Populate thread list
       CString sText;
+      CString sThreadId = info.GetItem(_T("thread-id"));
       while( !sThreadId.IsEmpty() ) {
          DWORD dwThreadId = (DWORD) _ttol(sThreadId);
          sText.Format(IDS_THREAD, sThreadId, sThreadId);
@@ -66,10 +70,12 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    {
       m_ctrlThreads.SetRedraw(FALSE);
       m_ctrlThreads.ResetContent();
+      // New current thread?
       CString sCurrentId = info.GetItem(_T("current-thread-id"));
       if( !sCurrentId.IsEmpty() ) m_dwCurThread = (DWORD) _ttol(sCurrentId);
-      CString sThreadId = info.GetItem(_T("id"), _T("threads"));
+      // Populate thread list
       CString sText;
+      CString sThreadId = info.GetItem(_T("id"), _T("threads"));
       while( !sThreadId.IsEmpty() ) {
          DWORD dwThreadId = (DWORD) _ttol(sThreadId);
          CString sTarget = info.GetSubItem(_T("target-id"));
@@ -119,7 +125,7 @@ void CStackView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
 
 void CStackView::EvaluateView(CSimpleArray<CString>& aDbgCmd)
 {
-   // NOTE: We also refresh the thread-list, though it is handled through the CThreadView class.
+   // NOTE: We also refresh the thread-list, though it is handled through the CThreadView class too.
    //       @see CRemoteProject::OnProcess
 
    aDbgCmd.Add(CString(_T("-stack-list-frames")));

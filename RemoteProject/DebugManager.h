@@ -108,7 +108,8 @@ public:
 
    void ClearLink();
 
-   bool ClearBreakpoints();
+   bool ClearAllBreakpoints();
+   bool DisableAllBreakpoints();
    bool AddBreakpoint(LPCTSTR pstrFilename, int iLineNum);
    bool RemoveBreakpoint(LPCTSTR pstrFilename, int iLineNum);
    bool EnableBreakpoint(LPCTSTR pstrFilename, int iLineNum, BOOL bEnable);

@@ -619,7 +619,14 @@ LRESULT CRemoteProject::OnDebugStepOut(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
 LRESULT CRemoteProject::OnDebugClearBreakpoints(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
 {
    if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
-   m_DebugManager.ClearBreakpoints();
+   m_DebugManager.ClearAllBreakpoints();
+   return 0;
+}
+
+LRESULT CRemoteProject::OnDebugDisableBreakpoints(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& bHandled)
+{
+   if( _pDevEnv->GetSolution()->GetActiveProject() != this ) { bHandled = FALSE; return 0; }
+   m_DebugManager.DisableAllBreakpoints();
    return 0;
 }
 

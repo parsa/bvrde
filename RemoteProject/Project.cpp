@@ -355,6 +355,7 @@ void CRemoteProject::OnIdle(IUpdateUI* pUIBase)
    pUIBase->UIEnable(ID_DEBUG_STOP, bProcessStarted);
    pUIBase->UIEnable(ID_DEBUG_BREAKPOINT, FALSE);
    pUIBase->UIEnable(ID_DEBUG_CLEAR_BREAKPOINTS, TRUE);
+   pUIBase->UIEnable(ID_DEBUG_DISABLE_BREAKPOINTS, TRUE);
    pUIBase->UIEnable(ID_DEBUG_QUICKWATCH, FALSE);
    pUIBase->UIEnable(ID_DEBUG_PROCESSES, !bBusy);
    pUIBase->UIEnable(ID_DEBUG_COREFILE, !bBusy);

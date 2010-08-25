@@ -1059,7 +1059,7 @@ void CScintillaView::_AutoComplete(int ch)
    // Attempt auto-completion after 3 characters have been typed on a new line.
    // We'll also check if this really could be time to auto-complete!
    static long s_lCharsTyped = 0;
-   if( _issepchar(ch) ) s_lCharsTyped = 0;
+   if( _issepchar((WCHAR)ch) ) s_lCharsTyped = 0;
    const WORD AUTOCOMPLETE_AFTER_TYPED_CHARS = 3;
    if( _iscppchar(ch) && ++s_lCharsTyped == AUTOCOMPLETE_AFTER_TYPED_CHARS ) bShow = true;
    // Don't popup too close to start

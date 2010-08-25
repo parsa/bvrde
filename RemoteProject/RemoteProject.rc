@@ -222,6 +222,7 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "Neuer Haltepunkt\tF8",        ID_DEBUG_BREAKPOINT
             MENUITEM "Alle Haltepunkte entfernen",  ID_DEBUG_CLEAR_BREAKPOINTS
+            MENUITEM "Alle Haltepunkte deaktivieren",  ID_DEBUG_DISABLE_BREAKPOINTS
 
         END
     END
@@ -1168,6 +1169,8 @@ BEGIN
     ID_DEBUG_BREAKPOINT     "Haltepunkt einfügen\nHaltepunkt einfügen"
     ID_DEBUG_CLEAR_BREAKPOINTS 
                             "Alle Haltepunkte entfernen\nHaltepunkte entfernen"
+    ID_DEBUG_DISABLE_BREAKPOINTS 
+                            "Alle Haltepunkte deaktivieren\nHaltepunkte deaktivieren"
     ID_VIEW_WATCH           "Watches anzeigen\nWatches"
     ID_VIEW_CALLSTACK       "Aufrufstack anzeigen\nAufrufstack"
     ID_VIEW_BREAKPOINTS     "Liste der Haltepunkte anzeigen\nHaltepunkte"
@@ -1481,6 +1484,8 @@ BEGIN
             POPUP "Breakpoints"
             BEGIN
                 MENUITEM "Clear All Breakpoints",       ID_DEBUG_CLEAR_BREAKPOINTS
+
+                MENUITEM "Disable All Breakpoints",     ID_DEBUG_DISABLE_BREAKPOINTS
 
                 MENUITEM "View Active Breakpoints",     ID_VIEW_BREAKPOINTS
             END
@@ -2802,6 +2807,12 @@ BEGIN
     ID_VIEW_SYMBOLS         "Show/Hide the Symbols View window\nSymbols"
     ID_SYMBOLVIEW_MARK      "Mark symbol in current source view\nMark All"
     ID_CLASSVIEW_MARK       "Mark type in current source view\nMark All"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_DEBUG_DISABLE_BREAKPOINTS 
+                            "Disable all Breakpoints\nDisable Breakpoints"
 END
 
 #endif    // English (U.S.) resources

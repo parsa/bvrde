@@ -471,17 +471,17 @@ LRESULT CScintillaView::OnSettingChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
       // Define markers for current-line and breakpoint
       if( bBreakpointAsLines ) {
          _DefineMarker(MARKER_BREAKPOINT_ENABLED,  SC_MARK_BACKGROUND, RGB(250,62,62),   RGB(250,62,62));
-         _DefineMarker(MARKER_BREAKPOINT_DISABLED, SC_MARK_BACKGROUND, RGB(162,162,162), RGB(162,162,162));
+         _DefineMarker(MARKER_BREAKPOINT_DISABLED, SC_MARK_BACKGROUND, RGB(192,192,192), RGB(192,192,192));
          _DefineMarker(MARKER_CURLINE,             SC_MARK_BACKGROUND, RGB(0,245,0),     RGB(0,245,0));
          _DefineMarker(MARKER_RUNNING,             SC_MARK_BACKGROUND, RGB(245,245,0),   RGB(245,245,0));
       }
       else {
          _DefineMarker(MARKER_BREAKPOINT_ENABLED,  SC_MARK_CIRCLE,     RGB(0,0,0),       RGB(200,32,32));
-         _DefineMarker(MARKER_BREAKPOINT_DISABLED, SC_MARK_CIRCLE,     RGB(0,0,0),       RGB(162,162,162));
+         _DefineMarker(MARKER_BREAKPOINT_DISABLED, SC_MARK_CIRCLE,     RGB(0,0,0),       RGB(192,192,192));
          _DefineMarker(MARKER_CURLINE,             SC_MARK_SHORTARROW, RGB(0,0,0),       RGB(0,200,0));
          _DefineMarker(MARKER_RUNNING,             SC_MARK_SHORTARROW, RGB(0,0,0),       RGB(240,240,0));
       }
-      // Set other debugging options
+      // Set other debugging options...
       SetMouseDwellTime(800);
    }
 

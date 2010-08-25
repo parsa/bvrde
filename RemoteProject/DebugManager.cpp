@@ -235,7 +235,7 @@ bool CDebugManager::Break()
    return DoSignal(TERMINAL_BREAK);
 }
 
-bool CDebugManager::ClearBreakpoints()
+bool CDebugManager::ClearAllBreakpoints()
 {
    CLockBreakpointData lock;
    if( IsDebugging() ) {
@@ -243,7 +243,7 @@ bool CDebugManager::ClearBreakpoints()
          bool bRestartApp = _PauseDebugger();
          // We're going to delete the breakpoints in GDB itself first
          CString sArgs;
-         for( long i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
+         for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
             if( i > 0 ) sArgs += _T(" ");
             sArgs.Append(m_aBreakpoints[i].iBreakNo);
          }
@@ -259,14 +259,36 @@ bool CDebugManager::ClearBreakpoints()
    return true;
 }
 
+bool CDebugManager::DisableAllBreakpoints()
+{
+   CLockBreakpointData lock;
+   if( IsDebugging() ) {
+      if( m_aBreakpoints.GetSize() > 0 ) {
+         bool bRestartApp = _PauseDebugger();
+         // We're going to disable the breakpoints in GDB itself first
+         CString sArgs;
+         for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
+            if( i > 0 ) sArgs += _T(" ");
+            sArgs.Append(m_aBreakpoints[i].iBreakNo);
+         }
+         DoDebugCommandV(_T("-break-disable %s"), sArgs);
+         DoDebugCommand(_T("-break-list"));
+         if( bRestartApp ) _ResumeDebugger();
+      }
+   }
+   for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) m_aBreakpoints[i].bEnabled = false;
+   m_pProject->DelayedGlobalViewMessage(DEBUG_CMD_SET_BREAKPOINTS);
+   return true;
+}
+
 bool CDebugManager::AddBreakpoint(LPCTSTR pstrFilename, int iLineNum)
 {
    CLockBreakpointData lock;
-   pstrFilename = ::PathFindFileName(pstrFilename);
    // Remove any disabled breakpoint
    RemoveBreakpoint(pstrFilename, iLineNum);
    // We add a dummy entry now. We don't know the internal GDB breakpoint-no
    // for this breakpoint, but we'll soon learn when GDB answers our requests.
+   pstrFilename = ::PathFindFileName(pstrFilename);
    BPINFO bp;
    bp.sFile = pstrFilename;
    bp.iLineNo = iLineNum;
@@ -322,7 +344,6 @@ bool CDebugManager::EnableBreakpoint(LPCTSTR pstrFilename, int iLineNum, BOOL bE
    for( int i = 0; i < m_aBreakpoints.GetSize(); i++ ) {
       BPINFO& bp = m_aBreakpoints[i];
       if( bp.sFile == pstrFilename && bp.iLineNo == iLineNum ) {
-         bp.bEnabled = (bEnable != FALSE);
          if( IsDebugging() ) {
             bool bRestartApp = _PauseDebugger();
             // We have it; let's ask GDB to manipulate the breakpoint
@@ -330,6 +351,7 @@ bool CDebugManager::EnableBreakpoint(LPCTSTR pstrFilename, int iLineNum, BOOL bE
             if( !DoDebugCommand(_T("-break-list")) ) return false;
             if( bRestartApp ) _ResumeDebugger();
          }
+         bp.bEnabled = (bEnable != FALSE);
          break;
       }
    }
@@ -423,15 +445,12 @@ bool CDebugManager::RunNormal()
    pView->Init(&m_ShellManager);
    pView->ModifyFlags(0, TELNETVIEW_TERMINATEONCLOSE | TELNETVIEW_SAVEPOS);
    // Position the view...
+   POINT pt = { 0 };
    TCHAR szPos[40] = { 0 };
    _pDevEnv->GetProperty(_T("window.telnetview.xy"), szPos, 39);
-   POINT pt = { 0 };
    pt.x = _ttoi(szPos); if( _tcschr(szPos, ',') != NULL ) pt.y = _ttoi(_tcschr(szPos, ',') + 1);
    RECT rcLogWin = { 120, 120, 800 + 120, 600 + 120 };
-   if( ::PtInRect(&rcLogWin, pt) ) {
-      ::OffsetRect(&rcLogWin, -120, -120);
-      ::OffsetRect(&rcLogWin, pt.x, pt.y);
-   }
+   if( ::PtInRect(&rcLogWin, pt) ) ::OffsetRect(&rcLogWin, pt.x - rcLogWin.left, pt.y - rcLogWin.top);
    _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_HIDE, rcLogWin);
    _pDevEnv->AddDockView(pView->m_hWnd, IDE_DOCK_FLOAT, rcLogWin);
    pView->CenterWindow();
@@ -464,6 +483,7 @@ bool CDebugManager::RunNormal()
       return false;
    }
    sCommand.Format(_T("%s %s"), m_sAppExecutable, m_sAppArgs);
+   if( m_sAppExecutable.Find(' ') > 0 ) sCommand.Format(_T("\"%s\" %s"), m_sAppExecutable, m_sAppArgs);
    sCommand = _TranslateCommand(sCommand);
    m_ShellManager.WriteData(sCommand);
    m_ShellManager.WriteData(_T(""));
@@ -484,7 +504,7 @@ bool CDebugManager::RunDebug()
    aList.Add(sCommand);   
    sCommand.Format(_T("%s %s"), m_sDebuggerExecutable, m_sAttachExe);
    aList.Add(sCommand);   
-   sCommand = _T("\r\n");
+   sCommand = _T("");
    aList.Add(sCommand);   
    if( !_AttachDebugger(aList, false) ) return false;
    // Start debugging session
@@ -505,7 +525,7 @@ bool CDebugManager::AttachProcess(long lPID)
    sCommand.Format(_T("%s %s"), m_sDebuggerExecutable, m_sAttachPid);
    sCommand.Replace(_T("$PID$"), ToString(lPID));
    aList.Add(sCommand);   
-   sCommand = _T("\r\n");
+   sCommand = _T("");
    aList.Add(sCommand);   
    if( !_AttachDebugger(aList, true) ) return false;
    // The sessions starts as halted; update views
@@ -531,7 +551,7 @@ bool CDebugManager::AttachCoreFile(LPCTSTR pstrProcess, LPCTSTR pstrCoreFilename
    sCommand.Replace(_T("$PROCESS$"), pstrProcess);
    sCommand.Replace(_T("$COREFILE$"), pstrCoreFilename);
    aList.Add(sCommand);   
-   sCommand = _T("\r\n");
+   sCommand = _T("");
    aList.Add(sCommand);   
    if( !_AttachDebugger(aList, true) ) return false;
    // The sessions starts as halted; update views
@@ -1059,7 +1079,7 @@ void CDebugManager::_ParseOutOfBand(LPCTSTR pstrText)
       //    'watchpoint-trigger'
       //    'read-watchpoint-trigger'
       //    'access-watchpoint-trigger'
-      if( sValue.Find(_T("watchpoint")) == 0 ) {
+      if( sValue.Find(_T("-trigger")) >= 0 ) {
          // Play the breakpoint sound
          ::PlaySound(_T("BVRDE_BreakpointHit"), NULL, SND_APPLICATION | SND_ASYNC | SND_NODEFAULT | SND_NOWAIT);
       }

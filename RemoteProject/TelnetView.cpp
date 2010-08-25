@@ -292,21 +292,18 @@ void CTelnetView::OnIncomingLine(VT100COLOR nColor, LPCTSTR pstrText)
    //      But this is a little tricky!
    if( (m_dwFlags & TELNETVIEW_FILTERDEBUG) != 0 ) 
    {
-      if( sText.Find(_T("232^")) >= 0 ) return;
-      if( sText.Find(_T("232*")) >= 0 ) return;
-      if( sText.Find(_T("232-")) >= 0 ) return;
-      if( sText.Find(_T("*stopped")) >= 0 ) return;
-      if( sText.Find(_T("=stopped")) >= 0 ) return;
-      if( _tcsncmp(sText, _T("&\""), 2) == 0 ) return;
-      if( _tcsncmp(sText, _T("~\""), 2) == 0 ) return;
-      if( _tcsncmp(sText, _T("(gdb"), 4) == 0 ) return;
-      if( _tcsncmp(sText, _T("(dbx"), 4) == 0 ) return;
+      static LPCTSTR aGdbPrompts[] = { _T("&\""), _T("~\""), _T("(gdb"), _T("(dbx") };
+      static LPCTSTR aGdbTokens[] = { _T("232^"), _T("232*"), _T("232-"), _T("*running"), _T("=running"), _T("*stopped"), _T("=stopped"), _T("=thread"), _T("=library") };
+      int i;
+      for( i = 0; i < sizeof(aGdbTokens) / sizeof(aGdbTokens[0]); i++ ) if( sText.Find(aGdbTokens[i]) >= 0 ) return;
+      for( i = 0; i < sizeof(aGdbPrompts) / sizeof(aGdbPrompts[0]); i++ ) if( _tcsncmp(sText, aGdbPrompts[i], _tcslen(aGdbPrompts[i])) == 0 ) return;
       // Transform target output...
       // At lease we will try to convert to GDB/MI target-stream-output text to
       // standard console output.
       // TODO: Figure out if we really need this here?
       if( _tcsncmp(sText, _T("@\""), 2) == 0 ) {
          sText = sText.Mid(2, sText.GetLength() - 3);
+         sText.Replace(_T("\\\""), _T("\""));
       }
    }
 

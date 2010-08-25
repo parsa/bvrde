@@ -147,6 +147,7 @@ public:
    RECT  m_rcTracker;
    SIZE  m_sizeTracker;
    RECT  m_rcTrackerBounds;   
+   RECT  m_rcTrackerLast;
 
    CSplitterBar() :
       m_bTracking(false), m_bDragging(false)
@@ -175,40 +176,17 @@ public:
 
    void DrawGhostBar()
    {
-      ATLASSERT(!m_dc.IsNull());
-      RECT rect = m_rcTracker;
-      if( ::IsRectEmpty(&rect) ) return;
-      // Invert the brush pattern (looks just like frame window sizing)
-      CBrush brush = CDCHandle::GetHalftoneBrush();
-      if( brush.m_hBrush == NULL ) return;
-      ATLASSERT(!m_dc.IsNull());
-      CBrushHandle brushOld = m_dc.SelectBrush(brush);
-      m_dc.PatBlt(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, PATINVERT);
-      m_dc.SelectBrush(brushOld);
+      DrawDragBar();
    }
 
    void DrawDragBar()
    {
       ATLASSERT(!m_dc.IsNull());
-      RECT rect = m_rcTracker;
-      if( ::IsRectEmpty(&rect) ) return;
-      // Invert the brush pattern (looks just like frame window sizing on Windows 2000)
-      CBrush brush = CDCHandle::GetHalftoneBrush();
-      if( brush.m_hBrush == NULL ) return;
-      ATLASSERT(!m_dc.IsNull());
-      CBrushHandle brushOld = m_dc.SelectBrush(brush);
-      CRgn rgnNew, rgnOutside, rgnInside;
-      rgnOutside.CreateRectRgnIndirect(&rect);
-      RECT rcInside = rect;
-      ::InflateRect(&rcInside, -m_sizeTracker.cx, -m_sizeTracker.cy);
-      ::IntersectRect(&rcInside, &rcInside, &rect);
-      rgnInside.CreateRectRgnIndirect(&rcInside);
-      rgnNew.CreateRectRgn(0, 0, 0, 0);
-      rgnNew.CombineRgn(rgnOutside, rgnInside, RGN_XOR);
-      m_dc.SelectClipRgn(rgnNew);
-      m_dc.PatBlt(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, PATINVERT);
-      m_dc.SelectClipRgn(NULL);
-      m_dc.SelectBrush(brushOld);
+      LPRECT prcLast = &m_rcTrackerLast;
+      RECT rcEmpty = { 0 };      
+      if( ::EqualRect(&m_rcTrackerLast, &rcEmpty) ) prcLast = NULL;
+      m_dc.DrawDragRect(&m_rcTracker, m_sizeTracker, prcLast, m_sizeTracker);
+      m_rcTrackerLast = m_rcTracker;
    }
 
    void DrawSplitterBar(CDCHandle dc, bool bVertical, RECT& rect)
@@ -281,6 +259,7 @@ public:
       // Capture window
       m_bTracking = true;
       pT->SetCapture();
+      ::SetRectEmpty(&m_rcTrackerLast);
       // Make sure no updates are pending
       pT->RedrawWindow(NULL, NULL, RDW_ALLCHILDREN|RDW_UPDATENOW);
       // Lock Window update while dragging over desktop
@@ -297,8 +276,10 @@ public:
    void CancelTracking()
    {
       ATLASSERT(m_bTracking);
+      T* pT = static_cast<T*>(this);
       if( !m_bTracking ) return;
       // Erase the focus rect
+      if( m_bDragging ) ::SetRectEmpty(&m_rcTrackerLast);
       if( m_bDragging ) DrawDragBar(); else DrawGhostBar();
       // Let window updates free
       ::LockWindowUpdate(NULL);

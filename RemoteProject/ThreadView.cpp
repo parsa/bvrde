@@ -49,6 +49,8 @@ void CThreadView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
    {
       SetRedraw(FALSE);
       DeleteAllItems();
+      CString sCurrentId = info.GetItem(_T("current-thread-id"));
+      if( !sCurrentId.IsEmpty() ) m_dwCurThread = (DWORD) _ttol(sCurrentId);
       CString sThreadId = info.GetItem(_T("thread-id"));
       CString sInfo;
       while( !sThreadId.IsEmpty() ) {
@@ -86,14 +88,14 @@ void CThreadView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       SetRedraw(TRUE);
       Invalidate();
    }
-   else if( _tcscmp(pstrType, _T("stopped")) == 0 ) 
-   {
-      CString sValue = info.GetItem(_T("thread-id"));
-      if( !sValue.IsEmpty() ) _SelectThreadId(_ttol(sValue));
-   }
    else if( _tcscmp(pstrType, _T("new-thread-id")) == 0 ) 
    {
       CString sValue = info.GetItem(_T("new-thread-id"));
+      if( !sValue.IsEmpty() ) _SelectThreadId(_ttol(sValue));
+   }
+   else if( _tcscmp(pstrType, _T("stopped")) == 0 ) 
+   {
+      CString sValue = info.GetItem(_T("thread-id"));
       if( !sValue.IsEmpty() ) _SelectThreadId(_ttol(sValue));
    }
 }

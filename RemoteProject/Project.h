@@ -213,6 +213,7 @@ public:
       COMMAND_ID_HANDLER(ID_DEBUG_STEP_OVER, OnDebugStepOver)      
       COMMAND_ID_HANDLER(ID_DEBUG_STEP_OUT, OnDebugStepOut)
       COMMAND_ID_HANDLER(ID_DEBUG_CLEAR_BREAKPOINTS, OnDebugClearBreakpoints)     
+      COMMAND_ID_HANDLER(ID_DEBUG_DISABLE_BREAKPOINTS, OnDebugDisableBreakpoints)     
       COMMAND_ID_HANDLER(ID_DEBUG_QUICKWATCH, OnDebugQuickWatch)
       COMMAND_ID_HANDLER(ID_DEBUG_PROCESSES, OnDebugProcesses)
       COMMAND_ID_HANDLER(ID_DEBUG_COREFILE, OnDebugCoreFile)
@@ -268,6 +269,7 @@ public:
    LRESULT OnDebugStepInstruction(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugStepOut(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugClearBreakpoints(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+   LRESULT OnDebugDisableBreakpoints(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugQuickWatch(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugProcesses(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
    LRESULT OnDebugCoreFile(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);

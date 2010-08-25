@@ -54,7 +54,7 @@ public:
    {
       return _tcsncpy(pstrType, _T("Tag"), cchMax) > 0;
    }
-   
+
    IElement* GetParent() const
    {
       return NULL;   
@@ -270,7 +270,6 @@ LRESULT CSymbolView::OnListRightClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*
    if( (uFlags & LVHT_ONITEM) != 0 ) pTag = (TAGINFO*) m_ctrlList.GetItemData(iItem);
    m_pProject->m_TagManager.GetItemInfo(pTag, m_SelectedTag);
    m_pProject->m_TagManager.FindImplementationTag(m_SelectedTag, m_SelectedImpl);
-   if( m_SelectedTag.TagType == TAGTYPE_IMPLEMENTATION ) m_SelectedTag.sName = m_SelectedTag.sFilename = _T("");
    // Load and show menu...
    CMenu menu;
    menu.LoadMenu(iItem >= 0 ? IDR_SYMBOLTREE_ITEM : IDR_SYMBOLTREE);
@@ -422,11 +421,12 @@ LRESULT CSymbolView::OnEditKeyDown(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam
 void CSymbolView::OnIdle(IUpdateUI* pUIBase)
 {   
    BOOL bTagIsSelected = !m_SelectedTag.sName.IsEmpty() || !m_SelectedImpl.sName.IsEmpty();
+   BOOL bCanGotoDecl = bTagIsSelected && m_SelectedTag.TagType != TAGTYPE_IMPLEMENTATION;
 
    TCHAR szSortValue[32] = { 0 };
    _pDevEnv->GetProperty(_T("window.symbolview.sort"), szSortValue, 31);
 
-   pUIBase->UIEnable(ID_SYMBOLVIEW_GOTODECL, bTagIsSelected && m_pProject->FindView(m_SelectedTag.sFilename, FINDVIEW_ALL) != NULL);
+   pUIBase->UIEnable(ID_SYMBOLVIEW_GOTODECL, bCanGotoDecl && m_pProject->FindView(m_SelectedTag.sFilename, FINDVIEW_ALL) != NULL);
    pUIBase->UIEnable(ID_SYMBOLVIEW_GOTOIMPL, bTagIsSelected && m_pProject->FindView(m_SelectedImpl.sFilename, FINDVIEW_ALL) != NULL);
    pUIBase->UIEnable(ID_SYMBOLVIEW_COPY, bTagIsSelected);
    pUIBase->UIEnable(ID_SYMBOLVIEW_MARK, bTagIsSelected);

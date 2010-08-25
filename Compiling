@@ -4,12 +4,12 @@ How to compile the project
 
    These are generic compilation instructions.
 
-The solution compiles with Microsoft Developer Studio 6, but has been known
-to compile with the latest Visual Studio.NET versions. Project files are included
-for VS6 and VS2008.
+The solution compiles with Microsoft Developer Studio 6, and also with the latest 
+Visual Studio.NET versions. Project files are included for VS6 and VS2008.
 
-Installation of Microsoft Windows Template Library (WTL), the HTML Help Workshop
-and Microsoft Windows SDK is required. Links for these libraries are available below.
+Installation of Microsoft Windows Active Template Library (ATL), the Windows Template 
+Library (WTL), the HTML Help Workshop and Microsoft Windows SDK is required. 
+Links for these libraries are available below.
 
 To compile the projects, you should use the "Batch Build" option in Developer Studio.
 This will build all the projects in the solution in the correct order.
@@ -30,11 +30,14 @@ to the \Bin folder to allow the application to run.
 
 The folllowing links are needed or useful for compiling the projects:
 
+ Microsoft ATL library
+ http://msdn.microsoft.com/vstudio
+
  Microsoft WTL library
  http://wtl.sourceforge.net
 
  Microsoft Windows SDK
- http://support.microsoft.com/default.aspx?pr=psdk
+ http://msdn.microsoft.com/en-us/windows/bb980924.aspx
 
  Microsoft Html Help Workshop
  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/htmlhelp/html/vsconHH1Start.asp
@@ -51,11 +54,16 @@ The folllowing links are needed or useful for compiling the projects:
 
     Resolving Errors
 
-If you get errors about a missing atlres.h or atlapp.h file you have not installed
-the WTL library properly.
+If you get errors about a missing atlbase.h file you have not installed the ATL
+library properly. The Microsoft ATL library is available with MS Visual Studio 
+and sometimes also available for download through the free Windows WDK package.
 
-If you get errors concerning the WinInet "FtpCommand" method, you have not 
-updated your MS Windows SDK files or configured it properly.
+If you get errors about a missing atlres.h or atlapp.h file you have not installed
+the WTL library properly. Remember to add the /include path to your project
+settings.
+
+If you get errors concerning the WinInet "FtpCommand" method, you are using
+an outdated Windows SDK package or have not configured it properly.
 Alternatively remove the offending line from the FtpProtocol.cpp file.
 
 The sub-project, RemoteProject, will not compile unless you manually add a

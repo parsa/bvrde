@@ -491,13 +491,14 @@
 #define ID_SYMBOLS_PATTERN              40173
 #define ID_SYMBOLVIEW_MARK              40174
 #define ID_CLASSVIEW_MARK               40175
+#define ID_DEBUG_DISABLE_BREAKPOINTS    40176
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
-#define _APS_NEXT_COMMAND_VALUE         40176
+#define _APS_NEXT_COMMAND_VALUE         40177
 #define _APS_NEXT_CONTROL_VALUE         1044
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
