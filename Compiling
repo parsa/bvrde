@@ -16,8 +16,8 @@ This will build all the projects in the solution in the correct order.
 Most compile error are solved by making sure that you have installed the latest version
 of the 3rd party projects mentioned below.
 
-One sub-project, the RemoteProject, will not compile unless you manually add a
-password.h file to the solution. More information can be found in the 
+One sub-project, the RemoteProject, will not compile unless you manually create a
+password.h file in the solution. More information can be found in the 
 Authen.cpp source file for that project.
 
 The source distribution does not contain all the required binary files to
@@ -56,7 +56,8 @@ The folllowing links are needed or useful for compiling the projects:
 
 If you get errors about a missing atlbase.h file you have not installed the ATL
 library properly. The Microsoft ATL library is available with MS Visual Studio 
-and sometimes also available for download through the free Windows WDK package.
+and sometimes also available for download through the free Windows Driver
+Kit (WDK) package.
 
 If you get errors about a missing atlres.h or atlapp.h file you have not installed
 the WTL library properly. Remember to add the /include path to your project
@@ -92,15 +93,16 @@ The code may depend on the Microsoft version of the STL library. If you
 have installed a different STL library, temporarily revert to the
 Microsoft include paths to make use of the Microsoft STL version.
 
-Compiling under Visual Studio.NET will generate a number of warnings. You
-may ignore these warnings.
+Compiling under Visual Studio.NET may generate a number of warnings. You
+can safely ignore these warnings.
 
 Compile errors mentioning "___security_cookie" may be related to the /GS
 switch in the Visual Studio.NET 2005 compiler family. To sucessfully 
 compile you should disable the "Buffer Security Check" setting.
 
 The realtime C++ lexer, "cpp.l", needs a lex/yacc utility to compile. It 
-is currently compiled with "flex" but other lex-tools may work.
+is currently compiled with "flex" but other lex-tools may work. A
+pre-compiled version is included in the source bundle.
 
 
 

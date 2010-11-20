@@ -2,6 +2,8 @@ Version 1.3b:
 * Fixed crash when calculating auto-completion list
 * Compatibility fixes when running against certain platforms
 * Disabled breakpoints are now persisted in session
+* Persist debug window position when possible
+* Better drag'n'drop feedback on Windows Vista
 
 Version 1.3:
 * Stability of internal processing of debug data improved
