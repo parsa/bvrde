@@ -1,4 +1,4 @@
-Version 1.4:
+Version 1.3b:
 * Fixed crash when calculating auto-completion list
 * Compatibility fixes when running against certain platforms
 * Disabled breakpoints are now persisted in session
