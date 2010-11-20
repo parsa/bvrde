@@ -747,7 +747,7 @@ void CScintillaView::_MaintainIndent(int ch)
             sLine2.MakeUpper();
             // These are the HTML tags that we'll indent content
             // for on a new line.
-            static LPCTSTR ppstrBlocks[] = 
+            static LPCTSTR aBlocks[] = 
             {
                _T("<body"),
                _T("<form"),
@@ -761,12 +761,11 @@ void CScintillaView::_MaintainIndent(int ch)
                _T("<thead"),
                _T("<tr"),
                _T("<ul"),
-               NULL,
             };
-            for( LPCTSTR* ppstr = ppstrBlocks; *ppstr; ppstr++ ) {
-               if( sLine2.Find(*ppstr) >= 0 ) {
+            for( int i = 0; i < sizeof(aBlocks) / sizeof(aBlocks[0]); i++ ) {
+               if( sLine2.Find(aBlocks[i]) >= 0 ) {
                   if( m_bAutoClose ) {
-                     CString sCloseCommand = *ppstr;
+                     CString sCloseCommand = aBlocks[i];
                      sCloseCommand.Replace(_T("<"), _T("</"));
                      if( sLine1.Find(sCloseCommand) == 0 ) {
                         ReplaceSel(GetEOLMode() == SC_EOL_CRLF ? "\r\n" : "\n");
@@ -873,9 +872,9 @@ void CScintillaView::_MaintainTags(int ch)
       CString sFound = _FindOpenXmlTag(szText, lPosition - nMin);
       if( sFound.IsEmpty() ) return;
       // Ignore some of the typical non-closed HTML tags
-      static LPCTSTR ppstrNonClosed[] = { _T("meta"), _T("img"), _T("br"), _T("hr"), _T("p"), NULL };
-      for( LPCTSTR* ppstr = ppstrNonClosed; *ppstr; ppstr++ ) {
-         if( sFound.CollateNoCase(*ppstr) == 0 ) return;
+      static LPCTSTR aNonClosed[] = { _T("meta"), _T("img"), _T("br"), _T("hr"), _T("p") };
+      for( int i = 0; i < sizeof(aNonClosed) / sizeof(aNonClosed[0]); i++ ) {
+         if( sFound.CollateNoCase(aNonClosed[i]) == 0 ) return;
       }
       // Insert end-tag into text
       CString sInsert;
@@ -1162,12 +1161,10 @@ bool CScintillaView::_AddUnqiue(CSimpleArray<CString>& aList, LPCTSTR pstrText) 
  */
 bool CScintillaView::_IsValidInsertPos(long lPos) const
 {
-   struct 
+   static struct 
    {
-      int iStyle; 
-      LPCTSTR pstrLanguage;
-   } Types[] =
-   {
+      int iStyle;              LPCTSTR pstrLanguage;
+   } Types[] = {
       { SCE_C_STRING,          _T("cpp") },
       { SCE_C_STRINGEOL,       _T("cpp") },
       { SCE_C_COMMENT,         _T("cpp") },

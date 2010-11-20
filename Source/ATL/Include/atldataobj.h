@@ -68,14 +68,17 @@ public:
    CClipboard() : m_bOpened(FALSE)
    {
    }
+
    CClipboard(HWND hWnd) : m_bOpened(FALSE)
    {
       Open(hWnd);
    }
+
    ~CClipboard()
    {
       Close();
    }
+
    BOOL Open(HWND hWnd)
    {
       ATLASSERT(!m_bOpened);
@@ -84,26 +87,31 @@ public:
       m_bOpened = bRes;
       return bRes;
    }
+
    void Close()
    {
       if( !m_bOpened ) return;
       ::CloseClipboard();
       m_bOpened = FALSE;
    }
+
    BOOL Empty()
    {
       ATLASSERT(m_bOpened);
       return ::EmptyClipboard();
    }
+
    int GetFormatCount() const
    {
       return ::CountClipboardFormats();
    }
+
    UINT EnumFormats(UINT uFormat)
    {
       ATLASSERT(m_bOpened);
       return ::EnumClipboardFormats(uFormat);
    }
+
    void EnumFormats(CSimpleValArray<UINT>& aFormats)
    {
       ATLASSERT(m_bOpened);
@@ -114,21 +122,26 @@ public:
          aFormats.Add(uFormat);
       }
    }
+
    BOOL IsFormatAvailable(UINT uFormat) const
    {
       return ::IsClipboardFormatAvailable(uFormat);
    }
+
    int GetFormatName(UINT uFormat, LPTSTR pstrName, int cchMax) const
    {
       // NOTE: Doesn't return names of predefined cf!
       return ::GetClipboardFormatName(uFormat, pstrName, cchMax);
    }
+
    HANDLE GetData(UINT uFormat) const
    {
       ATLASSERT(m_bOpened);
       return ::GetClipboardData(uFormat);
    }
+
 #if defined(_WTL_USE_CSTRING) || defined(__ATLSTR_H__)
+
    BOOL GetTextData(_CSTRING_NS::CString& sText) const
    {
       ATLASSERT(m_bOpened);
@@ -146,6 +159,7 @@ public:
       }
       return FALSE;
    }
+
    BOOL GetFormatName(UINT uFormat, _CSTRING_NS::CString& sName) const
    {
       for( int nSize = 256; ; nSize *= 2 ) {
@@ -155,7 +169,9 @@ public:
       }
       return TRUE;  // Hmm, unreachable!
    }
+
 #endif
+
    HANDLE SetData(UINT uFormat, HANDLE hMem)
    {
       ATLASSERT(m_bOpened);
@@ -163,6 +179,7 @@ public:
                                // Enjoy the ASSERT for NULL!
       return ::SetClipboardData(uFormat, hMem);
    }
+
    HANDLE SetData(UINT uFormat, LPCVOID pData, int iSize)
    {
       HGLOBAL hGlobal = ::GlobalAlloc(GMEM_MOVEABLE, (SIZE_T) iSize);
@@ -173,24 +190,31 @@ public:
       if( hHandle == NULL ) GlobalFree(hGlobal);
       return hHandle;
    }
+
    BOOL SetTextData(LPCSTR pstrText)
    {
       return SetData(CF_TEXT, pstrText, lstrlenA(pstrText) + 1) != NULL;
    }
+
    BOOL SetUnicodeTextData(LPCWSTR pstrText)
    {
       return SetData(CF_UNICODETEXT, pstrText, (lstrlenW(pstrText) + 1) * sizeof(WCHAR)) != NULL;
    }
+
    static HWND GetOwner()
    {
       return ::GetClipboardOwner();
    }
+
 #if (WINVER >= 0x0500)
+
    static DWORD GetSequenceNumber()
    {
       return ::GetClipboardSequenceNumber();
    }
+
 #endif
+
    static UINT RegisterFormat(LPCTSTR pstrFormat)
    {
       return ::RegisterClipboardFormat(pstrFormat);
@@ -214,10 +238,12 @@ public:
       }
       return E_NOINTERFACE;
    }
+
    ULONG STDMETHODCALLTYPE AddRef()
    {
       return 1;
    }
+
    ULONG STDMETHODCALLTYPE Release()
    {
       return 1;
@@ -231,6 +257,7 @@ public:
       if( (dwKeyState & MK_LBUTTON) == 0 ) return ResultFromScode(DRAGDROP_S_DROP);
       return S_OK;
    }
+
    STDMETHOD(GiveFeedback)(DWORD)
    {
       return ResultFromScode(DRAGDROP_S_USEDEFAULTCURSORS);
@@ -255,15 +282,18 @@ public:
       ::RegisterDragDrop(m_hwndTarget, this);
       return S_OK;
    }
+
    void RevokeDropTarget()
    {
       ::RevokeDragDrop(m_hwndTarget);
    }
+
    void AddDropFormat(FORMATETC fe)
    {
       if( nFormats >= sizeof(m_Formats) / sizeof(FORMATETC) ) return;
       m_Formats[nFormats++] = fe;
    }
+
    FORMATETC GetDropFormat(int iIndex) const
    {
       FORMATETC fe = { 0 };
@@ -288,10 +318,12 @@ public:
       }
       return E_NOINTERFACE;
    }
+
    ULONG STDMETHODCALLTYPE AddRef()
    {
       return 1;
    }
+
    ULONG STDMETHODCALLTYPE Release()
    {
       return 1;
@@ -310,16 +342,19 @@ public:
       *pdwEffect = _QueryDrop(dwKeyState, *pdwEffect);
       return S_OK;
    }
+
    STDMETHOD(DragOver)(DWORD dwKeyState, POINTL /*pt*/, LPDWORD pdwEffect)
    {
       *pdwEffect = _QueryDrop(dwKeyState, *pdwEffect);
       return S_OK;
    } 
+
    STDMETHOD(DragLeave)(VOID)
    {
       m_fAcceptFmt = false;
       return S_OK;
    }
+
    STDMETHOD(Drop)(LPDATAOBJECT pDataObj, DWORD dwKeyState, POINTL /*ptl*/, LPDWORD pdwEffect)
    {
       // Determine drop effect...
@@ -347,6 +382,7 @@ public:
       // Drop-effect is determined by keys or default
       return dwMask;
    }
+
    DWORD _GetDropEffectFromKeyState(DWORD dwKeyState) const
    {
       // We don't support DROPEFFECT_LINK nor DROPEFFECT_MOVE operations
@@ -414,17 +450,20 @@ public:
       if( pceltFetched != NULL ) *pceltFetched = nCount;
       return celt == 0 ? S_OK : S_FALSE;
    }
+
    STDMETHOD(Skip)(ULONG celt)
    {
       if( m_iCur + celt >= (ULONG) m_aFmtEtc.GetSize() ) return S_FALSE;
       m_iCur += celt;
       return S_OK;
    }
+
    STDMETHOD(Reset)(void)
    {
       m_iCur = 0;
       return S_OK;
    }
+
    STDMETHOD(Clone)(IEnumFORMATETC**)
    {
       ATLTRACENOTIMPL(_T("CEnumFORMATETC::Clone"));
@@ -444,6 +483,7 @@ public:
       FORMATETC FmtEtc;
       STGMEDIUM StgMed;
    } DATAOBJ;
+
    CSimpleArray<DATAOBJ> m_aObjects;
 
    ~ISimpleDataObjImpl()
@@ -451,26 +491,32 @@ public:
       for( int i = 0; i < m_aObjects.GetSize(); i++ ) ::ReleaseStgMedium(&m_aObjects[i].StgMed);
    }
 
+   // IDataObject
+
    STDMETHOD(GetData)(FORMATETC* pFormatEtc, STGMEDIUM* pStgMedium)
    {
       ATLTRACE2(atlTraceControls,2,_T("ISimpleDataObjImpl::GetData\n"));
       T* pT = (T*) this; pT;
       return pT->IDataObject_GetData(pFormatEtc, pStgMedium);
    }
+
    STDMETHOD(GetDataHere)(FORMATETC* /*pFormatEtc*/, STGMEDIUM* /*pmedium*/)
    {
       ATLTRACENOTIMPL(_T("ISimpleDataObjImpl::GetDataHere"));
    }
+
    STDMETHOD(QueryGetData)(FORMATETC* pFormatEtc)
    {
       ATLASSERT(pFormatEtc);
       return _FindFormat(pFormatEtc) >= 0 ? S_OK : DV_E_FORMATETC;
    }
+
    STDMETHOD(GetCanonicalFormatEtc)(FORMATETC* pFormatEctIn, FORMATETC* /*pFormatEtcOut*/)
    {
       pFormatEctIn->ptd = NULL;
       ATLTRACENOTIMPL(_T("ISimpleDataObjImpl::GetCanonicalFormatEtc"));
    }
+
    STDMETHOD(SetData)(FORMATETC* pFormatEtc, STGMEDIUM* pStgMedium, BOOL fRelease)
    {
       ATLASSERT(pFormatEtc);
@@ -491,6 +537,7 @@ public:
       }
       return S_OK;
    }
+
    STDMETHOD(EnumFormatEtc)(DWORD dwDirection, IEnumFORMATETC** ppEnumFormatEtc)
    {
       ATLASSERT(ppEnumFormatEtc);
@@ -502,14 +549,17 @@ public:
       for( int i = 0; i < m_aObjects.GetSize(); i++ ) pEnum->Add(m_aObjects[i].FmtEtc);
       return pEnum->QueryInterface(ppEnumFormatEtc);
    }
+
    STDMETHOD(DAdvise)(FORMATETC* /*pFormatEtc*/, DWORD /*advf*/, IAdviseSink* /*pAdvSink*/, DWORD* /*pdwConnection*/)
    {
       ATLTRACENOTIMPL(_T("ISimpleDataObjImpl::DAdvise"));
    }
+
    STDMETHOD(DUnadvise)(DWORD /*dwConnection*/)
    {
       ATLTRACENOTIMPL(_T("ISimpleDataObjImpl::DUnadvise"));
    }
+
    STDMETHOD(EnumDAdvise)(IEnumSTATDATA** /*ppenumAdvise*/)
    {
       ATLTRACENOTIMPL(_T("ISimpleDataObjImpl::EnumDAdvise"));
@@ -530,6 +580,7 @@ public:
       }
       return -1;
    }
+
    HRESULT _AddRefStgMedium(STGMEDIUM* pMedDest, const STGMEDIUM* pMedSrc, const FORMATETC* pFmtSrc) const
    {
       switch( pMedSrc->tymed ) {
@@ -558,6 +609,7 @@ public:
       if( pMedDest->pUnkForRelease != NULL ) pMedDest->pUnkForRelease->AddRef();
       return S_OK;
    }
+
    HRESULT _CopyStgMedium(STGMEDIUM* pMedDest, const STGMEDIUM* pMedSrc, const FORMATETC* pFmtSrc) const
    {
       switch( pMedSrc->tymed ) {
@@ -630,15 +682,19 @@ public:
       GlobalUnlock(stgmed.hGlobal);
       return SetData(&fmtetc, &stgmed, TRUE);
    }
+
    HRESULT SetTextData(LPCSTR pstrData)
    {
       return SetGlobalData(CF_TEXT, pstrData, ::lstrlenA(pstrData) + 1);
    }
+
    HRESULT SetUnicodeTextData(LPCWSTR pstrData)
    {
       return SetGlobalData(CF_UNICODETEXT, pstrData, (::lstrlenW(pstrData) + 1) * sizeof(WCHAR));
    }
+
 #ifdef _SHLOBJ_H_
+
    // Include shlobj.h first
    HRESULT SetHDropData(LPCSTR pstrFilename)
    {
@@ -654,7 +710,7 @@ public:
       GlobalUnlock(stgmed.hGlobal);
       return SetData(&fmtetc, &stgmed, TRUE);
    }
-#endif
+#endif // _SHLOBJ_H_
 };
 
 #endif // __ATLCOM_H__

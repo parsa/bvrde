@@ -696,7 +696,7 @@ public:
    {
       ATLASSERT(::IsWindow(m_hWnd));
 
-      RECT rcClient;   
+      RECT rcClient = { 0 };   
       GetClientRect(&rcClient);
      
       if( m_wndPane[AUTOHIDE_LEFT].m_panes.GetSize() > 0 ) {

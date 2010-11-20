@@ -31,7 +31,6 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
    {
       _Module.Init(NULL, hInstance);
       ::DisableThreadLibraryCalls(hInstance);
-      //
       AtlAxWinInit();
    }
    if( dwReason == DLL_PROCESS_DETACH ) 

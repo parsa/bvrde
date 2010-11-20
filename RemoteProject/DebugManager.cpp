@@ -177,6 +177,7 @@ void CDebugManager::ProgramStop()
    // Get out of debugger prompt
    if( m_bDebugging ) {
       _PauseDebugger();
+      m_nIgnoreErrors = 99;
       DoDebugCommand(_T("-gdb-exit"));
    }
    // If we maintain the session we don't actually terminate the connection
@@ -594,7 +595,7 @@ bool CDebugManager::DoDebugCommand(LPCTSTR pstrCommand)
    //       moment if a new GDB prompt arrives.
    //       However, we quickly give up and rely on
    //       GDB being somewhat asynchronously. This does have an
-   //       inpact on UI responsiveness though.
+   //       impact on UI responsiveness though.
    //       The problem is, however, that there's no 
    //       flow-control in the GDB-MI std-out handler, 
    //       so we'll risk to send the command in the middle 
@@ -1133,7 +1134,7 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
       sLine.TrimLeft(_T(","));
       // This is the list of GDB MI results that we wish to have a closer look
       // at. Each view will get a chance to interpret the data.
-      static LPCTSTR pstrList[] = 
+      static LPCTSTR aMiList[] = 
       {
          _T("BreakpointTable"),
          _T("stack"),
@@ -1153,7 +1154,6 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
          _T("register-values"),
          _T("asm_insns"),
          _T("numchild"),
-         NULL
       };
       CString sCommand = sLine.SpanExcluding(_T("="));
       if( sCommand == _T("value") || sCommand == _T("lang") ) {
@@ -1177,8 +1177,8 @@ void CDebugManager::_ParseResultRecord(LPCTSTR pstrText)
       if( sCommand == _T("frame") ) _ParseNewFrame(info);
       if( sCommand == _T("bkpt") ) _UpdateBreakpoint(info);
       // Let all the debug views get a shot at this information.
-      for( LPCTSTR* ppList = pstrList; *ppList != NULL; ppList++ ) {
-         if( sCommand == *ppList ) {
+      for( int i = 0; i < sizeof(aMiList) / sizeof(aMiList[0]); i++ ) {
+         if( sCommand == aMiList[i] ) {
             m_pProject->DelayedDebugInfo(sCommand, info);
             return;
          }

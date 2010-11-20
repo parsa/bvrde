@@ -28,7 +28,7 @@ UINT CManPageGenerator::Generate(HWND /*hWnd*/, LPCTSTR pstrKeyword, LPCTSTR /*p
    // First we try to get the 'man' utilty to print the actual filename(s).
    // We need this so we can send one to the 'man2html' utility...
    TCHAR szCommand[300] = { 0 };
-   ::wsprintf(szCommand, _T("man -wa %s"), pstrKeyword);
+   ::wnsprintf(szCommand, 299, _T("man -wa %s"), pstrKeyword);
 
    CComBSTR bstrCommand = szCommand;
    m_bstrResult = L"";
@@ -47,10 +47,10 @@ UINT CManPageGenerator::Generate(HWND /*hWnd*/, LPCTSTR pstrKeyword, LPCTSTR /*p
 
    // Now we can generate the html document...
    if( _tcsstr(szFilename, L".gz") != NULL ) {
-      ::wsprintf(szCommand, _T("gzip -cd %s | man2html"), szFilename);
+      ::wnsprintf(szCommand, 299, _T("gzip -cd %s | man2html"), szFilename);
    }
    else {
-      ::wsprintf(szCommand, _T("man2html %s"), szFilename);
+      ::wnsprintf(szCommand, 299, _T("man2html %s"), szFilename);
    }
 
    bstrCommand = szCommand;

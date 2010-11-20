@@ -154,7 +154,7 @@ LRESULT CSchemaView::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
 LRESULT CSchemaView::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-   RECT rcClient;
+   RECT rcClient = { 0 };
    GetClientRect(&rcClient);
    m_Splitter.MoveWindow(&rcClient);
    // HACK: Select first item when window first gets visible.
@@ -299,7 +299,7 @@ LRESULT CSchemaView::OnTreeSelection(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHa
          case DBTYPE_VIEW:
          case DBTYPE_SYSTEMTABLE:
             {
-               TABLEINFO* pTable = (TABLEINFO*) pObj;
+               TABLEINFO* pTable = static_cast<TABLEINFO*>(pObj);
                CSpeedList list = m_ctrlList;
                list.AddItem(IDS_INFO_NAME, pTable->sName);
                list.AddItem(IDS_INFO_SCHEMA, pTable->sSchema);
@@ -309,7 +309,7 @@ LRESULT CSchemaView::OnTreeSelection(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHa
             break;
          case DBTYPE_FIELD:
             {
-               FIELDINFO* pField = (FIELDINFO*) pObj;
+               FIELDINFO* pField = static_cast<FIELDINFO*>(pObj);
                CSpeedList list = m_ctrlList;
                CString sType;
                switch( pField->lType ) {
@@ -365,7 +365,7 @@ LRESULT CSchemaView::OnTreeSelection(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHa
             break;
          case DBTYPE_INDEX:
             {
-               INDEXINFO* pIndex = (INDEXINFO*) pObj;
+               INDEXINFO* pIndex = static_cast<INDEXINFO*>(pObj);
                CSpeedList list = m_ctrlList;
                list.AddItem(IDS_INFO_NAME, pIndex->sName);
                list.AddItem(IDS_INFO_TYPE, pIndex->sType);
@@ -432,21 +432,21 @@ BOOL CSchemaView::_InitHtml()
 BOOL CSchemaView::_SetHtml()
 {
    ATLASSERT(m_spBrowser);
+   int i;
    CString sHTML = AtlLoadHtmlResource(IDR_INFO);
-   static LPCTSTR ppstrTranslations[] =
-   {
-      _T("$DATABASE"),         MAKEINTRESOURCE(IDS_DATABASE),
-      _T("$DBNAME_LABEL"),     MAKEINTRESOURCE(IDS_DBNAME_LABEL),
-      _T("$DBTYPE_LABEL"),     MAKEINTRESOURCE(IDS_DBTYPE_LABEL),
-      _T("$DBVERSION_LABEL"),  MAKEINTRESOURCE(IDS_DBVERSION_LABEL),
-      _T("$DBLOCATION_LABEL"), MAKEINTRESOURCE(IDS_DBLOCATION_LABEL),
-      _T("$DBCATALOG_LABEL"),  MAKEINTRESOURCE(IDS_DBCATALOG_LABEL),
-      _T("$DBSERVER_LABEL"),   MAKEINTRESOURCE(IDS_DBSERVER_LABEL),
-      NULL, NULL
+   static struct {
+      LPCTSTR pstrToken;         LPCTSTR pstrLabel;
+   } aTranslations[] = {
+      { _T("$DATABASE"),         MAKEINTRESOURCE(IDS_DATABASE) },
+      { _T("$DBNAME_LABEL"),     MAKEINTRESOURCE(IDS_DBNAME_LABEL) },
+      { _T("$DBTYPE_LABEL"),     MAKEINTRESOURCE(IDS_DBTYPE_LABEL) },
+      { _T("$DBVERSION_LABEL"),  MAKEINTRESOURCE(IDS_DBVERSION_LABEL) },
+      { _T("$DBLOCATION_LABEL"), MAKEINTRESOURCE(IDS_DBLOCATION_LABEL) },
+      { _T("$DBCATALOG_LABEL"),  MAKEINTRESOURCE(IDS_DBCATALOG_LABEL) },
+      { _T("$DBSERVER_LABEL"),   MAKEINTRESOURCE(IDS_DBSERVER_LABEL) },
    };
-   LPCTSTR* ppstr;
-   for( ppstr = ppstrTranslations; *ppstr; ppstr += 2 ) {
-      if( sHTML.Find(*ppstr) >= 0 ) sHTML.Replace(*ppstr, CString(*(ppstr + 1)));
+   for( i = 0; i < sizeof(aTranslations) / sizeof(aTranslations[0]); i++ ) {
+      if( sHTML.Find(aTranslations[i].pstrToken) >= 0 ) sHTML.Replace(aTranslations[i].pstrToken, CString(aTranslations[i].pstrLabel));
    }
    sHTML.Replace(_T("$DBNAME"),     m_pDb->GetPropertyStr(DBPROPSET_DBINIT, DBPROP_INIT_DATASOURCE));
    sHTML.Replace(_T("$DBLOCATION"), m_pDb->GetPropertyStr(DBPROPSET_DBINIT, DBPROP_INIT_LOCATION));
@@ -454,10 +454,10 @@ BOOL CSchemaView::_SetHtml()
    sHTML.Replace(_T("$DBSERVER"),   m_pDb->GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_SERVERNAME));
    sHTML.Replace(_T("$DBVERSION"),  m_pDb->GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_DBMSVER));      
    sHTML.Replace(_T("$DBTYPE"),     m_pDb->GetPropertyStr(DBPROPSET_DATASOURCEINFO, DBPROP_DBMSNAME));
-   for( ppstr = ppstrTranslations; *ppstr; ppstr += 2 ) {
+   CString sEmptyLine;
+   for( i = 0; i < sizeof(aTranslations) / sizeof(aTranslations[0]); i++ ) {
       // <b>$DBSERVER_LABEL:</b> $DBSERVER<br>
-      CString sEmptyLine;
-      sEmptyLine.Format(_T("<b>%s:</b> <br>"), CString(*(ppstr + 1)));
+      sEmptyLine.Format(_T("<b>%s:</b> <br>"), CString(aTranslations[i].pstrLabel));
       sHTML.Replace(sEmptyLine, _T(""));
    }
    _LoadHtml(m_spBrowser, sHTML);
@@ -509,7 +509,7 @@ BOOL CSchemaView::_FillTreeWithFields(DATABASEOBJECT* pObj, HTREEITEM hParent)
 {
    ATLASSERT(m_pDb);
    ATLASSERT(pObj);
-   TABLEINFO* pTable = (TABLEINFO*) pObj;
+   TABLEINFO* pTable = static_cast<TABLEINFO*>(pObj);
    if( !m_pDb->LoadTableInfo(pTable) ) return FALSE;
    HTREEITEM hFields = m_ctrlTree.InsertItem(CString(MAKEINTRESOURCE(IDS_TREE_COLUMNS)), 1, 1, hParent, TVI_LAST);
    m_ctrlTree.SetItemData(hFields, IDS_TREE_COLUMNS);

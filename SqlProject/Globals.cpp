@@ -68,42 +68,16 @@ void GenerateError(IDevEnv* pDevEnv, HWND hWnd, UINT nErr)
 CString GetSystemErrorText(DWORD dwErr)
 {
    LPVOID lpMsgBuf = NULL;
-   ::FormatMessage( 
-       FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-       FORMAT_MESSAGE_FROM_SYSTEM | 
-       FORMAT_MESSAGE_IGNORE_INSERTS,
-       NULL,
-       dwErr,
-       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-       (LPTSTR) &lpMsgBuf,
-       0,
-       NULL);
-   if( lpMsgBuf == NULL ) {
-      LPCTSTR pstrModules[] = 
-      { 
-         _T("OLEDB32"), 
-         _T("OLEDB32R"), 
-         NULL 
-      };
-      for( LPCTSTR* ppstr = pstrModules; lpMsgBuf == NULL && *ppstr; ppstr++ ) 
-      {
-         ::FormatMessage( 
-             FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-             FORMAT_MESSAGE_FROM_HMODULE | 
-             FORMAT_MESSAGE_IGNORE_INSERTS,
-             ::GetModuleHandle(*ppstr),
-             dwErr,
-             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-             (LPTSTR) &lpMsgBuf,
-             0,
-             NULL);
-      }
+   ::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwErr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) &lpMsgBuf, 0, NULL);
+   LPCTSTR aModules[] = { _T("OLEDB32"), _T("OLEDB32R") };
+   for( int i = 0; i < sizeof(aModules) / sizeof(aModules[0]) && lpMsgBuf == NULL; i++ ) {
+      ::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS, ::GetModuleHandle(aModules[i]), dwErr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) &lpMsgBuf, 0, NULL);
    }
    CString s = (LPCTSTR) lpMsgBuf;
    s.Remove('\r');
    s.Replace(_T("\n"), _T(" "));
    // Free the buffer.
-   if( lpMsgBuf ) ::LocalFree(lpMsgBuf);
+   if( lpMsgBuf != NULL ) ::LocalFree(lpMsgBuf);
    return s;
 }
 

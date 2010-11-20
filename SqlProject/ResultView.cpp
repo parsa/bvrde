@@ -83,7 +83,7 @@ LRESULT CResultView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*
    CString sText(MAKEINTRESOURCE(IDS_TAB_SUMMERY));
    TCITEM tci = { 0 };
    tci.mask = TCIF_TEXT;
-   tci.pszText = (LPTSTR) (LPCTSTR) sText;
+   tci.pszText = (LPTSTR) static_cast<PCTSTR>(sText);
    m_ctrlTab.InsertItem(0, &tci);
    m_ctrlTab.SetCurSel(0);
 
@@ -204,7 +204,7 @@ LRESULT CResultView::OnDataArrived(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPar
          sTitle.Format(IDS_TAB_RESULT, m_ctrlTab.GetItemCount());
          TCITEM tci = { 0 };
          tci.mask = TCIF_TEXT;
-         tci.pszText = (LPTSTR) (LPCTSTR) sTitle;
+         tci.pszText = (LPTSTR) static_cast<LPCTSTR>(sTitle);
          m_ctrlTab.InsertItem(m_ctrlTab.GetItemCount() - 1, &tci);
 
          CClientDC dc = ctrlList;

@@ -50,13 +50,13 @@ DWORD CRloginThread::Run()
    socket.Attach( ::socket(AF_INET, SOCK_STREAM, IPPROTO_IP) );
 
    // Tune the socket connection
-   BOOL nodelay = TRUE;
+   int nodelay = TRUE;
    ::setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char*) &nodelay, sizeof(nodelay));
    LINGER linger = { 1, 5 };
    ::setsockopt(socket, SOL_SOCKET, SO_LINGER, (char*) &linger, sizeof(linger));
-   BOOL keepalive = TRUE;
+   int keepalive = TRUE;
    ::setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE, (char*) &keepalive, sizeof(keepalive));
-   BOOL oob = TRUE;
+   int oob = TRUE;
    ::setsockopt(socket, SOL_SOCKET, SO_OOBINLINE, (char*) &oob, sizeof(oob));
 
    // Bind to a port below 1024
@@ -139,8 +139,8 @@ DWORD CRloginThread::Run()
    bool bInitialized = false;          // We sent RLOGIN prolog
    VT100COLOR nColor = VT100_DEFAULT;  // Color code from terminal
 
-   while( !ShouldStop() ) {
-
+   while( !ShouldStop() ) 
+   {
       DWORD dwRes = ::WaitForMultipleObjects(2, aHandles, FALSE, INFINITE);
       if( ShouldStop() ) break;
 
@@ -246,10 +246,9 @@ DWORD CRloginThread::Run()
                _T("LOGIN INCORRECT"),
                _T("LOGIN FAILED"),
                _T("UNKNOWN USER"),
-               NULL
             };
-            for( const LPCTSTR* ppstr = aFailed; *ppstr != NULL; ppstr++ ) {
-               if( sLine.Find(*ppstr) >= 0 ) {
+            for( int i = 0; i < sizeof(aFailed) / sizeof(aFailed[0]); i++ ) {
+               if( sLine.Find(aFailed[i]) >= 0 ) {
                   m_pManager->m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_LOGIN_FAILED)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR | MB_MODELESS);
                   m_pManager->m_dwErrorCode = ERROR_LOGIN_WKSTA_RESTRICTION;
                   SignalStop();

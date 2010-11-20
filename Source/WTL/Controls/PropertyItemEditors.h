@@ -164,7 +164,7 @@ public:
    LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
    {
       LRESULT lRes = DefWindowProc(uMsg, wParam, lParam);
-      RECT rcClient;
+      RECT rcClient = { 0 };
       GetClientRect(&rcClient);
       int cy = rcClient.bottom - rcClient.top;
       // Setup EDIT control

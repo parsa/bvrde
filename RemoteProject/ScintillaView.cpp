@@ -1002,7 +1002,7 @@ int CScintillaView::FindText(UINT uFlags, LPCTSTR pstrPattern, bool bShowWarning
       if( bShowWarnings ) {
          CString sMsg;
          sMsg.Format(IDS_FINDFAILED, CString(pstrText));
-         _pDevEnv->ShowMessageBox(m_hWnd, (LPCTSTR) sMsg, CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONINFORMATION);
+         _pDevEnv->ShowMessageBox(m_hWnd, static_cast<LPCTSTR>(sMsg), CString(MAKEINTRESOURCE(IDS_CAPTION_WARNING)), MB_ICONINFORMATION);
          // Bring up the Find Text window again...
          CWindow wndMain = _pDevEnv->GetHwnd(IDE_HWND_MAIN);
          wndMain.PostMessage(WM_COMMAND, MAKEWPARAM(ID_EDIT_FIND, 0), 0L);

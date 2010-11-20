@@ -328,7 +328,7 @@ CString CTagInfo::_FindTagParent(const TAGINFO* pTag) const
    // HACK: We simply scoop up the " class CFoo : public CBar" text from
    //       the CTAG line. Unfortunately CTAG doesn't really carry that
    //       much information to safely determine the inheritance tree!
-   static LPCTSTR pstrTokens[] = 
+   static LPCTSTR aTokens[] = 
    {
       _T("public"),
       _T("protected"),
@@ -336,12 +336,11 @@ CString CTagInfo::_FindTagParent(const TAGINFO* pTag) const
       _T("typedef"),
       _T("virtual"),
       _T(" : "),
-      NULL
    };
-   for( LPCTSTR* ppstrToken = pstrTokens; *ppstrToken != NULL; ppstrToken++ ) {
-      LPCTSTR p = _tcsstr(pTag->pstrDeclaration, *ppstrToken);
+   for( int i = 0; i < sizeof(aTokens) / sizeof(aTokens[0]); i++ ) {
+      LPCTSTR p = _tcsstr(pTag->pstrDeclaration, aTokens[i]);
       if( p == NULL ) continue;
-      p += _tcslen(*ppstrToken);
+      p += _tcslen(aTokens[i]);
       while( _istspace(*p) ) p++;
       CString sName;
       while( _istalnum(*p) || *p == '_' ) sName += *p++;

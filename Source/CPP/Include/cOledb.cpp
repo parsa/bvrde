@@ -50,7 +50,7 @@ COledbDatabase::COledbDatabase(COledbSystem* pSystem) :
    m_pSystem(pSystem)
 {
    _ASSERTE(pSystem);
-   ATLTRY(m_pErrors = new COledbErrors);
+   ATLTRY( m_pErrors = new COledbErrors );
 #ifdef _DEBUG
    m_nRecordsets = 0;
 #endif
@@ -738,6 +738,7 @@ short COledbRecordset::GetColumnType(short iIndex)
       return DB_TYPE_REAL;
    case DBTYPE_DECIMAL:
    case DBTYPE_NUMERIC:
+   case DBTYPE_VARNUMERIC:
    case DBTYPE_R8:
       return DB_TYPE_DOUBLE;
    default:
@@ -927,6 +928,7 @@ BOOL COledbRecordset::_BindColumns()
       case DBTYPE_CY:
       case DBTYPE_DECIMAL:
       case DBTYPE_NUMERIC:
+      case DBTYPE_VARNUMERIC:
          b.wType = DBTYPE_STR;
          b.cbMaxLen = 50; // Allow 50 characters for conversion
          break;

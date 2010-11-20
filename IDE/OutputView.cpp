@@ -36,7 +36,7 @@ LRESULT COutputView::OnPrintClient(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam
    //       the RichEdit control which doesn't seem to handle this
    //       message correctly.
    CDCHandle dc = (HDC) wParam;
-   RECT rcClient;
+   RECT rcClient = { 0 };
    GetClientRect(&rcClient);
 
    dc.FillSolidRect(&rcClient, ::GetSysColor(COLOR_WINDOW));

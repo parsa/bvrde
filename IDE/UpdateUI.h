@@ -50,11 +50,11 @@ public:
       for( i = 0; i < m_ranges.GetSize(); i++ ) nAdditional += m_ranges[i].cy - m_ranges[i].cx + 1;
 
       _AtlUpdateUIMap* pMap = NULL;
-      ATLTRY(pMap = new _AtlUpdateUIMap[nOrigCount + nAdditional + 1]);
+      ATLTRY( pMap = new _AtlUpdateUIMap[nOrigCount + nAdditional + 1] );
       ATLASSERT(pMap);
 
       delete [] m_pUIData;
-      ATLTRY(m_pUIData = new _AtlUpdateUIData[nOrigCount + nAdditional + 1]);
+      ATLTRY( m_pUIData = new _AtlUpdateUIData[nOrigCount + nAdditional + 1] );
       ATLASSERT(m_pUIData);
 
       // Fill out element map; start with original table

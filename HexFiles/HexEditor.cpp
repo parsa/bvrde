@@ -146,7 +146,7 @@ int CHexEditorCtrl::GetLineHeight() const
 int CHexEditorCtrl::GetLinesPrPage() const
 {
    ATLASSERT(::IsWindow(m_hWnd));
-   RECT rcClient;
+   RECT rcClient = { 0 };
    GetClientRect(&rcClient);
    return (rcClient.bottom - rcClient.top) / GetLineHeight();
 }
@@ -413,7 +413,7 @@ LRESULT CHexEditorCtrl::OnMouseMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lPa
    if( GetCapture() != m_hWnd ) return 0;
    POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
    // Mouse outside client rectangle? Let's scroll the view
-   RECT rcClient;
+   RECT rcClient = { 0 };
    GetClientRect(&rcClient);
    if( pt.y < 0 ) SendMessage(WM_VSCROLL, SB_LINEUP);
    if( pt.y > rcClient.bottom - rcClient.top ) SendMessage(WM_VSCROLL, SB_LINEDOWN);
@@ -693,7 +693,7 @@ void CHexEditorCtrl::AssignCharValue(DWORD& dwPos, DWORD& dwCursorPos, BYTE bVal
 
 void CHexEditorCtrl::DoPaint(CDCHandle dc)
 {
-   RECT rcClient;
+   RECT rcClient = { 0 };
    GetClientRect(&rcClient);
 
    dc.FillSolidRect(&rcClient, ::GetSysColor(COLOR_WINDOW));

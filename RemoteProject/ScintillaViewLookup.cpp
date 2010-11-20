@@ -31,7 +31,7 @@ bool CScintillaView::_GetMemberInfo(long lPos, CTagDetails& Info, DWORD dwTimeou
    int chDelim = ch;
    long lPosDelim = lPos;
 
-   // Try to detect if the is an immediate right-hand-side expression
+   // Try to detect if this is an immediate right-hand-side expression
    if( m_ctrlEdit.GetCharAt(lPos) == '=' ) chDelim = '=';
    if( m_ctrlEdit.GetCharAt(lPos - 1) == '=' ) chDelim = '=';
 
@@ -391,7 +391,7 @@ CString CScintillaView::_UndecorateType(CString sType)
 {
    // TODO: Less hard-coding; more logic
    // BUG:  Needs to test for word-start before erasing!
-   static LPCTSTR ppstrKeywords[] = { 
+   static LPCTSTR aKeywords[] = { 
       _T("const "), 
       _T("auto "), 
       _T("register "), 
@@ -404,9 +404,10 @@ CString CScintillaView::_UndecorateType(CString sType)
       _T("struct "), 
       _T("enum "), 
       _T("constexpr "), 
-      NULL 
    };
-   for( LPCTSTR* pp = ppstrKeywords; *pp != NULL; pp++ ) sType.Replace(*pp, _T(""));
+   for( int i = 0; i < sizeof(aKeywords) / sizeof(aKeywords[0]); i++ ) {
+      sType.Replace(aKeywords[i], _T(""));
+   }
    // Strip trailing stuff
    int iPos = sType.FindOneOf(_T(" \t(*&"));
    if( iPos > 0 ) sType = sType.Left(iPos);
@@ -457,6 +458,8 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
       CString sLine = szBuffer;
       for( int iColPos = sLine.Find(sName); iColPos >= 0; iColPos = sLine.Find(sName, iColPos + 1) ) 
       {
+         int i;
+
          if( iColPos == 0 ) continue;
          if( iColPos >= sLine.GetLength() - cchName ) continue;
 
@@ -504,7 +507,7 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
 
          // First look up among ordinary C++ types.
          // They are likely not to be defined in any header file.
-         static LPCTSTR ppstrKnownTypes[] =
+         static LPCTSTR aKnownTypes[] =
          {
             _T("int"),
             _T("char"),
@@ -518,10 +521,9 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
             _T("void"),
             _T("signed"),
             _T("unsigned"),
-            NULL
          };
-         for( LPCTSTR* ppTypes = ppstrKnownTypes; *ppTypes != NULL; ppTypes++ ) {
-            if( sType.CompareNoCase(*ppTypes) == 0 ) {
+         for( i = 0; i < sizeof(aKnownTypes) / sizeof(aKnownTypes[0]); i++ ) {
+            if( sType.CompareNoCase(aKnownTypes[i]) == 0 ) {
                Info.sName = sType;
                Info.TagType = TAGTYPE_INTRINSIC;
                return true;
@@ -531,7 +533,7 @@ bool CScintillaView::_FindLocalVariableType(const CString& sName, long lPos, CTa
          // Now, let's find the type in the lex data
          CSimpleValArray<TAGINFO*> aTags;
          m_pCppProject->m_TagManager.FindItem(sType, NULL, 0, ::GetTickCount() + 99, aTags);
-         for( int i = 0; i < aTags.GetSize(); i++ ) {
+         for( i = 0; i < aTags.GetSize(); i++ ) {
             switch( aTags[i]->Type ) {
             case TAGTYPE_ENUM:
             case TAGTYPE_CLASS:

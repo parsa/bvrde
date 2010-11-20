@@ -103,7 +103,7 @@ void CDisasmView::SetInfo(LPCTSTR pstrType, CMiInfo& info)
       sText +=  _T("\\par}");
       EDITSTREAM stream = { 0 };
       STREAMCOOKIE cookie = { sText, 0 };
-      stream.dwCookie = (DWORD) &cookie;
+      stream.dwCookie = (DWORD_PTR) &cookie;
       stream.pfnCallback = _EditStreamCallback;
       m_ctrlView.StreamIn(SF_RTF, stream);
    }

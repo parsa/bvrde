@@ -176,7 +176,7 @@ public:
       // on top of the background we just drew above
       if( (lParam & PRF_CLIENT) != 0 )
       {
-         RECT rcClient;
+         RECT rcClient = { 0 };
          GetClientRect(&rcClient);
          int cxClient = rcClient.right - rcClient.left;
          int cyClient = rcClient.bottom - rcClient.top;

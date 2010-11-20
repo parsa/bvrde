@@ -461,7 +461,7 @@ BOOL CRemoteProject::OnInitProperties(IWizardManager* pManager, IElement* pEleme
    s_pageTransferOptions.m_pProject = this;
    s_pageTransferOptions.SetTitle(static_cast<LPCTSTR>(sTransferOptionsTitle));
    s_pageCompiler.m_pProject = this;
-   s_pageCompiler.SetTitle((LPCTSTR)sStartTitle);
+   s_pageCompiler.SetTitle(static_cast<LPCTSTR>(sStartTitle));
    s_pageCompilerCommands.m_pProject = this;
    s_pageCompilerCommands.SetTitle(static_cast<LPCTSTR>(sCompilerCommandsTitle));
    s_pageCompilerSteps.m_pProject = this;
@@ -961,11 +961,10 @@ int CRemoteProject::_GetElementImage(IElement* pElement) const
    if( pElement == NULL ) return IDE_TREEIMAGE_TEXT;
    TCHAR szType[64] = { 0 };
    pElement->GetType(szType, 63);
-   typedef struct tagFILEIMAGE {
-      LPCTSTR pstr;
-      IDE_PROJECTTREE_IMAGE Image;
-   } FILEIMAGE;
-   static FILEIMAGE ppstrFileTypes[] = {
+   static struct {
+      LPCTSTR pstr;        IDE_PROJECTTREE_IMAGE Image;
+   } aFileTypes[] = 
+   {
       { _T("Folder"),      IDE_TREEIMAGE_FOLDER_CLOSED },
       { _T("CPP"),         IDE_TREEIMAGE_CPP },
       { _T("Header"),      IDE_TREEIMAGE_HEADER },
@@ -979,10 +978,9 @@ int CRemoteProject::_GetElementImage(IElement* pElement) const
       { _T("ShellScript"), IDE_TREEIMAGE_BASH },
       { _T("Pascal"),      IDE_TREEIMAGE_SCRIPT },
       { _T("Python"),      IDE_TREEIMAGE_SCRIPT },
-      { NULL, IDE_TREEIMAGE_LAST }
    };
-   for( int i = 0; ppstrFileTypes[i].pstr != NULL; i++ ) {
-      if( _tcscmp(szType, ppstrFileTypes[i].pstr) == 0 ) return (int) ppstrFileTypes[i].Image;
+   for( int i = 0; i < sizeof(aFileTypes) / sizeof(aFileTypes[0]); i++ ) {
+      if( _tcscmp(szType, aFileTypes[i].pstr) == 0 ) return (int) aFileTypes[i].Image;
    }
    return IDE_TREEIMAGE_TEXT;
 }

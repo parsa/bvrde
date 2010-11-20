@@ -98,10 +98,10 @@ LRESULT CVariableView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
    TCITEM item = { 0 };
    item.mask = TCIF_TEXT;
    sTab.LoadString(IDS_LOCAL_VARS);
-   item.pszText = (LPTSTR) (LPCTSTR) sTab;
+   item.pszText = (LPTSTR) static_cast<LPCTSTR>(sTab);
    m_ctrlTab.InsertItem(0, &item);
    sTab.LoadString(IDS_LOCAL_ARGS);
-   item.pszText = (LPTSTR) (LPCTSTR) sTab;
+   item.pszText = (LPTSTR) static_cast<LPCTSTR>(sTab);
    m_ctrlTab.InsertItem(1, &item);
    m_ctrlTab.SetCurSel(0);
 

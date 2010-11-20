@@ -235,14 +235,15 @@ public:
    {
       T* pThis = static_cast<T*>(pData);
 #if defined(_MT) || defined(_DLL)
-      ATLTRY(_endthreadex( pThis->Run() ));
+      ATLTRY( _endthreadex( pThis->Run() ) );
       return 0;
 #else
       DWORD dwRet = 0;
-      ATLTRY(dwRet = pThis->Run());
+      ATLTRY( dwRet = pThis->Run() );
       return dwRet;
 #endif
    }
+
    DWORD Run()
    {
       _ASSERTE(false); // must override this

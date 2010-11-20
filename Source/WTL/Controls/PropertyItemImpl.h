@@ -50,7 +50,7 @@ public:
    CProperty(LPCTSTR pstrName, LPARAM lParam) : m_fEnabled(true), m_lParam(lParam), m_hWndOwner(NULL)
    {
       ATLASSERT(!::IsBadStringPtr(pstrName,-1));
-      ATLTRY(m_pszName = new TCHAR[ (::lstrlen(pstrName) * sizeof(TCHAR)) + 1 ]);
+      ATLTRY( m_pszName = new TCHAR[ (::lstrlen(pstrName) * sizeof(TCHAR)) + 1 ] );
       ATLASSERT(m_pszName);
       ::lstrcpy(m_pszName, pstrName);
    }

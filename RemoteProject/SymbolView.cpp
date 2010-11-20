@@ -464,6 +464,8 @@ void CSymbolView::_PopulateList(CSimpleValArray<TAGINFO*>& aList)
       if( sName == sLastName ) {
          // FIX: We'd like the declaration tag to appear in the list control, since we'll
          //      lookup the implementation tag before any mouse action anyway.
+         // BUG: This still leaves duplicates (both declaration og implementation tags) in the list
+         //      and a more thourough examnination after sorted is probably needed here.
          if( Info.TagType != TAGTYPE_IMPLEMENTATION ) m_ctrlList.SetItemData(iItem, (DWORD_PTR) pTag);
          continue;
       }

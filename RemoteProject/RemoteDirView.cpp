@@ -289,7 +289,7 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
          LPCTSTR pstr;
          int iImage;
       } FILEIMAGE;
-      static FILEIMAGE ppstrFileTypes[] = {
+      static FILEIMAGE aFileTypes[] = {
          { _T("cpp"),      2 },
          { _T("header"),   2 },
          { _T("text"),     3 },
@@ -299,9 +299,8 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
          { _T("asp"),      5 },
          { _T("php"),      5 },
          { _T("bash"),     6 },
-         { NULL, NULL }
       };
-      static FILEIMAGE ppstrFileExt[] = {
+      static FILEIMAGE aFileExt[] = {
          { _T(".TXT"),     1 },
          { _T(".CFG"),     1 },
          { _T(".LOG"),     1 },
@@ -311,15 +310,14 @@ bool CRemoteDirView::_PopulateView(LPCTSTR pstrPath)
          { _T(".BAT"),     6 },
          { _T(".SH"),      6 },
          { _T(".EXE"),     7 },
-         { NULL, NULL }
       };
       int j;
       int iImage = 3;
-      for( j = 0; ppstrFileTypes[j].pstr != NULL; j++ ) {
-         if( sFileType == ppstrFileTypes[j].pstr ) iImage = ppstrFileTypes[j].iImage;
+      for( j = 0; j < sizeof(aFileTypes) / sizeof(aFileTypes[0]); j++ ) {
+         if( sFileType == aFileTypes[j].pstr ) iImage = aFileTypes[j].iImage;
       }
-      for( j = 0; ppstrFileExt[j].pstr != NULL; j++ ) {
-         if( sFilename.Find(ppstrFileExt[j].pstr) > 0 ) iImage = ppstrFileExt[j].iImage;
+      for( j = 0; j < sizeof(aFileExt) / sizeof(aFileExt[0]); j++ ) {
+         if( sFilename.Find(aFileExt[j].pstr) > 0 ) iImage = aFileExt[j].iImage;
       }
       if( (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0 ) iImage = 0;
       

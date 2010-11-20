@@ -222,9 +222,11 @@ LRESULT CQuickWatchDlg::OnSelChange(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*h
       _T(".quickwatch."), 
       _T("public."), 
       _T("private."), 
-      _T("protected.") 
+      _T("protected."),
    };
-   for( int x = 0; x < sizeof(aTokens) / sizeof(aTokens[0]); x++ ) sText.Replace(aTokens[x], _T(""));
+   for( int x = 0; x < sizeof(aTokens) / sizeof(aTokens[0]); x++ ) {
+      sText.Replace(aTokens[x], _T(""));
+   }
    // The root item is our variable; still it's named "quickwatch"
    sText.Replace(_T("quickwatch"), m_aItems[0].sName);
    // Remove the types...

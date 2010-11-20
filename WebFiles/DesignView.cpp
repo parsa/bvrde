@@ -90,12 +90,12 @@ void CDesignView::WaitBusy() const
    ATLASSERT(m_spBrowser);
    // Wait until document has been read.
    //VARIANT_BOOL vbBusy;
-   //while( (m_spBrowser->get_Busy(&vbBusy)==S_OK) && vbBusy==VARIANT_TRUE ) ;
+   //while( (m_spBrowser->get_Busy(&vbBusy) == S_OK) && vbBusy == VARIANT_TRUE ) ;
 }
 
 void CDesignView::OnIdle(IUpdateUI* pUIBase)
 {
-   static OLECMD nOleCmds[] = 
+   static OLECMD aOleCmds[] = 
    { 
       { OLECMDID_COPY, 0 },
       { OLECMDID_CUT, 0 },
@@ -108,24 +108,24 @@ void CDesignView::OnIdle(IUpdateUI* pUIBase)
    };
    CComQIPtr<IOleCommandTarget> spOleTarget = m_spBrowser;
    if( spOleTarget == NULL ) return;
-   spOleTarget->QueryStatus(NULL, sizeof(nOleCmds)/sizeof(OLECMD), nOleCmds, NULL);
+   spOleTarget->QueryStatus(NULL, sizeof(aOleCmds)/sizeof(OLECMD), aOleCmds, NULL);
 
    pUIBase->UIEnable(ID_FILE_SAVE, TRUE);
-   pUIBase->UIEnable(ID_FILE_PRINT, nOleCmds[5].cmdf & OLECMDF_ENABLED);
-   pUIBase->UIEnable(ID_EDIT_UNDO, nOleCmds[3].cmdf & OLECMDF_ENABLED);
-   pUIBase->UIEnable(ID_EDIT_REDO, nOleCmds[4].cmdf & OLECMDF_ENABLED);
-   pUIBase->UIEnable(ID_EDIT_COPY, nOleCmds[0].cmdf & OLECMDF_ENABLED);
-   pUIBase->UIEnable(ID_EDIT_CUT, nOleCmds[1].cmdf & OLECMDF_ENABLED);
-   pUIBase->UIEnable(ID_EDIT_PASTE, nOleCmds[2].cmdf & OLECMDF_ENABLED);
-   pUIBase->UIEnable(ID_EDIT_DELETE, nOleCmds[6].cmdf & OLECMDF_ENABLED);
-   pUIBase->UIEnable(ID_EDIT_SELECT_ALL, nOleCmds[7].cmdf & OLECMDF_ENABLED);
+   pUIBase->UIEnable(ID_FILE_PRINT, aOleCmds[5].cmdf & OLECMDF_ENABLED);
+   pUIBase->UIEnable(ID_EDIT_UNDO, aOleCmds[3].cmdf & OLECMDF_ENABLED);
+   pUIBase->UIEnable(ID_EDIT_REDO, aOleCmds[4].cmdf & OLECMDF_ENABLED);
+   pUIBase->UIEnable(ID_EDIT_COPY, aOleCmds[0].cmdf & OLECMDF_ENABLED);
+   pUIBase->UIEnable(ID_EDIT_CUT, aOleCmds[1].cmdf & OLECMDF_ENABLED);
+   pUIBase->UIEnable(ID_EDIT_PASTE, aOleCmds[2].cmdf & OLECMDF_ENABLED);
+   pUIBase->UIEnable(ID_EDIT_DELETE, aOleCmds[6].cmdf & OLECMDF_ENABLED);
+   pUIBase->UIEnable(ID_EDIT_SELECT_ALL, aOleCmds[7].cmdf & OLECMDF_ENABLED);
    pUIBase->UIEnable(ID_EDIT_GOTO, FALSE);
    pUIBase->UIEnable(ID_EDIT_FIND, FALSE);
    pUIBase->UIEnable(ID_EDIT_REPLACE, FALSE);
    pUIBase->UIEnable(ID_EDIT_CLEAR, FALSE);
    pUIBase->UIEnable(ID_EDIT_CLEAR_ALL, FALSE);
 
-   static OLECMD nHtmlCmds[] = 
+   static OLECMD aHtmlCmds[] = 
    { 
       { IDM_BOLD, 0 },
       { IDM_ITALIC, 0 },
@@ -136,15 +136,15 @@ void CDesignView::OnIdle(IUpdateUI* pUIBase)
       { IDM_INDENT, 0 },
       { IDM_OUTDENT, 0 },
    };
-   spOleTarget->QueryStatus(&CGID_MSHTML, sizeof(nHtmlCmds)/sizeof(OLECMD), nHtmlCmds, NULL);
-   pUIBase->UIEnable(ID_EDIT_BOLD, nHtmlCmds[0].cmdf & OLECMDF_ENABLED);  
-   pUIBase->UIEnable(ID_EDIT_ITALIC, nHtmlCmds[1].cmdf & OLECMDF_ENABLED);  
-   pUIBase->UIEnable(ID_EDIT_UNDERLINE, nHtmlCmds[2].cmdf & OLECMDF_ENABLED);  
-   pUIBase->UIEnable(ID_EDIT_ALIGN_LEFT, nHtmlCmds[3].cmdf & OLECMDF_ENABLED);  
-   pUIBase->UIEnable(ID_EDIT_ALIGN_MIDDLE, nHtmlCmds[4].cmdf & OLECMDF_ENABLED);  
-   pUIBase->UIEnable(ID_EDIT_ALIGN_RIGHT, nHtmlCmds[5].cmdf & OLECMDF_ENABLED);  
-   pUIBase->UIEnable(ID_EDIT_INDENT, nHtmlCmds[6].cmdf & OLECMDF_ENABLED);  
-   pUIBase->UIEnable(ID_EDIT_UNINDENT, nHtmlCmds[7].cmdf & OLECMDF_ENABLED);  
+   spOleTarget->QueryStatus(&CGID_MSHTML, sizeof(aHtmlCmds) / sizeof(OLECMD), aHtmlCmds, NULL);
+   pUIBase->UIEnable(ID_EDIT_BOLD, aHtmlCmds[0].cmdf & OLECMDF_ENABLED);  
+   pUIBase->UIEnable(ID_EDIT_ITALIC, aHtmlCmds[1].cmdf & OLECMDF_ENABLED);  
+   pUIBase->UIEnable(ID_EDIT_UNDERLINE, aHtmlCmds[2].cmdf & OLECMDF_ENABLED);  
+   pUIBase->UIEnable(ID_EDIT_ALIGN_LEFT, aHtmlCmds[3].cmdf & OLECMDF_ENABLED);  
+   pUIBase->UIEnable(ID_EDIT_ALIGN_MIDDLE, aHtmlCmds[4].cmdf & OLECMDF_ENABLED);  
+   pUIBase->UIEnable(ID_EDIT_ALIGN_RIGHT, aHtmlCmds[5].cmdf & OLECMDF_ENABLED);  
+   pUIBase->UIEnable(ID_EDIT_INDENT, aHtmlCmds[6].cmdf & OLECMDF_ENABLED);  
+   pUIBase->UIEnable(ID_EDIT_UNINDENT, aHtmlCmds[7].cmdf & OLECMDF_ENABLED);  
 }
 
 // Message map and handlers

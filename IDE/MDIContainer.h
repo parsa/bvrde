@@ -54,7 +54,7 @@ public:
 
    void SetVisible(BOOL bVisible)
    {
-      m_bTabsVisible = bVisible == TRUE;
+      m_bTabsVisible = (bVisible == TRUE);
       UpdateLayout();
    }
 
@@ -70,7 +70,7 @@ public:
       CString sFileName;
       _LookupViewNames(hWnd, sName, sFileName);
       tci.mask = TCIF_TEXT;
-      tci.pszText = (LPTSTR) (LPCTSTR) sName;
+      tci.pszText = (LPTSTR) static_cast<LPCTSTR>(sName);
       m_ctrlTab.SetItem(iIndex, &tci);
    }
    
@@ -85,7 +85,7 @@ public:
          CString sFileName;
          _LookupViewNames((HWND) tci.lParam, sName, sFileName);
          tci.mask = TCIF_TEXT;
-         tci.pszText = (LPTSTR) (LPCTSTR) sName;
+         tci.pszText = (LPTSTR) static_cast<LPCTSTR>(sName);
          m_ctrlTab.SetItem(i, &tci);
       }
    }
@@ -223,8 +223,8 @@ public:
             // Create a new tab
             COOLTCITEM tci;
             tci.mask = TCIF_TEXT | TCIF_TOOLTIP | TCIF_PARAM;
-            tci.pszText = (LPTSTR) (LPCTSTR) sName;
-            tci.pszTipText = (LPTSTR) (LPCTSTR) sFileName;
+            tci.pszText = (LPTSTR) static_cast<LPCTSTR>(sName);
+            tci.pszTipText = (LPTSTR) static_cast<LPCTSTR>(sFileName);
             tci.lParam = lParam;
             m_ctrlTab.InsertItem(m_ctrlTab.GetItemCount(), &tci);
             // Position view in container (maximize if needed)

@@ -871,7 +871,7 @@ bool CSftpProtocol::EnumFiles(CSimpleArray<WIN32_FIND_DATA>& aFiles, bool /*bUse
          DWORD dwPermissions = 0;
          if( (dwFlags & SSH_FILEXFER_ATTR_SIZE) != 0 ) { 
             if( _ReadData(m_cryptSession, &dwTemp, sizeof(dwTemp)) == 0 ) return false;
-            if( _ReadData(m_cryptSession, &dwFileSize, sizeof(dwSize)) == 0 ) return false;
+            if( _ReadData(m_cryptSession, &dwFileSize, sizeof(dwFileSize)) == 0 ) return false;
             CONVERT_INT32(dwFileSize);
          }
          if( (dwFlags & SSH_FILEXFER_ATTR_UIDGID) != 0 ) {

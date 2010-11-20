@@ -144,8 +144,8 @@ DWORD CSshThread::Run()
    bool bNextIsPrompt = false;
    DWORD dwSleep = 25;
 
-   while( !ShouldStop() ) {
-
+   while( !ShouldStop() ) 
+   {
       int iRead = 0;
       status = clib.cryptPopData(cryptSession, bReadBuffer, INITIAL_BUFFER_SIZE, &iRead);
       if( status == 0 && iRead == 0 ) {
@@ -188,10 +188,9 @@ DWORD CSshThread::Run()
             _T("LOGIN INCORRECT"),
             _T("LOGIN FAILED"),
             _T("UNKNOWN USER"),
-            NULL
          };
-         for( const LPCTSTR* ppstr = aFailed; *ppstr != NULL; ppstr++ ) {
-            if( sLine.Find(*ppstr) >= 0 ) {
+         for( int i = 0; i < sizeof(aFailed) / sizeof(aFailed[0]); i++ ) {
+            if( sLine.Find(aFailed[i]) >= 0 ) {
                m_pManager->m_pProject->DelayedMessage(CString(MAKEINTRESOURCE(IDS_ERR_LOGIN_FAILED)), CString(MAKEINTRESOURCE(IDS_CAPTION_ERROR)), MB_ICONERROR | MB_MODELESS);
                m_pManager->m_dwErrorCode = ERROR_LOGIN_WKSTA_RESTRICTION;
                SignalStop();

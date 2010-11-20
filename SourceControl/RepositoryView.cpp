@@ -376,8 +376,8 @@ LRESULT CRepositoryView::OnFileEnumDone(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
             if( m_sSelPath.IsEmpty() ) m_sSelPath = sPath;
             if( sPath != m_sSelPath ) continue;
             int iOverlay = 0;
-            struct {
-               LPCTSTR pstrToken; int iOverlay;
+            static struct {
+               LPCTSTR pstrToken;   int iOverlay;
             } aTokens[] = {
                { _T("Modified"),    1 },
                { _T("Patch"),       2 },

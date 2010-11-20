@@ -566,7 +566,7 @@ LRESULT CMainFrame::OnFileOpenSolution(WORD /*wNotifyCode*/, WORD /*wID*/, HWND 
       PostMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_STARTWIZARD, 0));
       break;
    case CChooseSolutionDlg::SOLUTION_FILE:
-      SendMessage(WM_APP_LOADSOLUTION, 0, (LPARAM) (LPCTSTR) dlg.m_sFilename);
+      SendMessage(WM_APP_LOADSOLUTION, 0, (LPARAM) static_cast<LPCTSTR>(dlg.m_sFilename));
       break;
    }
    return 0;
@@ -1053,7 +1053,7 @@ LRESULT CMainFrame::OnUserIdle(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
 LRESULT CMainFrame::OnUserLoadSolution(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {
-   LPCTSTR pstrFilename = (LPCTSTR) lParam;
+   LPCTSTR pstrFilename = reinterpret_cast<LPCTSTR>(lParam);
    ATLASSERT(!::IsBadStringPtr(pstrFilename,-1));
    if( pstrFilename == NULL ) return 0;
    m_mru.AddToList(pstrFilename);
@@ -1179,11 +1179,11 @@ LRESULT CMainFrame::OnUserProjectChange(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM
 LRESULT CMainFrame::OnUserCommandLine(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {
    CCommandLine cmdline;
-   cmdline.Parse( (LPCTSTR) lParam );
+   cmdline.Parse( reinterpret_cast<LPCTSTR>(lParam) );
    for( int i = 1; i < cmdline.GetSize(); i++ ) {
       CString sFilename = cmdline.GetItem(i);
       if( ::PathMatchSpec(sFilename, _T("*.sln")) ) {
-         SendMessage(WM_APP_LOADSOLUTION, 0, (LPARAM) (LPCTSTR) sFilename);
+         SendMessage(WM_APP_LOADSOLUTION, 0, (LPARAM) static_cast<LPCTSTR>(sFilename));
       }
       else {
          IView* pView = CreateView(sFilename);

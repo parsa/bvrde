@@ -36,8 +36,8 @@ DWORD CQueryThread::Run()
       m_event.WaitForEvent();      
       
       STATE state = m_state;
-      CString sSQL = (LPCTSTR) m_sSQL;   // BUG: Protect this statement with thread lock
-      int lLineNum = m_lLineNum;         //      And this guy too!!
+      CString sSQL = static_cast<LPCTSTR>(m_sSQL);   // BUG: Protect this statement with thread lock
+      int lLineNum = m_lLineNum;                     //      And this guy too!!
 
       m_state = STATE_NOTHING;
 

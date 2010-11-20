@@ -94,7 +94,7 @@ int CProviderPage::OnWizardNext()
    Prop[0].vValue.iVal = DBPROMPT_COMPLETE;
    Prop[1].dwPropertyID = DBPROP_INIT_HWND;
    Prop[1].vValue.vt = VT_I4;
-   Prop[1].vValue.lVal = (long) (HWND) m_pProject->m_wndMain; 
+   Prop[1].vValue.lVal = (long) static_cast<HWND>(m_pProject->m_wndMain); 
 
    // Prepare properties
    PropSet.guidPropertySet = DBPROPSET_DBINIT;
@@ -311,7 +311,7 @@ LRESULT CConnectionPage::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /
 LRESULT CConnectionPage::OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
    if( !m_wndClient.IsWindow() ) return 0;
-   RECT rcClient;
+   RECT rcClient = { 0 };
    GetClientRect(&rcClient);
    m_wndClient.MoveWindow(&rcClient);
    return 0;
@@ -331,7 +331,8 @@ int CConnectionPage::OnSetActive()
    if( spSP ) {
       CComPtr<ISpecifyPropertyPages> spSPP;
       spSP->QueryService(OLEDB_SVC_DSLPropertyPages, IID_ISpecifyPropertyPages, (LPVOID*) &spSPP);
-      if( spSPP ) {
+      if( spSPP != NULL ) 
+      {
          struct
          {
             ULONG cElems;
@@ -342,7 +343,7 @@ int CConnectionPage::OnSetActive()
          if( cauuid.Elems[0] != CLSID_NULL ) {
             m_spPage.CoCreateInstance(cauuid.Elems[0]);
             if( m_spPage != NULL ) {
-               RECT rcClient;
+               RECT rcClient = { 0 };
                GetClientRect(&rcClient);
                m_spPage->SetPageSite(this);
                m_spPage->Activate(m_hWnd, &rcClient, TRUE);
@@ -542,3 +543,4 @@ void CAdvancedEditOptionsPage::_UpdateButtons()
    CWindow(GetDlgItem(IDC_MAXROWS)).EnableWindow(IsDlgButtonChecked(IDC_LIMITRECORDS) == BST_CHECKED);
    CWindow(GetDlgItem(IDC_MAXERRORS)).EnableWindow(IsDlgButtonChecked(IDC_LIMITERRORS) == BST_CHECKED);
 }
+

@@ -22,7 +22,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInstance,
       _Module.Init(NULL, hInstance);
       ::DisableThreadLibraryCalls(hInstance);
    }
-   else if( dwReason == DLL_PROCESS_DETACH ) 
+   if( dwReason == DLL_PROCESS_DETACH ) 
    {
      _Module.Term();
    }
@@ -104,6 +104,7 @@ BOOL WINAPI Plugin_Initialize(IDevEnv* pDevEnv)
    _pDevEnv->SetProperty(_T("file.extension.xml"), _T("XML File"));
    _pDevEnv->SetProperty(_T("file.extension.xsl"), _T("XML File"));
    _pDevEnv->SetProperty(_T("file.extension.xslt"), _T("XML File"));
+   _pDevEnv->SetProperty(_T("file.extension.xsd"), _T("XML File"));
 
    static CWizardListener wizard;
    _pDevEnv->AddWizardListener(&wizard);
@@ -144,7 +145,8 @@ UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR pstrFilename)
 {
    LPTSTR pstrExt = ::PathFindExtension(pstrFilename);
    if( pstrExt == NULL ) return FALSE;
-   LPCTSTR pstrExtensions[] =
+   
+   static LPCTSTR aExtensions[] =
    {
       _T(".PHTML"),
       _T(".HTML"),
@@ -152,6 +154,7 @@ UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR pstrFilename)
       _T(".XML"),
       _T(".XSLT"),
       _T(".XSL"),
+      _T(".XSD"),
       _T(".PHP"),
       _T(".PHP3"),
       _T(".PHP4"),
@@ -162,11 +165,10 @@ UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR pstrFilename)
       _T(".JSP"),
       _T(".PY"),
    };
-   LPCTSTR* ppstr = pstrExtensions;
-   for( int i = 0; i < sizeof(pstrExtensions) / sizeof(LPCTSTR); i++ ) {
-      if( _tcsicmp(pstrExt, *ppstr) == 0 ) return 40;
-      ppstr++;
+   for( int i = 0; i < sizeof(aExtensions) / sizeof(aExtensions[0]); i++ ) {
+      if( _tcsicmp(pstrExt, aExtensions[i]) == 0 ) return 40;
    }
+
    return 0;
 }
 
@@ -174,36 +176,40 @@ EXTERN_C
 IView* WINAPI Plugin_CreateView(LPCTSTR pstrFilename, IProject* pProject, IElement* pParent)
 {
    LPCTSTR pstrExt = ::PathFindExtension(pstrFilename);
-   if( pstrExt == NULL ) return NULL;
-   enum
+   typedef enum WEBFILETYPE { TYPE_NONE, TYPE_HTML, TYPE_PHP, TYPE_ASP, TYPE_XML };
+   static struct
    {
-      TYPE_NONE,
-      TYPE_HTML,
-      TYPE_PHP,
-      TYPE_ASP,
-      TYPE_XML,
-   } iType = TYPE_NONE;
-   if( _tcsicmp(pstrExt, _T(".PHTML")) == 0 ) iType = TYPE_PHP;
-   if( _tcsicmp(pstrExt, _T(".HTML")) == 0 ) iType = TYPE_HTML;
-   if( _tcsicmp(pstrExt, _T(".HTM")) == 0 ) iType = TYPE_HTML;
-   if( _tcsicmp(pstrExt, _T(".ASP")) == 0 ) iType = TYPE_ASP;
-   if( _tcsicmp(pstrExt, _T(".ASPX")) == 0 ) iType = TYPE_ASP;
-   if( _tcsicmp(pstrExt, _T(".PHP")) == 0 ) iType = TYPE_PHP;
-   if( _tcsicmp(pstrExt, _T(".PHP3")) == 0 ) iType = TYPE_PHP;
-   if( _tcsicmp(pstrExt, _T(".PHP4")) == 0 ) iType = TYPE_PHP;
-   if( _tcsicmp(pstrExt, _T(".PHP5")) == 0 ) iType = TYPE_PHP;
-   if( _tcsicmp(pstrExt, _T(".JSP")) == 0 ) iType = TYPE_HTML;
-   if( _tcsicmp(pstrExt, _T(".TPL")) == 0 ) iType = TYPE_HTML;
-   if( _tcsicmp(pstrExt, _T(".XML")) == 0 ) iType = TYPE_XML;
-   if( _tcsicmp(pstrExt, _T(".XSL")) == 0 ) iType = TYPE_XML;
-   if( _tcsicmp(pstrExt, _T(".XSLT")) == 0 ) iType = TYPE_XML;
-   if( _tcsicmp(pstrExt, _T(".PY")) == 0 ) iType = TYPE_HTML;
-
-   if( iType == TYPE_HTML ) return new CHtmlView(pProject, pParent, pstrFilename);
-   if( iType == TYPE_XML ) return new CXmlView(pProject, pParent, pstrFilename);
-   if( iType == TYPE_PHP ) return new CPhpView(pProject, pParent, pstrFilename);
-   if( iType == TYPE_ASP ) return new CAspView(pProject, pParent, pstrFilename);
-
+      WEBFILETYPE iType;
+      LPCTSTR pstrExtension;
+   } aFileTypes[] =
+   {
+      { TYPE_HTML, _T(".HTM") },
+      { TYPE_HTML, _T(".HTML") },
+      { TYPE_HTML, _T(".JSP") },
+      { TYPE_HTML, _T(".TPL") },
+      { TYPE_HTML, _T(".PY") },
+      { TYPE_ASP,  _T(".ASP") },
+      { TYPE_ASP,  _T(".ASPX") },
+      { TYPE_PHP,  _T(".PHP") },
+      { TYPE_PHP,  _T(".PHP3") },
+      { TYPE_PHP,  _T(".PHP4") },
+      { TYPE_PHP,  _T(".PHP5") },
+      { TYPE_PHP,  _T(".PHTML") },
+      { TYPE_XML,  _T(".XML") },
+      { TYPE_XML,  _T(".XSL") },
+      { TYPE_XML,  _T(".XSLT") },
+      { TYPE_XML,  _T(".XSD") },
+   };
+   for( int i = 0; i < sizeof(aFileTypes) / sizeof(aFileTypes[0]); i++ ) {
+      if( _tcsicmp(aFileTypes[i].pstrExtension, pstrExt) == 0 ) {
+         switch( aFileTypes[i].iType ) {
+         case TYPE_HTML: return new CHtmlView(pProject, pParent, pstrFilename);
+         case TYPE_XML:  return new CXmlView(pProject, pParent, pstrFilename);
+         case TYPE_PHP:  return new CPhpView(pProject, pParent, pstrFilename);
+         case TYPE_ASP:  return new CAspView(pProject, pParent, pstrFilename);
+         }
+      }
+   }
    return NULL;
 }
 

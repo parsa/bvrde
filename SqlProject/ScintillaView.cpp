@@ -157,7 +157,7 @@ LRESULT CScintillaView::OnEditAutoComplete(WORD /*wNotifyCode*/, WORD /*wID*/, H
 {
    int iLenEntered = 0;
    long lPos = GetCurrentPos();
-   while( lPos > 1 && _issqlchar( (CHAR)GetCharAt(--lPos) ) ) iLenEntered++;
+   while( lPos > 1 && _issqlchar( (CHAR) GetCharAt(--lPos) ) ) iLenEntered++;
    _AutoComplete(GetCharAt(lPos), iLenEntered);
    return 0;
 }
@@ -580,40 +580,37 @@ void CScintillaView::_AnalyseText(SQLANALYZE& Info, int iLenEntered)
 
 CScintillaView::SQLKEYWORD CScintillaView::_GetKeyword(CString& sKeyword) const
 {
-   typedef struct 
+   static struct 
    {
-      LPCTSTR pstrName;
-      SQLKEYWORD kw;
-   } LEXSQL;
-   static LEXSQL aList[] = 
-   {
-      { _T("SELECT"), SQL_CONTEXT_FIELD },
-      { _T("VALUES"), SQL_CONTEXT_FIELD },
-      { _T("BY"), SQL_CONTEXT_FIELD },
+      LPCTSTR pstrName; SQLKEYWORD kw;
+   } aList[] = {
+      { _T("SELECT"),   SQL_CONTEXT_FIELD },
+      { _T("VALUES"),   SQL_CONTEXT_FIELD },
+      { _T("BY"),       SQL_CONTEXT_FIELD },
       //
-      { _T("HAVING"), SQL_CONTEXT_EXPRESSION },
-      { _T("WHERE"), SQL_CONTEXT_EXPRESSION },
-      { _T("JOIN"), SQL_CONTEXT_EXPRESSION },
-      { _T("SET"), SQL_CONTEXT_EXPRESSION },
+      { _T("HAVING"),   SQL_CONTEXT_EXPRESSION },
+      { _T("WHERE"),    SQL_CONTEXT_EXPRESSION },
+      { _T("JOIN"),     SQL_CONTEXT_EXPRESSION },
+      { _T("SET"),      SQL_CONTEXT_EXPRESSION },
       //
-      { _T("UPDATE"), SQL_CONTEXT_TABLE },
-      { _T("FROM"), SQL_CONTEXT_TABLE },
-      { _T("INTO"), SQL_CONTEXT_TABLE },
+      { _T("UPDATE"),   SQL_CONTEXT_TABLE },
+      { _T("FROM"),     SQL_CONTEXT_TABLE },
+      { _T("INTO"),     SQL_CONTEXT_TABLE },
       //
-      { _T("BETWEEN"), SQL_CONTEXT_IGNORE },
-      { _T("INSERT"), SQL_CONTEXT_IGNORE },
-      { _T("DELETE"), SQL_CONTEXT_IGNORE },
-      { _T("CREATE"), SQL_CONTEXT_IGNORE },
-      { _T("GROUP"), SQL_CONTEXT_IGNORE },
-      { _T("LIKE"), SQL_CONTEXT_IGNORE },
-      { _T("IN"), SQL_CONTEXT_IGNORE },
-      { _T("AS"), SQL_CONTEXT_IGNORE },
+      { _T("BETWEEN"),  SQL_CONTEXT_IGNORE },
+      { _T("INSERT"),   SQL_CONTEXT_IGNORE },
+      { _T("DELETE"),   SQL_CONTEXT_IGNORE },
+      { _T("CREATE"),   SQL_CONTEXT_IGNORE },
+      { _T("GROUP"),    SQL_CONTEXT_IGNORE },
+      { _T("LIKE"),     SQL_CONTEXT_IGNORE },
+      { _T("IN"),       SQL_CONTEXT_IGNORE },
+      { _T("AS"),       SQL_CONTEXT_IGNORE },
       //
-      { _T("OR"), SQL_CONTEXT_OPERATOR },
-      { _T("AND"), SQL_CONTEXT_OPERATOR },
-      { _T("NOT"), SQL_CONTEXT_OPERATOR },
+      { _T("OR"),       SQL_CONTEXT_OPERATOR },
+      { _T("AND"),      SQL_CONTEXT_OPERATOR },
+      { _T("NOT"),      SQL_CONTEXT_OPERATOR },
    };
-   for( int i = 0; i < sizeof(aList)/sizeof(aList[0]); i++ ) {
+   for( int i = 0; i < sizeof(aList) / sizeof(aList[0]); i++ ) {
       if( sKeyword.CompareNoCase(aList[i].pstrName) == 0 ) return aList[i].kw;
    }
    return SQL_CONTEXT_UNKNOWN;
@@ -803,3 +800,4 @@ void CScintillaView::_RegisterListImages()
    RegisterImage(3, (LPBYTE) FieldImage);
    RegisterImage(4, (LPBYTE) KeywordImage);
 }
+

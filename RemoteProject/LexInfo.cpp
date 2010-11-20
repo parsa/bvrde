@@ -449,7 +449,7 @@ CString CLexInfo::_FindTagParent(const TAGINFO* pTag, int iPos) const
    // HACK: We simply scoop up the "class CFoo : public CBar" text from
    //       the decl. line. Unfortunately the lex file doesn't really carry that
    //       much information to safely determine the inheritance tree!
-   static LPCTSTR pstrTokens[] = 
+   static LPCTSTR aTokens[] = 
    {
       _T("public"),
       _T("protected"),
@@ -459,9 +459,8 @@ CString CLexInfo::_FindTagParent(const TAGINFO* pTag, int iPos) const
       _T(" :"),
       _T("::"),
       _T(","),
-      NULL
    };
-   static LPCTSTR pstrKeywords[] = 
+   static LPCTSTR aKeywords[] = 
    {
       _T("public"),
       _T("protected"),
@@ -471,21 +470,20 @@ CString CLexInfo::_FindTagParent(const TAGINFO* pTag, int iPos) const
       _T("template"),
       _T("class"),
       _T("typename"),
-      NULL
    };
    CString sName;
    LPCTSTR pstrStart = pTag->pstrDeclaration;
    while( iPos >= 0 && pstrStart != NULL ) {
       sName = _T("");
       LPCTSTR pstrMatch = NULL;
-      for( LPCTSTR* ppstrToken = pstrTokens; *ppstrToken != NULL; ppstrToken++ ) {
-         LPCTSTR p = _tcsstr(pstrStart, *ppstrToken);
+      for( int i = 0; i < sizeof(aTokens) / sizeof(aTokens[0]); i++ ) {
+         LPCTSTR p = _tcsstr(pstrStart, aTokens[i]);
          if( p == NULL ) continue;
-         p += _tcslen(*ppstrToken);
+         p += _tcslen(aTokens[i]);
          while( _istspace(*p) ) p++;
          // Must not be among known C++ keywords
-         for( LPCTSTR* ppstrKnown = pstrKeywords; *ppstrKnown != NULL; ppstrKnown++ ) {
-            if( _tcsncmp(p, *ppstrKnown, _tcslen(*ppstrKnown)) == 0 ) { p = NULL; break; }
+         for( int j = 0; j < sizeof(aKeywords) / sizeof(aKeywords[0]); j++ ) {
+            if( _tcsncmp(p, aKeywords[j], _tcslen(aKeywords[j])) == 0 ) { p = NULL; break; }
          }
          if( p == NULL ) continue;
          if( p < pstrMatch || pstrMatch == NULL ) pstrMatch = p;
@@ -550,10 +548,10 @@ CString CLexInfo::GetLexFilename(CRemoteProject* pProject, LPCTSTR pstrFilename,
    CString sName = ::PathFindFileName(pstrFilename);
    if( sName.IsEmpty() ) return _T("");
    // Remove illegal characters from name
-   static TCHAR bad[] = { '.', '*', '?', ':', '\\', '/', '|', '<', '>' };
-   for( int i = 0; i < sizeof(bad) / sizeof(bad[0]); i++ ) {
-      sProjectName.Replace(bad[i], '_');
-      sName.Replace(bad[i], '_');
+   static TCHAR aBadChar[] = { '.', '*', '?', ':', '\\', '/', '|', '<', '>' };
+   for( int i = 0; i < sizeof(aBadChar) / sizeof(aBadChar[0]); i++ ) {
+      sProjectName.Replace(aBadChar[i], '_');
+      sName.Replace(aBadChar[i], '_');
    }
    // As part of the Windows LUA compliance test we'll need to
    // write stuff in the user's private private AppData folder.

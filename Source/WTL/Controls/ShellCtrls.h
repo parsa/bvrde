@@ -190,7 +190,7 @@ public:
       DWORD dwAttribs = SFGAO_FILESYSANCESTOR | SFGAO_HASSUBFOLDER;
       if( pFolder != NULL && !CPidl::PidlIsEmpty(pidlNode) ) {
          // Get the new IShellFolder object
-         if( FAILED( pFolder->BindToObject(pidlNode, NULL, IID_IShellFolder, (LPVOID*)&spFolder) ) ) return 0;
+         if( FAILED( pFolder->BindToObject(pidlNode, NULL, IID_IShellFolder, (LPVOID*) &spFolder) ) ) return 0;
          // Get this folder's attributes
          pFolder->GetAttributesOf(1, &pidlNode, &dwAttribs);
       }
@@ -243,14 +243,14 @@ public:
       // removable media (prevents floppy activity)...
       DWORD dwRemovable = SFGAO_REMOVABLE;
       pFolder->GetAttributesOf(1, &pidl, &dwRemovable);
-      if( dwRemovable & SFGAO_REMOVABLE ) dwAttribs &= ~SFGAO_READONLY;
+      if( (dwRemovable & SFGAO_REMOVABLE) != 0 ) dwAttribs &= ~SFGAO_READONLY;
       pFolder->GetAttributesOf(1, &pidl, &dwAttribs);
 
       // Filter some items
-      if( (m_dwShellStyle & SCT_EX_NOFOLDERS) && (dwAttribs & SFGAO_FOLDER) ) return TRUE;
-      if( (m_dwShellStyle & SCT_EX_NOFILES) && ((dwAttribs & SFGAO_FOLDER) == 0) ) return TRUE;
-      if( (m_dwShellStyle & SCT_EX_NOREADONLY) && (dwAttribs & SFGAO_READONLY) ) return TRUE;;
-      if( (m_dwShellStyle & SCT_EX_FILESYSTEMONLY) && ((dwAttribs & (SFGAO_FILESYSTEM | SFGAO_FILESYSANCESTOR)) == 0) ) return TRUE;
+      if( (m_dwShellStyle & SCT_EX_NOFILES) != 0 && (dwAttribs & SFGAO_FOLDER) == 0 ) return TRUE;
+      if( (m_dwShellStyle & SCT_EX_NOFOLDERS) != 0 && (dwAttribs & SFGAO_FOLDER) != 0 ) return TRUE;
+      if( (m_dwShellStyle & SCT_EX_NOREADONLY) != 0 && (dwAttribs & SFGAO_READONLY) != 0 ) return TRUE;;
+      if( (m_dwShellStyle & SCT_EX_FILESYSTEMONLY) != 0 && (dwAttribs & (SFGAO_FILESYSTEM | SFGAO_FILESYSANCESTOR)) == 0 ) return TRUE;
 
       return FALSE;
    }
@@ -336,8 +336,7 @@ public:
       return TRUE;
    }
 
-   HTREEITEM _InsertItem(IShellFolder* pFolder, LPCITEMIDLIST pidlPath, LPCITEMIDLIST pidlNode,
-                         DWORD dwAttribs, HTREEITEM hParentItem)
+   HTREEITEM _InsertItem(IShellFolder* pFolder, LPCITEMIDLIST pidlPath, LPCITEMIDLIST pidlNode, DWORD dwAttribs, HTREEITEM hParentItem)
    {
       ATLASSERT(pFolder);
       ATLASSERT(pidlPath);
@@ -360,13 +359,13 @@ public:
       item.item.pszText = LPSTR_TEXTCALLBACK;
       item.item.iImage = item.item.iSelectedImage = I_IMAGECALLBACK;
       item.item.lParam= (LPARAM) pItem;        
-      item.item.cChildren = (dwAttribs & SFGAO_HASSUBFOLDER);
-      if( dwAttribs & SFGAO_SHARE ) {
+      item.item.cChildren = (dwAttribs & SFGAO_HASSUBFOLDER) != 0 ? 1 : 0;
+      if( (dwAttribs & SFGAO_SHARE) != 0 ) {
          item.item.mask |= TVIF_STATE;
          item.item.stateMask |= TVIS_OVERLAYMASK;
          item.item.state |= INDEXTOOVERLAYMASK(1);
       }
-      if( dwAttribs & SFGAO_LINK ) {
+      if( (dwAttribs & SFGAO_LINK) != 0 ) {
          item.item.mask |= TVIF_STATE;
          item.item.stateMask |= TVIS_OVERLAYMASK;
          item.item.state |= INDEXTOOVERLAYMASK(2);
@@ -399,7 +398,7 @@ public:
       LPNMTREEVIEW pnmtv = (LPNMTREEVIEW) pnmh;
       PSHELLITEMINFO pItem = reinterpret_cast<PSHELLITEMINFO>(pnmtv->itemOld.lParam);
       ATLASSERT(pItem);
-      ATLTRY(delete pItem);
+      ATLTRY( delete pItem );
       return 0;
    }
 
@@ -408,24 +407,18 @@ public:
       LPNMTVDISPINFO lpdi = (LPNMTVDISPINFO) pnmh;
       PSHELLITEMINFO pItem = reinterpret_cast<PSHELLITEMINFO>(lpdi->item.lParam);
       SHFILEINFO sfi;
-      if( lpdi->item.mask & TVIF_TEXT ) {
-         if( ::SHGetFileInfo((LPCTSTR)(LPCITEMIDLIST)pItem->pidlFull, 
-                             0, &sfi, sizeof(sfi), 
-                             SHGFI_PIDL | SHGFI_DISPLAYNAME) ) {
+      if( (lpdi->item.mask & TVIF_TEXT) != 0 ) {
+         if( ::SHGetFileInfo((LPCTSTR)static_cast<LPCITEMIDLIST>(pItem->pidlFull), 0, &sfi, sizeof(sfi), SHGFI_PIDL | SHGFI_DISPLAYNAME) ) {
             ::lstrcpy(lpdi->item.pszText, sfi.szDisplayName);
          }
       }
-      if( lpdi->item.mask & TVIF_IMAGE ) {
-         if( ::SHGetFileInfo((LPCTSTR)(LPCITEMIDLIST)pItem->pidlFull, 
-                             0, &sfi, sizeof(sfi), 
-                             SHGFI_PIDL | SHGFI_SYSICONINDEX | SHGFI_SMALLICON | SHGFI_LINKOVERLAY) ) {
+      if( (lpdi->item.mask & TVIF_IMAGE) != 0 ) {
+         if( ::SHGetFileInfo((LPCTSTR)static_cast<LPCITEMIDLIST>(pItem->pidlFull), 0, &sfi, sizeof(sfi), SHGFI_PIDL | SHGFI_SYSICONINDEX | SHGFI_SMALLICON | SHGFI_LINKOVERLAY) ) {
             lpdi->item.iImage = sfi.iIcon;
          }
       }
-      if( lpdi->item.mask & TVIF_SELECTEDIMAGE ) {
-         if( ::SHGetFileInfo((LPCTSTR)(LPCITEMIDLIST)pItem->pidlFull, 
-                             0, &sfi, sizeof(sfi), 
-                             SHGFI_PIDL | SHGFI_SYSICONINDEX | SHGFI_SMALLICON | SHGFI_OPENICON) ) {
+      if( (lpdi->item.mask & TVIF_SELECTEDIMAGE) != 0 ) {
+         if( ::SHGetFileInfo((LPCTSTR)static_cast<LPCITEMIDLIST>(pItem->pidlFull), 0, &sfi, sizeof(sfi), SHGFI_PIDL | SHGFI_SYSICONINDEX | SHGFI_SMALLICON | SHGFI_OPENICON) ) {
             lpdi->item.iSelectedImage = sfi.iIcon;
          }
       }
@@ -448,7 +441,7 @@ public:
       PSHELLITEMINFO pFolderItem = reinterpret_cast<PSHELLITEMINFO>(pnmtv->itemNew.lParam);
       CComPtr<IShellFolder> spFolder;
       if( pFolderItem->pidlNode != NULL ) {
-         if( FAILED(pFolderItem->spFolder->BindToObject(pFolderItem->pidlNode, NULL, IID_IShellFolder, (LPVOID*)&spFolder)) ) return FALSE;
+         if( FAILED(pFolderItem->spFolder->BindToObject(pFolderItem->pidlNode, NULL, IID_IShellFolder, (LPVOID*) &spFolder)) ) return FALSE;
       }
       else {
          spFolder = pFolderItem->spFolder;
@@ -457,10 +450,10 @@ public:
       // Add children
       CComPtr<IEnumIDList> spEnum;
       DWORD dwEnumFlags = SHCONTF_FOLDERS;
-      if( m_dwShellStyle & SCT_EX_SHOWHIDDEN ) dwEnumFlags |= SHCONTF_INCLUDEHIDDEN;
-      if( SUCCEEDED(spFolder->EnumObjects(NULL, dwEnumFlags, &spEnum)) ) {
+      if( (m_dwShellStyle & SCT_EX_SHOWHIDDEN) != 0 ) dwEnumFlags |= SHCONTF_INCLUDEHIDDEN;
+      if( SUCCEEDED(spFolder->EnumObjects(NULL, dwEnumFlags, &spEnum)) && (spEnum != NULL) ) {
          CPidl pidl;
-         DWORD  dwFetched;
+         DWORD  dwFetched = 0;
          while( (spEnum->Next(1, &pidl, &dwFetched) == S_OK) && (dwFetched > 0) ) {
             // Get attributes and filter some items
             DWORD dwAttribs = SFGAO_DISPLAYATTRMASK | SFGAO_HASSUBFOLDER;
@@ -471,11 +464,17 @@ public:
          }
       }
 
+      // No unfiltered children, then no expander either
+      if( GetChildItem(pnmtv->itemNew.hItem) == NULL ) {
+         TV_ITEM tvi = { TVIF_CHILDREN, pnmtv->itemNew.hItem, 0 };
+         GetItem(&tvi); tvi.cChildren = 0; SetItem(&tvi);
+      }
+
       // Sort children
-      TVSORTCB tvscb;
+      TVSORTCB tvscb = { 0 };
       tvscb.hParent = pnmtv->itemNew.hItem;
       tvscb.lpfnCompare = _SortFunc;
-      tvscb.lParam = (LPARAM) (IShellFolder*) spFolder;
+      tvscb.lParam = (LPARAM) static_cast<IShellFolder*>(spFolder);
       SortChildrenCB(&tvscb);
 
       bHandled = FALSE;
@@ -544,10 +543,10 @@ public:
 
       CComPtr<IEnumIDList> spEnum;
       DWORD dwEnumFlags = SHCONTF_FOLDERS | SHCONTF_NONFOLDERS;
-      if( m_dwShellStyle & SCT_EX_SHOWHIDDEN ) dwEnumFlags |= SHCONTF_INCLUDEHIDDEN;
-      if( SUCCEEDED(pFolder->EnumObjects(NULL, dwEnumFlags, &spEnum)) ) {
+      if( (m_dwShellStyle & SCT_EX_SHOWHIDDEN) != 0 ) dwEnumFlags |= SHCONTF_INCLUDEHIDDEN;
+      if( SUCCEEDED(pFolder->EnumObjects(NULL, dwEnumFlags, &spEnum)) && (spEnum != NULL) ) {
          CPidl pidl;
-         DWORD dwFetched;
+         DWORD dwFetched = 0;
          while( (spEnum->Next(1, &pidl, &dwFetched) == S_OK) && (dwFetched > 0) ) {
             // Get attributes and filter some items
             DWORD dwAttribs = SFGAO_DISPLAYATTRMASK;
@@ -566,8 +565,7 @@ public:
       return TRUE;
    }
 
-   int _InsertItem(IShellFolder* pFolder, LPCITEMIDLIST pidlPath, LPCITEMIDLIST pidlNode, 
-                   DWORD dwAttribs)
+   int _InsertItem(IShellFolder* pFolder, LPCITEMIDLIST pidlPath, LPCITEMIDLIST pidlNode, DWORD dwAttribs)
    {
       ATLASSERT(pFolder);
       ATLASSERT(pidlPath);
@@ -589,12 +587,12 @@ public:
       item.pszText = LPSTR_TEXTCALLBACK;
       item.iImage = I_IMAGECALLBACK;
       item.lParam = (LPARAM) pItem;
-      if( dwAttribs & SFGAO_SHARE ) {
+      if( (dwAttribs & SFGAO_SHARE) != 0 ) {
          item.mask |= LVIF_STATE;
          item.stateMask |= LVIS_OVERLAYMASK;
          item.state |= INDEXTOOVERLAYMASK(1);
       }
-      if( dwAttribs & SFGAO_LINK ) {
+      if( (dwAttribs & SFGAO_LINK) != 0 ) {
          item.mask |= LVIF_STATE;
          item.stateMask |= LVIS_OVERLAYMASK;
          item.state |= INDEXTOOVERLAYMASK(2);
@@ -626,7 +624,7 @@ public:
       LPNMLISTVIEW pnmlv = (LPNMLISTVIEW) pnmh;
       PSHELLITEMINFO pItem = reinterpret_cast<PSHELLITEMINFO>(pnmlv->lParam);
       ATLASSERT(pItem);
-      ATLTRY(delete pItem);
+      ATLTRY( delete pItem );
       return 0;
    }
 
@@ -635,17 +633,13 @@ public:
       NMLVDISPINFO* lpdi = (NMLVDISPINFO*) pnmh;
       PSHELLITEMINFO pItem = reinterpret_cast<PSHELLITEMINFO>(lpdi->item.lParam);
       SHFILEINFO sfi;
-      if( lpdi->item.mask & LVIF_TEXT ) {
-         if( ::SHGetFileInfo((LPCTSTR)(LPCITEMIDLIST)pItem->pidlFull, 
-                             0, &sfi, sizeof(sfi), 
-                             SHGFI_PIDL | SHGFI_DISPLAYNAME) ) {
+      if( (lpdi->item.mask & LVIF_TEXT) != 0 ) {
+         if( ::SHGetFileInfo((LPCTSTR)static_cast<LPCITEMIDLIST>(pItem->pidlFull), 0, &sfi, sizeof(sfi), SHGFI_PIDL | SHGFI_DISPLAYNAME) ) {
             ::lstrcpy(lpdi->item.pszText, sfi.szDisplayName);
          }
       }
-      if( lpdi->item.mask & LVIF_IMAGE ) {
-         if( ::SHGetFileInfo((LPCTSTR)(LPCITEMIDLIST)pItem->pidlFull, 
-                             0, &sfi, sizeof(sfi), 
-                             SHGFI_PIDL | SHGFI_SYSICONINDEX | SHGFI_SMALLICON | SHGFI_LINKOVERLAY) ) {
+      if( (lpdi->item.mask & LVIF_IMAGE) != 0 ) {
+         if( ::SHGetFileInfo((LPCTSTR)static_cast<LPCITEMIDLIST>(pItem->pidlFull), 0, &sfi, sizeof(sfi), SHGFI_PIDL | SHGFI_SYSICONINDEX | SHGFI_SMALLICON | SHGFI_LINKOVERLAY) ) {
             lpdi->item.iImage = sfi.iIcon;
          }
       }
@@ -709,9 +703,9 @@ public:
       CComPtr<IEnumIDList> spEnum;
       DWORD dwEnumFlags = SHCONTF_FOLDERS | SHCONTF_NONFOLDERS;
       if( m_dwShellStyle & SCT_EX_SHOWHIDDEN ) dwEnumFlags |= SHCONTF_INCLUDEHIDDEN;
-      if( SUCCEEDED(pFolder->EnumObjects(NULL, dwEnumFlags, &spEnum)) ) {
+      if( SUCCEEDED(pFolder->EnumObjects(NULL, dwEnumFlags, &spEnum)) && (spEnum != NULL) ) {
          CPidl pidl;
-         DWORD dwFetched;
+         DWORD dwFetched = 0;
          while( (spEnum->Next(1, &pidl, &dwFetched) == S_OK) && (dwFetched > 0) ) {
             // Get attributes and filter some items
             DWORD dwAttribs = 0;
@@ -726,15 +720,14 @@ public:
       return TRUE;
    }
 
-   int _InsertItem(IShellFolder* pFolder, LPCITEMIDLIST pidlPath, LPCITEMIDLIST pidlNode,
-                   DWORD dwAttribs, int iIndent)
+   int _InsertItem(IShellFolder* pFolder, LPCITEMIDLIST pidlPath, LPCITEMIDLIST pidlNode, DWORD dwAttribs, int iIndent)
    {
       ATLASSERT(pFolder);
       ATLASSERT(pidlPath);
 
       // Create PARAM data
-      PSHELLITEMINFO pItem;
-      ATLTRY(pItem = new SHELLITEMINFO);
+      PSHELLITEMINFO pItem = NULL;
+      ATLTRY( pItem = new SHELLITEMINFO );
       ATLASSERT(pItem);
       pItem->pidlFull.Copy( pidlPath );
       pItem->pidlFull.Concatenate( pidlNode );
@@ -767,7 +760,7 @@ public:
       NMCOMBOBOXEX* pnmlv = (NMCOMBOBOXEX*) pnmh;
       PSHELLITEMINFO pItem = reinterpret_cast<PSHELLITEMINFO>(pnmlv->ceItem.lParam);
       ATLASSERT(pItem);
-      ATLTRY(delete pItem);
+      ATLTRY( delete pItem );
       return 0;
    }
 
@@ -776,24 +769,18 @@ public:
       PNMCOMBOBOXEX lpdi = (PNMCOMBOBOXEX) pnmh;
       PSHELLITEMINFO pItem = reinterpret_cast<PSHELLITEMINFO>(lpdi->ceItem.lParam);
       SHFILEINFO sfi;
-      if( lpdi->ceItem.mask & CBEIF_TEXT ) {
-         if( ::SHGetFileInfo((LPCTSTR)(LPCITEMIDLIST)pItem->pidlFull, 
-                             0, &sfi, sizeof(sfi), 
-                             SHGFI_PIDL | SHGFI_DISPLAYNAME) ) {
+      if( (lpdi->ceItem.mask & CBEIF_TEXT) != 0 ) {
+         if( ::SHGetFileInfo((LPCTSTR)static_cast<LPCITEMIDLIST>(pItem->pidlFull), 0, &sfi, sizeof(sfi), SHGFI_PIDL | SHGFI_DISPLAYNAME) ) {
             ::lstrcpy(lpdi->ceItem.pszText, sfi.szDisplayName);
          }
       }
-      if( lpdi->ceItem.mask & CBEIF_IMAGE ) {
-         if( ::SHGetFileInfo((LPCTSTR)(LPCITEMIDLIST)pItem->pidlFull, 
-                             0, &sfi, sizeof(sfi), 
-                             SHGFI_PIDL | SHGFI_SYSICONINDEX | SHGFI_SMALLICON | SHGFI_LINKOVERLAY) ) {
+      if( (lpdi->ceItem.mask & CBEIF_IMAGE) != 0 ) {
+         if( ::SHGetFileInfo((LPCTSTR)static_cast<LPCITEMIDLIST>(pItem->pidlFull), 0, &sfi, sizeof(sfi), SHGFI_PIDL | SHGFI_SYSICONINDEX | SHGFI_SMALLICON | SHGFI_LINKOVERLAY) ) {
             lpdi->ceItem.iImage = sfi.iIcon;
          }
       }
-      if( lpdi->ceItem.mask & CBEIF_SELECTEDIMAGE ) {
-         if( ::SHGetFileInfo((LPCTSTR)(LPCITEMIDLIST)pItem->pidlFull, 
-                             0, &sfi, sizeof(sfi), 
-                             SHGFI_PIDL | SHGFI_SYSICONINDEX | SHGFI_SMALLICON | SHGFI_OPENICON) ) {
+      if( (lpdi->ceItem.mask & CBEIF_SELECTEDIMAGE) != 0 ) {
+         if( ::SHGetFileInfo((LPCTSTR)static_cast<LPCITEMIDLIST>(pItem->pidlFull), 0, &sfi, sizeof(sfi), SHGFI_PIDL | SHGFI_SYSICONINDEX | SHGFI_SMALLICON | SHGFI_OPENICON) ) {
             lpdi->ceItem.iSelectedImage = sfi.iIcon;
          }
       }

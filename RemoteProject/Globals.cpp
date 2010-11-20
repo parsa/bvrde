@@ -129,42 +129,16 @@ void GenerateError(IDevEnv* pDevEnv, HWND hWnd, UINT nErr, DWORD dwErr /*= (DWOR
 CString GetSystemErrorText(DWORD dwErr)
 {
    LPVOID lpMsgBuf = NULL;
-   ::FormatMessage( 
-       FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-       FORMAT_MESSAGE_FROM_SYSTEM | 
-       FORMAT_MESSAGE_IGNORE_INSERTS,
-       NULL,
-       dwErr,
-       0,
-       (LPTSTR) &lpMsgBuf,
-       0,
-       NULL);
-   if( lpMsgBuf == NULL ) 
-   {
-      static LPCTSTR pstrModules[] = 
-      { 
-         _T("WININET"), 
-         _T("WSOCK32"), 
-         NULL 
-      };
-      for( LPCTSTR* ppstr = pstrModules; lpMsgBuf == NULL && *ppstr; ppstr++ ) {
-         ::FormatMessage( 
-             FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-             FORMAT_MESSAGE_FROM_HMODULE | 
-             FORMAT_MESSAGE_IGNORE_INSERTS,
-             ::GetModuleHandle(*ppstr),
-             dwErr,
-             0,
-             (LPTSTR) &lpMsgBuf,
-             0,
-             NULL);
-      }
+   ::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwErr, 0, (LPTSTR) &lpMsgBuf, 0, NULL);
+   static LPCTSTR aModules[] = { _T("WININET"), _T("WSOCK32") };
+   for( int i = 0; i < sizeof(aModules) / sizeof(aModules[0]) && lpMsgBuf == NULL; i++ ) {
+      ::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS,::GetModuleHandle(aModules[i]), dwErr, 0, (LPTSTR) &lpMsgBuf, 0, NULL);
    }
    CString s = (LPCTSTR) lpMsgBuf;
    s.Remove('\r');
    s.Replace(_T("\n"), _T(" "));
    // Free the buffer.
-   if( lpMsgBuf ) ::LocalFree(lpMsgBuf);
+   if( lpMsgBuf != NULL ) ::LocalFree(lpMsgBuf);
    return s;
 }
 

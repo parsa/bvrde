@@ -109,7 +109,8 @@ UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR pstrFilename)
 {
    LPTSTR pstrExt = ::PathFindExtension(pstrFilename);
    if( pstrExt == NULL ) return 0;
-   LPCTSTR pstrExtensions[] =
+
+   static LPCTSTR aExtensions[] =
    {
       _T(".OBJ"),
       _T(".DAT"),
@@ -120,10 +121,8 @@ UINT WINAPI Plugin_QueryAcceptFile(LPCTSTR pstrFilename)
       _T(".A"),
       _T(".SO"),
    };
-   LPCTSTR* ppstr = pstrExtensions;
-   for( int i = 0; i < sizeof(pstrExtensions) / sizeof(LPCTSTR); i++ ) {
-      if( _tcsicmp(pstrExt, *ppstr) == 0 ) return 30;
-      ppstr++;
+   for( int i = 0; i < sizeof(aExtensions) / sizeof(aExtensions[0]); i++ ) {
+      if( _tcsicmp(pstrExt, aExtensions[i]) == 0 ) return 30;
    }
 
    // If it's a local file and it contains primarily binary data

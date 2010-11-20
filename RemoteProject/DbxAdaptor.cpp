@@ -348,8 +348,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
          LPCTSTR pstrCommand;
          DBXSTATE State;
          LPCTSTR pstrEmptyResult;
-      } cat[] = 
-      {
+      } aCat[] = {
          { _T("(dbx) runargs"),                DBX_RUNARGS,        _T("(gdb)") },
          { _T("(dbx) run"),                    DBX_RUNNING,        _T("(gdb)") },
          { _T("(dbx) cont"),                   DBX_RUNNING,        _T("(gdb)") },
@@ -377,10 +376,10 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
          { _T("(dbx)"),                        DBX_UNKNOWN,        _T("(gdb)") },
       };
       m_sReturnValue = _T("(gdb)");
-      for( int i = 0; i < sizeof(cat) / sizeof(cat[0]); i++ ) {
-         if( _tcsncmp(pstrOutput, cat[i].pstrCommand, _tcslen(cat[i].pstrCommand)) == 0 ) {
-            m_State = cat[i].State;
-            m_sReturnValue = cat[i].pstrEmptyResult;
+      for( int i = 0; i < sizeof(aCat) / sizeof(aCat[0]); i++ ) {
+         if( _tcsncmp(pstrOutput, aCat[i].pstrCommand, _tcslen(aCat[i].pstrCommand)) == 0 ) {
+            m_State = aCat[i].State;
+            m_sReturnValue = aCat[i].pstrEmptyResult;
             break;
          }
       }
@@ -397,8 +396,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
       sText.Replace(_T("\""), _T("\\\""));
       static struct {
          LPCTSTR pstrText;                                         LPCTSTR pstrResult;
-      } translate[] =
-      {
+      } aTranslate[] = {
          { _T("syntax error"),                                     _T("232^error,msg=\"Syntax Error. $$OUTPUT$$\"") },
          { _T("unreadable"),                                       _T("232^error,msg=\"Failed. $$OUTPUT$$\"") },
          { _T("in the scope"),                                     _T("232^error,msg=\"Failed. $$OUTPUT$$\"") },
@@ -413,8 +411,8 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
          { _T("no source compiled with -g"),                       _T("~\"No debugging symbols found. Compile with -g.\"") },
       };
       CString sMi = _T("232&\"$$OUTPUT$$\"");
-      for( int i = 0; i < sizeof(translate) / sizeof(translate[0]); i++ ) {
-         if( sText.Find(translate[i].pstrText) >= 0 ) sMi = translate[i].pstrResult;
+      for( int i = 0; i < sizeof(aTranslate) / sizeof(aTranslate[0]); i++ ) {
+         if( sText.Find(aTranslate[i].pstrText) >= 0 ) sMi = aTranslate[i].pstrResult;
       }
       sMi.Replace(_T("$$OUTPUT$$"), sText);
       aOutput.Add(sMi);

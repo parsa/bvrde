@@ -66,7 +66,7 @@ IProject* CMainFrame::_CreateSolutionWizard()
    CSolutionTypePage wndTypePage;
    wndTypePage.Init(g_pDevEnv, this);
    wndTypePage.Create();
-   wndTypePage.SetTitle((LPCTSTR)sCaption);
+   wndTypePage.SetTitle(static_cast<LPCTSTR>(sCaption));
    wndTypePage.SetHeaderTitle(sTitle);
    wndTypePage.SetHeaderSubTitle(sSubTitle);
 
@@ -91,7 +91,7 @@ IProject* CMainFrame::_CreateProjectWizard()
 
    CSolutionTypePage wndTypePage;
    wndTypePage.Init(g_pDevEnv, this);
-   wndTypePage.SetTitle((LPCTSTR)sCaption);
+   wndTypePage.SetTitle(static_cast<LPCTSTR>(sCaption));
    wndTypePage.SetHeaderTitle(sTitle);
    wndTypePage.SetHeaderSubTitle(sSubTitle);
 

@@ -208,10 +208,9 @@ void CShellManager::PreAuthenticatedLine(LPCTSTR pstrText)
    // Try to detect server type...
    if( m_sServerType.IsEmpty() ) 
    {
-      typedef struct tagOSTYPES {
+      static struct {
          LPCTSTR pstrToken; LPCTSTR pstrServerType;
-      } OSTYPES;
-      static OSTYPES aTypes[] = {
+      } aTypes[] = {
          { _T("Windows"),  _T("Windows") },
          { _T("Solaris"),  _T("Solaris") },
          { _T("SunOS"),    _T("Solaris") },
@@ -225,7 +224,7 @@ void CShellManager::PreAuthenticatedLine(LPCTSTR pstrText)
          { _T("UNIX"),     _T("UNIX") },
          { _T("HP-UX"),    _T("UNIX (HP-UX)") },
          { _T("FreeBSD"),  _T("FreeBSD") },
-         { _T("OpenBSD"),  _T("OpenBSD") }
+         { _T("OpenBSD"),  _T("OpenBSD") },
       };
       for( int i = 0; i < sizeof(aTypes) / sizeof(aTypes[0]); i++ ) {
          if( _tcsstr(pstrText, aTypes[i].pstrToken) != NULL ) m_sServerType = aTypes[i].pstrServerType;
