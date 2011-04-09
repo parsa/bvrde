@@ -332,7 +332,9 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
       m_bSeenPrompt = true;
       // Confused by running state?
       CString sOldReturnValue = m_sReturnValue;
-      if( m_State == DBX_RUNNING && m_sReturnValue == _T("(gdb)") ) m_sReturnValue = _T("232*stopped,");
+      if( m_State == DBX_RUNNING && m_sReturnValue == _T("(gdb)") ) {
+         m_sReturnValue = _T("232*stopped,");
+      }
       // Generate output.
       // Always generate the READY prompt.
       aOutput.Add(m_sReturnValue);
@@ -384,7 +386,9 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
          }
       }
       // Manually switch debugger to running state?
-      if( m_State == DBX_STOP && _tcsstr(pstrOutput, _T("; cont")) != NULL ) m_State = DBX_RUNNING;
+      if( m_State == DBX_STOP && _tcsstr(pstrOutput, _T("; cont")) != NULL ) {
+         m_State = DBX_RUNNING;
+      }
       if( m_State == DBX_RUNNING && sOldReturnValue == _T("(gdb)") ) {
          CString sMi = _T("232^running,");
          aOutput.Add(sMi);
@@ -549,6 +553,8 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
                DBXLOCATION Location;
                while( iIndex < aArgs.GetSize() ) _GetLocationArgs(aArgs, iIndex, Location);
                m_State = DBX_UNKNOWN;
+               _SanitizeGdbString(sReason);
+               _SanitizeGdbString(Location.sFile);
                sMi.Format(_T("232*stopped,reason=\"%s\",%sframe={func=\"%s\",file=\"%s\",addr=\"%s\",line=\"%ld\"}"), 
                   sReason, sReasonValue, Location.sFunction, Location.sFile, Location.sAddress, Location.lLineNum);
                aOutput.Add(sMi);
@@ -612,6 +618,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             if( Location.sFunction == _T("current") ) break;
             if( Location.sFunction.Find(_T("--")) >= 0 ) break;
             while( iIndex < aArgs.GetSize() ) _GetLocationArgs(aArgs, iIndex, Location);
+            _SanitizeGdbString(Location.sFile);
             CString sTemp;
             sTemp.Format(_T("frame={level=\"%ld\",addr=\"%s\",func=\"%s\",file=\"%s\",line=\"%ld\"}"), 
                lLevel, Location.sAddress, Location.sFunction, Location.sFile, Location.lLineNum);
@@ -823,6 +830,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             _GetLocationArgs(aArgs, iIndex, Location);
             CString sEnabled = _T("y");
             if( _SkipArg(aArgs, iIndex, _T("-disable")) ) sEnabled = _T("n");
+            _SanitizeGdbString(Location.sFile);
             CString sTemp;
             sTemp.Format(_T("bkpt={number=\"%ld\",type=\"breakpoint\",disp=\"keep\",enabled=\"%s\",addr=\"%s\",func=\"%s\",file=\"%s\",line=\"%ld\",times=\"0\"}"), 
                lBreakpointNo, sEnabled, Location.sAddress, Location.sFunction, Location.sFile, Location.lLineNum);
@@ -837,6 +845,7 @@ void CDbxAdaptor::TransformOutput(LPCTSTR pstrOutput, CSimpleArray<CString>& aOu
             if( !_SkipArg(aArgs, iIndex, _T("stop")) ) break;
             DBXLOCATION Location;
             _GetLocationArgs(aArgs, iIndex, Location);
+            _SanitizeGdbString(Location.sFile);
             sMi.Format(_T("232^done,bkpt={number=\"%ld\",file=\"%s\",line=\"%ld\"}"), lBreakpointNo, Location.sFile, Location.lLineNum);
             aOutput.Add(sMi);
          }
